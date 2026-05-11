@@ -48,6 +48,9 @@ public enum class TiffDirectoryType(
     ),
     EXIF_DIRECTORY_MAKER_NOTE_NIKON(
         TiffConstants.TIFF_MAKER_NOTE_NIKON, "MakerNoteNikon", false
+    ),
+    EXIF_DIRECTORY_MAKER_NOTE_FUJIFILM(
+        TiffConstants.TIFF_MAKER_NOTE_FUJIFILM, "MakerNoteFujiFilm", false
     );
 
     override fun toString(): String =

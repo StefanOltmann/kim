@@ -19,6 +19,7 @@ package de.stefan_oltmann.kim.format.tiff
 import de.stefan_oltmann.kim.format.tiff.constant.CanonTag
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag.EXIF_DIRECTORY_UNKNOWN
+import de.stefan_oltmann.kim.format.tiff.constant.FujiFilmTag
 import de.stefan_oltmann.kim.format.tiff.constant.GeoTiffTag
 import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.format.tiff.constant.NikonTag
@@ -35,6 +36,7 @@ internal object TiffTags {
     private val GPS_TAGS_MAP = GpsTag.ALL.groupByTo(mutableMapOf()) { it.tag }
     private val CANON_TAGS_MAP = CanonTag.ALL.groupByTo(mutableMapOf()) { it.tag }
     private val NIKON_TAGS_MAP = NikonTag.ALL.groupByTo(mutableMapOf()) { it.tag }
+    private val FUJIFILM_TAGS_MAP = FujiFilmTag.ALL.groupByTo(mutableMapOf()) { it.tag }
 
     fun getTag(directoryType: Int, tag: Int): TagInfo? {
 
@@ -46,6 +48,7 @@ internal object TiffTags {
             TiffConstants.TIFF_DIRECTORY_GPS -> GPS_TAGS_MAP[tag]
             TiffConstants.TIFF_MAKER_NOTE_CANON -> CANON_TAGS_MAP[tag]
             TiffConstants.TIFF_MAKER_NOTE_NIKON -> NIKON_TAGS_MAP[tag]
+            TiffConstants.TIFF_MAKER_NOTE_FUJIFILM -> FUJIFILM_TAGS_MAP[tag]
             else -> TIFF_AND_EXIF_TAGS_MAP[tag]
         } ?: return null
 

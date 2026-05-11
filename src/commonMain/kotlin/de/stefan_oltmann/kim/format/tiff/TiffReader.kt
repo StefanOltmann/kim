@@ -51,6 +51,7 @@ import kotlin.jvm.JvmStatic
 public object TiffReader {
 
     internal const val NIKON_MAKER_NOTE_SIGNATURE = "Nikon\u0000"
+    internal const val FUJIFILM_MAKER_NOTE_SIGNATURE = "FUJIFILM"
 
     private val offsetFields = listOf(
         ExifTag.EXIF_TAG_EXIF_OFFSET,
@@ -530,11 +531,13 @@ public object TiffReader {
 
                 return makerNoteDirectory
 
-            } catch (ignore: Exception) {
+            } catch (e: Exception) {
                 /*
                  * Be silent here.
                  * MakerNote support is experimental.
                  */
+                println("DEBUG: Exception parsing FujiFilm MakerNote: ${e.message}")
+                e.printStackTrace()
             }
         }
 
@@ -599,6 +602,49 @@ public object TiffReader {
                 readTiffImageBytes = false,
                 addDirectory = addDirectory
             )
+        }
+
+        if (make != null && make.contains("FUJIFILM", ignoreCase = true)) {
+
+            try {
+                byteReader.reset()
+                byteReader.skipBytes("offset", makerNoteValueOffset)
+
+                val fujiSignature = byteReader.readBytes(
+                    fieldName = "FujiFilm MakerNote signature",
+                    count = FUJIFILM_MAKER_NOTE_SIGNATURE.length
+                ).decodeToString()
+
+                val fujiSignatureMatched = fujiSignature == FUJIFILM_MAKER_NOTE_SIGNATURE
+
+                if (!fujiSignatureMatched)
+                    return
+
+                /* 
+                 * Skip version (4 bytes).
+                 * The IFD starts immediately after the version bytes.
+                 * Fuji MakerNote IFD uses little-endian byte order.
+                 */
+                byteReader.skipBytes("version", 4)
+
+                /* IFD starts at offset 12 from the beginning of MakerNote data */
+                val ifdOffset = 12
+
+                readDirectory(
+                    byteReader = byteReader,
+                    byteOrder = ByteOrder.LITTLE_ENDIAN,
+                    directoryOffset = makerNoteValueOffset + ifdOffset,
+                    directoryType = TiffConstants.TIFF_MAKER_NOTE_FUJIFILM,
+                    visitedOffsets = mutableListOf<Int>(),
+                    readTiffImageBytes = false,
+                    addDirectory = addDirectory
+                )
+            } catch (ignore: Exception) {
+                /*
+                 * Be silent here.
+                 * MakerNote support is experimental.
+                 */
+            }
         }
     }
 

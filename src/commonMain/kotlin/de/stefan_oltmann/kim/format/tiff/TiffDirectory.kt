@@ -285,6 +285,7 @@ public class TiffDirectory(
                 TiffConstants.TIFF_DIRECTORY_INTEROP -> "InteropIFD"
                 TiffConstants.TIFF_MAKER_NOTE_CANON -> "MakerNoteCanon"
                 TiffConstants.TIFF_MAKER_NOTE_NIKON -> "MakerNoteNikon"
+                TiffConstants.TIFF_MAKER_NOTE_FUJIFILM -> "MakerNoteFujiFilm"
                 else -> "Unknown type $type"
             }
         }

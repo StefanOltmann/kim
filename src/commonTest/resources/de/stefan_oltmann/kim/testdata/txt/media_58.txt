@@ -79,6 +79,75 @@ Little-endian (Intel, II)
 0000003484 0x0202 JpgFromRawLength = 9457
 0000003496 0x0213 YCbCrPositioning = 2
 
+---- Directory MakerNoteFujiFilm @ 2188 ----
+0000002202 0x0010 InternalSerialNumber =                                                 
+0000002214 0x0020 Unknown =       
+0000002226 0x1000 Quality =         
+0000002238 0x1001 Sharpness = 5
+0000002250 0x1002 WhiteBalance = 0
+0000002262 0x1003 Saturation = 256
+0000002274 0x100a Unknown = [538976288, 538976288]
+0000002286 0x100b Unknown = 256
+0000002298 0x100e Unknown = 0
+0000002310 0x100f Unknown = 0
+0000002322 0x1010 Unknown = -26560
+0000002334 0x1011 Unknown = 538976288/538976288 (1.0)
+0000002346 0x1021 Unknown = 0
+0000002358 0x1022 Unknown = 512
+0000002370 0x1023 Unknown = [2207, 1371]
+0000002382 0x1025 Unknown = 720953
+0000002394 0x1026 Unknown = 16
+0000002406 0x102b Unknown = 18
+0000002418 0x102c Unknown = 131073
+0000002430 0x102d Unknown = 530
+0000002442 0x102e Unknown = 258
+0000002454 0x1030 Unknown = 0
+0000002466 0x1031 Unknown = 256
+0000002478 0x1032 Unknown = 1
+0000002490 0x1040 Unknown = 0
+0000002502 0x1041 Unknown = 0
+0000002514 0x1045 Unknown = 1
+0000002526 0x1046 Unknown = 1
+0000002538 0x1047 Unknown = 0
+0000002550 0x1048 Unknown = 0
+0000002562 0x104c Unknown = 0
+0000002574 0x104d Unknown = 0
+0000002586 0x104e Unknown = 0
+0000002598 0x1050 Unknown = 0
+0000002610 0x1100 Unknown = 1
+0000002622 0x1101 Unknown = 1
+0000002634 0x1103 Unknown = 134284033
+0000002646 0x1200 Unknown = 0
+0000002658 0x1300 Unknown = 1
+0000002670 0x1301 Unknown = 0
+0000002682 0x1302 Unknown = 0
+0000002694 0x1303 Unknown = 0
+0000002706 0x1304 Unknown = 0
+0000002718 0x1305 Unknown = 0
+0000002730 0x1400 DynamicRange = 1
+0000002742 0x1401 FilmMode = 0
+0000002754 0x1402 DynamicRangeSetting = 1
+0000002766 0x1403 Unknown = 100
+0000002778 0x1404 Unknown = 538976288/538976288 (1.0)
+0000002790 0x1405 Unknown = 538976288/538976288 (1.0)
+0000002802 0x1406 Unknown = 538976288/538976288 (1.0)
+0000002814 0x1407 Unknown = 538976288/538976288 (1.0)
+0000002826 0x1408 Unknown = [0x30, 0x33, 0x30, 0x30]
+0000002838 0x1409 Unknown = [0x30, 0x31, 0x30, 0x30]
+0000002850 0x140a Unknown = 19
+0000002862 0x1422 Unknown = [8224, 8224, 8224]
+0000002874 0x1424 Unknown = 4096
+0000002886 0x1430 Unknown = [129 bytes]
+0000002898 0x1436 Unknown = 0
+0000002910 0x1438 Unknown = 24817
+0000002922 0x1439 Unknown = '
+0000002934 0x1442 Unknown = 0
+0000002946 0x1446 Unknown = 16
+0000002958 0x1447 Unknown = 
+0000002970 0x1448 Unknown = 
+0000002982 0x4100 Unknown = 0
+0000002994 0x4200 Unknown = 0
+
 ---- XMP ----
 <?xpacket begin='﻿' id='W5M0MpCehiHzreSzNTczkc9d'?>
 <x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:xmp="http://ns.adobe.com/xap/1.0/"><xmp:Rating>0</xmp:Rating></rdf:Description></rdf:RDF></x:xmpmeta>

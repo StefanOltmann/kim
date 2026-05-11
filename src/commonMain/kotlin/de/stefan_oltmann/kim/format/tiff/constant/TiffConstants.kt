@@ -61,6 +61,7 @@ public object TiffConstants {
     /* Artificial MakerNote directores */
     public const val TIFF_MAKER_NOTE_CANON: Int = -101
     public const val TIFF_MAKER_NOTE_NIKON: Int = -102
+    public const val TIFF_MAKER_NOTE_FUJIFILM: Int = -103
 
     public const val FIELD_TYPE_BYTE_INDEX: Int = 1
     public const val FIELD_TYPE_ASCII_INDEX: Int = 2

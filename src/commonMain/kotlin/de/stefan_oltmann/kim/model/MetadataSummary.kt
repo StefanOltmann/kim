@@ -46,6 +46,9 @@ public data class MetadataSummary(
     val fNumber: Double? = null,
     val focalLength: Double? = null,
 
+    /* Film simulation (Fujifilm specific) */
+    val filmSimulation: String? = null,
+
     /* Title & Description */
     val title: String? = null,
     val description: String? = null,
@@ -139,6 +142,9 @@ public data class MetadataSummary(
             exposureTime = exposureTime ?: other.exposureTime,
             fNumber = fNumber ?: other.fNumber,
             focalLength = focalLength ?: other.focalLength,
+
+            /* Film simulation (Fujifilm specific) */
+            filmSimulation = filmSimulation ?: other.filmSimulation,
 
             /* Title & Description */
             title = title ?: other.title,
