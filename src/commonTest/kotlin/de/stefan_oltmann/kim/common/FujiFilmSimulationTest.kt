@@ -25,7 +25,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 /**
  * Tests for Fujifilm Film Simulation reading functionality.
@@ -69,8 +68,8 @@ class FujiFilmSimulationTest {
 
         /* Check that MakerNote directory was parsed (may have 0 entries) */
         val makerNoteDir = metadata.exif?.makerNoteDirectory
-        
-        /* 
+
+        /*
          * The MakerNote directory should be present for FujiFilm cameras.
          * Note: Some test files may have empty MakerNote IFD (0 entries),
          * but the directory should still be created with the correct type.
@@ -82,7 +81,7 @@ class FujiFilmSimulationTest {
                 makerNoteDir.type,
                 "Directory type should be FujiFilm MakerNote"
             )
-            
+
             /* The directory may have 0 entries if the MakerNote IFD is empty */
             println("MakerNote directory found with ${makerNoteDir.entries.size} entries")
         } else {
@@ -113,14 +112,14 @@ class FujiFilmSimulationTest {
         val summary = metadata.convertToSummary()
         assertNotNull(summary)
 
-        /* 
+        /*
          * Check that film simulation was extracted.
          * Note: The test file may have empty MakerNote, so filmSimulation may be null.
          * We just verify that the extraction logic runs without errors.
          */
         println("Extracted Film Simulation: ${summary.filmSimulation}")
-        
-        /* 
+
+        /*
          * If MakerNote directory exists and has entries, film simulation should be extracted.
          * If MakerNote directory is empty, film simulation will be null.
          */
@@ -194,16 +193,16 @@ class FujiFilmSimulationTest {
      */
     @Test
     fun testFilmSimulationLogic() {
-        
+
         /* Verify that getFilmModeName returns correct values for known film modes */
         assertEquals("Provia/Standard", FujiFilmTag.getFilmModeName(0x000))
         assertEquals("Classic Chrome", FujiFilmTag.getFilmModeName(0x600))
         assertEquals("Classic Negative", FujiFilmTag.getFilmModeName(0x800))
-        
+
         /* Verify that getFilmModeName returns null for unknown values */
         assertNull(FujiFilmTag.getFilmModeName(0x999))
         assertNull(FujiFilmTag.getFilmModeName(-1))
-        
+
         /* Verify that the tag info is correctly configured */
         assertEquals(FujiFilmTag.FILM_MODE.tag, 0x1401)
         assertEquals(FujiFilmTag.FILM_MODE.name, "FilmMode")

@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.stefan_oltmann.kim.format.tiff.constant
+package de.stefan_oltmann.kim.format.tiff
 
+import de.stefan_oltmann.kim.format.tiff.constant.FujiFilmTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
 import kotlin.test.Test
 import kotlin.test.assertEquals

@@ -1,22 +1,21 @@
 [versions]
-kotlin = "2.3.20"
-android-gradle = "8.13.2"
-android-compile-sdk = "36"
-android-build-tools = "36.0.0"
+kotlin = "2.4.0"
+android-gradle = "9.2.0"
+android-compile-sdk = "37"
 android-min-sdk = "21"
 detekt = "1.23.8"
 kover = "0.9.8"
-build-time-tracker = "5.0.1"
+build-time-tracker = "5.0.2"
 git-versioning = "6.4.4"
 resources = "0.15.0"
-versions-plugin = "0.53.0"
-maven-publish = "0.36.0"
+versions-plugin = "0.54.0"
+maven-publish = "0.37.0"
 
-ktor = "3.4.2"
-xmpcore = "1.7.0"
-kotlinx-datetime = "0.7.1"
-kotlinx-io = "0.9.0"
-kotlinx-browser = "0.3"
+ktor = "3.5.1"
+xmpcore = "1.7.1"
+kotlinx-datetime = "0.8.0"
+kotlinx-io = "0.9.1"
+kotlinx-browser = "0.5.0"
 pako = "2.1.0"
 
 [libraries]
@@ -30,7 +29,7 @@ resources = { module = "com.goncalossilva:resources", version.ref = "resources" 
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-android-library = { id = "com.android.library", version.ref = "android-gradle" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "android-gradle" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 build-time-tracker = { id = "com.asarkar.gradle.build-time-tracker", version.ref = "build-time-tracker" }

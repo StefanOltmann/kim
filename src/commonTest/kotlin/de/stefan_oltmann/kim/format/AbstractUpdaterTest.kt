@@ -25,6 +25,7 @@ import de.stefan_oltmann.kim.model.LocationShown
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.fail
@@ -361,11 +362,15 @@ abstract class AbstractUpdaterTest(
 
         if (!equals) {
 
-            Path("build/$fileName")
+            val parentDir = Path("build/updates_$format")
+
+            SystemFileSystem.createDirectories(parentDir)
+
+            Path(parentDir, fileName)
                 .writeBytes(actualBytes)
 
             /* Also write a string representation to see differences more quickly. */
-            Path("build/$fileName.txt")
+            Path(parentDir, "$fileName.txt")
                 .writeBytes(Kim.readMetadata(actualBytes).toString().encodeToByteArray())
 
             fail("Photo $fileName has not the expected bytes!")
