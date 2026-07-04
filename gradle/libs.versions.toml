@@ -16,6 +16,7 @@ xmpcore = "1.7.1"
 kotlinx-datetime = "0.8.0"
 kotlinx-io = "0.9.1"
 kotlinx-browser = "0.5.0"
+kompress = "2.2.0"
 pako = "2.1.0"
 
 [libraries]
@@ -26,6 +27,7 @@ ktor-io = { module = "io.ktor:ktor-io", version.ref = "ktor" }
 kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlinx-browser" }
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 resources = { module = "com.goncalossilva:resources", version.ref = "resources" }
+kompress = { module = "dev.karmakrafts.kompress:kompress-core", version.ref = "kompress" }
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
