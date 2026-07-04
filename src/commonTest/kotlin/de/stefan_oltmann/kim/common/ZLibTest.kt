@@ -116,14 +116,14 @@ class ZLibTest {
     fun testCompress() {
 
         for (entry in zlibTestData)
-            assertContentEquals(entry.value, compress(entry.key))
+            assertContentEquals(entry.value, compress2(entry.key))
     }
 
     @Test
     fun testDecompress() {
 
         for (entry in zlibTestData)
-            assertEquals(entry.key, decompress(entry.value))
+            assertEquals(entry.key, decompress2(entry.value))
     }
 
     @Test

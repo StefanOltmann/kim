@@ -15,6 +15,15 @@
  */
 package de.stefan_oltmann.kim.common
 
+import dev.karmakrafts.kompress.deflate.Deflater
+import dev.karmakrafts.kompress.deflate.Inflater
+
 internal expect fun compress(input: String): ByteArray
 
 internal expect fun decompress(byteArray: ByteArray): String
+
+internal fun compress2(input: String): ByteArray =
+    Deflater.compress(input.encodeToByteArray())
+
+internal fun decompress2(byteArray: ByteArray): String =
+    Inflater.decompress(byteArray).decodeToString()
