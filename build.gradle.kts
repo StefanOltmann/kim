@@ -136,7 +136,9 @@ kotlin {
     js()
 
     @OptIn(ExperimentalWasmDsl::class)
-    wasmJs()
+    wasmJs {
+        browser()
+    }
 
 //    @OptIn(ExperimentalWasmDsl::class)
 //    wasmWasi()
