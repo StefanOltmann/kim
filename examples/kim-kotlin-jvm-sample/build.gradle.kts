@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.0.0"
+    kotlin("jvm") version "2.4.10"
 }
 
 group = "de.stefan-oltmann"
@@ -10,5 +10,5 @@ repositories {
 }
 
 dependencies {
-    implementation("de.stefan-oltmann:kim:0.27.0")
+    implementation("de.stefan-oltmann:kim:0.32.0")
 }

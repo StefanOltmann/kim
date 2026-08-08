@@ -1,5 +1,5 @@
 import de.stefan_oltmann.kim.Kim;
-import de.stefan_oltmann.kim.format.ImageMetadata;
+import de.stefan_oltmann.kim.format.MediaMetadata;
 import de.stefan_oltmann.kim.input.ByteReader;
 import de.stefan_oltmann.kim.input.JvmInputStreamByteReader;
 import de.stefan_oltmann.kim.jvm.KimJvm;
@@ -17,7 +17,7 @@ public class Main {
 
         File testFile = new File("testphoto.jpg");
 
-        ImageMetadata imageMetadata = KimJvm.readMetadata(testFile);
+        MediaMetadata imageMetadata = KimJvm.readMetadata(testFile);
 
         System.out.println(imageMetadata);
 
