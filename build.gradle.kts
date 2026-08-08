@@ -23,6 +23,8 @@ repositories {
 
 val productName: String = "Kim"
 
+private val mainEntryPoint = "de.stefan_oltmann.kim.main"
+
 group = "de.stefan_oltmann.kim"
 description = "Kotlin Image Metadata manipulation library"
 version = "0.0.0"
@@ -45,8 +47,6 @@ gitVersioning.apply {
         version = "\${commit.short}"
     }
 }
-
-apply(plugin = "io.gitlab.arturbosch.detekt")
 
 buildTimeTracker {
     sortBy.set(com.asarkar.gradle.buildtimetracker.Sort.DESC)
@@ -95,7 +95,7 @@ kotlin {
         binaries {
             executable(setOf(NativeBuildType.RELEASE)) {
                 baseName = "kim"
-                entryPoint = "de.stefan_oltmann.kim.main"
+                entryPoint = mainEntryPoint
             }
             staticLib(namePrefix = "", setOf(NativeBuildType.RELEASE)) {
                 baseName = "kim"
@@ -106,7 +106,7 @@ kotlin {
     linuxX64 {
         binaries {
             executable(setOf(NativeBuildType.RELEASE)) {
-                entryPoint = "de.stefan_oltmann.kim.main"
+                entryPoint = mainEntryPoint
             }
             staticLib(namePrefix = "", setOf(NativeBuildType.RELEASE)) {
                 baseName = "kim"
@@ -117,7 +117,7 @@ kotlin {
     linuxArm64 {
         binaries {
             executable(setOf(NativeBuildType.RELEASE)) {
-                entryPoint = "de.stefan_oltmann.kim.main"
+                entryPoint = mainEntryPoint
             }
             staticLib(namePrefix = "", setOf(NativeBuildType.RELEASE)) {
                 baseName = "kim"
@@ -141,8 +141,7 @@ kotlin {
 //    @OptIn(ExperimentalWasmDsl::class)
 //    wasmWasi()
 
-    @Suppress("UnusedPrivateMember") // False positive
-    val commonMain by sourceSets.getting {
+    val commonMain = sourceSets.getByName("commonMain") {
 
         dependencies {
 
@@ -154,8 +153,7 @@ kotlin {
         }
     }
 
-    @Suppress("UnusedPrivateMember") // False positive
-    val commonTest by sourceSets.getting {
+    val commonTest = sourceSets.getByName("commonTest") {
         dependencies {
 
             /* Kotlin Test */
@@ -182,7 +180,7 @@ kotlin {
 
         it.binaries.executable(setOf(NativeBuildType.RELEASE)) {
             baseName = "kim"
-            entryPoint = "de.stefan_oltmann.kim.main"
+            entryPoint = mainEntryPoint
         }
 
         it.binaries.framework(
@@ -197,7 +195,7 @@ kotlin {
     /*
      * Extra sourceSet to exclude unsupported features from JS / wasmJS targets.
      */
-    val ktorMain by sourceSets.creating {
+    val ktorMain = sourceSets.create("ktorMain") {
 
         dependsOn(commonMain)
 
@@ -219,47 +217,41 @@ kotlin {
         }
     }
 
-    val posixMain by sourceSets.creating {
+    val posixMain = sourceSets.create("posixMain") {
 
         dependsOn(commonMain)
         dependsOn(ktorMain)
     }
 
-    @Suppress("UnusedPrivateMember") // False positive
-    val jvmMain by sourceSets.getting {
+    sourceSets.getByName("jvmMain") {
 
         dependsOn(commonMain)
         dependsOn(ktorMain)
     }
 
-    @Suppress("UnusedPrivateMember") // False positive
-    val androidMain by sourceSets.getting {
+    sourceSets.getByName("androidMain") {
 
         dependsOn(commonMain)
         dependsOn(ktorMain)
     }
 
-    @Suppress("UnusedPrivateMember") // False positive
-    val winMain by sourceSets.getting {
+    sourceSets.getByName("winMain") {
         dependsOn(posixMain)
     }
 
-    @Suppress("UnusedPrivateMember") // False positive
-    val linuxX64Main by sourceSets.getting {
+    sourceSets.getByName("linuxX64Main") {
         dependsOn(posixMain)
     }
 
-    @Suppress("UnusedPrivateMember") // False positive
-    val linuxArm64Main by sourceSets.getting {
+    sourceSets.getByName("linuxArm64Main") {
         dependsOn(posixMain)
     }
 
-    val iosArm64Main by sourceSets.getting
-    val iosSimulatorArm64Main by sourceSets.getting
-    val macosArm64Main by sourceSets.getting
+    val iosArm64Main = sourceSets.getByName("iosArm64Main")
+    val iosSimulatorArm64Main = sourceSets.getByName("iosSimulatorArm64Main")
+    val macosArm64Main = sourceSets.getByName("macosArm64Main")
 
-    @Suppress("UnusedPrivateMember") // False positive
-    val appleMain by sourceSets.creating {
+    sourceSets.create("appleMain") {
 
         dependsOn(commonMain)
         dependsOn(ktorMain)
@@ -270,12 +262,11 @@ kotlin {
         macosArm64Main.dependsOn(this)
     }
 
-    val iosArm64Test by sourceSets.getting
-    val iosSimulatorArm64Test by sourceSets.getting
-    val macosArm64Test by sourceSets.getting
+    val iosArm64Test = sourceSets.getByName("iosArm64Test")
+    val iosSimulatorArm64Test = sourceSets.getByName("iosSimulatorArm64Test")
+    val macosArm64Test = sourceSets.getByName("macosArm64Test")
 
-    @Suppress("UnusedPrivateMember") // False positive
-    val appleTest by sourceSets.creating {
+    sourceSets.create("appleTest") {
 
         dependsOn(commonTest)
 
@@ -284,8 +275,7 @@ kotlin {
         macosArm64Test.dependsOn(this)
     }
 
-    @Suppress("UnusedPrivateMember") // False positive
-    val jsMain by sourceSets.getting {
+    sourceSets.getByName("jsMain") {
 
         dependsOn(commonMain)
 
@@ -294,11 +284,10 @@ kotlin {
         }
     }
 
-    val wasmJsMain by sourceSets.getting
+    val wasmJsMain = sourceSets.getByName("wasmJsMain")
     // val wasmWasiMain by sourceSets.getting
 
-    @Suppress("UnusedPrivateMember") // False positive
-    val wasmMain by sourceSets.creating {
+    sourceSets.create("wasmMain") {
 
         dependsOn(commonMain)
 
@@ -316,6 +305,8 @@ kotlin {
 
 // region Writing version.txt for GitHub Actions
 val writeVersion: TaskProvider<Task> = tasks.register("writeVersion") {
+    group = "build"
+    description = "Writes the current project version to build/version.txt"
     doLast {
         File("build/version.txt").writeText(project.version.toString())
     }
