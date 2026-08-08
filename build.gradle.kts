@@ -174,8 +174,6 @@ kotlin {
     listOf(
         /* App Store */
         iosArm64(),
-        /* Apple Intel iOS Simulator */
-        iosX64(),
         /* Apple Silicon iOS Simulator */
         iosSimulatorArm64(),
         /* macOS Devices */
@@ -257,7 +255,6 @@ kotlin {
     }
 
     val iosArm64Main by sourceSets.getting
-    val iosX64Main by sourceSets.getting
     val iosSimulatorArm64Main by sourceSets.getting
     val macosArm64Main by sourceSets.getting
 
@@ -269,13 +266,11 @@ kotlin {
         dependsOn(posixMain)
 
         iosArm64Main.dependsOn(this)
-        iosX64Main.dependsOn(this)
         iosSimulatorArm64Main.dependsOn(this)
         macosArm64Main.dependsOn(this)
     }
 
     val iosArm64Test by sourceSets.getting
-    val iosX64Test by sourceSets.getting
     val iosSimulatorArm64Test by sourceSets.getting
     val macosArm64Test by sourceSets.getting
 
@@ -285,7 +280,6 @@ kotlin {
         dependsOn(commonTest)
 
         iosArm64Test.dependsOn(this)
-        iosX64Test.dependsOn(this)
         iosSimulatorArm64Test.dependsOn(this)
         macosArm64Test.dependsOn(this)
     }
