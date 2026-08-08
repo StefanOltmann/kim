@@ -16,7 +16,7 @@
  */
 package de.stefan_oltmann.kim.input
 
-public interface ByteReader : Closeable {
+public interface ByteReader : AutoCloseable {
 
     public val contentLength: Long
 

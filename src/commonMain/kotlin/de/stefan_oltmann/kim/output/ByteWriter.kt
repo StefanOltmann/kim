@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,9 +16,7 @@
  */
 package de.stefan_oltmann.kim.output
 
-import de.stefan_oltmann.kim.input.Closeable
-
-public interface ByteWriter : Closeable {
+public interface ByteWriter : AutoCloseable {
 
     public fun write(byte: Byte)
 
