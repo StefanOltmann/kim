@@ -1,17 +1,16 @@
 [versions]
-kotlin = "2.4.0"
-android-gradle = "9.2.0"
+kotlin = "2.4.10"
+android-gradle = "9.3.0"
 android-compile-sdk = "37"
 android-min-sdk = "21"
 detekt = "1.23.8"
-kover = "0.9.8"
+kover = "0.9.9"
 build-time-tracker = "5.0.2"
 git-versioning = "6.4.4"
 resources = "0.15.0"
-versions-plugin = "0.54.0"
+versions-plugin = "0.60.0"
 maven-publish = "0.37.0"
-
-ktor = "3.5.1"
+ktor = "3.5.2"
 xmpcore = "1.7.1"
 kotlinx-datetime = "0.8.0"
 kotlinx-io = "0.9.1"
@@ -35,5 +34,5 @@ kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 build-time-tracker = { id = "com.asarkar.gradle.build-time-tracker", version.ref = "build-time-tracker" }
 git-versioning = { id = "me.qoomon.git-versioning", version.ref = "git-versioning" }
 resources = { id = "com.goncalossilva.resources", version.ref = "resources" }
-versions = { id = "com.github.ben-manes.versions", version.ref = "versions-plugin" }
+versions = { id = "io.github.ben-manes.versions", version.ref = "versions-plugin" }
 maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }
