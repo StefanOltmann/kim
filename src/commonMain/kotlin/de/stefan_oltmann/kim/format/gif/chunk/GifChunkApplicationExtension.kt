@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ramon Bouckaert
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +25,7 @@ import de.stefan_oltmann.kim.input.readBytes
 
 public class GifChunkApplicationExtension(
     header: ByteArray,
-    subChunks: List<ByteArray>
+    private val subChunks: List<ByteArray>
 ) : GifChunk(
     GifChunkType.APPLICATION_EXTENSION,
     subChunks
@@ -67,14 +68,25 @@ public class GifChunkApplicationExtension(
 
     public fun parseAsXmpOrThrow(): String {
 
-        /*
-         * XMP data is stored unchunked, and instead is terminated by a huge "magic trailer".
-         * It is easier to just parse the whole thing as a string and then manually extract the XMP data.
-         */
         val extensionContentAsString = try {
-            bytes.decodeToString()
-        } catch (e: CharacterCodingException) {
-            throw ImageReadException("Failed to decode application extension bytes as string.", e)
+
+            /*
+             * The XMP payload is spread over size-prefixed sub-blocks.
+             * Strip the size bytes and search the payload.
+             * Fall back to the raw bytes for files written without
+             * sub-block framing, where the size bytes are part of the data.
+             */
+            val unpackedContent = subChunks
+                .map { subChunk -> subChunk.copyOfRange(1, subChunk.size).decodeToString() }
+                .joinToString("")
+
+            if (unpackedContent.contains("<x:xmpmeta"))
+                unpackedContent
+            else
+                bytes.decodeToString()
+
+        } catch (ex: CharacterCodingException) {
+            throw ImageReadException("Failed to decode application extension bytes as string.", ex)
         }
 
         if (!extensionContentAsString.contains("<x:xmpmeta"))

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ramon Bouckaert
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,10 +72,32 @@ public object GifWriter {
         byteWriter.write((GifConstants.XMP_APPLICATION_IDENTIFIER + GifConstants.XMP_APPLICATION_CODE).length)
         byteWriter.writeString(GifConstants.XMP_APPLICATION_IDENTIFIER)
         byteWriter.writeString(GifConstants.XMP_APPLICATION_CODE)
-        byteWriter.writeString(xmpXml)
 
+        /*
+         * The XMP payload is written in size-prefixed sub-blocks of at most
+         * 255 bytes, as required by the GIF89a application extension format.
+         */
+        val xmpBytes = xmpXml.encodeToByteArray()
+
+        for (offset in xmpBytes.indices step GifConstants.GIF_MAX_SUB_BLOCK_SIZE) {
+
+            val endIndex = minOf(offset + GifConstants.GIF_MAX_SUB_BLOCK_SIZE, xmpBytes.size)
+
+            writeSubBlock(byteWriter, xmpBytes.copyOfRange(offset, endIndex))
+        }
+
+        /*
+         * The magic trailer starts with 0xFF and is therefore a valid
+         * 255-byte sub-block by itself.
+         */
         val magicTrailer = ByteArray(256) { (0xFF - it).toByte() }
         byteWriter.write(magicTrailer)
-        byteWriter.write(0x00)
+        byteWriter.write(GifConstants.BLOCK_TERMINATOR)
+    }
+
+    private fun writeSubBlock(byteWriter: ByteWriter, data: ByteArray) {
+
+        byteWriter.write(data.size)
+        byteWriter.write(data)
     }
 }
