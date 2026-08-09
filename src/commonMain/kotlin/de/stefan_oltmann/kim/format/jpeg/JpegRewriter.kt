@@ -259,62 +259,54 @@ public object JpegRewriter {
     }
 
     @JvmStatic
-    public fun updateXmpXml(byteReader: ByteReader, byteWriter: ByteWriter, xmpXml: String) {
+    public fun updateXmpXml(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter,
+        xmpXml: String
+    ) {
 
-        val (allPieces, _) = readSegments(byteReader)
+        val (segments, _) = readSegments(byteReader)
 
-        val piecesWithoutXmpSegments =
-            allPieces.filterNot { piece -> piece is JFIFPieceSegment && piece.isXmpSegment() }
-
-        val newPieces = mutableListOf<JFIFPieceSegment>()
-
-        val xmpXmlBytes = xmpXml.encodeToByteArray()
-
-        /*
-         * If the XMP is larger than the maximal JPEG segment size (around 65 kb),
-         * we need to write multiple APP1 segments with XMP. Most XMP is around
-         * 10 to 30 kb, so this is really seldom needed.
-         */
-
-        if (xmpXmlBytes.size <= JpegConstants.MAX_SEGMENT_SIZE) {
-
-            val segmentWriter = ByteArrayByteWriter()
-            segmentWriter.write(JpegConstants.XMP_IDENTIFIER)
-            segmentWriter.write(xmpXmlBytes)
-
-            val segmentData = segmentWriter.toByteArray()
-
-            newPieces.add(JFIFPieceSegment(JpegConstants.JPEG_APP1_MARKER, segmentData))
-
-        } else {
-
-            var offset = 0
-
-            while (offset < xmpXmlBytes.size) {
-
-                val segmentSize = minOf(xmpXmlBytes.size, JpegConstants.MAX_SEGMENT_SIZE)
-
-                val bytesToWrite =
-                    xmpXmlBytes.slice(offset until segmentSize).toByteArray()
-
-                val segmentWriter = ByteArrayByteWriter()
-                segmentWriter.write(JpegConstants.XMP_IDENTIFIER)
-                segmentWriter.write(bytesToWrite)
-
-                val segmentData = segmentWriter.toByteArray()
-
-                newPieces.add(JFIFPieceSegment(JpegConstants.JPEG_APP1_MARKER, segmentData))
-
-                offset += segmentSize
-            }
+        val segmentsWithoutXmp = segments.filterNot { segment ->
+            segment is JFIFPieceSegment && segment.isXmpSegment()
         }
 
-        val mergedPieces = insertAfterLastAppSegments(piecesWithoutXmpSegments, newPieces)
+        val newSegments = createXmpSegments(xmpXml)
+
+        val mergedPieces = insertAfterLastAppSegments(
+            segmentsWithoutXmp,
+            newSegments
+        )
 
         byteWriter.write(JpegConstants.SOI)
 
-        for (piece in mergedPieces)
+        mergedPieces.forEach { piece ->
             piece.write(byteWriter)
+        }
+    }
+
+    private fun createXmpSegments(xmpXml: String): List<JFIFPieceSegment> {
+
+        val xmpBytes = xmpXml.encodeToByteArray()
+
+        /*
+         * A JPEG segment has a maximum size of around 65 KB.
+         * Split larger XMP data across multiple APP1 segments.
+         */
+        return xmpBytes
+            .asList()
+            .chunked(JpegConstants.MAX_XMP_BYTES_PER_SEGMENT)
+            .map { chunk ->
+
+                val segmentWriter = ByteArrayByteWriter()
+
+                segmentWriter.write(JpegConstants.XMP_IDENTIFIER)
+                segmentWriter.write(chunk.toByteArray())
+
+                val segmentBytes = segmentWriter.toByteArray()
+
+                JFIFPieceSegment(JpegConstants.JPEG_APP1_MARKER, segmentBytes)
+            }
     }
 
     private data class JFIFPieces(

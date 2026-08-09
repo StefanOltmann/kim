@@ -57,7 +57,7 @@ val bytes: ByteArray = loadBytes()
 
 val metadata = Kim.readMetadata(bytes)
 
-/* ImageMetadata has a proper toString() similar to the output of ExifTool */
+/* MediaMetadata has a proper toString() similar to the output of ExifTool */
 println(metadata)
 
 val orientation = metadata.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)

@@ -25,10 +25,13 @@ import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
+import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.GpsCoordinates
+import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
+import de.stefan_oltmann.xmp.XMPMetaFactory
 import kotlinx.io.files.Path
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -36,6 +39,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNotSame
+import kotlin.test.assertTrue
 import kotlin.test.fail
 
 class JpegRewriterTest {
@@ -370,7 +374,53 @@ class JpegRewriterTest {
         }
     }
 
+    /**
+     * Verifies that XMP larger than the maximal JPEG segment size survives a
+     * write and re-read round trip.
+     */
+    @Test
+    fun testUpdateXmpLargerThanMaxSegmentSize() {
+
+        val largeXmp = buildLargeXmp()
+
+        val largeXmpByteCount = largeXmp.encodeToByteArray().size
+
+        assertTrue(
+            largeXmpByteCount > JpegConstants.MAX_SEGMENT_SIZE,
+            "Test XMP must exceed one JPEG segment, but is $largeXmpByteCount bytes."
+        )
+
+        val byteWriter = ByteArrayByteWriter()
+
+        JpegRewriter.updateXmpXml(
+            byteReader = ByteArrayByteReader(KimTestData.getBytesOf(1)),
+            byteWriter = byteWriter,
+            xmpXml = largeXmp
+        )
+
+        val newBytes = byteWriter.toByteArray()
+
+        val roundTripXmp = Kim.readMetadata(newBytes)?.xmp
+
+        assertEquals(largeXmp, roundTripXmp)
+    }
+
+    private fun buildLargeXmp(): String {
+
+        val keywords = (1..largeXmpKeywordCount)
+            .map { index -> "keyword_$index" }
+            .toSet()
+
+        return XmpWriter.updateXmp(
+            xmpMeta = XMPMetaFactory.create(),
+            update = MetadataUpdate.Keywords(keywords),
+            writePackageWrapper = true
+        )
+    }
+
     companion object {
+
+        private const val largeXmpKeywordCount = 4000
 
         private const val exifOffsetTag = 0x8769
         private const val interopOffsetTag = 0xa005

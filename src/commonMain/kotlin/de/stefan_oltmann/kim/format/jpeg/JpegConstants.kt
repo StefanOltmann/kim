@@ -85,6 +85,13 @@ public object JpegConstants {
         0
     )
 
+    /*
+     * Max XML bytes per XMP APP1 segment. The segment length field
+     * (2 bytes) and the XMP identifier (29 bytes) count into the segment size.
+     */
+    public val MAX_XMP_BYTES_PER_SEGMENT: Int =
+        MAX_SEGMENT_SIZE - 2 - XMP_IDENTIFIER.size
+
     public val SOI: ByteArray = byteArrayOf(0xFF.toByte(), 0xD8.toByte())
     public val EOI: ByteArray = byteArrayOf(0xFF.toByte(), 0xD9.toByte())
 
@@ -146,19 +153,9 @@ public object JpegConstants {
     public const val COM_MARKER_2: Int = 0xFFEE
 
     public val SOFN_MARKERS: List<Int> = listOf(
-        JpegConstants.SOF0_MARKER,
-        JpegConstants.SOF1_MARKER,
-        JpegConstants.SOF2_MARKER,
-        JpegConstants.SOF3_MARKER,
-        JpegConstants.SOF5_MARKER,
-        JpegConstants.SOF6_MARKER,
-        JpegConstants.SOF7_MARKER,
-        JpegConstants.SOF9_MARKER,
-        JpegConstants.SOF10_MARKER,
-        JpegConstants.SOF11_MARKER,
-        JpegConstants.SOF13_MARKER,
-        JpegConstants.SOF14_MARKER,
-        JpegConstants.SOF15_MARKER
+        SOF0_MARKER, SOF1_MARKER, SOF2_MARKER, SOF3_MARKER, SOF5_MARKER,
+        SOF6_MARKER, SOF7_MARKER, SOF9_MARKER, SOF10_MARKER, SOF11_MARKER,
+        SOF13_MARKER, SOF14_MARKER, SOF15_MARKER
     )
 
     public val SOFN_MARKER_BYTES: List<Byte> = listOf(
