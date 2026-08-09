@@ -39,6 +39,11 @@ import kotlin.time.ExperimentalTime
  */
 public object XmpReader {
 
+    /**
+     * Matches a trailing ISO-8601 timezone, like +05:00, -05:00 or Z.
+     */
+    private val ISO8601_TIMEZONE_REGEX: Regex = Regex("[+-]\\d{2}:\\d{2}$|Z$")
+
     @OptIn(ExperimentalTime::class)
     @Suppress("LoopWithTooManyJumpStatements")
     @Throws(XMPException::class)
@@ -59,9 +64,7 @@ public object XmpReader {
             TimeZone.currentSystemDefault()
 
         val takenDateIsoStringWithoutTimezone =
-            takenDateIsoString
-                ?.substringBefore('+')
-                ?.substringBefore('Z')
+            takenDateIsoString?.replace(ISO8601_TIMEZONE_REGEX, "")
 
         val takenDate = takenDateIsoStringWithoutTimezone?.let {
             try {

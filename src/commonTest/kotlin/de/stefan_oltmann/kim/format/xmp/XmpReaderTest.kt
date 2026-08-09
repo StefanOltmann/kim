@@ -182,4 +182,33 @@ class XmpReaderTest {
             actual = XmpReader.readMetadata(xmp)
         )
     }
+
+    /**
+     * Regression test: a DateTimeOriginal with a negative UTC offset must not
+     * be dropped.
+     */
+    @Test
+    fun testReadTakenDateWithNegativeUtcOffset() {
+
+        /* language=XML */
+        val xmp = """
+            <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
+                <x:xmpmeta xmlns:x="adobe:ns:meta/">
+                  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+                    <rdf:Description rdf:about=""
+                        xmlns:exif="http://ns.adobe.com/exif/1.0/"
+                      exif:DateTimeOriginal="2023-05-12T18:04:00-05:00"/>
+                  </rdf:RDF>
+                </x:xmpmeta>
+            <?xpacket end="w"?>
+        """.trimIndent()
+
+        val summary = XmpReader.readMetadata(xmp)
+
+        /* 2023-05-12T18:04:00 interpreted in the test timezone (GMT+02:00). */
+        assertEquals(
+            expected = 1_683_907_440_000,
+            actual = summary.takenDate
+        )
+    }
 }
