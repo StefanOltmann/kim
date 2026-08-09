@@ -61,8 +61,6 @@ public object GifWriter {
 
             byteWriter.write(chunk.bytes)
         }
-
-        byteWriter.close()
     }
 
     private fun writeXmpChunk(byteWriter: ByteWriter, xmpXml: String) {
