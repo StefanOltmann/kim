@@ -20,6 +20,5 @@ import de.stefan_oltmann.kim.format.AbstractUpdaterTest
 
 class GifUpdaterTest : AbstractUpdaterTest(
     format = "gif",
-    testThumbnail = false,
-    testOrientation = false
+    testThumbnail = false
 )
