@@ -362,8 +362,19 @@ public object TiffReader {
 
             val valueLength: Int = count * fieldType.size
 
+            /*
+             * Skip corrupt counts and length overflows.
+             *
+             * A count of 0x80000000 or larger is read as a negative number,
+             * and a huge count can overflow the multiplication. Both would
+             * result in a negative value length, which the local-value branch
+             * cannot handle.
+             */
+            if (count < 0 || valueLength < 0)
+                continue
+
             val isLocalValue: Boolean =
-                count * fieldType.size <= TiffConstants.TIFF_ENTRY_MAX_VALUE_LENGTH
+                valueLength <= TiffConstants.TIFF_ENTRY_MAX_VALUE_LENGTH
 
             val valueBytes: ByteArray = if (!isLocalValue) {
 
