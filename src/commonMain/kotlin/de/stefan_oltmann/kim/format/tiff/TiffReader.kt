@@ -542,13 +542,11 @@ public object TiffReader {
 
                 return makerNoteDirectory
 
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 /*
                  * Be silent here.
                  * MakerNote support is experimental.
                  */
-                println("DEBUG: Exception parsing FujiFilm MakerNote: ${e.message}")
-                e.printStackTrace()
             }
         }
 
@@ -631,7 +629,7 @@ public object TiffReader {
                 if (!fujiSignatureMatched)
                     return
 
-                /* 
+                /*
                  * Skip version (4 bytes).
                  * The IFD starts immediately after the version bytes.
                  * Fuji MakerNote IFD uses little-endian byte order.
