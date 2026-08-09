@@ -96,9 +96,7 @@ class FujiFilmSimulationTest {
     }
 
     /**
-     * Test that PhotoMetadataConverter correctly handles film simulation extraction.
-     * Note: The test file may not have film simulation data, so we just verify
-     * that the extraction logic works correctly.
+     * Test that film simulation is extracted from the Fujifilm X-T4 RAF file.
      */
     @Test
     fun testFilmSimulationExtraction() {
@@ -112,25 +110,10 @@ class FujiFilmSimulationTest {
         val summary = metadata.convertToSummary()
         assertNotNull(summary)
 
-        /*
-         * Check that film simulation was extracted.
-         * Note: The test file may have empty MakerNote, so filmSimulation may be null.
-         * We just verify that the extraction logic runs without errors.
-         */
-        println("Extracted Film Simulation: ${summary.filmSimulation}")
-
-        /*
-         * If MakerNote directory exists and has entries, film simulation should be extracted.
-         * If MakerNote directory is empty, film simulation will be null.
-         */
-        val makerNoteDir = metadata.exif?.makerNoteDirectory
-        if (makerNoteDir != null && makerNoteDir.entries.isNotEmpty()) {
-            /* If MakerNote has entries, we should be able to extract film simulation */
-            println("MakerNote has ${makerNoteDir.entries.size} entries")
-            /* Note: Film simulation may still be null if the specific tag is not present */
-        } else {
-            println("MakerNote not available or empty, film simulation will be null")
-        }
+        assertEquals(
+            expected = "Provia/Standard",
+            actual = summary.filmSimulation
+        )
     }
 
     /**
@@ -146,13 +129,11 @@ class FujiFilmSimulationTest {
         assertNotNull(metadata)
 
         /* Verify it's not a Fujifilm camera */
-        val cameraMake = metadata.findStringValue(TiffTag.TIFF_TAG_MAKE)
-        println("Camera make: $cameraMake")
+        assertEquals("Canon", metadata.findStringValue(TiffTag.TIFF_TAG_MAKE))
 
-        if (cameraMake?.contains("FUJIFILM", ignoreCase = true) != true) {
-            val summary = metadata.convertToSummary()
-            assertNull(summary.filmSimulation, "Non-Fuji files should not have film simulation")
-        }
+        val summary = metadata.convertToSummary()
+
+        assertNull(summary.filmSimulation, "Non-Fuji files should not have film simulation")
     }
 
     /**

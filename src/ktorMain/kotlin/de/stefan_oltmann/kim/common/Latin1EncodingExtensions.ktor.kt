@@ -17,11 +17,14 @@ package de.stefan_oltmann.kim.common
 
 import io.ktor.utils.io.charsets.Charsets
 import io.ktor.utils.io.charsets.decode
-import io.ktor.utils.io.charsets.encodeToByteArray
 import kotlinx.io.Buffer
 
 private val decoder = Charsets.ISO_8859_1.newDecoder()
-private val encoder = Charsets.ISO_8859_1.newEncoder()
+
+/* Latin-1 covers the Unicode range 0x00 to 0xFF. */
+private const val LATIN1_MAX_CHAR_CODE: Int = 0xFF
+
+private const val UNKNOWN_CHAR_BYTE: Byte = 0x3F
 
 internal actual fun ByteArray.decodeLatin1BytesToString(): String {
 
@@ -31,5 +34,10 @@ internal actual fun ByteArray.decodeLatin1BytesToString(): String {
     return decoder.decode(buffer)
 }
 
+/*
+ * Replaces characters outside Latin-1 with a question mark. The Darwin
+ * charset encoder throws MalformedInputException for them, so we match the
+ * behavior of the JS and WASM actuals instead.
+ */
 internal actual fun String.encodeToLatin1Bytes(): ByteArray =
-    encoder.encodeToByteArray(this)
+    map { char -> if (char.code <= LATIN1_MAX_CHAR_CODE) char.code.toByte() else UNKNOWN_CHAR_BYTE }.toByteArray()
