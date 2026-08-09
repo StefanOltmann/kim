@@ -159,11 +159,15 @@ public object WebPImageParser : ImageParser {
             if (stopAfterMetadataRead) {
 
                 /*
-                 * Older chunk header types do not support Exif & XMP.
-                 * So we can stop right here for those old formats.
+                 * Legacy files (without VP8X header) have no metadata chunks:
+                 * the VP8/VP8L image chunk is their only chunk.
+                 * In extended files the metadata chunks follow the image chunk.
                  */
-                if (chunkType == WebPChunkType.VP8 && chunkType == WebPChunkType.VP8L)
-                    break
+                if (chunkType == WebPChunkType.VP8 || chunkType == WebPChunkType.VP8L) {
+
+                    if (chunks.none { it is WebPChunkVP8X })
+                        break
+                }
 
                 /*
                  * If the header reveals that there will be no EXIF and no XMP
