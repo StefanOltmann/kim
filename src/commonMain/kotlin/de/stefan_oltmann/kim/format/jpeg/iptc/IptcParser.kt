@@ -56,20 +56,16 @@ public object IptcParser {
     public val APP13_BYTE_ORDER: ByteOrder = ByteOrder.BIG_ENDIAN
 
     /**
-     * Checks if the ByteArray starts with the Photoshop identifaction header.
+     * Checks if the ByteArray starts with the Photoshop identification header.
      * This is mandatory for IPTC embedded into APP13.
+     *
+     * The check is limited to the identifier, because Photoshop data that
+     * spans multiple APP13 segments continues mid-resource in the following
+     * segments.
      */
     @JvmStatic
-    public fun isPhotoshopApp13Segment(segmentData: ByteArray): Boolean {
-
-        if (!segmentData.startsWith(JpegConstants.APP13_IDENTIFIER))
-            return false
-
-        val index = JpegConstants.APP13_IDENTIFIER.size
-
-        return index + 4 <= segmentData.size &&
-            segmentData.toInt(index, APP13_BYTE_ORDER) == JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_INT
-    }
+    public fun isPhotoshopApp13Segment(segmentData: ByteArray): Boolean =
+        segmentData.startsWith(JpegConstants.APP13_IDENTIFIER)
 
     /**
      * Parses IPTC from the given string.
@@ -119,14 +115,25 @@ public object IptcParser {
             val recordNumber = bytes[index++].toUInt8()
             val recordType = bytes[index++].toUInt8()
 
-            val recordSize = bytes.toUInt16(index, APP13_BYTE_ORDER)
+            var recordSize = bytes.toUInt16(index, APP13_BYTE_ORDER)
             index += 2
 
-            val extendedDataset = recordSize > IptcConstants.IPTC_NON_EXTENDED_RECORD_MAXIMUM_SIZE
+            /*
+             * The IPTC extended-length encoding: a length above 32767 means the
+             * 2-byte field holds the marker 0x8000 and the actual size follows
+             * as a 4-byte value.
+             */
+            if (recordSize > IptcConstants.IPTC_NON_EXTENDED_RECORD_MAXIMUM_SIZE) {
 
-            /* Ignore extended dataset and everything after. */
-            if (extendedDataset)
-                return records
+                if (index + 4 > bytes.size)
+                    return records
+
+                recordSize = bytes.toInt(index, APP13_BYTE_ORDER)
+                index += 4
+
+                if (recordSize < 0)
+                    return records
+            }
 
             val recordData = bytes.slice(index, recordSize)
 

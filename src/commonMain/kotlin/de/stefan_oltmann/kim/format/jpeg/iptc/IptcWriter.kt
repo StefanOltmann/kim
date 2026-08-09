@@ -63,9 +63,6 @@ public object IptcWriter {
 
             val blockData = block.blockData
 
-            if (blockData.size > IptcConstants.IPTC_NON_EXTENDED_RECORD_MAXIMUM_SIZE)
-                throw ImageWriteException("IPTC block data is too long: " + blockData.size)
-
             bos.write4Bytes(blockData.size)
             bos.write(blockData)
 
@@ -124,7 +121,23 @@ public object IptcWriter {
 
             val recordData = value.encodeToByteArray()
 
-            binaryWriter.write2Bytes(recordData.size)
+            /*
+             * The dataset length field is 2 bytes. Up to 32767 bytes the size is
+             * written directly. Larger datasets use the IPTC extended-length
+             * encoding: the length field holds the marker 0x8000 and the actual
+             * size follows as a 4-byte value. A 2-byte truncation would corrupt
+             * the block.
+             */
+            if (recordData.size > IptcConstants.IPTC_NON_EXTENDED_RECORD_MAXIMUM_SIZE) {
+
+                binaryWriter.write2Bytes(IptcConstants.IPTC_EXTENDED_RECORD_LENGTH_MARKER)
+                binaryWriter.write4Bytes(recordData.size)
+
+            } else {
+
+                binaryWriter.write2Bytes(recordData.size)
+            }
+
             binaryWriter.write(recordData)
         }
 

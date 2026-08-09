@@ -55,4 +55,33 @@ class IptcParserTest {
             actual = rawBlock.blockData.toHex()
         )
     }
+
+    @Test
+    fun testParseIptcWithExtendedLengthDataset() {
+
+        val value = "x".repeat(33000)
+
+        val iptcBlock = IptcBlock(
+            blockType = IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DATA,
+            blockNameBytes = IptcParser.EMPTY_BYTE_ARRAY,
+            blockData = IptcWriter.writeIptcBlockData(
+                listOf(IptcRecord(IptcTypes.KEYWORDS, value))
+            )
+        )
+
+        val iptcBytes = IptcWriter.writeIptcBlocks(
+            blocks = listOf(iptcBlock),
+            includeApp13Identifier = false
+        )
+
+        val actualIptc = IptcParser.parseIptc(
+            bytes = iptcBytes,
+            startsWithApp13Header = false
+        )
+
+        assertEquals(
+            expected = listOf(IptcRecord(IptcTypes.KEYWORDS, value)),
+            actual = actualIptc.records
+        )
+    }
 }

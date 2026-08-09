@@ -21,6 +21,7 @@ import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcRecord
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcTypes
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
@@ -418,9 +419,111 @@ class JpegRewriterTest {
         )
     }
 
+    /**
+     * Verifies that IPTC data larger than the maximal JPEG segment size
+     * survives a write and re-read round trip.
+     */
+    @Test
+    fun testUpdateIptcLargerThanMaxSegmentSize() {
+
+        val keywords = (1..iptcKeywordCount)
+            .map { index -> "keyword_$index" }
+            .toSet()
+
+        val blockData = IptcWriter.writeIptcBlockData(
+            keywords.sorted().map { keyword -> IptcRecord(IptcTypes.KEYWORDS, keyword) }
+        )
+
+        assertTrue(
+            blockData.size > JpegConstants.MAX_SEGMENT_SIZE,
+            "Test IPTC block data must exceed one JPEG segment, but is ${blockData.size} bytes."
+        )
+
+        val iptcMetadata = IptcMetadata(
+            records = keywords.sorted().map { keyword -> IptcRecord(IptcTypes.KEYWORDS, keyword) },
+            rawBlocks = emptyList()
+        )
+
+        val byteWriter = ByteArrayByteWriter()
+
+        JpegRewriter.writeIPTC(
+            byteReader = ByteArrayByteReader(KimTestData.getBytesOf(1)),
+            byteWriter = byteWriter,
+            metadata = iptcMetadata
+        )
+
+        val newBytes = byteWriter.toByteArray()
+
+        val roundTripKeywords = Kim.readMetadata(newBytes)?.iptc?.records
+            ?.filter { record -> record.iptcType == IptcTypes.KEYWORDS }
+            ?.map { record -> record.value }
+            ?.toSet()
+
+        assertEquals(keywords, roundTripKeywords)
+
+        /*
+         * A second update must replace all APP13 segments, including the
+         * continuation segments of the split data.
+         */
+        val secondKeywords = keywords.map { keyword -> "second_$keyword" }.toSet()
+
+        val secondIptcMetadata = IptcMetadata(
+            records = secondKeywords.sorted().map { keyword -> IptcRecord(IptcTypes.KEYWORDS, keyword) },
+            rawBlocks = emptyList()
+        )
+
+        val secondWriter = ByteArrayByteWriter()
+
+        JpegRewriter.writeIPTC(
+            byteReader = ByteArrayByteReader(newBytes),
+            byteWriter = secondWriter,
+            metadata = secondIptcMetadata
+        )
+
+        val secondRoundTripKeywords = Kim.readMetadata(secondWriter.toByteArray())?.iptc?.records
+            ?.filter { record -> record.iptcType == IptcTypes.KEYWORDS }
+            ?.map { record -> record.value }
+            ?.toSet()
+
+        assertEquals(secondKeywords, secondRoundTripKeywords)
+    }
+
+    /**
+     * Verifies that a single IPTC dataset larger than 32767 bytes (extended-length
+     * encoding) survives a write and re-read round trip.
+     */
+    @Test
+    fun testUpdateIptcWithDatasetLargerThanMaxSegmentSize() {
+
+        val description = "x".repeat(70_000)
+
+        val iptcMetadata = IptcMetadata(
+            records = listOf(IptcRecord(IptcTypes.CAPTION_ABSTRACT, description)),
+            rawBlocks = emptyList()
+        )
+
+        val byteWriter = ByteArrayByteWriter()
+
+        JpegRewriter.writeIPTC(
+            byteReader = ByteArrayByteReader(KimTestData.getBytesOf(1)),
+            byteWriter = byteWriter,
+            metadata = iptcMetadata
+        )
+
+        val newBytes = byteWriter.toByteArray()
+
+        val roundTripDescription = Kim.readMetadata(newBytes)?.iptc?.records
+            ?.firstOrNull { record -> record.iptcType == IptcTypes.CAPTION_ABSTRACT }
+            ?.value
+
+        assertEquals(description, roundTripDescription)
+    }
+
     companion object {
 
         private const val largeXmpKeywordCount = 4000
+
+        private const val iptcKeywordCount = 5000
 
         private const val exifOffsetTag = 0x8769
         private const val interopOffsetTag = 0xa005
