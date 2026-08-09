@@ -58,7 +58,11 @@ internal class PrePendingByteReader(
 
         delegateBytes.copyInto(bytes, bytesRead)
 
-        return bytes
+        /*
+         * Return a short array when the delegate is exhausted, matching the
+         * ByteReader contract. Zero padding would be parsed as data.
+         */
+        return bytes.copyOf(bytesRead + delegateBytes.size)
     }
 
     override fun close() {
