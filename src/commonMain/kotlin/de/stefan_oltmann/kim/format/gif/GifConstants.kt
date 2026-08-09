@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ramon Bouckaert
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,4 +48,7 @@ public object GifConstants {
     public const val XMP_APPLICATION_IDENTIFIER: String = "XMP Data"
 
     public const val XMP_APPLICATION_CODE: String = "XMP"
+
+    /** Maximum payload size of a GIF sub-block. */
+    public const val GIF_MAX_SUB_BLOCK_SIZE: Int = 255
 }

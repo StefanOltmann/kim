@@ -18,6 +18,7 @@ package de.stefan_oltmann.kim.format
 
 import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.writeBytes
 import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.GpsCoordinates
@@ -28,12 +29,12 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.test.assertFailsWith
 import kotlin.test.fail
 
 abstract class AbstractUpdaterTest(
     val format: String,
-    val testThumbnail: Boolean = true,
-    val testOrientation: Boolean = true
+    val testThumbnail: Boolean = true
 ) {
 
     private val keywordWithUmlauts = "Äußerst öffentlich"
@@ -72,7 +73,6 @@ abstract class AbstractUpdaterTest(
 
     @Test
     fun testUpdateOrientation() {
-        if (!testOrientation) return
 
         val newBytes = Kim.update(
             bytes = originalBytes,
@@ -84,7 +84,6 @@ abstract class AbstractUpdaterTest(
 
     @Test
     fun testUpdateOrientationOnEmptyImage() {
-        if (!testOrientation) return
 
         val newBytes = Kim.update(
             bytes = noMetadataBytes,
@@ -322,7 +321,18 @@ abstract class AbstractUpdaterTest(
 
     @Test
     fun testUpdateThumbnail() {
-        if (!testThumbnail) return
+
+        if (!testThumbnail) {
+
+            assertFailsWith<ImageWriteException> {
+                Kim.updateThumbnail(
+                    bytes = originalBytes,
+                    thumbnailBytes = thumbnailBytes
+                )
+            }
+
+            return
+        }
 
         val newBytes = Kim.updateThumbnail(
             bytes = originalBytes,
@@ -334,7 +344,18 @@ abstract class AbstractUpdaterTest(
 
     @Test
     fun testUpdateThumbnailOnEmptyImage() {
-        if (!testThumbnail) return
+
+        if (!testThumbnail) {
+
+            assertFailsWith<ImageWriteException> {
+                Kim.updateThumbnail(
+                    bytes = noMetadataBytes,
+                    thumbnailBytes = thumbnailBytes
+                )
+            }
+
+            return
+        }
 
         val newBytes = Kim.updateThumbnail(
             bytes = noMetadataBytes,

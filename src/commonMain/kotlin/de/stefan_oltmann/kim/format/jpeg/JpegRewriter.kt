@@ -152,7 +152,7 @@ public object JpegRewriter {
 
         if (newBytes != null) {
 
-            if (newBytes.size > JpegConstants.MAX_SEGMENT_SIZE)
+            if (newBytes.size > JpegConstants.MAX_PAYLOAD_BYTES_PER_SEGMENT)
                 throw ImageWriteException("APP1 Segment is too long: " + newBytes.size)
 
             val markerBytes = JpegConstants.JPEG_APP1_MARKER.toShort().toBytes(JPEG_BYTE_ORDER)
@@ -189,7 +189,7 @@ public object JpegRewriter {
                 if (newBytes == null)
                     continue
 
-                if (newBytes.size > JpegConstants.MAX_SEGMENT_SIZE)
+                if (newBytes.size > JpegConstants.MAX_PAYLOAD_BYTES_PER_SEGMENT)
                     throw ImageWriteException("APP1 Segment is too long: " + newBytes.size)
 
                 val markerBytes = JpegConstants.JPEG_APP1_MARKER.toShort().toBytes(JPEG_BYTE_ORDER)

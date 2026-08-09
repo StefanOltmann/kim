@@ -93,8 +93,6 @@ public object PngWriter {
                     writeXmpChunk(byteWriter, xmp)
             }
         }
-
-        byteWriter.close()
     }
 
     public fun writeImage(
@@ -106,8 +104,6 @@ public object PngWriter {
 
         for (chunk in chunks)
             writeChunk(byteWriter, chunk.type, chunk.bytes)
-
-        byteWriter.close()
     }
 
     private fun writeChunk(

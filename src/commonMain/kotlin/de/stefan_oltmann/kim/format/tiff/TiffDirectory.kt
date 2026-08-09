@@ -293,7 +293,6 @@ public class TiffDirectory(
         /*
          * Note: Keep in sync with TiffTags.getTag()
          */
-        @Suppress("UnnecessaryParentheses")
         public fun findTiffField(directories: List<TiffDirectory>, tagInfo: TagInfo): TiffField? {
 
             /*
@@ -302,7 +301,7 @@ public class TiffDirectory(
              */
             if (tagInfo.directoryType != null) {
 
-                directories
+                return directories
                     .firstOrNull { directory -> directory.type == tagInfo.directoryType.typeId }
                     ?.findField(tagInfo)
             }

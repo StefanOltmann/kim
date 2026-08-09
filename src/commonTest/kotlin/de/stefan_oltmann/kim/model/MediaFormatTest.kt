@@ -80,6 +80,25 @@ class MediaFormatTest {
         }
     }
 
+    /**
+     * Regression test: the mp41 and iso2 brand constants must match their own
+     * brands, not mp42 and isom.
+     */
+    @Test
+    fun testDetectMp41AndIso2Brands() {
+
+        val mp41Header = byteArrayOf(0, 0, 0, 24) +
+            "ftypmp41".encodeToByteArray() +
+            "mp41".encodeToByteArray()
+
+        val iso2Header = byteArrayOf(0, 0, 0, 24) +
+            "ftypiso2".encodeToByteArray() +
+            "iso2".encodeToByteArray()
+
+        assertEquals(MediaFormat.MP4, MediaFormat.detect(mp41Header))
+        assertEquals(MediaFormat.MP4, MediaFormat.detect(iso2Header))
+    }
+
     @Test
     fun testByMimeType() {
 

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,9 +16,11 @@
  */
 package de.stefan_oltmann.kim.input
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertFailsWith
 
 class PrePendingByteReaderTest {
 
@@ -71,5 +74,65 @@ class PrePendingByteReaderTest {
             expected = prependedBytes + bytesFromReader,
             actual = reader.readBytes(prependedBytes.size + bytesFromReader.size).toList()
         )
+    }
+
+    /**
+     * Regression test: reads beyond the end of the delegate must return a
+     * short array instead of zero-padded data.
+     */
+    @Test
+    @Suppress("MagicNumber")
+    fun testReadBytesReturnsShortArrayAtEndOfStream() {
+
+        val reader = PrePendingByteReader(
+            delegate = ByteArrayByteReader(bytesFromReader.toByteArray()),
+            prependedBytes = prependedBytes
+        )
+
+        assertEquals(
+            expected = prependedBytes + bytesFromReader,
+            actual = reader.readBytes(100).toList()
+        )
+
+        /* The delegate is exhausted now. */
+        assertEquals(0, reader.readBytes(100).size)
+        assertNull(reader.readByte())
+    }
+
+    /**
+     * Regression test: readRemainingBytes must return exactly the prepended
+     * and delegated bytes, without trailing zeros.
+     */
+    @Test
+    @Suppress("MagicNumber")
+    fun testReadRemainingBytes() {
+
+        val reader = PrePendingByteReader(
+            delegate = ByteArrayByteReader(bytesFromReader.toByteArray()),
+            prependedBytes = prependedBytes
+        )
+
+        assertEquals(
+            expected = prependedBytes + bytesFromReader,
+            actual = reader.readRemainingBytes().toList()
+        )
+    }
+
+    /**
+     * Regression test: a read that cannot be satisfied must surface as an
+     * ImageReadException, not as silent zeros.
+     */
+    @Test
+    @Suppress("MagicNumber")
+    fun testReadBytesThrowsAtEndOfStream() {
+
+        val reader = PrePendingByteReader(
+            delegate = ByteArrayByteReader(bytesFromReader.toByteArray()),
+            prependedBytes = prependedBytes
+        )
+
+        assertFailsWith<ImageReadException> {
+            reader.readBytes("test field", 100)
+        }
     }
 }

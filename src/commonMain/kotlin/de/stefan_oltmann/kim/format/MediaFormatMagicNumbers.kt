@@ -143,7 +143,7 @@ public object MediaFormatMagicNumbers {
     /** The older MP4 standard */
     public val mp41: List<Byte?> = byteListOf(
         null, null, null, null
-    ).plus("ftypmp42".encodeToByteArray().toList())
+    ).plus("ftypmp41".encodeToByteArray().toList())
 
     /** The generic MP4 format (without closer specification) */
     public val isom: List<Byte?> = byteListOf(
@@ -153,7 +153,7 @@ public object MediaFormatMagicNumbers {
     /** MP4, similar to ISOM */
     public val iso2: List<Byte?> = byteListOf(
         null, null, null, null
-    ).plus("ftypisom".encodeToByteArray().toList())
+    ).plus("ftypiso2".encodeToByteArray().toList())
 
     /** MP4, often used for H.264 encoded files */
     public val avc1: List<Byte?> = byteListOf(

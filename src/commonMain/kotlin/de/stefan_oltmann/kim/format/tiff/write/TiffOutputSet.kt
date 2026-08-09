@@ -169,6 +169,11 @@ public class TiffOutputSet(
      */
     public fun setGpsCoordinates(gpsCoordinates: GpsCoordinates?) {
 
+        if (gpsCoordinates != null && !gpsCoordinates.isValid())
+            throw ImageWriteException(
+                "Invalid GPS coordinates: ${gpsCoordinates.latLongString}"
+            )
+
         val gpsDirectory = getOrCreateGPSDirectory()
 
         /* First delete everything. */

@@ -196,7 +196,5 @@ public object WebPWriter {
         byteWriter.writeInt(contentBytes.size, WEBP_BYTE_ORDER)
 
         byteWriter.write(contentBytes)
-
-        byteWriter.close()
     }
 }

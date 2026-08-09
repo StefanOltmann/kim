@@ -27,6 +27,12 @@ public object JpegConstants {
     /* Max segment size is 65535 bytes (around 65 kb). */
     public const val MAX_SEGMENT_SIZE: Int = 0xFFFF
 
+    /*
+     * Max payload bytes per APP1 segment. The 2-byte segment length field
+     * counts into the segment size, so payloads may not exceed 65533 bytes.
+     */
+    public const val MAX_PAYLOAD_BYTES_PER_SEGMENT: Int = MAX_SEGMENT_SIZE - 2
+
     public val JFIF0_SIGNATURE: ByteArray = byteArrayOf(
         0x4a, // J
         0x46, // F
@@ -87,11 +93,11 @@ public object JpegConstants {
     )
 
     /*
-     * Max XML bytes per XMP APP1 segment. The segment length field
-     * (2 bytes) and the XMP identifier (29 bytes) count into the segment size.
+     * Max XML bytes per XMP APP1 segment. The XMP identifier (29 bytes)
+     * counts into the segment payload.
      */
     public val MAX_XMP_BYTES_PER_SEGMENT: Int =
-        MAX_SEGMENT_SIZE - 2 - XMP_IDENTIFIER.size
+        MAX_PAYLOAD_BYTES_PER_SEGMENT - XMP_IDENTIFIER.size
 
     public val SOI: ByteArray = byteArrayOf(0xFF.toByte(), 0xD8.toByte())
     public val EOI: ByteArray = byteArrayOf(0xFF.toByte(), 0xD9.toByte())

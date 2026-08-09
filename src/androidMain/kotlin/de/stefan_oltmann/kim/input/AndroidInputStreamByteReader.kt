@@ -49,6 +49,17 @@ public open class AndroidInputStreamByteReader(
         /*
          * Fall back to old API that works on all versions.
          */
+        return readBytesLegacy(count)
+    }
+
+    /**
+     * Reads with the pre-Tiramisu InputStream API.
+     *
+     * InputStream.read may return fewer bytes than requested or -1 at EOF.
+     * The result is limited to the bytes actually read, matching the
+     * ByteReader contract. Zero padding would be parsed as data.
+     */
+    internal fun readBytesLegacy(count: Int): ByteArray {
 
         val buffer = ByteArray(count)
 
@@ -57,7 +68,7 @@ public open class AndroidInputStreamByteReader(
         return if (bytes == count)
             buffer
         else
-            buffer.slice(startIndex = 0, count = count)
+            buffer.slice(startIndex = 0, count = maxOf(bytes, 0))
     }
 
     override fun close(): Unit =

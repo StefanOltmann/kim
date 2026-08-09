@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ramon Bouckaert
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -61,5 +62,29 @@ class GifImageParserTest {
         val actualXmp = xmpApplicationChunk.parseAsXmpOrThrow().trim()
 
         assertEquals(expectedXmp, actualXmp, "XMP is different.")
+    }
+
+    /**
+     * Application extensions written without sub-block framing,
+     * where the size bytes are part of the data, must still be readable.
+     */
+    @Test
+    fun testParseUnframedApplicationExtension() {
+
+        val xmp = """<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF/></x:xmpmeta>"""
+
+        val xmpBytes = xmp.encodeToByteArray()
+
+        val subChunks = listOf(
+            byteArrayOf(11) + "XMP DataXMP".encodeToByteArray(),
+            byteArrayOf(xmpBytes[0]) + xmpBytes.copyOfRange(1, xmpBytes.size)
+        )
+
+        val chunk = GifChunkApplicationExtension(
+            header = byteArrayOf(0x21, 0xFF.toByte()),
+            subChunks = subChunks
+        )
+
+        assertEquals(xmp, chunk.parseAsXmpOrThrow())
     }
 }

@@ -150,7 +150,5 @@ public object JxlWriter {
                 }
             }
         }
-
-        byteWriter.close()
     }
 }

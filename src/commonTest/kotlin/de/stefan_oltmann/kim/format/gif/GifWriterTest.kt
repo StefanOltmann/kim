@@ -28,6 +28,7 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 import kotlin.test.fail
 
 class GifWriterTest {
@@ -125,5 +126,102 @@ class GifWriterTest {
 
             fail("Bytes for test image #${KimTestData.GIF_TEST_IMAGE_INDEX} are different.")
         }
+    }
+
+    /**
+     * The XMP payload must be written in size-prefixed
+     * sub-blocks, so that a strict GIF89a sub-block walker can extract it.
+     */
+    @Test
+    fun testWriteXmpUsesSubBlockFraming() {
+
+        val xmp = buildString {
+
+            append("""<x:xmpmeta xmlns:x="adobe:ns:meta/">""")
+            append("""<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">""")
+
+            repeat(20) { index ->
+                append("""<rdf:Description rdf:about="" xmp:Rating="$index"/>""")
+            }
+
+            append("</rdf:RDF></x:xmpmeta>")
+        }
+
+        assertTrue(
+            xmp.length > GifConstants.GIF_MAX_SUB_BLOCK_SIZE,
+            "Test XMP must span multiple sub-blocks, but is ${xmp.length} chars."
+        )
+
+        val chunks = GifImageParser.readChunks(
+            byteReader = ByteArrayByteReader(
+                KimTestData.getHeaderBytesOf(KimTestData.GIF_TEST_IMAGE_INDEX)
+            ),
+            chunkTypeFilter = null
+        )
+
+        val byteWriter = ByteArrayByteWriter()
+
+        GifWriter.writeImage(
+            chunks = chunks,
+            byteWriter = byteWriter,
+            xmp = xmp
+        )
+
+        val extractedXmp = walkApplicationExtensionPayload(byteWriter.toByteArray())
+
+        assertEquals(xmp, extractedXmp)
+    }
+
+    /**
+     * Walks the GIF like a strict GIF89a parser and extracts the XMP payload
+     * of the first application extension by following the sub-block sizes.
+     */
+    @Suppress("MagicNumber")
+    private fun walkApplicationExtensionPayload(gif: ByteArray): String {
+
+        val xmpStart = "<x:xmpmeta"
+        val xmpEnd = "</x:xmpmeta>"
+
+        var index = 0
+
+        while (index < gif.size - 2) {
+
+            if (gif[index].toInt() != 0x21 || (gif[index + 1].toInt() and 0xFF) != 0xFF) {
+
+                index++
+
+                continue
+            }
+
+            /* Skip the extension introducer, label and application block. */
+            index += 2
+
+            val blockSize = gif[index++].toInt()
+
+            index += blockSize
+
+            /* Walk the sub-blocks. */
+            val payload = StringBuilder()
+
+            while (true) {
+
+                val subBlockSize = gif[index++].toInt() and 0xFF
+
+                if (subBlockSize == 0)
+                    break
+
+                payload.append(gif.copyOfRange(index, index + subBlockSize).decodeToString())
+
+                index += subBlockSize
+            }
+
+            val content = payload.toString()
+
+            return xmpStart +
+                content.substringAfter(xmpStart).substringBefore(xmpEnd) +
+                xmpEnd
+        }
+
+        fail("No application extension found.")
     }
 }
