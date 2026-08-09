@@ -17,9 +17,12 @@ package de.stefan_oltmann.kim.format.tiff
 
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.common.toHex
+import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
+import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 class TiffReaderTest {
 
@@ -48,5 +51,34 @@ class TiffReaderTest {
 
         assertEquals(0x0112, entries.single().tag)
         assertEquals("0100", entries.single().valueBytes.toHex())
+    }
+
+    /**
+     * Regression test: a directory-specific tag must resolve to the field in
+     * its directory, not to a same-numbered tag in another directory.
+     */
+    @Test
+    fun testFindTiffFieldWithTagNumberCollision() {
+
+        val bytes = convertHexStringToByteArray(
+            "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
+                "0200" + // 2 entries
+                "01000100010000002a000000" + // Unknown tag 0x0001, BYTE, count 1, value 42
+                "25880400010000002a000000" + // GPSInfo (0x8825), LONG, count 1, offset 42
+                "00000000" + // No next directory
+                "00000000" + // Padding
+                "0100" + // GPS directory at offset 42: 1 entry
+                "01000200020000004e000000" + // GPSLatitudeRef (0x0001), ASCII, count 2, value "N"
+                "00000000" // No next directory
+        )
+
+        val tiffContents = TiffReader.read(ByteArrayByteReader(bytes))
+
+        val gpsField = tiffContents.findTiffField(GpsTag.GPS_TAG_GPS_LATITUDE_REF)
+
+        assertNotNull(gpsField)
+
+        /* The lookup must stay in the GPS directory, not match IFD0's tag 0x0001. */
+        assertEquals(TiffConstants.TIFF_DIRECTORY_GPS, gpsField.directoryType)
     }
 }
