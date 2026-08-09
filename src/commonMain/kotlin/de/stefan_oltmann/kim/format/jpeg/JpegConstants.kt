@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -184,6 +185,14 @@ public object JpegConstants {
     )
 
     public const val IPTC_MAX_BLOCK_NAME_LENGTH: Int = 255
+
+    /*
+     * Max Photoshop data bytes per APP13 segment. The segment length field
+     * (2 bytes) and the Photoshop identifier (14 bytes) count into the
+     * segment size.
+     */
+    public val MAX_PHOTOSHOP_BYTES_PER_SEGMENT: Int =
+        MAX_SEGMENT_SIZE - 2 - APP13_IDENTIFIER.size
 
     /** Int value of "8BIM" */
     public const val IPTC_RESOURCE_BLOCK_SIGNATURE_INT: Int = 943_868_237

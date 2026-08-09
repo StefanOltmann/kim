@@ -26,7 +26,7 @@ Little-endian (Intel, II)
 0000000328 0x829a ExposureTime = 10/1 (10.0)
 0000000340 0x829d FNumber = 63/10 (6.3)
 0000000352 0x8822 ExposureProgram = 1
-0000000364 0x8827 PhotographicSensitivity = 100
+0000000364 0x8827 ISO = 100
 0000000376 0x8830 SensitivityType = 2
 0000000388 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x30]
 0000000400 0x9003 DateTimeOriginal = 2023:05:10 13:37:42
@@ -43,7 +43,7 @@ Little-endian (Intel, II)
 0000000532 0x9292 SubSecTimeDigitized = 35
 0000000544 0xa001 ColorSpace = -1
 0000000556 0xa002 ExifImageWidth = 5870
-0000000568 0xa003 ExifImageLength = 2799
+0000000568 0xa003 ExifImageHeight = 2799
 0000000580 0xa20e FocalPlaneXResolution = 83841555/32768 (2558.641205)
 0000000592 0xa20f FocalPlaneYResolution = 83841555/32768 (2558.641205)
 0000000604 0xa210 FocalPlaneResolutionUnit = 3
@@ -73,7 +73,7 @@ Little-endian (Intel, II)
 0000001150 0x0003 GPSLongitudeRef = E
 0000001162 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory SubIFD @ 1018 ----
+---- Directory IFD1 @ 1018 ----
 0000001020 0x0103 Compression = 6
 0000001032 0x011a XResolution = 72/1 (72.0)
 0000001044 0x011b YResolution = 72/1 (72.0)
@@ -81,12 +81,7 @@ Little-endian (Intel, II)
 0000001068 0x0201 JpgFromRawStart = 2588
 0000001080 0x0202 JpgFromRawLength = 1487
 
-
 ---- IPTC ----
-Caption/Abstract (120) = 'moon illustration'
-Digital Creation Date (62) = '20180727'
-Time Created (60) = '220203+0000'
-Date Created (55) = '20180727'
 Keywords (25) = 'eclipse'
 Keywords (25) = 'outdoors'
 Keywords (25) = 'nature'
@@ -97,6 +92,10 @@ Keywords (25) = 'night'
 Keywords (25) = 'astronomy'
 Keywords (25) = 'universe'
 Keywords (25) = 'Umlauts: äöüß'
+Date Created (55) = '20180727'
+Time Created (60) = '220203+0000'
+Digital Creation Date (62) = '20180727'
+Caption/Abstract (120) = 'moon illustration'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

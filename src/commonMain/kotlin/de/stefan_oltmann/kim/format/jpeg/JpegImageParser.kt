@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -19,12 +20,14 @@ package de.stefan_oltmann.kim.format.jpeg
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.getRemainingBytes
 import de.stefan_oltmann.kim.common.startsWith
+import de.stefan_oltmann.kim.common.toInt
 import de.stefan_oltmann.kim.common.toSingleNumberHexes
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
 import de.stefan_oltmann.kim.format.jpeg.segment.App13Segment
 import de.stefan_oltmann.kim.format.jpeg.segment.AppnSegment
 import de.stefan_oltmann.kim.format.jpeg.segment.GenericSegment
@@ -41,6 +44,7 @@ import de.stefan_oltmann.kim.input.read2BytesAsInt
 import de.stefan_oltmann.kim.input.skipBytes
 import de.stefan_oltmann.kim.model.ImageSize
 import de.stefan_oltmann.kim.model.MediaFormat
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 
 public object JpegImageParser : ImageParser {
 
@@ -235,28 +239,64 @@ public object JpegImageParser : ImageParser {
 
     private fun getIptc(segments: List<Segment>): IptcMetadata? {
 
-        val app13Segments = segments.filterIsInstance<App13Segment>()
+        /*
+         * The Photoshop data may span multiple APP13 segments.
+         * Consecutive segments form one data stream: the first segment begins
+         * with an image resource block, the following segments continue
+         * mid-resource and start with the Photoshop identifier only.
+         * Every segment starts with the Photoshop identifier.
+         */
+        var photoshopData = ByteArrayByteWriter()
 
-        for (segment in app13Segments) {
+        for (segment in segments.filterIsInstance<App13Segment>()) {
 
-            val iptcMetadata = try {
-                segment.parseIptcMetadata()
-            } catch (ignore: ImageReadException) {
-                /* We ignore proken IPTC. */
+            if (!segment.isPhotoshopJpegSegment())
                 continue
+
+            val segmentData = segment.segmentBytes.getRemainingBytes(JpegConstants.APP13_IDENTIFIER.size)
+
+            if (isNewPhotoshopStream(segmentData)) {
+
+                val parsed = parsePhotoshopData(photoshopData.toByteArray())
+
+                /* Take the first valid stream. */
+                if (parsed != null)
+                    return parsed
+
+                photoshopData = ByteArrayByteWriter()
             }
 
-            /* Take the first record. */
-            if (iptcMetadata != null)
-                return iptcMetadata
-
-            /*
-             * TODO In case of multiple APP13 segements the records should be merged.
-             *  It's now allowed to have multiple ones, if it does not fit into a single one.
-             */
+            photoshopData.write(segmentData)
         }
 
-        return null
+        return parsePhotoshopData(photoshopData.toByteArray())
+    }
+
+    /**
+     * Checks if the given segment data starts a new Photoshop data stream.
+     *
+     * A new stream begins with an image resource block. Continuation segments
+     * of a split stream start mid-resource.
+     */
+    private fun isNewPhotoshopStream(segmentData: ByteArray): Boolean =
+        segmentData.size >= 4 &&
+            segmentData.toInt(0, JpegConstants.JPEG_BYTE_ORDER) == JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_INT
+
+    /**
+     * Parses the given concatenated Photoshop data.
+     *
+     * Returns null if the data cannot be parsed.
+     */
+    private fun parsePhotoshopData(iptcBytes: ByteArray): IptcMetadata? {
+
+        if (iptcBytes.isEmpty())
+            return null
+
+        return try {
+            IptcParser.parseIptc(iptcBytes, startsWithApp13Header = false)
+        } catch (_: ImageReadException) {
+            null
+        }
     }
 
     private fun keepMarker(marker: Int, markers: List<Int>?): Boolean =

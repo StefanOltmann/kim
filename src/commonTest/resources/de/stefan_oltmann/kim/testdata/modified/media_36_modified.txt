@@ -20,7 +20,7 @@ Big-endian (Motorola, MM)
 0000000490 0x829a ExposureTime = 1/4000 (2.5E-4)
 0000000502 0x829d FNumber = 2/1 (2.0)
 0000000514 0x8822 ExposureProgram = 1
-0000000526 0x8827 PhotographicSensitivity = 200
+0000000526 0x8827 ISO = 200
 0000000538 0x8830 SensitivityType = 1
 0000000550 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x30]
 0000000562 0x9003 DateTimeOriginal = 2023:05:10 13:37:42
@@ -38,7 +38,7 @@ Big-endian (Motorola, MM)
 0000000706 0x920a FocalLength = 90/1 (90.0)
 0000000718 0xa001 ColorSpace = 1
 0000000730 0xa002 ExifImageWidth = 4240
-0000000742 0xa003 ExifImageLength = 2384
+0000000742 0xa003 ExifImageHeight = 2384
 0000000754 0xa20e FocalPlaneXResolution = 1812/1 (1812.0)
 0000000766 0xa20f FocalPlaneYResolution = 1812/1 (1812.0)
 0000000778 0xa210 FocalPlaneResolutionUnit = 3
@@ -63,18 +63,17 @@ Big-endian (Motorola, MM)
 0000001186 0x0003 GPSLongitudeRef = E
 0000001198 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
-
 ---- IPTC ----
-Caption/Abstract (120) = 'selective focus photo of pink petaled flower'
-Copyright Notice (116) = '                                                                                                                                '
-By-line (80) = '                                '
-Time Created (60) = '231845'
-Date Created (55) = '20170626'
 Keywords (25) = 'blossom'
 Keywords (25) = 'flora'
 Keywords (25) = 'dahlia'
 Keywords (25) = 'plant'
 Keywords (25) = 'Umlauts: äöüß'
+Date Created (55) = '20170626'
+Time Created (60) = '231845'
+By-line (80) = '                                '
+Copyright Notice (116) = '                                                                                                                                '
+Caption/Abstract (120) = 'selective focus photo of pink petaled flower'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -31,5 +32,5 @@ public data class IptcRecord(
      * IPTC records must be written in ascending order of their type.
      */
     override fun compareTo(other: IptcRecord): Int =
-        other.iptcType.type - this.iptcType.type
+        this.iptcType.type - other.iptcType.type
 }

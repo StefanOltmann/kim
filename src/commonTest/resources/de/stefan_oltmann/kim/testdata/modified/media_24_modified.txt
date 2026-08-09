@@ -19,7 +19,7 @@ Little-endian (Intel, II)
 0000000238 0x829a ExposureTime = 2/1 (2.0)
 0000000250 0x829d FNumber = 28/10 (2.8)
 0000000262 0x8822 ExposureProgram = 1
-0000000274 0x8827 PhotographicSensitivity = 2000
+0000000274 0x8827 ISO = 2000
 0000000286 0x8830 SensitivityType = 2
 0000000298 0x8832 RecommendedExposureIndex = 2000
 0000000310 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x31]
@@ -59,7 +59,7 @@ Little-endian (Intel, II)
 0000011648 0x0003 GPSLongitudeRef = E
 0000011660 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory SubIFD @ 842 ----
+---- Directory IFD1 @ 842 ----
 0000000844 0x0103 Compression = 6
 0000000856 0x011a XResolution = 72/1 (72.0)
 0000000868 0x011b YResolution = 72/1 (72.0)
@@ -67,15 +67,14 @@ Little-endian (Intel, II)
 0000000892 0x0201 JpgFromRawStart = 936
 0000000904 0x0202 JpgFromRawLength = 10674
 
-
 ---- IPTC ----
-Caption/Abstract (120) = 'selective focus photography of dirt road near red bridge'
-Digital Creation Time (63) = '091915'
-Digital Creation Date (62) = '20190208'
-Time Created (60) = '091915'
-Date Created (55) = '20190208'
 Keywords (25) = 'puddle'
 Keywords (25) = 'Umlauts: äöüß'
+Date Created (55) = '20190208'
+Time Created (60) = '091915'
+Digital Creation Date (62) = '20190208'
+Digital Creation Time (63) = '091915'
+Caption/Abstract (120) = 'selective focus photography of dirt road near red bridge'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

@@ -54,7 +54,7 @@ Little-endian (Intel, II)
 0000000870 0x0003 GPSLongitudeRef = E
 0000000882 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory SubIFD @ 946 ----
+---- Directory IFD1 @ 946 ----
 0000000948 0x0103 Compression = 6
 0000000960 0x011a XResolution = 72/1 (72.0)
 0000000972 0x011b YResolution = 72/1 (72.0)
@@ -63,16 +63,16 @@ Little-endian (Intel, II)
 0000001008 0x0202 JpgFromRawLength = 15133
 
 ---- IPTC ----
-Caption/Abstract (120) = 'green and brown leaf plant'
-Headline (105) = 'Green Leaves with Raindrops'
-By-line (80) = 'OMID ARMIN'
-Digital Creation Time (63) = '144901+0000'
-Digital Creation Date (62) = '20200315'
-Time Created (60) = '144901+0000'
-Date Created (55) = '20200315'
+Object Name (5) = 'Green & Yellow Leaves'
 Keywords (25) = 'fern'
 Keywords (25) = 'Umlauts: äöüß'
-Object Name (5) = 'Green & Yellow Leaves'
+Date Created (55) = '20200315'
+Time Created (60) = '144901+0000'
+Digital Creation Date (62) = '20200315'
+Digital Creation Time (63) = '144901+0000'
+By-line (80) = 'OMID ARMIN'
+Headline (105) = 'Green Leaves with Raindrops'
+Caption/Abstract (120) = 'green and brown leaf plant'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

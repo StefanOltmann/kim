@@ -64,18 +64,13 @@ Little-endian (Intel, II)
 0000002324 0x0005 GPSAltitudeRef = 0
 0000002336 0x0006 GPSAltitude = 271/10 (27.1)
 
----- Directory SubIFD @ 2538 ----
+---- Directory IFD1 @ 2538 ----
 0000002540 0x0103 Compression = 6
 0000002552 0x011a XResolution = 72/1 (72.0)
 0000002564 0x011b YResolution = 72/1 (72.0)
 0000002576 0x0128 ResolutionUnit = 2
 
 ---- IPTC ----
-Caption/Abstract (120) = 'green covered mountain with gray concrete walking path aerial photography'
-Digital Creation Time (63) = '072309'
-Digital Creation Date (62) = '20181007'
-Time Created (60) = '072309'
-Date Created (55) = '20181007'
 Keywords (25) = 'green'
 Keywords (25) = 'slope'
 Keywords (25) = 'aerial view'
@@ -85,6 +80,11 @@ Keywords (25) = 'outdoors'
 Keywords (25) = 'mountain'
 Keywords (25) = 'landscape'
 Keywords (25) = 'Umlauts: äöüß'
+Date Created (55) = '20181007'
+Time Created (60) = '072309'
+Digital Creation Date (62) = '20181007'
+Digital Creation Time (63) = '072309'
+Caption/Abstract (120) = 'green covered mountain with gray concrete walking path aerial photography'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

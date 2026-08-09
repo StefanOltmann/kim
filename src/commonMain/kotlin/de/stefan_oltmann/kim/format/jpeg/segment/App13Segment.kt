@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -16,7 +17,6 @@
  */
 package de.stefan_oltmann.kim.format.jpeg.segment
 
-import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
@@ -29,20 +29,4 @@ internal class App13Segment(marker: Int, markerLength: Int, byteReader: ByteRead
 
     fun isPhotoshopJpegSegment(): Boolean =
         IptcParser.isPhotoshopApp13Segment(segmentBytes)
-
-    fun parseIptcMetadata(): IptcMetadata? {
-
-        /*
-         * In practice, App13 segments are only used for Photoshop/IPTC
-         * metadata. However, we should not treat App13 signatures without
-         * Photoshop's signature as Photoshop/IPTC segments.
-         */
-        if (!isPhotoshopJpegSegment())
-            return null
-
-        return IptcParser.parseIptc(
-            bytes = segmentBytes,
-            startsWithApp13Header = true
-        )
-    }
 }

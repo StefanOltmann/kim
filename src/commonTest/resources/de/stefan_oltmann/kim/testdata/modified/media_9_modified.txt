@@ -59,22 +59,22 @@ Little-endian (Intel, II)
 0000017072 0x0003 GPSLongitudeRef = E
 0000017084 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory SubIFD @ 16972 ----
+---- Directory IFD1 @ 16972 ----
 0000016974 0x0103 Compression = 6
 0000016986 0x011a XResolution = 72/1 (72.0)
 0000016998 0x011b YResolution = 72/1 (72.0)
 0000017010 0x0128 ResolutionUnit = 2
 
 ---- IPTC ----
-Caption/Abstract (120) = 'two green parrots'
-Headline (105) = 'Rainbow Lorikeet Parrot'
-Digital Creation Time (63) = '131946'
-Digital Creation Date (62) = '20190226'
-Time Created (60) = '131946'
-Date Created (55) = '20190226'
 Keywords (25) = 'bird'
 Keywords (25) = 'animal'
 Keywords (25) = 'Umlauts: äöüß'
+Date Created (55) = '20190226'
+Time Created (60) = '131946'
+Digital Creation Date (62) = '20190226'
+Digital Creation Time (63) = '131946'
+Headline (105) = 'Rainbow Lorikeet Parrot'
+Caption/Abstract (120) = 'two green parrots'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

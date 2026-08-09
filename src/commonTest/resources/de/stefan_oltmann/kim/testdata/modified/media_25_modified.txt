@@ -64,19 +64,19 @@ Little-endian (Intel, II)
 0000001020 0x0202 JpgFromRawLength = 6164
 
 ---- IPTC ----
-Caption/Abstract (120) = 'selective focus photography of hedgehog eating on green grass field'
-Country/Primary Location Name (101) = 'Deutschland'
-Province/State (95) = 'Niedersachsen'
-Sublocation (92) = 'Igelstraße 45'
-City (90) = 'Igelstadt'
-Time Created (60) = '194417'
-Date Created (55) = '20180517'
 Keywords (25) = 'animal'
 Keywords (25) = 'hedgehog'
 Keywords (25) = 'mammal'
 Keywords (25) = 'porcupine'
 Keywords (25) = 'rodent'
 Keywords (25) = 'Umlauts: äöüß'
+Date Created (55) = '20180517'
+Time Created (60) = '194417'
+City (90) = 'Igelstadt'
+Sublocation (92) = 'Igelstraße 45'
+Province/State (95) = 'Niedersachsen'
+Country/Primary Location Name (101) = 'Deutschland'
+Caption/Abstract (120) = 'selective focus photography of hedgehog eating on green grass field'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

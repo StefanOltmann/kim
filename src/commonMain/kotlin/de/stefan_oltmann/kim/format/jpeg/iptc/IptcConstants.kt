@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -17,7 +18,14 @@
 package de.stefan_oltmann.kim.format.jpeg.iptc
 
 internal object IptcConstants {
+
     const val IPTC_NON_EXTENDED_RECORD_MAXIMUM_SIZE = 32_767
+
+    /*
+     * Marker value of the 2-byte dataset length field for the IPTC
+     * extended-length encoding. The actual size follows as a 4-byte value.
+     */
+    const val IPTC_EXTENDED_RECORD_LENGTH_MARKER = 0x8000
     const val IMAGE_RESOURCE_BLOCK_PHOTOSHOP2_INFO = 0x03e8
     const val IMAGE_RESOURCE_BLOCK_MACINTOSH_PRINT_INFO = 0x03e9
     const val IMAGE_RESOURCE_BLOCK_XML_DATA = 0x03ea

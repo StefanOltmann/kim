@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -239,9 +240,8 @@ public object JpegRewriter {
 
         val mergedBlocks = metadata.nonIptcBlocks + newBlock
 
-        val newApp13Segment = JFIFPieceSegment(
-            marker = JpegConstants.JPEG_APP13_MARKER,
-            segmentBytes = IptcWriter.writeIptcBlocks(mergedBlocks)
+        val newApp13Segments = createApp13Segments(
+            IptcWriter.writeIptcBlocks(mergedBlocks, includeApp13Identifier = false)
         )
 
         val oldPiecesWithoutApp13Segments =
@@ -249,13 +249,36 @@ public object JpegRewriter {
 
         val mergedPieces = insertAfterLastAppSegments(
             oldPiecesWithoutApp13Segments,
-            listOf(newApp13Segment)
+            newApp13Segments
         )
 
         byteWriter.write(JpegConstants.SOI)
 
         for (piece in mergedPieces)
             piece.write(byteWriter)
+    }
+
+    /**
+     * Splits the given Photoshop data across multiple APP13 segments.
+     *
+     * A JPEG segment has a maximum size of around 65 KB. Every segment starts
+     * with the Photoshop identifier, so readers can concatenate the payloads
+     * of consecutive segments.
+     */
+    private fun createApp13Segments(photoshopData: ByteArray): List<JFIFPieceSegment> {
+
+        return photoshopData
+            .asList()
+            .chunked(JpegConstants.MAX_PHOTOSHOP_BYTES_PER_SEGMENT)
+            .map { chunk ->
+
+                val segmentWriter = ByteArrayByteWriter()
+
+                segmentWriter.write(JpegConstants.APP13_IDENTIFIER)
+                segmentWriter.write(chunk.toByteArray())
+
+                JFIFPieceSegment(JpegConstants.JPEG_APP13_MARKER, segmentWriter.toByteArray())
+            }
     }
 
     @JvmStatic

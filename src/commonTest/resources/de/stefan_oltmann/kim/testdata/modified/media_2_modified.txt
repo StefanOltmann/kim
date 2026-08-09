@@ -20,7 +20,7 @@ Little-endian (Intel, II)
 0000000246 0x829a ExposureTime = 1/40 (0.025)
 0000000258 0x829d FNumber = 28/10 (2.8)
 0000000270 0x8822 ExposureProgram = 3
-0000000282 0x8827 PhotographicSensitivity = 4000
+0000000282 0x8827 ISO = 4000
 0000000294 0x8830 SensitivityType = 2
 0000000306 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x30]
 0000000318 0x9003 DateTimeOriginal = 2023:05:10 13:37:42
@@ -37,7 +37,7 @@ Little-endian (Intel, II)
 0000000450 0x9292 SubSecTimeDigitized = 91
 0000000462 0xa001 ColorSpace = 1
 0000000474 0xa002 ExifImageWidth = 4525
-0000000486 0xa003 ExifImageLength = 6623
+0000000486 0xa003 ExifImageHeight = 6623
 0000000498 0xa20e FocalPlaneXResolution = 67122044/32768 (2048.402222)
 0000000510 0xa20f FocalPlaneYResolution = 67122044/32768 (2048.402222)
 0000000522 0xa210 FocalPlaneResolutionUnit = 3
@@ -66,7 +66,7 @@ Little-endian (Intel, II)
 0000010868 0x0003 GPSLongitudeRef = E
 0000010880 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory SubIFD @ 910 ----
+---- Directory IFD1 @ 910 ----
 0000000912 0x00fe NewSubfileType = 1
 0000000924 0x0100 ImageWidth = 174
 0000000936 0x0101 ImageHeight = 256
@@ -77,13 +77,7 @@ Little-endian (Intel, II)
 0000000996 0x0201 JpgFromRawStart = 1030
 0000001008 0x0202 JpgFromRawLength = 9800
 
-
 ---- IPTC ----
-Caption/Abstract (120) = 'orange and silver fox'
-By-line (80) = 'Alexander Andrews'
-Digital Creation Date (62) = '2019-05-04'
-Time Created (60) = '08:41:07-08:41'
-Date Created (55) = '2022-8-24'
 Keywords (25) = 'mammal'
 Keywords (25) = 'dog'
 Keywords (25) = 'pet'
@@ -91,6 +85,11 @@ Keywords (25) = 'canine'
 Keywords (25) = 'wildlife'
 Keywords (25) = 'red fox'
 Keywords (25) = 'Umlauts: äöüß'
+Date Created (55) = '2022-8-24'
+Time Created (60) = '08:41:07-08:41'
+Digital Creation Date (62) = '2019-05-04'
+By-line (80) = 'Alexander Andrews'
+Caption/Abstract (120) = 'orange and silver fox'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
