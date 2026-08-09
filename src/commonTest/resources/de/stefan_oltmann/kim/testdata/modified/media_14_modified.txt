@@ -21,13 +21,12 @@ Big-endian (Motorola, MM)
 0000000220 0x0003 GPSLongitudeRef = E
 0000000232 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
-
 ---- IPTC ----
-Caption/Abstract (120) = 'brown turtle swimming underwater'
 Keywords (25) = 'tortoise'
 Keywords (25) = 'sea life'
 Keywords (25) = 'reptile'
 Keywords (25) = 'Umlauts: äöüß'
+Caption/Abstract (120) = 'brown turtle swimming underwater'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

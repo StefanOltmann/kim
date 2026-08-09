@@ -21,7 +21,7 @@ Little-endian (Intel, II)
 0000000288 0x829a ExposureTime = 1/320 (0.003125)
 0000000300 0x829d FNumber = 8/1 (8.0)
 0000000312 0x8822 ExposureProgram = 1
-0000000324 0x8827 PhotographicSensitivity = 320
+0000000324 0x8827 ISO = 320
 0000000336 0x8830 SensitivityType = 2
 0000000348 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x31]
 0000000360 0x9003 DateTimeOriginal = 2023:05:10 13:37:42
@@ -39,7 +39,7 @@ Little-endian (Intel, II)
 0000000504 0x9292 SubSecTimeDigitized = 20
 0000000516 0xa001 ColorSpace = 1
 0000000528 0xa002 ExifImageWidth = 4272
-0000000540 0xa003 ExifImageLength = 2848
+0000000540 0xa003 ExifImageHeight = 2848
 0000000552 0xa20e FocalPlaneXResolution = 77360658/32768 (2360.859924)
 0000000564 0xa20f FocalPlaneYResolution = 77360658/32768 (2360.859924)
 0000000576 0xa210 FocalPlaneResolutionUnit = 3
@@ -68,7 +68,7 @@ Little-endian (Intel, II)
 0000004428 0x0003 GPSLongitudeRef = E
 0000004440 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory SubIFD @ 976 ----
+---- Directory IFD1 @ 976 ----
 0000000978 0x0103 Compression = 6
 0000000990 0x011a XResolution = 72/1 (72.0)
 0000001002 0x011b YResolution = 72/1 (72.0)
@@ -76,16 +76,15 @@ Little-endian (Intel, II)
 0000001026 0x0201 JpgFromRawStart = 1070
 0000001038 0x0202 JpgFromRawLength = 3320
 
-
 ---- IPTC ----
-Caption/Abstract (120) = 'white polar bear swimming'
-Copyright Notice (116) = 'Peter Neumann'
-By-line (80) = 'Peter Neumann'
-Time Created (60) = '092517+0000'
-Date Created (55) = '20190627'
 Keywords (25) = 'wildlife'
 Keywords (25) = 'bear'
 Keywords (25) = 'Umlauts: äöüß'
+Date Created (55) = '20190627'
+Time Created (60) = '092517+0000'
+By-line (80) = 'Peter Neumann'
+Copyright Notice (116) = 'Peter Neumann'
+Caption/Abstract (120) = 'white polar bear swimming'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

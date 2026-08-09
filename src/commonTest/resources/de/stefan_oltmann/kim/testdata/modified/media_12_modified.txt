@@ -20,7 +20,7 @@ Little-endian (Intel, II)
 0000000248 0x829a ExposureTime = 1/2000 (5.0E-4)
 0000000260 0x829d FNumber = 56/10 (5.6)
 0000000272 0x8822 ExposureProgram = 1
-0000000284 0x8827 PhotographicSensitivity = 400
+0000000284 0x8827 ISO = 400
 0000000296 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x30]
 0000000308 0x9003 DateTimeOriginal = 2023:05:10 13:37:42
 0000000320 0x9004 DateTimeDigitized = 2023:05:10 13:37:42
@@ -58,7 +58,7 @@ Little-endian (Intel, II)
 0000012966 0x0003 GPSLongitudeRef = E
 0000012978 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory SubIFD @ 828 ----
+---- Directory IFD1 @ 828 ----
 0000000830 0x0103 Compression = 6
 0000000842 0x011a XResolution = 72/1 (72.0)
 0000000854 0x011b YResolution = 72/1 (72.0)
@@ -66,16 +66,15 @@ Little-endian (Intel, II)
 0000000878 0x0201 JpgFromRawStart = 922
 0000000890 0x0202 JpgFromRawLength = 12006
 
-
 ---- IPTC ----
-Caption/Abstract (120) = 'black eagle flying above snow field during daytime'
-Digital Creation Time (63) = '154253+0100'
-Digital Creation Date (62) = '20110129'
-Time Created (60) = '154253+0100'
-Date Created (55) = '20110129'
 Keywords (25) = 'animal'
 Keywords (25) = 'bald eagle'
 Keywords (25) = 'Umlauts: äöüß'
+Date Created (55) = '20110129'
+Time Created (60) = '154253+0100'
+Digital Creation Date (62) = '20110129'
+Digital Creation Time (63) = '154253+0100'
+Caption/Abstract (120) = 'black eagle flying above snow field during daytime'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

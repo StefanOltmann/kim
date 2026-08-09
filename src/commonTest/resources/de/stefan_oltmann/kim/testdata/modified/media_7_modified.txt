@@ -19,7 +19,7 @@ Little-endian (Intel, II)
 0000000228 0x829a ExposureTime = 1/500 (0.002)
 0000000240 0x829d FNumber = 18/10 (1.8)
 0000000252 0x8822 ExposureProgram = 1
-0000000264 0x8827 PhotographicSensitivity = 100
+0000000264 0x8827 ISO = 100
 0000000276 0x8830 SensitivityType = 2
 0000000288 0x8832 RecommendedExposureIndex = 100
 0000000300 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x30]
@@ -54,7 +54,7 @@ Little-endian (Intel, II)
 0000009436 0x0003 GPSLongitudeRef = E
 0000009448 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory SubIFD @ 718 ----
+---- Directory IFD1 @ 718 ----
 0000000720 0x0103 Compression = 6
 0000000732 0x011a XResolution = 72/1 (72.0)
 0000000744 0x011b YResolution = 72/1 (72.0)
@@ -62,13 +62,7 @@ Little-endian (Intel, II)
 0000000768 0x0201 JpgFromRawStart = 812
 0000000780 0x0202 JpgFromRawLength = 8586
 
-
 ---- IPTC ----
-Caption/Abstract (120) = 'adult tan dachshund on grass field'
-Digital Creation Time (63) = '181148'
-Digital Creation Date (62) = '20190417'
-Time Created (60) = '181148'
-Date Created (55) = '20190417'
 Keywords (25) = 'grass'
 Keywords (25) = 'dog'
 Keywords (25) = 'plant'
@@ -78,6 +72,11 @@ Keywords (25) = 'pet'
 Keywords (25) = 'canine'
 Keywords (25) = 'hound'
 Keywords (25) = 'Umlauts: äöüß'
+Date Created (55) = '20190417'
+Time Created (60) = '181148'
+Digital Creation Date (62) = '20190417'
+Digital Creation Time (63) = '181148'
+Caption/Abstract (120) = 'adult tan dachshund on grass field'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

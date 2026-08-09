@@ -19,7 +19,7 @@ Little-endian (Intel, II)
 0000000248 0x829a ExposureTime = 1/160 (0.00625)
 0000000260 0x829d FNumber = 63/10 (6.3)
 0000000272 0x8822 ExposureProgram = 1
-0000000284 0x8827 PhotographicSensitivity = 1600
+0000000284 0x8827 ISO = 1600
 0000000296 0x8830 SensitivityType = 2
 0000000308 0x8832 RecommendedExposureIndex = 1600
 0000000320 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x30]
@@ -54,7 +54,7 @@ Little-endian (Intel, II)
 0000012578 0x0003 GPSLongitudeRef = E
 0000012590 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory SubIFD @ 810 ----
+---- Directory IFD1 @ 810 ----
 0000000812 0x0103 Compression = 6
 0000000824 0x011a XResolution = 72/1 (72.0)
 0000000836 0x011b YResolution = 72/1 (72.0)
@@ -62,13 +62,12 @@ Little-endian (Intel, II)
 0000000860 0x0201 JpgFromRawStart = 904
 0000000872 0x0202 JpgFromRawLength = 11636
 
-
 ---- IPTC ----
-Digital Creation Time (63) = '171115'
-Digital Creation Date (62) = '20181212'
-Time Created (60) = '171115'
-Date Created (55) = '20181212'
 Keywords (25) = 'Umlauts: äöüß'
+Date Created (55) = '20181212'
+Time Created (60) = '171115'
+Digital Creation Date (62) = '20181212'
+Digital Creation Time (63) = '171115'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

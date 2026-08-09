@@ -24,7 +24,7 @@ Little-endian (Intel, II)
 0000000292 0x829a ExposureTime = 1/1250 (8.0E-4)
 0000000304 0x829d FNumber = 4/1 (4.0)
 0000000316 0x8822 ExposureProgram = 6
-0000000328 0x8827 PhotographicSensitivity = 400
+0000000328 0x8827 ISO = 400
 0000000340 0x9000 ExifVersion = [0x30, 0x32, 0x32, 0x31]
 0000000352 0x9003 DateTimeOriginal = 2023:05:10 13:37:42
 0000000364 0x9004 DateTimeDigitized = 2023:05:10 13:37:42
@@ -40,7 +40,7 @@ Little-endian (Intel, II)
 0000000484 0x9292 SubSecTimeDigitized = 76
 0000000496 0xa001 ColorSpace = -1
 0000000508 0xa002 ExifImageWidth = 2371
-0000000520 0xa003 ExifImageLength = 1580
+0000000520 0xa003 ExifImageHeight = 1580
 0000000532 0xa20e FocalPlaneXResolution = 5184000/905 (5728.176796)
 0000000544 0xa20f FocalPlaneYResolution = 3456000/595 (5808.403361)
 0000000556 0xa210 FocalPlaneResolutionUnit = 2
@@ -59,7 +59,7 @@ Little-endian (Intel, II)
 0000000964 0x0003 GPSLongitudeRef = E
 0000000976 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory SubIFD @ 832 ----
+---- Directory IFD1 @ 832 ----
 0000000834 0x0103 Compression = 6
 0000000846 0x011a XResolution = 72/1 (72.0)
 0000000858 0x011b YResolution = 72/1 (72.0)
@@ -67,13 +67,12 @@ Little-endian (Intel, II)
 0000000882 0x0201 JpgFromRawStart = 11980
 0000000894 0x0202 JpgFromRawLength = 11065
 
-
 ---- IPTC ----
-Caption/Abstract (120) = 'brown horse'
-Time Created (60) = '164926+0000'
-Date Created (55) = '20140505'
 Keywords (25) = 'foal'
 Keywords (25) = 'Umlauts: äöüß'
+Date Created (55) = '20140505'
+Time Created (60) = '164926+0000'
+Caption/Abstract (120) = 'brown horse'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

@@ -19,7 +19,7 @@ Little-endian (Intel, II)
 0000000238 0x829a ExposureTime = 1/250 (0.004)
 0000000250 0x829d FNumber = 8/1 (8.0)
 0000000262 0x8822 ExposureProgram = 1
-0000000274 0x8827 PhotographicSensitivity = 125
+0000000274 0x8827 ISO = 125
 0000000286 0x8830 SensitivityType = 2
 0000000298 0x8832 RecommendedExposureIndex = 125
 0000000310 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x31]
@@ -60,7 +60,7 @@ Little-endian (Intel, II)
 0000012238 0x0003 GPSLongitudeRef = E
 0000012250 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory SubIFD @ 860 ----
+---- Directory IFD1 @ 860 ----
 0000000862 0x0103 Compression = 6
 0000000874 0x011a XResolution = 72/1 (72.0)
 0000000886 0x011b YResolution = 72/1 (72.0)
@@ -68,20 +68,19 @@ Little-endian (Intel, II)
 0000000910 0x0201 JpgFromRawStart = 954
 0000000922 0x0202 JpgFromRawLength = 11246
 
-
 ---- IPTC ----
-Caption/Abstract (120) = 'brown turtle'
-Digital Creation Time (63) = '061416'
-Digital Creation Date (62) = '20190225'
-Time Created (60) = '061416'
-Date Created (55) = '20190225'
+Object Name (5) = 'Hawksbill Sea Turtle (Eretmochelys imbricata)  The tapered head '
 Keywords (25) = 'tortoise'
 Keywords (25) = 'reptile'
 Keywords (25) = 'sea turtle'
 Keywords (25) = 'water'
 Keywords (25) = 'outdoors'
 Keywords (25) = 'Umlauts: äöüß'
-Object Name (5) = 'Hawksbill Sea Turtle (Eretmochelys imbricata)  The tapered head '
+Date Created (55) = '20190225'
+Time Created (60) = '061416'
+Digital Creation Date (62) = '20190225'
+Digital Creation Time (63) = '061416'
+Caption/Abstract (120) = 'brown turtle'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

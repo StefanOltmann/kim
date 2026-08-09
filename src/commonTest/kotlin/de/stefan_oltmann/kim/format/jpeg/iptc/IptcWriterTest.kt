@@ -84,4 +84,23 @@ class IptcWriterTest {
             actual = blockData.toHex()
         )
     }
+
+    @Test
+    fun testRecordsSortAscendingByType() {
+
+        val records = listOf(
+            IptcRecord(IptcTypes.KEYWORDS, TEST_KEYWORD),
+            IptcRecord(IptcTypes.OBJECT_NAME, "Object Name"),
+            IptcRecord(IptcTypes.RECORD_VERSION, "2")
+        )
+
+        assertEquals(
+            expected = listOf(
+                IptcTypes.RECORD_VERSION,
+                IptcTypes.OBJECT_NAME,
+                IptcTypes.KEYWORDS
+            ),
+            actual = records.sorted().map { it.iptcType }
+        )
+    }
 }

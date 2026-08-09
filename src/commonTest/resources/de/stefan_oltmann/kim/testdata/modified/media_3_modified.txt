@@ -20,7 +20,7 @@ Little-endian (Intel, II)
 0000000286 0x829a ExposureTime = 1/250 (0.004)
 0000000298 0x829d FNumber = 56/10 (5.6)
 0000000310 0x8822 ExposureProgram = 3
-0000000322 0x8827 PhotographicSensitivity = 500
+0000000322 0x8827 ISO = 500
 0000000334 0x8830 SensitivityType = 1
 0000000346 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x31]
 0000000358 0x9003 DateTimeOriginal = 2023:05:10 13:37:42
@@ -61,7 +61,7 @@ Little-endian (Intel, II)
 0000001060 0x0003 GPSLongitudeRef = E
 0000001072 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory SubIFD @ 928 ----
+---- Directory IFD1 @ 928 ----
 0000000930 0x0103 Compression = 6
 0000000942 0x011a XResolution = 72/1 (72.0)
 0000000954 0x011b YResolution = 72/1 (72.0)
@@ -69,16 +69,15 @@ Little-endian (Intel, II)
 0000000978 0x0201 JpgFromRawStart = 13000
 0000000990 0x0202 JpgFromRawLength = 12001
 
-
 ---- IPTC ----
-Caption/Abstract (120) = 'red and black beetle on brown dried leaf in macro photography'
-Digital Creation Time (63) = '150815'
-Digital Creation Date (62) = '20200430'
-Time Created (60) = '150815'
-Date Created (55) = '20200430'
 Keywords (25) = 'invertebrate'
 Keywords (25) = 'animal'
 Keywords (25) = 'Umlauts: äöüß'
+Date Created (55) = '20200430'
+Time Created (60) = '150815'
+Digital Creation Date (62) = '20200430'
+Digital Creation Time (63) = '150815'
+Caption/Abstract (120) = 'red and black beetle on brown dried leaf in macro photography'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

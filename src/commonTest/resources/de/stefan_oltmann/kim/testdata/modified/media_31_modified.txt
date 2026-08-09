@@ -19,7 +19,7 @@ Little-endian (Intel, II)
 0000000192 0x829a ExposureTime = 1/60 (0.016667)
 0000000204 0x829d FNumber = 32/10 (3.2)
 0000000216 0x8822 ExposureProgram = 2
-0000000228 0x8827 PhotographicSensitivity = 400
+0000000228 0x8827 ISO = 400
 0000000240 0x8830 SensitivityType = 2
 0000000252 0x8832 RecommendedExposureIndex = 400
 0000000264 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x30]
@@ -39,7 +39,7 @@ Little-endian (Intel, II)
 0000000432 0xa000 FlashpixVersion = [0x30, 0x31, 0x30, 0x30]
 0000000444 0xa001 ColorSpace = 1
 0000000456 0xa002 ExifImageWidth = 5472
-0000000468 0xa003 ExifImageLength = 3648
+0000000468 0xa003 ExifImageHeight = 3648
 0000000480 0xa005 InteropOffset = 9026
 0000000492 0xa20e FocalPlaneXResolution = 5472000/899 (6086.76307)
 0000000504 0xa20f FocalPlaneYResolution = 3648000/599 (6090.15025)
@@ -65,7 +65,7 @@ Little-endian (Intel, II)
 0000009094 0x0003 GPSLongitudeRef = E
 0000009106 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory SubIFD @ 9170 ----
+---- Directory IFD1 @ 9170 ----
 0000009172 0x0103 Compression = 6
 0000009184 0x011a XResolution = 72/1 (72.0)
 0000009196 0x011b YResolution = 72/1 (72.0)
@@ -73,11 +73,53 @@ Little-endian (Intel, II)
 0000009220 0x0201 JpgFromRawStart = 9264
 0000009232 0x0202 JpgFromRawLength = 8567
 
+---- Directory MakerNoteCanon @ 764 ----
+0000000766 0x0001 CanonCameraSettings = [49 shorts]
+0000000778 0x0002 Unknown = [0, 50, 2838, 23076]
+0000000790 0x0003 Unknown = [0, 0, 0, 0]
+0000000802 0x0004 Unknown = [34 shorts]
+0000000814 0x0006 CanonImageType = Canon EOS 70D
+0000000826 0x0007 CanonFirmwareVersion = Firmware Version 1.1.1
+0000000838 0x0009 OwnerName = 
+0000000850 0x000d Unknown = [1536 bytes]
+0000000862 0x0010 CanonModelID = -2147482843
+0000000874 0x0013 Unknown = [0, 159, 7, 112]
+0000000886 0x0019 Unknown = 1
+0000000898 0x0026 Unknown = [139 shorts]
+0000000910 0x0035 Unknown = [16, 0, 20, 0]
+0000000922 0x0093 Unknown = [32 shorts]
+0000000934 0x0095 LensModel = EF50mm f/1.8 STM
+0000000946 0x0096 InternalSerialNumber = FA0381304
+0000000958 0x0097 Unknown = [1024 bytes]
+0000000970 0x0098 Unknown = [0, 0, 0, 0]
+0000000982 0x0099 Unknown = [116 ints]
+0000000994 0x009a Unknown = [0, 5472, 3648, 0, 0]
+0000001006 0x00a0 Unknown = [28, 0, 3, 0, 0, 0, 0, 0, -1, 5200, 135, 0, 0, 0]
+0000001018 0x00aa Unknown = [12, 595, 1024, 1024, 515, 0]
+0000001030 0x00b4 Unknown = 1
+0000001042 0x00d0 Unknown = 0
+0000001054 0x00e0 Unknown = [17 shorts]
+0000001066 0x4001 Unknown = [1313 shorts]
+0000001078 0x4008 Unknown = [135, 135, 135]
+0000001090 0x4009 Unknown = [0, 0, 0]
+0000001102 0x4010 Unknown = 
+0000001114 0x4011 Unknown = [252 bytes]
+0000001126 0x4012 Unknown = 
+0000001138 0x4013 Unknown = [44, 0, 0, 10, -1, 0, 10, 0, 10, 0, 10]
+0000001150 0x4015 Unknown = [456 bytes]
+0000001162 0x4016 Unknown = [28, 0, 1, 0, 1, 0, 0]
+0000001174 0x4018 Unknown = [28, 0, 0, 0, 0, 0, 1]
+0000001186 0x4019 LensInfo = [30 bytes]
+0000001198 0x4020 Unknown = [28, 0, 0, 0, 0, 2147483647, 0]
+0000001210 0x4021 Unknown = [20, 0, 0, 0, 1]
+0000001222 0x4024 Unknown = [53 ints]
+0000001234 0x4025 Unknown = [36, 0, 0, 0, 0, 0, 0, 0, 0]
+0000001246 0x4027 Unknown = [24, 524546, -1325400014, 134217728, 13684944, 65539]
 
 ---- IPTC ----
-Caption/Abstract (120) = 'rules of third photography of orange-eyed gray cat'
-Keywords (25) = 'Umlauts: äöüß'
 Object Name (5) = 'Gray cat portrait'
+Keywords (25) = 'Umlauts: äöüß'
+Caption/Abstract (120) = 'rules of third photography of orange-eyed gray cat'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

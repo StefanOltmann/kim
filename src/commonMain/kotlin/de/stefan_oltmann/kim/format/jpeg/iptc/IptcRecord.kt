@@ -31,5 +31,5 @@ public data class IptcRecord(
      * IPTC records must be written in ascending order of their type.
      */
     override fun compareTo(other: IptcRecord): Int =
-        other.iptcType.type - this.iptcType.type
+        this.iptcType.type - other.iptcType.type
 }

@@ -24,9 +24,7 @@ Big-endian (Motorola, MM)
 0000000184 0x0003 GPSLongitudeRef = E
 0000000196 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
-
 ---- IPTC ----
-Caption/Abstract (120) = 'brown and black tiger lying on green grass during daytime'
 Keywords (25) = 'plant'
 Keywords (25) = 'mammal'
 Keywords (25) = 'food'
@@ -34,6 +32,7 @@ Keywords (25) = 'seasoning'
 Keywords (25) = 'flora'
 Keywords (25) = 'dill'
 Keywords (25) = 'Umlauts: äöüß'
+Caption/Abstract (120) = 'brown and black tiger lying on green grass during daytime'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

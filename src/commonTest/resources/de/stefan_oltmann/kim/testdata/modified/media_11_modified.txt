@@ -19,7 +19,7 @@ Little-endian (Intel, II)
 0000000242 0x829a ExposureTime = 1/1000 (0.001)
 0000000254 0x829d FNumber = 63/10 (6.3)
 0000000266 0x8822 ExposureProgram = 1
-0000000278 0x8827 PhotographicSensitivity = 280
+0000000278 0x8827 ISO = 280
 0000000290 0x8830 SensitivityType = 2
 0000000302 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x30]
 0000000314 0x9003 DateTimeOriginal = 2023:05:10 13:37:42
@@ -60,13 +60,12 @@ Little-endian (Intel, II)
 0000000892 0x0003 GPSLongitudeRef = E
 0000000904 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
-
 ---- IPTC ----
-Digital Creation Time (63) = '145550'
-Digital Creation Date (62) = '20130501'
-Time Created (60) = '145550'
-Date Created (55) = '20130501'
 Keywords (25) = 'Umlauts: äöüß'
+Date Created (55) = '20130501'
+Time Created (60) = '145550'
+Digital Creation Date (62) = '20130501'
+Digital Creation Time (63) = '145550'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

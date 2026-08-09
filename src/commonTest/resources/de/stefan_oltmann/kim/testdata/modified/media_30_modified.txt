@@ -20,7 +20,7 @@ Little-endian (Intel, II)
 0000000222 0x829a ExposureTime = 1/120 (0.008333)
 0000000234 0x829d FNumber = 2/1 (2.0)
 0000000246 0x8822 ExposureProgram = 2
-0000000258 0x8827 PhotographicSensitivity = 80
+0000000258 0x8827 ISO = 80
 0000000270 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x31]
 0000000282 0x9003 DateTimeOriginal = 2023:05:10 13:37:42
 0000000294 0x9004 DateTimeDigitized = 2023:05:10 13:37:42
@@ -38,7 +38,7 @@ Little-endian (Intel, II)
 0000000438 0xa000 FlashpixVersion = [0x30, 0x31, 0x30, 0x30]
 0000000450 0xa001 ColorSpace = 1
 0000000462 0xa002 ExifImageWidth = 3024
-0000000474 0xa003 ExifImageLength = 4032
+0000000474 0xa003 ExifImageHeight = 4032
 0000000486 0xa217 SensingMethod = 2
 0000000498 0xa301 SceneType = 1
 0000000510 0xa401 CustomRendered = 7
@@ -54,7 +54,7 @@ Little-endian (Intel, II)
 0000004886 0x0003 GPSLongitudeRef = E
 0000004898 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory SubIFD @ 680 ----
+---- Directory IFD1 @ 680 ----
 0000000682 0x0103 Compression = 6
 0000000694 0x011a XResolution = 72/1 (72.0)
 0000000706 0x011b YResolution = 72/1 (72.0)
@@ -62,13 +62,12 @@ Little-endian (Intel, II)
 0000000730 0x0201 JpgFromRawStart = 776
 0000000742 0x0202 JpgFromRawLength = 4070
 
-
 ---- IPTC ----
-Digital Creation Time (63) = '144746'
-Digital Creation Date (62) = '20200217'
-Time Created (60) = '144746'
-Date Created (55) = '20200217'
 Keywords (25) = 'Umlauts: äöüß'
+Date Created (55) = '20200217'
+Time Created (60) = '144746'
+Digital Creation Date (62) = '20200217'
+Digital Creation Time (63) = '144746'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

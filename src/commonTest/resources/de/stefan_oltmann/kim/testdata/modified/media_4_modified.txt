@@ -19,7 +19,7 @@ Little-endian (Intel, II)
 0000000248 0x829a ExposureTime = 1/640 (0.001563)
 0000000260 0x829d FNumber = 56/10 (5.6)
 0000000272 0x8822 ExposureProgram = 1
-0000000284 0x8827 PhotographicSensitivity = 1600
+0000000284 0x8827 ISO = 1600
 0000000296 0x8830 SensitivityType = 2
 0000000308 0x8832 RecommendedExposureIndex = 1600
 0000000320 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x31]
@@ -55,7 +55,7 @@ Little-endian (Intel, II)
 0000000964 0x0003 GPSLongitudeRef = E
 0000000976 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory SubIFD @ 832 ----
+---- Directory IFD1 @ 832 ----
 0000000834 0x0103 Compression = 6
 0000000846 0x011a XResolution = 72/1 (72.0)
 0000000858 0x011b YResolution = 72/1 (72.0)
@@ -63,13 +63,7 @@ Little-endian (Intel, II)
 0000000882 0x0201 JpgFromRawStart = 8660
 0000000894 0x0202 JpgFromRawLength = 7757
 
-
 ---- IPTC ----
-Caption/Abstract (120) = 'cat reclining on floor'
-Digital Creation Time (63) = '012828'
-Digital Creation Date (62) = '20191223'
-Time Created (60) = '012828'
-Date Created (55) = '20191223'
 Keywords (25) = 'wood'
 Keywords (25) = 'floor'
 Keywords (25) = 'cat'
@@ -78,6 +72,11 @@ Keywords (25) = 'mammal'
 Keywords (25) = 'pet'
 Keywords (25) = 'animal'
 Keywords (25) = 'Umlauts: äöüß'
+Date Created (55) = '20191223'
+Time Created (60) = '012828'
+Digital Creation Date (62) = '20191223'
+Digital Creation Time (63) = '012828'
+Caption/Abstract (120) = 'cat reclining on floor'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

@@ -19,7 +19,7 @@ Little-endian (Intel, II)
 0000000238 0x829a ExposureTime = 1/640 (0.001563)
 0000000250 0x829d FNumber = 56/10 (5.6)
 0000000262 0x8822 ExposureProgram = 1
-0000000274 0x8827 PhotographicSensitivity = 400
+0000000274 0x8827 ISO = 400
 0000000286 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x30]
 0000000298 0x9003 DateTimeOriginal = 2023:05:10 13:37:42
 0000000310 0x9004 DateTimeDigitized = 2023:05:10 13:37:42
@@ -50,7 +50,7 @@ Little-endian (Intel, II)
 0000000782 0x0003 GPSLongitudeRef = E
 0000000794 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory SubIFD @ 858 ----
+---- Directory IFD1 @ 858 ----
 0000000860 0x0103 Compression = 6
 0000000872 0x011a XResolution = 72/1 (72.0)
 0000000884 0x011b YResolution = 72/1 (72.0)
@@ -58,16 +58,15 @@ Little-endian (Intel, II)
 0000000908 0x0201 JpgFromRawStart = 10626
 0000000920 0x0202 JpgFromRawLength = 9685
 
-
 ---- IPTC ----
-Caption/Abstract (120) = 'brown butterfly on orange petaled flower'
-Digital Creation Time (63) = '081655'
-Digital Creation Date (62) = '20110626'
-Time Created (60) = '081655'
-Date Created (55) = '20110626'
 Keywords (25) = 'invertebrate'
 Keywords (25) = 'cosmos'
 Keywords (25) = 'Umlauts: äöüß'
+Date Created (55) = '20110626'
+Time Created (60) = '081655'
+Digital Creation Date (62) = '20110626'
+Digital Creation Time (63) = '081655'
+Caption/Abstract (120) = 'brown butterfly on orange petaled flower'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

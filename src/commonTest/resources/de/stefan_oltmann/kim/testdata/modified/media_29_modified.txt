@@ -25,7 +25,7 @@ Little-endian (Intel, II)
 0000000332 0x829a ExposureTime = 1/250 (0.004)
 0000000344 0x829d FNumber = 35/10 (3.5)
 0000000356 0x8822 ExposureProgram = 1
-0000000368 0x8827 PhotographicSensitivity = 100
+0000000368 0x8827 ISO = 100
 0000000380 0x8830 SensitivityType = 1
 0000000392 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x30]
 0000000404 0x9003 DateTimeOriginal = 2023:05:10 13:37:42
@@ -40,7 +40,7 @@ Little-endian (Intel, II)
 0000000512 0x920a FocalLength = 14/1 (14.0)
 0000000524 0xa001 ColorSpace = 1
 0000000536 0xa002 ExifImageWidth = 2920
-0000000548 0xa003 ExifImageLength = 4045
+0000000548 0xa003 ExifImageHeight = 4045
 0000000560 0xa20e FocalPlaneXResolution = 87196351/32768 (2661.021454)
 0000000572 0xa20f FocalPlaneYResolution = 87196351/32768 (2661.021454)
 0000000584 0xa210 FocalPlaneResolutionUnit = 3
@@ -68,7 +68,7 @@ Little-endian (Intel, II)
 0000005668 0x0003 GPSLongitudeRef = E
 0000005680 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory SubIFD @ 1004 ----
+---- Directory IFD1 @ 1004 ----
 0000001006 0x0103 Compression = 6
 0000001018 0x011a XResolution = 72/1 (72.0)
 0000001030 0x011b YResolution = 72/1 (72.0)
@@ -76,13 +76,12 @@ Little-endian (Intel, II)
 0000001054 0x0201 JpgFromRawStart = 1098
 0000001066 0x0202 JpgFromRawLength = 4532
 
-
 ---- IPTC ----
-Caption/Abstract (120) = 'OLYMPUS DIGITAL CAMERA'
-Digital Creation Date (62) = '20170716'
-Time Created (60) = '202634+0000'
-Date Created (55) = '20170716'
 Keywords (25) = 'Umlauts: äöüß'
+Date Created (55) = '20170716'
+Time Created (60) = '202634+0000'
+Digital Creation Date (62) = '20170716'
+Caption/Abstract (120) = 'OLYMPUS DIGITAL CAMERA'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
