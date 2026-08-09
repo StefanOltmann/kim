@@ -17,6 +17,8 @@
 package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.toBytes
 import de.stefan_oltmann.kim.common.writeBytes
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
@@ -38,6 +40,7 @@ import kotlinx.io.files.Path
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNotSame
@@ -520,6 +523,155 @@ class JpegRewriterTest {
         assertEquals(description, roundTripDescription)
     }
 
+    /**
+     * Verifies that an EXIF payload above the maximal segment payload size is
+     * rejected instead of producing a JPEG whose segment length field wraps
+     * around the 16-bit range.
+     */
+    @Test
+    fun testExifSegmentLargerThanMaxThrows() {
+
+        val baseJpeg = createJpegWithoutExif()
+
+        val fixedExifBytes = measureFixedExifBytes(baseJpeg)
+
+        val byteWriter = ByteArrayByteWriter()
+
+        assertFailsWith<ImageWriteException> {
+            JpegRewriter.updateExifMetadataLossless(
+                ByteArrayByteReader(baseJpeg),
+                byteWriter,
+                createOutputSetWithXmpField(smallestRejectedExifPayloadBytes - fixedExifBytes)
+            )
+        }
+    }
+
+    /**
+     * Verifies that an EXIF payload of 65530 bytes, the largest size the
+     * aligned TIFF writer can produce below the limit, is written with a
+     * correct segment length field and survives a read-back.
+     */
+    @Test
+    fun testExifSegmentNearMaxIsWrittenValid() {
+
+        val baseJpeg = createJpegWithoutExif()
+
+        val fixedExifBytes = measureFixedExifBytes(baseJpeg)
+
+        val byteWriter = ByteArrayByteWriter()
+
+        JpegRewriter.updateExifMetadataLossless(
+            ByteArrayByteReader(baseJpeg),
+            byteWriter,
+            createOutputSetWithXmpField(largestWriteableExifPayloadBytes - fixedExifBytes)
+        )
+
+        val newBytes = byteWriter.toByteArray()
+
+        assertEquals(largestWriteableExifPayloadBytes, exifSegmentPayloadSize(newBytes))
+
+        assertNotNull(Kim.readMetadata(newBytes)?.exif)
+    }
+
+    /**
+     * Returns a minimal JPEG without an EXIF segment, used as base for the
+     * lossy EXIF writer. The bundled test photos all carry an EXIF segment.
+     */
+    @Suppress("MagicNumber")
+    private fun createJpegWithoutExif(): ByteArray {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        byteWriter.write(JpegConstants.SOI)
+
+        /* APP0 JFIF segment. */
+        val jfifSegment = JpegConstants.JFIF0_SIGNATURE + byteArrayOf(
+            0x01, /* version 1.2 */
+            0x02,
+            0x01, /* density units */
+            0x00, 0x01, /* x density */
+            0x00, 0x01, /* y density */
+            0x00, /* thumbnail width */
+            0x00 /* thumbnail height */
+        )
+
+        byteWriter.write(JpegConstants.JPEG_APP0_MARKER.toShort().toBytes(JpegConstants.JPEG_BYTE_ORDER))
+        byteWriter.write((jfifSegment.size + SEGMENT_LENGTH_FIELD_BYTES).toShort().toBytes(JpegConstants.JPEG_BYTE_ORDER))
+        byteWriter.write(jfifSegment)
+
+        /* SOS marker with empty payload and a minimal image data blob. */
+        byteWriter.write(JpegConstants.SOS_MARKER.toShort().toBytes(JpegConstants.JPEG_BYTE_ORDER))
+        byteWriter.write(SEGMENT_LENGTH_FIELD_BYTES.toShort().toBytes(JpegConstants.JPEG_BYTE_ORDER))
+        byteWriter.write(JpegConstants.EOI)
+
+        return byteWriter.toByteArray()
+    }
+
+    /**
+     * Returns the fixed share of the EXIF payload size, derived from writing
+     * a calibration XMP field of known size.
+     */
+    private fun measureFixedExifBytes(baseJpeg: ByteArray): Int {
+
+        val calibratedJpeg = writeExif(
+            baseJpeg,
+            createOutputSetWithXmpField(calibrationFieldSize)
+        )
+
+        return exifSegmentPayloadSize(calibratedJpeg) - calibrationFieldSize
+    }
+
+    /**
+     * Writes the given output set as EXIF segment into the given JPEG and
+     * returns the resulting bytes.
+     */
+    private fun writeExif(baseJpeg: ByteArray, outputSet: TiffOutputSet): ByteArray {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        JpegRewriter.updateExifMetadataLossless(ByteArrayByteReader(baseJpeg), byteWriter, outputSet)
+
+        return byteWriter.toByteArray()
+    }
+
+    /**
+     * Returns an output set whose root directory holds a single XMP field of
+     * the given size, which controls the resulting EXIF payload size.
+     */
+    private fun createOutputSetWithXmpField(fieldSize: Int): TiffOutputSet {
+
+        val outputSet = TiffOutputSet()
+
+        outputSet.getOrCreateRootDirectory().add(TiffTag.TIFF_TAG_XMP, ByteArray(fieldSize))
+
+        return outputSet
+    }
+
+    /**
+     * Returns the payload size of the first APP1 segment of the given JPEG bytes.
+     */
+    private fun exifSegmentPayloadSize(jpegBytes: ByteArray): Int {
+
+        var offset = JpegConstants.SOI.size
+
+        while (offset + SEGMENT_HEADER_BYTES <= jpegBytes.size) {
+
+            val marker = (jpegBytes[offset].toInt() and 0xFF) shl 8 or
+                (jpegBytes[offset + 1].toInt() and 0xFF)
+
+            val segmentLength = (jpegBytes[offset + 2].toInt() and 0xFF) shl 8 or
+                (jpegBytes[offset + 3].toInt() and 0xFF)
+
+            if (marker == JpegConstants.JPEG_APP1_MARKER)
+                return segmentLength - SEGMENT_LENGTH_FIELD_BYTES
+
+            /* The length field counts itself, so the segment is 2 bytes longer. */
+            offset += SEGMENT_MARKER_BYTES + segmentLength
+        }
+
+        fail("JPEG bytes contain no APP1 segment.")
+    }
+
     companion object {
 
         private const val largeXmpKeywordCount = 4000
@@ -529,5 +681,17 @@ class JpegRewriterTest {
         private const val exifOffsetTag = 0x8769
         private const val interopOffsetTag = 0xa005
         private const val gpsInfoTag = 0x8825
+
+        private const val calibrationFieldSize = 100
+
+        private const val largestWriteableExifPayloadBytes = 65_530
+
+        private const val smallestRejectedExifPayloadBytes = 65_534
+
+        private const val SEGMENT_MARKER_BYTES = 2
+
+        private const val SEGMENT_LENGTH_FIELD_BYTES = 2
+
+        private const val SEGMENT_HEADER_BYTES = SEGMENT_MARKER_BYTES + SEGMENT_LENGTH_FIELD_BYTES
     }
 }
