@@ -80,7 +80,11 @@ public class KtorByteReadChannelByteReader(
             remaining -= bytesToCopy
         }
 
-        return result
+        /*
+         * Return a short array when the channel is exhausted, matching the
+         * ByteReader contract. Zero padding would be parsed as data.
+         */
+        return result.copyOf(offset)
     }
 
     override fun close() {
