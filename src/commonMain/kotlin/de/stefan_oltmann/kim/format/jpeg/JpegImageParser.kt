@@ -44,6 +44,8 @@ import de.stefan_oltmann.kim.model.MediaFormat
 
 public object JpegImageParser : ImageParser {
 
+    private const val XMP_META_CLOSE = "</x:xmpmeta>"
+
     public fun getImageSize(byteReader: ByteReader): ImageSize? {
 
         val magicNumberBytes = byteReader.readBytes(MediaFormatMagicNumbers.jpeg.size).toList()
@@ -209,18 +211,26 @@ public object JpegImageParser : ImageParser {
             return null
 
         /*
+         * XMP larger than one segment is split into multiple APP1 segments,
+         * so we concatenate the segments until the XMP is complete.
+         *
          * Some files in our test repo have multiple XMP strings.
          * This seems to be an error, because it's the same content, but only formatted.
          * We do here what ExifTool does on "exiftool -xmp -b photo.jpg > photo.xmp"
-         * and take the first by ignoring the rest.
+         * and take the first complete packet by ignoring the rest.
          */
+        val xmp = StringBuilder()
 
-        val xmp = JpegXmpParser.parseXmpJpegSegment(xmpSegments.first().segmentBytes)
+        for (segment in xmpSegments) {
 
-        if (xmp.isBlank())
-            return null
+            xmp.append(JpegXmpParser.parseXmpJpegSegment(segment.segmentBytes))
 
-        return xmp
+            /* Stop when we find the first complete packet. */
+            if (xmp.toString().contains(XMP_META_CLOSE))
+                break
+        }
+
+        return xmp.toString().ifBlank { null }
     }
 
     private fun getIptc(segments: List<Segment>): IptcMetadata? {

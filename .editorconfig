@@ -20,7 +20,7 @@ ij_visual_guides = 100, 110, 120
 [{*.yml,*.json,gradlew}]
 indent_size = 2
 
-[{*.yml,*.md,*.txt}]
+[{*.yml,*.txt}]
 trim_trailing_whitespace = false
 max_line_length = off
 ij_visual_guides = 80
