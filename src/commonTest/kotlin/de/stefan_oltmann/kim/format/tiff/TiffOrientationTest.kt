@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -202,43 +203,43 @@ class TiffOrientationTest {
     fun testHasFlippedDimensions() {
 
         assertEquals(
-            TiffOrientation.STANDARD.hasFlippedDimensions(),
-            false
+            false,
+            TiffOrientation.STANDARD.hasFlippedDimensions()
         )
 
         assertEquals(
-            TiffOrientation.MIRROR_HORIZONTAL.hasFlippedDimensions(),
-            false
+            false,
+            TiffOrientation.MIRROR_HORIZONTAL.hasFlippedDimensions()
         )
 
         assertEquals(
-            TiffOrientation.UPSIDE_DOWN.hasFlippedDimensions(),
-            false
+            false,
+            TiffOrientation.UPSIDE_DOWN.hasFlippedDimensions()
         )
 
         assertEquals(
-            TiffOrientation.MIRROR_VERTICAL.hasFlippedDimensions(),
-            false
+            false,
+            TiffOrientation.MIRROR_VERTICAL.hasFlippedDimensions()
         )
 
         assertEquals(
-            TiffOrientation.MIRROR_HORIZONTAL_AND_ROTATE_LEFT.hasFlippedDimensions(),
-            true
+            true,
+            TiffOrientation.MIRROR_HORIZONTAL_AND_ROTATE_LEFT.hasFlippedDimensions()
         )
 
         assertEquals(
-            TiffOrientation.ROTATE_RIGHT.hasFlippedDimensions(),
-            true
+            true,
+            TiffOrientation.ROTATE_RIGHT.hasFlippedDimensions()
         )
 
         assertEquals(
-            TiffOrientation.MIRROR_HORIZONTAL_AND_ROTATE_RIGHT.hasFlippedDimensions(),
-            true
+            true,
+            TiffOrientation.MIRROR_HORIZONTAL_AND_ROTATE_RIGHT.hasFlippedDimensions()
         )
 
         assertEquals(
-            TiffOrientation.ROTATE_LEFT.hasFlippedDimensions(),
-            true
+            true,
+            TiffOrientation.ROTATE_LEFT.hasFlippedDimensions()
         )
     }
 

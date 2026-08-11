@@ -53,19 +53,10 @@ buildTimeTracker {
 }
 
 detekt {
-    source.from("src", "build.gradle.kts")
+    source.setFrom("src", "build.gradle.kts")
+    config.setFrom("detekt.yml")
     allRules = true
-    config.setFrom("$projectDir/detekt.yml")
     parallel = true
-    ignoreFailures = true
-    autoCorrect = true
-}
-
-kover {
-}
-
-dependencies {
-    detektPlugins(libs.detekt.formatting)
 }
 
 kotlin {
@@ -357,6 +348,60 @@ mavenPublishing {
         scm {
             url = "https://github.com/StefanOltmann/kim"
             connection = "scm:git:git://github.com/StefanOltmann/kim.git"
+        }
+    }
+}
+// endregion
+
+// region Code coverage
+kover {
+
+    reports {
+
+        /* Common filters for all report variants */
+        filters {
+
+            excludes {
+
+                /*
+                 * These Android classes use the Android framework
+                 * (ContentResolver, Uri, Build) and therefore cannot
+                 * be covered by host JVM tests.
+                 */
+                classes(
+                    "de.stefan_oltmann.kim.android.KimAndroid",
+                    "de.stefan_oltmann.kim.android.ContentResolverExtensionsKt"
+                )
+            }
+        }
+
+        /* Common verification rules for all report variants */
+        verify {
+
+            rule {
+                minBound(95)
+            }
+        }
+
+        total {
+
+            verifyAppend {
+                onCheck = true
+            }
+        }
+
+        variant("jvm") {
+
+            verifyAppend {
+                onCheck = true
+            }
+        }
+
+        variant("android") {
+
+            verifyAppend {
+                onCheck = true
+            }
         }
     }
 }

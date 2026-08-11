@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -20,6 +21,9 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldType
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeByte
 
+/**
+ * Tag info for multiple byte values.
+ */
 public open class TagInfoBytes : TagInfo {
 
     public constructor(

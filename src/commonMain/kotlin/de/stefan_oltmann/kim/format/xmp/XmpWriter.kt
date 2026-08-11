@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +31,9 @@ import kotlin.jvm.JvmStatic
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
+/**
+ * Writes XMP data.
+ */
 public object XmpWriter {
 
     private val xmpSerializeOptions =
@@ -176,7 +180,7 @@ public object XmpWriter {
     }
 
     /**
-     * Note: Parameter 'writePackageWrapper' should be "true" for embedded XMP
+     * Note: Parameter 'writePackageWrapper' should be "true" for embedded XMP.
      */
     @Throws(XMPException::class)
     @Suppress("LoopWithTooManyJumpStatements")
@@ -194,7 +198,7 @@ public object XmpWriter {
     }
 
     /**
-     * Note: Parameter 'writePackageWrapper' should be "true" for embedded XMP
+     * Note: Parameter 'writePackageWrapper' should be "true" for embedded XMP.
      */
     @Throws(XMPException::class)
     @Suppress("LoopWithTooManyJumpStatements")

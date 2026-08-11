@@ -30,7 +30,7 @@ public data class MetadataSummary(
     val widthPx: Int? = null,
     val heightPx: Int? = null,
 
-    /** tiff:Orientation */
+    /** tiff:Orientation. */
     val orientation: TiffOrientation? = null,
 
     /* Capture parameters */
@@ -127,7 +127,7 @@ public data class MetadataSummary(
             widthPx = widthPx ?: other.widthPx,
             heightPx = heightPx ?: other.heightPx,
 
-            /** tiff:Orientation */
+            /** tiff:Orientation. */
             orientation = orientation ?: other.orientation,
 
             /* Capture parameters */

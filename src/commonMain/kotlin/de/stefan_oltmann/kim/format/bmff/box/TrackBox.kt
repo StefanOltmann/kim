@@ -47,7 +47,7 @@ public class TrackBox(
         boxes = BoxReader.readBoxes(
             byteReader = byteReader,
             stopAfterMetadataRead = false,
-            positionOffset = 4,
+            positionOffset = 0,
             offsetShift = offset + 8,
             parentBoxType = type
         )

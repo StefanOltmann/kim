@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +34,28 @@ import de.stefan_oltmann.kim.input.readBytes
 import de.stefan_oltmann.kim.input.skipBytes
 import kotlin.jvm.JvmStatic
 
+/**
+ * Extracts preview images from Canon CR3 files.
+ */
 public object Cr3PreviewExtractor {
+
+    /*
+     * Skip one version byte, 3 bytes flags, 4 bytes sample size
+     * and 4 bytes sample count.
+     */
+    private const val STSZ_SKIP_BYTES = 12
+
+    /* Skip one version byte, 3 bytes flags and 4 bytes entry count */
+    private const val CO64_SKIP_BYTES = 8
+
+    /* Skip unknown bytes */
+    private const val PRVW_UNKNOWN_BYTES = 8
+
+    /* Skip size */
+    private const val PRVW_SIZE_BYTES = 4
+
+    /* Skip not interesting bytes */
+    private const val PRVW_HEADER_BYTES = 12
 
     @Throws(ImageReadException::class)
     @JvmStatic
@@ -90,20 +112,13 @@ public object Cr3PreviewExtractor {
 
         val stszReader = ByteArrayByteReader(sampleSizesBox.payload)
 
-        /*
-         * Skip one version byte, 3 bytes flags, 4 bytes sample size
-         * and 4 bytes sample count.
-         */
-        stszReader.skipBytes("", 12)
+        stszReader.skipBytes("", STSZ_SKIP_BYTES)
 
         val length = stszReader.read4BytesAsInt("length", ByteOrder.BIG_ENDIAN)
 
         val co64Reader = ByteArrayByteReader(chunkOffsetBox.payload)
 
-        /*
-         * Skip one version byte, 3 bytes flags and 4 bytes entry count
-         */
-        co64Reader.skipBytes("", 8)
+        co64Reader.skipBytes("", CO64_SKIP_BYTES)
 
         val offset = co64Reader.read8BytesAsLong("offset", ByteOrder.BIG_ENDIAN)
 
@@ -141,10 +156,10 @@ public object Cr3PreviewExtractor {
         val payloadReader = ByteArrayByteReader(previewUuidBox.data)
 
         /* Skip unknown bytes */
-        payloadReader.skipBytes("", 8)
+        payloadReader.skipBytes("", PRVW_UNKNOWN_BYTES)
 
         /* Skip size */
-        payloadReader.skipBytes("size", 4)
+        payloadReader.skipBytes("size", PRVW_SIZE_BYTES)
 
         val marker = payloadReader.readBytes("marker", 4).decodeToString()
 
@@ -152,7 +167,7 @@ public object Cr3PreviewExtractor {
             throw ImageReadException("Expected marker PRVW, but got: $marker")
 
         /* Not interesting bytes */
-        payloadReader.skipBytes("header", 12)
+        payloadReader.skipBytes("header", PRVW_HEADER_BYTES)
 
         val jpegSize = payloadReader.read4BytesAsInt("jpegSize", ByteOrder.BIG_ENDIAN)
 

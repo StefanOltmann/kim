@@ -19,6 +19,9 @@ package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.common.ByteOrder
 
+/**
+ * Constants of the JPEG format.
+ */
 @Suppress("MagicNumber")
 public object JpegConstants {
 
@@ -157,7 +160,6 @@ public object JpegConstants {
     public const val EXP_MARKER: Int = 0xFFDF
 
     public const val COM_MARKER_1: Int = 0xFFFE
-    public const val COM_MARKER_2: Int = 0xFFEE
 
     public val SOFN_MARKERS: List<Int> = listOf(
         SOF0_MARKER, SOF1_MARKER, SOF2_MARKER, SOF3_MARKER, SOF5_MARKER,
@@ -200,10 +202,13 @@ public object JpegConstants {
     public val MAX_PHOTOSHOP_BYTES_PER_SEGMENT: Int =
         MAX_SEGMENT_SIZE - 2 - APP13_IDENTIFIER.size
 
-    /** Int value of "8BIM" */
+    /** Int value of "8BIM". */
     public const val IPTC_RESOURCE_BLOCK_SIGNATURE_INT: Int = 943_868_237
 
-    /** Hex value of "8BIM" (38 42 49 4D) */
+    /** The "8BIM" signature is 4 bytes. */
+    public const val IPTC_RESOURCE_BLOCK_SIGNATURE_LENGTH: Int = 4
+
+    /** Hex value of "8BIM" (38 42 49 4D). */
     public const val IPTC_RESOURCE_BLOCK_SIGNATURE_HEX: String = "3842494d"
 
     @OptIn(ExperimentalStdlibApi::class)
@@ -248,7 +253,7 @@ public object JpegConstants {
             SOF14_MARKER -> "SOF14 (Start of Frame, Differential progressive DCT, Arithmetic coding)"
             SOF15_MARKER -> "SOF15 (Start of Frame, Differential lossless (sequential), Arithmetic coding)"
             /* Other optional markers */
-            COM_MARKER_1, COM_MARKER_2 -> "COM (Comment)"
+            COM_MARKER_1 -> "COM (Comment)"
             DRI_MARKER -> "DRI (Define Restart Interval)"
             RST0_MARKER -> "RST0 (Restart Marker)"
             RST1_MARKER -> "RST1 (Restart Marker)"

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -16,6 +17,7 @@
  */
 package de.stefan_oltmann.kim.format.jpeg
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
 import de.stefan_oltmann.kim.input.ByteReader
@@ -24,6 +26,9 @@ import de.stefan_oltmann.kim.input.readBytes
 import de.stefan_oltmann.kim.input.readRemainingBytes
 
 internal object JpegUtils {
+
+    /* JPEG markers are 0xFF fill bytes */
+    private const val FILL_BYTE = 0xFF
 
     fun traverseJFIF(byteReader: ByteReader, visitor: JpegVisitor) {
 
@@ -48,8 +53,8 @@ internal object JpegUtils {
                 readBytesCount++
 
             } while (
-                0xFF and markerBytes[0].toInt() != 0xFF ||
-                0xFF and markerBytes[1].toInt() == 0xFF
+                FILL_BYTE and markerBytes[0].toInt() != FILL_BYTE ||
+                FILL_BYTE and markerBytes[1].toInt() == FILL_BYTE
             )
 
             val marker = markerBytes.toUInt16(JPEG_BYTE_ORDER)
@@ -83,11 +88,11 @@ internal object JpegUtils {
 
             /*
              * If the segment specifies a zero length or a length that is
-             * longer than the remaining bytes, it's corrupt and should be ignored.
-             * That's what ExifTool does.
+             * longer than the remaining bytes, the file is corrupt and
+             * must be rejected.
              */
             if (segmentContentLength <= 0 || segmentContentLength > remainingByteCount)
-                continue
+                throw ImageReadException("Illegal JPEG segment length: $segmentContentLength")
 
             val segmentData = byteReader.readBytes("segmentData", segmentContentLength)
 

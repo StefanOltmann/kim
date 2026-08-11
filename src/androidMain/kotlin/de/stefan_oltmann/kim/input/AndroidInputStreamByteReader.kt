@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +17,6 @@
 package de.stefan_oltmann.kim.input
 
 import android.os.Build
-import de.stefan_oltmann.kim.common.slice
 import java.io.InputStream
 
 /**
@@ -55,20 +55,30 @@ public open class AndroidInputStreamByteReader(
     /**
      * Reads with the pre-Tiramisu InputStream API.
      *
-     * InputStream.read may return fewer bytes than requested or -1 at EOF.
-     * The result is limited to the bytes actually read, matching the
-     * ByteReader contract. Zero padding would be parsed as data.
+     * InputStream.read may return fewer bytes than requested even before
+     * the end of the stream, so we loop until the request is fulfilled.
+     * The result is limited to the bytes actually read at the end of the
+     * stream, matching the ByteReader contract. Zero padding would be
+     * parsed as data.
      */
     internal fun readBytesLegacy(count: Int): ByteArray {
 
-        val buffer = ByteArray(count)
+        val result = ByteArray(count)
 
-        val bytes = inputStream.read(buffer)
+        var bytesRead = 0
 
-        return if (bytes == count)
-            buffer
-        else
-            buffer.slice(startIndex = 0, count = maxOf(bytes, 0))
+        while (bytesRead < count) {
+
+            val bytes = inputStream.read(result, bytesRead, count - bytesRead)
+
+            /* End of the stream. */
+            if (bytes == -1)
+                break
+
+            bytesRead += bytes
+        }
+
+        return result.copyOf(bytesRead)
     }
 
     override fun close(): Unit =

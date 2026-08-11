@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -28,6 +29,9 @@ import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
 import de.stefan_oltmann.kim.output.writeInt
 
+/**
+ * Writes PNG files.
+ */
 public object PngWriter {
 
     public fun writeImage(
@@ -199,7 +203,11 @@ public object PngWriter {
                 PngConstants.TXT_SIZE_PAD
             )
 
-        val textToWrite = "\nIPTC profile\n$sizeAsText\n${iptcBytes.toHex()}"
+        @Suppress("MultilineRawStringIndentation")
+        val textToWrite = "\n" + """
+            |IPTC profile
+            |$sizeAsText
+            |${iptcBytes.toHex()}""".trimMargin()
 
         writer.write(textToWrite.encodeToByteArray())
 

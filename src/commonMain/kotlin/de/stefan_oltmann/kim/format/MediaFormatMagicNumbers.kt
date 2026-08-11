@@ -80,52 +80,52 @@ public object MediaFormatMagicNumbers {
         0x52, 0x49, 0x46, 0x46, null, null, null, null, 0x57, 0x45, 0x42, 0x50
     )
 
-    /** 4 bytes + "ftypheic" */
+    /** 4 bytes + "ftypheic". */
     public val heic: List<Byte?> = byteListOf(
         null, null, null, null
     ).plus("ftypheic".encodeToByteArray().toList())
 
-    /** A HEIC brand */
+    /** A HEIC brand. */
     public val mif1: List<Byte?> = byteListOf(
         null, null, null, null
     ).plus("ftypmif1".encodeToByteArray().toList())
 
-    /** A HEIC brand */
+    /** A HEIC brand. */
     public val msf1: List<Byte?> = byteListOf(
         null, null, null, null
     ).plus("ftypmsf1".encodeToByteArray().toList())
 
-    /** A HEIC brand */
+    /** A HEIC brand. */
     public val heix: List<Byte?> = byteListOf(
         null, null, null, null
     ).plus("ftypheix".encodeToByteArray().toList())
 
-    /** A HEIC brand */
+    /** A HEIC brand. */
     public val hevc: List<Byte?> = byteListOf(
         null, null, null, null
     ).plus("ftyphevc".encodeToByteArray().toList())
 
-    /** A HEIC brand */
+    /** A HEIC brand. */
     public val hevx: List<Byte?> = byteListOf(
         null, null, null, null
     ).plus("ftyphevx".encodeToByteArray().toList())
 
-    /** 4 bytes + "ftypavif" */
+    /** 4 bytes + "ftypavif". */
     public val avif: List<Byte?> = byteListOf(
         null, null, null, null
     ).plus("ftypavif".encodeToByteArray().toList())
 
-    /** 4 bytes + "ftypavis" */
+    /** 4 bytes + "ftypavis". */
     public val avis: List<Byte?> = byteListOf(
         null, null, null, null
     ).plus("ftypavis".encodeToByteArray().toList())
 
-    /** 4 bytes + "ftypcrx" */
+    /** 4 bytes + "ftypcrx". */
     public val cr3: List<Byte?> = byteListOf(
         null, null, null, null
     ).plus("ftypcrx".encodeToByteArray().toList())
 
-    /** The regular ISOBMFF-based JPEG XL */
+    /** The regular ISOBMFF-based JPEG XL. */
     public val jxl: List<Byte> = byteListOf(
         0x00, 0x00, 0x00, 0x0C, 0x4A, 0x58, 0x4C, 0x20, 0x0D, 0x0A, 0x87, 0x0A
     )
@@ -135,27 +135,27 @@ public object MediaFormatMagicNumbers {
         0xFF, 0x0A
     )
 
-    /** The current MP4 standard */
+    /** The current MP4 standard. */
     public val mp42: List<Byte?> = byteListOf(
         null, null, null, null
     ).plus("ftypmp42".encodeToByteArray().toList())
 
-    /** The older MP4 standard */
+    /** The older MP4 standard. */
     public val mp41: List<Byte?> = byteListOf(
         null, null, null, null
     ).plus("ftypmp41".encodeToByteArray().toList())
 
-    /** The generic MP4 format (without closer specification) */
+    /** The generic MP4 format (without closer specification). */
     public val isom: List<Byte?> = byteListOf(
         null, null, null, null
     ).plus("ftypisom".encodeToByteArray().toList())
 
-    /** MP4, similar to ISOM */
+    /** MP4, similar to ISOM. */
     public val iso2: List<Byte?> = byteListOf(
         null, null, null, null
     ).plus("ftypiso2".encodeToByteArray().toList())
 
-    /** MP4, often used for H.264 encoded files */
+    /** MP4, often used for H.264 encoded files. */
     public val avc1: List<Byte?> = byteListOf(
         null, null, null, null
     ).plus("ftypavc1".encodeToByteArray().toList())

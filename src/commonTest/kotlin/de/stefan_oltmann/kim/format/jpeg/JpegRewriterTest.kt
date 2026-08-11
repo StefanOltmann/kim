@@ -102,6 +102,10 @@ class JpegRewriterTest {
             if (index == 43)
                 continue
 
+            /* Broken files are rejected by the segment length validation. */
+            if (index == 44 || index == 45 || index == 47)
+                continue
+
             val bytes = KimTestData.getBytesOf(index)
 
             val metadata = Kim.readMetadata(bytes)
@@ -208,6 +212,10 @@ class JpegRewriterTest {
 
             // FIXME Handle extra ExifOffset in IFD1 (thumbnail)
             if (index == 43)
+                continue
+
+            /* Broken files are rejected by the segment length validation. */
+            if (index == 44 || index == 45 || index == 47)
                 continue
 
             val bytes = KimTestData.getBytesOf(index)
@@ -357,6 +365,10 @@ class JpegRewriterTest {
 
             /* Skip files without embedded XMP */
             if (photosWithoutEmbeddedXmp.contains(index))
+                continue
+
+            /* Broken files are rejected by the segment length validation. */
+            if (index == 44 || index == 45 || index == 47)
                 continue
 
             val bytes = KimTestData.getBytesOf(index)
@@ -595,13 +607,31 @@ class JpegRewriterTest {
             0x00 /* thumbnail height */
         )
 
-        byteWriter.write(JpegConstants.JPEG_APP0_MARKER.toShort().toBytes(JpegConstants.JPEG_BYTE_ORDER))
-        byteWriter.write((jfifSegment.size + SEGMENT_LENGTH_FIELD_BYTES).toShort().toBytes(JpegConstants.JPEG_BYTE_ORDER))
+        byteWriter.write(
+            JpegConstants.JPEG_APP0_MARKER
+                .toShort()
+                .toBytes(JpegConstants.JPEG_BYTE_ORDER)
+        )
+
+        byteWriter.write(
+            (jfifSegment.size + SEGMENT_LENGTH_FIELD_BYTES).toShort()
+                .toBytes(JpegConstants.JPEG_BYTE_ORDER)
+        )
+
         byteWriter.write(jfifSegment)
 
         /* SOS marker with empty payload and a minimal image data blob. */
-        byteWriter.write(JpegConstants.SOS_MARKER.toShort().toBytes(JpegConstants.JPEG_BYTE_ORDER))
-        byteWriter.write(SEGMENT_LENGTH_FIELD_BYTES.toShort().toBytes(JpegConstants.JPEG_BYTE_ORDER))
+
+        byteWriter.write(
+            JpegConstants.SOS_MARKER.toShort()
+                .toBytes(JpegConstants.JPEG_BYTE_ORDER)
+        )
+
+        byteWriter.write(
+            SEGMENT_LENGTH_FIELD_BYTES.toShort()
+                .toBytes(JpegConstants.JPEG_BYTE_ORDER)
+        )
+
         byteWriter.write(JpegConstants.EOI)
 
         return byteWriter.toByteArray()

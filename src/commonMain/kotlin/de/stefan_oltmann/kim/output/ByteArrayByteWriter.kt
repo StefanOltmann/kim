@@ -19,6 +19,9 @@ package de.stefan_oltmann.kim.output
 
 import de.stefan_oltmann.kim.input.DEFAULT_BUFFER_SIZE
 
+/**
+ * A ByteWriter that writes into an in-memory byte array.
+ */
 public class ByteArrayByteWriter : ByteWriter {
 
     private var bytes: ByteArray = ByteArray(DEFAULT_BUFFER_SIZE)

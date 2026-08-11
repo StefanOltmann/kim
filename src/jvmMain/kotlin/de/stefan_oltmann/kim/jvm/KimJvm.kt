@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +18,7 @@ package de.stefan_oltmann.kim.jvm
 
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.input.JvmInputStreamByteReader
 import java.io.File
@@ -25,7 +27,9 @@ import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 
 /**
- * Extra object to have a nicer API for Java projects
+ * Extra object to have a nicer API for Java projects.
+ *
+ * Like [Kim], this API only throws [ImageReadException] on failure.
  */
 public object KimJvm {
 
@@ -41,20 +45,22 @@ public object KimJvm {
 
     @JvmStatic
     @Throws(ImageReadException::class)
-    public fun readMetadata(file: File): MediaMetadata? {
+    public fun readMetadata(file: File): MediaMetadata? = tryWithImageReadException {
 
-        check(file.exists()) { "File does not exist: $file" }
+        if (!file.exists())
+            throw ImageReadException("File does not exist: $file")
 
-        return readMetadata(file.inputStream().buffered(), file.length())
+        return@tryWithImageReadException readMetadata(file.inputStream().buffered(), file.length())
     }
 
     @JvmStatic
     @Throws(ImageReadException::class)
-    public fun readMetadata(path: java.nio.file.Path): MediaMetadata? {
+    public fun readMetadata(path: java.nio.file.Path): MediaMetadata? = tryWithImageReadException {
 
-        check(Files.exists(path)) { "File does not exist: $path" }
+        if (!Files.exists(path))
+            throw ImageReadException("File does not exist: $path")
 
-        return readMetadata(
+        return@tryWithImageReadException readMetadata(
             inputStream = Files.newInputStream(path, StandardOpenOption.READ).buffered(),
             length = Files.size(path)
         )

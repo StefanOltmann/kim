@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +25,9 @@ import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataExtractor
 import de.stefan_oltmann.kim.input.ByteReader
 
+/**
+ * Extracts the metadata bytes of JPEG files.
+ */
 public object JpegMetadataExtractor : MetadataExtractor {
 
     internal const val SEGMENT_IDENTIFIER = 0xFF.toByte()
@@ -114,15 +118,11 @@ public object JpegMetadataExtractor : MetadataExtractor {
             /* Segment length includes size bytes, so subtract two */
             segmentLength -= 2
 
-            /* Ignore invalid segment lengths */
-            if (segmentLength <= 0)
-                continue
-
             val remainingByteCount = byteReader.contentLength - bytes.size
 
-            /* Ignore invalid segment lengths */
-            if (segmentLength > remainingByteCount)
-                continue
+            /* Reject invalid segment lengths */
+            if (segmentLength <= 0 || segmentLength > remainingByteCount)
+                throw ImageReadException("Illegal JPEG segment length: $segmentLength")
 
             val segmentBytes = byteReader.readBytes(segmentLength)
 

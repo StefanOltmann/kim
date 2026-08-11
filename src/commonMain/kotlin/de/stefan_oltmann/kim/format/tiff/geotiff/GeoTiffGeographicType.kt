@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -199,7 +200,7 @@ public enum class GeoTiffGeographicType(
     GCSE_CLARKE1880(4034, "Clarke 1880"),
     GCSE_SPHERE(4035, "Sphere"),
 
-    /** user-defined */
+    /** user-defined. */
     USER_DEFINED(32767, "User Defined");
 
     public companion object {

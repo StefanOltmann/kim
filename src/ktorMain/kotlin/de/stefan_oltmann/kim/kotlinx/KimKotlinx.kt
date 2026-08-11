@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +25,7 @@ import kotlinx.io.files.Path
 import kotlin.jvm.JvmStatic
 
 /**
- * Extra object to have a nicer API for Java projects
+ * Extra object to have a nicer API for Java projects.
  */
 public object KimKotlinx {
 

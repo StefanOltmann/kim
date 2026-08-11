@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +22,7 @@ import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.quadsToByteArray
 import de.stefan_oltmann.kim.common.toHex
+import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 
 /*
@@ -66,11 +68,11 @@ internal fun ByteReader.readNullTerminatedString(fieldName: String): String {
     return bytes.toByteArray().decodeToString()
 }
 
-/** Reads one byte as unsigned number, also known as "byte" or "UInt8" */
+/** Reads one byte as unsigned number, also known as "byte" or "UInt8". */
 internal fun ByteReader.readByteAsInt(): Int =
-    readByte()?.let { it.toInt() and 0xFF } ?: -1
+    readByte()?.toUInt8() ?: -1
 
-/** Reads 2 bytes as unsigned number, also known as "short" or "UInt16" */
+/** Reads 2 bytes as unsigned number, also known as "short" or "UInt16". */
 internal fun ByteReader.read2BytesAsInt(fieldName: String, byteOrder: ByteOrder): Int {
 
     val byte0 = readByteAsInt()
@@ -80,12 +82,12 @@ internal fun ByteReader.read2BytesAsInt(fieldName: String, byteOrder: ByteOrder)
         throw ImageReadException("Couldn't read two bytes for $fieldName")
 
     return if (byteOrder == ByteOrder.BIG_ENDIAN)
-        byte0 shl 8 or byte1
+        byte0 shl Byte.SIZE_BITS or byte1
     else
-        byte1 shl 8 or byte0
+        byte1 shl Byte.SIZE_BITS or byte0
 }
 
-/** Reads 4 bytes as unsigned number, also known as "int" or "UInt32" */
+/** Reads 4 bytes as unsigned number, also known as "int" or "UInt32". */
 internal fun ByteReader.read4BytesAsInt(fieldName: String, byteOrder: ByteOrder): Int {
 
     val byte0 = readByteAsInt()
@@ -104,7 +106,7 @@ internal fun ByteReader.read4BytesAsInt(fieldName: String, byteOrder: ByteOrder)
     return result
 }
 
-/** Reads 8 bytes as unsigned number, also known as "long" or "UInt64" */
+/** Reads 8 bytes as unsigned number, also known as "long" or "UInt64". */
 internal fun ByteReader.read8BytesAsLong(fieldName: String, byteOrder: ByteOrder): Long {
 
     val byte0 = readByteAsInt()
@@ -131,10 +133,10 @@ internal fun ByteReader.read8BytesAsLong(fieldName: String, byteOrder: ByteOrder
 
 internal fun ByteReader.readXBytesAtInt(fieldName: String, count: Int, byteOrder: ByteOrder): Long =
     when (count) {
-        1 -> readByteAsInt().toLong()
-        2 -> read2BytesAsInt(fieldName, byteOrder).toLong()
-        4 -> read4BytesAsInt(fieldName, byteOrder).toLong()
-        8 -> read8BytesAsLong(fieldName, byteOrder)
+        Byte.SIZE_BYTES -> readByteAsInt().toLong()
+        Short.SIZE_BYTES -> read2BytesAsInt(fieldName, byteOrder).toLong()
+        Int.SIZE_BYTES -> read4BytesAsInt(fieldName, byteOrder).toLong()
+        Long.SIZE_BYTES -> read8BytesAsLong(fieldName, byteOrder)
         else -> error("Illegal byteCount specified: $count")
     }
 
@@ -176,23 +178,27 @@ internal fun ByteReader.skipBytes(fieldName: String, count: Int) {
     if (count < 0)
         throw ImageReadException("Couldn't read $fieldName, invalid length: $count")
 
-    var total = 0
+    var remaining = count
 
-    while (count != total) {
+    /*
+     * Read in bounded chunks, so a large skip does not allocate
+     * the whole request size at once.
+     */
+    while (remaining > 0) {
 
-        val skippedByteCount = readBytes(count).size
+        val skippedByteCount = readBytes(minOf(remaining, DEFAULT_BUFFER_SIZE)).size
 
         if (skippedByteCount == 0) {
 
-            val missingBytesCount = count - total
+            val missingBytesCount = remaining
 
             throw ImageReadException(
-                "Skipped $total bytes of $count for $fieldName: " +
+                "Skipped ${count - remaining} bytes of $count for $fieldName: " +
                     "Missing $missingBytesCount bytes."
             )
         }
 
-        total += skippedByteCount
+        remaining -= skippedByteCount
     }
 }
 

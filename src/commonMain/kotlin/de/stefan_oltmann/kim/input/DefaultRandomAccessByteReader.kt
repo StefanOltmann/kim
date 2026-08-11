@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +32,10 @@ public class DefaultRandomAccessByteReader(
 
     private var currentPosition: Int = 0
 
+    /*
+     * The number of valid bytes in the buffer. Reads past this position
+     * return short arrays, so no zero-filled garbage is served.
+     */
     private var bufferPosition: Int = 0
 
     private var buffer = ByteArray(0)
@@ -45,6 +50,9 @@ public class DefaultRandomAccessByteReader(
         if (endIndex > bufferPosition)
             readToIndex(endIndex)
 
+        if (currentPosition >= bufferPosition)
+            return null
+
         return buffer[currentPosition++]
     }
 
@@ -58,7 +66,7 @@ public class DefaultRandomAccessByteReader(
         if (endIndex > bufferPosition)
             readToIndex(endIndex)
 
-        val bytes = buffer.copyOfRange(currentPosition, endIndex)
+        val bytes = buffer.copyOfRange(currentPosition, minOf(endIndex, bufferPosition))
 
         currentPosition += bytes.size
 
@@ -81,11 +89,19 @@ public class DefaultRandomAccessByteReader(
         if (endIndex > bufferPosition)
             readToIndex(endIndex)
 
-        return buffer.copyOfRange(offset, endIndex)
+        if (offset >= bufferPosition)
+            return byteArrayOf()
+
+        return buffer.copyOfRange(offset, minOf(endIndex, bufferPosition))
     }
 
-    override fun close(): Unit =
+    override fun close(): Unit {
+
+        /* Free the buffered file prefix as soon as possible. */
+        buffer = ByteArray(0)
+
         byteReader.close()
+    }
 
     private fun readToIndex(index: Int) {
 
@@ -112,7 +128,12 @@ public class DefaultRandomAccessByteReader(
         for (i in bytes.indices)
             buffer[bufferPosition + i] = bytes[i]
 
-        bufferPosition = index
+        /*
+         * Only advance by the bytes that were actually read. At the end of
+         * the stream this keeps the buffer short, so later reads return
+         * short arrays instead of zero-filled data.
+         */
+        bufferPosition += bytes.size
     }
 
     private companion object {

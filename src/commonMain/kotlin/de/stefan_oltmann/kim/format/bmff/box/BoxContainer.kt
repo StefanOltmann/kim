@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2002-2023 Drew Noakes and contributors
  *
@@ -16,6 +17,9 @@
  */
 package de.stefan_oltmann.kim.format.bmff.box
 
+/**
+ * A box that contains other boxes.
+ */
 public interface BoxContainer {
 
     public val boxes: List<Box>

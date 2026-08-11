@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -21,7 +22,9 @@ import de.stefan_oltmann.kim.format.webp.WebPChunkType
 import de.stefan_oltmann.kim.format.webp.WebPConstants
 import de.stefan_oltmann.kim.model.ImageSize
 
-/*
+/**
+ * The lossless VP8L image chunk of a WebP file.
+ *
  * https://developers.google.com/speed/webp/docs/riff_container#simple_file_format_lossless
  */
 @Suppress("MagicNumber")
@@ -36,6 +39,9 @@ public class WebPChunkVP8L(
     public val versionNumber: Int
 
     init {
+
+        if (bytes.size < REQUIRED_BYTE_SIZE)
+            throw ImageReadException("Invalid VP8L chunk")
 
         val b1: Int = bytes[1].toInt() and 0xFF
         val b2: Int = bytes[2].toInt() and 0xFF
@@ -62,4 +68,10 @@ public class WebPChunkVP8L(
         super.toString() +
             " imageSize=$imageSize" +
             " hasAlpha=$hasAlpha versionNumber=$versionNumber"
+
+    private companion object {
+
+        /* The header is the signature byte plus 4 dimension and flag bytes. */
+        private const val REQUIRED_BYTE_SIZE: Int = 5
+    }
 }

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -24,6 +25,7 @@ import de.stefan_oltmann.kim.common.RationalNumbers
 import de.stefan_oltmann.kim.common.toSingleNumberHexes
 import de.stefan_oltmann.kim.format.tiff.TiffTags.getTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldType
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeShort
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoGpsText
 
@@ -31,7 +33,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoGpsText
  * A TIFF field in a TIFF directory.
  */
 public class TiffField(
-    /** Offset relative to TIFF header */
+    /** Offset relative to TIFF header. */
     public val offset: Int,
     public val tag: Int,
     public val directoryType: Int,
@@ -53,7 +55,7 @@ public class TiffField(
     public val offsetFormatted: String =
         offset.toString().padStart(10, '0')
 
-    /** Return a proper Tag ID like 0x0100 */
+    /** Return a proper Tag ID like 0x0100. */
     public val tagFormatted: String =
         "0x" + tag.toString(HEX_RADIX).padStart(4, '0')
 
@@ -172,7 +174,7 @@ public class TiffField(
             val result = IntArray(value.size)
 
             repeat(result.size) { index ->
-                result[index] = 0xFFFF and value[index].toInt()
+                result[index] = value[index].toUShort().toInt()
             }
 
             return result
@@ -183,7 +185,7 @@ public class TiffField(
 
     public fun toInt(): Int = when (value) {
         is ByteArray -> value.first().toInt()
-        is ShortArray -> value.first().toInt()
+        is ShortArray -> value.first().toIntByFieldType()
         is IntArray -> value.first()
         else -> (value as Number).toInt()
     }
@@ -199,12 +201,25 @@ public class TiffField(
         is RationalNumbers -> value.values.first().doubleValue()
         is RationalNumber -> value.doubleValue()
         is ByteArray -> value.first().toDouble()
-        is ShortArray -> value.first().toDouble()
+        is ShortArray -> value.first().toIntByFieldType().toDouble()
         is IntArray -> value.first().toDouble()
         is FloatArray -> value.first().toDouble()
         is DoubleArray -> value.first()
         else -> (value as Number).toDouble()
     }
+
+    /**
+     * Interprets this [Short] according to the field type of this [TiffField].
+     *
+     * The TIFF SHORT type is unsigned, but Short cannot represent values
+     * above 32767. Widening such values with the signed conversion would
+     * report e.g. an ISO of 51200 as -14336.
+     */
+    private fun Short.toIntByFieldType(): Int =
+        if (fieldType === FieldTypeShort)
+            toUShort().toInt()
+        else
+            toInt()
 
     /*
      * Note that we need to show the local 'tagFormatted', because

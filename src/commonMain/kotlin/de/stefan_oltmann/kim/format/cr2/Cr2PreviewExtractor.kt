@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +23,9 @@ import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.input.RandomAccessByteReader
 
+/**
+ * Extracts the preview image of Canon CR2 files.
+ */
 public object Cr2PreviewExtractor : TiffPreviewExtractor {
 
     @Throws(ImageReadException::class)

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,12 +23,12 @@ private val emptyExifDateStrings = setOf(
 )
 
 /**
- * "yyyy:MM:dd" is 10 chars
+ * "yyyy:MM:dd" is 10 chars.
  */
 private const val LENGTH_ONLY_DATE = 10
 
 /**
- * "yyyy:MM:dd HH:mm:ss" is 19 chars
+ * "yyyy:MM:dd HH:mm:ss" is 19 chars.
  */
 private const val LENGTH_DATE_WITH_TIME = 19
 

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,13 +29,13 @@ public enum class GeoTiffRasterType(
     public val displayName: String
 ) {
 
-    /** Projection Coordinate System */
+    /** Projection Coordinate System. */
     PIXEL_IS_AREA(1, "Pixel Is Area"),
 
-    /** Geographic latitude-longitude System */
+    /** Geographic latitude-longitude System. */
     PIXEL_IS_POINT(2, "Pixel Is Point"),
 
-    /** user-defined */
+    /** user-defined. */
     USER_DEFINED(32767, "User Defined");
 
     public companion object {

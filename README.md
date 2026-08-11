@@ -48,8 +48,8 @@ implementation(npm("pako", "2.1.0"))
 
 ### Read metadata
 
-`Kim.readMetadata()` takes `kotlin.ByteArray` on all platforms and depending on
-the platform also `kotlinx.io.files.Path`, `kotlinx.io.Source` (for usage with Ktor) & `ByteReadChannel`,
+`Kim.readMetadata()` takes `kotlin.ByteArray` on all platforms and depending on the platform also
+`kotlinx.io.files.Path`, `kotlinx.io.Source` (for usage with Ktor) & `ByteReadChannel`,
 `java.io.File`, `java.io.InputStream`, `NSData` (iOS) and `String` paths.
 
 ```kotlin
@@ -71,8 +71,9 @@ println("Taken date: $takenDate")
 
 ### Create high level summary object
 
-This creates an instance of [MetadataSummary](src/commonMain/kotlin/de/stefan_oltmann/kim/model/MetadataSummary.kt).
-It contains the following:
+This creates an instance
+of [MetadataSummary](src/commonMain/kotlin/de/stefan_oltmann/kim/model/MetadataSummary.kt). It
+contains the following:
 
 - Image size
 - Orientation
@@ -121,7 +122,7 @@ OutputStreamByteWriter(outputFile.outputStream()).use { outputStreamByteWriter -
 
 See the [example project](examples/kim-kotlin-jvm-sample/src/main/kotlin/Main.kt) for more details.
 
-### Change orientation using Kim.update() API
+### Change orientation using Kim.update () API
 
 ```kotlin
 val bytes: ByteArray = loadBytes()
@@ -132,9 +133,10 @@ val newBytes = Kim.update(
 )
 ```
 
-See [AbstractUpdaterTest](src/commonTest/kotlin/de/stefan_oltmann/kim/format/AbstractUpdaterTest.kt) for more samples.
+See [AbstractUpdaterTest](src/commonTest/kotlin/de/stefan_oltmann/kim/format/AbstractUpdaterTest.kt)
+for more samples.
 
-### Update thumbnail using Kim.update() API
+### Update thumbnail using Kim.update () API
 
 ```kotlin
 val bytes: ByteArray = loadBytes()
@@ -148,7 +150,8 @@ val newBytes = Kim.updateThumbnail(
 
 ### Using Java
 
-See the [Java example project](examples/kim-java-sample/src/main/java/Main.java) how to use Kim in Java projects.
+See the [Java example project](examples/kim-java-sample/src/main/java/Main.java) how to use Kim in
+Java projects.
 
 ## Limitations
 
@@ -157,28 +160,29 @@ See the [Java example project](examples/kim-java-sample/src/main/java/Main.java)
 * Does not read brotli compressed metadata of JPEG XL due to missing brotli KMP libs.
 * MakerNote support is experimental and limited.
     + Can't extract preview image of ORF as offsets are burried into MakerNote.
-    + Can't identify lens info of NEF, ARW, RW2 & ORF because this is constructed from MakerNote fields.
+    + Can't identify lens info of NEF, ARW, RW2 & ORF because this is constructed from MakerNote
+      fields.
     + Missing image size for RW2 as this is also burried in MakerNotes.
 * There is right now no convienient tooling for GeoTiff like there is for GPS.
 
 ### Regarding HEIC & AVIF metadata
 
-In the processing of HEIC and AVIF files, we handle them as standard
-ISOBMFF-based files, adhering rigorously to the EIC/ISO 14496-12 specification.
-To preempt potential legal issues, we intentionally omit certain boxes outlined
-in the HEIC specification, notably the image size ("ispe") and image rotation ("irot") boxes.
-This approach extends to AVIF images, as they repurpose the same boxes.
+In the processing of HEIC and AVIF files, we handle them as standard ISOBMFF-based files, adhering
+rigorously to the EIC/ISO 14496-12 specification. To preempt potential legal issues, we
+intentionally omit certain boxes outlined in the HEIC specification, notably the image size ("ispe")
+and image rotation ("irot") boxes. This approach extends to AVIF images, as they repurpose the same
+boxes.
 
 ## Contributions
 
-Contributions to Kim are welcome! If you encounter any issues,
-have suggestions for improvements, or would like to contribute new features,
-please feel free to submit a pull request.
+Contributions to Kim are welcome! If you encounter any issues, have suggestions for improvements, or
+would like to contribute new features, please feel free to submit a pull request.
 
 ## Acknowledgements
 
 * JetBrains for making [Kotlin](https://kotlinlang.org).
-* Apache Software Foundation for making [Apache Commons Imaging](https://commons.apache.org/proper/commons-imaging/).
+* Apache Software Foundation for
+  making [Apache Commons Imaging](https://commons.apache.org/proper/commons-imaging/).
 * Drew Noakes for making [metadata-extractor](https://github.com/drewnoakes/metadata-extractor).
 * Phil Harvey for making [ExifTool](https://exiftool.org/).
 * [Unsplash](https://unsplash.com) for providing test images.

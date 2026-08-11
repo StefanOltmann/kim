@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -49,28 +50,28 @@ public data class PngChunkType(
 
     public companion object {
 
-        /** Image header */
+        /** Image header. */
         public val IHDR: PngChunkType = of("IHDR".encodeToByteArray())
 
-        /** Image data */
+        /** Image data. */
         public val IDAT: PngChunkType = of("IDAT".encodeToByteArray())
 
-        /** Image end */
+        /** Image end. */
         public val IEND: PngChunkType = of("IEND".encodeToByteArray())
 
-        /** Time */
+        /** Time. */
         public val TIME: PngChunkType = of("tIME".encodeToByteArray())
 
-        /** Text */
+        /** Text. */
         public val TEXT: PngChunkType = of("tEXt".encodeToByteArray())
 
-        /** Compressed text */
+        /** Compressed text. */
         public val ZTXT: PngChunkType = of("zTXt".encodeToByteArray())
 
-        /** UTF-8 text, for example XMP */
+        /** UTF-8 text, for example XMP. */
         public val ITXT: PngChunkType = of("iTXt".encodeToByteArray())
 
-        /** EXIF (since 2017) */
+        /** EXIF (since 2017). */
         public val EXIF: PngChunkType = of("eXIf".encodeToByteArray())
 
         @Suppress("MagicNumber")

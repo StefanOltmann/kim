@@ -23,6 +23,9 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.readByte
 import de.stefan_oltmann.kim.input.readBytes
 
+/**
+ * An application extension chunk of a GIF file.
+ */
 public class GifChunkApplicationExtension(
     header: ByteArray,
     private val subChunks: List<ByteArray>
@@ -49,7 +52,7 @@ public class GifChunkApplicationExtension(
 
         val firstSubChunkSize = firstSubChunkByteReader.readByte("first sub chunk size").toInt()
 
-        if (firstSubChunkSize < 8)
+        if (firstSubChunkSize < APPLICATION_IDENTIFIER_LENGTH)
             throw ImageReadException(
                 "Invalid size for initial application extension sub chunk: $firstSubChunkSize bytes," +
                     " expected at least 8 bytes (typically 11)."
@@ -57,12 +60,12 @@ public class GifChunkApplicationExtension(
 
         applicationIdentifier = firstSubChunkByteReader.readBytes(
             fieldName = "application identifier",
-            count = 8
+            count = APPLICATION_IDENTIFIER_LENGTH
         ).decodeToString()
 
         applicationCode = firstSubChunkByteReader.readBytes(
             fieldName = "application code",
-            count = firstSubChunkSize - 8
+            count = firstSubChunkSize - APPLICATION_IDENTIFIER_LENGTH
         ).decodeToString()
     }
 
@@ -96,5 +99,11 @@ public class GifChunkApplicationExtension(
             .substringAfter("<$xmpMetaTag")
             .substringBefore("</$xmpMetaTag>")
             .plus("</$xmpMetaTag>")
+    }
+
+    private companion object {
+
+        /* The application identifier is 8 bytes */
+        const val APPLICATION_IDENTIFIER_LENGTH = 8
     }
 }

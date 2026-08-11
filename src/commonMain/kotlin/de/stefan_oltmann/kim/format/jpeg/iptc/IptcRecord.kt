@@ -17,7 +17,7 @@
  */
 package de.stefan_oltmann.kim.format.jpeg.iptc
 
-/*
+/**
  * Represents an IPTC record, a single key-value pair of Photoshop IPTC data.
  */
 public data class IptcRecord(

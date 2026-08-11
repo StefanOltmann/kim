@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -833,13 +834,13 @@ public object ExifTag {
         TiffDirectoryType.EXIF_DIRECTORY_EXIF_IFD
     )
 
-    /** Rating tag used by Windows */
+    /** Rating tag used by Windows. */
     public val EXIF_TAG_RATING: TagInfoShort = TagInfoShort(
         0x4746, "Rating",
         TiffDirectoryType.TIFF_DIRECTORY_IFD0
     )
 
-    /** Rating tag used by Windows, value in percent */
+    /** Rating tag used by Windows, value in percent. */
     public val EXIF_TAG_RATING_PERCENT: TagInfoShort = TagInfoShort(
         0x4749, "RatingPercent",
         TiffDirectoryType.TIFF_DIRECTORY_IFD0

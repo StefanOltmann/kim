@@ -21,7 +21,6 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.getRemainingBytes
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toInt
-import de.stefan_oltmann.kim.common.toSingleNumberHexes
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
@@ -46,6 +45,9 @@ import de.stefan_oltmann.kim.model.ImageSize
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 
+/**
+ * Parses the metadata of JPEG files.
+ */
 public object JpegImageParser : ImageParser {
 
     private const val XMP_META_CLOSE = "</x:xmpmeta>"
@@ -54,10 +56,9 @@ public object JpegImageParser : ImageParser {
 
         val magicNumberBytes = byteReader.readBytes(MediaFormatMagicNumbers.jpeg.size).toList()
 
-        /* Ensure it's actually a JPEG. */
-        require(magicNumberBytes == MediaFormatMagicNumbers.jpeg) {
-            "JPEG magic number mismatch: ${magicNumberBytes.toSingleNumberHexes()}"
-        }
+        /* Not a JPEG, so there is no image size to report. */
+        if (magicNumberBytes != MediaFormatMagicNumbers.jpeg)
+            return null
 
         var readBytesCount = magicNumberBytes.size
 
@@ -104,18 +105,14 @@ public object JpegImageParser : ImageParser {
 
             readBytesCount += 2
 
-            /* Ignore invalid segment lengths */
-            if (segmentLength <= 0)
-                continue
+            val remainingByteCount = byteReader.contentLength - readBytesCount
+
+            /* Reject invalid segment lengths */
+            if (segmentLength <= 0 || segmentLength > remainingByteCount)
+                throw ImageReadException("Illegal JPEG segment length: $segmentLength")
 
             /* We are only looking for a SOF segment. */
             if (!JpegConstants.SOFN_MARKER_BYTES.contains(segmentType)) {
-
-                val remainingByteCount = byteReader.contentLength - readBytesCount
-
-                /* Ignore invalid segment lengths */
-                if (segmentLength > remainingByteCount)
-                    continue
 
                 byteReader.skipBytes("skip segment", segmentLength)
 
@@ -279,7 +276,7 @@ public object JpegImageParser : ImageParser {
      * of a split stream start mid-resource.
      */
     private fun isNewPhotoshopStream(segmentData: ByteArray): Boolean =
-        segmentData.size >= 4 &&
+        segmentData.size >= JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_LENGTH &&
             segmentData.toInt(0, JpegConstants.JPEG_BYTE_ORDER) == JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_INT
 
     /**

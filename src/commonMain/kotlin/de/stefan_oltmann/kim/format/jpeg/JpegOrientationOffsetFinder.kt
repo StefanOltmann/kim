@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +27,7 @@ import de.stefan_oltmann.kim.format.jpeg.JpegMetadataExtractor.SEGMENT_IDENTIFIE
 import de.stefan_oltmann.kim.format.jpeg.JpegMetadataExtractor.SEGMENT_START_OF_SCAN
 import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.TIFF_ENTRY_LENGTH
+import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.TIFF_ENTRY_MAX_VALUE_LENGTH
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.TIFF_HEADER_SIZE
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.input.ByteReader
@@ -97,18 +99,14 @@ public object JpegOrientationOffsetFinder {
 
             positionCounter += 2
 
-            /* Ignore invalid segment lengths */
-            if (segmentLength <= 0)
-                continue
+            val remainingByteCount = byteReader.contentLength - positionCounter
+
+            /* Reject invalid segment lengths */
+            if (segmentLength <= 0 || segmentLength > remainingByteCount)
+                throw ImageReadException("Illegal JPEG segment length: $segmentLength")
 
             /* We are only looking for the EXIF segment. */
             if (segmentType != APP1_MARKER) {
-
-                val remainingByteCount = byteReader.contentLength - positionCounter
-
-                /* Ignore invalid segment lengths */
-                if (segmentLength > remainingByteCount)
-                    continue
 
                 byteReader.skipBytes("skip segment", segmentLength)
 
@@ -156,7 +154,7 @@ public object JpegOrientationOffsetFinder {
 
                 if (tag == TiffTag.TIFF_TAG_ORIENTATION.tag) {
 
-                    positionCounter += 8
+                    positionCounter += TIFF_ENTRY_LENGTH - TIFF_ENTRY_MAX_VALUE_LENGTH
 
                     if (exifByteOrder == ByteOrder.BIG_ENDIAN)
                         positionCounter++

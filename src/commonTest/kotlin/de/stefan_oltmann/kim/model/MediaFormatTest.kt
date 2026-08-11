@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Ramon Bouckaert
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,9 +20,93 @@ package de.stefan_oltmann.kim.model
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class MediaFormatTest {
+
+    @Test
+    fun testIsMetadataEmbeddable() {
+
+        assertTrue(MediaFormat.JPEG.isMetadataEmbeddable())
+        assertTrue(MediaFormat.PNG.isMetadataEmbeddable())
+        assertTrue(MediaFormat.WEBP.isMetadataEmbeddable())
+        assertTrue(MediaFormat.JXL.isMetadataEmbeddable())
+
+        assertFalse(MediaFormat.GIF.isMetadataEmbeddable())
+        assertFalse(MediaFormat.TIFF.isMetadataEmbeddable())
+        assertFalse(MediaFormat.CR3.isMetadataEmbeddable())
+        assertFalse(MediaFormat.MP4.isMetadataEmbeddable())
+        assertFalse(MediaFormat.PDF.isMetadataEmbeddable())
+    }
+
+    @Test
+    fun testHasPreview() {
+
+        assertTrue(MediaFormat.CR2.hasPreview())
+        assertTrue(MediaFormat.CR3.hasPreview())
+        assertTrue(MediaFormat.RAF.hasPreview())
+        assertTrue(MediaFormat.NEF.hasPreview())
+        assertTrue(MediaFormat.ARW.hasPreview())
+        assertTrue(MediaFormat.RW2.hasPreview())
+
+        assertFalse(MediaFormat.JPEG.hasPreview())
+        assertFalse(MediaFormat.HEIC.hasPreview())
+    }
+
+    @Test
+    fun testHasValidFileNameExtension() {
+
+        assertTrue(MediaFormat.hasValidFileNameExtension("photo.jpg"))
+        assertTrue(MediaFormat.hasValidFileNameExtension("photo.JPG"))
+        assertTrue(MediaFormat.hasValidFileNameExtension("photo.cr3"))
+        assertTrue(MediaFormat.hasValidFileNameExtension("photo.webp"))
+
+        assertFalse(MediaFormat.hasValidFileNameExtension("photo.txt"))
+        assertFalse(MediaFormat.hasValidFileNameExtension("photo"))
+    }
+
+    @Test
+    fun testAllFileNameExtensions() {
+
+        assertTrue("jpg" in MediaFormat.allFileNameExtensions)
+        assertTrue("jpeg" in MediaFormat.allFileNameExtensions)
+        assertTrue("tiff" in MediaFormat.allFileNameExtensions)
+        assertTrue("cr3" in MediaFormat.allFileNameExtensions)
+        assertTrue("mov" in MediaFormat.allFileNameExtensions)
+        assertTrue("mp4" in MediaFormat.allFileNameExtensions)
+        assertTrue("pdf" in MediaFormat.allFileNameExtensions)
+    }
+
+    @Test
+    fun testDetectNameOrReturnHex() {
+
+        assertEquals(
+            expected = "JPEG",
+            actual = MediaFormat.detectNameOrReturnHex(KimTestData.getBytesOf(1))
+        )
+
+        assertEquals(
+            expected = "CR3",
+            actual = MediaFormat.detectNameOrReturnHex(KimTestData.getBytesOf(KimTestData.CR3_TEST_IMAGE_INDEX))
+        )
+
+        /* Short arrays show the hex presentation. */
+        val hexResult = MediaFormat.detectNameOrReturnHex(byteArrayOf(0x01, 0x02, 0x03))
+        assertTrue(hexResult.isNotEmpty())
+    }
+
+    @Test
+    fun testByFileNameExtensionAdditional() {
+
+        assertEquals(MediaFormat.JXL, MediaFormat.byFileNameExtension("image.jxl"))
+        assertEquals(MediaFormat.CR3, MediaFormat.byFileNameExtension("image.cr3"))
+        assertEquals(MediaFormat.MOV, MediaFormat.byFileNameExtension("image.mov"))
+        assertEquals(MediaFormat.MP4, MediaFormat.byFileNameExtension("image.mp4"))
+        assertEquals(MediaFormat.PDF, MediaFormat.byFileNameExtension("image.pdf"))
+        assertEquals(MediaFormat.AVIF, MediaFormat.byFileNameExtension("image.avif"))
+    }
 
     @Test
     fun testDetect() {

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2002-2023 Drew Noakes and contributors
  *
@@ -18,6 +19,7 @@ package de.stefan_oltmann.kim.format.bmff.box
 
 import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
+import de.stefan_oltmann.kim.format.bmff.BMFFConstants.FLAGS_LENGTH
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.read2BytesAsInt
@@ -26,7 +28,7 @@ import de.stefan_oltmann.kim.input.readByteAsInt
 import de.stefan_oltmann.kim.input.readBytes
 
 /**
- * EIC/ISO 14496-12 pitm box
+ * EIC/ISO 14496-12 pitm box.
  */
 public class PrimaryItemBox(
     offset: Long,
@@ -47,7 +49,7 @@ public class PrimaryItemBox(
 
         version = byteReader.readByteAsInt()
 
-        flags = byteReader.readBytes("flags", 3)
+        flags = byteReader.readBytes("flags", FLAGS_LENGTH)
 
         itemId = if (version == 0)
             byteReader.read2BytesAsInt("itemId", BMFF_BYTE_ORDER)

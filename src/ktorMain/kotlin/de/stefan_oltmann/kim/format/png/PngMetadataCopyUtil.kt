@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +16,8 @@
  */
 package de.stefan_oltmann.kim.format.png
 
+import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.png.chunk.PngChunk
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.KotlinIoSourceByteReader
@@ -38,12 +41,17 @@ public object PngMetadataCopyUtil {
         PngChunkType.EXIF
     )
 
+    /**
+     * Copies the metadata chunks from the source file to the destination file.
+     *
+     * @throws ImageReadException if the source or destination file could not be read
+     */
     public fun copy(
         source: Path,
         destination: Path
-    ) {
+    ): Unit = tryWithImageReadException {
 
-        val sourceMetadataChunks: List<PngChunk>? =
+        val sourceMetadataChunks: List<PngChunk> =
             KotlinIoSourceByteReader.read(source) { byteReader ->
                 byteReader?.let {
                     PngImageParser.readChunks(
@@ -51,11 +59,9 @@ public object PngMetadataCopyUtil {
                         chunkTypeFilter = chunkTypesToCopy
                     )
                 }
-            }
+            } ?: throw ImageReadException("Failed to read source chunks: $source")
 
-        checkNotNull(sourceMetadataChunks) { "Failed to read source chunks: $source" }
-
-        val destinationChunks: List<PngChunk>? =
+        val destinationChunks: List<PngChunk> =
             KotlinIoSourceByteReader.read(destination) { byteReader ->
                 byteReader?.let {
                     PngImageParser.readChunks(
@@ -63,9 +69,7 @@ public object PngMetadataCopyUtil {
                         chunkTypeFilter = null // = All of them
                     )
                 }
-            }
-
-        checkNotNull(destinationChunks) { "Failed to read destination chunks: $destination" }
+            } ?: throw ImageReadException("Failed to read destination chunks: $destination")
 
         val filteredDestinationChunks = destinationChunks.filterNot {
             chunkTypesToCopy.contains(it.type)
@@ -94,6 +98,11 @@ public object PngMetadataCopyUtil {
         )
     }
 
+    /**
+     * Copies the metadata chunks from the source bytes to the destination bytes.
+     *
+     * @throws ImageReadException if the source or destination bytes could not be read
+     */
     public fun copy(
         source: ByteArray,
         destination: ByteArray

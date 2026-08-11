@@ -23,6 +23,9 @@ import de.stefan_oltmann.kim.common.toSingleNumberHexes
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import kotlin.jvm.JvmStatic
 
+/**
+ * The media file formats supported by Kim.
+ */
 public enum class MediaFormat(
     public val type: MediaFormatType,
     public val mimeType: String,

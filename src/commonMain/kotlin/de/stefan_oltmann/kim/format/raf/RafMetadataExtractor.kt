@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +27,9 @@ import de.stefan_oltmann.kim.input.read4BytesAsInt
 import de.stefan_oltmann.kim.input.readAndVerifyBytes
 import de.stefan_oltmann.kim.input.skipBytes
 
+/**
+ * Extracts the metadata bytes of Fuji RAF files.
+ */
 public object RafMetadataExtractor : MetadataExtractor {
 
     internal const val REMAINING_HEADER_BYTE_COUNT = 68

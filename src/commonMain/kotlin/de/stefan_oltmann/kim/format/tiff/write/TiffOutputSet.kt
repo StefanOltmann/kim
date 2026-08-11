@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -36,6 +37,9 @@ import kotlin.math.abs
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
+/**
+ * A set of TIFF directories to be written.
+ */
 @Suppress("TooManyFunctions")
 public class TiffOutputSet(
     public val byteOrder: ByteOrder = DEFAULT_TIFF_BYTE_ORDER
@@ -155,7 +159,7 @@ public class TiffOutputSet(
     }
 
     /**
-     * Sets the provided thumbnail bytes to the thumbnail directory (IFD1)
+     * Sets the provided thumbnail bytes to the thumbnail directory (IFD1).
      */
     public fun setThumbnailBytes(thumbnailBytes: ByteArray) {
 

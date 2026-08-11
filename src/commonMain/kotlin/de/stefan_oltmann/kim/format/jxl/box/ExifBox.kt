@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,17 +16,18 @@
  */
 package de.stefan_oltmann.kim.format.jxl.box
 
+import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
+import de.stefan_oltmann.kim.format.bmff.BMFFConstants.TIFF_HEADER_OFFSET_BYTE_COUNT
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.bmff.box.Box
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
-import de.stefan_oltmann.kim.input.readByteAsInt
-import de.stefan_oltmann.kim.input.readBytes
-import de.stefan_oltmann.kim.input.readRemainingBytes
+import de.stefan_oltmann.kim.input.read4BytesAsInt
 
 /**
- * JPEG XL Exif box
+ * JPEG XL Exif box.
  */
 public class ExifBox(
     offset: Long,
@@ -34,23 +36,40 @@ public class ExifBox(
     payload: ByteArray
 ) : Box(BoxType.EXIF, offset, size, largeSize, payload) {
 
-    public val version: Int
+    /**
+     * The offset of the first TIFF header byte within the Exif data.
+     */
+    public val tiffHeaderOffset: Int
 
-    public val flags: ByteArray
-
+    /**
+     * The Exif data as a TIFF file.
+     *
+     * The offset field and any prefix bytes before the TIFF header
+     * are not part of the TIFF data.
+     */
     public val exifBytes: ByteArray
 
+    /* Directly parse here to ensure it's valid. */
     public val tiffContents: TiffContents
 
     init {
 
         val byteReader = ByteArrayByteReader(payload)
 
-        version = byteReader.readByteAsInt()
+        tiffHeaderOffset = byteReader.read4BytesAsInt("tiff header offset", BMFF_BYTE_ORDER)
 
-        flags = byteReader.readBytes("flags", 3)
+        if (
+            tiffHeaderOffset < 0 ||
+            tiffHeaderOffset.toLong() + TIFF_HEADER_OFFSET_BYTE_COUNT > payload.size.toLong()
+        )
+            throw ImageReadException(
+                "Invalid Exif box: TIFF header offset $tiffHeaderOffset exceeds the box size."
+            )
 
-        exifBytes = byteReader.readRemainingBytes()
+        exifBytes = payload.copyOfRange(
+            fromIndex = TIFF_HEADER_OFFSET_BYTE_COUNT + tiffHeaderOffset,
+            toIndex = payload.size
+        )
 
         /* Directly parse here to ensure it's valid. */
         tiffContents = TiffReader.read(exifBytes)

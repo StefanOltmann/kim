@@ -26,6 +26,15 @@ internal object IptcConstants {
      * extended-length encoding. The actual size follows as a 4-byte value.
      */
     const val IPTC_EXTENDED_RECORD_LENGTH_MARKER = 0x8000
+
+    /* The extended record length field is 4 bytes */
+    const val IPTC_EXTENDED_RECORD_LENGTH_SIZE = 4
+
+    /* The IPTC block type must fit in 2 bytes */
+    const val MAX_IPTC_BLOCK_TYPE = 0xFFFF
+
+    /* The IPTC record type must fit in 1 byte */
+    const val MAX_IPTC_RECORD_TYPE = 0xFF
     const val IMAGE_RESOURCE_BLOCK_PHOTOSHOP2_INFO = 0x03e8
     const val IMAGE_RESOURCE_BLOCK_MACINTOSH_PRINT_INFO = 0x03e9
     const val IMAGE_RESOURCE_BLOCK_XML_DATA = 0x03ea

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -17,7 +18,7 @@
 package de.stefan_oltmann.kim.format.jpeg.iptc
 
 /**
- * IPTC as located in JPEG APP13 segments
+ * IPTC as located in JPEG APP13 segments.
  */
 public data class IptcMetadata(
     val records: List<IptcRecord>,

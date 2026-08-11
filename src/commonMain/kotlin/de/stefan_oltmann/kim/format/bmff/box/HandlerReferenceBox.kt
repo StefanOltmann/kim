@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2002-2023 Drew Noakes and contributors
  *
@@ -17,6 +18,7 @@
 package de.stefan_oltmann.kim.format.bmff.box
 
 import de.stefan_oltmann.kim.common.toHex
+import de.stefan_oltmann.kim.format.bmff.BMFFConstants.FLAGS_LENGTH
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.readByteAsInt
@@ -25,7 +27,7 @@ import de.stefan_oltmann.kim.input.readNullTerminatedString
 import de.stefan_oltmann.kim.input.skipBytes
 
 /**
- * EIC/ISO 14496-12 hdlr box
+ * EIC/ISO 14496-12 hdlr box.
  */
 public class HandlerReferenceBox(
     offset: Long,
@@ -48,13 +50,13 @@ public class HandlerReferenceBox(
 
         version = byteReader.readByteAsInt()
 
-        flags = byteReader.readBytes("flags", 3)
+        flags = byteReader.readBytes("flags", FLAGS_LENGTH)
 
-        byteReader.skipBytes("pre-defined", 4)
+        byteReader.skipBytes("pre-defined", PRE_DEFINED_LENGTH)
 
-        handlerType = byteReader.readBytes("handlerType", 4).decodeToString()
+        handlerType = byteReader.readBytes("handlerType", HANDLER_TYPE_LENGTH).decodeToString()
 
-        byteReader.skipBytes("reserved", 12)
+        byteReader.skipBytes("reserved", RESERVED_LENGTH)
 
         name = byteReader.readNullTerminatedString("name")
     }
@@ -65,4 +67,16 @@ public class HandlerReferenceBox(
             "flags=${flags.toHex()} " +
             "handlerType=$handlerType " +
             "name=$name"
+
+    private companion object {
+
+        /* The pre-defined field is 4 bytes */
+        const val PRE_DEFINED_LENGTH = 4
+
+        /* The handler type is 4 bytes */
+        const val HANDLER_TYPE_LENGTH = 4
+
+        /* The reserved field is 12 bytes */
+        const val RESERVED_LENGTH = 12
+    }
 }

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -22,6 +23,9 @@ import de.stefan_oltmann.kim.common.toBytes
 import de.stefan_oltmann.kim.common.toInts
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 
+/**
+ * The IFD field type of a TIFF field.
+ */
 public data object FieldTypeIfd : FieldType<IntArray> {
 
     override val type: Int = TiffConstants.FIELD_TYPE_IFD_INDEX

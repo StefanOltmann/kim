@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +29,9 @@ import de.stefan_oltmann.kim.output.writeInt
 import de.stefan_oltmann.kim.output.writeLong
 import kotlin.jvm.JvmStatic
 
+/**
+ * Writes JPEG XL files.
+ */
 public object JxlWriter {
 
     /*
@@ -130,7 +134,10 @@ public object JxlWriter {
                     byteWriter.writeInt(size, BMFFConstants.BMFF_BYTE_ORDER)
                     byteWriter.write(BoxType.EXIF.bytes)
 
-                    /* Version and flags, all zeros. */
+                    /*
+                     * The TIFF header offset. The new Exif data starts
+                     * right after the offset field, so it's always zero.
+                     */
                     byteWriter.writeInt(0, BMFFConstants.BMFF_BYTE_ORDER)
 
                     byteWriter.write(exifBytes)

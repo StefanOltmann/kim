@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -32,6 +33,9 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_SRATI
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_SSHORT_INDEX
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_UNDEFINED_INDEX
 
+/**
+ * The type of a TIFF field value.
+ */
 public interface FieldType<T> {
 
     public val type: Int

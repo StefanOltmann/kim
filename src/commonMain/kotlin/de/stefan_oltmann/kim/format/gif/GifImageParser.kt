@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ramon Bouckaert
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,6 +37,9 @@ import de.stefan_oltmann.kim.input.readBytes
 import de.stefan_oltmann.kim.model.MediaFormat
 import kotlin.jvm.JvmStatic
 
+/**
+ * Parses the metadata of GIF files.
+ */
 public object GifImageParser : ImageParser {
 
     private val metadataChunkTypes = listOf(

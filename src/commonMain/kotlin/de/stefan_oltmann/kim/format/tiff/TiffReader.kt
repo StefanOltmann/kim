@@ -33,6 +33,7 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.TIFF_DIRECTORY_T
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldType.Companion.getFieldType
 import de.stefan_oltmann.kim.format.tiff.geotiff.GeoTiffDirectory
+import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoLong
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoLongs
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
@@ -47,11 +48,17 @@ import de.stefan_oltmann.kim.input.skipBytes
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.jvm.JvmStatic
 
+/**
+ * Reads the contents of TIFF files.
+ */
 @Suppress("TooManyFunctions")
 public object TiffReader {
 
     internal const val NIKON_MAKER_NOTE_SIGNATURE = "Nikon\u0000"
     internal const val FUJIFILM_MAKER_NOTE_SIGNATURE = "FUJIFILM"
+
+    /* The version field of the FujiFilm MakerNote is 4 bytes */
+    private const val FUJIFILM_MAKER_NOTE_VERSION_LENGTH = 4
 
     private val offsetFields = listOf(
         ExifTag.EXIF_TAG_EXIF_OFFSET,
@@ -86,6 +93,7 @@ public object TiffReader {
      * @param readTiffImageBytes Flag to include strip bytes.
      *                           This should only set if a rewrite of the file is intended.
      *                           For normal reading of RAW metadata this consumes a lot of memory.
+     * @param directoryType The type of the first directory to read
      */
     @JvmStatic
     public fun read(
@@ -224,70 +232,55 @@ public object TiffReader {
         /* Read offset directories */
         for (offsetField in offsetFields) {
 
-            val field = directory.findField(offsetField)
+            val field = directory.findField(offsetField) ?: continue
 
-            if (field != null) {
+            val subDirOffsets: IntArray = try {
 
-                val subDirOffsets: IntArray = try {
+                when (offsetField) {
+                    is TagInfoLong -> intArrayOf(directory.getFieldValue(offsetField)!!)
+                    is TagInfoLongs -> directory.getFieldValue(offsetField)
+                    else -> error("Unknown offset type: $offsetField")
+                }
 
-                    when (offsetField) {
-                        is TagInfoLong -> intArrayOf(directory.getFieldValue(offsetField)!!)
-                        is TagInfoLongs -> directory.getFieldValue(offsetField)
-                        else -> error("Unknown offset type: $offsetField")
-                    }
+            } catch (_: ImageReadException) {
+
+                /*
+                 * If the offset field is broken we don't try
+                 * to read the sub directory.
+                 *
+                 * We need to remove the field pointing to wrong
+                 * data or else we won't be able to update the file.
+                 */
+
+                fields.remove(field)
+
+                continue
+            }
+
+            for ((index, subDirOffset) in subDirOffsets.withIndex()) {
+
+                val subDirectoryRead = try {
+
+                    readDirectory(
+                        byteReader = byteReader,
+                        byteOrder = byteOrder,
+                        directoryOffset = subDirOffset,
+                        directoryType = getSubDirectoryType(offsetField, index),
+                        visitedOffsets = visitedOffsets,
+                        readTiffImageBytes = readTiffImageBytes,
+                        addDirectory = addDirectory
+                    )
 
                 } catch (ignore: ImageReadException) {
 
                     /*
-                     * If the offset field is broken we don't try
-                     * to read the sub directory.
-                     *
-                     * We need to remove the field pointing to wrong
-                     * data or else we won't be able to update the file.
+                     * If the subdirectory is broken we remove the field.
                      */
+                    false
+                }
 
+                if (!subDirectoryRead)
                     fields.remove(field)
-
-                    continue
-                }
-
-                for ((index, subDirOffset) in subDirOffsets.withIndex()) {
-
-                    var subDirectoryRead = false
-
-                    try {
-
-                        val subIfdOffsets = field.tag == ExifTag.EXIF_TAG_SUB_IFDS_OFFSET.tag
-
-                        val subDirectoryType = if (subIfdOffsets)
-                            when (index) {
-                                1 -> EXIF_SUB_IFD1
-                                2 -> EXIF_SUB_IFD2
-                                3 -> EXIF_SUB_IFD3
-                                else -> TIFF_DIRECTORY_TYPE_IFD1
-                            }
-                        else
-                            directoryTypeMap.get(offsetField)!!
-
-                        subDirectoryRead = readDirectory(
-                            byteReader = byteReader,
-                            byteOrder = byteOrder,
-                            directoryOffset = subDirOffset,
-                            directoryType = subDirectoryType,
-                            visitedOffsets = visitedOffsets,
-                            readTiffImageBytes = readTiffImageBytes,
-                            addDirectory = addDirectory
-                        )
-
-                    } catch (ignore: ImageReadException) {
-                        /*
-                         * If the subdirectory is broken we remove the field.
-                         */
-                    }
-
-                    if (!subDirectoryRead)
-                        fields.remove(field)
-                }
             }
         }
 
@@ -304,6 +297,22 @@ public object TiffReader {
 
         return true
     }
+
+    /*
+     * Determines the directory type for a sub-directory offset.
+     * Sub-IFDs are numbered per their position in the offset list.
+     */
+    @Suppress("MagicNumber")
+    private fun getSubDirectoryType(offsetField: TagInfo, index: Int): Int =
+        if (offsetField == ExifTag.EXIF_TAG_SUB_IFDS_OFFSET)
+            when (index) {
+                1 -> EXIF_SUB_IFD1
+                2 -> EXIF_SUB_IFD2
+                3 -> EXIF_SUB_IFD3
+                else -> TIFF_DIRECTORY_TYPE_IFD1
+            }
+        else
+            directoryTypeMap.getValue(offsetField)
 
     private fun readTiffFields(
         byteReader: RandomAccessByteReader,
@@ -634,7 +643,7 @@ public object TiffReader {
                  * The IFD starts immediately after the version bytes.
                  * Fuji MakerNote IFD uses little-endian byte order.
                  */
-                byteReader.skipBytes("version", 4)
+                byteReader.skipBytes("version", FUJIFILM_MAKER_NOTE_VERSION_LENGTH)
 
                 /* IFD starts at offset 12 from the beginning of MakerNote data */
                 val ifdOffset = 12

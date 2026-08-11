@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,14 +38,14 @@ public sealed interface MetadataUpdate {
     ) : MetadataUpdate
 
     /**
-     * New GPS coordinates or NULL to remove it (if the location is wrong and/or not known)
+     * New GPS coordinates or NULL to remove it (if the location is wrong and/or not known).
      */
     public data class GpsCoordinates(
         val gpsCoordinates: de.stefan_oltmann.kim.model.GpsCoordinates?
     ) : MetadataUpdate
 
     /**
-     * New location info or NULL to remove it (if the location is wrong and/or not known)
+     * New location info or NULL to remove it (if the location is wrong and/or not known).
      *
      * This is in the sense of Iptc4xmpExt:LocationShown
      */
@@ -52,8 +53,8 @@ public sealed interface MetadataUpdate {
         val locationShown: de.stefan_oltmann.kim.model.LocationShown?
     ) : MetadataUpdate
 
-    /*
-     * One-shot update GPS coordinates & location
+    /**
+     * One-shot update GPS coordinates & location.
      */
     public data class GpsCoordinatesAndLocationShown(
         val gpsCoordinates: de.stefan_oltmann.kim.model.GpsCoordinates?,
@@ -61,14 +62,14 @@ public sealed interface MetadataUpdate {
     ) : MetadataUpdate
 
     /**
-     * New title or NULL to remove it
+     * New title or NULL to remove it.
      */
     public data class Title(
         val title: String?
     ) : MetadataUpdate
 
     /**
-     * New description or NULL to remove it
+     * New description or NULL to remove it.
      */
     public data class Description(
         val description: String?

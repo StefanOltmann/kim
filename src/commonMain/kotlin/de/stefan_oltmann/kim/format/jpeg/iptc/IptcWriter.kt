@@ -25,6 +25,9 @@ import de.stefan_oltmann.kim.output.BinaryByteWriter
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.jvm.JvmStatic
 
+/**
+ * Writes IPTC data into JPEG APP13 segments.
+ */
 public object IptcWriter {
 
     @Suppress("ThrowsCount")
@@ -45,7 +48,7 @@ public object IptcWriter {
 
             bos.write4Bytes(JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_INT)
 
-            if (block.blockType < 0 || block.blockType > 0xFFFF)
+            if (block.blockType < 0 || block.blockType > IptcConstants.MAX_IPTC_BLOCK_TYPE)
                 throw ImageWriteException("Invalid IPTC block type: ${block.blockType}")
 
             bos.write2Bytes(block.blockType)
@@ -115,7 +118,7 @@ public object IptcWriter {
             binaryWriter.write(IptcConstants.IPTC_RECORD_TAG_MARKER)
             binaryWriter.write(IptcConstants.IPTC_APPLICATION_2_RECORD_NUMBER)
 
-            if (iptcType.type < 0 || iptcType.type > 0xFF)
+            if (iptcType.type < 0 || iptcType.type > IptcConstants.MAX_IPTC_RECORD_TYPE)
                 throw ImageWriteException("Invalid record type: " + iptcType.type)
 
             binaryWriter.write(iptcType.type)

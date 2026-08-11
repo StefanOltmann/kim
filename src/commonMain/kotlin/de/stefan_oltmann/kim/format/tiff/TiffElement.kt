@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -16,6 +17,9 @@
  */
 package de.stefan_oltmann.kim.format.tiff
 
+/**
+ * An element of a TIFF file at a specific offset.
+ */
 public open class TiffElement(
     public val debugDescription: String,
     public val offset: Int,

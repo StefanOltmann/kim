@@ -143,8 +143,8 @@ internal object Cr3Reader {
         return BoxReader.readBoxes(
             byteReader = ByteArrayByteReader(metadataBox.data),
             stopAfterMetadataRead = false,
-            positionOffset = 4,
-            offsetShift = metadataBox.offset + 16
+            positionOffset = 0,
+            offsetShift = metadataBox.offset + 24
         )
     }
 }

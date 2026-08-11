@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,11 +16,14 @@
  */
 package de.stefan_oltmann.kim.format.jpeg
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.ImageSize
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 class JpegImageParserTest {
 
@@ -68,7 +72,6 @@ class JpegImageParserTest {
         42 to ImageSize(1024, 768),
         43 to ImageSize(1024, 768),
         44 to ImageSize(2820, 3077),
-        45 to null,
         46 to ImageSize(325, 407),
         47 to ImageSize(260, 773),
         48 to ImageSize(4032, 3024),
@@ -83,6 +86,16 @@ class JpegImageParserTest {
 
             val bytes = KimTestData.getBytesOf(index)
 
+            /* Broken files are rejected by the segment length validation. */
+            if (rejectedJpegIds.contains(index)) {
+
+                assertFailsWith<ImageReadException> {
+                    JpegImageParser.getImageSize(ByteArrayByteReader(bytes))
+                }
+
+                continue
+            }
+
             val byteReader = ByteArrayByteReader(bytes)
 
             /* Use the public Kim interface to ensure it works. */
@@ -94,5 +107,21 @@ class JpegImageParserTest {
                 message = "Image size of $index is different."
             )
         }
+    }
+
+    @Test
+    fun testGetImageSizeFromNonJpeg() {
+
+        assertNull(
+            JpegImageParser.getImageSize(
+                ByteArrayByteReader("not a jpeg".encodeToByteArray())
+            )
+        )
+    }
+
+    private companion object {
+
+        /* Media 45 and 47 contain invalid segment lengths. */
+        private val rejectedJpegIds = setOf(45, 47)
     }
 }

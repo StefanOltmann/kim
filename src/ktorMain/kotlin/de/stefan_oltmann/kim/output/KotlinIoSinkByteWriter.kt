@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +21,9 @@ import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 
+/**
+ * A ByteWriter that writes into a kotlinx.io Sink.
+ */
 public class KotlinIoSinkByteWriter(
     private val sink: Sink,
 ) : ByteWriter {

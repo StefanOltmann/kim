@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -42,10 +43,13 @@ import de.stefan_oltmann.kim.input.skipBytes
 import de.stefan_oltmann.kim.model.MediaFormat
 import kotlin.jvm.JvmStatic
 
+/**
+ * Parses the metadata of PNG files.
+ */
 public object PngImageParser : ImageParser {
 
     /* Note that [\\p{Cntrl}] does not work for Kotlin/JS. */
-    private val controlCharRegex = Regex("[\\x00-\\x1F\\x7F-\\x9F]")
+    private val controlCharRegex = Regex("""[\x00-\x1F\x7F-\x9F]""")
 
     private val metadataChunkTypes = listOf(
         PngChunkType.IHDR,

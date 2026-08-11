@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -25,6 +26,9 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.TIFF_VERSION
 import de.stefan_oltmann.kim.output.BinaryByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
 
+/**
+ * Base class for writing TIFF files.
+ */
 public abstract class TiffWriterBase(
     public val byteOrder: ByteOrder
 ) {

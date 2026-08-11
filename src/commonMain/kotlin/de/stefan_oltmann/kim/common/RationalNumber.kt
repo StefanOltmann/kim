@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -45,7 +46,7 @@ public class RationalNumber {
     public val unsignedType: Boolean
 
     /**
-     * Constructs an instance based on signed integers
+     * Constructs an instance based on signed integers.
      *
      * @param numerator a 32-bit signed integer
      * @param divisor   a non-zero 32-bit signed integer

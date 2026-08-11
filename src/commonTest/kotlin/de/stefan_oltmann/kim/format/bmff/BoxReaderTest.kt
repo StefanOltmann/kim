@@ -94,10 +94,10 @@ class BoxReaderTest {
         assertEquals(161, allBoxes.first { it.type == BoxType.IINF }.offset)
         assertEquals(173, allBoxes.first { it.type == BoxType.INFE }.offset)
         assertEquals(416, allBoxes.first { it.type == BoxType.MOOV }.offset)
-        assertEquals(548, allBoxes.first { it.type == BoxType.TRAK }.offset)
-        assertEquals(560, allBoxes.first { it.type == BoxType.TKHD }.offset)
-        assertEquals(880, allBoxes.first { it.type == BoxType.MDIA }.offset)
-        assertEquals(969, allBoxes.first { it.type == BoxType.MINF }.offset)
+        assertEquals(544, allBoxes.first { it.type == BoxType.TRAK }.offset)
+        assertEquals(552, allBoxes.first { it.type == BoxType.TKHD }.offset)
+        assertEquals(872, allBoxes.first { it.type == BoxType.MDIA }.offset)
+        assertEquals(957, allBoxes.first { it.type == BoxType.MINF }.offset)
         assertEquals(1298, allBoxes.first { it.type == BoxType.MDAT }.offset)
     }
 }

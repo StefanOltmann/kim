@@ -38,7 +38,8 @@ private fun ByteArray.toUint8Array(): Uint8Array {
     return result
 }
 
-@Suppress("UnusedPrivateMember") // False positive
+@OptIn(ExperimentalWasmJsInterop::class)
+@Suppress("UnusedPrivateMember", "UnusedParameter") // False positive
 @JsModule("pako")
 private external object Pako {
     fun deflate(data: String): Uint8Array

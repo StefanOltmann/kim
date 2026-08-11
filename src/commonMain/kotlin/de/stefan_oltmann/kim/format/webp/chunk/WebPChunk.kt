@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +18,9 @@ package de.stefan_oltmann.kim.format.webp.chunk
 
 import de.stefan_oltmann.kim.format.webp.WebPChunkType
 
+/**
+ * A chunk of a WebP file.
+ */
 public open class WebPChunk(
     public val type: WebPChunkType,
     public val bytes: ByteArray

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,10 +16,12 @@
  */
 package de.stefan_oltmann.kim
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.writeBytes
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlinx.io.files.Path
 import kotlin.test.Test
+import kotlin.test.assertFailsWith
 import kotlin.test.fail
 
 class MediaMetadataTest {
@@ -33,6 +36,16 @@ class MediaMetadataTest {
         for (index in 1..KimTestData.TEST_MEDIA_COUNT) {
 
             val bytes = KimTestData.getBytesOf(index)
+
+            /* Broken files are rejected by the segment length validation. */
+            if (rejectedJpegIds.contains(index)) {
+
+                assertFailsWith<ImageReadException> {
+                    Kim.readMetadata(bytes)
+                }
+
+                continue
+            }
 
             val metadata = Kim.readMetadata(bytes)
 
@@ -50,5 +63,11 @@ class MediaMetadataTest {
                 fail("media_$index.txt is different.")
             }
         }
+    }
+
+    private companion object {
+
+        /* Media 44, 45 and 47 contain invalid segment lengths. */
+        private val rejectedJpegIds = setOf(44, 45, 47)
     }
 }

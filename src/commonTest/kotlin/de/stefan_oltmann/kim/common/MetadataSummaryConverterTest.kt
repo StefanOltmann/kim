@@ -22,6 +22,7 @@ import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 
 class MetadataSummaryConverterTest {
@@ -39,35 +40,38 @@ class MetadataSummaryConverterTest {
 
         val metadataMap = mutableMapOf<String, MetadataSummary>()
 
-        for (index in 1..KimTestData.TEST_MEDIA_COUNT)
-            calculateAndAppendMetadata(index, metadataMap)
+        for (index in 1..KimTestData.TEST_MEDIA_COUNT) {
+
+            val bytes = if (index > KimTestData.HIGHEST_JPEG_INDEX)
+                KimTestData.getBytesOf(index)
+            else
+                KimTestData.getHeaderBytesOf(index)
+
+            /* Skip HEIC as it's not supported right now. */
+            if (index == KimTestData.HEIC_TEST_IMAGE_INDEX)
+                continue
+
+            /* Broken files are rejected by the segment length validation. */
+            if (rejectedJpegIds.contains(index)) {
+
+                assertFailsWith<ImageReadException> {
+                    Kim.readMetadata(bytes)
+                }
+
+                continue
+            }
+
+            val summary = Kim.readMetadata(bytes)?.convertToSummary()
+
+            assertNotNull(summary)
+
+            metadataMap[KimTestData.getFileName(index)] = summary
+        }
 
         assertEquals(
             expected = KimTestData.getMetadataCsvString(),
             actual = createCsvString(metadataMap)
         )
-    }
-
-    private fun calculateAndAppendMetadata(
-        index: Int,
-        metadataMap: MutableMap<String, MetadataSummary>
-    ) {
-
-        /* For Non-JPG we get the full bytes. */
-        val bytes = if (index > KimTestData.HIGHEST_JPEG_INDEX)
-            KimTestData.getBytesOf(index)
-        else
-            KimTestData.getHeaderBytesOf(index)
-
-        /* Skip HEIC as it's not supported right now. */
-        if (index == KimTestData.HEIC_TEST_IMAGE_INDEX)
-            return
-
-        val summary = Kim.readMetadata(bytes)?.convertToSummary()
-
-        assertNotNull(summary)
-
-        metadataMap[KimTestData.getFileName(index)] = summary
     }
 
     private fun createCsvString(metadataMap: Map<String, MetadataSummary>): String {
@@ -106,5 +110,11 @@ class MetadataSummaryConverterTest {
         }
 
         return stringBuilder.toString()
+    }
+
+    private companion object {
+
+        /* Media 44, 45 and 47 contain invalid segment lengths. */
+        private val rejectedJpegIds = setOf(44, 45, 47)
     }
 }

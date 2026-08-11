@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -18,6 +19,9 @@ package de.stefan_oltmann.kim.format.tiff.write
 
 import de.stefan_oltmann.kim.output.BinaryByteWriter
 
+/**
+ * An item of a TIFF file to be written.
+ */
 public interface TiffOutputItem {
 
     public var offset: Int

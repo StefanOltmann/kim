@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -39,10 +40,10 @@ public object TiffConstants {
     public const val TIFF_ENTRY_LENGTH: Int = 12
     public const val TIFF_ENTRY_MAX_VALUE_LENGTH: Int = 4
 
-    /** Root directory */
+    /** Root directory. */
     public const val TIFF_DIRECTORY_TYPE_IFD0: Int = 0
 
-    /** Thumbnail directory */
+    /** Thumbnail directory. */
     public const val TIFF_DIRECTORY_TYPE_IFD1: Int = 1
 
     public const val TIFF_DIRECTORY_TYPE_IFD2: Int = 2

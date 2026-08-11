@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,7 +38,9 @@ import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
 import kotlin.time.ExperimentalTime
 
-/*
+/**
+ * Converts a MediaMetadata into a MetadataSummary.
+ *
  * This is a dedicated object with @JvmStatic methods
  * to provide a better API to pure Java projects.
  */
@@ -72,9 +75,14 @@ public object MetadataSummaryConverter {
         val lensMake = mediaMetadata.findStringValue(ExifTag.EXIF_TAG_LENS_MAKE)
         val lensModel = mediaMetadata.findStringValue(ExifTag.EXIF_TAG_LENS_MODEL)
 
-        /* Look for ISO at the standard place and fall back to test RW2 logic. */
-        val iso = mediaMetadata.findShortValue(ExifTag.EXIF_TAG_ISO)
-            ?: mediaMetadata.findShortValue(ExifTag.EXIF_TAG_ISO_PANASONIC)
+        /*
+         * Look for ISO at the standard place and fall back to test RW2 logic.
+         * Note: We read the Int value directly instead of going through
+         * findShortValue(), because ISO values above 32767 would not fit
+         * into a signed Short.
+         */
+        val iso = mediaMetadata.findTiffField(ExifTag.EXIF_TAG_ISO)?.toInt()
+            ?: mediaMetadata.findTiffField(ExifTag.EXIF_TAG_ISO_PANASONIC)?.toInt()
 
         val exposureTime = mediaMetadata.findDoubleValue(ExifTag.EXIF_TAG_EXPOSURE_TIME)
         val fNumber = mediaMetadata.findDoubleValue(ExifTag.EXIF_TAG_FNUMBER)
@@ -103,9 +111,18 @@ public object MetadataSummaryConverter {
         val thumbnailBytes = mediaMetadata.getExifThumbnailBytes()
 
         val thumbnailImageSize = thumbnailBytes?.let {
-            JpegImageParser.getImageSize(
-                ByteArrayByteReader(thumbnailBytes)
-            )
+
+            try {
+                JpegImageParser.getImageSize(
+                    ByteArrayByteReader(thumbnailBytes)
+                )
+            } catch (_: ImageReadException) {
+                /*
+                 * Broken thumbnails are not essential, so we ignore the
+                 * problem and continue without the thumbnail size.
+                 */
+                null
+            }
         }
 
         /*
@@ -128,7 +145,7 @@ public object MetadataSummaryConverter {
             cameraModel = cameraModel,
             lensMake = lensMake,
             lensModel = lensModel,
-            iso = iso?.toInt(),
+            iso = iso,
             exposureTime = exposureTime,
             fNumber = fNumber,
             focalLength = focalLength,
@@ -217,18 +234,29 @@ public object MetadataSummaryConverter {
 
         val gpsDirectory = metadata.findTiffDirectory(TiffConstants.TIFF_DIRECTORY_GPS)
 
-        val gps = gpsDirectory?.let(GPSInfo::createFrom)
+        try {
 
-        val latitude = gps?.getLatitudeAsDegreesNorth()
-        val longitude = gps?.getLongitudeAsDegreesEast()
+            val gps = gpsDirectory?.let(GPSInfo::createFrom)
 
-        if (latitude == null || longitude == null)
+            val latitude = gps?.getLatitudeAsDegreesNorth()
+            val longitude = gps?.getLongitudeAsDegreesEast()
+
+            if (latitude == null || longitude == null)
+                return null
+
+            return GpsCoordinates(
+                latitude = latitude,
+                longitude = longitude
+            )
+
+        } catch (_: Exception) {
+            /*
+             * Some files contain invalid GPS data, for example fields with
+             * a wrong type or unknown latitude/longitude references. GPS is
+             * not essential, so we ignore the problem and continue.
+             */
             return null
-
-        return GpsCoordinates(
-            latitude = latitude,
-            longitude = longitude
-        )
+        }
     }
 
     @JvmStatic

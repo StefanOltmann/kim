@@ -45,7 +45,7 @@ import de.stefan_oltmann.kim.input.read8BytesAsLong
 import de.stefan_oltmann.kim.input.readBytes
 
 /**
- * Reads ISOBMFF boxes
+ * Reads ISOBMFF boxes.
  */
 public object BoxReader {
 
@@ -54,10 +54,14 @@ public object BoxReader {
      * @param stopAfterMetadataRead If reading the file for metadata on the highest level we
      * want to stop reading after the top-level meta boxes to prevent reading the whole image data
      * block in. For iPhone HEIC this is possible, but Samsung HEIC has "meta" coming after "mdat"
+     * @param positionOffset The position where to start reading boxes
+     * @param offsetShift The shift to apply to the reported box offsets
+     * @param updatePosition A callback to report the position when reading has finished
      * @param parentBoxType can be used to specify the type of the parent box - used when traversing
      * through sub boxes. This can change the logic for parsing boxes as "meta" boxes within a sub
      * box need to be treated differently to "meta" boxes at the top level.
      */
+    @Suppress("NestedBlockDepth")
     public fun readBoxes(
         byteReader: ByteReader,
         stopAfterMetadataRead: Boolean = false,

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2026 Ramon Bouckaert
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
@@ -22,14 +23,17 @@ internal object BMFFConstants {
 
     val BMFF_BYTE_ORDER = ByteOrder.BIG_ENDIAN
 
-    /** BoxType must be always 4 bytes */
+    /** BoxType must be always 4 bytes. */
     const val TYPE_LENGTH = 4
 
-    /** The size is presented as unsinged integer */
+    /** The size is presented as unsinged integer. */
     const val SIZE_LENGTH = 4
 
-    /** 4 size bytes + 4 type bytes */
+    /** 4 size bytes + 4 type bytes. */
     const val BOX_HEADER_LENGTH = TYPE_LENGTH + SIZE_LENGTH
+
+    /** The flags field of a FullBox is 3 bytes. */
+    const val FLAGS_LENGTH = 3
 
     const val TIFF_HEADER_OFFSET_BYTE_COUNT = 4
 
@@ -37,6 +41,6 @@ internal object BMFFConstants {
     const val ITEM_TYPE_MIME = 1_835_625_829
     const val ITEM_TYPE_JPEG = 1_785_750_887
 
-    /** Standard UUID for XMP metadata embedded in a uuid box */
+    /** Standard UUID for XMP metadata embedded in a uuid box. */
     const val XMP_UUID = "be7acfcb97a942e89c71999491e3afac"
 }

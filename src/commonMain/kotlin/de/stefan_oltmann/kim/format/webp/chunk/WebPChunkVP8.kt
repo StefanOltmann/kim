@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -18,10 +19,11 @@ package de.stefan_oltmann.kim.format.webp.chunk
 
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.webp.WebPChunkType
-import de.stefan_oltmann.kim.format.webp.WebPConstants
 import de.stefan_oltmann.kim.model.ImageSize
 
-/*
+/**
+ * The lossy VP8 image chunk of a WebP file.
+ *
  * https://developers.google.com/speed/webp/docs/riff_container#simple_file_format_lossy
  */
 @Suppress("MagicNumber")
@@ -88,9 +90,6 @@ public class WebPChunkVP8(
             width = b6 + (b7 and 63 shl 8),
             height = b8 + (b9 and 63 shl 8)
         )
-
-        if (imageSize.longestSide > WebPConstants.MAX_SIDE_LENGTH)
-            throw ImageReadException("Illegal dimensions: $imageSize")
 
         horizontalScale = b7 shr 6
         verticalScale = b9 shr 6
