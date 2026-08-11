@@ -407,7 +407,7 @@ class BmffBoxesTest {
             'h'.code.toByte(), 'd'.code.toByte(), 'l'.code.toByte(), 'r'.code.toByte()
         ) + hdlrPayload
 
-        val mdiaPayload = byteArrayOf(0, 0, 0, 0) + hdlrBox
+        val mdiaPayload = hdlrBox
 
         val mdiaBox = byteArrayOf(
             0, 0, 0, (mdiaPayload.size + 8).toByte(),
@@ -427,6 +427,42 @@ class BmffBoxesTest {
         assertEquals(BoxType.TKHD, box.trackHeaderBox.type)
         assertEquals(BoxType.MDIA, box.mediaBox.type)
         assertTrue(box.boxes.size >= 2)
+    }
+
+    @Test
+    fun testTrackBoxWithSmallSubBoxes() {
+
+        /*
+         * Small sub-boxes after the first one must still be read.
+         * The mdia box is only 8 bytes (header without payload).
+         */
+        val tkhdPayload = byteArrayOf(0, 0, 0, 0)
+
+        val tkhdBox = byteArrayOf(
+            0, 0, 0, (tkhdPayload.size + 8).toByte(),
+            't'.code.toByte(), 'k'.code.toByte(), 'h'.code.toByte(), 'd'.code.toByte()
+        ) + tkhdPayload
+
+        val mdiaBox = byteArrayOf(
+            0, 0, 0, 8,
+            'm'.code.toByte(), 'd'.code.toByte(), 'i'.code.toByte(), 'a'.code.toByte()
+        )
+
+        val trackPayload = tkhdBox + mdiaBox
+
+        val box = TrackBox(
+            offset = 0,
+            size = trackPayload.size.toLong() + 8,
+            largeSize = null,
+            payload = trackPayload
+        )
+
+        assertEquals(BoxType.TKHD, box.trackHeaderBox.type)
+        assertEquals(BoxType.MDIA, box.mediaBox.type)
+        assertEquals(2, box.boxes.size)
+
+        /* The mdia box is reported at its real payload offset. */
+        assertEquals(20L, box.mediaBox.offset)
     }
 
     @Test
