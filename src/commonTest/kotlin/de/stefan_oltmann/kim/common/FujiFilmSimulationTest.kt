@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2026 Gnod
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -185,7 +186,7 @@ class FujiFilmSimulationTest {
         assertNull(FujiFilmTag.getFilmModeName(-1))
 
         /* Verify that the tag info is correctly configured */
-        assertEquals(FujiFilmTag.FILM_MODE.tag, 0x1401)
-        assertEquals(FujiFilmTag.FILM_MODE.name, "FilmMode")
+        assertEquals(0x1401, FujiFilmTag.FILM_MODE.tag)
+        assertEquals("FilmMode", FujiFilmTag.FILM_MODE.name)
     }
 }

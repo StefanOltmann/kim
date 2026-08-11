@@ -323,7 +323,7 @@ class BmffBoxesTest {
         assertEquals(0, box.version)
         assertEquals(1, box.entryCount)
         assertEquals(1, box.map.size)
-        assertEquals(1, box.map[1]!!.itemId)
+        assertEquals(1, box.map.getValue(1).itemId)
     }
 
     @Test

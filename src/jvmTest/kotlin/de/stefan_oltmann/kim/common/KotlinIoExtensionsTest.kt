@@ -15,9 +15,7 @@
  */
 package de.stefan_oltmann.kim.common
 
-import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
-import de.stefan_oltmann.kim.kotlinx.readMetadata
 import de.stefan_oltmann.kim.model.MediaFormat
 import kotlinx.io.Buffer
 import kotlinx.io.files.Path
@@ -112,7 +110,7 @@ class KotlinIoExtensionsTest {
         var result: MediaFormat? = null
 
         de.stefan_oltmann.kim.input.KotlinIoSourceByteReader.read(path) { byteReader ->
-            val metadata = Kim.readMetadata(byteReader!!)
+            val metadata = Kim.readMetadata(checkNotNull(byteReader))
             result = metadata?.mediaFormat
         }
 

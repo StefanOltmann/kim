@@ -22,16 +22,13 @@ import de.stefan_oltmann.kim.format.tiff.TiffField
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
-import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoAscii
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoGpsText
-import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoShort
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
-import kotlin.test.assertTrue
 
 class TiffFieldTypesAndTagInfoTest {
 

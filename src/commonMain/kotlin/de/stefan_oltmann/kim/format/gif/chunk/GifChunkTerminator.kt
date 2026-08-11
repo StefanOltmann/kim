@@ -18,6 +18,7 @@
 package de.stefan_oltmann.kim.format.gif.chunk
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.toSingleNumberHexes
 import de.stefan_oltmann.kim.format.gif.GifChunkType
 import de.stefan_oltmann.kim.format.gif.GifConstants
 
@@ -31,6 +32,6 @@ public class GifChunkTerminator(
     init {
 
         if (bytes.size != 1 || bytes[0] != GifConstants.GIF_TERMINATOR)
-            throw ImageReadException("Invalid GIF terminator byte(s): $bytes")
+            throw ImageReadException("Invalid GIF terminator byte(s): ${bytes.toSingleNumberHexes()}")
     }
 }

@@ -17,7 +17,6 @@ package de.stefan_oltmann.kim.format.tiff
 
 import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
-import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.toBytes
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag

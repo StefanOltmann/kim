@@ -220,33 +220,33 @@ class TiffWriterRoundTripTest {
         /* Custom signed and floating point types. */
         assertTrue(
             byteArrayOf(-5).contentEquals(
-                readRootDirectory.findField(tagInfoSByte)!!.value as ByteArray
+                checkNotNull(readRootDirectory.findField(tagInfoSByte)).value as ByteArray
             )
         )
         assertTrue(
             byteArrayOf(-1, -2).contentEquals(
-                readRootDirectory.findField(tagInfoSBytes)!!.value as ByteArray
+                checkNotNull(readRootDirectory.findField(tagInfoSBytes)).value as ByteArray
             )
         )
         assertEquals(
             expected = -300,
-            actual = (readRootDirectory.findField(tagInfoSShort)!!.value as ShortArray).first().toInt()
+            actual = (checkNotNull(readRootDirectory.findField(tagInfoSShort)).value as ShortArray).first().toInt()
         )
         assertEquals(
             expected = -1000,
-            actual = (readRootDirectory.findField(tagInfoSLong)!!.value as IntArray).first()
+            actual = (checkNotNull(readRootDirectory.findField(tagInfoSLong)).value as IntArray).first()
         )
         assertEquals(
             expected = -0.5,
-            actual = readRootDirectory.findField(tagInfoSRational)!!.toDouble()
+            actual = checkNotNull(readRootDirectory.findField(tagInfoSRational)).toDouble()
         )
         assertEquals(
             expected = 1.5f,
-            actual = (readRootDirectory.findField(tagInfoFloat)!!.value as FloatArray).first()
+            actual = (checkNotNull(readRootDirectory.findField(tagInfoFloat)).value as FloatArray).first()
         )
         assertEquals(
             expected = 3.14159,
-            actual = (readRootDirectory.findField(tagInfoDouble)!!.value as DoubleArray).first()
+            actual = (checkNotNull(readRootDirectory.findField(tagInfoDouble)).value as DoubleArray).first()
         )
 
         /* EXIF directory. */
@@ -269,7 +269,7 @@ class TiffWriterRoundTripTest {
 
         assertTrue(
             byteArrayOf(2, 3, 0, 0).contentEquals(
-                readGpsDirectory.findField(GpsTag.GPS_TAG_GPS_VERSION_ID)!!.value as ByteArray
+                checkNotNull(readGpsDirectory.findField(GpsTag.GPS_TAG_GPS_VERSION_ID)).value as ByteArray
             )
         )
     }
@@ -493,7 +493,8 @@ class TiffWriterRoundTripTest {
 
         val outputSet = TiffOutputSet()
 
-        val rootDirectory = outputSet.getOrCreateRootDirectory()
+        /* The writer requires the root directory. */
+        outputSet.getOrCreateRootDirectory()
 
         outputSet.addDirectory(TiffOutputDirectory(TiffConstants.TIFF_DIRECTORY_INTEROP, outputSet.byteOrder))
 

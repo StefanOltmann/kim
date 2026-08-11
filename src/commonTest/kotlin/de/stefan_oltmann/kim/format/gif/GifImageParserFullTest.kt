@@ -133,7 +133,7 @@ class GifImageParserFullTest {
         assertEquals(de.stefan_oltmann.kim.model.MediaFormat.GIF, metadata.mediaFormat)
         assertEquals(ImageSize(1, 1), metadata.imageSize)
         assertNotNull(metadata.xmp)
-        assertTrue(metadata.xmp!!.contains("<x:xmpmeta"))
+        assertTrue(metadata.xmp.contains("<x:xmpmeta"))
     }
 
     @Test

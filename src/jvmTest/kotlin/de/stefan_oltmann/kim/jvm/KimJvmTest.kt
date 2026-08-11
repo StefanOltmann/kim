@@ -79,8 +79,6 @@ class KimJvmTest {
     @Test
     fun testReadMetadataFromPath() {
 
-        val diskPath = Resource("src/commonTest/resources/de/stefan_oltmann/kim/testdata/full/media_1.jpg").path
-
         val metadata = KimJvm.readMetadata(Files.createTempFile("kim", ".jpg"))
 
         /* A non-image file has no metadata. */

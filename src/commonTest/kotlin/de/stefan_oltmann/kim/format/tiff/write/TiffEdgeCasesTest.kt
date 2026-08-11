@@ -35,7 +35,6 @@ import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 class TiffEdgeCasesTest {
 
@@ -196,7 +195,7 @@ class TiffEdgeCasesTest {
             longitudeValues = arrayOf(RationalNumber(8, 1), RationalNumber(14, 1), RationalNumber(21, 1))
         )
 
-        val gpsInfo = GPSInfo.createFrom(gpsDirectory)!!
+        val gpsInfo = checkNotNull(GPSInfo.createFrom(gpsDirectory))
 
         assertEquals(
             expected = 53 + 13.0 / 60 + 9.0 / 3600,
@@ -218,7 +217,7 @@ class TiffEdgeCasesTest {
             longitudeValues = arrayOf(RationalNumber(20, 1), RationalNumber(0, 1), RationalNumber(0, 1))
         )
 
-        val gpsInfo = GPSInfo.createFrom(gpsDirectory)!!
+        val gpsInfo = checkNotNull(GPSInfo.createFrom(gpsDirectory))
 
         assertEquals(-10.0, gpsInfo.getLatitudeAsDegreesNorth())
         assertEquals(-20.0, gpsInfo.getLongitudeAsDegreesEast())
@@ -234,20 +233,22 @@ class TiffEdgeCasesTest {
             longitudeValues = arrayOf(RationalNumber(20, 1), RationalNumber(0, 1), RationalNumber(0, 1))
         )
 
-        val gpsInfo = GPSInfo.createFrom(gpsDirectory)!!
+        val gpsInfo = checkNotNull(GPSInfo.createFrom(gpsDirectory))
 
         assertFailsWith<ImageReadException> {
             gpsInfo.getLatitudeAsDegreesNorth()
         }
 
-        val gpsInfo2 = GPSInfo.createFrom(
-            createGpsDirectory(
-                latitudeRef = "N",
-                longitudeRef = "X",
-                latitudeValues = arrayOf(RationalNumber(10, 1), RationalNumber(0, 1), RationalNumber(0, 1)),
-                longitudeValues = arrayOf(RationalNumber(20, 1), RationalNumber(0, 1), RationalNumber(0, 1))
+        val gpsInfo2 = checkNotNull(
+            GPSInfo.createFrom(
+                createGpsDirectory(
+                    latitudeRef = "N",
+                    longitudeRef = "X",
+                    latitudeValues = arrayOf(RationalNumber(10, 1), RationalNumber(0, 1), RationalNumber(0, 1)),
+                    longitudeValues = arrayOf(RationalNumber(20, 1), RationalNumber(0, 1), RationalNumber(0, 1))
+                )
             )
-        )!!
+        )
 
         assertFailsWith<ImageReadException> {
             gpsInfo2.getLongitudeAsDegreesEast()
