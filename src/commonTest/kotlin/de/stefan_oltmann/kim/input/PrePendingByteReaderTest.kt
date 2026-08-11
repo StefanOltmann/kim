@@ -19,8 +19,8 @@ package de.stefan_oltmann.kim.input
 import de.stefan_oltmann.kim.common.ImageReadException
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 class PrePendingByteReaderTest {
 

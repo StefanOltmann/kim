@@ -17,7 +17,6 @@
 package de.stefan_oltmann.kim.common
 
 import de.stefan_oltmann.kim.Kim.underUnitTesting
-import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.jpeg.JpegImageParser
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcTypes
