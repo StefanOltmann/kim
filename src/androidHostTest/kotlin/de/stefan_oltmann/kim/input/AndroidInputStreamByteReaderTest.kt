@@ -84,6 +84,43 @@ class AndroidInputStreamByteReaderTest {
         assertNull(reader.readByte())
     }
 
+    /**
+     * readByte must return null at the end of the stream.
+     */
+    @Test
+    fun testReadByte() {
+
+        val reader = AndroidInputStreamByteReader(
+            inputStream = PartialReadInputStream(byteArrayOf(42)),
+            contentLength = 1
+        )
+
+        assertEquals(42.toByte(), reader.readByte())
+        assertNull(reader.readByte())
+    }
+
+    /**
+     * close() must close the underlying stream.
+     */
+    @Test
+    fun testClose() {
+
+        var closed = false
+
+        val stream = object : InputStream() {
+
+            override fun read(): Int = -1
+
+            override fun close() {
+                closed = true
+            }
+        }
+
+        AndroidInputStreamByteReader(stream, 0).close()
+
+        assertEquals(true, closed)
+    }
+
     private companion object {
 
         /* The stub delivers at most this many bytes per read call */
