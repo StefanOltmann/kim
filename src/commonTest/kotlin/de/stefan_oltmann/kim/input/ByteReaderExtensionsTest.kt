@@ -22,6 +22,7 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ByteReaderExtensionsTest {
@@ -193,6 +194,28 @@ class ByteReaderExtensionsTest {
         }
     }
 
+    /**
+     * A large skip must be read in bounded chunks, so the peak
+     * allocation stays within the buffer size.
+     */
+    @Test
+    fun testSkipBytesUsesBoundedChunks() {
+
+        val skipCount = 5 * 1024 * 1024 + 123
+
+        val recordingReader = RecordingByteReader(
+            ByteArrayByteReader(ByteArray(skipCount))
+        )
+
+        recordingReader.skipBytes("skip", skipCount)
+
+        /* The skip must be complete. */
+        assertNull(recordingReader.readByte())
+
+        /* The largest single read must stay within the buffer size. */
+        assertTrue(recordingReader.maxRequestedReadSize <= DEFAULT_BUFFER_SIZE)
+    }
+
     @Test
     fun testSkipToBytes() {
 
@@ -212,5 +235,33 @@ class ByteReaderExtensionsTest {
 
         assertTrue(reader.skipToQuad(1))
         assertEquals(0x02, reader.readByteAsInt())
+    }
+
+    /**
+     * A ByteReader that records the largest read request size.
+     */
+    private class RecordingByteReader(
+        private val delegate: ByteReader
+    ) : ByteReader {
+
+        var maxRequestedReadSize: Int = 0
+            private set
+
+        override val contentLength: Long =
+            delegate.contentLength
+
+        override fun readByte(): Byte? =
+            delegate.readByte()
+
+        override fun readBytes(count: Int): ByteArray {
+
+            if (count > maxRequestedReadSize)
+                maxRequestedReadSize = count
+
+            return delegate.readBytes(count)
+        }
+
+        override fun close() =
+            delegate.close()
     }
 }

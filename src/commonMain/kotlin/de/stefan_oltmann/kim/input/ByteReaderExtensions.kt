@@ -178,23 +178,27 @@ internal fun ByteReader.skipBytes(fieldName: String, count: Int) {
     if (count < 0)
         throw ImageReadException("Couldn't read $fieldName, invalid length: $count")
 
-    var total = 0
+    var remaining = count
 
-    while (count != total) {
+    /*
+     * Read in bounded chunks, so a large skip does not allocate
+     * the whole request size at once.
+     */
+    while (remaining > 0) {
 
-        val skippedByteCount = readBytes(count).size
+        val skippedByteCount = readBytes(minOf(remaining, DEFAULT_BUFFER_SIZE)).size
 
         if (skippedByteCount == 0) {
 
-            val missingBytesCount = count - total
+            val missingBytesCount = remaining
 
             throw ImageReadException(
-                "Skipped $total bytes of $count for $fieldName: " +
+                "Skipped ${count - remaining} bytes of $count for $fieldName: " +
                     "Missing $missingBytesCount bytes."
             )
         }
 
-        total += skippedByteCount
+        remaining -= skippedByteCount
     }
 }
 
