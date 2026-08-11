@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2002-2023 Drew Noakes and contributors
  *
@@ -19,12 +20,15 @@ package de.stefan_oltmann.kim.format.bmff.box
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BOX_HEADER_LENGTH
 import de.stefan_oltmann.kim.format.bmff.BoxType
 
+/**
+ * A box of the ISO base media file format.
+ */
 public open class Box(
     public val type: BoxType,
     public val offset: Long,
     public val size: Long,
     public val largeSize: Long?,
-    /** Payload bytes, not including type & length bytes */
+    /** Payload bytes, not including type & length bytes. */
     public val payload: ByteArray
 ) {
 

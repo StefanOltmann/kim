@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -31,7 +32,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoGpsText
  * A TIFF field in a TIFF directory.
  */
 public class TiffField(
-    /** Offset relative to TIFF header */
+    /** Offset relative to TIFF header. */
     public val offset: Int,
     public val tag: Int,
     public val directoryType: Int,
@@ -53,7 +54,7 @@ public class TiffField(
     public val offsetFormatted: String =
         offset.toString().padStart(10, '0')
 
-    /** Return a proper Tag ID like 0x0100 */
+    /** Return a proper Tag ID like 0x0100. */
     public val tagFormatted: String =
         "0x" + tag.toString(HEX_RADIX).padStart(4, '0')
 
@@ -172,7 +173,7 @@ public class TiffField(
             val result = IntArray(value.size)
 
             repeat(result.size) { index ->
-                result[index] = 0xFFFF and value[index].toInt()
+                result[index] = value[index].toUShort().toInt()
             }
 
             return result

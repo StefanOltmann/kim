@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ramon Bouckaert
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +17,9 @@
 
 package de.stefan_oltmann.kim.format.gif
 
+/**
+ * The type of a chunk in a GIF file.
+ */
 public enum class GifChunkType {
     HEADER,
     LOGICAL_SCREEN_DESCRIPTOR,

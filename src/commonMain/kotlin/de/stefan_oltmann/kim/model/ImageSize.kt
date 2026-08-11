@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +18,9 @@ package de.stefan_oltmann.kim.model
 
 import kotlin.math.max
 
+/**
+ * The width and height of an image in pixels.
+ */
 public data class ImageSize(
     val width: Int,
     val height: Int

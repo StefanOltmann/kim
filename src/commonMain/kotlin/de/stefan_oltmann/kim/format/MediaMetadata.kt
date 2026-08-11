@@ -24,6 +24,9 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.model.ImageSize
 import de.stefan_oltmann.kim.model.MediaFormat
 
+/**
+ * The metadata of a media file.
+ */
 public class MediaMetadata internal constructor(
     public val mediaFormat: MediaFormat?,
     public val imageSize: ImageSize?,

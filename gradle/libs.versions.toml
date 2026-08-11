@@ -3,7 +3,7 @@ kotlin = "2.4.10"
 android-gradle = "9.3.0"
 android-compile-sdk = "37"
 android-min-sdk = "21"
-detekt = "1.23.8"
+detekt = "2.0.0-alpha.6"
 kover = "0.9.9"
 build-time-tracker = "5.0.2"
 git-versioning = "6.4.4"
@@ -23,13 +23,12 @@ xmpcore = { module = "de.stefan-oltmann:xmpcore", version.ref = "xmpcore" }
 kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
 ktor-io = { module = "io.ktor:ktor-io", version.ref = "ktor" }
 kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlinx-browser" }
-detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 resources = { module = "com.goncalossilva:resources", version.ref = "resources" }
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "android-gradle" }
-detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 build-time-tracker = { id = "com.asarkar.gradle.build-time-tracker", version.ref = "build-time-tracker" }
 git-versioning = { id = "me.qoomon.git-versioning", version.ref = "git-versioning" }

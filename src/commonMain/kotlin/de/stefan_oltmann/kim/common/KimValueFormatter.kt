@@ -18,6 +18,9 @@ package de.stefan_oltmann.kim.common
 
 import kotlin.math.round
 
+/**
+ * Formats metadata values into human-readable strings.
+ */
 public object KimValueFormatter {
 
     public const val MEGA_PIXEL_COUNT: Int = 1_000_000

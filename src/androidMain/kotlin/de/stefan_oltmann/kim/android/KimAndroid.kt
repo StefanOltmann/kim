@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +32,7 @@ import java.io.File
 import java.io.InputStream
 
 /**
- * Extra object to have a nicer API for Java projects
+ * Extra object to have a nicer API for Java projects.
  */
 public object KimAndroid {
 

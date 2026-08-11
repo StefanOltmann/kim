@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2002-2023 Drew Noakes and contributors
  *
@@ -19,6 +20,7 @@ package de.stefan_oltmann.kim.format.bmff.box
 import de.stefan_oltmann.kim.common.toFourCCTypeString
 import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
+import de.stefan_oltmann.kim.format.bmff.BMFFConstants.FLAGS_LENGTH
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.read2BytesAsInt
@@ -28,7 +30,7 @@ import de.stefan_oltmann.kim.input.readBytes
 import de.stefan_oltmann.kim.input.readNullTerminatedString
 
 /**
- * EIC/ISO 14496-12 infe box
+ * EIC/ISO 14496-12 infe box.
  */
 public class ItemInfoEntryBox(
     offset: Long,
@@ -64,7 +66,7 @@ public class ItemInfoEntryBox(
             "Unsupported INFE version: $version"
         }
 
-        flags = byteReader.readBytes("flags", 3)
+        flags = byteReader.readBytes("flags", FLAGS_LENGTH)
 
         itemId = byteReader.read2BytesAsInt("itemId", BMFF_BYTE_ORDER)
 

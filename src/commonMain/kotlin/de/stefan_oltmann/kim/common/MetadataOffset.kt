@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +16,9 @@
  */
 package de.stefan_oltmann.kim.common
 
+/**
+ * Describes the location of metadata inside a media file.
+ */
 public data class MetadataOffset(
     val type: MetadataType,
     val offset: Long,

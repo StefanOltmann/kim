@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,6 +40,9 @@ import de.stefan_oltmann.kim.input.skipBytes
 import de.stefan_oltmann.kim.model.MediaFormat
 import kotlin.jvm.JvmStatic
 
+/**
+ * Parses the metadata of WebP files.
+ */
 public object WebPImageParser : ImageParser {
 
     /*
@@ -163,11 +167,12 @@ public object WebPImageParser : ImageParser {
                  * the VP8/VP8L image chunk is their only chunk.
                  * In extended files the metadata chunks follow the image chunk.
                  */
-                if (chunkType == WebPChunkType.VP8 || chunkType == WebPChunkType.VP8L) {
+                val isLegacyImageChunk =
+                    (chunkType == WebPChunkType.VP8 || chunkType == WebPChunkType.VP8L) &&
+                    chunks.none { it is WebPChunkVP8X }
 
-                    if (chunks.none { it is WebPChunkVP8X })
-                        break
-                }
+                if (isLegacyImageChunk)
+                    break
 
                 /*
                  * If the header reveals that there will be no EXIF and no XMP

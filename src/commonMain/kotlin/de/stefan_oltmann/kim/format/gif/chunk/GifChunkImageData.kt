@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ramon Bouckaert
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +19,9 @@ package de.stefan_oltmann.kim.format.gif.chunk
 
 import de.stefan_oltmann.kim.format.gif.GifChunkType
 
+/**
+ * The LZW-compressed image data chunk of a GIF file.
+ */
 public class GifChunkImageData(
     lzwMinimumCodeSize: Byte,
     subChunks: List<ByteArray>

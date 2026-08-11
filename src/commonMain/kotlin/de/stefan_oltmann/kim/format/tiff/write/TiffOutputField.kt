@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -26,6 +27,9 @@ import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.output.BinaryByteWriter
 
+/**
+ * A TIFF field to be written.
+ */
 public class TiffOutputField(
     public val tag: Int,
     public val fieldType: FieldType<out Any>,
@@ -54,7 +58,7 @@ public class TiffOutputField(
             if (separateValue != null)
                 throw ImageWriteException("Unexpected separate value item.")
 
-            if (bytes.size > 4)
+            if (bytes.size > TIFF_ENTRY_MAX_VALUE_LENGTH)
                 throw ImageWriteException("Local value has invalid length: " + bytes.size)
 
             byteWriter.write(bytes)

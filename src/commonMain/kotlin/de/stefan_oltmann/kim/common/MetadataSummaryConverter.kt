@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,7 +38,9 @@ import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
 import kotlin.time.ExperimentalTime
 
-/*
+/**
+ * Converts a MediaMetadata into a MetadataSummary.
+ *
  * This is a dedicated object with @JvmStatic methods
  * to provide a better API to pure Java projects.
  */

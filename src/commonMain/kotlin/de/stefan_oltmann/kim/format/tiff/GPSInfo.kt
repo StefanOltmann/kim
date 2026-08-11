@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -63,6 +64,9 @@ internal data class GPSInfo(
 
     companion object {
 
+        /* A GPS coordinate has degrees, minutes and seconds */
+        private const val GPS_DMS_COMPONENT_COUNT = 3
+
         fun createFrom(gpsDirectory: TiffDirectory): GPSInfo? {
 
             val latitudeRef = gpsDirectory.findField(GpsTag.GPS_TAG_GPS_LATITUDE_REF)?.toStringValue()
@@ -87,7 +91,9 @@ internal data class GPSInfo(
             val latitude = latitudeField.value as RationalNumbers
             val longitude = longitudeField.value as RationalNumbers
 
-            if (latitude.values.size != 3 || longitude.values.size != 3)
+            if (latitude.values.size != GPS_DMS_COMPONENT_COUNT ||
+                longitude.values.size != GPS_DMS_COMPONENT_COUNT
+            )
                 throw ImageReadException("Expected three values for latitude and longitude.")
 
             return GPSInfo(

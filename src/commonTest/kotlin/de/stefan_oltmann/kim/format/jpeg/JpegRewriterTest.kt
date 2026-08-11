@@ -595,13 +595,31 @@ class JpegRewriterTest {
             0x00 /* thumbnail height */
         )
 
-        byteWriter.write(JpegConstants.JPEG_APP0_MARKER.toShort().toBytes(JpegConstants.JPEG_BYTE_ORDER))
-        byteWriter.write((jfifSegment.size + SEGMENT_LENGTH_FIELD_BYTES).toShort().toBytes(JpegConstants.JPEG_BYTE_ORDER))
+        byteWriter.write(
+            JpegConstants.JPEG_APP0_MARKER
+            .toShort()
+            .toBytes(JpegConstants.JPEG_BYTE_ORDER)
+        )
+
+        byteWriter.write(
+            (jfifSegment.size + SEGMENT_LENGTH_FIELD_BYTES).toShort()
+            .toBytes(JpegConstants.JPEG_BYTE_ORDER)
+        )
+
         byteWriter.write(jfifSegment)
 
         /* SOS marker with empty payload and a minimal image data blob. */
-        byteWriter.write(JpegConstants.SOS_MARKER.toShort().toBytes(JpegConstants.JPEG_BYTE_ORDER))
-        byteWriter.write(SEGMENT_LENGTH_FIELD_BYTES.toShort().toBytes(JpegConstants.JPEG_BYTE_ORDER))
+
+        byteWriter.write(
+            JpegConstants.SOS_MARKER.toShort()
+                .toBytes(JpegConstants.JPEG_BYTE_ORDER)
+        )
+
+        byteWriter.write(
+            SEGMENT_LENGTH_FIELD_BYTES.toShort()
+                .toBytes(JpegConstants.JPEG_BYTE_ORDER)
+        )
+
         byteWriter.write(JpegConstants.EOI)
 
         return byteWriter.toByteArray()

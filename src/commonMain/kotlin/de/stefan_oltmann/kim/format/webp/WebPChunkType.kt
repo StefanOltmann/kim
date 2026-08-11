@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,19 +46,19 @@ public data class WebPChunkType(
 
     public companion object {
 
-        /** Standard lossy VP8 */
+        /** Standard lossy VP8. */
         public val VP8: WebPChunkType = of("VP8 ".encodeToByteArray())
 
-        /** Lossless VP8 */
+        /** Lossless VP8. */
         public val VP8L: WebPChunkType = of("VP8L".encodeToByteArray())
 
-        /** Extended VP8 */
+        /** Extended VP8. */
         public val VP8X: WebPChunkType = of("VP8X".encodeToByteArray())
 
-        /** EXIF metadata */
+        /** EXIF metadata. */
         public val EXIF: WebPChunkType = of("EXIF".encodeToByteArray())
 
-        /** XMP metadata */
+        /** XMP metadata. */
         public val XMP: WebPChunkType = of("XMP ".encodeToByteArray())
 
         @Suppress("MagicNumber")

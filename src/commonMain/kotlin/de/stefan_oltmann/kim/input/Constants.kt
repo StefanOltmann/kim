@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,5 +16,5 @@
  */
 package de.stefan_oltmann.kim.input
 
-/** Same as kotlin.io.DEFAULT_BUFFER_SIZE */
+/** Same as kotlin.io.DEFAULT_BUFFER_SIZE. */
 internal const val DEFAULT_BUFFER_SIZE: Int = 8 * 1024

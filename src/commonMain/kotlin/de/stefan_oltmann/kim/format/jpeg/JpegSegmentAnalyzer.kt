@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +32,7 @@ import de.stefan_oltmann.kim.input.skipBytes
 import kotlin.jvm.JvmStatic
 
 /**
- * Algorithm to find segment offsets, types and lengths
+ * Algorithm to find segment offsets, types and lengths.
  */
 public object JpegSegmentAnalyzer {
 
@@ -148,6 +149,9 @@ public object JpegSegmentAnalyzer {
         return segmentInfos
     }
 
+    /**
+     * The location and size of a JPEG segment.
+     */
     public data class JpegSegmentInfo(
         val offset: Int,
         val marker: Int,

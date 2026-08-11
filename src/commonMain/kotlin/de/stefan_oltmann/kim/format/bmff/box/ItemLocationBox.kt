@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2002-2023 Drew Noakes and contributors
  *
@@ -17,6 +18,7 @@
 package de.stefan_oltmann.kim.format.bmff.box
 
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
+import de.stefan_oltmann.kim.format.bmff.BMFFConstants.FLAGS_LENGTH
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.bmff.Extent
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
@@ -29,7 +31,7 @@ import de.stefan_oltmann.kim.input.readXBytesAtInt
 import de.stefan_oltmann.kim.input.skipBytes
 
 /**
- * EIC/ISO 14496-12 iloc box
+ * EIC/ISO 14496-12 iloc box.
  */
 public class ItemLocationBox(
     offset: Long,
@@ -83,17 +85,17 @@ public class ItemLocationBox(
             "Unsupported ILOC version: $version"
         }
 
-        flags = byteReader.readBytes("flags", 3)
+        flags = byteReader.readBytes("flags", FLAGS_LENGTH)
 
         val offsetAndLengthSize = byteReader.readByteAsInt()
-        offsetSize = (offsetAndLengthSize and 0xF0) shr 4
-        lengthSize = offsetAndLengthSize and 0x0F
+        offsetSize = (offsetAndLengthSize and UPPER_NIBBLE_MASK) shr NIBBLE_SHIFT
+        lengthSize = offsetAndLengthSize and LOWER_NIBBLE_MASK
 
         val baseOffsetSizeAndIndexSize = byteReader.readByteAsInt()
-        baseOffsetSize = (baseOffsetSizeAndIndexSize and 0xF0) shr 4
+        baseOffsetSize = (baseOffsetSizeAndIndexSize and UPPER_NIBBLE_MASK) shr NIBBLE_SHIFT
 
         indexSize = if (version in 1..2)
-            baseOffsetSizeAndIndexSize and 0x0F
+            baseOffsetSizeAndIndexSize and LOWER_NIBBLE_MASK
         else
             0 // Unused
 
@@ -166,4 +168,16 @@ public class ItemLocationBox(
             "indexSize=$indexSize " +
             "itemCount=$itemCount " +
             "extents=$extents"
+
+    private companion object {
+
+        /* Bit mask for the upper nibble of the size byte */
+        const val UPPER_NIBBLE_MASK = 0xF0
+
+        /* Bit mask for the lower nibble of the size byte */
+        const val LOWER_NIBBLE_MASK = 0x0F
+
+        /* Shift to move the upper nibble to the lower position */
+        const val NIBBLE_SHIFT = 4
+    }
 }

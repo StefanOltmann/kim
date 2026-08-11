@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -22,7 +23,9 @@ import de.stefan_oltmann.kim.format.webp.WebPConstants
 import de.stefan_oltmann.kim.format.webp.WebPConstants.VP8X_PAYLOAD_LENGTH
 import de.stefan_oltmann.kim.model.ImageSize
 
-/*
+/**
+ * The extended VP8X container chunk of a WebP file.
+ *
  * https://developers.google.com/speed/webp/docs/riff_container#extended_file_format
  */
 @Suppress("MagicNumber")

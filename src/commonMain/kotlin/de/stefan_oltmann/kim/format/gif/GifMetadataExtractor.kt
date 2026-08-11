@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ramon Bouckaert
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +29,9 @@ import de.stefan_oltmann.kim.input.readByte
 import de.stefan_oltmann.kim.input.readBytes
 import de.stefan_oltmann.kim.model.ImageSize
 
+/**
+ * Extracts the metadata bytes of GIF files.
+ */
 public object GifMetadataExtractor : MetadataExtractor {
 
     private const val FAKE_IMAGE_DATA_LENGTH: Byte = 0x01.toByte()

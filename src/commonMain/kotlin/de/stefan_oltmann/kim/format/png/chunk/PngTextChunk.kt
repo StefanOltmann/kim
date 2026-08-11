@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -18,6 +19,9 @@ package de.stefan_oltmann.kim.format.png.chunk
 
 import de.stefan_oltmann.kim.format.png.PngChunkType
 
+/**
+ * Base class for the text chunks of a PNG file.
+ */
 public abstract class PngTextChunk(
     chunkType: PngChunkType,
     bytes: ByteArray,

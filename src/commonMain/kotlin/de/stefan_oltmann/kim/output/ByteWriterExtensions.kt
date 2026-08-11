@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -94,5 +95,5 @@ internal fun ByteWriter.writeLong(
 internal fun ByteWriter.writeString(
     value: String
 ) {
-    value.forEach { write(0xFF and it.code) }
+    value.forEach { write(it.code.toByte()) }
 }

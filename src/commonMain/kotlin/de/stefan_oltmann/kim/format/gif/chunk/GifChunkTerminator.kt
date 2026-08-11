@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ramon Bouckaert
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +21,9 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.gif.GifChunkType
 import de.stefan_oltmann.kim.format.gif.GifConstants
 
+/**
+ * The terminator chunk at the end of a GIF file.
+ */
 public class GifChunkTerminator(
     bytes: ByteArray
 ) : GifChunk(GifChunkType.TERMINATOR, bytes) {

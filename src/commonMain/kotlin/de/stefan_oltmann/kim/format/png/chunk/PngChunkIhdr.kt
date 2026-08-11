@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -22,6 +23,9 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.read4BytesAsInt
 import de.stefan_oltmann.kim.model.ImageSize
 
+/**
+ * The image header chunk of a PNG file.
+ */
 public class PngChunkIhdr(
     bytes: ByteArray,
     crc: Int

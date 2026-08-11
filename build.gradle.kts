@@ -53,19 +53,11 @@ buildTimeTracker {
 }
 
 detekt {
-    source.from("src", "build.gradle.kts")
+    source.setFrom("src", "build.gradle.kts")
+    config.setFrom("detekt.yml")
     allRules = true
-    config.setFrom("$projectDir/detekt.yml")
     parallel = true
-    ignoreFailures = true
-    autoCorrect = true
-}
-
-kover {
-}
-
-dependencies {
-    detektPlugins(libs.detekt.formatting)
+    ignoreFailures = false
 }
 
 kotlin {
@@ -359,5 +351,10 @@ mavenPublishing {
             connection = "scm:git:git://github.com/StefanOltmann/kim.git"
         }
     }
+}
+// endregion
+
+// region Code coverage
+kover {
 }
 // endregion

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -20,12 +21,15 @@ import de.stefan_oltmann.kim.format.tiff.geotiff.GeoTiffDirectory
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 
+/**
+ * The parsed contents of a TIFF file.
+ */
 public data class TiffContents(
     val header: TiffHeader,
     val directories: List<TiffDirectory>,
-    /** Artificial MakerNote directory */
+    /** Artificial MakerNote directory. */
     val makerNoteDirectory: TiffDirectory?,
-    /** Artificial GeoTiff directory */
+    /** Artificial GeoTiff directory. */
     val geoTiffDirectory: GeoTiffDirectory?
 ) {
 

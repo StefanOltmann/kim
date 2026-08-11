@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,12 +17,12 @@
 package de.stefan_oltmann.kim.model
 
 /**
- * Iptc4xmpExt:LocationShown
+ * Iptc4xmpExt:LocationShown.
  */
 public data class LocationShown(
 
     /**
-     * Descriptive name like "Times Square" or "//CRASH"
+     * Descriptive name like "Times Square" or "//CRASH".
      */
     val name: String?,
 
@@ -33,17 +34,17 @@ public data class LocationShown(
     val street: String?,
 
     /**
-     * The city, for example "Rastede"
+     * The city, for example "Rastede".
      */
     val city: String?,
 
     /**
-     * The state, for example "Niedersachsen"
+     * The state, for example "Niedersachsen".
      */
     val state: String?,
 
     /**
-     * The city, for example "Deutschland"
+     * The city, for example "Deutschland".
      */
     val country: String?
 ) {

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -21,6 +22,9 @@ import de.stefan_oltmann.kim.format.tiff.constant.ExifTag.EXIF_DIRECTORY_UNKNOWN
 import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldType
 
+/**
+ * Describes a TIFF tag, its type and how to interpret its value.
+ */
 public abstract class TagInfo(
     public val tag: Int,
     public val name: String,
@@ -30,7 +34,7 @@ public abstract class TagInfo(
     public val isOffset: Boolean = false
 ) {
 
-    /** Return a proper Tag ID like 0x0100 */
+    /** Return a proper Tag ID like 0x0100. */
     public val tagFormatted: String =
         "0x" + tag.toString(HEX_RADIX).padStart(4, '0')
 

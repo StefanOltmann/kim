@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2026 Ramon Bouckaert
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2002-2023 Drew Noakes and contributors
@@ -45,7 +46,7 @@ public class UuidBox(
 
         val byteReader = ByteArrayByteReader(payload)
 
-        uuid = byteReader.readBytes(16)
+        uuid = byteReader.readBytes(UUID_LENGTH)
         uuidAsHex = uuid.toHex()
 
         data = byteReader.readRemainingBytes()
@@ -55,4 +56,10 @@ public class UuidBox(
 
     override fun toString(): String =
         "Box '$type' @$offset uuid=$uuidAsHex (${actualLength} bytes)"
+
+    private companion object {
+
+        /* A UUID is always 16 bytes */
+        const val UUID_LENGTH = 16
+    }
 }

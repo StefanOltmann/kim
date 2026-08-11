@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -21,7 +22,9 @@ import de.stefan_oltmann.kim.format.webp.WebPChunkType
 import de.stefan_oltmann.kim.format.webp.WebPConstants
 import de.stefan_oltmann.kim.model.ImageSize
 
-/*
+/**
+ * The lossy VP8 image chunk of a WebP file.
+ *
  * https://developers.google.com/speed/webp/docs/riff_container#simple_file_format_lossy
  */
 @Suppress("MagicNumber")

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ramon Bouckaert
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +29,9 @@ import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.write2BytesAsInt
 import kotlin.jvm.JvmStatic
 
+/**
+ * The logical screen descriptor chunk of a GIF file.
+ */
 public class GifChunkLogicalScreenDescriptor(
     bytes: ByteArray
 ) : GifChunk(
@@ -45,7 +49,7 @@ public class GifChunkLogicalScreenDescriptor(
 
     init {
 
-        if (bytes.size != 7)
+        if (bytes.size != LOGICAL_SCREEN_DESCRIPTOR_LENGTH)
             throw ImageReadException(
                 "Invalid size for logical screen descriptor: ${bytes.size} bytes, expected 7 bytes."
             )
@@ -59,10 +63,10 @@ public class GifChunkLogicalScreenDescriptor(
 
         /* Read packed data */
         val packed = byteReader.readByte("packed fields").toInt()
-        globalColorTableFlag = (packed shr 7 and 1) == 1
-        colorResolution = (packed shr 4) and 0b111
-        sortFlag = (packed shr 3 and 1) == 1
-        globalColorTableSize = packed and 0b111
+        globalColorTableFlag = (packed shr GLOBAL_COLOR_TABLE_FLAG_BIT and 1) == 1
+        colorResolution = (packed shr COLOR_RESOLUTION_SHIFT) and COLOR_RESOLUTION_MASK
+        sortFlag = (packed shr SORT_FLAG_BIT and 1) == 1
+        globalColorTableSize = packed and GLOBAL_COLOR_TABLE_SIZE_MASK
 
         /* Read background color index */
         backgroundColorIndex = byteReader.readByteAsInt()
@@ -72,6 +76,25 @@ public class GifChunkLogicalScreenDescriptor(
     }
 
     public companion object {
+
+        /* The logical screen descriptor is 7 bytes */
+        private const val LOGICAL_SCREEN_DESCRIPTOR_LENGTH = 7
+
+        /* Bit position of the global color table flag */
+        private const val GLOBAL_COLOR_TABLE_FLAG_BIT = 7
+
+        /* Bit position of the color resolution */
+        private const val COLOR_RESOLUTION_SHIFT = 4
+
+        /* Mask for the 3-bit color resolution */
+        private const val COLOR_RESOLUTION_MASK = 0b111
+
+        /* Bit position of the sort flag */
+        private const val SORT_FLAG_BIT = 3
+
+        /* Mask for the 3-bit global color table size */
+        private const val GLOBAL_COLOR_TABLE_SIZE_MASK = 0b111
+
         @JvmStatic
         public fun constructFromProperties(
             canvasSize: ImageSize,
@@ -89,10 +112,10 @@ public class GifChunkLogicalScreenDescriptor(
             byteWriter.write2BytesAsInt(canvasSize.height, GifConstants.GIF_BYTE_ORDER)
 
             val packed = (
-                ((if (globalColorTableFlag) 1 else 0) shl 7) or
-                    ((colorResolution and 0b111) shl 4) or
-                    ((if (sortFlag) 1 else 0) shl 3) or
-                    (globalColorTableSize and 0b111)
+                ((if (globalColorTableFlag) 1 else 0) shl GLOBAL_COLOR_TABLE_FLAG_BIT) or
+                    ((colorResolution and COLOR_RESOLUTION_MASK) shl COLOR_RESOLUTION_SHIFT) or
+                    ((if (sortFlag) 1 else 0) shl SORT_FLAG_BIT) or
+                    (globalColorTableSize and GLOBAL_COLOR_TABLE_SIZE_MASK)
                 ).toByte()
 
             byteWriter.write(packed)

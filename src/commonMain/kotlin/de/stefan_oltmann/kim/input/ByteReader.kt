@@ -16,6 +16,9 @@
  */
 package de.stefan_oltmann.kim.input
 
+/**
+ * Reads bytes from a media file.
+ */
 public interface ByteReader : AutoCloseable {
 
     public val contentLength: Long

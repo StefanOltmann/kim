@@ -23,6 +23,9 @@ import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.output.ByteWriter
 import de.stefan_oltmann.kim.output.writeString
 
+/**
+ * Writes GIF files.
+ */
 public object GifWriter {
 
     public fun writeImage(

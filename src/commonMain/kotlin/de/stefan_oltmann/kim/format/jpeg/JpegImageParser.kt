@@ -46,6 +46,9 @@ import de.stefan_oltmann.kim.model.ImageSize
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 
+/**
+ * Parses the metadata of JPEG files.
+ */
 public object JpegImageParser : ImageParser {
 
     private const val XMP_META_CLOSE = "</x:xmpmeta>"
@@ -279,7 +282,7 @@ public object JpegImageParser : ImageParser {
      * of a split stream start mid-resource.
      */
     private fun isNewPhotoshopStream(segmentData: ByteArray): Boolean =
-        segmentData.size >= 4 &&
+        segmentData.size >= JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_LENGTH &&
             segmentData.toInt(0, JpegConstants.JPEG_BYTE_ORDER) == JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_INT
 
     /**

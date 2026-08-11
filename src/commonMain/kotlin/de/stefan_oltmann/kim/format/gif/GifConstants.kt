@@ -19,6 +19,9 @@ package de.stefan_oltmann.kim.format.gif
 
 import de.stefan_oltmann.kim.common.ByteOrder
 
+/**
+ * Constants of the GIF format.
+ */
 public object GifConstants {
 
     public val GIF_BYTE_ORDER: ByteOrder = ByteOrder.LITTLE_ENDIAN

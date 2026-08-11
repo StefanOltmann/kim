@@ -25,7 +25,7 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.read4BytesAsInt
 
 /**
- * EIC/ISO 14496-12 ftyp box
+ * EIC/ISO 14496-12 ftyp box.
  */
 public class FileTypeBox(
     offset: Long,

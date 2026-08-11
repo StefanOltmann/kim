@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +19,9 @@ package de.stefan_oltmann.kim.format
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.input.ByteReader
 
+/**
+ * Extracts the raw metadata bytes of a media file.
+ */
 public fun interface MetadataExtractor {
 
     @Throws(ImageReadException::class)

@@ -20,9 +20,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-/*
- * The test is placed in androidHostTest, because the reader lives in
- * androidMain.
+/**
+ * Tests the AndroidInputStreamByteReader with partial reads.
  */
 class AndroidInputStreamByteReaderTest {
 
@@ -41,7 +40,7 @@ class AndroidInputStreamByteReaderTest {
             if (position >= bytes.size)
                 return -1
 
-            return bytes[position++].toInt() and 0xFF
+            return bytes[position++].toUByte().toInt()
         }
 
         override fun read(b: ByteArray, off: Int, len: Int): Int {
@@ -49,8 +48,8 @@ class AndroidInputStreamByteReaderTest {
             if (position >= bytes.size)
                 return -1
 
-            /* Deliver at most 3 bytes per call. */
-            val count = minOf(3, len, bytes.size - position)
+            /* Deliver at most PARTIAL_READ_CHUNK_SIZE bytes per call. */
+            val count = minOf(PARTIAL_READ_CHUNK_SIZE, len, bytes.size - position)
 
             System.arraycopy(bytes, position, b, off, count)
 
@@ -75,13 +74,22 @@ class AndroidInputStreamByteReaderTest {
         )
 
         /* The stream delivers only 3 bytes per call. */
-        assertEquals(byteArrayOf(1, 2, 3).toList(), reader.readBytes(100).toList())
-        assertEquals(byteArrayOf(4, 5, 6).toList(), reader.readBytes(100).toList())
-        assertEquals(byteArrayOf(7, 8, 9).toList(), reader.readBytes(100).toList())
-        assertEquals(byteArrayOf(10).toList(), reader.readBytes(100).toList())
+        val expectedChunks = bytes.toList().chunked(PARTIAL_READ_CHUNK_SIZE)
+
+        for (chunk in expectedChunks)
+            assertEquals(chunk, reader.readBytes(READ_REQUEST_SIZE).toList())
 
         /* The stream is exhausted now. */
-        assertEquals(0, reader.readBytes(100).size)
+        assertEquals(0, reader.readBytes(READ_REQUEST_SIZE).size)
         assertNull(reader.readByte())
+    }
+
+    private companion object {
+
+        /* The stub delivers at most this many bytes per read call */
+        const val PARTIAL_READ_CHUNK_SIZE = 3
+
+        /* How many bytes the reader is asked to read in the test */
+        const val READ_REQUEST_SIZE = 100
     }
 }

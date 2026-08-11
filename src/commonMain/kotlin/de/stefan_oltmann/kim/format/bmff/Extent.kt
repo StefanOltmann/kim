@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2002-2023 Drew Noakes and contributors
  *
@@ -16,6 +17,9 @@
  */
 package de.stefan_oltmann.kim.format.bmff
 
+/**
+ * The location of an item inside a media file.
+ */
 public data class Extent(
     val itemId: Int,
     val index: Long?,

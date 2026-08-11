@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2026 Ramon Bouckaert
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2002-2023 Drew Noakes and contributors
@@ -18,6 +19,7 @@
 package de.stefan_oltmann.kim.format.bmff.box
 
 import de.stefan_oltmann.kim.common.toHex
+import de.stefan_oltmann.kim.format.bmff.BMFFConstants.FLAGS_LENGTH
 import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
@@ -51,7 +53,7 @@ public open class MetaBox(
 
         version = byteReader.readByteAsInt()
 
-        flags = byteReader.readBytes("flags", 3)
+        flags = byteReader.readBytes("flags", FLAGS_LENGTH)
 
         boxes = BoxReader.readBoxes(
             byteReader = byteReader,

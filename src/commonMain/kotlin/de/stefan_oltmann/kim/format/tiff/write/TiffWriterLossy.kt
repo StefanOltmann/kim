@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -23,6 +24,9 @@ import de.stefan_oltmann.kim.output.BinaryByteWriter.Companion.createBinaryByteW
 import de.stefan_oltmann.kim.output.ByteWriter
 import kotlin.jvm.JvmStatic
 
+/**
+ * Writes TIFF data from scratch, possibly changing the file size.
+ */
 public class TiffWriterLossy(
     byteOrder: ByteOrder
 ) : TiffWriterBase(byteOrder) {

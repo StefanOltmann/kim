@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,16 +29,16 @@ public enum class GeoTiffModelType(
     public val displayName: String
 ) {
 
-    /** Projection Coordinate System */
+    /** Projection Coordinate System. */
     PROJECTED(1, "Projected"),
 
-    /** Geographic latitude-longitude System */
+    /** Geographic latitude-longitude System. */
     GEOGRAPHIC(2, "Geographic"),
 
-    /** Geocentric (X,Y,Z) Coordinate System */
+    /** Geocentric (X,Y,Z) Coordinate System. */
     GEOCENTRIC(3, "Geocentric"),
 
-    /** user-defined */
+    /** user-defined. */
     USER_DEFINED(32767, "User Defined");
 
     public companion object {

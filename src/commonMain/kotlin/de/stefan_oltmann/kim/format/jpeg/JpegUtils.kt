@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -25,6 +26,9 @@ import de.stefan_oltmann.kim.input.readRemainingBytes
 
 internal object JpegUtils {
 
+    /* JPEG markers are 0xFF fill bytes */
+    private const val FILL_BYTE = 0xFF
+
     fun traverseJFIF(byteReader: ByteReader, visitor: JpegVisitor) {
 
         byteReader.readAndVerifyBytes("JPEG SOI (0xFFD8)", JpegConstants.SOI)
@@ -48,8 +52,8 @@ internal object JpegUtils {
                 readBytesCount++
 
             } while (
-                0xFF and markerBytes[0].toInt() != 0xFF ||
-                0xFF and markerBytes[1].toInt() == 0xFF
+                FILL_BYTE and markerBytes[0].toInt() != FILL_BYTE ||
+                FILL_BYTE and markerBytes[1].toInt() == FILL_BYTE
             )
 
             val marker = markerBytes.toUInt16(JPEG_BYTE_ORDER)

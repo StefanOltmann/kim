@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -20,6 +21,9 @@ import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.output.BinaryByteWriter
 
+/**
+ * The value of a TIFF field to be written.
+ */
 public class TiffOutputValue internal constructor(
     private val description: String,
     private val bytes: ByteArray

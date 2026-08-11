@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,12 +16,21 @@
  */
 package de.stefan_oltmann.kim.common
 
+/**
+ * Base exception for all image related failures.
+ */
 public open class ImageException(message: String? = null, cause: Throwable? = null) :
     RuntimeException(message, cause)
 
+/**
+ * Indicates that an image could not be read or parsed.
+ */
 public class ImageReadException(message: String? = null, cause: Throwable? = null) :
     ImageException(message, cause)
 
+/**
+ * Indicates that an image could not be written.
+ */
 public open class ImageWriteException(message: String? = null, cause: Throwable? = null) :
     ImageException(message, cause)
 

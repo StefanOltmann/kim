@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ramon Bouckaert
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +28,9 @@ import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.write2BytesAsInt
 import kotlin.jvm.JvmStatic
 
+/**
+ * The image descriptor chunk of a GIF file.
+ */
 public class GifChunkImageDescriptor(
     bytes: ByteArray
 ) : GifChunk(
@@ -44,7 +48,7 @@ public class GifChunkImageDescriptor(
 
     init {
 
-        if (bytes.size != 10)
+        if (bytes.size != IMAGE_DESCRIPTOR_LENGTH)
             throw ImageReadException("Invalid size for Image Descriptor chunk: ${bytes.size} bytes, expected 10 bytes.")
 
         val byteReader = ByteArrayByteReader(bytes)
@@ -62,13 +66,28 @@ public class GifChunkImageDescriptor(
         imageSize = ImageSize(width, height)
 
         val packed = byteReader.readByte("packed fields")
-        localColorTableFlag = (packed.toInt() shr 7 and 1) == 1
-        interlaceFlag = (packed.toInt() shr 6 and 1) == 1
-        sortFlag = (packed.toInt() shr 5 and 1) == 1
-        localColorTableSize = packed.toInt() and 0b00000111
+        localColorTableFlag = (packed.toInt() shr LOCAL_COLOR_TABLE_FLAG_BIT and 1) == 1
+        interlaceFlag = (packed.toInt() shr INTERLACE_FLAG_BIT and 1) == 1
+        sortFlag = (packed.toInt() shr SORT_FLAG_BIT and 1) == 1
+        localColorTableSize = packed.toInt() and LOCAL_COLOR_TABLE_SIZE_MASK
     }
 
     public companion object {
+
+        /* The image descriptor is 10 bytes */
+        private const val IMAGE_DESCRIPTOR_LENGTH = 10
+
+        /* Bit position of the local color table flag */
+        private const val LOCAL_COLOR_TABLE_FLAG_BIT = 7
+
+        /* Bit position of the interlace flag */
+        private const val INTERLACE_FLAG_BIT = 6
+
+        /* Bit position of the sort flag */
+        private const val SORT_FLAG_BIT = 5
+
+        /* Mask for the 3-bit local color table size */
+        private const val LOCAL_COLOR_TABLE_SIZE_MASK = 0b00000111
 
         @JvmStatic
         public fun constructFromProperties(
@@ -90,10 +109,10 @@ public class GifChunkImageDescriptor(
             byteWriter.write2BytesAsInt(imageSize.width, GifConstants.GIF_BYTE_ORDER)
             byteWriter.write2BytesAsInt(imageSize.height, GifConstants.GIF_BYTE_ORDER)
 
-            val packed = ((if (localColorTableFlag) 1 else 0) shl 7) or
-                ((if (interlaceFlag) 1 else 0) shl 6) or
-                ((if (sortFlag) 1 else 0) shl 5) or
-                (localColorTableSize and 0b00000111)
+            val packed = ((if (localColorTableFlag) 1 else 0) shl LOCAL_COLOR_TABLE_FLAG_BIT) or
+                ((if (interlaceFlag) 1 else 0) shl INTERLACE_FLAG_BIT) or
+                ((if (sortFlag) 1 else 0) shl SORT_FLAG_BIT) or
+                (localColorTableSize and LOCAL_COLOR_TABLE_SIZE_MASK)
 
             byteWriter.write(packed)
 

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +16,9 @@
  */
 package de.stefan_oltmann.kim.common
 
+/**
+ * The byte order of multi-byte values in a binary format.
+ */
 public enum class ByteOrder(
     public val displayName: String
 ) {

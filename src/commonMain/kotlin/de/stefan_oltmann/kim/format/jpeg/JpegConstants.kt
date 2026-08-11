@@ -19,6 +19,9 @@ package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.common.ByteOrder
 
+/**
+ * Constants of the JPEG format.
+ */
 @Suppress("MagicNumber")
 public object JpegConstants {
 
@@ -200,10 +203,13 @@ public object JpegConstants {
     public val MAX_PHOTOSHOP_BYTES_PER_SEGMENT: Int =
         MAX_SEGMENT_SIZE - 2 - APP13_IDENTIFIER.size
 
-    /** Int value of "8BIM" */
+    /** Int value of "8BIM". */
     public const val IPTC_RESOURCE_BLOCK_SIGNATURE_INT: Int = 943_868_237
 
-    /** Hex value of "8BIM" (38 42 49 4D) */
+    /** The "8BIM" signature is 4 bytes. */
+    public const val IPTC_RESOURCE_BLOCK_SIGNATURE_LENGTH: Int = 4
+
+    /** Hex value of "8BIM" (38 42 49 4D). */
     public const val IPTC_RESOURCE_BLOCK_SIGNATURE_HEX: String = "3842494d"
 
     @OptIn(ExperimentalStdlibApi::class)

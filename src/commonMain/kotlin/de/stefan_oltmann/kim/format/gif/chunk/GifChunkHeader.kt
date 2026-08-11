@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ramon Bouckaert
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +24,9 @@ import de.stefan_oltmann.kim.format.gif.GifVersion
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.readBytes
 
+/**
+ * The header chunk of a GIF file.
+ */
 public class GifChunkHeader(
     bytes: ByteArray
 ) : GifChunk(
@@ -34,7 +38,7 @@ public class GifChunkHeader(
 
     init {
 
-        if (bytes.size != 6)
+        if (bytes.size != HEADER_LENGTH)
             throw ImageReadException(
                 "Invalid size for GIF header: ${bytes.size} bytes, expected 6 bytes."
             )
@@ -55,5 +59,11 @@ public class GifChunkHeader(
             GifVersion.GIF89A.matches(version) -> this.version = GifVersion.GIF89A
             else -> throw ImageReadException("Invalid GIF version: ${version.decodeToString()}")
         }
+    }
+
+    private companion object {
+
+        /* The GIF header is 3 signature bytes and 3 version bytes */
+        const val HEADER_LENGTH = 6
     }
 }

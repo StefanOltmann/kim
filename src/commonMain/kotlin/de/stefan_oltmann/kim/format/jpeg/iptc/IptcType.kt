@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -16,6 +17,9 @@
  */
 package de.stefan_oltmann.kim.format.jpeg.iptc
 
+/**
+ * The type of an IPTC record.
+ */
 public interface IptcType {
 
     public val type: Int

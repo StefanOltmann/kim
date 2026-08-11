@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,13 +24,13 @@ private const val MIN_LATITUDE: Double = -MAX_LATITUDE
 private const val MAX_LONGITUDE = 180.0
 private const val MIN_LONGITUDE = -MAX_LONGITUDE
 
-/** Around ~100 m accuracy */
+/** Around ~100 m accuracy. */
 private const val THREE_DIGIT_PRECISE: Double = 1_000.0
 
-/** Around ~10 m accuracy */
+/** Around ~10 m accuracy. */
 private const val FOUR_DIGIT_PRECISE: Double = 10_000.0
 
-/** Around ~1 m accuracy */
+/** Around ~1 m accuracy. */
 private const val FIVE_DIGIT_PRECISE: Double = 100_000.0
 
 private const val LAT_LONG_STRING_REGEX_PATTERN =
@@ -37,6 +38,9 @@ private const val LAT_LONG_STRING_REGEX_PATTERN =
 
 private val latLongStringRegex: Regex = LAT_LONG_STRING_REGEX_PATTERN.toRegex()
 
+/**
+ * A GPS coordinate consisting of latitude and longitude in decimal degrees.
+ */
 public data class GpsCoordinates(
     val latitude: Double,
     val longitude: Double
@@ -77,6 +81,9 @@ public data class GpsCoordinates(
         }
     }
 
+    /**
+     * The rounding precision for GPS coordinates.
+     */
     public enum class Precision {
 
         ONE_METER,

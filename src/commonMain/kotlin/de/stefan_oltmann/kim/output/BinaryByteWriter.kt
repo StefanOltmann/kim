@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -18,6 +19,9 @@ package de.stefan_oltmann.kim.output
 
 import de.stefan_oltmann.kim.common.ByteOrder
 
+/**
+ * Writes multi-byte values in a specific byte order.
+ */
 public abstract class BinaryByteWriter(
     public val byteWriter: ByteWriter
 ) : ByteWriter by byteWriter {

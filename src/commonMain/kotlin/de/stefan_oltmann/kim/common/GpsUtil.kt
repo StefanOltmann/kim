@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +20,9 @@ import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.roundToLong
 
+/**
+ * Provides helpers to convert GPS coordinates.
+ */
 public object GpsUtil {
 
     internal const val MINUTES_PER_HOUR: Double = 60.0

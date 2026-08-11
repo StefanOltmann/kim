@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ramon Bouckaert
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +19,9 @@ package de.stefan_oltmann.kim.format.gif.chunk
 
 import de.stefan_oltmann.kim.format.gif.GifChunkType
 
+/**
+ * A comment extension chunk of a GIF file.
+ */
 public class GifChunkCommentExtension(
     header: ByteArray,
     subChunks: List<ByteArray>

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +18,9 @@ package de.stefan_oltmann.kim.input
 
 import java.io.InputStream
 
+/**
+ * A ByteReader that reads from an InputStream.
+ */
 public open class JvmInputStreamByteReader(
     private val inputStream: InputStream,
     override val contentLength: Long

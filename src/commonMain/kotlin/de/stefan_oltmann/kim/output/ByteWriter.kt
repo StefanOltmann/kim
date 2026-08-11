@@ -16,6 +16,9 @@
  */
 package de.stefan_oltmann.kim.output
 
+/**
+ * Writes bytes to a media file.
+ */
 public interface ByteWriter : AutoCloseable {
 
     public fun write(byte: Byte)

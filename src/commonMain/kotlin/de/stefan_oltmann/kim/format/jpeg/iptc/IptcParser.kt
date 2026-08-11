@@ -35,6 +35,9 @@ import de.stefan_oltmann.kim.input.readBytes
 import de.stefan_oltmann.kim.input.skipToQuad
 import kotlin.jvm.JvmStatic
 
+/**
+ * Parses IPTC data from JPEG APP13 segments.
+ */
 public object IptcParser {
 
     internal val EMPTY_BYTE_ARRAY = byteArrayOf()
@@ -126,11 +129,11 @@ public object IptcParser {
              */
             if (recordSize > IptcConstants.IPTC_NON_EXTENDED_RECORD_MAXIMUM_SIZE) {
 
-                if (index + 4 > bytes.size)
+                if (index + IptcConstants.IPTC_EXTENDED_RECORD_LENGTH_SIZE > bytes.size)
                     return records
 
                 recordSize = bytes.toInt(index, APP13_BYTE_ORDER)
-                index += 4
+                index += IptcConstants.IPTC_EXTENDED_RECORD_LENGTH_SIZE
 
                 if (recordSize < 0)
                     return records

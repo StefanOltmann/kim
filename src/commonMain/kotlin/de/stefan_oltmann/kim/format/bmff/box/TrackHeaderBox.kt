@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2026 Ramon Bouckaert
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,9 +19,9 @@ package de.stefan_oltmann.kim.format.bmff.box
 import de.stefan_oltmann.kim.format.bmff.BoxType
 
 /**
- * EIC/ISO 14496-12 movie box
+ * EIC/ISO 14496-12 movie box.
  *
- * The Track Header Box appears within a Track Box and contains track metadata
+ * The Track Header Box appears within a Track Box and contains track metadata.
  */
 public class TrackHeaderBox(
     offset: Long,

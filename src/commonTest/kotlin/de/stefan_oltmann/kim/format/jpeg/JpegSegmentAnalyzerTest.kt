@@ -22,6 +22,7 @@ import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+@Suppress("LargeClass")
 class JpegSegmentAnalyzerTest {
 
     val expectedMap: Map<Int, List<JpegSegmentAnalyzer.JpegSegmentInfo>> =

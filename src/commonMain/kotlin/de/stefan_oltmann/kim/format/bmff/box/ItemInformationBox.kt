@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2026 Ramon Bouckaert
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2002-2023 Drew Noakes and contributors
@@ -19,6 +20,7 @@ package de.stefan_oltmann.kim.format.bmff.box
 
 import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
+import de.stefan_oltmann.kim.format.bmff.BMFFConstants.FLAGS_LENGTH
 import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
@@ -28,7 +30,7 @@ import de.stefan_oltmann.kim.input.readByteAsInt
 import de.stefan_oltmann.kim.input.readBytes
 
 /**
- * EIC/ISO 14496-12 iinf box
+ * EIC/ISO 14496-12 iinf box.
  */
 public class ItemInformationBox(
     offset: Long,
@@ -53,7 +55,7 @@ public class ItemInformationBox(
 
         version = byteReader.readByteAsInt()
 
-        flags = byteReader.readBytes("flags", 3)
+        flags = byteReader.readBytes("flags", FLAGS_LENGTH)
 
         entryCount = if (version == 0)
             byteReader.read2BytesAsInt("entryCount", BMFF_BYTE_ORDER)
