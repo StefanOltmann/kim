@@ -107,18 +107,14 @@ public object JpegImageParser : ImageParser {
 
             readBytesCount += 2
 
-            /* Ignore invalid segment lengths */
-            if (segmentLength <= 0)
-                continue
+            val remainingByteCount = byteReader.contentLength - readBytesCount
+
+            /* Reject invalid segment lengths */
+            if (segmentLength <= 0 || segmentLength > remainingByteCount)
+                throw ImageReadException("Illegal JPEG segment length: $segmentLength")
 
             /* We are only looking for a SOF segment. */
             if (!JpegConstants.SOFN_MARKER_BYTES.contains(segmentType)) {
-
-                val remainingByteCount = byteReader.contentLength - readBytesCount
-
-                /* Ignore invalid segment lengths */
-                if (segmentLength > remainingByteCount)
-                    continue
 
                 byteReader.skipBytes("skip segment", segmentLength)
 

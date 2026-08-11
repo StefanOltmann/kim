@@ -15,6 +15,7 @@
  */
 package de.stefan_oltmann.kim.format.jpeg
 
+import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
@@ -90,6 +91,76 @@ class JpegAndReaderEdgeCasesTest {
             JpegSegmentAnalyzer.findSegmentInfos(
                 ByteArrayByteReader(bytes)
             )
+        }
+    }
+
+    /**
+     * All JPEG readers must reject zero-length segments.
+     */
+    @Test
+    fun testReadersRejectIllegalSegmentLength() {
+
+        /*
+         * SOI, a valid APP0, a zero-length APP1, SOS and EOI.
+         * At least 16 bytes are required for the format detection.
+         */
+        val bytes = byteArrayOf(
+            0xFF.toByte(), 0xD8.toByte(),
+            0xFF.toByte(), 0xE0.toByte(), 0x00, 0x04, 0x00, 0x00,
+            0xFF.toByte(), 0xE1.toByte(), 0x00, 0x02,
+            0xFF.toByte(), 0xDA.toByte(),
+            0xFF.toByte(), 0xD9.toByte()
+        )
+
+        assertFailsWith<ImageReadException> {
+            Kim.readMetadata(bytes)
+        }
+
+        assertFailsWith<ImageReadException> {
+            JpegImageParser.getImageSize(ByteArrayByteReader(bytes))
+        }
+
+        assertFailsWith<ImageReadException> {
+            JpegMetadataExtractor.extractMetadataBytes(ByteArrayByteReader(bytes))
+        }
+
+        assertFailsWith<ImageReadException> {
+            JpegOrientationOffsetFinder.findOrientationOffset(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /**
+     * All JPEG readers must reject segments whose length
+     * exceeds the remaining bytes.
+     */
+    @Test
+    fun testReadersRejectSegmentLengthBeyondFile() {
+
+        /*
+         * SOI, a valid APP0, and an APP1 segment whose length of 16 bytes
+         * exceeds the remaining bytes. At least 16 bytes are required for
+         * the format detection.
+         */
+        val bytes = byteArrayOf(
+            0xFF.toByte(), 0xD8.toByte(),
+            0xFF.toByte(), 0xE0.toByte(), 0x00, 0x06, 0x00, 0x00, 0x00, 0x00,
+            0xFF.toByte(), 0xE1.toByte(), 0x00, 0x10, 0x00, 0x00
+        )
+
+        assertFailsWith<ImageReadException> {
+            Kim.readMetadata(bytes)
+        }
+
+        assertFailsWith<ImageReadException> {
+            JpegImageParser.getImageSize(ByteArrayByteReader(bytes))
+        }
+
+        assertFailsWith<ImageReadException> {
+            JpegMetadataExtractor.extractMetadataBytes(ByteArrayByteReader(bytes))
+        }
+
+        assertFailsWith<ImageReadException> {
+            JpegOrientationOffsetFinder.findOrientationOffset(ByteArrayByteReader(bytes))
         }
     }
 

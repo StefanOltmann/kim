@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,10 +16,12 @@
  */
 package de.stefan_oltmann.kim.format.jpeg
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class JpegOrientationOffsetFinderTest {
 
@@ -61,6 +64,16 @@ class JpegOrientationOffsetFinderTest {
 
             val bytes = KimTestData.getBytesOf(index)
 
+            /* Broken files are rejected by the segment length validation. */
+            if (rejectedJpegIds.contains(index)) {
+
+                assertFailsWith<ImageReadException> {
+                    JpegOrientationOffsetFinder.findOrientationOffset(ByteArrayByteReader(bytes))
+                }
+
+                continue
+            }
+
             val byteReader = ByteArrayByteReader(bytes)
 
             val orientationOffset = JpegOrientationOffsetFinder.findOrientationOffset(byteReader)
@@ -70,5 +83,11 @@ class JpegOrientationOffsetFinderTest {
                 actual = orientationOffset
             )
         }
+    }
+
+    private companion object {
+
+        /* Media 45 and 47 contain invalid segment lengths. */
+        private val rejectedJpegIds = setOf(45, 47)
     }
 }

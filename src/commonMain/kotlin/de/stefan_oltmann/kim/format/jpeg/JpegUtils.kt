@@ -17,6 +17,7 @@
  */
 package de.stefan_oltmann.kim.format.jpeg
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
 import de.stefan_oltmann.kim.input.ByteReader
@@ -87,11 +88,11 @@ internal object JpegUtils {
 
             /*
              * If the segment specifies a zero length or a length that is
-             * longer than the remaining bytes, it's corrupt and should be ignored.
-             * That's what ExifTool does.
+             * longer than the remaining bytes, the file is corrupt and
+             * must be rejected.
              */
             if (segmentContentLength <= 0 || segmentContentLength > remainingByteCount)
-                continue
+                throw ImageReadException("Illegal JPEG segment length: $segmentContentLength")
 
             val segmentData = byteReader.readBytes("segmentData", segmentContentLength)
 
