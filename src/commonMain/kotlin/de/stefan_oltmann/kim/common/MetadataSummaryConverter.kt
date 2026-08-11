@@ -225,18 +225,29 @@ public object MetadataSummaryConverter {
 
         val gpsDirectory = metadata.findTiffDirectory(TiffConstants.TIFF_DIRECTORY_GPS)
 
-        val gps = gpsDirectory?.let(GPSInfo::createFrom)
+        try {
 
-        val latitude = gps?.getLatitudeAsDegreesNorth()
-        val longitude = gps?.getLongitudeAsDegreesEast()
+            val gps = gpsDirectory?.let(GPSInfo::createFrom)
 
-        if (latitude == null || longitude == null)
+            val latitude = gps?.getLatitudeAsDegreesNorth()
+            val longitude = gps?.getLongitudeAsDegreesEast()
+
+            if (latitude == null || longitude == null)
+                return null
+
+            return GpsCoordinates(
+                latitude = latitude,
+                longitude = longitude
+            )
+
+        } catch (_: Exception) {
+            /*
+             * Some files contain invalid GPS data, for example fields with
+             * a wrong type or unknown latitude/longitude references. GPS is
+             * not essential, so we ignore the problem and continue.
+             */
             return null
-
-        return GpsCoordinates(
-            latitude = latitude,
-            longitude = longitude
-        )
+        }
     }
 
     @JvmStatic

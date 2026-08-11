@@ -25,9 +25,11 @@ import de.stefan_oltmann.kim.format.tiff.TiffDirectory
 import de.stefan_oltmann.kim.format.tiff.TiffField
 import de.stefan_oltmann.kim.format.tiff.TiffHeader
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
+import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeAscii
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeRational
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeShort
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.model.TiffOrientation
@@ -97,6 +99,37 @@ class MetadataSummaryConverterEdgeCasesTest {
             geoTiffDirectory = null
         )
     }
+
+    private fun gpsContents(vararg entries: TiffField): TiffContents {
+
+        val gpsDirectory = TiffDirectory(
+            type = TiffConstants.TIFF_DIRECTORY_GPS,
+            entries = entries.toList(),
+            offset = 8,
+            nextDirectoryOffset = 0,
+            byteOrder = ByteOrder.BIG_ENDIAN
+        )
+
+        return TiffContents(
+            header = TiffHeader(
+                byteOrder = ByteOrder.BIG_ENDIAN,
+                tiffVersion = 42,
+                offsetToFirstIFD = 8
+            ),
+            directories = listOf(gpsDirectory),
+            makerNoteDirectory = null,
+            geoTiffDirectory = null
+        )
+    }
+
+    private fun gpsRationalsBytes(): ByteArray =
+        RationalNumbers(
+            arrayOf(
+                RationalNumber(1, 1),
+                RationalNumber(2, 1),
+                RationalNumber(3, 1)
+            )
+        ).toBytes(ByteOrder.BIG_ENDIAN)
 
     @Test
     fun testIgnoreOrientation() {
@@ -308,6 +341,109 @@ class MetadataSummaryConverterEdgeCasesTest {
         assertEquals(
             expected = 51200,
             actual = metadata.convertToSummary().iso
+        )
+    }
+
+    @Test
+    fun testMalformedGpsFieldsAreIgnored() {
+
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.JPEG,
+            imageSize = null,
+            exif = gpsContents(
+                field(GpsTag.GPS_TAG_GPS_LATITUDE_REF, "N".encodeToByteArray()),
+                field(GpsTag.GPS_TAG_GPS_LONGITUDE_REF, "E".encodeToByteArray()),
+                /* Wrong type: SHORT instead of RATIONAL. */
+                field(
+                    GpsTag.GPS_TAG_GPS_LATITUDE,
+                    shortArrayOf(1, 2, 3).toBytes(ByteOrder.BIG_ENDIAN),
+                    FieldTypeShort,
+                    3
+                )
+            ),
+            exifBytes = null,
+            iptc = null,
+            xmp = null
+        )
+
+        assertNull(metadata.convertToSummary().gpsCoordinates)
+    }
+
+    @Test
+    fun testUnknownGpsRefIsIgnored() {
+
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.JPEG,
+            imageSize = null,
+            exif = gpsContents(
+                field(GpsTag.GPS_TAG_GPS_LATITUDE_REF, "North".encodeToByteArray()),
+                field(GpsTag.GPS_TAG_GPS_LONGITUDE_REF, "E".encodeToByteArray()),
+                field(GpsTag.GPS_TAG_GPS_LATITUDE, gpsRationalsBytes(), FieldTypeRational, 3),
+                field(GpsTag.GPS_TAG_GPS_LONGITUDE, gpsRationalsBytes(), FieldTypeRational, 3)
+            ),
+            exifBytes = null,
+            iptc = null,
+            xmp = null
+        )
+
+        assertNull(metadata.convertToSummary().gpsCoordinates)
+    }
+
+    @Test
+    fun testGpsWithWrongValueCountIsIgnored() {
+
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.JPEG,
+            imageSize = null,
+            exif = gpsContents(
+                field(GpsTag.GPS_TAG_GPS_LATITUDE_REF, "N".encodeToByteArray()),
+                field(GpsTag.GPS_TAG_GPS_LONGITUDE_REF, "E".encodeToByteArray()),
+                /* Only two of the required three values. */
+                field(
+                    GpsTag.GPS_TAG_GPS_LATITUDE,
+                    RationalNumbers(
+                        arrayOf(RationalNumber(1, 1), RationalNumber(2, 1))
+                    ).toBytes(ByteOrder.BIG_ENDIAN),
+                    FieldTypeRational,
+                    2
+                ),
+                field(GpsTag.GPS_TAG_GPS_LONGITUDE, gpsRationalsBytes(), FieldTypeRational, 3)
+            ),
+            exifBytes = null,
+            iptc = null,
+            xmp = null
+        )
+
+        assertNull(metadata.convertToSummary().gpsCoordinates)
+    }
+
+    @Test
+    fun testValidGpsIsParsed() {
+
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.JPEG,
+            imageSize = null,
+            exif = gpsContents(
+                field(GpsTag.GPS_TAG_GPS_LATITUDE_REF, "N".encodeToByteArray()),
+                field(GpsTag.GPS_TAG_GPS_LONGITUDE_REF, "E".encodeToByteArray()),
+                field(GpsTag.GPS_TAG_GPS_LATITUDE, gpsRationalsBytes(), FieldTypeRational, 3),
+                field(GpsTag.GPS_TAG_GPS_LONGITUDE, gpsRationalsBytes(), FieldTypeRational, 3)
+            ),
+            exifBytes = null,
+            iptc = null,
+            xmp = null
+        )
+
+        val gpsCoordinates = metadata.convertToSummary().gpsCoordinates
+
+        assertNotNull(gpsCoordinates)
+        assertEquals(
+            expected = 1.0 + 2.0 / 60.0 + 3.0 / 3600.0,
+            actual = gpsCoordinates.latitude
+        )
+        assertEquals(
+            expected = 1.0 + 2.0 / 60.0 + 3.0 / 3600.0,
+            actual = gpsCoordinates.longitude
         )
     }
 
