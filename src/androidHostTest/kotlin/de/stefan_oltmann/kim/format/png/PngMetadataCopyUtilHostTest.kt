@@ -20,7 +20,9 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
-/*
+/**
+ * Tests copying PNG metadata chunks.
+ *
  * The test is placed in androidHostTest, because PngMetadataCopyUtil lives in ktorMain.
  */
 class PngMetadataCopyUtilHostTest {

@@ -33,13 +33,13 @@ import kotlin.test.assertNull
  */
 class KimJvmTest {
 
+    private val jpegBytes: ByteArray =
+        KimTestData.getBytesOf(1)
+
     @BeforeTest
     fun setUp() {
         Kim.underUnitTesting = true
     }
-
-    private val jpegBytes: ByteArray =
-        KimTestData.getBytesOf(1)
 
     @Test
     fun testReadMetadataFromInputStream() {

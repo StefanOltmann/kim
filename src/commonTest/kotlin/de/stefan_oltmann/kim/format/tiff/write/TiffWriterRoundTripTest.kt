@@ -205,11 +205,11 @@ class TiffWriterRoundTripTest {
             actual = readRootDirectory.getFieldValue(TiffTag.TIFF_TAG_IMAGE_WIDTH)
         )
 
+        val bitsPerSampleField = readRootDirectory.findField(TiffTag.TIFF_TAG_BITS_PER_SAMPLE)
+
         assertEquals(
             expected = shortArrayOf(8, 8, 8).contentToString(),
-            actual = (readRootDirectory
-                .findField(TiffTag.TIFF_TAG_BITS_PER_SAMPLE)?.value as ShortArray)
-                .contentToString()
+            actual = (bitsPerSampleField?.value as ShortArray).contentToString()
         )
 
         assertEquals(

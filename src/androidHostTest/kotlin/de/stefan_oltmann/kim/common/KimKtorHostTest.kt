@@ -29,6 +29,10 @@ import kotlin.test.assertNotNull
 /*
  * The test is placed in androidHostTest, because the classes live in ktorMain.
  */
+
+/**
+ * Tests reading metadata via the ktor entry points.
+ */
 class KimKtorHostTest {
 
     @BeforeTest

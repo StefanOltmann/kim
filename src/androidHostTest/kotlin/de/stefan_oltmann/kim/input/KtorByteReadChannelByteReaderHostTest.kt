@@ -24,6 +24,10 @@ import kotlin.test.assertNull
  * The test is placed in androidHostTest, because the reader lives in ktorMain
  * which is not visible to commonTest.
  */
+
+/**
+ * Tests the [KtorByteReadChannelByteReader] against a byte read channel.
+ */
 class KtorByteReadChannelByteReaderHostTest {
 
     /**
@@ -41,18 +45,18 @@ class KtorByteReadChannelByteReaderHostTest {
         )
 
         assertEquals(
-            expected = bytes.copyOfRange(0, 6).toList(),
-            actual = reader.readBytes(6).toList()
+            expected = bytes.copyOfRange(0, FIRST_CHUNK_SIZE).toList(),
+            actual = reader.readBytes(FIRST_CHUNK_SIZE).toList()
         )
 
         /* The second read crosses the end of the channel. */
         assertEquals(
-            expected = bytes.copyOfRange(6, 10).toList(),
-            actual = reader.readBytes(100).toList()
+            expected = bytes.copyOfRange(FIRST_CHUNK_SIZE, bytes.size).toList(),
+            actual = reader.readBytes(READ_REQUEST_SIZE).toList()
         )
 
         /* The channel is exhausted now. */
-        assertEquals(0, reader.readBytes(100).size)
+        assertEquals(0, reader.readBytes(READ_REQUEST_SIZE).size)
         assertNull(reader.readByte())
     }
 
@@ -73,5 +77,14 @@ class KtorByteReadChannelByteReaderHostTest {
             expected = bytes.toList(),
             actual = reader.readRemainingBytes().toList()
         )
+    }
+
+    private companion object {
+
+        /* The first read is smaller than the channel. */
+        const val FIRST_CHUNK_SIZE = 6
+
+        /* Reads larger than the channel must return short arrays. */
+        const val READ_REQUEST_SIZE = 100
     }
 }
