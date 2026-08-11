@@ -205,6 +205,57 @@ class IptcParserEdgeCasesTest {
         assertTrue(metadata.records.isEmpty())
     }
 
+    /**
+     * A block whose data ends right after a record tag marker must
+     * not read past the end of the data.
+     */
+    @Test
+    fun testParseTruncatedRecordData() {
+
+        /* 8BIM block with a 3-byte data payload ending after a marker. */
+        val block = byteArrayOf(
+            0x38, 0x42, 0x49, 0x4D,
+            0x04, 0x04,
+            0,
+            0,
+            0, 0, 0, 3,
+            IptcConstants.IPTC_RECORD_TAG_MARKER.toByte(), 0x02, 0x00,
+            0
+        )
+
+        val metadata = IptcParser.parseIptc(
+            bytes = block,
+            startsWithApp13Header = false
+        )
+
+        assertTrue(metadata.records.isEmpty())
+    }
+
+    /**
+     * An odd-sized block without its trailing padding byte must be
+     * kept and the parse must stop gracefully.
+     */
+    @Test
+    fun testParseMissingBlockPadding() {
+
+        /* 8BIM block with a 3-byte data payload and no padding byte. */
+        val block = byteArrayOf(
+            0x38, 0x42, 0x49, 0x4D,
+            0x04, 0x04,
+            0,
+            0,
+            0, 0, 0, 3,
+            IptcConstants.IPTC_RECORD_TAG_MARKER.toByte(), 0x02, 0x00
+        )
+
+        val metadata = IptcParser.parseIptc(
+            bytes = block,
+            startsWithApp13Header = false
+        )
+
+        assertTrue(metadata.records.isEmpty())
+    }
+
     @Test
     fun testParseBlockWithNameAndPadding() {
 

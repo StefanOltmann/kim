@@ -44,6 +44,12 @@ public object IptcParser {
     internal val EMPTY_BYTE_ARRAY = byteArrayOf()
 
     /**
+     * The record header is the record number, the record type and
+     * the 2-byte size field.
+     */
+    private const val IPTC_RECORD_HEADER_BYTE_COUNT = 4
+
+    /**
      * Block types (or Image Resource IDs) that are not recommended to be
      * interpreted when libraries process Photoshop IPTC metadata.
      *
@@ -116,6 +122,13 @@ public object IptcParser {
             /* We look after the IPTC record tag marker to read. */
             if (tagMarker != IptcConstants.IPTC_RECORD_TAG_MARKER)
                 continue
+
+            /*
+             * The truncated tail of the block may not hold the record
+             * number, type and size. Stop instead of reading past the end.
+             */
+            if (index + IPTC_RECORD_HEADER_BYTE_COUNT > bytes.size)
+                break
 
             val recordNumber = bytes[index++].toUInt8()
             val recordType = bytes[index++].toUInt8()
@@ -241,8 +254,19 @@ public object IptcParser {
 
             blocks.add(IptcBlock(blockType, blockNameBytes, blockData))
 
-            if (blockSize % 2 != 0)
-                byteReader.readByte("block data padding byte")
+            /*
+             * The padding byte of an odd-sized block can be missing at
+             * the end of the data. The block itself is complete, so we
+             * keep it and stop parsing.
+             */
+            if (blockSize % 2 != 0) {
+
+                try {
+                    byteReader.readByte("block data padding byte")
+                } catch (_: ImageReadException) {
+                    break
+                }
+            }
         }
 
         return blocks
