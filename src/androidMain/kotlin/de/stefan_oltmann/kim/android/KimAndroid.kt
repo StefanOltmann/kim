@@ -23,6 +23,8 @@ import android.os.Build
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.tryWithImageReadException
+import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.input.AndroidInputStreamByteReader
 import de.stefan_oltmann.kim.input.ByteReader
@@ -33,6 +35,9 @@ import java.io.InputStream
 
 /**
  * Extra object to have a nicer API for Java projects.
+ *
+ * Like [Kim], this API only throws [ImageReadException] and
+ * [ImageWriteException] on failure.
  */
 public object KimAndroid {
 
@@ -53,12 +58,12 @@ public object KimAndroid {
 
     @JvmStatic
     @Throws(ImageReadException::class)
-    public fun readMetadata(file: File): MediaMetadata? {
+    public fun readMetadata(file: File): MediaMetadata? = tryWithImageReadException {
 
         if (!file.exists())
             throw ImageReadException("File does not exist: $file")
 
-        return readMetadata(
+        return@tryWithImageReadException readMetadata(
             inputStream = file.inputStream().buffered(),
             length = file.length()
         )
@@ -111,7 +116,7 @@ public object KimAndroid {
         contentResolver: ContentResolver,
         uri: Uri,
         length: Long? = null
-    ): ByteReader {
+    ): ByteReader = tryWithImageReadException {
 
         /*
          * On Android 10 (API 29) and above, we must use ContentResolver
@@ -134,7 +139,7 @@ public object KimAndroid {
             if (inputStream == null)
                 throw ImageReadException("Unable to open input stream for URI $uri")
 
-            return AndroidInputStreamByteReader(inputStream, contentLength)
+            return@tryWithImageReadException AndroidInputStreamByteReader(inputStream, contentLength)
         }
 
         /*
@@ -151,7 +156,7 @@ public object KimAndroid {
         if (!file.exists())
             throw ImageReadException("File does not exist: $file")
 
-        return AndroidInputStreamByteReader(
+        return@tryWithImageReadException AndroidInputStreamByteReader(
             inputStream = file.inputStream(),
             contentLength = length ?: file.length()
         )
@@ -171,7 +176,7 @@ public object KimAndroid {
     public fun createByteWriter(
         contentResolver: ContentResolver,
         uri: Uri
-    ): ByteWriter {
+    ): ByteWriter = tryWithImageWriteException {
 
         /*
          * On Android 10 (API 29) and above, we must use ContentResolver
@@ -186,7 +191,7 @@ public object KimAndroid {
             if (outputStream == null)
                 throw ImageWriteException("Unable to open ouput stream for URI $uri")
 
-            return OutputStreamByteWriter(outputStream)
+            return@tryWithImageWriteException OutputStreamByteWriter(outputStream)
         }
 
         /*
@@ -203,7 +208,7 @@ public object KimAndroid {
         if (!file.exists())
             throw ImageWriteException("File does not exist: $file")
 
-        return OutputStreamByteWriter(
+        return@tryWithImageWriteException OutputStreamByteWriter(
             outputStream = file.outputStream()
         )
     }

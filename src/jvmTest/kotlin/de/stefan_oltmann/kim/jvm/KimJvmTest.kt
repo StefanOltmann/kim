@@ -17,6 +17,7 @@ package de.stefan_oltmann.kim.jvm
 
 import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.testdata.KimTestData
 import java.io.File
@@ -89,12 +90,22 @@ class KimJvmTest {
     @Test
     fun testReadMetadataFromMissingFile() {
 
-        assertFailsWith<IllegalStateException> {
+        assertFailsWith<ImageReadException> {
             KimJvm.readMetadata(File("does-not-exist.jpg"))
         }
 
-        assertFailsWith<IllegalStateException> {
+        assertFailsWith<ImageReadException> {
             KimJvm.readMetadata(Files.createTempFile("kim", ".jpg").resolveSibling("missing.jpg"))
+        }
+    }
+
+    @Test
+    fun testReadMetadataFromDirectory() {
+
+        val directory = Files.createTempDirectory("kim").toFile()
+
+        assertFailsWith<ImageReadException> {
+            KimJvm.readMetadata(directory)
         }
     }
 

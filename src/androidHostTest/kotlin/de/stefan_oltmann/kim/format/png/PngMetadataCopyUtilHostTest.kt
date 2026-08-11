@@ -15,8 +15,11 @@
  */
 package de.stefan_oltmann.kim.format.png
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.testdata.KimTestData
+import java.nio.file.Files
 import kotlin.test.Test
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
@@ -61,5 +64,18 @@ class PngMetadataCopyUtilHostTest {
         )
 
         assertTrue(actualBytes.isNotEmpty())
+    }
+
+    @Test
+    fun testCopyFromMissingSourceThrowsImageReadException() {
+
+        val destination = Files.createTempFile("kim", ".png")
+
+        assertFailsWith<ImageReadException> {
+            PngMetadataCopyUtil.copy(
+                source = kotlinx.io.files.Path(destination.resolveSibling("missing.png").toString()),
+                destination = kotlinx.io.files.Path(destination.toString())
+            )
+        }
     }
 }

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +19,7 @@ package de.stefan_oltmann.kim.apple
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.readFileAsByteArray
+import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -28,19 +30,25 @@ import platform.posix.memcpy
 
 /**
  * Extra object to be aligned with the other modules.
+ *
+ * Like [Kim], this API only throws [ImageReadException] on failure.
  */
 public object KimApple {
 
     @Throws(ImageReadException::class)
-    public fun readMetadata(data: NSData): MediaMetadata? =
-        Kim.readMetadata(ByteArrayByteReader(convertDataToByteArray(data)))
+    public fun readMetadata(data: NSData): MediaMetadata? = tryWithImageReadException {
+
+        return@tryWithImageReadException Kim.readMetadata(
+            ByteArrayByteReader(convertDataToByteArray(data))
+        )
+    }
 
     @Throws(ImageReadException::class)
-    public fun readMetadata(path: String): MediaMetadata? {
+    public fun readMetadata(path: String): MediaMetadata? = tryWithImageReadException {
 
-        val fileBytes = readFileAsByteArray(path) ?: return null
+        val fileBytes = readFileAsByteArray(path) ?: return@tryWithImageReadException null
 
-        return Kim.readMetadata(ByteArrayByteReader(fileBytes))
+        return@tryWithImageReadException Kim.readMetadata(ByteArrayByteReader(fileBytes))
     }
 }
 

@@ -50,6 +50,10 @@ import de.stefan_oltmann.kim.output.ByteWriter
 
 /**
  * Main entry point for reading and writing image metadata.
+ *
+ * All read operations throw [ImageReadException] and all write operations
+ * throw [ImageWriteException] on failure. These are the only exception
+ * types that escape this API.
  */
 public object Kim {
 

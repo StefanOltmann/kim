@@ -18,6 +18,10 @@ package de.stefan_oltmann.kim.common
 
 /**
  * Base exception for all image related failures.
+ *
+ * This is the only exception hierarchy that escapes the public Kim API,
+ * so callers can catch [ImageException] or one of its subclasses to
+ * handle every read and write failure.
  */
 public open class ImageException(message: String? = null, cause: Throwable? = null) :
     RuntimeException(message, cause)
