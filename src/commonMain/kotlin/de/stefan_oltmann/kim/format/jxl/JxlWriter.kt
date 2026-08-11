@@ -134,7 +134,10 @@ public object JxlWriter {
                     byteWriter.writeInt(size, BMFFConstants.BMFF_BYTE_ORDER)
                     byteWriter.write(BoxType.EXIF.bytes)
 
-                    /* Version and flags, all zeros. */
+                    /*
+                     * The TIFF header offset. The new Exif data starts
+                     * right after the offset field, so it's always zero.
+                     */
                     byteWriter.writeInt(0, BMFFConstants.BMFF_BYTE_ORDER)
 
                     byteWriter.write(exifBytes)
