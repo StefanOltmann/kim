@@ -28,6 +28,8 @@ public object GpsUtil {
     internal const val MINUTES_PER_HOUR: Double = 60.0
     internal const val SECONDS_PER_HOUR: Double = 3600.0
     private const val MAX_DDM_FRACTION_DIGITS: Int = 4
+    private const val MAX_LATITUDE_DEGREES: Int = 90
+    private const val MAX_LONGITUDE_DEGREES: Int = 180
 
     /**
      * Converts a GPS coordinate in DMS (Degrees, Minutes, Seconds) format
@@ -69,35 +71,60 @@ public object GpsUtil {
     /**
      * XMP requires geo data to be in DDM (Degrees, decimal minutes) format.
      */
-    public fun decimalLatitudeToDDM(latitude: Double): String {
-
-        val direction = if (latitude >= 0) "N" else "S"
-
-        val latitudeAbs = abs(latitude)
-
-        val degrees = latitudeAbs.toInt()
-        val minutes = (latitudeAbs - degrees) * MINUTES_PER_HOUR
-
-        val minutesRounded = minutes.roundTo(MAX_DDM_FRACTION_DIGITS)
-
-        return "$degrees,$minutesRounded$direction"
-    }
+    public fun decimalLatitudeToDDM(latitude: Double): String =
+        toDdm(
+            value = latitude,
+            maxDegrees = MAX_LATITUDE_DEGREES,
+            positiveDirection = "N",
+            negativeDirection = "S"
+        )
 
     /**
      * XMP requires geo data to be in DDM (Degrees, decimal minutes) format.
      */
-    public fun decimalLongitudeToDDM(longitude: Double): String {
+    public fun decimalLongitudeToDDM(longitude: Double): String =
+        toDdm(
+            value = longitude,
+            maxDegrees = MAX_LONGITUDE_DEGREES,
+            positiveDirection = "E",
+            negativeDirection = "W"
+        )
 
-        val direction = if (longitude >= 0) "E" else "W"
+    private fun toDdm(
+        value: Double,
+        maxDegrees: Int,
+        positiveDirection: String,
+        negativeDirection: String
+    ): String {
 
-        val longitudeAbs = abs(longitude)
+        val direction = if (value >= 0) positiveDirection else negativeDirection
 
-        val degrees = longitudeAbs.toInt()
-        val minutes = (longitudeAbs - degrees) * MINUTES_PER_HOUR
+        val absoluteValue = abs(value)
+
+        var degrees = absoluteValue.toInt()
+
+        var minutes = (absoluteValue - degrees) * MINUTES_PER_HOUR
 
         val minutesRounded = minutes.roundTo(MAX_DDM_FRACTION_DIGITS)
 
-        return "$degrees,$minutesRounded$direction"
+        /*
+         * The minutes can round up to 60, which is not a valid DDM value.
+         * Carry the full minute over to the degrees instead.
+         */
+        if (minutesRounded >= MINUTES_PER_HOUR) {
+
+            degrees++
+            minutes = 0.0
+
+        } else {
+
+            minutes = minutesRounded
+        }
+
+        /* Keep the result within the valid range for this coordinate. */
+        degrees = minOf(degrees, maxDegrees)
+
+        return "$degrees,$minutes$direction"
     }
 
     private fun Double.roundTo(numFractionDigits: Int): Double {

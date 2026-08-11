@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,5 +60,25 @@ class GpsUtilTest {
 
         assertEquals("8,14.3797E", GpsUtil.decimalLongitudeToDDM(8.239661))
         assertEquals("64,26.6986W", GpsUtil.decimalLongitudeToDDM(-64.444976))
+    }
+
+    @Test
+    fun testDecimalLatitudeToDDMWithMinuteCarry() {
+
+        /* The minutes round up to 60, which must carry over to the degrees. */
+        assertEquals("90,0.0N", GpsUtil.decimalLatitudeToDDM(89.9999999))
+
+        /* Values beyond the boundary are clamped to the valid range. */
+        assertEquals("90,0.0N", GpsUtil.decimalLatitudeToDDM(90.9999999))
+    }
+
+    @Test
+    fun testDecimalLongitudeToDDMWithMinuteCarry() {
+
+        /* The minutes round up to 60, which must carry over to the degrees. */
+        assertEquals("180,0.0E", GpsUtil.decimalLongitudeToDDM(179.9999999))
+
+        /* Values beyond the boundary are clamped to the valid range. */
+        assertEquals("180,0.0E", GpsUtil.decimalLongitudeToDDM(180.9999999))
     }
 }
