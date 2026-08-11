@@ -29,16 +29,14 @@ class BmffBoxesTest {
     fun testFileTypeBox() {
 
         /*
-         * Payload: major brand, minor version, two compatible brands
-         * and 8 padding bytes so that the box length matches the
-         * brand count formula.
+         * Payload: major brand, minor version and two compatible brands,
+         * like in real CR3 files.
          */
         val payload =
             "heic".encodeToByteArray() +
                 "0000".encodeToByteArray() +
                 "mif1".encodeToByteArray() +
-                "heix".encodeToByteArray() +
-                byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0)
+                "heix".encodeToByteArray()
 
         val box = FileTypeBox(
             offset = 0,
@@ -55,6 +53,98 @@ class BmffBoxesTest {
             expected = "ftyp major=heic minor=0000 compatible=[mif1, heix]",
             actual = box.toString()
         )
+    }
+
+    @Test
+    fun testFileTypeBoxWithSingleBrand() {
+
+        /* Like real MP4 files with one compatible brand. */
+        val payload =
+            "mp42".encodeToByteArray() +
+                "0000".encodeToByteArray() +
+                "mp42".encodeToByteArray()
+
+        val box = FileTypeBox(
+            offset = 0,
+            size = 8 + payload.size.toLong(),
+            largeSize = null,
+            payload = payload
+        )
+
+        assertEquals("mp42", box.majorBrand)
+        assertEquals(listOf("mp42"), box.compatibleBrands)
+    }
+
+    @Test
+    fun testFileTypeBoxWithoutBrands() {
+
+        /* A box with only major brand and minor version. */
+        val payload =
+            "heic".encodeToByteArray() +
+                "0000".encodeToByteArray()
+
+        val box = FileTypeBox(
+            offset = 0,
+            size = 8 + payload.size.toLong(),
+            largeSize = null,
+            payload = payload
+        )
+
+        assertEquals("heic", box.majorBrand)
+        assertEquals(emptyList<String>(), box.compatibleBrands)
+    }
+
+    @Test
+    fun testFileTypeBoxClampsCorruptBrandCount() {
+
+        /*
+         * The length claims two compatible brands, but the payload
+         * only holds one. The missing brand must not crash the parse.
+         */
+        val payload =
+            "heic".encodeToByteArray() +
+                "0000".encodeToByteArray() +
+                "mif1".encodeToByteArray()
+
+        val box = FileTypeBox(
+            offset = 0,
+            size = 8 + payload.size.toLong() + 4,
+            largeSize = null,
+            payload = payload
+        )
+
+        assertEquals("heic", box.majorBrand)
+        assertEquals(listOf("mif1"), box.compatibleBrands)
+    }
+
+    @Test
+    fun testFileTypeBoxOfRealFiles() {
+
+        /* CR3: major brand "crx " with two compatible brands. */
+        val cr3Bytes = de.stefan_oltmann.kim.testdata.KimTestData.getBytesOf(
+            de.stefan_oltmann.kim.testdata.KimTestData.CR3_TEST_IMAGE_INDEX
+        )
+
+        val cr3Box = de.stefan_oltmann.kim.format.bmff.BoxReader.readBoxes(
+            byteReader = de.stefan_oltmann.kim.input.ByteArrayByteReader(cr3Bytes),
+            stopAfterMetadataRead = false
+        ).filterIsInstance<FileTypeBox>().first()
+
+        assertEquals(FileTypeBox.CR3_BRAND, cr3Box.majorBrand)
+        assertEquals(listOf("crx ", "isom"), cr3Box.compatibleBrands)
+
+        /* MP4: major brand "mp42" with one compatible brand. */
+        val mp4Bytes = de.stefan_oltmann.kim.testdata.KimTestData.getBytesOf(
+            de.stefan_oltmann.kim.testdata.KimTestData.MP4_TEST_VIDEO_INDEX
+        )
+
+        val mp4Box = de.stefan_oltmann.kim.format.bmff.BoxReader.readBoxes(
+            byteReader = de.stefan_oltmann.kim.input.ByteArrayByteReader(mp4Bytes),
+            stopAfterMetadataRead = false
+        ).filterIsInstance<FileTypeBox>().first()
+
+        assertEquals("mp42", mp4Box.majorBrand)
+        assertEquals(listOf("mp42"), mp4Box.compatibleBrands)
     }
 
     @Test

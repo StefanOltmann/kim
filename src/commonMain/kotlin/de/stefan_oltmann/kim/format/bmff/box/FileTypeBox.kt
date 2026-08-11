@@ -52,7 +52,19 @@ public class FileTypeBox(
             .read4BytesAsInt("minorBrand", BMFF_BYTE_ORDER)
             .toFourCCTypeString()
 
-        val brandCount: Int = (actualLength.toInt() - BOX_HEADER_LENGTH - 8 - 8) / 4
+        /*
+         * The payload contains the major brand (4 bytes), the minor version
+         * (4 bytes) and the compatible brands with 4 bytes each.
+         */
+        val brandCountFromLength = (actualLength.toInt() - BOX_HEADER_LENGTH - 8) / 4
+
+        /*
+         * Corrupt files may claim more brands than the payload holds.
+         * Clamp to the brands that are actually present.
+         */
+        val maxBrandCount = ((payload.size - 8) / 4).coerceAtLeast(0)
+
+        val brandCount = brandCountFromLength.coerceIn(0, maxBrandCount)
 
         val brands = mutableListOf<String>()
 
