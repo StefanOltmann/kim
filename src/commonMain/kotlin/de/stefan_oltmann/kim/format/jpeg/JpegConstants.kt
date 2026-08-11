@@ -160,7 +160,6 @@ public object JpegConstants {
     public const val EXP_MARKER: Int = 0xFFDF
 
     public const val COM_MARKER_1: Int = 0xFFFE
-    public const val COM_MARKER_2: Int = 0xFFEE
 
     public val SOFN_MARKERS: List<Int> = listOf(
         SOF0_MARKER, SOF1_MARKER, SOF2_MARKER, SOF3_MARKER, SOF5_MARKER,
@@ -254,7 +253,7 @@ public object JpegConstants {
             SOF14_MARKER -> "SOF14 (Start of Frame, Differential progressive DCT, Arithmetic coding)"
             SOF15_MARKER -> "SOF15 (Start of Frame, Differential lossless (sequential), Arithmetic coding)"
             /* Other optional markers */
-            COM_MARKER_1, COM_MARKER_2 -> "COM (Comment)"
+            COM_MARKER_1 -> "COM (Comment)"
             DRI_MARKER -> "DRI (Define Restart Interval)"
             RST0_MARKER -> "RST0 (Restart Marker)"
             RST1_MARKER -> "RST1 (Restart Marker)"
