@@ -5,7 +5,9 @@ Resolution  : 500 x 333
   <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <rdf:Description rdf:about=""
         xmlns:dc="http://purl.org/dc/elements/1.1/"
+        xmlns:tiff="http://ns.adobe.com/tiff/1.0/"
         xmlns:xmp="http://ns.adobe.com/xap/1.0/"
+      tiff:Orientation="6"
       xmp:CreatorTool="exiftool"
       xmp:Label="Demo GIF"
       xmp:Rights="CC-BY 4.0">
@@ -26,9 +28,7 @@ Resolution  : 500 x 333
       </dc:description>
       <dc:subject>
         <rdf:Bag>
-          <rdf:li>hello</rdf:li>
-          <rdf:li>test</rdf:li>
-          <rdf:li>Äußerst öffentlich</rdf:li>
+          <rdf:li>Example GIF with XMP metadata</rdf:li>
         </rdf:Bag>
       </dc:subject>
       <dc:title>

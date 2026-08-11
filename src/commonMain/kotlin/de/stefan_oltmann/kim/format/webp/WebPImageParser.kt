@@ -169,7 +169,7 @@ public object WebPImageParser : ImageParser {
                  */
                 val isLegacyImageChunk =
                     (chunkType == WebPChunkType.VP8 || chunkType == WebPChunkType.VP8L) &&
-                    chunks.none { it is WebPChunkVP8X }
+                        chunks.none { it is WebPChunkVP8X }
 
                 if (isLegacyImageChunk)
                     break

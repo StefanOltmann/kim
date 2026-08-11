@@ -597,13 +597,13 @@ class JpegRewriterTest {
 
         byteWriter.write(
             JpegConstants.JPEG_APP0_MARKER
-            .toShort()
-            .toBytes(JpegConstants.JPEG_BYTE_ORDER)
+                .toShort()
+                .toBytes(JpegConstants.JPEG_BYTE_ORDER)
         )
 
         byteWriter.write(
             (jfifSegment.size + SEGMENT_LENGTH_FIELD_BYTES).toShort()
-            .toBytes(JpegConstants.JPEG_BYTE_ORDER)
+                .toBytes(JpegConstants.JPEG_BYTE_ORDER)
         )
 
         byteWriter.write(jfifSegment)
