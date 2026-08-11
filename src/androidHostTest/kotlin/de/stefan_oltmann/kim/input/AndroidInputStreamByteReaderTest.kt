@@ -15,9 +15,11 @@
  */
 package de.stefan_oltmann.kim.input
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import java.io.InputStream
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 
 /**
@@ -60,11 +62,11 @@ class AndroidInputStreamByteReaderTest {
     }
 
     /**
-     * Regression test: partial reads must return only the bytes actually
-     * read, without zero padding.
+     * Regression test: partial reads must be combined into one result,
+     * so callers never see short arrays before the end of the stream.
      */
     @Test
-    fun testReadBytesReturnsShortArrayOnPartialReads() {
+    fun testReadBytesCombinesPartialReads() {
 
         val bytes = byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 
@@ -73,15 +75,47 @@ class AndroidInputStreamByteReaderTest {
             contentLength = bytes.size.toLong()
         )
 
-        /* The stream delivers only 3 bytes per call. */
-        val expectedChunks = bytes.toList().chunked(PARTIAL_READ_CHUNK_SIZE)
-
-        for (chunk in expectedChunks)
-            assertEquals(chunk, reader.readBytes(READ_REQUEST_SIZE).toList())
+        /* The stream delivers only 3 bytes per call, but the reader must loop. */
+        assertEquals(bytes.toList(), reader.readBytesLegacy(READ_REQUEST_SIZE).toList())
 
         /* The stream is exhausted now. */
-        assertEquals(0, reader.readBytes(READ_REQUEST_SIZE).size)
+        assertEquals(0, reader.readBytesLegacy(READ_REQUEST_SIZE).size)
         assertNull(reader.readByte())
+    }
+
+    /**
+     * Regression test: a checked read across several partial reads
+     * must not fail with a spurious ImageReadException.
+     */
+    @Test
+    fun testCheckedReadAcrossPartialReads() {
+
+        val bytes = byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+
+        val reader = AndroidInputStreamByteReader(
+            inputStream = PartialReadInputStream(bytes),
+            contentLength = bytes.size.toLong()
+        )
+
+        val readBytes = reader.readBytes("test data", bytes.size)
+
+        assertEquals(bytes.toList(), readBytes.toList())
+    }
+
+    /**
+     * A checked read beyond the end of the stream must fail.
+     */
+    @Test
+    fun testCheckedReadBeyondEndOfStream() {
+
+        val reader = AndroidInputStreamByteReader(
+            inputStream = PartialReadInputStream(byteArrayOf(1, 2, 3)),
+            contentLength = 3
+        )
+
+        assertFailsWith<ImageReadException> {
+            reader.readBytes("test data", READ_REQUEST_SIZE)
+        }
     }
 
     /**
