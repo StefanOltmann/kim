@@ -43,6 +43,106 @@ class IptcParserEdgeCasesTest {
         ) + recordBytes + padding
     }
 
+    /**
+     * Creates an IPTC record with the given caption text.
+     */
+    private fun captionRecord(text: String): ByteArray {
+
+        val textBytes = text.encodeToByteArray()
+
+        return byteArrayOf(
+            IptcConstants.IPTC_RECORD_TAG_MARKER.toByte(),
+            IptcConstants.IPTC_APPLICATION_2_RECORD_NUMBER.toByte(),
+            25,
+            0, textBytes.size.toByte()
+        ) + textBytes
+    }
+
+    @Test
+    fun testParseSkipsInvalidSignature() {
+
+        /* Invalid 8BIM signature bytes followed by a valid block. */
+        val bytes = byteArrayOf(0x04, 0x3A, 0x00, 0x00) +
+            wrapIn8BimBlock(captionRecord("Found"))
+
+        val metadata = IptcParser.parseIptc(
+            bytes = bytes,
+            startsWithApp13Header = false
+        )
+
+        assertEquals(
+            expected = "Found",
+            actual = metadata.records.single().value
+        )
+    }
+
+    @Test
+    fun testParseSkipsIgnoredBlockType() {
+
+        /* An ignored block type (1084) followed by a valid IPTC block. */
+        val ignoredBlock = byteArrayOf(
+            0x38, 0x42, 0x49, 0x4D,
+            0x04, 0x3C,
+            0
+        )
+
+        val metadata = IptcParser.parseIptc(
+            bytes = ignoredBlock + wrapIn8BimBlock(captionRecord("Caption")),
+            startsWithApp13Header = false
+        )
+
+        assertEquals(
+            expected = "Caption",
+            actual = metadata.records.single().value
+        )
+    }
+
+    @Test
+    fun testParseSkipsConsecutiveIgnoredBlockTypes() {
+
+        /* Two ignored blocks followed by a valid IPTC block. */
+        val ignoredBlock = byteArrayOf(
+            0x38, 0x42, 0x49, 0x4D,
+            0x04, 0x3C,
+            0
+        )
+
+        val metadata = IptcParser.parseIptc(
+            bytes = ignoredBlock + ignoredBlock + wrapIn8BimBlock(captionRecord("Caption")),
+            startsWithApp13Header = false
+        )
+
+        assertEquals(
+            expected = "Caption",
+            actual = metadata.records.single().value
+        )
+    }
+
+    @Test
+    fun testParseKeepsBlocksAfterIgnoredBlockType() {
+
+        /*
+         * The first block after an ignored block must not be swallowed.
+         */
+        val ignoredBlock = byteArrayOf(
+            0x38, 0x42, 0x49, 0x4D,
+            0x04, 0x3C,
+            0
+        )
+
+        val metadata = IptcParser.parseIptc(
+            bytes = ignoredBlock +
+                wrapIn8BimBlock(captionRecord("One")) +
+                wrapIn8BimBlock(captionRecord("Two")),
+            startsWithApp13Header = false
+        )
+
+        assertEquals(
+            expected = listOf("One", "Two"),
+            actual = metadata.records.map { it.value }
+        )
+    }
+
     @Test
     fun testParseWithoutApp13Header() {
 

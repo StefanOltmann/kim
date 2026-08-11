@@ -28,6 +28,7 @@ import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcTypes.Companion.getIptcType
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.read2BytesAsInt
 import de.stefan_oltmann.kim.input.read4BytesAsInt
 import de.stefan_oltmann.kim.input.readByte
@@ -196,42 +197,11 @@ public object IptcParser {
         @Suppress("LoopWithTooManyJumpStatements")
         while (true) {
 
-            val resourceBlockSignature: Int = try {
-                byteReader.read4BytesAsInt("Image Resource Block Signature", APP13_BYTE_ORDER)
-            } catch (ignore: ImageReadException) {
+            if (!byteReader.skipToNextResourceBlock())
                 break
-            }
 
-            if (resourceBlockSignature != JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_INT) {
-
-                /*
-                 * Some files seem to contain invalid markers: 04 3A 00 00 in case of our test data.
-                 * We just ignore these and skip to the next 8BIM (38 42 49 4D) segment.
-                 * If we can't skip to the next we found everything we can interpret.
-                 */
-                val skipSuccessful = byteReader.skipToQuad(JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_INT)
-
-                if (!skipSuccessful)
-                    break
-            }
-
-            val blockType = byteReader.read2BytesAsInt("IPTC block type", APP13_BYTE_ORDER)
-
-            /*
-             * Skip blocks that the photoshop spec recommends to.
-             *
-             * See discussion on https://issues.apache.org/jira/browse/IMAGING-246
-             */
-            if (PHOTOSHOP_IGNORED_BLOCK_TYPE.contains(blockType)) {
-
-                /*
-                 * If there is still data in this block, before the next image resource block (8BIM),
-                 * then we must consume these bytes to leave a pointer ready to read the next block.
-                 */
-                byteReader.skipToQuad(JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_INT)
-
-                continue
-            }
+            val blockType = byteReader.readNextNonIgnoredBlockType()
+                ?: break
 
             val blockNameLength = byteReader.readByte("block name length").toInt()
 
@@ -276,6 +246,62 @@ public object IptcParser {
         }
 
         return blocks
+    }
+
+    /**
+     * Positions the reader right after the next 8BIM resource block
+     * signature, skipping invalid markers in between.
+     *
+     * Returns false at the end of the data.
+     */
+    private fun ByteReader.skipToNextResourceBlock(): Boolean {
+
+        val resourceBlockSignature: Int = try {
+            read4BytesAsInt("Image Resource Block Signature", APP13_BYTE_ORDER)
+        } catch (ignore: ImageReadException) {
+            return false
+        }
+
+        if (resourceBlockSignature == JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_INT)
+            return true
+
+        /*
+         * Some files seem to contain invalid markers: 04 3A 00 00 in case of our test data.
+         * We just ignore these and skip to the next 8BIM (38 42 49 4D) segment.
+         * If we can't skip to the next we found everything we can interpret.
+         */
+        return skipToQuad(JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_INT)
+    }
+
+    /**
+     * Reads the block type of the next 8BIM resource block, skipping
+     * blocks that the photoshop spec recommends to ignore.
+     *
+     * The skip consumes the next block's signature, so the block type
+     * of the following block is read directly here instead of reading
+     * a signature again.
+     *
+     * Returns null at the end of the data.
+     */
+    private fun ByteReader.readNextNonIgnoredBlockType(): Int? {
+
+        var blockType = read2BytesAsInt("IPTC block type", APP13_BYTE_ORDER)
+
+        while (PHOTOSHOP_IGNORED_BLOCK_TYPE.contains(blockType)) {
+
+            /*
+             * If there is still data in this block, before the next image resource block (8BIM),
+             * then we must consume these bytes to leave a pointer ready to read the next block.
+             */
+            val skipSuccessful = skipToQuad(JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_INT)
+
+            if (!skipSuccessful)
+                return null
+
+            blockType = read2BytesAsInt("IPTC block type", APP13_BYTE_ORDER)
+        }
+
+        return blockType
     }
 
     private fun isUtf8(codedCharset: ByteArray): Boolean {
