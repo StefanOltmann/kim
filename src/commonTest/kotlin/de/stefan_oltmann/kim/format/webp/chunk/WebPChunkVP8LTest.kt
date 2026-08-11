@@ -120,4 +120,13 @@ class WebPChunkVP8LTest {
             )
         }
     }
+
+    @Test
+    fun testParseRejectsTooShortChunk() {
+
+        /* A 3-byte chunk does not contain the required 5-byte header. */
+        assertFailsWith<ImageReadException> {
+            WebPChunkVP8L(byteArrayOf(0x2F, 0x00, 0x00))
+        }
+    }
 }

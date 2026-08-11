@@ -40,6 +40,9 @@ public class WebPChunkVP8L(
 
     init {
 
+        if (bytes.size < REQUIRED_BYTE_SIZE)
+            throw ImageReadException("Invalid VP8L chunk")
+
         val b1: Int = bytes[1].toInt() and 0xFF
         val b2: Int = bytes[2].toInt() and 0xFF
         val b3: Int = bytes[3].toInt() and 0xFF
@@ -65,4 +68,10 @@ public class WebPChunkVP8L(
         super.toString() +
             " imageSize=$imageSize" +
             " hasAlpha=$hasAlpha versionNumber=$versionNumber"
+
+    private companion object {
+
+        /* The header is the signature byte plus 4 dimension and flag bytes. */
+        private const val REQUIRED_BYTE_SIZE: Int = 5
+    }
 }
