@@ -261,6 +261,57 @@ class MetadataSummaryConverterEdgeCasesTest {
     }
 
     @Test
+    fun testIsoAbove32767IsNotNegative() {
+
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.JPEG,
+            imageSize = null,
+            exif = tiffContents(
+                field(
+                    ExifTag.EXIF_TAG_ISO,
+                    byteArrayOf(0xC8.toByte(), 0x00), // ISO 51200, big-endian
+                    FieldTypeShort,
+                    1
+                )
+            ),
+            exifBytes = null,
+            iptc = null,
+            xmp = null
+        )
+
+        assertEquals(
+            expected = 51200,
+            actual = metadata.convertToSummary().iso
+        )
+    }
+
+    @Test
+    fun testPanasonicIsoAbove32767IsNotNegative() {
+
+        /* Panasonic RW2 stores the ISO value in IFD0. */
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.JPEG,
+            imageSize = null,
+            exif = tiffContents(
+                field(
+                    ExifTag.EXIF_TAG_ISO_PANASONIC,
+                    byteArrayOf(0xC8.toByte(), 0x00), // ISO 51200, big-endian
+                    FieldTypeShort,
+                    1
+                )
+            ),
+            exifBytes = null,
+            iptc = null,
+            xmp = null
+        )
+
+        assertEquals(
+            expected = 51200,
+            actual = metadata.convertToSummary().iso
+        )
+    }
+
+    @Test
     fun testTakenDateWithSystemTimeZone() {
 
         Kim.underUnitTesting = false

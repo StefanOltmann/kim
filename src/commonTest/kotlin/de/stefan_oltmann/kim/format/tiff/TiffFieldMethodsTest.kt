@@ -27,6 +27,7 @@ import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeDouble
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeFloat
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeRational
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeSShort
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeShort
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -287,6 +288,26 @@ class TiffFieldMethodsTest {
             expected = 7,
             actual = field(0x0100, FieldTypeLong, byteArrayOf(0, 0, 0, 7)).toInt()
         )
+
+        /* The SHORT type is unsigned, values above 32767 are not negative. */
+        assertEquals(
+            expected = 51200,
+            actual = field(
+                0x0100,
+                FieldTypeShort,
+                shortArrayOf(51200.toShort()).toBytes(ByteOrder.BIG_ENDIAN)
+            ).toInt()
+        )
+
+        /* The SSHORT type is signed, negative values must stay negative. */
+        assertEquals(
+            expected = -300,
+            actual = field(
+                0x0100,
+                FieldTypeSShort,
+                shortArrayOf((-300).toShort()).toBytes(ByteOrder.BIG_ENDIAN)
+            ).toInt()
+        )
     }
 
     @Test
@@ -314,6 +335,16 @@ class TiffFieldMethodsTest {
         assertEquals(
             expected = 3.0,
             actual = field(0x0100, FieldTypeLong, byteArrayOf(0, 0, 0, 3)).toDouble()
+        )
+
+        /* The SHORT type is unsigned, values above 32767 are not negative. */
+        assertEquals(
+            expected = 51200.0,
+            actual = field(
+                0x0100,
+                FieldTypeShort,
+                shortArrayOf(51200.toShort()).toBytes(ByteOrder.BIG_ENDIAN)
+            ).toDouble()
         )
     }
 }

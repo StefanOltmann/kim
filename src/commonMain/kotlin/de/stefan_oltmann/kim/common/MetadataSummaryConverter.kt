@@ -75,9 +75,14 @@ public object MetadataSummaryConverter {
         val lensMake = mediaMetadata.findStringValue(ExifTag.EXIF_TAG_LENS_MAKE)
         val lensModel = mediaMetadata.findStringValue(ExifTag.EXIF_TAG_LENS_MODEL)
 
-        /* Look for ISO at the standard place and fall back to test RW2 logic. */
-        val iso = mediaMetadata.findShortValue(ExifTag.EXIF_TAG_ISO)
-            ?: mediaMetadata.findShortValue(ExifTag.EXIF_TAG_ISO_PANASONIC)
+        /*
+         * Look for ISO at the standard place and fall back to test RW2 logic.
+         * Note: We read the Int value directly instead of going through
+         * findShortValue(), because ISO values above 32767 would not fit
+         * into a signed Short.
+         */
+        val iso = mediaMetadata.findTiffField(ExifTag.EXIF_TAG_ISO)?.toInt()
+            ?: mediaMetadata.findTiffField(ExifTag.EXIF_TAG_ISO_PANASONIC)?.toInt()
 
         val exposureTime = mediaMetadata.findDoubleValue(ExifTag.EXIF_TAG_EXPOSURE_TIME)
         val fNumber = mediaMetadata.findDoubleValue(ExifTag.EXIF_TAG_FNUMBER)
@@ -131,7 +136,7 @@ public object MetadataSummaryConverter {
             cameraModel = cameraModel,
             lensMake = lensMake,
             lensModel = lensModel,
-            iso = iso?.toInt(),
+            iso = iso,
             exposureTime = exposureTime,
             fNumber = fNumber,
             focalLength = focalLength,
