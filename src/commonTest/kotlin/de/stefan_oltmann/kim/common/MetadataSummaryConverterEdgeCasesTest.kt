@@ -131,6 +131,30 @@ class MetadataSummaryConverterEdgeCasesTest {
             )
         ).toBytes(ByteOrder.BIG_ENDIAN)
 
+    private fun tiffContentsWithThumbnail(thumbnailBytes: ByteArray): TiffContents {
+
+        val thumbnailDirectory = TiffDirectory(
+            type = TiffConstants.TIFF_DIRECTORY_TYPE_IFD1,
+            entries = emptyList(),
+            offset = 8,
+            nextDirectoryOffset = 0,
+            byteOrder = ByteOrder.BIG_ENDIAN
+        ).apply {
+            this.thumbnailBytes = thumbnailBytes
+        }
+
+        return TiffContents(
+            header = TiffHeader(
+                byteOrder = ByteOrder.BIG_ENDIAN,
+                tiffVersion = 42,
+                offsetToFirstIFD = 8
+            ),
+            directories = listOf(thumbnailDirectory),
+            makerNoteDirectory = null,
+            geoTiffDirectory = null
+        )
+    }
+
     @Test
     fun testIgnoreOrientation() {
 
@@ -445,6 +469,43 @@ class MetadataSummaryConverterEdgeCasesTest {
             expected = 1.0 + 2.0 / 60.0 + 3.0 / 3600.0,
             actual = gpsCoordinates.longitude
         )
+    }
+
+    @Test
+    fun testNonJpegThumbnailIsIgnored() {
+
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.JPEG,
+            imageSize = null,
+            exif = tiffContentsWithThumbnail("not a jpeg".encodeToByteArray()),
+            exifBytes = null,
+            iptc = null,
+            xmp = null
+        )
+
+        assertNull(metadata.convertToSummary().thumbnailImageSize)
+    }
+
+    @Test
+    fun testTruncatedThumbnailIsIgnored() {
+
+        /* A JPEG thumbnail that is cut off before the SOF segment. */
+        val thumbnail = byteArrayOf(
+            0xFF.toByte(), 0xD8.toByte(),
+            0xFF.toByte(), 0xE0.toByte(),
+            0x00, 0x0A, 0x00
+        )
+
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.JPEG,
+            imageSize = null,
+            exif = tiffContentsWithThumbnail(thumbnail),
+            exifBytes = null,
+            iptc = null,
+            xmp = null
+        )
+
+        assertNull(metadata.convertToSummary().thumbnailImageSize)
     }
 
     @Test

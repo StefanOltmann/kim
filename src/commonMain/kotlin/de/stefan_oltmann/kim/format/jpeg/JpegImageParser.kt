@@ -21,7 +21,6 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.getRemainingBytes
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toInt
-import de.stefan_oltmann.kim.common.toSingleNumberHexes
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
@@ -57,10 +56,9 @@ public object JpegImageParser : ImageParser {
 
         val magicNumberBytes = byteReader.readBytes(MediaFormatMagicNumbers.jpeg.size).toList()
 
-        /* Ensure it's actually a JPEG. */
-        require(magicNumberBytes == MediaFormatMagicNumbers.jpeg) {
-            "JPEG magic number mismatch: ${magicNumberBytes.toSingleNumberHexes()}"
-        }
+        /* Not a JPEG, so there is no image size to report. */
+        if (magicNumberBytes != MediaFormatMagicNumbers.jpeg)
+            return null
 
         var readBytesCount = magicNumberBytes.size
 

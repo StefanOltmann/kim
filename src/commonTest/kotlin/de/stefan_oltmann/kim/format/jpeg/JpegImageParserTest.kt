@@ -23,6 +23,7 @@ import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 class JpegImageParserTest {
 
@@ -106,6 +107,16 @@ class JpegImageParserTest {
                 message = "Image size of $index is different."
             )
         }
+    }
+
+    @Test
+    fun testGetImageSizeFromNonJpeg() {
+
+        assertNull(
+            JpegImageParser.getImageSize(
+                ByteArrayByteReader("not a jpeg".encodeToByteArray())
+            )
+        )
     }
 
     private companion object {

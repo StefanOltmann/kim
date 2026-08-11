@@ -17,6 +17,7 @@
 package de.stefan_oltmann.kim.common
 
 import de.stefan_oltmann.kim.Kim.underUnitTesting
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.jpeg.JpegImageParser
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcTypes
@@ -111,9 +112,18 @@ public object MetadataSummaryConverter {
         val thumbnailBytes = mediaMetadata.getExifThumbnailBytes()
 
         val thumbnailImageSize = thumbnailBytes?.let {
-            JpegImageParser.getImageSize(
-                ByteArrayByteReader(thumbnailBytes)
-            )
+
+            try {
+                JpegImageParser.getImageSize(
+                    ByteArrayByteReader(thumbnailBytes)
+                )
+            } catch (_: ImageReadException) {
+                /*
+                 * Broken thumbnails are not essential, so we ignore the
+                 * problem and continue without the thumbnail size.
+                 */
+                null
+            }
         }
 
         /*
