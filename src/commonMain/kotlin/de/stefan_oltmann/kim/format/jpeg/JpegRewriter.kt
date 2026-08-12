@@ -20,7 +20,6 @@ package de.stefan_oltmann.kim.format.jpeg
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.getRemainingBytes
 import de.stefan_oltmann.kim.common.toBytes
-import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcBlock
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcConstants
@@ -36,6 +35,8 @@ import de.stefan_oltmann.kim.format.tiff.write.TiffWriterBase
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriterLossless
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriterLossy
 import de.stefan_oltmann.kim.input.ByteReader
+import de.stefan_oltmann.kim.input.copyRemainingTo
+import de.stefan_oltmann.kim.input.readRemainingBytes
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
 import kotlin.jvm.JvmStatic
@@ -47,59 +48,17 @@ public object JpegRewriter {
 
     private fun readSegments(byteReader: ByteReader): List<JFIFPiece> {
 
-        val allPieces = mutableListOf<JFIFPiece>()
-
-        val visitor = object : JpegVisitor {
-
-            var sosMarkerBytes: ByteArray? = null
-
-            val imageDataWriter = ByteArrayByteWriter()
-
-            /* Read the whole file. */
-            override fun beginSOS(): Boolean =
-                true
-
-            override fun visitSOS(markerBytes: ByteArray) {
-
-                /*
-                 * The traversal reports the EOI marker through this callback,
-                 * too. Only the SOS marker starts the image data.
-                 */
-                if (markerBytes.toUInt16(JPEG_BYTE_ORDER) == JpegConstants.SOS_MARKER)
-                    sosMarkerBytes = markerBytes
-            }
-
-            override fun visitImageData(chunk: ByteArray) {
-                imageDataWriter.write(chunk)
-            }
-
-            override fun visitSegment(
-                marker: Int,
-                markerBytes: ByteArray,
-                segmentLength: Int,
-                segmentLengthBytes: ByteArray,
-                segmentBytes: ByteArray
-            ): Boolean {
-
-                allPieces.add(JFIFPieceSegment(marker, markerBytes, segmentLengthBytes, segmentBytes))
-
-                return true
-            }
-        }
-
-        JpegUtils.traverseJFIF(byteReader, visitor)
+        val (segments, sosMarkerBytes) = JpegUtils.readSegments(byteReader)
 
         /*
          * A truncated file can end before the SOS marker. Writing just the
          * header would silently destroy the image data, so the rewrite is
          * rejected instead.
          */
-        val sosMarkerBytes = visitor.sosMarkerBytes
-            ?: throw ImageWriteException("JPEG file is truncated or invalid: no SOS marker found.")
+        if (sosMarkerBytes == null)
+            throw ImageWriteException("JPEG file is truncated or invalid: no SOS marker found.")
 
-        allPieces.add(JFIFPieceImageData(sosMarkerBytes, visitor.imageDataWriter.toByteArray()))
-
-        return allPieces
+        return segments + JFIFPieceImageData(sosMarkerBytes, byteReader.readRemainingBytes())
     }
 
     private fun insertAfterLastAppSegments(
@@ -346,64 +305,21 @@ public object JpegRewriter {
         updateComputer: (MutableList<JFIFPieceSegment>, ByteWriter) -> Unit
     ) {
 
-        val segments = mutableListOf<JFIFPieceSegment>()
-
-        var sosReached = false
-
-        val visitor: JpegVisitor = object : JpegVisitor {
-
-            /* Continue reading, so the image data is streamed. */
-            override fun beginSOS(): Boolean =
-                true
-
-            override fun visitSOS(markerBytes: ByteArray) {
-
-                /*
-                 * The traversal reports the EOI marker through this callback,
-                 * too. A file that ends before the SOS marker is truncated,
-                 * so no header is written for it and the update is rejected
-                 * below.
-                 */
-                if (markerBytes.toUInt16(JPEG_BYTE_ORDER) != JpegConstants.SOS_MARKER)
-                    return
-
-                sosReached = true
-
-                updateComputer(segments, byteWriter)
-
-                byteWriter.write(markerBytes)
-            }
-
-            override fun visitImageData(chunk: ByteArray) {
-
-                /* Keep the output clean when the file ends before the SOS marker. */
-                if (sosReached)
-                    byteWriter.write(chunk)
-            }
-
-            override fun visitSegment(
-                marker: Int,
-                markerBytes: ByteArray,
-                segmentLength: Int,
-                segmentLengthBytes: ByteArray,
-                segmentBytes: ByteArray
-            ): Boolean {
-
-                segments.add(JFIFPieceSegment(marker, markerBytes, segmentLengthBytes, segmentBytes))
-
-                return true
-            }
-        }
-
-        JpegUtils.traverseJFIF(byteReader, visitor)
+        val (segments, sosMarkerBytes) = JpegUtils.readSegments(byteReader)
 
         /*
          * A truncated file can end before the SOS marker. Writing just the
          * header would silently destroy the image data, so the update is
          * rejected instead.
          */
-        if (!sosReached)
+        if (sosMarkerBytes == null)
             throw ImageWriteException("JPEG file is truncated or invalid: no SOS marker found.")
+
+        updateComputer(segments.toMutableList(), byteWriter)
+
+        byteWriter.write(sosMarkerBytes)
+
+        byteReader.copyRemainingTo(byteWriter)
     }
 
     /**

@@ -336,42 +336,12 @@ public object JpegImageParser : ImageParser {
         }
     }
 
-    private fun keepMarker(marker: Int, markers: List<Int>?): Boolean =
-        markers?.contains(marker) ?: false
+    /**
+     * Reads the header segments that match the given markers.
+     */
+    private fun readSegments(byteReader: ByteReader, markers: List<Int>): List<JFIFPieceSegment> {
 
-    private fun readSegments(byteReader: ByteReader, markers: List<Int>): List<Segment> {
-
-        val segments = mutableListOf<Segment>()
-
-        val visitor: JpegVisitor = object : JpegVisitor {
-
-            /* Don't read actual image data. */
-            override fun beginSOS(): Boolean = false
-
-            // return false to exit traversal.
-            override fun visitSegment(
-                marker: Int,
-                markerBytes: ByteArray,
-                segmentLength: Int,
-                segmentLengthBytes: ByteArray,
-                segmentBytes: ByteArray
-            ): Boolean {
-
-                if (marker == JpegConstants.EOI_MARKER)
-                    return false
-
-                if (!keepMarker(marker, markers))
-                    return true
-
-                toSegment(marker, segmentBytes)?.let { segment ->
-                    segments.add(segment)
-                }
-
-                return true
-            }
-        }
-
-        JpegUtils.traverseJFIF(byteReader, visitor)
+        val (segments, _) = JpegUtils.readSegments(byteReader) { marker -> marker in markers }
 
         return segments
     }
