@@ -210,9 +210,12 @@ for more samples.
 
 #### Streaming update
 
-The update can stream the file from a `ByteReader` to a `ByteWriter` without loading it into memory.
-The image data is streamed in bounded chunks, so very large files can be updated efficiently. A
-single-update overload exists for both the byte array and the streaming variant.
+The update can stream the file from a `ByteReader` to a `ByteWriter`. The image
+data of JPEG, PNG, GIF and JPEG XL files with split codestream boxes (`jxlp`) is
+streamed in bounded chunks. WebP files buffer their chunks in memory, and JPEG
+XL files with a single codestream box (`jxlc`) buffer the codestream, because
+the metadata is stored behind the image data. A single-update overload exists
+for both the byte array and the streaming variant.
 
 ```kotlin
 val byteReader = JvmInputStreamByteReader(inputFile.inputStream(), inputFile.length())
@@ -244,8 +247,9 @@ val bytes: ByteArray = loadBytes()
 val newBytes = Kim.deleteMetadata(bytes)
 ```
 
-Like `Kim.update()`, `deleteMetadata()` also offers a streaming overload that writes to a
-`ByteWriter` without loading the file into memory:
+Like `Kim.update()`, `deleteMetadata()` also offers a streaming overload that
+writes to a `ByteWriter` without loading the file into memory for the formats
+listed in the [Streaming update](#streaming-update) section:
 
 ```kotlin
 Kim.deleteMetadata(
@@ -274,6 +278,9 @@ Java projects.
 ## Limitations
 
 * Does not read the image size and orientation for HEIC, AVIF & JPEG XL.
+* Updates buffer the file content in memory for WebP files and for JPEG XL
+  files with a single codestream box (`jxlc`). JPEG, PNG, GIF and JPEG XL
+  files with split codestream boxes (`jxlp`) are streamed in bounded chunks.
 * Does not read brotli compressed metadata of JPEG XL due to missing brotli KMP libs.
 * MakerNote support is experimental and limited.
     + Can't extract preview image of ORF as offsets are burried into MakerNote.

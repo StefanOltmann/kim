@@ -28,7 +28,12 @@ internal interface JpegVisitor {
     /** Return false to exit before reading image data. */
     fun beginSOS(): Boolean
 
-    /** Called with the SOS marker bytes right before the image data is streamed. */
+    /**
+     * Called with the marker bytes right before the image data is streamed.
+     *
+     * Note that the traversal reports the EOI marker through this callback
+     * as well, so callers must check for the SOS marker.
+     */
     fun visitSOS(markerBytes: ByteArray) {
         /* No image data handling. */
     }

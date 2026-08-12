@@ -20,9 +20,9 @@ import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.format.webp.WebPConstants.WEBP_BYTE_ORDER
 import de.stefan_oltmann.kim.format.webp.chunk.ImageSizeAware
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunk
+import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8L
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8X
 import de.stefan_oltmann.kim.input.ByteReader
-import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
 import de.stefan_oltmann.kim.output.writeInt
 import kotlin.jvm.JvmStatic
@@ -101,12 +101,19 @@ public object WebPWriter {
             if (headerChunk !is ImageSizeAware)
                 throw ImageWriteException("Illegal header chunk: $headerChunk")
 
+            /*
+             * A legacy VP8L bitstream can carry transparency, which the
+             * generated VP8X header must declare or decoders may drop the
+             * alpha channel. A legacy VP8 cannot have alpha.
+             */
+            val hasAlpha = (headerChunk as? WebPChunkVP8L)?.hasAlpha == true
+
             modifiedChunks.add(
                 index = 0,
                 element = WebPChunkVP8X(
                     bytes = WebPChunkVP8X.createBytes(
                         hasIcc = false,
-                        hasAlpha = false,
+                        hasAlpha = hasAlpha,
                         hasExif = exifBytes != null,
                         hasXmp = xmp != null,
                         hasAnimation = false,
@@ -116,31 +123,29 @@ public object WebPWriter {
             )
         }
 
-        val contentByteWriter = ByteArrayByteWriter()
+        val xmpBytes = xmp?.encodeToByteArray()
 
-        contentByteWriter.write(WebPConstants.WEBP_SIGNATURE)
+        /*
+         * The RIFF size field sits at the start of the file, so the content
+         * length must be computed up front. This keeps the file from being
+         * buffered a second time in memory.
+         */
+        val contentLength = WebPConstants.WEBP_SIGNATURE.size +
+            modifiedChunks.sumOf { webpChunkLength(it.bytes.size) } +
+            (exifBytes?.let { webpChunkLength(it.size) } ?: 0) +
+            (xmpBytes?.let { webpChunkLength(it.size) } ?: 0)
+
+        byteWriter.write(WebPConstants.RIFF_SIGNATURE)
+
+        byteWriter.writeInt(contentLength, WEBP_BYTE_ORDER)
+
+        byteWriter.write(WebPConstants.WEBP_SIGNATURE)
 
         /*
          * First write all other chunks in the original order.
          */
-        for (chunk in modifiedChunks) {
-
-            contentByteWriter.write(chunk.type.bytes)
-
-            contentByteWriter.writeInt(
-                chunk.bytes.size,
-                WEBP_BYTE_ORDER
-            )
-
-            contentByteWriter.write(chunk.bytes)
-
-            /*
-             * If chunk size is odd, a single padding byte (which MUST be 0
-             * to conform with RIFF) is added.
-             */
-            if (chunk.bytes.size % 2 != 0)
-                contentByteWriter.write(0)
-        }
+        for (chunk in modifiedChunks)
+            byteWriter.writeWebpChunk(chunk.type, chunk.bytes)
 
         /*
          * A major design flaw of WebP is that is specifies the metadata chunks to come last.
@@ -153,52 +158,36 @@ public object WebPWriter {
          * See https://developers.google.com/speed/webp/docs/riff_container#extended_file_format
          */
 
-        if (exifBytes != null) {
+        if (exifBytes != null)
+            byteWriter.writeWebpChunk(WebPChunkType.EXIF, exifBytes)
 
-            contentByteWriter.write(WebPChunkType.EXIF.bytes)
-
-            contentByteWriter.writeInt(
-                exifBytes.size,
-                WEBP_BYTE_ORDER
-            )
-
-            contentByteWriter.write(exifBytes)
-
-            /*
-             * If chunk size is odd, a single padding byte (which MUST be 0
-             * to conform with RIFF) is added.
-             */
-            if (exifBytes.size % 2 != 0)
-                contentByteWriter.write(0)
-        }
-
-        if (xmp != null) {
-
-            val xmpBytes = xmp.encodeToByteArray()
-
-            contentByteWriter.write(WebPChunkType.XMP.bytes)
-
-            contentByteWriter.writeInt(
-                xmpBytes.size,
-                WEBP_BYTE_ORDER
-            )
-
-            contentByteWriter.write(xmpBytes)
-
-            /*
-             * If chunk size is odd, a single padding byte (which MUST be 0
-             * to conform with RIFF) is added.
-             */
-            if (xmpBytes.size % 2 != 0)
-                contentByteWriter.write(0)
-        }
-
-        val contentBytes = contentByteWriter.toByteArray()
-
-        byteWriter.write(WebPConstants.RIFF_SIGNATURE)
-
-        byteWriter.writeInt(contentBytes.size, WEBP_BYTE_ORDER)
-
-        byteWriter.write(contentBytes)
+        if (xmpBytes != null)
+            byteWriter.writeWebpChunk(WebPChunkType.XMP, xmpBytes)
     }
+
+    /**
+     * Writes a chunk with its FourCC, size and padding byte.
+     */
+    private fun ByteWriter.writeWebpChunk(chunkType: WebPChunkType, data: ByteArray) {
+
+        write(chunkType.bytes)
+
+        writeInt(data.size, WEBP_BYTE_ORDER)
+
+        write(data)
+
+        /*
+         * If chunk size is odd, a single padding byte (which MUST be 0
+         * to conform with RIFF) is added.
+         */
+        if (data.size % 2 != 0)
+            write(0)
+    }
+
+    /**
+     * The length of a chunk on disk, including its header and the RIFF
+     * padding byte for odd payloads.
+     */
+    private fun webpChunkLength(dataLength: Int): Int =
+        WebPConstants.CHUNK_HEADER_LENGTH + dataLength + dataLength % 2
 }

@@ -62,11 +62,16 @@ public class ItemInformationBox(
         else
             byteReader.read4BytesAsInt("entryCount", BMFF_BYTE_ORDER)
 
+        /*
+         * The reader starts after the entry count field, so positionOffset
+         * accounts for it. offsetShift maps payload-relative positions to
+         * file positions, which is always the box header (offset + 8).
+         */
         boxes = BoxReader.readBoxes(
             byteReader = byteReader,
             stopAfterMetadataRead = false,
             positionOffset = 4L + if (version == 0) 2 else 4,
-            offsetShift = offset + 4 + if (version == 0) 2 else 4,
+            offsetShift = offset + 8,
             parentBoxType = type
         )
 

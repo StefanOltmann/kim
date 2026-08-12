@@ -55,6 +55,8 @@ internal object GifUpdater : MetadataUpdater {
                     chunk.applicationIdentifier == GifConstants.XMP_APPLICATION_IDENTIFIER
             }
 
+            GifWriter.upgradeGif87aHeader(modifiedChunks)
+
             for (chunk in modifiedChunks)
                 outputWriter.write(chunk.bytes)
 

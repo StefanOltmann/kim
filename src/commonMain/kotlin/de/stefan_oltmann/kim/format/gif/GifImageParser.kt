@@ -184,8 +184,11 @@ public object GifImageParser : ImageParser {
      * The image separator byte of the first image is consumed by the reader
      * but belongs to the streamed image data, so callers must write it to
      * the output before streaming.
+     *
+     * Returns the chunks and whether an image was found at all. Files
+     * without an image (only extensions and the trailer) cannot be updated.
      */
-    internal fun readChunksBeforeImage(byteReader: ByteReader): List<GifChunk> {
+    internal fun readChunksBeforeImage(byteReader: ByteReader): Pair<List<GifChunk>, Boolean> {
 
         val chunks = mutableListOf<GifChunk>()
 
@@ -215,7 +218,7 @@ public object GifImageParser : ImageParser {
 
             when (byteReader.readByte("introducer")) {
 
-                GifConstants.IMAGE_SEPARATOR -> return chunks
+                GifConstants.IMAGE_SEPARATOR -> return chunks to true
 
                 GifConstants.EXTENSION_INTRODUCER -> {
 
@@ -226,7 +229,7 @@ public object GifImageParser : ImageParser {
 
                     chunks.add(GifChunkTerminator(byteArrayOf(GifConstants.GIF_TERMINATOR)))
 
-                    return chunks
+                    return chunks to false
                 }
             }
         }

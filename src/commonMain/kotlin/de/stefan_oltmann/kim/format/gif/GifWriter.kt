@@ -17,8 +17,10 @@
 
 package de.stefan_oltmann.kim.format.gif
 
+import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.format.gif.chunk.GifChunk
 import de.stefan_oltmann.kim.format.gif.chunk.GifChunkApplicationExtension
+import de.stefan_oltmann.kim.format.gif.chunk.GifChunkHeader
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.copyRemainingTo
 import de.stefan_oltmann.kim.output.ByteWriter
@@ -55,7 +57,14 @@ public object GifWriter {
         updateComputer: (List<GifChunk>, ByteWriter) -> Unit
     ) {
 
-        val chunks = GifImageParser.readChunksBeforeImage(byteReader)
+        val (chunks, foundImage) = GifImageParser.readChunksBeforeImage(byteReader)
+
+        /*
+         * A file without an image is not a valid GIF. Writing the header
+         * would hide the problem, so the update is rejected instead.
+         */
+        if (!foundImage)
+            throw ImageWriteException("GIF file has no image data.")
 
         updateComputer(chunks, byteWriter)
 
@@ -78,11 +87,15 @@ public object GifWriter {
         val modifiedChunks = chunks.toMutableList()
 
         /* Delete old chunks that are going to be replaced */
-        if (xmp != null)
+        if (xmp != null) {
+
             modifiedChunks.removeAll {
                 it is GifChunkApplicationExtension &&
                     it.applicationIdentifier == GifConstants.XMP_APPLICATION_IDENTIFIER
             }
+
+            upgradeGif87aHeader(modifiedChunks)
+        }
 
         for (chunk in modifiedChunks) {
 
@@ -94,6 +107,25 @@ public object GifWriter {
 
             byteWriter.write(chunk.bytes)
         }
+    }
+
+    /**
+     * Replaces a GIF87a header chunk with a GIF89a one, because the XMP
+     * application extension is a GIF89a feature.
+     */
+    internal fun upgradeGif87aHeader(chunks: MutableList<GifChunk>) {
+
+        val headerIndex = chunks.indexOfFirst { it.type == GifChunkType.HEADER }
+
+        if (headerIndex == -1)
+            return
+
+        val headerChunk = chunks[headerIndex] as GifChunkHeader
+
+        if (headerChunk.version == GifVersion.GIF87A)
+            chunks[headerIndex] = GifChunkHeader(
+                GifConstants.GIF_SIGNATURE + GifVersion.GIF89A.bytes
+            )
     }
 
     internal fun writeXmpChunk(byteWriter: ByteWriter, xmpXml: String) {

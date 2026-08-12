@@ -18,6 +18,7 @@
  */
 package de.stefan_oltmann.kim.format.bmff
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.bmff.box.Box
 import de.stefan_oltmann.kim.format.bmff.box.FileTypeBox
@@ -137,6 +138,14 @@ public object BoxReader {
             }
 
             /*
+             * Sizes of 2^31 bytes and above cannot be represented by the
+             * signed read count, so such boxes must be rejected instead of
+             * producing a corrupted read.
+             */
+            if (actualLength <= 0)
+                throw ImageReadException("Box $type has an invalid size: $size.")
+
+            /*
              * The first JXLP box contains the codestream header, so every
              * following JXLP box is image data. It is returned with an empty
              * payload, because the caller streams its content.
@@ -154,9 +163,19 @@ public object BoxReader {
             if (size == 1L)
                 position += 8
 
-            val remainingBytesToReadInThisBox = (nextBoxOffset - position).toInt()
+            val remainingBytesToReadInThisBox = nextBoxOffset - position
 
-            val bytes = byteReader.readBytes("data", remainingBytesToReadInThisBox)
+            /*
+             * The payload is read into memory, so boxes larger than
+             * Int.MAX_VALUE bytes must be rejected instead of overflowing
+             * the read count.
+             */
+            if (remainingBytesToReadInThisBox > Int.MAX_VALUE)
+                throw ImageReadException(
+                    "Box $type is too large: $remainingBytesToReadInThisBox bytes."
+                )
+
+            val bytes = byteReader.readBytes("data", remainingBytesToReadInThisBox.toInt())
 
             position += remainingBytesToReadInThisBox
 

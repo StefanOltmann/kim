@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +17,10 @@
 package de.stefan_oltmann.kim.format.jxl
 
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.writeBytes
+import de.stefan_oltmann.kim.format.bmff.BoxType
+import de.stefan_oltmann.kim.format.bmff.box.Box
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriterLossless
@@ -29,6 +33,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.fail
@@ -53,6 +58,34 @@ class JxlWriterTest {
     @BeforeTest
     fun setUp() {
         Kim.underUnitTesting = true
+    }
+
+    /**
+     * A box whose size exceeds Int.MAX_VALUE cannot be written, because the
+     * size field is a 32-bit integer. It must be rejected with a clear
+     * error instead of corrupting the size field.
+     */
+    @Test
+    fun testWriteImageRejectsOversizeBox() {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        assertFailsWith<ImageWriteException> {
+            JxlWriter.writeImage(
+                boxes = listOf(
+                    Box(
+                        type = BoxType.JXLP,
+                        offset = 0,
+                        size = Int.MAX_VALUE + 1L,
+                        largeSize = null,
+                        payload = byteArrayOf()
+                    )
+                ),
+                byteWriter = byteWriter,
+                exifBytes = null,
+                xmp = null
+            )
+        }
     }
 
     /**

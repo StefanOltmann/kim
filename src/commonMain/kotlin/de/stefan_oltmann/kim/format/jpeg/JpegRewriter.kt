@@ -20,6 +20,7 @@ package de.stefan_oltmann.kim.format.jpeg
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.getRemainingBytes
 import de.stefan_oltmann.kim.common.toBytes
+import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcBlock
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcConstants
@@ -59,7 +60,13 @@ public object JpegRewriter {
                 true
 
             override fun visitSOS(markerBytes: ByteArray) {
-                sosMarkerBytes = markerBytes
+
+                /*
+                 * The traversal reports the EOI marker through this callback,
+                 * too. Only the SOS marker starts the image data.
+                 */
+                if (markerBytes.toUInt16(JPEG_BYTE_ORDER) == JpegConstants.SOS_MARKER)
+                    sosMarkerBytes = markerBytes
             }
 
             override fun visitImageData(chunk: ByteArray) {
@@ -82,10 +89,15 @@ public object JpegRewriter {
 
         JpegUtils.traverseJFIF(byteReader, visitor)
 
+        /*
+         * A truncated file can end before the SOS marker. Writing just the
+         * header would silently destroy the image data, so the rewrite is
+         * rejected instead.
+         */
         val sosMarkerBytes = visitor.sosMarkerBytes
+            ?: throw ImageWriteException("JPEG file is truncated or invalid: no SOS marker found.")
 
-        if (sosMarkerBytes != null)
-            allPieces.add(JFIFPieceImageData(sosMarkerBytes, visitor.imageDataWriter.toByteArray()))
+        allPieces.add(JFIFPieceImageData(sosMarkerBytes, visitor.imageDataWriter.toByteArray()))
 
         return allPieces
     }
@@ -336,22 +348,37 @@ public object JpegRewriter {
 
         val segments = mutableListOf<JFIFPieceSegment>()
 
+        var sosReached = false
+
         val visitor: JpegVisitor = object : JpegVisitor {
 
-            override fun beginSOS(): Boolean {
+            /* Continue reading, so the image data is streamed. */
+            override fun beginSOS(): Boolean =
+                true
+
+            override fun visitSOS(markerBytes: ByteArray) {
+
+                /*
+                 * The traversal reports the EOI marker through this callback,
+                 * too. A file that ends before the SOS marker is truncated,
+                 * so no header is written for it and the update is rejected
+                 * below.
+                 */
+                if (markerBytes.toUInt16(JPEG_BYTE_ORDER) != JpegConstants.SOS_MARKER)
+                    return
+
+                sosReached = true
 
                 updateComputer(segments, byteWriter)
 
-                /* Continue reading, so the image data is streamed. */
-                return true
-            }
-
-            override fun visitSOS(markerBytes: ByteArray) {
                 byteWriter.write(markerBytes)
             }
 
             override fun visitImageData(chunk: ByteArray) {
-                byteWriter.write(chunk)
+
+                /* Keep the output clean when the file ends before the SOS marker. */
+                if (sosReached)
+                    byteWriter.write(chunk)
             }
 
             override fun visitSegment(
@@ -369,6 +396,14 @@ public object JpegRewriter {
         }
 
         JpegUtils.traverseJFIF(byteReader, visitor)
+
+        /*
+         * A truncated file can end before the SOS marker. Writing just the
+         * header would silently destroy the image data, so the update is
+         * rejected instead.
+         */
+        if (!sosReached)
+            throw ImageWriteException("JPEG file is truncated or invalid: no SOS marker found.")
     }
 
     /**
