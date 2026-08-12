@@ -21,9 +21,9 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
 import de.stefan_oltmann.kim.input.ByteReader
+import de.stefan_oltmann.kim.input.DEFAULT_BUFFER_SIZE
 import de.stefan_oltmann.kim.input.readAndVerifyBytes
 import de.stefan_oltmann.kim.input.readBytes
-import de.stefan_oltmann.kim.input.readRemainingBytes
 
 internal object JpegUtils {
 
@@ -64,9 +64,21 @@ internal object JpegUtils {
                 if (!visitor.beginSOS())
                     return
 
-                val imageData = byteReader.readRemainingBytes()
+                visitor.visitSOS(markerBytes)
 
-                visitor.visitSOS(marker, markerBytes, imageData)
+                /*
+                 * Stream the image data in bounded chunks, so the whole
+                 * file never has to be buffered in memory at once.
+                 */
+                while (true) {
+
+                    val chunk = byteReader.readBytes(DEFAULT_BUFFER_SIZE)
+
+                    if (chunk.isEmpty())
+                        break
+
+                    visitor.visitImageData(chunk)
+                }
 
                 /* Break, because the image segment is the last one. */
                 break

@@ -41,48 +41,49 @@ internal object PngUpdater : MetadataUpdater {
         updates: Set<MetadataUpdate>
     ) = tryWithImageWriteException {
 
-        val chunks = PngImageParser.readChunks(byteReader, chunkTypeFilter = null)
+        PngWriter.writeImageStreaming(byteReader, byteWriter) { chunks, outputWriter ->
 
-        val metadata = PngImageParser.parseMetadataFromChunks(chunks)
+            val metadata = PngImageParser.parseMetadataFromChunks(chunks)
 
-        val xmpMeta: XMPMeta = if (metadata.xmp != null)
-            XMPMetaFactory.parseFromString(metadata.xmp)
-        else
-            XMPMetaFactory.create()
+            val xmpMeta: XMPMeta = if (metadata.xmp != null)
+                XMPMetaFactory.parseFromString(metadata.xmp)
+            else
+                XMPMetaFactory.create()
 
-        val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
+            val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
 
-        val outputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
+            val outputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
 
-        val exifBytes: ByteArray? = if (outputSet.applyUpdates(updates)) {
+            val exifBytes: ByteArray? = if (outputSet.applyUpdates(updates)) {
 
-            val exifBytesWriter = ByteArrayByteWriter()
+                val exifBytesWriter = ByteArrayByteWriter()
 
-            TiffWriterBase
-                .createTiffWriter(
-                    byteOrder = outputSet.byteOrder,
-                    oldExifBytes = metadata.exifBytes
-                )
-                .write(exifBytesWriter, outputSet)
+                TiffWriterBase
+                    .createTiffWriter(
+                        byteOrder = outputSet.byteOrder,
+                        oldExifBytes = metadata.exifBytes
+                    )
+                    .write(exifBytesWriter, outputSet)
 
-            exifBytesWriter.toByteArray()
+                exifBytesWriter.toByteArray()
 
-        } else {
-            null
+            } else {
+                null
+            }
+
+            PngWriter.writeImage(
+                chunks = chunks,
+                byteWriter = outputWriter,
+                exifBytes = exifBytes,
+                /*
+                 * IPTC is not written because it's not recognized everywhere.
+                 * XMP is the better choice. If users demand it we may add it.
+                 * The logic is already implemented.
+                 */
+                iptcBytes = null,
+                xmp = updatedXmp
+            )
         }
-
-        PngWriter.writeImage(
-            chunks = chunks,
-            byteWriter = byteWriter,
-            exifBytes = exifBytes,
-            /*
-             * IPTC is not written because it's not recognized everywhere.
-             * XMP is the better choice. If users demand it we may add it.
-             * The logic is already implemented.
-             */
-            iptcBytes = null,
-            xmp = updatedXmp
-        )
     }
 
     @Throws(ImageWriteException::class)

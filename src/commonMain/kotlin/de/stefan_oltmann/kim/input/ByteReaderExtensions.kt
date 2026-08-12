@@ -24,6 +24,7 @@ import de.stefan_oltmann.kim.common.quadsToByteArray
 import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
+import de.stefan_oltmann.kim.output.ByteWriter
 
 /*
  * For easier implementation of the [ByteReader] in
@@ -167,6 +168,23 @@ internal fun ByteReader.readRemainingBytes(): ByteArray {
     }
 
     return os.toByteArray()
+}
+
+/**
+ * Streams the remaining bytes to the given writer in bounded chunks, so the
+ * whole content never has to be buffered in memory at once.
+ */
+internal fun ByteReader.copyRemainingTo(byteWriter: ByteWriter) {
+
+    while (true) {
+
+        val chunk = readBytes(DEFAULT_BUFFER_SIZE)
+
+        if (chunk.isEmpty())
+            break
+
+        byteWriter.write(chunk)
+    }
 }
 
 internal fun ByteReader.skipBytes(fieldName: String, count: Int) {

@@ -25,13 +25,13 @@ import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcRecord
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcType
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcTypes
+import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.tiff.write.isExifUpdate
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
-import de.stefan_oltmann.kim.input.readRemainingBytes
 import de.stefan_oltmann.kim.model.LocationShown
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
@@ -56,60 +56,51 @@ internal object JpegUpdater : MetadataUpdater {
         updates: Set<MetadataUpdate>
     ) = tryWithImageWriteException {
 
-        /*
-         * TODO Avoid the read all bytes and stream instead.
-         *  This will require the implementation of single-shot updates to all fields.
-         */
-        val bytes = byteReader.readRemainingBytes()
+        JpegRewriter.updateMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
 
-        if (!bytes.startsWith(MediaFormatMagicNumbers.jpeg))
-            throw ImageWriteException("Provided input bytes are not JPEG!")
+            val kimMetadata = JpegImageParser.parseMetadata(segments)
 
-        val kimMetadata = JpegImageParser.parseMetadata(
-            ByteArrayByteReader(bytes)
-        )
+            /*
+             * Use existing XMP or create a new block.
+             */
+            val xmpMeta: XMPMeta = if (kimMetadata.xmp != null)
+                XMPMetaFactory.parseFromString(kimMetadata.xmp)
+            else
+                XMPMetaFactory.create()
 
-        /*
-         * Use existing XMP or create a new block.
-         */
-        val xmpMeta: XMPMeta = if (kimMetadata.xmp != null)
-            XMPMetaFactory.parseFromString(kimMetadata.xmp)
-        else
-            XMPMetaFactory.create()
+            val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
 
-        val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
+            val exifUpdates = updates.filter(MetadataUpdate::isExifUpdate)
 
-        val exifUpdates = updates.filter(MetadataUpdate::isExifUpdate)
+            /*
+             * A sole orientation update can be applied losslessly by swapping a
+             * single byte in the EXIF segment. Any other EXIF update requires a
+             * rewrite, which then also applies the orientation.
+             */
+            val onlyOrientation = exifUpdates.singleOrNull() as? MetadataUpdate.Orientation
 
-        /*
-         * A sole orientation update can be applied losslessly by swapping a
-         * single byte in the file. Any other EXIF update requires a rewrite,
-         * which then also applies the orientation.
-         */
-        val onlyOrientation = exifUpdates.singleOrNull() as? MetadataUpdate.Orientation
+            /*
+             * Note: a successful tryLosslessOrientationUpdate() replaces the
+             * EXIF segment in "segments" in place, so the rewrite writes the
+             * modified segment.
+             */
+            val losslessOrientationApplied =
+                onlyOrientation != null && tryLosslessOrientationUpdate(segments, onlyOrientation.tiffOrientation)
 
-        /*
-         * Note: a successful tryLosslessOrientationUpdate() swaps the
-         * orientation byte inside "bytes" in place, so the rewrite below
-         * must re-read the modified array.
-         */
-        val losslessOrientationApplied =
-            onlyOrientation != null && tryLosslessOrientationUpdate(bytes, onlyOrientation.tiffOrientation)
+            val outputSet = if (exifUpdates.isEmpty() || losslessOrientationApplied)
+                null
+            else
+                createExifOutputSet(kimMetadata.exif, exifUpdates)
 
-        val outputSet = if (exifUpdates.isEmpty() || losslessOrientationApplied)
-            null
-        else
-            createExifOutputSet(kimMetadata.exif, exifUpdates)
+            val iptc = createIptcMetadata(kimMetadata.iptc, updates)
 
-        val iptc = createIptcMetadata(kimMetadata.iptc, updates)
+            val updatedSegments = JpegRewriter.applyMetadataUpdates(segments, updatedXmp, outputSet, iptc)
 
-        JpegRewriter.updateMetadata(
-            byteReader = ByteArrayByteReader(bytes),
-            byteWriter = byteWriter,
-            xmpXml = updatedXmp,
-            outputSet = outputSet,
-            iptc = iptc
-        )
+            outputWriter.write(JpegConstants.SOI)
+
+            for (segment in updatedSegments)
+                segment.write(outputWriter)
+        }
     }
 
     @Throws(ImageWriteException::class)
@@ -156,27 +147,52 @@ internal object JpegUpdater : MetadataUpdater {
 
     /**
      * Applies the orientation losslessly by swapping the orientation value
-     * byte in the given bytes in place, if an orientation field exists.
+     * byte in the EXIF segment of the given segments, if an orientation
+     * field exists.
      *
      * Returns whether the swap was performed.
      */
     private fun tryLosslessOrientationUpdate(
-        inputBytes: ByteArray,
+        segments: MutableList<JFIFPieceSegment>,
         tiffOrientation: TiffOrientation
     ): Boolean {
 
-        val byteReader = ByteArrayByteReader(inputBytes)
+        val exifSegmentIndex = segments.indexOfFirst(JFIFPieceSegment::isExifSegment)
 
-        val orientationOffset = JpegOrientationOffsetFinder.findOrientationOffset(byteReader)
+        if (exifSegmentIndex == -1)
+            return false
 
-        if (orientationOffset != null) {
+        val exifSegment = segments[exifSegmentIndex]
 
-            inputBytes[orientationOffset.toInt()] = tiffOrientation.value.toByte()
+        /*
+         * The offset finder works on the raw file bytes, so the SOI and the
+         * segments up to and including the EXIF segment are rebuilt. This is
+         * cheap, because only the header is involved.
+         */
+        val headerByteWriter = ByteArrayByteWriter()
 
-            return true
-        }
+        headerByteWriter.write(JpegConstants.SOI)
 
-        return false
+        for (segment in segments.take(exifSegmentIndex + 1))
+            segment.write(headerByteWriter)
+
+        val headerBytes = headerByteWriter.toByteArray()
+
+        val orientationOffset = JpegOrientationOffsetFinder
+            .findOrientationOffset(ByteArrayByteReader(headerBytes))
+            ?: return false
+
+        val exifContentOffset = headerBytes.size - exifSegment.segmentBytes.size
+
+        val relativeOffset = (orientationOffset - exifContentOffset).toInt()
+
+        val patchedExifBytes = exifSegment.segmentBytes.copyOf()
+
+        patchedExifBytes[relativeOffset] = tiffOrientation.value.toByte()
+
+        segments[exifSegmentIndex] = JFIFPieceSegment(exifSegment.marker, patchedExifBytes)
+
+        return true
     }
 
     /**

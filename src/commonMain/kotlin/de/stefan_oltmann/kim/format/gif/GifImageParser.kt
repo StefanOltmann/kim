@@ -102,6 +102,22 @@ public object GifImageParser : ImageParser {
         )
     }
 
+    /**
+     * Returns the XMP of the given GIF chunks, or NULL for GIF87A files
+     * that cannot store XMP.
+     */
+    internal fun parseXmp(chunks: List<GifChunk>): String? {
+
+        val headerChunk = chunks.filterIsInstance<GifChunkHeader>().firstOrNull()
+            ?: return null
+
+        /* Only GIF89A supports XMP metadata */
+        if (headerChunk.version != GifVersion.GIF89A)
+            return null
+
+        return getXmpXml(chunks)
+    }
+
     private fun getXmpXml(chunks: List<GifChunk>): String? = chunks
         .filterIsInstance<GifChunkApplicationExtension>()
         .firstOrNull { it.applicationIdentifier == GifConstants.XMP_APPLICATION_IDENTIFIER }
@@ -159,6 +175,61 @@ public object GifImageParser : ImageParser {
         }
 
         return chunks
+    }
+
+    /**
+     * Reads the GIF chunks up to the first image descriptor, so the image
+     * data can be streamed afterwards without buffering the whole file.
+     *
+     * The image separator byte of the first image is consumed by the reader
+     * but belongs to the streamed image data, so callers must write it to
+     * the output before streaming.
+     */
+    internal fun readChunksBeforeImage(byteReader: ByteReader): List<GifChunk> {
+
+        val chunks = mutableListOf<GifChunk>()
+
+        /* Read header chunk */
+        val headerBytes = byteReader.readBytes(6)
+
+        chunks.add(GifChunkHeader(headerBytes))
+
+        /* Read logical screen descriptor chunk */
+        val logicalScreenDescriptorBytes = byteReader.readBytes(7)
+        val logicalScreenDescriptorChunk = GifChunkLogicalScreenDescriptor(logicalScreenDescriptorBytes)
+
+        chunks.add(logicalScreenDescriptorChunk)
+
+        /* Read global color table chunk if present */
+        if (logicalScreenDescriptorChunk.globalColorTableFlag) {
+
+            val globalColorTableSize = 3 * (1 shl (logicalScreenDescriptorChunk.globalColorTableSize + 1))
+
+            val globalColorTableBytes = byteReader.readBytes(globalColorTableSize)
+
+            chunks.add(GifChunk(GifChunkType.GLOBAL_COLOR_TABLE, globalColorTableBytes))
+        }
+
+        /* Read extension chunks until the first image starts. */
+        while (true) {
+
+            when (byteReader.readByte("introducer")) {
+
+                GifConstants.IMAGE_SEPARATOR -> return chunks
+
+                GifConstants.EXTENSION_INTRODUCER -> {
+
+                    readExtensionChunk(byteReader, chunkTypeFilter = null)?.let(chunks::add)
+                }
+
+                GifConstants.GIF_TERMINATOR -> {
+
+                    chunks.add(GifChunkTerminator(byteArrayOf(GifConstants.GIF_TERMINATOR)))
+
+                    return chunks
+                }
+            }
+        }
     }
 
     private fun readImageChunks(

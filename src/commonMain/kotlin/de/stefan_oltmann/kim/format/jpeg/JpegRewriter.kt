@@ -48,14 +48,22 @@ public object JpegRewriter {
 
         val allPieces = mutableListOf<JFIFPiece>()
 
-        val visitor: JpegVisitor = object : JpegVisitor {
+        val visitor = object : JpegVisitor {
+
+            var sosMarkerBytes: ByteArray? = null
+
+            val imageDataWriter = ByteArrayByteWriter()
 
             /* Read the whole file. */
             override fun beginSOS(): Boolean =
                 true
 
-            override fun visitSOS(marker: Int, markerBytes: ByteArray, imageData: ByteArray) {
-                allPieces.add(JFIFPieceImageData(markerBytes, imageData))
+            override fun visitSOS(markerBytes: ByteArray) {
+                sosMarkerBytes = markerBytes
+            }
+
+            override fun visitImageData(chunk: ByteArray) {
+                imageDataWriter.write(chunk)
             }
 
             override fun visitSegment(
@@ -73,6 +81,11 @@ public object JpegRewriter {
         }
 
         JpegUtils.traverseJFIF(byteReader, visitor)
+
+        val sosMarkerBytes = visitor.sosMarkerBytes
+
+        if (sosMarkerBytes != null)
+            allPieces.add(JFIFPieceImageData(sosMarkerBytes, visitor.imageDataWriter.toByteArray()))
 
         return allPieces
     }
@@ -307,26 +320,75 @@ public object JpegRewriter {
     }
 
     /**
-     * Updates the XMP, EXIF and IPTC metadata of a JPEG in a single pass and
-     * writes the result to the given stream.
+     * Streams a JPEG from the given reader to the given writer, so the
+     * updateComputer can rewrite the header once the SOS marker is reached.
      *
-     * A parameter of NULL leaves the corresponding metadata unchanged.
+     * The updateComputer receives the collected header segments and the
+     * output writer, and must write the complete header (SOI and all
+     * segments) to it. The image data behind the SOS marker is then streamed
+     * in bounded chunks, so the whole file never has to be buffered in memory.
      */
-    @JvmStatic
-    public fun updateMetadata(
+    internal fun updateMetadataStreaming(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
+        updateComputer: (MutableList<JFIFPieceSegment>, ByteWriter) -> Unit
+    ) {
+
+        val segments = mutableListOf<JFIFPieceSegment>()
+
+        val visitor: JpegVisitor = object : JpegVisitor {
+
+            override fun beginSOS(): Boolean {
+
+                updateComputer(segments, byteWriter)
+
+                /* Continue reading, so the image data is streamed. */
+                return true
+            }
+
+            override fun visitSOS(markerBytes: ByteArray) {
+                byteWriter.write(markerBytes)
+            }
+
+            override fun visitImageData(chunk: ByteArray) {
+                byteWriter.write(chunk)
+            }
+
+            override fun visitSegment(
+                marker: Int,
+                markerBytes: ByteArray,
+                segmentLength: Int,
+                segmentLengthBytes: ByteArray,
+                segmentBytes: ByteArray
+            ): Boolean {
+
+                segments.add(JFIFPieceSegment(marker, markerBytes, segmentLengthBytes, segmentBytes))
+
+                return true
+            }
+        }
+
+        JpegUtils.traverseJFIF(byteReader, visitor)
+    }
+
+    /**
+     * Applies the given XMP, EXIF and IPTC updates to the given segments.
+     *
+     * A NULL value leaves the corresponding metadata unchanged.
+     */
+    internal fun applyMetadataUpdates(
+        segments: List<JFIFPiece>,
         xmpXml: String?,
         outputSet: TiffOutputSet?,
         iptc: IptcMetadata?
-    ) {
+    ): List<JFIFPiece> {
 
-        var segments = readSegments(byteReader)
+        var updatedSegments = segments
 
         if (xmpXml != null) {
 
-            segments = insertAfterLastAppSegments(
-                segments.filterNot { segment ->
+            updatedSegments = insertAfterLastAppSegments(
+                updatedSegments.filterNot { segment ->
                     segment is JFIFPieceSegment && segment.isXmpSegment()
                 },
                 createXmpSegments(xmpXml)
@@ -334,17 +396,20 @@ public object JpegRewriter {
         }
 
         if (outputSet != null)
-            segments = replaceExifSegments(segments, createExifSegmentBytes(segments, outputSet))
+            updatedSegments = replaceExifSegments(
+                updatedSegments,
+                createExifSegmentBytes(updatedSegments, outputSet)
+            )
 
         if (iptc != null) {
 
-            segments = insertAfterLastAppSegments(
-                segments.filterNot { piece -> piece is JFIFPieceSegment && piece.isIptcSegment() },
+            updatedSegments = insertAfterLastAppSegments(
+                updatedSegments.filterNot { piece -> piece is JFIFPieceSegment && piece.isIptcSegment() },
                 createIptcSegments(iptc)
             )
         }
 
-        writeSegments(byteWriter, segments)
+        return updatedSegments
     }
 
     private fun createXmpSegments(xmpXml: String): List<JFIFPieceSegment> {

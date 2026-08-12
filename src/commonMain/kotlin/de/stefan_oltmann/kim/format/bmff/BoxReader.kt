@@ -54,6 +54,11 @@ public object BoxReader {
      * @param stopAfterMetadataRead If reading the file for metadata on the highest level we
      * want to stop reading after the top-level meta boxes to prevent reading the whole image data
      * block in. For iPhone HEIC this is possible, but Samsung HEIC has "meta" coming after "mdat"
+     * @param stopBeforeImageData If reading a JPEG XL file for an update we want to stop reading
+     * before the image data starts, so the image data can be streamed without buffering the whole
+     * file. The first JXLP box contains the codestream header, so every following JXLP box is
+     * image data. The cut box is returned with an empty payload, because its content is streamed
+     * by the caller.
      * @param positionOffset The position where to start reading boxes
      * @param offsetShift The shift to apply to the reported box offsets
      * @param updatePosition A callback to report the position when reading has finished
@@ -65,6 +70,7 @@ public object BoxReader {
     public fun readBoxes(
         byteReader: ByteReader,
         stopAfterMetadataRead: Boolean = false,
+        stopBeforeImageData: Boolean = false,
         positionOffset: Long = 0,
         offsetShift: Long = 0,
         updatePosition: ((Long) -> Unit)? = null,
@@ -76,6 +82,8 @@ public object BoxReader {
         var haveSeenTopLevelMetaBox = false
 
         var haveSeenXmpDataInUuid = false
+
+        var haveSeenJxlpBox = false
 
         val boxes = mutableListOf<Box>()
 
@@ -128,6 +136,18 @@ public object BoxReader {
                 else -> size
             }
 
+            /*
+             * The first JXLP box contains the codestream header, so every
+             * following JXLP box is image data. It is returned with an empty
+             * payload, because the caller streams its content.
+             */
+            if (stopBeforeImageData && type == BoxType.JXLP && haveSeenJxlpBox) {
+
+                boxes.add(Box(type, offset, size, largeSize, ByteArray(0)))
+
+                break
+            }
+
             val nextBoxOffset = offset + actualLength
 
             @Suppress("MagicNumber")
@@ -173,6 +193,9 @@ public object BoxReader {
             }
 
             boxes.add(box)
+
+            if (type == BoxType.JXLP)
+                haveSeenJxlpBox = true
 
             if (stopAfterMetadataRead) {
 

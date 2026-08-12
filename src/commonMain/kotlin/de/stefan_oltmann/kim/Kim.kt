@@ -172,12 +172,6 @@ public object Kim {
 
     /**
      * Updates the file with the desired change.
-     *
-     * **Note**: This method is provided for convenience, but it's not recommended for
-     * very large image files that should not be entirely loaded into memory.
-     * Currently, the update logic reads the entire file, which may not be efficient
-     * for large files. Please be aware that this behavior is subject to change in
-     * future updates.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -192,12 +186,6 @@ public object Kim {
      *
      * Every update is applied to all formats that can represent it, so EXIF,
      * IPTC and XMP can be updated simultaneously in a single call.
-     *
-     * **Note**: This method is provided for convenience, but it's not recommended for
-     * very large image files that should not be entirely loaded into memory.
-     * Currently, the update logic reads the entire file, which may not be efficient
-     * for large files. Please be aware that this behavior is subject to change in
-     * future updates.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -226,12 +214,6 @@ public object Kim {
 
     /**
      * Updates the file with the desired change.
-     *
-     * **Note**: This method is provided for convenience, but it's not recommended for
-     * very large image files that should not be entirely loaded into memory.
-     * Currently, the update logic reads the entire file, which may not be efficient
-     * for large files. Please be aware that this behavior is subject to change in
-     * future updates.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -247,12 +229,6 @@ public object Kim {
      *
      * Every update is applied to all formats that can represent it, so EXIF,
      * IPTC and XMP can be updated simultaneously in a single call.
-     *
-     * **Note**: This method is provided for convenience, but it's not recommended for
-     * very large image files that should not be entirely loaded into memory.
-     * Currently, the update logic reads the entire file, which may not be efficient
-     * for large files. Please be aware that this behavior is subject to change in
-     * future updates.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)

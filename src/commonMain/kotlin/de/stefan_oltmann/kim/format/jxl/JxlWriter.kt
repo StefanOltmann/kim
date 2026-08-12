@@ -24,6 +24,7 @@ import de.stefan_oltmann.kim.format.bmff.box.Box
 import de.stefan_oltmann.kim.format.jxl.box.CompressedBox
 import de.stefan_oltmann.kim.format.jxl.box.JxlParticalCodestreamBox
 import de.stefan_oltmann.kim.input.ByteReader
+import de.stefan_oltmann.kim.input.copyRemainingTo
 import de.stefan_oltmann.kim.output.ByteWriter
 import de.stefan_oltmann.kim.output.writeInt
 import de.stefan_oltmann.kim.output.writeLong
@@ -55,6 +56,29 @@ public object JxlWriter {
         exifBytes = exifBytes,
         xmp = xmp
     )
+
+    /**
+     * Streams a JPEG XL file from the given reader to the given writer, so
+     * the updateComputer can rewrite the header boxes once the image data
+     * starts.
+     *
+     * The updateComputer receives the boxes before the image data and the
+     * output writer, and must write the complete header (all boxes) to it.
+     * The image data behind the cut box is then streamed in bounded chunks,
+     * so the whole file never has to be buffered in memory.
+     */
+    internal fun writeImageStreaming(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter,
+        updateComputer: (List<Box>, ByteWriter) -> Unit
+    ) {
+
+        val boxes = BoxReader.readBoxes(byteReader, stopBeforeImageData = true)
+
+        updateComputer(boxes, byteWriter)
+
+        byteReader.copyRemainingTo(byteWriter)
+    }
 
     @JvmStatic
     public fun writeImage(

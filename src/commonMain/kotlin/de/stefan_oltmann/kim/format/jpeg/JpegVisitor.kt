@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -16,16 +17,26 @@
  */
 package de.stefan_oltmann.kim.format.jpeg
 
+/**
+ * Callback interface for the JPEG traversal.
+ *
+ * The image data behind the SOS marker is streamed in bounded chunks via
+ * [visitImageData], so callers never have to buffer the whole file.
+ */
 internal interface JpegVisitor {
 
     /** Return false to exit before reading image data. */
     fun beginSOS(): Boolean
 
-    fun visitSOS(
-        marker: Int,
-        markerBytes: ByteArray,
-        imageData: ByteArray
-    )
+    /** Called with the SOS marker bytes right before the image data is streamed. */
+    fun visitSOS(markerBytes: ByteArray) {
+        /* No image data handling. */
+    }
+
+    /** Receives a chunk of the image data that follows the SOS marker. */
+    fun visitImageData(chunk: ByteArray) {
+        /* No image data handling. */
+    }
 
     /** Return false to exit traversal. */
     fun visitSegment(

@@ -41,6 +41,8 @@ import de.stefan_oltmann.kim.input.readAndVerifyBytes
 import de.stefan_oltmann.kim.input.readBytes
 import de.stefan_oltmann.kim.input.skipBytes
 import de.stefan_oltmann.kim.model.MediaFormat
+import de.stefan_oltmann.kim.output.ByteWriter
+import de.stefan_oltmann.kim.output.writeInt
 import kotlin.jvm.JvmStatic
 
 /**
@@ -287,16 +289,7 @@ public object PngImageParser : ImageParser {
 
                 requireNotNull(bytes)
 
-                val chunk = when (chunkType) {
-                    PngChunkType.TEXT -> PngChunkText(PngChunkType.TEXT, bytes, crc)
-                    PngChunkType.ZTXT -> PngChunkZtxt(bytes, crc)
-                    PngChunkType.IHDR -> PngChunkIhdr(bytes, crc)
-                    PngChunkType.ITXT -> PngChunkItxt(bytes, crc)
-                    PngChunkType.EXIF -> PngChunkExif(bytes, crc)
-                    else -> PngChunk(chunkType, bytes, crc)
-                }
-
-                chunks.add(chunk)
+                chunks.add(createChunk(chunkType, bytes, crc))
             }
 
             if (PngChunkType.IEND == chunkType)
@@ -305,4 +298,63 @@ public object PngImageParser : ImageParser {
 
         return chunks
     }
+
+    /**
+     * Reads the PNG chunks up to the start of the image data, so the image
+     * data can be streamed afterwards without buffering the whole file.
+     *
+     * The length and type field of the first IDAT chunk are written to the
+     * given writer, because they are consumed by the reader but belong to
+     * the streamed image data.
+     */
+    internal fun readChunksUntilImageData(
+        byteReader: ByteReader,
+        imageDataHeaderWriter: ByteWriter
+    ): List<PngChunk> {
+
+        readAndVerifySignature(byteReader)
+
+        val chunks = mutableListOf<PngChunk>()
+
+        while (true) {
+
+            val length = byteReader.read4BytesAsInt("chunk length", PNG_BYTE_ORDER)
+
+            if (length < 0)
+                throw ImageReadException("Invalid PNG chunk length: $length")
+
+            val chunkType = PngChunkType.of(
+                byteReader.readBytes("chunk type", PngConstants.TPYE_LENGTH)
+            )
+
+            if (chunkType == PngChunkType.IDAT) {
+
+                imageDataHeaderWriter.writeInt(length, PNG_BYTE_ORDER)
+                imageDataHeaderWriter.write(chunkType.bytes)
+
+                break
+            }
+
+            val bytes = byteReader.readBytes("chunk data", length)
+
+            val crc = byteReader.read4BytesAsInt("crc", PNG_BYTE_ORDER)
+
+            chunks.add(createChunk(chunkType, bytes, crc))
+
+            if (PngChunkType.IEND == chunkType)
+                break
+        }
+
+        return chunks
+    }
+
+    private fun createChunk(chunkType: PngChunkType, bytes: ByteArray, crc: Int): PngChunk =
+        when (chunkType) {
+            PngChunkType.TEXT -> PngChunkText(PngChunkType.TEXT, bytes, crc)
+            PngChunkType.ZTXT -> PngChunkZtxt(bytes, crc)
+            PngChunkType.IHDR -> PngChunkIhdr(bytes, crc)
+            PngChunkType.ITXT -> PngChunkItxt(bytes, crc)
+            PngChunkType.EXIF -> PngChunkExif(bytes, crc)
+            else -> PngChunk(chunkType, bytes, crc)
+        }
 }

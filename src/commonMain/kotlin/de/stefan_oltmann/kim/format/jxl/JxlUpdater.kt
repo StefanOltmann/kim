@@ -42,45 +42,43 @@ internal object JxlUpdater : MetadataUpdater {
         updates: Set<MetadataUpdate>
     ) = tryWithImageWriteException {
 
-        val allBoxes = BoxReader.readBoxes(
-            byteReader = byteReader,
-            stopAfterMetadataRead = false
-        )
+        JxlWriter.writeImageStreaming(byteReader, byteWriter) { boxes, outputWriter ->
 
-        val metadata = JxlReader.createMetadata(allBoxes)
+            val metadata = JxlReader.createMetadata(boxes)
 
-        val xmpMeta: XMPMeta = if (metadata.xmp != null)
-            XMPMetaFactory.parseFromString(metadata.xmp)
-        else
-            XMPMetaFactory.create()
+            val xmpMeta: XMPMeta = if (metadata.xmp != null)
+                XMPMetaFactory.parseFromString(metadata.xmp)
+            else
+                XMPMetaFactory.create()
 
-        val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
+            val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
 
-        val outputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
+            val outputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
 
-        val exifBytes: ByteArray? = if (outputSet.applyUpdates(updates)) {
+            val exifBytes: ByteArray? = if (outputSet.applyUpdates(updates)) {
 
-            val exifBytesWriter = ByteArrayByteWriter()
+                val exifBytesWriter = ByteArrayByteWriter()
 
-            TiffWriterBase
-                .createTiffWriter(
-                    byteOrder = outputSet.byteOrder,
-                    oldExifBytes = metadata.exifBytes
-                )
-                .write(exifBytesWriter, outputSet)
+                TiffWriterBase
+                    .createTiffWriter(
+                        byteOrder = outputSet.byteOrder,
+                        oldExifBytes = metadata.exifBytes
+                    )
+                    .write(exifBytesWriter, outputSet)
 
-            exifBytesWriter.toByteArray()
+                exifBytesWriter.toByteArray()
 
-        } else {
-            null
+            } else {
+                null
+            }
+
+            JxlWriter.writeImage(
+                boxes = boxes,
+                byteWriter = outputWriter,
+                exifBytes = exifBytes,
+                xmp = updatedXmp
+            )
         }
-
-        JxlWriter.writeImage(
-            boxes = allBoxes,
-            byteWriter = byteWriter,
-            exifBytes = exifBytes,
-            xmp = updatedXmp
-        )
     }
 
     @Throws(ImageWriteException::class)

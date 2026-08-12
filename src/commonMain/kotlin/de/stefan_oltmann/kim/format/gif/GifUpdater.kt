@@ -20,6 +20,7 @@ package de.stefan_oltmann.kim.format.gif
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MetadataUpdater
+import de.stefan_oltmann.kim.format.gif.chunk.GifChunkApplicationExtension
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.model.MetadataUpdate
@@ -35,22 +36,29 @@ internal object GifUpdater : MetadataUpdater {
         updates: Set<MetadataUpdate>
     ) = tryWithImageWriteException {
 
-        val chunks = GifImageParser.readChunks(byteReader, chunkTypeFilter = null)
+        GifWriter.writeImageStreaming(byteReader, byteWriter) { chunks, outputWriter ->
 
-        val metadata = GifImageParser.parseMetadataFromChunks(chunks)
+            val xmp = GifImageParser.parseXmp(chunks)
 
-        val xmpMeta: XMPMeta = if (metadata.xmp != null)
-            XMPMetaFactory.parseFromString(metadata.xmp)
-        else
-            XMPMetaFactory.create()
+            val xmpMeta: XMPMeta = if (xmp != null)
+                XMPMetaFactory.parseFromString(xmp)
+            else
+                XMPMetaFactory.create()
 
-        val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
+            val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
 
-        GifWriter.writeImage(
-            chunks = chunks,
-            byteWriter = byteWriter,
-            xmp = updatedXmp
-        )
+            val modifiedChunks = chunks.toMutableList()
+
+            modifiedChunks.removeAll { chunk ->
+                chunk is GifChunkApplicationExtension &&
+                    chunk.applicationIdentifier == GifConstants.XMP_APPLICATION_IDENTIFIER
+            }
+
+            for (chunk in modifiedChunks)
+                outputWriter.write(chunk.bytes)
+
+            GifWriter.writeXmpChunk(outputWriter, updatedXmp)
+        }
     }
 
     override fun updateThumbnail(bytes: ByteArray, thumbnailBytes: ByteArray): ByteArray {

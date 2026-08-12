@@ -20,6 +20,7 @@ package de.stefan_oltmann.kim.format.gif
 import de.stefan_oltmann.kim.format.gif.chunk.GifChunk
 import de.stefan_oltmann.kim.format.gif.chunk.GifChunkApplicationExtension
 import de.stefan_oltmann.kim.input.ByteReader
+import de.stefan_oltmann.kim.input.copyRemainingTo
 import de.stefan_oltmann.kim.output.ByteWriter
 import de.stefan_oltmann.kim.output.writeString
 
@@ -37,6 +38,35 @@ public object GifWriter {
         byteWriter = byteWriter,
         xmp = xmp
     )
+
+    /**
+     * Streams a GIF from the given reader to the given writer, so the
+     * updateComputer can rewrite the header chunks once the first image
+     * starts.
+     *
+     * The updateComputer receives the chunks before the first image and the
+     * output writer, and must write the complete header (all chunks) to it.
+     * The image data behind the first image separator is then streamed in
+     * bounded chunks, so the whole file never has to be buffered in memory.
+     */
+    internal fun writeImageStreaming(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter,
+        updateComputer: (List<GifChunk>, ByteWriter) -> Unit
+    ) {
+
+        val chunks = GifImageParser.readChunksBeforeImage(byteReader)
+
+        updateComputer(chunks, byteWriter)
+
+        /*
+         * The image separator byte was consumed while looking for the first
+         * image and belongs to the streamed image data.
+         */
+        byteWriter.write(GifConstants.IMAGE_SEPARATOR)
+
+        byteReader.copyRemainingTo(byteWriter)
+    }
 
     public fun writeImage(
         chunks: List<GifChunk>,
@@ -66,7 +96,7 @@ public object GifWriter {
         }
     }
 
-    private fun writeXmpChunk(byteWriter: ByteWriter, xmpXml: String) {
+    internal fun writeXmpChunk(byteWriter: ByteWriter, xmpXml: String) {
 
         byteWriter.write(GifConstants.EXTENSION_INTRODUCER)
         byteWriter.write(GifConstants.APPLICATION_EXTENSION_LABEL)
