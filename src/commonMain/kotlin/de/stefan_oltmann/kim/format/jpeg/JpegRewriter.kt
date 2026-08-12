@@ -44,10 +44,9 @@ import kotlin.jvm.JvmStatic
  */
 public object JpegRewriter {
 
-    private fun readSegments(byteReader: ByteReader): JFIFPieces {
+    private fun readSegments(byteReader: ByteReader): List<JFIFPiece> {
 
         val allPieces = mutableListOf<JFIFPiece>()
-        val segmentPieces = mutableListOf<JFIFPiece>()
 
         val visitor: JpegVisitor = object : JpegVisitor {
 
@@ -67,10 +66,7 @@ public object JpegRewriter {
                 segmentBytes: ByteArray
             ): Boolean {
 
-                val piece: JFIFPiece = JFIFPieceSegment(marker, markerBytes, segmentLengthBytes, segmentBytes)
-
-                allPieces.add(piece)
-                segmentPieces.add(piece)
+                allPieces.add(JFIFPieceSegment(marker, markerBytes, segmentLengthBytes, segmentBytes))
 
                 return true
             }
@@ -78,7 +74,7 @@ public object JpegRewriter {
 
         JpegUtils.traverseJFIF(byteReader, visitor)
 
-        return JFIFPieces(allPieces, segmentPieces)
+        return allPieces
     }
 
     private fun insertAfterLastAppSegments(
@@ -109,103 +105,110 @@ public object JpegRewriter {
     }
 
     @JvmStatic
-    public fun updateExifMetadataLossless(byteReader: ByteReader, byteWriter: ByteWriter, outputSet: TiffOutputSet) {
+    public fun updateExifMetadataLossless(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter,
+        outputSet: TiffOutputSet
+    ) {
 
-        val (oldSegments, segmentPieces) = readSegments(byteReader)
+        val segments = readSegments(byteReader)
 
-        val oldSegmentsWithoutExif =
-            oldSegments.filterNot { piece -> piece is JFIFPieceSegment && piece.isExifSegment() }
+        writeSegments(
+            byteWriter = byteWriter,
+            segments = replaceExifSegments(segments, createExifSegmentBytes(segments, outputSet))
+        )
+    }
+
+    /**
+     * Returns the payload of the new EXIF APP1 segment for the given output set.
+     *
+     * If the JPEG contains an EXIF segment already, its bytes are reused as the
+     * base of a lossless TIFF rewrite, otherwise a lossy writer is used.
+     */
+    private fun createExifSegmentBytes(
+        segments: List<JFIFPiece>,
+        outputSet: TiffOutputSet
+    ): ByteArray {
 
         val exifSegmentPieces =
-            segmentPieces.filterIsInstance<JFIFPieceSegment>().filter(JFIFPieceSegment::isExifSegment)
+            segments.filterIsInstance<JFIFPieceSegment>().filter(JFIFPieceSegment::isExifSegment)
 
-        val writer: TiffWriterBase
-
-        if (exifSegmentPieces.isNotEmpty()) {
+        val writer: TiffWriterBase = if (exifSegmentPieces.isNotEmpty()) {
 
             val exifPiece = exifSegmentPieces.first()
 
             val exifBytes = exifPiece.segmentBytes.getRemainingBytes(JpegConstants.EXIF_IDENTIFIER_CODE.size)
 
-            writer = TiffWriterLossless(outputSet.byteOrder, exifBytes)
+            TiffWriterLossless(outputSet.byteOrder, exifBytes)
 
         } else {
 
-            writer = TiffWriterLossy(outputSet.byteOrder)
+            TiffWriterLossy(outputSet.byteOrder)
         }
 
-        val newBytes = writeExifSegment(writer, outputSet)
-
-        writeSegmentsReplacingExif(byteWriter, oldSegmentsWithoutExif, newBytes)
+        return writeExifSegment(writer, outputSet)
     }
 
-    @JvmStatic
-    private fun writeSegmentsReplacingExif(
-        byteWriter: ByteWriter,
-        oldSegments: List<JFIFPiece>,
+    /**
+     * Removes all EXIF segments from the given segments and returns them with
+     * the new EXIF segment inserted after the JFIF segment.
+     *
+     * A NULL payload deletes the EXIF data instead, so the segments are
+     * returned without any EXIF segment.
+     */
+    private fun replaceExifSegments(
+        segments: List<JFIFPiece>,
         newBytes: ByteArray?
-    ) {
+    ): List<JFIFPiece> {
 
-        val newSegments = oldSegments.toMutableList()
+        val oldSegmentsWithoutExif =
+            segments.filterNot { piece -> piece is JFIFPieceSegment && piece.isExifSegment() }
+
+        /*
+         * A NULL payload means the EXIF data is deleted, so the EXIF-free
+         * segments can be returned as they are.
+         */
+        if (newBytes == null)
+            return oldSegmentsWithoutExif
+
+        if (newBytes.size > JpegConstants.MAX_PAYLOAD_BYTES_PER_SEGMENT)
+            throw ImageWriteException("APP1 Segment is too long: " + newBytes.size)
+
+        val markerBytes = JpegConstants.JPEG_APP1_MARKER.toShort().toBytes(JPEG_BYTE_ORDER)
+
+        val markerLength = newBytes.size + 2
+        val markerLengthBytes = markerLength.toShort().toBytes(JPEG_BYTE_ORDER)
+
+        val newSegments = oldSegmentsWithoutExif.toMutableList()
+
+        var index = 0
+
+        val firstSegment = newSegments[index] as JFIFPieceSegment
+
+        /*
+         * The JFIF APP0 segment must remain the first segment after SOI, so
+         * the EXIF segment is inserted behind it. Without a JFIF segment the
+         * EXIF segment becomes the first segment of the file.
+         */
+        if (firstSegment.marker == JpegConstants.JFIF_MARKER)
+            index = 1
+
+        val exifSegment = JFIFPieceSegmentExif(JpegConstants.JPEG_APP1_MARKER, markerBytes, markerLengthBytes, newBytes)
+
+        newSegments.add(index, exifSegment)
+
+        return newSegments
+    }
+
+    /**
+     * Writes the given segments prefixed with the JPEG start-of-image marker (SOI).
+     */
+    private fun writeSegments(byteWriter: ByteWriter, segments: List<JFIFPiece>) {
 
         byteWriter.write(JpegConstants.SOI)
 
-        if (newBytes != null) {
-
-            if (newBytes.size > JpegConstants.MAX_PAYLOAD_BYTES_PER_SEGMENT)
-                throw ImageWriteException("APP1 Segment is too long: " + newBytes.size)
-
-            val markerBytes = JpegConstants.JPEG_APP1_MARKER.toShort().toBytes(JPEG_BYTE_ORDER)
-
-            val markerLength = newBytes.size + 2
-            val markerLengthBytes = markerLength.toShort().toBytes(JPEG_BYTE_ORDER)
-            var index = 0
-
-            val firstSegment = newSegments[index] as JFIFPieceSegment
-
-            if (firstSegment.marker == JpegConstants.JFIF_MARKER)
-                index = 1
-
-            val exifSegment =
-                JFIFPieceSegmentExif(JpegConstants.JPEG_APP1_MARKER, markerBytes, markerLengthBytes, newBytes)
-
-            newSegments.add(index, exifSegment)
-        }
-
-        var app1Written = false
-
-        @Suppress("LoopWithTooManyJumpStatements")
-        for (piece in newSegments) {
-
-            if (piece is JFIFPieceSegmentExif) {
-
-                /* Only replace first APP1 segment; skips others. */
-                if (app1Written)
-                    continue
-
-                app1Written = true
-
-                /* It's NULL if the user wants to delete EXIF */
-                if (newBytes == null)
-                    continue
-
-                if (newBytes.size > JpegConstants.MAX_PAYLOAD_BYTES_PER_SEGMENT)
-                    throw ImageWriteException("APP1 Segment is too long: " + newBytes.size)
-
-                val markerBytes = JpegConstants.JPEG_APP1_MARKER.toShort().toBytes(JPEG_BYTE_ORDER)
-
-                val markerLength = newBytes.size + 2
-                val markerLengthBytes = markerLength.toShort().toBytes(JPEG_BYTE_ORDER)
-
-                byteWriter.write(markerBytes)
-                byteWriter.write(markerLengthBytes)
-                byteWriter.write(newBytes)
-
-            } else {
-
-                piece.write(byteWriter)
-            }
-        }
+        for (piece in segments)
+            piece.write(byteWriter)
     }
 
     private fun writeExifSegment(
@@ -230,7 +233,22 @@ public object JpegRewriter {
     @JvmStatic
     public fun writeIPTC(byteReader: ByteReader, byteWriter: ByteWriter, metadata: IptcMetadata) {
 
-        val oldPieces = readSegments(byteReader).allPieces
+        val segments = readSegments(byteReader)
+
+        writeSegments(
+            byteWriter = byteWriter,
+            segments = insertAfterLastAppSegments(
+                segments.filterNot { piece -> piece is JFIFPieceSegment && piece.isIptcSegment() },
+                createIptcSegments(metadata)
+            )
+        )
+    }
+
+    /**
+     * Returns the APP13 segments for the given IPTC metadata, split across
+     * multiple segments when the payload exceeds one segment.
+     */
+    private fun createIptcSegments(metadata: IptcMetadata): List<JFIFPieceSegment> {
 
         val newBlock = IptcBlock(
             blockType = IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DATA,
@@ -240,22 +258,9 @@ public object JpegRewriter {
 
         val mergedBlocks = metadata.nonIptcBlocks + newBlock
 
-        val newApp13Segments = createApp13Segments(
+        return createApp13Segments(
             IptcWriter.writeIptcBlocks(mergedBlocks, includeApp13Identifier = false)
         )
-
-        val oldPiecesWithoutApp13Segments =
-            oldPieces.filterNot { piece -> piece is JFIFPieceSegment && piece.isIptcSegment() }
-
-        val mergedPieces = insertAfterLastAppSegments(
-            oldPiecesWithoutApp13Segments,
-            newApp13Segments
-        )
-
-        byteWriter.write(JpegConstants.SOI)
-
-        for (piece in mergedPieces)
-            piece.write(byteWriter)
     }
 
     /**
@@ -288,24 +293,58 @@ public object JpegRewriter {
         xmpXml: String
     ) {
 
-        val (segments, _) = readSegments(byteReader)
+        val segments = readSegments(byteReader)
 
-        val segmentsWithoutXmp = segments.filterNot { segment ->
-            segment is JFIFPieceSegment && segment.isXmpSegment()
-        }
-
-        val newSegments = createXmpSegments(xmpXml)
-
-        val mergedPieces = insertAfterLastAppSegments(
-            segmentsWithoutXmp,
-            newSegments
+        writeSegments(
+            byteWriter = byteWriter,
+            segments = insertAfterLastAppSegments(
+                segments.filterNot { segment ->
+                    segment is JFIFPieceSegment && segment.isXmpSegment()
+                },
+                createXmpSegments(xmpXml)
+            )
         )
+    }
 
-        byteWriter.write(JpegConstants.SOI)
+    /**
+     * Updates the XMP, EXIF and IPTC metadata of a JPEG in a single pass and
+     * writes the result to the given stream.
+     *
+     * A parameter of NULL leaves the corresponding metadata unchanged.
+     */
+    @JvmStatic
+    public fun updateMetadata(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter,
+        xmpXml: String?,
+        outputSet: TiffOutputSet?,
+        iptc: IptcMetadata?
+    ) {
 
-        mergedPieces.forEach { piece ->
-            piece.write(byteWriter)
+        var segments = readSegments(byteReader)
+
+        if (xmpXml != null) {
+
+            segments = insertAfterLastAppSegments(
+                segments.filterNot { segment ->
+                    segment is JFIFPieceSegment && segment.isXmpSegment()
+                },
+                createXmpSegments(xmpXml)
+            )
         }
+
+        if (outputSet != null)
+            segments = replaceExifSegments(segments, createExifSegmentBytes(segments, outputSet))
+
+        if (iptc != null) {
+
+            segments = insertAfterLastAppSegments(
+                segments.filterNot { piece -> piece is JFIFPieceSegment && piece.isIptcSegment() },
+                createIptcSegments(iptc)
+            )
+        }
+
+        writeSegments(byteWriter, segments)
     }
 
     private fun createXmpSegments(xmpXml: String): List<JFIFPieceSegment> {
@@ -331,9 +370,4 @@ public object JpegRewriter {
                 JFIFPieceSegment(JpegConstants.JPEG_APP1_MARKER, segmentBytes)
             }
     }
-
-    private data class JFIFPieces(
-        val allPieces: List<JFIFPiece>,
-        val segmentPieces: List<JFIFPiece>
-    )
 }

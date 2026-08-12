@@ -19,6 +19,7 @@ import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -47,6 +48,38 @@ class KimEdgeCasesTest {
             Kim.update(
                 bytes = unknownFormatBytes,
                 update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT)
+            )
+        }
+    }
+
+    @Test
+    fun testUpdateWithEmptyUpdateSetIsRejected() {
+
+        /*
+         * An update call without any updates makes no sense, so the library
+         * must refuse it instead of silently returning the unchanged file.
+         * The guard fires before format detection, hence the unknown bytes.
+         */
+        assertFailsWith<ImageWriteException> {
+            Kim.update(
+                bytes = unknownFormatBytes,
+                updates = emptySet()
+            )
+        }
+    }
+
+    @Test
+    fun testUpdateWithEmptyUpdateSetOnStreamIsRejected() {
+
+        /*
+         * The streaming overload must refuse an empty update set the same way.
+         * The guard fires before format detection, hence the unknown bytes.
+         */
+        assertFailsWith<ImageWriteException> {
+            Kim.update(
+                byteReader = ByteArrayByteReader(unknownFormatBytes),
+                byteWriter = ByteArrayByteWriter(),
+                updates = emptySet()
             )
         }
     }

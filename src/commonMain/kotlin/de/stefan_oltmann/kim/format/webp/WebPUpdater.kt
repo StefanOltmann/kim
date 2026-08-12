@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,7 +38,7 @@ internal object WebPUpdater : MetadataUpdater {
     override fun update(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
-        update: MetadataUpdate
+        updates: Set<MetadataUpdate>
     ) = tryWithImageWriteException {
 
         val chunks = WebPImageParser.readChunks(byteReader, stopAfterMetadataRead = false)
@@ -49,20 +50,11 @@ internal object WebPUpdater : MetadataUpdater {
         else
             XMPMetaFactory.create()
 
-        val updatedXmp = XmpWriter.updateXmp(xmpMeta, update, true)
+        val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
 
-        val isExifUpdate =
-            update is MetadataUpdate.Orientation ||
-                update is MetadataUpdate.TakenDate ||
-                update is MetadataUpdate.Description ||
-                update is MetadataUpdate.GpsCoordinates ||
-                update is MetadataUpdate.GpsCoordinatesAndLocationShown
+        val outputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
 
-        val exifBytes: ByteArray? = if (isExifUpdate) {
-
-            val outputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
-
-            outputSet.applyUpdate(update)
+        val exifBytes: ByteArray? = if (outputSet.applyUpdates(updates)) {
 
             val exifBytesWriter = ByteArrayByteWriter()
 

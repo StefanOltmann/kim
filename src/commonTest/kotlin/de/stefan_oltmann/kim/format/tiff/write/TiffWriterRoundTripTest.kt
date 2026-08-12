@@ -44,6 +44,7 @@ import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -448,6 +449,48 @@ class TiffWriterRoundTripTest {
         assertFailsWith<ImageWriteException> {
             outputSet.applyUpdate(MetadataUpdate.LocationShown(null))
         }
+    }
+
+    @Test
+    fun testApplyUpdatesAppliesOnlySupportedUpdates() {
+
+        val outputSet = TiffOutputSet()
+
+        val appliedAny = outputSet.applyUpdates(
+            setOf(
+                MetadataUpdate.Orientation(TiffOrientation.ROTATE_LEFT),
+                MetadataUpdate.Description("New Description"),
+                MetadataUpdate.Title("Title")
+            )
+        )
+
+        assertTrue(appliedAny)
+
+        assertNotNull(
+            outputSet.getOrCreateRootDirectory()
+                .findField(TiffTag.TIFF_TAG_ORIENTATION)
+        )
+
+        assertNotNull(
+            outputSet.getOrCreateRootDirectory()
+                .findField(TiffTag.TIFF_TAG_IMAGE_DESCRIPTION)
+        )
+    }
+
+    @Test
+    fun testApplyUpdatesWithUnsupportedUpdatesOnly() {
+
+        val outputSet = TiffOutputSet()
+
+        val appliedAny = outputSet.applyUpdates(
+            setOf(
+                MetadataUpdate.Title("Title"),
+                MetadataUpdate.Flagged(true)
+            )
+        )
+
+        assertFalse(appliedAny)
+        assertTrue(outputSet.getDirectories().isEmpty())
     }
 
     @Test

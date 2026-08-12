@@ -184,14 +184,41 @@ public object Kim {
     public fun update(
         bytes: ByteArray,
         update: MetadataUpdate
+    ): ByteArray =
+        update(bytes, setOf(update))
+
+    /**
+     * Updates the file with all desired changes at once.
+     *
+     * Every update is applied to all formats that can represent it, so EXIF,
+     * IPTC and XMP can be updated simultaneously in a single call.
+     *
+     * **Note**: This method is provided for convenience, but it's not recommended for
+     * very large image files that should not be entirely loaded into memory.
+     * Currently, the update logic reads the entire file, which may not be efficient
+     * for large files. Please be aware that this behavior is subject to change in
+     * future updates.
+     */
+    @kotlin.jvm.JvmStatic
+    @Throws(ImageWriteException::class)
+    public fun update(
+        bytes: ByteArray,
+        updates: Set<MetadataUpdate>
     ): ByteArray = tryWithImageWriteException {
+
+        /*
+         * An update call without any updates is a programming error, so deny
+         * it instead of silently rewriting the file without any changes.
+         */
+        if (updates.isEmpty())
+            throw ImageWriteException("You did not specify any updates.")
 
         val byteArrayByteWriter = ByteArrayByteWriter()
 
         update(
             byteReader = ByteArrayByteReader(bytes),
             byteWriter = byteArrayByteWriter,
-            update = update
+            updates = updates
         )
 
         return@tryWithImageWriteException byteArrayByteWriter.toByteArray()
@@ -200,10 +227,11 @@ public object Kim {
     /**
      * Updates the file with the desired change.
      *
-     * **Note**: We don't have an good API for single-shot write all fields right now.
-     * So this is inefficent at this time as it reads the whole file in.
-     *
-     * But this already represents the planned future API for streaming updates.
+     * **Note**: This method is provided for convenience, but it's not recommended for
+     * very large image files that should not be entirely loaded into memory.
+     * Currently, the update logic reads the entire file, which may not be efficient
+     * for large files. Please be aware that this behavior is subject to change in
+     * future updates.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -211,7 +239,35 @@ public object Kim {
         byteReader: ByteReader,
         byteWriter: ByteWriter,
         update: MetadataUpdate
+    ): Unit =
+        update(byteReader, byteWriter, setOf(update))
+
+    /**
+     * Updates the file with all desired changes at once.
+     *
+     * Every update is applied to all formats that can represent it, so EXIF,
+     * IPTC and XMP can be updated simultaneously in a single call.
+     *
+     * **Note**: This method is provided for convenience, but it's not recommended for
+     * very large image files that should not be entirely loaded into memory.
+     * Currently, the update logic reads the entire file, which may not be efficient
+     * for large files. Please be aware that this behavior is subject to change in
+     * future updates.
+     */
+    @kotlin.jvm.JvmStatic
+    @Throws(ImageWriteException::class)
+    public fun update(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter,
+        updates: Set<MetadataUpdate>
     ): Unit = tryWithImageWriteException {
+
+        /*
+         * An update call without any updates is a programming error, so deny
+         * it instead of silently rewriting the file without any changes.
+         */
+        if (updates.isEmpty())
+            throw ImageWriteException("You did not specify any updates.")
 
         val headerBytes = byteReader.readBytes(MediaFormat.REQUIRED_HEADER_BYTE_COUNT_FOR_DETECTION)
 
@@ -220,11 +276,11 @@ public object Kim {
         val prePendingByteReader = PrePendingByteReader(byteReader, headerBytes.toList())
 
         return@tryWithImageWriteException when (mediaFormat) {
-            MediaFormat.JPEG -> JpegUpdater.update(prePendingByteReader, byteWriter, update)
-            MediaFormat.PNG -> PngUpdater.update(prePendingByteReader, byteWriter, update)
-            MediaFormat.WEBP -> WebPUpdater.update(prePendingByteReader, byteWriter, update)
-            MediaFormat.JXL -> JxlUpdater.update(prePendingByteReader, byteWriter, update)
-            MediaFormat.GIF -> GifUpdater.update(prePendingByteReader, byteWriter, update)
+            MediaFormat.JPEG -> JpegUpdater.update(prePendingByteReader, byteWriter, updates)
+            MediaFormat.PNG -> PngUpdater.update(prePendingByteReader, byteWriter, updates)
+            MediaFormat.WEBP -> WebPUpdater.update(prePendingByteReader, byteWriter, updates)
+            MediaFormat.JXL -> JxlUpdater.update(prePendingByteReader, byteWriter, updates)
+            MediaFormat.GIF -> GifUpdater.update(prePendingByteReader, byteWriter, updates)
             null -> throw ImageWriteException("Unknown or unsupported file format.")
             else -> throw ImageWriteException("Can't embed metadata into $mediaFormat.")
         }

@@ -155,7 +155,6 @@ Java projects.
 
 ## Limitations
 
-* Inability to update EXIF, IPTC, and XMP in JPG files simultaneously.
 * Does not read the image size and orientation for HEIC, AVIF & JPEG XL.
 * Does not read brotli compressed metadata of JPEG XL due to missing brotli KMP libs.
 * MakerNote support is experimental and limited.

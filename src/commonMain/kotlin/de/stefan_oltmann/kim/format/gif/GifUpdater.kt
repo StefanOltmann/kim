@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ramon Bouckaert
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,10 +28,11 @@ import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
 
 internal object GifUpdater : MetadataUpdater {
+
     override fun update(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
-        update: MetadataUpdate
+        updates: Set<MetadataUpdate>
     ) = tryWithImageWriteException {
 
         val chunks = GifImageParser.readChunks(byteReader, chunkTypeFilter = null)
@@ -42,7 +44,7 @@ internal object GifUpdater : MetadataUpdater {
         else
             XMPMetaFactory.create()
 
-        val updatedXmp = XmpWriter.updateXmp(xmpMeta, update, true)
+        val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
 
         GifWriter.writeImage(
             chunks = chunks,

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,13 +23,16 @@ import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcRecord
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcType
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcTypes
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
+import de.stefan_oltmann.kim.format.tiff.write.isExifUpdate
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.readRemainingBytes
+import de.stefan_oltmann.kim.model.LocationShown
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
@@ -38,11 +42,18 @@ import de.stefan_oltmann.xmp.XMPMetaFactory
 
 internal object JpegUpdater : MetadataUpdater {
 
+    private val LOCATION_SHOWN_IPTC_TYPES: Set<IptcType> = setOf(
+        IptcTypes.SUBLOCATION,
+        IptcTypes.CITY,
+        IptcTypes.PROVINCE_STATE,
+        IptcTypes.COUNTRY_PRIMARY_LOCATION_NAME
+    )
+
     @Throws(ImageWriteException::class)
     override fun update(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
-        update: MetadataUpdate
+        updates: Set<MetadataUpdate>
     ) = tryWithImageWriteException {
 
         /*
@@ -58,13 +69,47 @@ internal object JpegUpdater : MetadataUpdater {
             ByteArrayByteReader(bytes)
         )
 
-        val xmpUpdatedBytes = updateXmp(bytes, kimMetadata.xmp, update)
+        /*
+         * Use existing XMP or create a new block.
+         */
+        val xmpMeta: XMPMeta = if (kimMetadata.xmp != null)
+            XMPMetaFactory.parseFromString(kimMetadata.xmp)
+        else
+            XMPMetaFactory.create()
 
-        val exifUpdatedBytes = updateExif(xmpUpdatedBytes, kimMetadata.exif, update)
+        val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
 
-        val iptcUpdatedBytes = updateIptc(exifUpdatedBytes, kimMetadata.iptc, update)
+        val exifUpdates = updates.filter(MetadataUpdate::isExifUpdate)
 
-        byteWriter.write(iptcUpdatedBytes)
+        /*
+         * A sole orientation update can be applied losslessly by swapping a
+         * single byte in the file. Any other EXIF update requires a rewrite,
+         * which then also applies the orientation.
+         */
+        val onlyOrientation = exifUpdates.singleOrNull() as? MetadataUpdate.Orientation
+
+        /*
+         * Note: a successful tryLosslessOrientationUpdate() swaps the
+         * orientation byte inside "bytes" in place, so the rewrite below
+         * must re-read the modified array.
+         */
+        val losslessOrientationApplied =
+            onlyOrientation != null && tryLosslessOrientationUpdate(bytes, onlyOrientation.tiffOrientation)
+
+        val outputSet = if (exifUpdates.isEmpty() || losslessOrientationApplied)
+            null
+        else
+            createExifOutputSet(kimMetadata.exif, exifUpdates)
+
+        val iptc = createIptcMetadata(kimMetadata.iptc, updates)
+
+        JpegRewriter.updateMetadata(
+            byteReader = ByteArrayByteReader(bytes),
+            byteWriter = byteWriter,
+            xmpXml = updatedXmp,
+            outputSet = outputSet,
+            iptc = iptc
+        )
     }
 
     @Throws(ImageWriteException::class)
@@ -93,72 +138,28 @@ internal object JpegUpdater : MetadataUpdater {
         return byteWriter.toByteArray()
     }
 
-    private fun updateXmp(inputBytes: ByteArray, xmp: String?, update: MetadataUpdate): ByteArray {
-
-        val xmpMeta: XMPMeta = if (xmp != null)
-            XMPMetaFactory.parseFromString(xmp)
-        else
-            XMPMetaFactory.create()
-
-        val updatedXmp = XmpWriter.updateXmp(xmpMeta, update, true)
-
-        val byteWriter = ByteArrayByteWriter()
-
-        JpegRewriter.updateXmpXml(
-            byteReader = ByteArrayByteReader(inputBytes),
-            byteWriter = byteWriter,
-            xmpXml = updatedXmp
-        )
-
-        return byteWriter.toByteArray()
-    }
-
-    private fun updateExif(
-        inputBytes: ByteArray,
+    /**
+     * Creates the output set with the given EXIF-applicable updates applied.
+     */
+    private fun createExifOutputSet(
         exif: TiffContents?,
-        update: MetadataUpdate
-    ): ByteArray {
-
-        /*
-         * Filter out all updates we can perform on EXIF.
-         */
-        @Suppress("ComplexCondition")
-        if (
-            update !is MetadataUpdate.Orientation &&
-            update !is MetadataUpdate.TakenDate &&
-            update !is MetadataUpdate.Description &&
-            update !is MetadataUpdate.GpsCoordinates &&
-            update !is MetadataUpdate.GpsCoordinatesAndLocationShown
-        )
-            return inputBytes
-
-        /*
-         * Verify if it's possible to perform a lossless update by making byte modifications.
-         * For orientation changes, it's feasible to achieve this with a single byte swap.
-         */
-        if (update is MetadataUpdate.Orientation) {
-
-            val updated = tryLosslessOrientationUpdate(inputBytes, update.tiffOrientation)
-
-            if (updated)
-                return inputBytes
-        }
+        exifUpdates: List<MetadataUpdate>
+    ): TiffOutputSet {
 
         val outputSet = exif?.createOutputSet() ?: TiffOutputSet()
 
-        outputSet.applyUpdate(update)
+        for (update in exifUpdates)
+            outputSet.applyUpdate(update)
 
-        val byteWriter = ByteArrayByteWriter()
-
-        JpegRewriter.updateExifMetadataLossless(
-            byteReader = ByteArrayByteReader(inputBytes),
-            byteWriter = byteWriter,
-            outputSet = outputSet
-        )
-
-        return byteWriter.toByteArray()
+        return outputSet
     }
 
+    /**
+     * Applies the orientation losslessly by swapping the orientation value
+     * byte in the given bytes in place, if an orientation field exists.
+     *
+     * Returns whether the swap was performed.
+     */
     private fun tryLosslessOrientationUpdate(
         inputBytes: ByteArray,
         tiffOrientation: TiffOrientation
@@ -178,130 +179,109 @@ internal object JpegUpdater : MetadataUpdater {
         return false
     }
 
-    private fun updateIptc(
-        inputBytes: ByteArray,
+    /**
+     * Creates the IPTC metadata with all IPTC-applicable updates applied, or
+     * NULL if the IPTC data does not need to be rewritten.
+     */
+    private fun createIptcMetadata(
         iptc: IptcMetadata?,
-        update: MetadataUpdate
-    ): ByteArray {
+        updates: Set<MetadataUpdate>
+    ): IptcMetadata? {
 
-        /*
-         * Filter out all updates we can perform on IPTC.
-         */
-        @Suppress("ComplexCondition")
-        if (
-            update !is MetadataUpdate.Title &&
-            update !is MetadataUpdate.Description &&
-            update !is MetadataUpdate.LocationShown &&
-            update !is MetadataUpdate.GpsCoordinatesAndLocationShown &&
-            update !is MetadataUpdate.Keywords
-        )
-            return inputBytes
+        val iptcUpdates = updates.filter { update ->
+            update is MetadataUpdate.Title ||
+                update is MetadataUpdate.Description ||
+                update is MetadataUpdate.LocationShown ||
+                update is MetadataUpdate.GpsCoordinatesAndLocationShown ||
+                update is MetadataUpdate.Keywords
+        }
 
-        /* Update IPTC keywords */
+        if (iptcUpdates.isEmpty())
+            return null
 
         val newBlocks = iptc?.nonIptcBlocks ?: emptyList()
         val oldRecords = iptc?.records ?: emptyList()
 
+        val removedIptcTypes = mutableSetOf<IptcType>()
         val newRecords = mutableListOf<IptcRecord>()
 
-        if (update is MetadataUpdate.Title) {
+        for (update in iptcUpdates) {
 
-            newRecords.addAll(oldRecords.filter { it.iptcType != IptcTypes.OBJECT_NAME })
+            when (update) {
 
-            update.title?.let { title ->
-                newRecords.add(IptcRecord(IptcTypes.OBJECT_NAME, title))
+                is MetadataUpdate.Title -> {
+
+                    removedIptcTypes.add(IptcTypes.OBJECT_NAME)
+
+                    update.title?.let { title ->
+                        newRecords.add(IptcRecord(IptcTypes.OBJECT_NAME, title))
+                    }
+                }
+
+                is MetadataUpdate.Description -> {
+
+                    removedIptcTypes.add(IptcTypes.CAPTION_ABSTRACT)
+
+                    update.description?.let { description ->
+                        newRecords.add(IptcRecord(IptcTypes.CAPTION_ABSTRACT, description))
+                    }
+                }
+
+                is MetadataUpdate.LocationShown -> {
+
+                    removedIptcTypes.addAll(LOCATION_SHOWN_IPTC_TYPES)
+
+                    update.locationShown?.let { locationShown ->
+                        newRecords.addAll(createLocationShownRecords(locationShown))
+                    }
+                }
+
+                is MetadataUpdate.GpsCoordinatesAndLocationShown -> {
+
+                    removedIptcTypes.addAll(LOCATION_SHOWN_IPTC_TYPES)
+
+                    update.locationShown?.let { locationShown ->
+                        newRecords.addAll(createLocationShownRecords(locationShown))
+                    }
+                }
+
+                is MetadataUpdate.Keywords -> {
+
+                    removedIptcTypes.add(IptcTypes.KEYWORDS)
+
+                    for (keyword in update.keywords.sorted())
+                        newRecords.add(IptcRecord(IptcTypes.KEYWORDS, keyword))
+                }
+
+                else -> throw ImageWriteException("Can't perform update $update.")
             }
         }
 
-        if (update is MetadataUpdate.Description) {
+        val remainingRecords = oldRecords.filter { record -> record.iptcType !in removedIptcTypes }
 
-            newRecords.addAll(oldRecords.filter { it.iptcType != IptcTypes.CAPTION_ABSTRACT })
+        return IptcMetadata(remainingRecords + newRecords, newBlocks)
+    }
 
-            update.description?.let { description ->
-                newRecords.add(IptcRecord(IptcTypes.CAPTION_ABSTRACT, description))
-            }
+    private fun createLocationShownRecords(locationShown: LocationShown): List<IptcRecord> {
+
+        val records = mutableListOf<IptcRecord>()
+
+        locationShown.street?.let { location ->
+            records.add(IptcRecord(IptcTypes.SUBLOCATION, location))
         }
 
-        if (update is MetadataUpdate.LocationShown) {
-
-            newRecords.addAll(
-                oldRecords.filter {
-                    it.iptcType != IptcTypes.SUBLOCATION &&
-                        it.iptcType != IptcTypes.CITY &&
-                        it.iptcType != IptcTypes.PROVINCE_STATE &&
-                        it.iptcType != IptcTypes.COUNTRY_PRIMARY_LOCATION_NAME
-                }
-            )
-
-            if (update.locationShown != null) {
-
-                update.locationShown.street?.let { location ->
-                    newRecords.add(IptcRecord(IptcTypes.SUBLOCATION, location))
-                }
-
-                update.locationShown.city?.let { city ->
-                    newRecords.add(IptcRecord(IptcTypes.CITY, city))
-                }
-
-                update.locationShown.state?.let { state ->
-                    newRecords.add(IptcRecord(IptcTypes.PROVINCE_STATE, state))
-                }
-
-                update.locationShown.country?.let { country ->
-                    newRecords.add(IptcRecord(IptcTypes.COUNTRY_PRIMARY_LOCATION_NAME, country))
-                }
-            }
+        locationShown.city?.let { city ->
+            records.add(IptcRecord(IptcTypes.CITY, city))
         }
 
-        if (update is MetadataUpdate.GpsCoordinatesAndLocationShown) {
-
-            newRecords.addAll(
-                oldRecords.filter {
-                    it.iptcType != IptcTypes.SUBLOCATION &&
-                        it.iptcType != IptcTypes.CITY &&
-                        it.iptcType != IptcTypes.PROVINCE_STATE &&
-                        it.iptcType != IptcTypes.COUNTRY_PRIMARY_LOCATION_NAME
-                }
-            )
-
-            if (update.locationShown != null) {
-
-                update.locationShown.street?.let { location ->
-                    newRecords.add(IptcRecord(IptcTypes.SUBLOCATION, location))
-                }
-
-                update.locationShown.city?.let { city ->
-                    newRecords.add(IptcRecord(IptcTypes.CITY, city))
-                }
-
-                update.locationShown.state?.let { state ->
-                    newRecords.add(IptcRecord(IptcTypes.PROVINCE_STATE, state))
-                }
-
-                update.locationShown.country?.let { country ->
-                    newRecords.add(IptcRecord(IptcTypes.COUNTRY_PRIMARY_LOCATION_NAME, country))
-                }
-            }
+        locationShown.state?.let { state ->
+            records.add(IptcRecord(IptcTypes.PROVINCE_STATE, state))
         }
 
-        if (update is MetadataUpdate.Keywords) {
-
-            newRecords.addAll(oldRecords.filter { it.iptcType != IptcTypes.KEYWORDS })
-
-            for (keyword in update.keywords.sorted())
-                newRecords.add(IptcRecord(IptcTypes.KEYWORDS, keyword))
+        locationShown.country?.let { country ->
+            records.add(IptcRecord(IptcTypes.COUNTRY_PRIMARY_LOCATION_NAME, country))
         }
 
-        val newIptc = IptcMetadata(newRecords, newBlocks)
-
-        val byteWriter = ByteArrayByteWriter()
-
-        JpegRewriter.writeIPTC(
-            byteReader = ByteArrayByteReader(inputBytes),
-            byteWriter = byteWriter,
-            metadata = newIptc
-        )
-
-        return byteWriter.toByteArray()
+        return records
     }
 }
