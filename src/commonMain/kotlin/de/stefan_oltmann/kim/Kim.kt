@@ -262,6 +262,52 @@ public object Kim {
         }
     }
 
+    /**
+     * Removes all metadata of the file, keeping the ICC chunks that affect
+     * how the image is displayed.
+     */
+    @kotlin.jvm.JvmStatic
+    @Throws(ImageWriteException::class)
+    public fun deleteMetadata(bytes: ByteArray): ByteArray = tryWithImageWriteException {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        deleteMetadata(
+            byteReader = ByteArrayByteReader(bytes),
+            byteWriter = byteWriter
+        )
+
+        return@tryWithImageWriteException byteWriter.toByteArray()
+    }
+
+    /**
+     * Removes all metadata of the file, keeping the ICC chunks that affect
+     * how the image is displayed.
+     */
+    @kotlin.jvm.JvmStatic
+    @Throws(ImageWriteException::class)
+    public fun deleteMetadata(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter
+    ): Unit = tryWithImageWriteException {
+
+        val headerBytes = byteReader.readBytes(MediaFormat.REQUIRED_HEADER_BYTE_COUNT_FOR_DETECTION)
+
+        val mediaFormat = MediaFormat.detect(headerBytes)
+
+        val prePendingByteReader = PrePendingByteReader(byteReader, headerBytes.toList())
+
+        return@tryWithImageWriteException when (mediaFormat) {
+            MediaFormat.JPEG -> JpegUpdater.deleteMetadata(prePendingByteReader, byteWriter)
+            MediaFormat.PNG -> PngUpdater.deleteMetadata(prePendingByteReader, byteWriter)
+            MediaFormat.WEBP -> WebPUpdater.deleteMetadata(prePendingByteReader, byteWriter)
+            MediaFormat.JXL -> JxlUpdater.deleteMetadata(prePendingByteReader, byteWriter)
+            MediaFormat.GIF -> GifUpdater.deleteMetadata(prePendingByteReader, byteWriter)
+            null -> throw ImageWriteException("Unknown or unsupported file format.")
+            else -> throw ImageWriteException("Can't delete metadata of $mediaFormat.")
+        }
+    }
+
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
     public fun updateThumbnail(

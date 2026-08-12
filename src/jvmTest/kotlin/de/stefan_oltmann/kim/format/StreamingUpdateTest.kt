@@ -71,6 +71,29 @@ class StreamingUpdateTest {
         assertStreamingMatchesByteArrayUpdate("webp")
     }
 
+    @Test
+    fun testDeleteMetadataViaStreamMatchesByteArray() {
+
+        for (format in listOf("jpg", "png", "gif", "jxl", "webp")) {
+
+            val bytes = Resource("de/stefan_oltmann/kim/updates_$format/original.$format").readBytes()
+
+            val byteArrayDelete = Kim.deleteMetadata(bytes)
+
+            val byteWriter = ByteArrayByteWriter()
+
+            Kim.deleteMetadata(
+                byteReader = JvmInputStreamByteReader(
+                    inputStream = bytes.inputStream(),
+                    contentLength = bytes.size.toLong()
+                ),
+                byteWriter = byteWriter
+            )
+
+            assertContentEquals(byteArrayDelete, byteWriter.toByteArray())
+        }
+    }
+
     private fun assertStreamingMatchesByteArrayUpdate(format: String) {
 
         val bytes = Resource("de/stefan_oltmann/kim/updates_$format/original.$format").readBytes()

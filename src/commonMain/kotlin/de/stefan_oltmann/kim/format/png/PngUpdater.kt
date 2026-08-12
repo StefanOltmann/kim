@@ -21,6 +21,7 @@ import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
+import de.stefan_oltmann.kim.format.png.chunk.PngTextChunk
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriterBase
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
@@ -82,6 +83,32 @@ internal object PngUpdater : MetadataUpdater {
                  */
                 iptcBytes = null,
                 xmp = updatedXmp
+            )
+        }
+    }
+
+    @Throws(ImageWriteException::class)
+    override fun deleteMetadata(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter
+    ) = tryWithImageWriteException {
+
+        PngWriter.writeImageStreaming(byteReader, byteWriter) { chunks, outputWriter ->
+
+            /*
+             * Remove the EXIF chunk and all text chunks, which carry XMP,
+             * IPTC and comments. The iCCP chunk is kept, because it affects
+             * how the image is displayed.
+             */
+            val chunksWithoutMetadata = chunks.filterNot { chunk ->
+                chunk.type == PngChunkType.EXIF ||
+                    chunk is PngTextChunk ||
+                    chunk.type == PngChunkType.TIME
+            }
+
+            PngWriter.writeImage(
+                chunks = chunksWithoutMetadata,
+                byteWriter = outputWriter
             )
         }
     }

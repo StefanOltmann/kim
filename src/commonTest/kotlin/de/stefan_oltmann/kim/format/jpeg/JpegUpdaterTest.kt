@@ -26,10 +26,13 @@ import de.stefan_oltmann.kim.format.jpeg.iptc.IptcTypes
 import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
+import de.stefan_oltmann.kim.testdata.KimTestData
 import de.stefan_oltmann.xmp.XMPMetaFactory
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlin.test.fail
 
 class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
@@ -149,6 +152,93 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
     }
 
     /**
+     * Verifies that deleting the metadata removes the EXIF, XMP, IPTC and
+     * comment segments, but keeps the ICC segment that affects how the
+     * image is displayed.
+     */
+    @Test
+    fun testDeleteMetadataKeepsIccSegment() {
+
+        /* media_1.jpg contains EXIF, IPTC, XMP and an ICC profile. */
+        val newBytes = Kim.deleteMetadata(KimTestData.getBytesOf(1))
+
+        val markers = segmentMarkers(newBytes)
+
+        /* EXIF and XMP live in APP1 segments, IPTC in APP13. */
+        assertFalse(JpegConstants.JPEG_APP1_MARKER in markers)
+        assertFalse(JpegConstants.JPEG_APP13_MARKER in markers)
+
+        /* Comments are metadata, too. */
+        assertFalse(JpegConstants.COM_MARKER_1 in markers)
+
+        /* The ICC profile affects the display and must be kept. */
+        assertTrue(containsIccProfile(newBytes))
+    }
+
+    /**
+     * Returns the markers of all segments before the image data.
+     */
+    private fun segmentMarkers(jpegBytes: ByteArray): Set<Int> {
+
+        val markers = mutableSetOf<Int>()
+
+        var offset = JpegConstants.SOI.size
+
+        while (offset + SEGMENT_HEADER_BYTES <= jpegBytes.size) {
+
+            val marker = (jpegBytes[offset].toInt() and 0xFF) shl 8 or
+                (jpegBytes[offset + 1].toInt() and 0xFF)
+
+            if (marker == JpegConstants.SOS_MARKER || marker == JpegConstants.EOI_MARKER)
+                break
+
+            val segmentLength = (jpegBytes[offset + 2].toInt() and 0xFF) shl 8 or
+                (jpegBytes[offset + 3].toInt() and 0xFF)
+
+            markers.add(marker)
+
+            offset += SEGMENT_MARKER_BYTES + segmentLength
+        }
+
+        return markers
+    }
+
+    /**
+     * Returns whether the JPEG bytes contain an APP2 ICC profile segment.
+     */
+    private fun containsIccProfile(jpegBytes: ByteArray): Boolean {
+
+        var offset = JpegConstants.SOI.size
+
+        while (offset + SEGMENT_HEADER_BYTES <= jpegBytes.size) {
+
+            val marker = (jpegBytes[offset].toInt() and 0xFF) shl 8 or
+                (jpegBytes[offset + 1].toInt() and 0xFF)
+
+            if (marker == JpegConstants.SOS_MARKER || marker == JpegConstants.EOI_MARKER)
+                break
+
+            val segmentLength = (jpegBytes[offset + 2].toInt() and 0xFF) shl 8 or
+                (jpegBytes[offset + 3].toInt() and 0xFF)
+
+            if (marker == JpegConstants.JPEG_APP2_MARKER) {
+
+                val payload = jpegBytes.copyOfRange(
+                    offset + SEGMENT_MARKER_BYTES + SEGMENT_LENGTH_FIELD_BYTES,
+                    offset + SEGMENT_MARKER_BYTES + segmentLength
+                )
+
+                if (payload.startsWith(ICC_PROFILE_SIGNATURE))
+                    return true
+            }
+
+            offset += SEGMENT_MARKER_BYTES + segmentLength
+        }
+
+        return false
+    }
+
+    /**
      * Returns the payload of the EXIF APP1 segment of the given JPEG bytes.
      */
     private fun exifPayload(jpegBytes: ByteArray): ByteArray {
@@ -187,5 +277,8 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
         const val SEGMENT_LENGTH_FIELD_BYTES = 2
 
         const val SEGMENT_HEADER_BYTES = SEGMENT_MARKER_BYTES + SEGMENT_LENGTH_FIELD_BYTES
+
+        /* The "ICC_PROFILE" signature plus the null byte of APP2 segments. */
+        val ICC_PROFILE_SIGNATURE: ByteArray = "ICC_PROFILE\u0000".encodeToByteArray()
     }
 }

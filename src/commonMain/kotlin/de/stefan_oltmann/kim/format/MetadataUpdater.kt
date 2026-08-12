@@ -36,6 +36,16 @@ public interface MetadataUpdater {
         updates: Set<MetadataUpdate>
     )
 
+    /**
+     * Removes all metadata of the file, keeping the ICC chunks that affect
+     * how the image is displayed.
+     */
+    @Throws(ImageWriteException::class)
+    public fun deleteMetadata(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter
+    )
+
     @Throws(ImageWriteException::class)
     public fun updateThumbnail(
         bytes: ByteArray,

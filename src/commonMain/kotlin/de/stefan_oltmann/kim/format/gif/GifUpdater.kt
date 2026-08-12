@@ -21,6 +21,7 @@ import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MetadataUpdater
 import de.stefan_oltmann.kim.format.gif.chunk.GifChunkApplicationExtension
+import de.stefan_oltmann.kim.format.gif.chunk.GifChunkCommentExtension
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.model.MetadataUpdate
@@ -58,6 +59,29 @@ internal object GifUpdater : MetadataUpdater {
                 outputWriter.write(chunk.bytes)
 
             GifWriter.writeXmpChunk(outputWriter, updatedXmp)
+        }
+    }
+
+    override fun deleteMetadata(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter
+    ) = tryWithImageWriteException {
+
+        GifWriter.writeImageStreaming(byteReader, byteWriter) { chunks, outputWriter ->
+
+            /*
+             * Remove the XMP application extension and all comment
+             * extensions. The NETSCAPE extension is kept, because it
+             * controls the animation loop.
+             */
+            val chunksWithoutMetadata = chunks.filterNot { chunk ->
+                chunk is GifChunkApplicationExtension &&
+                    chunk.applicationIdentifier == GifConstants.XMP_APPLICATION_IDENTIFIER ||
+                    chunk is GifChunkCommentExtension
+            }
+
+            for (chunk in chunksWithoutMetadata)
+                outputWriter.write(chunk.bytes)
         }
     }
 

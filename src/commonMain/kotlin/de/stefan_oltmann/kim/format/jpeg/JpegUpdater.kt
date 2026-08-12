@@ -104,6 +104,30 @@ internal object JpegUpdater : MetadataUpdater {
     }
 
     @Throws(ImageWriteException::class)
+    override fun deleteMetadata(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter
+    ) = tryWithImageWriteException {
+
+        JpegRewriter.updateMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
+
+            /*
+             * Remove the EXIF, XMP, IPTC and comment segments. The ICC
+             * segment is kept, because it affects how the image is displayed.
+             */
+            val segmentsWithoutMetadata = segments.filterNot { segment ->
+                segment.isExifSegment() || segment.isIptcSegment() || segment.isXmpSegment() ||
+                    segment.marker == JpegConstants.COM_MARKER_1
+            }
+
+            outputWriter.write(JpegConstants.SOI)
+
+            for (segment in segmentsWithoutMetadata)
+                segment.write(outputWriter)
+        }
+    }
+
+    @Throws(ImageWriteException::class)
     override fun updateThumbnail(
         bytes: ByteArray,
         thumbnailBytes: ByteArray

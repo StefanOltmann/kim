@@ -22,6 +22,7 @@ import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
 import de.stefan_oltmann.kim.format.bmff.BoxReader
+import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriterBase
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
@@ -77,6 +78,31 @@ internal object JxlUpdater : MetadataUpdater {
                 byteWriter = outputWriter,
                 exifBytes = exifBytes,
                 xmp = updatedXmp
+            )
+        }
+    }
+
+    @Throws(ImageWriteException::class)
+    override fun deleteMetadata(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter
+    ) = tryWithImageWriteException {
+
+        JxlWriter.writeImageStreaming(byteReader, byteWriter) { boxes, outputWriter ->
+
+            /*
+             * Remove the EXIF and XMP boxes. JPEG XL has no ICC box that
+             * would affect how the image is displayed.
+             */
+            val boxesWithoutMetadata = boxes.filterNot { box ->
+                box.type == BoxType.EXIF || box.type == BoxType.XML
+            }
+
+            JxlWriter.writeImage(
+                boxes = boxesWithoutMetadata,
+                byteWriter = outputWriter,
+                exifBytes = null,
+                xmp = null
             )
         }
     }
