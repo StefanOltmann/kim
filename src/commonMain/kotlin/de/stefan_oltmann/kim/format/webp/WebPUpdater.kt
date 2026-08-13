@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +23,7 @@ import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriterBase
+import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8X
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
@@ -37,7 +39,7 @@ internal object WebPUpdater : MetadataUpdater {
     override fun update(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
-        update: MetadataUpdate
+        updates: Set<MetadataUpdate>
     ) = tryWithImageWriteException {
 
         val chunks = WebPImageParser.readChunks(byteReader, stopAfterMetadataRead = false)
@@ -49,20 +51,11 @@ internal object WebPUpdater : MetadataUpdater {
         else
             XMPMetaFactory.create()
 
-        val updatedXmp = XmpWriter.updateXmp(xmpMeta, update, true)
+        val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
 
-        val isExifUpdate =
-            update is MetadataUpdate.Orientation ||
-                update is MetadataUpdate.TakenDate ||
-                update is MetadataUpdate.Description ||
-                update is MetadataUpdate.GpsCoordinates ||
-                update is MetadataUpdate.GpsCoordinatesAndLocationShown
+        val outputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
 
-        val exifBytes: ByteArray? = if (isExifUpdate) {
-
-            val outputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
-
-            outputSet.applyUpdate(update)
+        val exifBytes: ByteArray? = if (outputSet.applyUpdates(updates)) {
 
             val exifBytesWriter = ByteArrayByteWriter()
 
@@ -84,6 +77,50 @@ internal object WebPUpdater : MetadataUpdater {
             byteWriter = byteWriter,
             exifBytes = exifBytes,
             xmp = updatedXmp
+        )
+    }
+
+    @Throws(ImageWriteException::class)
+    override fun deleteMetadata(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter
+    ) = tryWithImageWriteException {
+
+        val chunks = WebPImageParser.readChunks(byteReader, stopAfterMetadataRead = false)
+
+        /*
+         * Remove the EXIF and XMP chunks. The ICCP chunk is kept, because it
+         * affects how the image is displayed.
+         */
+        val modifiedChunks = chunks.toMutableList()
+
+        modifiedChunks.removeAll { chunk ->
+            chunk.type == WebPChunkType.EXIF || chunk.type == WebPChunkType.XMP
+        }
+
+        val headerChunk = modifiedChunks.firstOrNull()
+            ?: throw ImageWriteException("No chunks to write!")
+
+        /* Clear the metadata flags of the VP8X header. */
+        if (headerChunk is WebPChunkVP8X) {
+
+            modifiedChunks[0] = WebPChunkVP8X(
+                bytes = WebPChunkVP8X.createBytes(
+                    hasIcc = headerChunk.hasIcc,
+                    hasAlpha = headerChunk.hasAlpha,
+                    hasExif = false,
+                    hasXmp = false,
+                    hasAnimation = headerChunk.hasAnimation,
+                    imageSize = headerChunk.imageSize
+                )
+            )
+        }
+
+        WebPWriter.writeImage(
+            chunks = modifiedChunks,
+            byteWriter = byteWriter,
+            exifBytes = null,
+            xmp = null
         )
     }
 

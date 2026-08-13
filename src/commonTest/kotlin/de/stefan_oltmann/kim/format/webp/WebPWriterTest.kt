@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +22,8 @@ import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriterLossless
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriterLossy
+import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8L
+import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8X
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
@@ -29,8 +32,10 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 import kotlin.test.fail
 
 class WebPWriterTest {
@@ -173,4 +178,95 @@ class WebPWriterTest {
             }
         }
     }
+
+    /**
+     * The VP8X header created for a legacy VP8L file must declare the alpha
+     * flag that the bitstream carries, or decoders may drop the transparency.
+     */
+    @Test
+    fun testLegacyVp8lWithAlphaGetsAlphaFlag() {
+
+        /* A 1x1 VP8L bitstream with the alpha-is-used bit set. */
+        val chunks = listOf(
+            WebPChunkVP8L(byteArrayOf(0x2F, 0x00, 0x00, 0x00, 0x10))
+        )
+
+        val byteWriter = ByteArrayByteWriter()
+
+        WebPWriter.writeImage(
+            chunks = chunks,
+            byteWriter = byteWriter,
+            exifBytes = null,
+            xmp = null
+        )
+
+        val vp8x = readVp8xChunk(byteWriter.toByteArray())
+
+        assertTrue(vp8x.hasAlpha)
+    }
+
+    /**
+     * A legacy VP8L file without transparency must not get an alpha flag.
+     */
+    @Test
+    fun testLegacyVp8lWithoutAlphaGetsNoAlphaFlag() {
+
+        /* A 1x1 VP8L bitstream without the alpha-is-used bit. */
+        val chunks = listOf(
+            WebPChunkVP8L(byteArrayOf(0x2F, 0x00, 0x00, 0x00, 0x00))
+        )
+
+        val byteWriter = ByteArrayByteWriter()
+
+        WebPWriter.writeImage(
+            chunks = chunks,
+            byteWriter = byteWriter,
+            exifBytes = null,
+            xmp = null
+        )
+
+        val vp8x = readVp8xChunk(byteWriter.toByteArray())
+
+        assertFalse(vp8x.hasAlpha)
+    }
+
+    /**
+     * The RIFF size field must match the content length, which is computed
+     * up front so the file is not buffered a second time in memory.
+     */
+    @Test
+    fun testRiffSizeMatchesContentLength() {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        WebPWriter.writeImage(
+            chunks = listOf(WebPChunkVP8L(byteArrayOf(0x2F, 0x00, 0x00, 0x00, 0x10))),
+            byteWriter = byteWriter,
+            exifBytes = byteArrayOf(0x49, 0x49, 0x2A, 0),
+            xmp = "<x:xmpmeta/>"
+        )
+
+        val bytes = byteWriter.toByteArray()
+
+        val riffSize = bytes.toIntLittleEndian(4)
+
+        assertEquals(bytes.size - 8, riffSize)
+    }
+
+    private fun readVp8xChunk(bytes: ByteArray): WebPChunkVP8X {
+
+        val chunks = WebPImageParser.readChunks(
+            byteReader = ByteArrayByteReader(bytes),
+            stopAfterMetadataRead = false
+        )
+
+        return chunks.filterIsInstance<WebPChunkVP8X>().first()
+    }
+
+    @Suppress("MagicNumber")
+    private fun ByteArray.toIntLittleEndian(offset: Int): Int =
+        (this[offset].toInt() and 0xFF) or
+            (this[offset + 1].toInt() and 0xFF shl 8) or
+            (this[offset + 2].toInt() and 0xFF shl 16) or
+            (this[offset + 3].toInt() and 0xFF shl 24)
 }

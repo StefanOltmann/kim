@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ramon Bouckaert
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +20,8 @@ package de.stefan_oltmann.kim.format.gif
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MetadataUpdater
+import de.stefan_oltmann.kim.format.gif.chunk.GifChunkApplicationExtension
+import de.stefan_oltmann.kim.format.gif.chunk.GifChunkCommentExtension
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.model.MetadataUpdate
@@ -27,28 +30,61 @@ import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
 
 internal object GifUpdater : MetadataUpdater {
+
     override fun update(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
-        update: MetadataUpdate
+        updates: Set<MetadataUpdate>
     ) = tryWithImageWriteException {
 
-        val chunks = GifImageParser.readChunks(byteReader, chunkTypeFilter = null)
+        GifWriter.writeImageStreaming(byteReader, byteWriter) { chunks, outputWriter ->
 
-        val metadata = GifImageParser.parseMetadataFromChunks(chunks)
+            val xmp = GifImageParser.parseXmp(chunks)
 
-        val xmpMeta: XMPMeta = if (metadata.xmp != null)
-            XMPMetaFactory.parseFromString(metadata.xmp)
-        else
-            XMPMetaFactory.create()
+            val xmpMeta: XMPMeta = if (xmp != null)
+                XMPMetaFactory.parseFromString(xmp)
+            else
+                XMPMetaFactory.create()
 
-        val updatedXmp = XmpWriter.updateXmp(xmpMeta, update, true)
+            val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
 
-        GifWriter.writeImage(
-            chunks = chunks,
-            byteWriter = byteWriter,
-            xmp = updatedXmp
-        )
+            val modifiedChunks = chunks.toMutableList()
+
+            modifiedChunks.removeAll { chunk ->
+                chunk is GifChunkApplicationExtension &&
+                    chunk.applicationIdentifier == GifConstants.XMP_APPLICATION_IDENTIFIER
+            }
+
+            GifWriter.upgradeGif87aHeader(modifiedChunks)
+
+            for (chunk in modifiedChunks)
+                outputWriter.write(chunk.bytes)
+
+            GifWriter.writeXmpChunk(outputWriter, updatedXmp)
+        }
+    }
+
+    override fun deleteMetadata(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter
+    ) = tryWithImageWriteException {
+
+        GifWriter.writeImageStreaming(byteReader, byteWriter) { chunks, outputWriter ->
+
+            /*
+             * Remove the XMP application extension and all comment
+             * extensions. The NETSCAPE extension is kept, because it
+             * controls the animation loop.
+             */
+            val chunksWithoutMetadata = chunks.filterNot { chunk ->
+                chunk is GifChunkApplicationExtension &&
+                    chunk.applicationIdentifier == GifConstants.XMP_APPLICATION_IDENTIFIER ||
+                    chunk is GifChunkCommentExtension
+            }
+
+            for (chunk in chunksWithoutMetadata)
+                outputWriter.write(chunk.bytes)
+        }
     }
 
     override fun updateThumbnail(bytes: ByteArray, thumbnailBytes: ByteArray): ByteArray {

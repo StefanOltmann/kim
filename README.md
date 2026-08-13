@@ -31,6 +31,7 @@ Kim is a Kotlin Multiplatform library for reading and writing image metadata.
   [XMP Core for Kotlin Multiplatform](https://github.com/StefanOltmann/xmpcore)
 * Convenient `Kim.update()` API to perform updates to the relevant places
     + JPG: Lossless rotation by modifying only one byte (where present)
+* `Kim.deleteMetadata()` API to remove all metadata, keeping the ICC profile
 
 ## Installation
 
@@ -69,6 +70,15 @@ val takenDate = metadata.findStringValue(ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL)
 println("Taken date: $takenDate")
 ```
 
+For streaming sources, `Kim.readMetadata()` also takes a `ByteReader`, so the file does not have to
+be loaded into memory:
+
+```kotlin
+val byteReader = JvmInputStreamByteReader(inputFile.inputStream(), inputFile.length())
+
+val metadata = Kim.readMetadata(byteReader)
+```
+
 ### Create high level summary object
 
 This creates an instance
@@ -93,6 +103,34 @@ contains the following:
 val bytes: ByteArray = loadBytes()
 
 val summary = Kim.readMetadata(bytes).convertToSummary()
+```
+
+### Extract metadata bytes
+
+`Kim.extractMetadataBytes()` determines the file type from the file header and returns the raw
+metadata bytes. Cloud services can not reliably tell the mime type, so this can be used to upload
+the metadata alongside the image.
+
+```kotlin
+val result = Kim.extractMetadataBytes(byteReader)
+
+/* The detected media format, or NULL when it could not be determined. */
+val mediaFormat: MediaFormat? = result.first
+
+/* The raw metadata bytes to upload to the cloud service. */
+val metadataBytes: ByteArray = result.second
+```
+
+### Extract preview image
+
+`Kim.extractPreviewImage()` extracts the embedded preview image of DNG, CR2, CR3, RAF, NEF, ARW &
+RW2 files as JPEG bytes.
+
+```kotlin
+val previewBytes: ByteArray? = Kim.extractPreviewImage(byteReader)
+
+if (previewBytes != null)
+    println("Preview image has ${previewBytes.size} bytes.")
 ```
 
 ### Change orientation using low level API
@@ -122,21 +160,105 @@ OutputStreamByteWriter(outputFile.outputStream()).use { outputStreamByteWriter -
 
 See the [example project](examples/kim-kotlin-jvm-sample/src/main/kotlin/Main.kt) for more details.
 
-### Change orientation using Kim.update () API
+### Update metadata using Kim.update () API
+
+`Kim.update()` applies the given updates to all formats that can represent them, so EXIF, IPTC and
+XMP are updated simultaneously in one call.
 
 ```kotlin
 val bytes: ByteArray = loadBytes()
 
-val newBytes = Kim.update(
+/* A single update: */
+val rotatedBytes = Kim.update(
     bytes = bytes,
     update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT)
 )
+
+/* Multiple updates in one call: */
+val updatedBytes = Kim.update(
+    bytes = bytes,
+    updates = setOf(
+        MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT),
+        MetadataUpdate.TakenDate(timestamp),
+        MetadataUpdate.Title("My title"),
+        MetadataUpdate.Keywords(setOf("hello", "test"))
+    )
+)
 ```
+
+The supported update types are:
+
+| Update | Sets |
+|---|---|
+| `MetadataUpdate.Orientation` | Rotation (JPG supports a lossless single-byte swap) |
+| `MetadataUpdate.TakenDate` | Date taken |
+| `MetadataUpdate.GpsCoordinates` | GPS coordinates |
+| `MetadataUpdate.LocationShown` | Location shown |
+| `MetadataUpdate.GpsCoordinatesAndLocationShown` | GPS coordinates and location |
+| `MetadataUpdate.Title` | Title |
+| `MetadataUpdate.Description` | Description |
+| `MetadataUpdate.Flagged` | The `XMP:pick` flag |
+| `MetadataUpdate.Rating` | Star rating |
+| `MetadataUpdate.Keywords` | Keywords |
+| `MetadataUpdate.Faces` | Faces (XMP-mwg-rs regions) |
+| `MetadataUpdate.Persons` | Persons in image |
+
+An update call without any updates is rejected with an `ImageWriteException`.
 
 See [AbstractUpdaterTest](src/commonTest/kotlin/de/stefan_oltmann/kim/format/AbstractUpdaterTest.kt)
 for more samples.
 
-### Update thumbnail using Kim.update () API
+#### Streaming update
+
+The update can stream the file from a `ByteReader` to a `ByteWriter`. The image
+data of JPEG, PNG, GIF and JPEG XL files with split codestream boxes (`jxlp`) is
+streamed in bounded chunks. WebP files buffer their chunks in memory, and JPEG
+XL files with a single codestream box (`jxlc`) buffer the codestream, because
+the metadata is stored behind the image data. A single-update overload exists
+for both the byte array and the streaming variant.
+
+```kotlin
+val byteReader = JvmInputStreamByteReader(inputFile.inputStream(), inputFile.length())
+
+OutputStreamByteWriter(outputFile.outputStream()).use { outputStreamByteWriter ->
+
+    Kim.update(
+        byteReader = byteReader,
+        byteWriter = outputStreamByteWriter,
+        updates = setOf(MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT))
+    )
+}
+```
+
+### Delete metadata using Kim.deleteMetadata () API
+
+`Kim.deleteMetadata()` removes all metadata of a file, but keeps the ICC chunks, because they would
+change how the image is displayed.
+
+* JPG: removes EXIF, XMP, IPTC & comment segments
+* PNG: removes the `eXIf` chunk, all text chunks & the `tIME` chunk
+* WebP: removes EXIF & XMP chunks and clears the VP8X metadata flags
+* JXL: removes Exif & xml boxes
+* GIF: removes the XMP application extension & comment extensions
+
+```kotlin
+val bytes: ByteArray = loadBytes()
+
+val newBytes = Kim.deleteMetadata(bytes)
+```
+
+Like `Kim.update()`, `deleteMetadata()` also offers a streaming overload that
+writes to a `ByteWriter` without loading the file into memory for the formats
+listed in the [Streaming update](#streaming-update) section:
+
+```kotlin
+Kim.deleteMetadata(
+    byteReader = byteReader,
+    byteWriter = byteWriter
+)
+```
+
+### Update thumbnail using Kim.updateThumbnail () API
 
 ```kotlin
 val bytes: ByteArray = loadBytes()
@@ -155,8 +277,10 @@ Java projects.
 
 ## Limitations
 
-* Inability to update EXIF, IPTC, and XMP in JPG files simultaneously.
 * Does not read the image size and orientation for HEIC, AVIF & JPEG XL.
+* Updates buffer the file content in memory for WebP files and for JPEG XL
+  files with a single codestream box (`jxlc`). JPEG, PNG, GIF and JPEG XL
+  files with split codestream boxes (`jxlp`) are streamed in bounded chunks.
 * Does not read brotli compressed metadata of JPEG XL due to missing brotli KMP libs.
 * MakerNote support is experimental and limited.
     + Can't extract preview image of ORF as offsets are burried into MakerNote.

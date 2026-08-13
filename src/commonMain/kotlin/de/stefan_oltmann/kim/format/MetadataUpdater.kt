@@ -23,6 +23,9 @@ import de.stefan_oltmann.kim.output.ByteWriter
 
 /**
  * Updates the metadata of a media file.
+ *
+ * Every update of the given set is applied to all formats that can represent
+ * it, so EXIF, IPTC and XMP can be updated simultaneously in one call.
  */
 public interface MetadataUpdater {
 
@@ -30,7 +33,17 @@ public interface MetadataUpdater {
     public fun update(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
-        update: MetadataUpdate
+        updates: Set<MetadataUpdate>
+    )
+
+    /**
+     * Removes all metadata of the file, keeping the ICC chunks that affect
+     * how the image is displayed.
+     */
+    @Throws(ImageWriteException::class)
+    public fun deleteMetadata(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter
     )
 
     @Throws(ImageWriteException::class)

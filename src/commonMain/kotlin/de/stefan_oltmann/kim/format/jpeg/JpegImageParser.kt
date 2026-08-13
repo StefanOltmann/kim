@@ -25,6 +25,7 @@ import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MediaMetadata
+import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
 import de.stefan_oltmann.kim.format.jpeg.segment.App13Segment
@@ -144,24 +145,63 @@ public object JpegImageParser : ImageParser {
                     listOf(JpegConstants.JPEG_APP1_MARKER, JpegConstants.JPEG_APP13_MARKER)
             )
 
-            val imageSize = getImageSize(segments)
+            parseMetadata(segments)
+        }
 
-            val exifBytes = getExifBytes(segments)
+    /**
+     * Parses the metadata from the given JPEG header segments.
+     *
+     * This allows callers that already read the header segments to parse the
+     * metadata without a second traversal of the file.
+     */
+    internal fun parseMetadata(segments: List<JFIFPieceSegment>): MediaMetadata =
+        parseMetadata(segments.mapNotNull { segment ->
+            toSegment(segment.marker, segment.segmentBytes)
+        })
 
-            val exif = exifBytes?.let { getExif(it) }
+    private fun parseMetadata(segments: List<Segment>): MediaMetadata {
 
-            val iptc = getIptc(segments)
+        val imageSize = getImageSize(segments)
 
-            val xmp = getXmpXml(segments)
+        val exifBytes = getExifBytes(segments)
 
-            return@tryWithImageReadException MediaMetadata(
-                mediaFormat = MediaFormat.JPEG,
-                imageSize = imageSize,
-                exif = exif,
-                exifBytes = exifBytes,
-                iptc = iptc,
-                xmp = xmp
-            )
+        val exif = exifBytes?.let { getExif(it) }
+
+        val iptc = getIptc(segments)
+
+        val xmp = getXmpXml(segments)
+
+        return MediaMetadata(
+            mediaFormat = MediaFormat.JPEG,
+            imageSize = imageSize,
+            exif = exif,
+            exifBytes = exifBytes,
+            iptc = iptc,
+            xmp = xmp
+        )
+    }
+
+    /**
+     * Maps the given marker and segment bytes to the corresponding segment
+     * type, or NULL for segments that are not relevant for metadata parsing.
+     */
+    private fun toSegment(marker: Int, segmentBytes: ByteArray): Segment? =
+        when (marker) {
+            JpegConstants.JPEG_APP1_MARKER -> AppnSegment(marker, segmentBytes)
+            JpegConstants.JPEG_APP13_MARKER -> App13Segment(marker, segmentBytes)
+            JpegConstants.JFIF_MARKER -> JfifSegment(marker, segmentBytes)
+            else ->
+                when {
+
+                    JpegConstants.SOFN_MARKERS.binarySearch(marker) >= 0 ->
+                        SofnSegment(marker, segmentBytes)
+
+                    marker >= JpegConstants.JPEG_APP1_MARKER &&
+                        marker <= JpegConstants.JPEG_APP15_MARKER ->
+                        UnknownSegment(marker, segmentBytes)
+
+                    else -> null
+                }
         }
 
     private fun getImageSize(segments: List<Segment>): ImageSize? {
@@ -296,57 +336,12 @@ public object JpegImageParser : ImageParser {
         }
     }
 
-    private fun keepMarker(marker: Int, markers: List<Int>?): Boolean =
-        markers?.contains(marker) ?: false
+    /**
+     * Reads the header segments that match the given markers.
+     */
+    private fun readSegments(byteReader: ByteReader, markers: List<Int>): List<JFIFPieceSegment> {
 
-    private fun readSegments(byteReader: ByteReader, markers: List<Int>): List<Segment> {
-
-        val segments = mutableListOf<Segment>()
-
-        val visitor: JpegVisitor = object : JpegVisitor {
-
-            /* Don't read actual image data. */
-            override fun beginSOS(): Boolean = false
-
-            override fun visitSOS(marker: Int, markerBytes: ByteArray, imageData: ByteArray) =
-                error("Should not be called.")
-
-            // return false to exit traversal.
-            override fun visitSegment(
-                marker: Int,
-                markerBytes: ByteArray,
-                segmentLength: Int,
-                segmentLengthBytes: ByteArray,
-                segmentBytes: ByteArray
-            ): Boolean {
-
-                if (marker == JpegConstants.EOI_MARKER)
-                    return false
-
-                if (!keepMarker(marker, markers))
-                    return true
-
-                when (marker) {
-                    JpegConstants.JPEG_APP1_MARKER -> segments.add(AppnSegment(marker, segmentBytes))
-                    JpegConstants.JPEG_APP13_MARKER -> segments.add(App13Segment(marker, segmentBytes))
-                    JpegConstants.JFIF_MARKER -> segments.add(JfifSegment(marker, segmentBytes))
-                    else ->
-                        when {
-
-                            JpegConstants.SOFN_MARKERS.binarySearch(marker) >= 0 ->
-                                segments.add(SofnSegment(marker, segmentBytes))
-
-                            marker >= JpegConstants.JPEG_APP1_MARKER &&
-                                marker <= JpegConstants.JPEG_APP15_MARKER ->
-                                segments.add(UnknownSegment(marker, segmentBytes))
-                        }
-                }
-
-                return true
-            }
-        }
-
-        JpegUtils.traverseJFIF(byteReader, visitor)
+        val (segments, _) = JpegUtils.readSegments(byteReader) { marker -> marker in markers }
 
         return segments
     }

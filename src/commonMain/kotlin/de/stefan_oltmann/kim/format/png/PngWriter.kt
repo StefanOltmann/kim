@@ -25,6 +25,7 @@ import de.stefan_oltmann.kim.format.png.PngCrc.startPartialCrc
 import de.stefan_oltmann.kim.format.png.chunk.PngChunk
 import de.stefan_oltmann.kim.format.png.chunk.PngTextChunk
 import de.stefan_oltmann.kim.input.ByteReader
+import de.stefan_oltmann.kim.input.copyRemainingTo
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
 import de.stefan_oltmann.kim.output.writeInt
@@ -97,6 +98,34 @@ public object PngWriter {
                     writeXmpChunk(byteWriter, xmp)
             }
         }
+    }
+
+    /**
+     * Streams a PNG from the given reader to the given writer, so the
+     * updateComputer can rewrite the header chunks once the image data
+     * starts.
+     *
+     * The updateComputer receives the chunks before the first IDAT chunk and
+     * the output writer, and must write the complete header (signature and
+     * all chunks) to it. The image data behind the first IDAT chunk is then
+     * streamed in bounded chunks, so the whole file never has to be buffered
+     * in memory.
+     */
+    internal fun writeImageStreaming(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter,
+        updateComputer: (List<PngChunk>, ByteWriter) -> Unit
+    ) {
+
+        val pendingImageDataHeader = ByteArrayByteWriter()
+
+        val chunks = PngImageParser.readChunksUntilImageData(byteReader, pendingImageDataHeader)
+
+        updateComputer(chunks, byteWriter)
+
+        byteWriter.write(pendingImageDataHeader.toByteArray())
+
+        byteReader.copyRemainingTo(byteWriter)
     }
 
     public fun writeImage(

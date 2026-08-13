@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +21,7 @@ import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
+import de.stefan_oltmann.kim.format.png.chunk.PngTextChunk
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriterBase
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
@@ -37,60 +39,78 @@ internal object PngUpdater : MetadataUpdater {
     override fun update(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
-        update: MetadataUpdate
+        updates: Set<MetadataUpdate>
     ) = tryWithImageWriteException {
 
-        val chunks = PngImageParser.readChunks(byteReader, chunkTypeFilter = null)
+        PngWriter.writeImageStreaming(byteReader, byteWriter) { chunks, outputWriter ->
 
-        val metadata = PngImageParser.parseMetadataFromChunks(chunks)
+            val metadata = PngImageParser.parseMetadataFromChunks(chunks)
 
-        val xmpMeta: XMPMeta = if (metadata.xmp != null)
-            XMPMetaFactory.parseFromString(metadata.xmp)
-        else
-            XMPMetaFactory.create()
+            val xmpMeta: XMPMeta = if (metadata.xmp != null)
+                XMPMetaFactory.parseFromString(metadata.xmp)
+            else
+                XMPMetaFactory.create()
 
-        val updatedXmp = XmpWriter.updateXmp(xmpMeta, update, true)
-
-        val isExifUpdate =
-            update is MetadataUpdate.Orientation ||
-                update is MetadataUpdate.TakenDate ||
-                update is MetadataUpdate.Description ||
-                update is MetadataUpdate.GpsCoordinates ||
-                update is MetadataUpdate.GpsCoordinatesAndLocationShown
-
-        val exifBytes: ByteArray? = if (isExifUpdate) {
+            val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
 
             val outputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
 
-            outputSet.applyUpdate(update)
+            val exifBytes: ByteArray? = if (outputSet.applyUpdates(updates)) {
 
-            val exifBytesWriter = ByteArrayByteWriter()
+                val exifBytesWriter = ByteArrayByteWriter()
 
-            TiffWriterBase
-                .createTiffWriter(
-                    byteOrder = outputSet.byteOrder,
-                    oldExifBytes = metadata.exifBytes
-                )
-                .write(exifBytesWriter, outputSet)
+                TiffWriterBase
+                    .createTiffWriter(
+                        byteOrder = outputSet.byteOrder,
+                        oldExifBytes = metadata.exifBytes
+                    )
+                    .write(exifBytesWriter, outputSet)
 
-            exifBytesWriter.toByteArray()
+                exifBytesWriter.toByteArray()
 
-        } else {
-            null
+            } else {
+                null
+            }
+
+            PngWriter.writeImage(
+                chunks = chunks,
+                byteWriter = outputWriter,
+                exifBytes = exifBytes,
+                /*
+                 * IPTC is not written because it's not recognized everywhere.
+                 * XMP is the better choice. If users demand it we may add it.
+                 * The logic is already implemented.
+                 */
+                iptcBytes = null,
+                xmp = updatedXmp
+            )
         }
+    }
 
-        PngWriter.writeImage(
-            chunks = chunks,
-            byteWriter = byteWriter,
-            exifBytes = exifBytes,
+    @Throws(ImageWriteException::class)
+    override fun deleteMetadata(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter
+    ) = tryWithImageWriteException {
+
+        PngWriter.writeImageStreaming(byteReader, byteWriter) { chunks, outputWriter ->
+
             /*
-             * IPTC is not written because it's not recognized everywhere.
-             * XMP is the better choice. If users demand it we may add it.
-             * The logic is already implemented.
+             * Remove the EXIF chunk and all text chunks, which carry XMP,
+             * IPTC and comments. The iCCP chunk is kept, because it affects
+             * how the image is displayed.
              */
-            iptcBytes = null,
-            xmp = updatedXmp
-        )
+            val chunksWithoutMetadata = chunks.filterNot { chunk ->
+                chunk.type == PngChunkType.EXIF ||
+                    chunk is PngTextChunk ||
+                    chunk.type == PngChunkType.TIME
+            }
+
+            PngWriter.writeImage(
+                chunks = chunksWithoutMetadata,
+                byteWriter = outputWriter
+            )
+        }
     }
 
     @Throws(ImageWriteException::class)

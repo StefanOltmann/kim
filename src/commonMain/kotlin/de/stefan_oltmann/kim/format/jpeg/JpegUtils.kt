@@ -20,17 +20,30 @@ package de.stefan_oltmann.kim.format.jpeg
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
+import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.readAndVerifyBytes
 import de.stefan_oltmann.kim.input.readBytes
-import de.stefan_oltmann.kim.input.readRemainingBytes
 
 internal object JpegUtils {
 
     /* JPEG markers are 0xFF fill bytes */
     private const val FILL_BYTE = 0xFF
 
-    fun traverseJFIF(byteReader: ByteReader, visitor: JpegVisitor) {
+    /**
+     * Reads the header segments of a JPEG file up to the image data.
+     *
+     * Returns the kept segments and the SOS marker bytes, or NULL when the
+     * file ends before the SOS marker (a truncated or header-only file).
+     * The image data behind the SOS marker is left in the reader, so
+     * callers can stream it in bounded chunks.
+     */
+    fun readSegments(
+        byteReader: ByteReader,
+        keepMarker: (Int) -> Boolean = { true }
+    ): Pair<List<JFIFPieceSegment>, ByteArray?> {
+
+        val segments = mutableListOf<JFIFPieceSegment>()
 
         byteReader.readAndVerifyBytes("JPEG SOI (0xFFD8)", JpegConstants.SOI)
 
@@ -41,14 +54,14 @@ internal object JpegUtils {
             val markerBytes = ByteArray(2)
 
             /*
-             * Find next marker bytes
+             * Find next marker bytes.
              *
              * If there are no more bytes left we end.
              */
             do {
 
                 markerBytes[0] = markerBytes[1]
-                markerBytes[1] = byteReader.readByte() ?: return
+                markerBytes[1] = byteReader.readByte() ?: return segments to null
 
                 readBytesCount++
 
@@ -59,22 +72,16 @@ internal object JpegUtils {
 
             val marker = markerBytes.toUInt16(JPEG_BYTE_ORDER)
 
-            if (marker == JpegConstants.EOI_MARKER || marker == JpegConstants.SOS_MARKER) {
+            /* The EOI marker means the file has no image data. */
+            if (marker == JpegConstants.EOI_MARKER)
+                return segments to null
 
-                if (!visitor.beginSOS())
-                    return
+            if (marker == JpegConstants.SOS_MARKER)
+                return segments to markerBytes
 
-                val imageData = byteReader.readRemainingBytes()
-
-                visitor.visitSOS(marker, markerBytes, imageData)
-
-                /* Break, because the image segment is the last one. */
-                break
-            }
-
-            /* If we don't have anough bytes for the segment count we are done reading. */
+            /* If we don't have enough bytes for the segment count we are done reading. */
             if (byteReader.contentLength - readBytesCount < 2)
-                break
+                return segments to null
 
             val segmentLengthBytes = byteReader.readBytes("segmentLengthBytes", 2)
 
@@ -98,16 +105,8 @@ internal object JpegUtils {
 
             readBytesCount += segmentContentLength
 
-            val analyzeNextSegment = visitor.visitSegment(
-                marker,
-                markerBytes,
-                segmentLength,
-                segmentLengthBytes,
-                segmentData
-            )
-
-            if (!analyzeNextSegment)
-                return
+            if (keepMarker(marker))
+                segments.add(JFIFPieceSegment(marker, markerBytes, segmentLengthBytes, segmentData))
         }
     }
 }

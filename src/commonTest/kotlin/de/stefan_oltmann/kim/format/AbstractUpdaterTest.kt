@@ -29,7 +29,10 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 import kotlin.test.fail
 
 abstract class AbstractUpdaterTest(
@@ -317,6 +320,106 @@ abstract class AbstractUpdaterTest(
         )
 
         compare("new_persons.no_metadata.$format", newBytes)
+    }
+
+    @Test
+    fun testUpdateMultipleFieldsSimultaneously() {
+
+        val newBytes = Kim.update(
+            bytes = originalBytes,
+            updates = setOf(
+                MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT),
+                MetadataUpdate.TakenDate(timestamp),
+                MetadataUpdate.GpsCoordinates(crashBuildingGps),
+                MetadataUpdate.LocationShown(crashBuildingLocation),
+                MetadataUpdate.Title(titleWithUmlauts),
+                MetadataUpdate.Description(descriptionWithUmlauts),
+                MetadataUpdate.Keywords(setOf("hello", "test", keywordWithUmlauts)),
+                MetadataUpdate.Rating(ExifRating.FOUR_STARS),
+                MetadataUpdate.Persons(setOf("Swiper", "Dora"))
+            )
+        )
+
+        compare("new_multiple_updates.$format", newBytes)
+    }
+
+    @Test
+    fun testUpdateMultipleFieldsSimultaneouslyOnEmptyImage() {
+
+        val newBytes = Kim.update(
+            bytes = noMetadataBytes,
+            updates = setOf(
+                MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT),
+                MetadataUpdate.TakenDate(timestamp),
+                MetadataUpdate.GpsCoordinates(crashBuildingGps),
+                MetadataUpdate.LocationShown(crashBuildingLocation),
+                MetadataUpdate.Title(titleWithUmlauts),
+                MetadataUpdate.Description(descriptionWithUmlauts),
+                MetadataUpdate.Keywords(setOf("hello", "test", keywordWithUmlauts)),
+                MetadataUpdate.Rating(ExifRating.FOUR_STARS),
+                MetadataUpdate.Persons(setOf("Swiper", "Dora"))
+            )
+        )
+
+        compare("new_multiple_updates.no_metadata.$format", newBytes)
+    }
+
+    @Test
+    fun testDeleteMetadata() {
+
+        val newBytes = Kim.deleteMetadata(originalBytes)
+
+        compare("deleted_metadata.$format", newBytes)
+    }
+
+    @Test
+    fun testDeleteMetadataRemovesAllMetadata() {
+
+        val newBytes = Kim.deleteMetadata(originalBytes)
+
+        val metadata = Kim.readMetadata(newBytes)!!
+
+        assertNull(metadata.exif)
+        assertNull(metadata.exifBytes)
+        assertNull(metadata.iptc)
+        assertNull(metadata.xmp)
+    }
+
+    @Test
+    fun testDeleteMetadataKeepsImageSize() {
+
+        val originalMetadata = Kim.readMetadata(originalBytes)!!
+
+        val newBytes = Kim.deleteMetadata(originalBytes)
+
+        val metadata = Kim.readMetadata(newBytes)!!
+
+        assertEquals(originalMetadata.imageSize, metadata.imageSize)
+    }
+
+    @Test
+    fun testDeleteMetadataIsIdempotent() {
+
+        val once = Kim.deleteMetadata(originalBytes)
+
+        val twice = Kim.deleteMetadata(once)
+
+        assertContentEquals(once, twice)
+    }
+
+    @Test
+    fun testUpdateWithEmptySetIsRejected() {
+
+        /*
+         * An update call without any updates makes no sense, so the library
+         * must refuse it instead of silently returning the unchanged file.
+         */
+        assertFailsWith<ImageWriteException> {
+            Kim.update(
+                bytes = originalBytes,
+                updates = emptySet()
+            )
+        }
     }
 
     @Test

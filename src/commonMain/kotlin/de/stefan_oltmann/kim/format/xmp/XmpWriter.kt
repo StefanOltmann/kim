@@ -18,7 +18,9 @@ package de.stefan_oltmann.kim.format.xmp
 
 import de.stefan_oltmann.kim.Kim.underUnitTesting
 import de.stefan_oltmann.kim.common.GpsUtil
+import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.model.ExifRating
+import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.xmp.XMPException
 import de.stefan_oltmann.xmp.XMPLocation
@@ -77,13 +79,19 @@ public object XmpWriter {
 
             is MetadataUpdate.GpsCoordinates -> {
 
-                if (update.gpsCoordinates != null)
+                if (update.gpsCoordinates != null) {
+
+                    requireValidGpsCoordinates(update.gpsCoordinates)
+
                     setGpsCoordinates(
                         GpsUtil.decimalLatitudeToDDM(update.gpsCoordinates.latitude),
                         GpsUtil.decimalLongitudeToDDM(update.gpsCoordinates.longitude)
                     )
-                else
+
+                } else {
+
                     deleteGpsCoordinates()
+                }
             }
 
             is MetadataUpdate.LocationShown -> {
@@ -110,13 +118,19 @@ public object XmpWriter {
 
                 /* GPS */
 
-                if (update.gpsCoordinates != null)
+                if (update.gpsCoordinates != null) {
+
+                    requireValidGpsCoordinates(update.gpsCoordinates)
+
                     setGpsCoordinates(
                         GpsUtil.decimalLatitudeToDDM(update.gpsCoordinates.latitude),
                         GpsUtil.decimalLongitudeToDDM(update.gpsCoordinates.longitude)
                     )
-                else
+
+                } else {
+
                     deleteGpsCoordinates()
+                }
 
                 /* Location */
 
@@ -212,6 +226,21 @@ public object XmpWriter {
         xmpMeta.applyUpdate(update)
 
         return xmpMeta.serializeToString(writePackageWrapper)
+    }
+
+    /**
+     * Throws an [ImageWriteException] for coordinates outside the valid
+     * range, so invalid GPS data is never written into the XMP.
+     *
+     * The same check guards the EXIF path in
+     * [de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet.setGpsCoordinates].
+     */
+    private fun requireValidGpsCoordinates(gpsCoordinates: GpsCoordinates) {
+
+        if (!gpsCoordinates.isValid())
+            throw ImageWriteException(
+                "Invalid GPS coordinates: ${gpsCoordinates.latLongString}"
+            )
     }
 
     private fun XMPMeta.serializeToString(

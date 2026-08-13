@@ -172,26 +172,41 @@ public object Kim {
 
     /**
      * Updates the file with the desired change.
-     *
-     * **Note**: This method is provided for convenience, but it's not recommended for
-     * very large image files that should not be entirely loaded into memory.
-     * Currently, the update logic reads the entire file, which may not be efficient
-     * for large files. Please be aware that this behavior is subject to change in
-     * future updates.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
     public fun update(
         bytes: ByteArray,
         update: MetadataUpdate
+    ): ByteArray =
+        update(bytes, setOf(update))
+
+    /**
+     * Updates the file with all desired changes at once.
+     *
+     * Every update is applied to all formats that can represent it, so EXIF,
+     * IPTC and XMP can be updated simultaneously in a single call.
+     */
+    @kotlin.jvm.JvmStatic
+    @Throws(ImageWriteException::class)
+    public fun update(
+        bytes: ByteArray,
+        updates: Set<MetadataUpdate>
     ): ByteArray = tryWithImageWriteException {
+
+        /*
+         * An update call without any updates is a programming error, so deny
+         * it instead of silently rewriting the file without any changes.
+         */
+        if (updates.isEmpty())
+            throw ImageWriteException("You did not specify any updates.")
 
         val byteArrayByteWriter = ByteArrayByteWriter()
 
         update(
             byteReader = ByteArrayByteReader(bytes),
             byteWriter = byteArrayByteWriter,
-            update = update
+            updates = updates
         )
 
         return@tryWithImageWriteException byteArrayByteWriter.toByteArray()
@@ -199,11 +214,6 @@ public object Kim {
 
     /**
      * Updates the file with the desired change.
-     *
-     * **Note**: We don't have an good API for single-shot write all fields right now.
-     * So this is inefficent at this time as it reads the whole file in.
-     *
-     * But this already represents the planned future API for streaming updates.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -211,6 +221,74 @@ public object Kim {
         byteReader: ByteReader,
         byteWriter: ByteWriter,
         update: MetadataUpdate
+    ): Unit =
+        update(byteReader, byteWriter, setOf(update))
+
+    /**
+     * Updates the file with all desired changes at once.
+     *
+     * Every update is applied to all formats that can represent it, so EXIF,
+     * IPTC and XMP can be updated simultaneously in a single call.
+     */
+    @kotlin.jvm.JvmStatic
+    @Throws(ImageWriteException::class)
+    public fun update(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter,
+        updates: Set<MetadataUpdate>
+    ): Unit = tryWithImageWriteException {
+
+        /*
+         * An update call without any updates is a programming error, so deny
+         * it instead of silently rewriting the file without any changes.
+         */
+        if (updates.isEmpty())
+            throw ImageWriteException("You did not specify any updates.")
+
+        val headerBytes = byteReader.readBytes(MediaFormat.REQUIRED_HEADER_BYTE_COUNT_FOR_DETECTION)
+
+        val mediaFormat = MediaFormat.detect(headerBytes)
+
+        val prePendingByteReader = PrePendingByteReader(byteReader, headerBytes.toList())
+
+        return@tryWithImageWriteException when (mediaFormat) {
+            MediaFormat.JPEG -> JpegUpdater.update(prePendingByteReader, byteWriter, updates)
+            MediaFormat.PNG -> PngUpdater.update(prePendingByteReader, byteWriter, updates)
+            MediaFormat.WEBP -> WebPUpdater.update(prePendingByteReader, byteWriter, updates)
+            MediaFormat.JXL -> JxlUpdater.update(prePendingByteReader, byteWriter, updates)
+            MediaFormat.GIF -> GifUpdater.update(prePendingByteReader, byteWriter, updates)
+            null -> throw ImageWriteException("Unknown or unsupported file format.")
+            else -> throw ImageWriteException("Can't embed metadata into $mediaFormat.")
+        }
+    }
+
+    /**
+     * Removes all metadata of the file, keeping the ICC chunks that affect
+     * how the image is displayed.
+     */
+    @kotlin.jvm.JvmStatic
+    @Throws(ImageWriteException::class)
+    public fun deleteMetadata(bytes: ByteArray): ByteArray = tryWithImageWriteException {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        deleteMetadata(
+            byteReader = ByteArrayByteReader(bytes),
+            byteWriter = byteWriter
+        )
+
+        return@tryWithImageWriteException byteWriter.toByteArray()
+    }
+
+    /**
+     * Removes all metadata of the file, keeping the ICC chunks that affect
+     * how the image is displayed.
+     */
+    @kotlin.jvm.JvmStatic
+    @Throws(ImageWriteException::class)
+    public fun deleteMetadata(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter
     ): Unit = tryWithImageWriteException {
 
         val headerBytes = byteReader.readBytes(MediaFormat.REQUIRED_HEADER_BYTE_COUNT_FOR_DETECTION)
@@ -220,13 +298,13 @@ public object Kim {
         val prePendingByteReader = PrePendingByteReader(byteReader, headerBytes.toList())
 
         return@tryWithImageWriteException when (mediaFormat) {
-            MediaFormat.JPEG -> JpegUpdater.update(prePendingByteReader, byteWriter, update)
-            MediaFormat.PNG -> PngUpdater.update(prePendingByteReader, byteWriter, update)
-            MediaFormat.WEBP -> WebPUpdater.update(prePendingByteReader, byteWriter, update)
-            MediaFormat.JXL -> JxlUpdater.update(prePendingByteReader, byteWriter, update)
-            MediaFormat.GIF -> GifUpdater.update(prePendingByteReader, byteWriter, update)
+            MediaFormat.JPEG -> JpegUpdater.deleteMetadata(prePendingByteReader, byteWriter)
+            MediaFormat.PNG -> PngUpdater.deleteMetadata(prePendingByteReader, byteWriter)
+            MediaFormat.WEBP -> WebPUpdater.deleteMetadata(prePendingByteReader, byteWriter)
+            MediaFormat.JXL -> JxlUpdater.deleteMetadata(prePendingByteReader, byteWriter)
+            MediaFormat.GIF -> GifUpdater.deleteMetadata(prePendingByteReader, byteWriter)
             null -> throw ImageWriteException("Unknown or unsupported file format.")
-            else -> throw ImageWriteException("Can't embed metadata into $mediaFormat.")
+            else -> throw ImageWriteException("Can't delete metadata of $mediaFormat.")
         }
     }
 

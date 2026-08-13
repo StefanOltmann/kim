@@ -159,6 +159,30 @@ public class TiffOutputSet(
     }
 
     /**
+     * Applies every update of the given set that can be represented in EXIF/TIFF
+     * metadata and ignores all others.
+     *
+     * Returns whether at least one update was applied, which signals that the
+     * EXIF data needs to be rewritten.
+     */
+    public fun applyUpdates(updates: Set<MetadataUpdate>): Boolean {
+
+        var appliedAny = false
+
+        for (update in updates) {
+
+            if (!update.isExifUpdate)
+                continue
+
+            applyUpdate(update)
+
+            appliedAny = true
+        }
+
+        return appliedAny
+    }
+
+    /**
      * Sets the provided thumbnail bytes to the thumbnail directory (IFD1).
      */
     public fun setThumbnailBytes(thumbnailBytes: ByteArray) {
@@ -273,3 +297,18 @@ public class TiffOutputSet(
     public fun addGPSDirectory(): TiffOutputDirectory =
         addDirectory(TiffOutputDirectory(TiffConstants.TIFF_DIRECTORY_GPS, byteOrder))
 }
+
+/**
+ * Returns whether this update can be represented in EXIF/TIFF metadata.
+ *
+ * This mirrors the updates supported by [TiffOutputSet.applyUpdate].
+ */
+internal val MetadataUpdate.isExifUpdate: Boolean
+    get() = when (this) {
+        is MetadataUpdate.Orientation,
+        is MetadataUpdate.TakenDate,
+        is MetadataUpdate.Description,
+        is MetadataUpdate.GpsCoordinates,
+        is MetadataUpdate.GpsCoordinatesAndLocationShown -> true
+        else -> false
+    }

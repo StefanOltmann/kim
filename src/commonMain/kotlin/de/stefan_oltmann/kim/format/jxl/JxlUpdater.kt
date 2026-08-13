@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +22,7 @@ import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
 import de.stefan_oltmann.kim.format.bmff.BoxReader
+import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriterBase
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
@@ -38,57 +40,71 @@ internal object JxlUpdater : MetadataUpdater {
     override fun update(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
-        update: MetadataUpdate
+        updates: Set<MetadataUpdate>
     ) = tryWithImageWriteException {
 
-        val allBoxes = BoxReader.readBoxes(
-            byteReader = byteReader,
-            stopAfterMetadataRead = false
-        )
+        JxlWriter.writeImageStreaming(byteReader, byteWriter) { boxes, outputWriter ->
 
-        val metadata = JxlReader.createMetadata(allBoxes)
+            val metadata = JxlReader.createMetadata(boxes)
 
-        val xmpMeta: XMPMeta = if (metadata.xmp != null)
-            XMPMetaFactory.parseFromString(metadata.xmp)
-        else
-            XMPMetaFactory.create()
+            val xmpMeta: XMPMeta = if (metadata.xmp != null)
+                XMPMetaFactory.parseFromString(metadata.xmp)
+            else
+                XMPMetaFactory.create()
 
-        val updatedXmp = XmpWriter.updateXmp(xmpMeta, update, true)
-
-        val isExifUpdate =
-            update is MetadataUpdate.Orientation ||
-                update is MetadataUpdate.TakenDate ||
-                update is MetadataUpdate.Description ||
-                update is MetadataUpdate.GpsCoordinates ||
-                update is MetadataUpdate.GpsCoordinatesAndLocationShown
-
-        val exifBytes: ByteArray? = if (isExifUpdate) {
+            val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
 
             val outputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
 
-            outputSet.applyUpdate(update)
+            val exifBytes: ByteArray? = if (outputSet.applyUpdates(updates)) {
 
-            val exifBytesWriter = ByteArrayByteWriter()
+                val exifBytesWriter = ByteArrayByteWriter()
 
-            TiffWriterBase
-                .createTiffWriter(
-                    byteOrder = outputSet.byteOrder,
-                    oldExifBytes = metadata.exifBytes
-                )
-                .write(exifBytesWriter, outputSet)
+                TiffWriterBase
+                    .createTiffWriter(
+                        byteOrder = outputSet.byteOrder,
+                        oldExifBytes = metadata.exifBytes
+                    )
+                    .write(exifBytesWriter, outputSet)
 
-            exifBytesWriter.toByteArray()
+                exifBytesWriter.toByteArray()
 
-        } else {
-            null
+            } else {
+                null
+            }
+
+            JxlWriter.writeImage(
+                boxes = boxes,
+                byteWriter = outputWriter,
+                exifBytes = exifBytes,
+                xmp = updatedXmp
+            )
         }
+    }
 
-        JxlWriter.writeImage(
-            boxes = allBoxes,
-            byteWriter = byteWriter,
-            exifBytes = exifBytes,
-            xmp = updatedXmp
-        )
+    @Throws(ImageWriteException::class)
+    override fun deleteMetadata(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter
+    ) = tryWithImageWriteException {
+
+        JxlWriter.writeImageStreaming(byteReader, byteWriter) { boxes, outputWriter ->
+
+            /*
+             * Remove the EXIF and XMP boxes. JPEG XL has no ICC box that
+             * would affect how the image is displayed.
+             */
+            val boxesWithoutMetadata = boxes.filterNot { box ->
+                box.type == BoxType.EXIF || box.type == BoxType.XML
+            }
+
+            JxlWriter.writeImage(
+                boxes = boxesWithoutMetadata,
+                byteWriter = outputWriter,
+                exifBytes = null,
+                xmp = null
+            )
+        }
     }
 
     @Throws(ImageWriteException::class)
