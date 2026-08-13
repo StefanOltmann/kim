@@ -188,20 +188,20 @@ val updatedBytes = Kim.update(
 
 The supported update types are:
 
-| Update | Sets |
-|---|---|
-| `MetadataUpdate.Orientation` | Rotation (JPG supports a lossless single-byte swap) |
-| `MetadataUpdate.TakenDate` | Date taken |
-| `MetadataUpdate.GpsCoordinates` | GPS coordinates |
-| `MetadataUpdate.LocationShown` | Location shown |
-| `MetadataUpdate.GpsCoordinatesAndLocationShown` | GPS coordinates and location |
-| `MetadataUpdate.Title` | Title |
-| `MetadataUpdate.Description` | Description |
-| `MetadataUpdate.Flagged` | The `XMP:pick` flag |
-| `MetadataUpdate.Rating` | Star rating |
-| `MetadataUpdate.Keywords` | Keywords |
-| `MetadataUpdate.Faces` | Faces (XMP-mwg-rs regions) |
-| `MetadataUpdate.Persons` | Persons in image |
+| Update                                          | Sets                                                |
+|-------------------------------------------------|-----------------------------------------------------|
+| `MetadataUpdate.Orientation`                    | Rotation (JPG supports a lossless single-byte swap) |
+| `MetadataUpdate.TakenDate`                      | Date taken                                          |
+| `MetadataUpdate.GpsCoordinates`                 | GPS coordinates                                     |
+| `MetadataUpdate.LocationShown`                  | Location shown                                      |
+| `MetadataUpdate.GpsCoordinatesAndLocationShown` | GPS coordinates and location                        |
+| `MetadataUpdate.Title`                          | Title                                               |
+| `MetadataUpdate.Description`                    | Description                                         |
+| `MetadataUpdate.Flagged`                        | The `XMP:pick` flag                                 |
+| `MetadataUpdate.Rating`                         | Star rating                                         |
+| `MetadataUpdate.Keywords`                       | Keywords                                            |
+| `MetadataUpdate.Faces`                          | Faces (XMP-mwg-rs regions)                          |
+| `MetadataUpdate.Persons`                        | Persons in image                                    |
 
 An update call without any updates is rejected with an `ImageWriteException`.
 
@@ -210,11 +210,10 @@ for more samples.
 
 #### Streaming update
 
-The update can stream the file from a `ByteReader` to a `ByteWriter`. The image
-data of JPEG, PNG, GIF and JPEG XL files with split codestream boxes (`jxlp`) is
-streamed in bounded chunks. WebP files buffer their chunks in memory, and JPEG
-XL files with a single codestream box (`jxlc`) buffer the codestream, because
-the metadata is stored behind the image data. A single-update overload exists
+The update can stream the file from a `ByteReader` to a `ByteWriter`. The image data of JPEG, PNG,
+GIF and JPEG XL files with split codestream boxes (`jxlp`) is streamed in bounded chunks. WebP files
+buffer their chunks in memory, and JPEG XL files with a single codestream box (`jxlc`) buffer the
+codestream, because the metadata is stored behind the image data. A single-update overload exists
 for both the byte array and the streaming variant.
 
 ```kotlin
@@ -247,9 +246,9 @@ val bytes: ByteArray = loadBytes()
 val newBytes = Kim.deleteMetadata(bytes)
 ```
 
-Like `Kim.update()`, `deleteMetadata()` also offers a streaming overload that
-writes to a `ByteWriter` without loading the file into memory for the formats
-listed in the [Streaming update](#streaming-update) section:
+Like `Kim.update()`, `deleteMetadata()` also offers a streaming overload that writes to a
+`ByteWriter` without loading the file into memory for the formats listed in
+the [Streaming update](#streaming-update) section:
 
 ```kotlin
 Kim.deleteMetadata(
@@ -278,9 +277,9 @@ Java projects.
 ## Limitations
 
 * Does not read the image size and orientation for HEIC, AVIF & JPEG XL.
-* Updates buffer the file content in memory for WebP files and for JPEG XL
-  files with a single codestream box (`jxlc`). JPEG, PNG, GIF and JPEG XL
-  files with split codestream boxes (`jxlp`) are streamed in bounded chunks.
+* Updates buffer the file content in memory for WebP files and for JPEG XL files with a single
+  codestream box (`jxlc`). JPEG, PNG, GIF and JPEG XL files with split codestream boxes (`jxlp`) are
+  streamed in bounded chunks.
 * Does not read brotli compressed metadata of JPEG XL due to missing brotli KMP libs.
 * MakerNote support is experimental and limited.
     + Can't extract preview image of ORF as offsets are burried into MakerNote.

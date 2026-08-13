@@ -18,7 +18,6 @@ package de.stefan_oltmann.kim.format.jxl
 
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageWriteException
-import de.stefan_oltmann.kim.common.writeBytes
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.bmff.box.Box
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
@@ -28,7 +27,7 @@ import de.stefan_oltmann.kim.format.tiff.write.TiffWriterLossy
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
-import kotlinx.io.files.Path
+import de.stefan_oltmann.kim.testdata.ModifiedBytesVerifier
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -36,7 +35,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
-import kotlin.test.fail
 
 class JxlWriterTest {
 
@@ -193,21 +191,7 @@ class JxlWriterTest {
                 actual = actualMetadata.xmp
             )
 
-            val expectedBytes = KimTestData.getModifiedBytesOf(index)
-
-            val equals = expectedBytes.contentEquals(newBytes)
-
-            if (!equals) {
-
-                Path("build/media_${index}_modified.jxl")
-                    .writeBytes(newBytes)
-
-                /* Also write a string representation to see differences more quickly. */
-                Path("build/media_${index}_modified.txt")
-                    .writeBytes(Kim.readMetadata(newBytes).toString().encodeToByteArray())
-
-                fail("Bytes for test image #$index are different.")
-            }
+            ModifiedBytesVerifier.verify(index, "jxl", newBytes)
         }
     }
 }

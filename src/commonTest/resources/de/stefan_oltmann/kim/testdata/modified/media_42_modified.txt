@@ -21,7 +21,7 @@ Little-endian (Intel, II)
 0000000320 0x829a ExposureTime = 1/800 (0.00125)
 0000000332 0x829d FNumber = 56/10 (5.6)
 0000000344 0x8822 ExposureProgram = 1
-0000000356 0x8827 PhotographicSensitivity = 640
+0000000356 0x8827 ISO = 640
 0000000368 0x8830 SensitivityType = 2
 0000000380 0x8832 RecommendedExposureIndex = 640
 0000000392 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x31]
@@ -57,14 +57,13 @@ Little-endian (Intel, II)
 0000022002 0x0003 GPSLongitudeRef = E
 0000022014 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory SubIFD @ 908 ----
+---- Directory IFD1 @ 908 ----
 0000000910 0x0103 Compression = 6
 0000000922 0x011a XResolution = 72/1 (72.0)
 0000000934 0x011b YResolution = 72/1 (72.0)
 0000000946 0x0128 ResolutionUnit = 2
 0000000958 0x0201 JpgFromRawStart = 1002
 0000000970 0x0202 JpgFromRawLength = 20962
-
 
 ---- IPTC ----
 Caption/Abstract (120) = 'white and brown bird on grass field'

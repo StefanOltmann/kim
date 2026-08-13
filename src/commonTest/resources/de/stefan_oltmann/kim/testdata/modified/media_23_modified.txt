@@ -14,7 +14,7 @@ Big-endian (Motorola, MM)
 ---- Directory ExifIFD @ 120 ----
 0000000122 0x829a ExposureTime = 40/1000 (0.04)
 0000000134 0x829d FNumber = 188/100 (1.88)
-0000000146 0x8827 PhotographicSensitivity = 1939
+0000000146 0x8827 ISO = 1939
 0000000158 0x9003 DateTimeOriginal = 2023:05:10 13:37:42
 0000000170 0x9004 DateTimeDigitized = 2023:05:10 13:37:42
 0000000182 0x9010 OffsetTime = +01:00
@@ -32,7 +32,6 @@ Big-endian (Motorola, MM)
 0000000452 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
 0000000464 0x0003 GPSLongitudeRef = E
 0000000476 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
-
 
 ---- IPTC ----
 Keywords (25) = 'Umlauts: äöüß'

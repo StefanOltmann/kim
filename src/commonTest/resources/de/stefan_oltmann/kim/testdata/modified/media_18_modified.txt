@@ -70,7 +70,7 @@ Little-endian (Intel, II)
 0000008834 0x0003 GPSLongitudeRef = E
 0000008846 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory SubIFD @ 8726 ----
+---- Directory IFD1 @ 8726 ----
 0000008728 0x0103 Compression = 6
 0000008740 0x011a XResolution = 72/1 (72.0)
 0000008752 0x011b YResolution = 72/1 (72.0)
@@ -99,7 +99,7 @@ Little-endian (Intel, II)
 0000001132 0x0098 Unknown = [1, 0, 514, 0]
 0000001144 0x0099 Unknown = [74 ints]
 0000001156 0x009a Unknown = [80480646, 99222116, 69469675, -196607, 16777473]
-0000001168 0x00a0 Unknown = [14 shorts]
+0000001168 0x00a0 Unknown = [257, 0, 1202, 2493, 2489, 1465, 556, 186, 184, 29, 84, 482, 483, 759]
 0000001180 0x00aa Unknown = [1129, 1893, 1897, 375, 1139, 2274]
 0000001192 0x00b4 Unknown = 2
 0000001204 0x00d0 Unknown = 0

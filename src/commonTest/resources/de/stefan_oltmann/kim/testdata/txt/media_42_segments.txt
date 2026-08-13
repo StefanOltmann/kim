@@ -1,0 +1,6 @@
+[       0 -        2 ] SOI (Start of Image) [2 bytes]
+[       2 -    11605 ] APP1 (Application Segment, EXIF & XMP) [11603 bytes]
+[   11605 -    11739 ] DQT (Define Quantization Table) [134 bytes]
+[   11739 -    12159 ] DHT (Define Huffman Table) [420 bytes]
+[   12159 -    12178 ] SOF0 (Start of Frame, Baseline DCT) [19 bytes]
+[   12178 -   217086 ] SOS (Start of Scan) [204908 bytes]

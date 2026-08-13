@@ -19,7 +19,6 @@ package de.stefan_oltmann.kim.format.jpeg
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.toBytes
-import de.stefan_oltmann.kim.common.writeBytes
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcRecord
@@ -35,8 +34,8 @@ import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
+import de.stefan_oltmann.kim.testdata.ModifiedBytesVerifier
 import de.stefan_oltmann.xmp.XMPMetaFactory
-import kotlinx.io.files.Path
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -173,21 +172,7 @@ class JpegRewriterTest {
 
             val actualMetadataBytes = xmpWriter.toByteArray()
 
-            val expectedMetadataBytes = KimTestData.getModifiedBytesOf(index)
-
-            val equals = expectedMetadataBytes.contentEquals(actualMetadataBytes)
-
-            if (!equals) {
-
-                Path("build/media_${index}_modified.jpg")
-                    .writeBytes(actualMetadataBytes)
-
-                /* Also write a string representation to see differences more quickly. */
-                Path("build/media_${index}_modified.txt")
-                    .writeBytes(Kim.readMetadata(actualMetadataBytes).toString().encodeToByteArray())
-
-                fail("Media $index has not the expected bytes!")
-            }
+            ModifiedBytesVerifier.verify(index, "jpg", actualMetadataBytes)
         }
     }
 
