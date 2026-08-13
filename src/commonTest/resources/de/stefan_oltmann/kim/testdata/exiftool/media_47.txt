@@ -1,0 +1,28 @@
+  ExifToolVersion = 13.59
+  FileName = media_47.jpg
+  Directory = C:/Users/micro/IdeaProjects/kim/src/commonTest/resources/de/stefan_oltmann/kim/testdata/full
+  FileSize = 613
+  FileModifyDate = 1776264336.82062
+  FileAccessDate = 1786601302.42003
+  FileCreateDate = 1776264336.82062
+  FilePermissions = 33206
+  FileType = JPEG
+  FileTypeExtension = JPG
+  MIMEType = image/jpeg
+  Warning = [minor] Skipped unknown 2 bytes after JPEG APP14 segment
+JPEG APP14 (12 bytes):
+      0006: 41 64 6f 62 65 01 01 01 00 48 00 01             [Adobe....H..]
+  + [BinaryData directory, 7 bytes, Big-endian]
+  | DCTEncodeVersion = 257
+  | - Tag 0x0000 (2 bytes, int16u[1]):
+  |     000b: 01 01                                           [..]
+  | APP14Flags0 = 256
+  | - Tag 0x0001 (2 bytes, int16u[1]):
+  |     000d: 01 00                                           [..]
+  | APP14Flags1 = 18432
+  | - Tag 0x0002 (2 bytes, int16u[1]):
+  |     000f: 48 00                                           [H.]
+  | ColorTransform = 1
+  | - Tag 0x0003 (1 bytes, int8u[1]):
+  |     0011: 01                                              [.]
+  Warning = JPEG format error

@@ -1,0 +1,339 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+ "http://www.w3.org/TR/1998/REC-html40-19980424/loose.dtd">
+<html>
+<head>
+<title>
+HTML Dump (C:/Users/micro/IdeaProjects/kim/src/commonTest/resources/de/stefan_oltmann/kim/testdata/full/media_45.jpg)</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+<!--
+/* character style ID's */
+.D { color: #000000 } /* default color */
+.V { color: #ff0000 } /* duplicate block 1 */
+.W { color: #004400 } /* normal block 1 */
+.X { color: #ff4488 } /* duplicate block 2 */
+.Y { color: #448844 } /* normal block 2 */
+.U { color: #cc8844 } /* unused data block */
+.H { color: #0000ff } /* highlighted tag name */
+.F { color: #aa00dd } /* actual offset differs */
+.M { text-decoration: underline } /* maker notes data */
+.tt { /* tooltip text */
+    visibility: hidden;
+    position: absolute;
+    white-space: nowrap;
+    top: 0;
+    left: 0;
+    font-family: Verdana, sans-serif;
+    font-size: .7em;
+    padding: 2px 4px;
+    border: 1px solid gray;
+    z-index: 3;
+}
+.tb { /* tooltip background */
+    visibility: hidden;
+    position: absolute;
+    background: #ffffdd;
+    zoom: 1;
+    -moz-opacity: 0.8;
+    -khtml-opacity: 0.8;
+    -ms-filter: 'progid:DXImageTransform.Microsoft.Alpha(Opacity=80)';
+    filter: alpha(opacity=80);
+    opacity: 0.8;
+    z-index: 2;
+}
+/* table styles */
+table.dump {
+  border-top: 1px solid gray;
+  border-bottom: 1px solid gray;
+}
+table.dump td { padding: .2em .3em }
+td.c2 {
+  border-left: 1px solid gray;
+  border-right: 1px solid gray;
+}
+pre   { margin: 0 }
+table { font-size: .9em }
+body  { color: black; background: white }
+-->
+</style>
+<script language="JavaScript" type="text/JavaScript">
+<!-- Begin
+// tooltip positioning constants
+var TMAR = 4;   // top/left margins
+var BMAR = 16;  // bottom/right margins (scrollbars may overhang inner dimensions)
+var XOFF = 10;  // x offset from cursor
+var YOFF = 40;  // y offset
+var YMIN = 10;  // minimum y offset
+var YTOP = 20;  // y offset when above cursor
+// common variables
+var safari1 = navigator.userAgent.indexOf("Safari/312.6") >= 0;
+var ie6 = navigator.userAgent.toLowerCase().indexOf('msie 6') >= 0;
+var mspan = new Array;
+var clicked = 0;
+var hlist, tt, tb, firstOutEvt, lastInEvt;
+
+function GetElementsByClass(classname, tagname) {
+  var found = new Array();
+  var list = document.getElementsByTagName(tagname);
+  var len = list.length;
+  for (var i=0, j=0; i<len; ++i) {
+    var classes = list[i].className.split(' ');
+    for (var k=0; k<classes.length; ++k) {
+      if (classes[k] == classname) {
+        found[j++] = list[i];
+        break;
+      }
+    }
+  }
+  return found;
+}
+
+// click mouse
+function doClick(e)
+{
+  if (!clicked) {
+    firstOutEvt = lastInEvt = undefined;
+    high(e, 2);
+    if (hlist) clicked = 1;
+  } else {
+    clicked = 0;
+    if (firstOutEvt) high(firstOutEvt, 0);
+    if (lastInEvt) high(lastInEvt, 1);
+  }
+}
+
+// move tooltip
+function move(e)
+{
+  if (!tt) return;
+  if (ie6 && (tt.style.top  == '' || tt.style.top  == 0) &&
+             (tt.style.left == '' || tt.style.left == 0))
+  {
+    tt.style.width  = tt.offsetWidth  + 'px';
+    tt.style.height = tt.offsetHeight + 'px';
+  }
+  var w, h;
+  // browser inconsistencies make getting window size more complex than it should be,
+  // and even then we don't know if it is smaller due to scrollbar width
+  if (typeof(window.innerWidth) == 'number') {
+    w = window.innerWidth;
+    h = window.innerHeight;
+  } else if (document.documentElement && document.documentElement.clientWidth) {
+    w = document.documentElement.clientWidth;
+    h = document.documentElement.clientHeight;
+  } else {
+    w = document.body.clientWidth;
+    h = document.body.clientHeight;
+  }
+  var x = e.clientX + XOFF;
+  var y = e.clientY + YOFF;
+  if (safari1) { // patch for people still using OS X 10.3.9
+    x -= document.body.scrollLeft + document.documentElement.scrollLeft;
+    y -= document.body.scrollTop  + document.documentElement.scrollTop;
+  }
+  var mx = w - BMAR - tt.offsetWidth;
+  var my = h - BMAR - tt.offsetHeight;
+  if (y > my + YOFF - YMIN) y = e.clientY - YTOP - tt.offsetHeight;
+  if (x > mx) x = mx;
+  if (y > my) y = my;
+  if (x < TMAR) x = TMAR;
+  if (y < TMAR) y = TMAR;
+  x += document.body.scrollLeft + document.documentElement.scrollLeft;
+  y += document.body.scrollTop  + document.documentElement.scrollTop;
+  tb.style.width  = tt.offsetWidth  + 'px';
+  tb.style.height = tt.offsetHeight + 'px';
+  tt.style.top  = tb.style.top  = y + 'px';
+  tt.style.left = tb.style.left = x + 'px';
+  tt.style.visibility = tb.style.visibility = 'visible';
+}
+
+// highlight/unhighlight text
+function high(e,on) {
+  if (on) {
+    lastInEvt = e;
+  } else {
+    if (!firstOutEvt) firstOutEvt = e;
+  }
+  if (clicked) return;
+  var targ;
+  if (e.target) targ = e.target;
+  else if (e.srcElement) targ = e.srcElement;
+  if (targ.nodeType == 3) targ = targ.parentNode; // defeat Safari bug
+  if (!targ.name) targ = targ.parentNode; // go up another level if necessary
+  if (targ.name && document.getElementsByName) {
+    // un-highlight current objects
+    if (hlist) {
+      for (var i=0; i<hlist.length; ++i) {
+        for (var j=0; j<hlist[i].length; ++j) {
+          hlist[i][j].style.background = 'transparent';
+        }
+      }
+      hlist = null;
+    }
+    if (tt) {
+      // hide old tooltip
+      tt.style.visibility = tb.style.visibility = 'hidden';
+      tt = null;
+    }
+    if (on) {
+      if (targ.name.substring(0,1) == 't') {
+        // show our tooltip (ID is different than name to avoid confusing IE)
+        tt = document.getElementById('p' + targ.name.substring(1));
+        if (tt) {
+          tb = document.getElementById('tb');
+          move(e);
+        }
+      }
+      // highlight anchor elements with the same name
+      hlist = new Array;
+      hlist.push(document.getElementsByName(targ.name));
+      // is this an IFD pointer?
+      var pos = targ.className.indexOf('Offset_');
+      if (pos > 0) {
+        // add elements from this IFD to our highlight list
+        hlist.push(document.getElementsByClassName(targ.className.substr(pos+7)));
+      }
+      // use class name to highlight span elements if necessary
+      for (var i=0; i<mspan.length; ++i) {
+        if (mspan[i] != targ.name) continue;
+        // add these span elements to our highlight list
+        hlist.push(GetElementsByClass(targ.name, 'span'));
+        break;
+      }
+      for (var i=0; i<hlist.length; ++i) {
+        for (var j=0; j<hlist[i].length; ++j) {
+          hlist[i][j].style.background = on == 2 ? '#ffbbbb' : '#ffcc99';
+        }
+      }
+    }
+  }
+}
+
+// End --->
+</script></head>
+<body><noscript><b class=V>--&gt;
+Enable JavaScript for active highlighting and information tool tips!
+</b></noscript>
+<table class=dump cellspacing=0 cellpadding=2>
+<tr><td valign='top'><pre> 0000
+ 0010
+ 0020
+ 0030
+ 0040
+ 0050
+ 0060
+ 0070
+ 0080
+ 0090
+ 00a0
+ 00b0
+ 00c0
+ 00d0
+ 00e0
+ 00f0
+ 0100
+ 0110
+<span class=V> 00fa
+ 0100
+ 0110</span>
+<span class=V> 0110</span>
+<span class=V> 0114</span>
+ 0120
+ 0130
+ 0140
+ 0150
+ 0160
+</pre></td><td valign="top"><pre onmouseover="high(event,1)" onmouseout="high(event,0)" onmousemove="move(event)" onmousedown="doClick(event)"><a name=t0 class=W>ff d8</a> <a name=t1 class=Y>ff e0 01 10 4a 46  49 46 00 04 49 00 00 64
+9c 8b 27 00 ff d2 cf 11  38 75 63 6b 2d 00 8d 32
+04 00 00 00 25 00 ee 34  ee 00 67 90 83 6f 50 d6
+8a bc c0 dd c6 5f 81 ff  db a4 84 00 4d 04 4d 95
+f2 d6 3a 05 63 19 09 2a  cb 9e 0e 94 0a c2 06 08
+0b 8e 0a 95 0b 0a 92 69  c4 0c 0c 1b 4a 0c b6 39
+0c 0e 66 10 0f 0b 5e f6  be 14 14 13 ff 1c 1b 1b
+1b 1c d2 a1 b7 1f b1 1f  1f 9d 1f 1f 01 68 07 cf
+73 0c 0d 18 10 c2 ec 1a  15 11 15 1a 62 17 f4 1b
+38 84 1f 1f 1f 1f 1f af  70 1f cb 54 d3 d9 03 80
+c8 1f fc 0d 1f a3 92 bc  b7 1f dc 1f f5 fb 99 52
+c0 f8 ec 66 1f e6 b0 1f  1f 1f 6f 1f 89 39 c0 03
+49 9d 14 98 00 41 91 01  11 65 55 11 01 03 88 a9
+0f c4 24 bf 02 01 01 35  09 00 70 af 3f 00 00 d8
+1e 3b d0 32 26 33 8e 85  00 d7 00 99 8a 00 00 00
+00 00 5c 00 8e 47 32 00  00 2e 01 38 00 a4 00 c3
+a0 00 2c 00 00 00 00 00  00 0f 00 5f 75 f6 00 3f
+00 00 00 00</a>
+                               <a name=t2 class=U>01 38 00 a4 00 c3
+a0 00 2c 00 00 00 00 00  00 0f 00 5f 75 f6 00 3f
+00 00 00 00 </a><a name=t2 class=V>00 ba 00 1c  00 75 00 57 00</a>
+<a name=t3 class=U>00 00 00 00 00 ba 00 1c  00 75 00 57 00</a>
+            <a name=t4 class=U>00 ba 00 1c  00 75 00 57 00</a> <a name=t5 class=W>ff ee 00
+08 03 f7 ad 02 48 d7</a> <a name=t6 class=U>0b  8d 4c 00 aa 40 00 d3 00
+a7 89 00 aa 00 00 00 7e  00 00 eb 56 00 26 00 00
+3a 00 db d1 bb c2 00 00  00 ce ff 01 fb 00 c5 a5
+28 00 9d 00 00 00 00 e1  ff ff 00 bf 00 00 00 29
+00 00 ff cc 3e</a>
+</pre></td><td class=c2 valign="top"><pre onmouseover="high(event,1)" onmouseout="high(event,0)" onmousemove="move(event)" onmousedown="doClick(event)"><a name=t0 class=W>..</a><a name=t1 class=Y>....JFIF..I..d
+..'.....8uck-..2
+....%..4..g..oP.
+....._......M.M.
+..:.c..*........
+.......i....J..9
+..f...^.........
+.............h..
+s...........b...
+8.......p..T....
+...............R
+...f......o..9..
+I....A...eU.....
+..$....5..p.?...
+.;.2&amp;3..........
+..\..G2....8....
+..,........_u..?
+....</a>
+          <a name=t2 class=U>.8....
+..,........_u..?
+....</a><a name=t2 class=V>.....u.W.</a>
+<a name=t3 class=U>.........u.W.</a>
+    <a name=t4 class=U>.....u.W.</a><a name=t5 class=W>...
+.....H.</a><a name=t6 class=U>..L..@...
+.......~...V.&amp;..
+:...............
+(..............)
+....&gt;</a>
+</pre></td><td valign="top"><pre onmouseover="high(event,1)" onmouseout="high(event,0)" onmousemove="move(event)" onmousedown="doClick(event)"><a name=t0 class=W>JPEG header</a>
+<a name=t1 class=Y>APP0 JFIF segment</a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a name=t2 class=U>[unknown 35 bytes]</a>
+
+
+<a name=t3 class=U>[unknown 13 bytes]</a>
+<a name=t4 class=U>[unknown 9 bytes]</a>
+<a name=t5 class=W>APP14 segment</a>
+<a name=t6 class=U>[unknown data]</a>
+
+
+
+</pre></td></tr></table>
+<div id=tb class=tb> </div>
+<div id=p0 class=tt><b>JPEG header</b><br>SOI Marker<br>(2 bytes)</div>
+<div id=p1 class=tt><b>APP0 JFIF segment</b><br>(274 bytes)</div>
+<div id=p2 class=tt>[unknown 35 bytes]<br>(35 bytes)</div>
+<div id=p3 class=tt>[unknown 13 bytes]<br>(13 bytes)</div>
+<div id=p4 class=tt>[unknown 9 bytes]<br>(9 bytes)</div>
+<div id=p5 class=tt><b>APP14 segment</b><br>(10 bytes)</div>
+<div id=p6 class=tt>[unknown data]<br>Size: 62 bytes</div>
+</body></html>

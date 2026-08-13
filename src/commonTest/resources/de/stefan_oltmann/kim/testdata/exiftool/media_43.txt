@@ -1,0 +1,295 @@
+  ExifToolVersion = 13.59
+  FileName = media_43.jpg
+  Directory = C:/Users/micro/IdeaProjects/kim/src/commonTest/resources/de/stefan_oltmann/kim/testdata/full
+  FileSize = 205869
+  FileModifyDate = 1776264337.63115
+  FileAccessDate = 1786601301.63592
+  FileCreateDate = 1776264337.62915
+  FilePermissions = 33206
+  FileType = JPEG
+  FileTypeExtension = JPG
+  MIMEType = image/jpeg
+JPEG APP1 (1369 bytes):
+      0006: 45 78 69 66 00 00 49 49 2a 00 08 00 00 00 0c 00 [Exif..II*.......]
+      0016: 0e 01 02 00 20 00 00 00 e8 01 00 00 0f 01 02 00 [.... ...........]
+      0026: 08 00 00 00 08 02 00 00 10 01 02 00 0c 00 00 00 [................]
+      0036: 10 02 00 00 12 01 03 00 01 00 00 00 01 00 00 00 [................]
+      0046: 1a 01 05 00 01 00 00 00 1c 02 00 00 1b 01 05 00 [................]
+      0056: 01 00 00 00 24 02 00 00 28 01 03 00 01 00 00 00 [....$...(.......]
+      0066: 02 00 00 00 31 01 02 00 0c 00 00 00 2c 02 00 00 [....1.......,...]
+      [snip 1257 bytes]
+  ExifByteOrder = II
+  + [IFD0 directory with 12 entries, Little-endian]
+  | 0)  ImageDescription =  DIGITAL CAMERA 
+  |     - Tag 0x010e (32 bytes, string[32]):
+  |         01f4: 20 44 49 47 49 54 41 4c 20 43 41 4d 45 52 41 20 [ DIGITAL CAMERA ]
+  |         0204: 00 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [.               ]
+  | 1)  Make = Digital
+  |     - Tag 0x010f (8 bytes, string[8]):
+  |         0214: 44 69 67 69 74 61 6c 00                         [Digital.]
+  | 2)  Model = Digital Cam
+  |     - Tag 0x0110 (12 bytes, string[12]):
+  |         021c: 44 69 67 69 74 61 6c 20 43 61 6d 00             [Digital Cam.]
+  | 3)  Orientation = 1
+  |     - Tag 0x0112 (2 bytes, int16u[1]):
+  |         0042: 01 00                                           [..]
+  | 4)  XResolution = 72 (72/1)
+  |     - Tag 0x011a (8 bytes, rational64u[1]):
+  |         0228: 48 00 00 00 01 00 00 00                         [H.......]
+  | 5)  YResolution = 72 (72/1)
+  |     - Tag 0x011b (8 bytes, rational64u[1]):
+  |         0230: 48 00 00 00 01 00 00 00                         [H.......]
+  | 6)  ResolutionUnit = 2
+  |     - Tag 0x0128 (2 bytes, int16u[1]):
+  |         0066: 02 00                                           [..]
+  | 7)  Software = M4021M-1006
+  |     - Tag 0x0131 (12 bytes, string[12]):
+  |         0238: 4d 34 30 32 31 4d 2d 31 30 30 36 00             [M4021M-1006.]
+  | 8)  ModifyDate = 2004:01:18 04:27:28
+  |     - Tag 0x0132 (20 bytes, string[20]):
+  |         0244: 32 30 30 34 3a 30 31 3a 31 38 20 30 34 3a 32 37 [2004:01:18 04:27]
+  |         0254: 3a 32 38 00                                     [:28.]
+  | 9)  YCbCrPositioning = 2
+  |     - Tag 0x0213 (2 bytes, int16u[1]):
+  |         008a: 02 00                                           [..]
+  | 10) ExifOffset (SubDirectory) -->
+  |     - Tag 0x8769 (4 bytes, int32u[1]):
+  |         0096: 9e 00 00 00                                     [....]
+  | + [ExifIFD directory with 23 entries, Little-endian]
+  | | 0)  ExposureTime = 0.003157741836 (1000/316682)
+  | |     - Tag 0x829a (8 bytes, rational64u[1]):
+  | |         0258: e8 03 00 00 0a d5 04 00                         [........]
+  | | 1)  FNumber = 7.4 (740/100)
+  | |     - Tag 0x829d (8 bytes, rational64u[1]):
+  | |         0260: e4 02 00 00 64 00 00 00                         [....d...]
+  | | 2)  ExposureProgram = 2
+  | |     - Tag 0x8822 (2 bytes, int16u[1]):
+  | |         00cc: 02 00                                           [..]
+  | | 3)  ISO = 100
+  | |     - Tag 0x8827 (2 bytes, int16u[1]):
+  | |         00d8: 64 00                                           [d.]
+  | | 4)  ExifVersion = 0220
+  | |     - Tag 0x9000 (4 bytes, undef[4]):
+  | |         00e4: 30 32 32 30                                     [0220]
+  | | 5)  DateTimeOriginal = 2006:04:26 00:26:14
+  | |     - Tag 0x9003 (20 bytes, string[20]):
+  | |         0268: 32 30 30 36 3a 30 34 3a 32 36 20 30 30 3a 32 36 [2006:04:26 00:26]
+  | |         0278: 3a 31 34 00                                     [:14.]
+  | | 6)  CreateDate = 2006:04:26 00:26:14
+  | |     - Tag 0x9004 (20 bytes, string[20]):
+  | |         027c: 32 30 30 36 3a 30 34 3a 32 36 20 30 30 3a 32 36 [2006:04:26 00:26]
+  | |         028c: 3a 31 34 00                                     [:14.]
+  | | 7)  ComponentsConfiguration = 1 2 3 0
+  | |     - Tag 0x9101 (4 bytes, undef[4] read as int8u[4]):
+  | |         0108: 01 02 03 00                                     [....]
+  | | 8)  CompressedBitsPerPixel = 2 (2/1)
+  | |     - Tag 0x9102 (8 bytes, rational64u[1]):
+  | |         0290: 02 00 00 00 01 00 00 00                         [........]
+  | | 9)  ExposureCompensation = 15.4 (154/10)
+  | |     - Tag 0x9204 (8 bytes, rational64s[1]):
+  | |         0298: 9a 00 00 00 0a 00 00 00                         [........]
+  | | 10) MaxApertureValue = 3.05 (61/20)
+  | |     - Tag 0x9205 (8 bytes, rational64u[1]):
+  | |         02a0: 3d 00 00 00 14 00 00 00                         [=.......]
+  | | 11) MeteringMode = 2
+  | |     - Tag 0x9207 (2 bytes, int16u[1]):
+  | |         0138: 02 00                                           [..]
+  | | 12) LightSource = 0
+  | |     - Tag 0x9208 (2 bytes, int16u[1]):
+  | |         0144: 00 00                                           [..]
+  | | 13) Flash = 0
+  | |     - Tag 0x9209 (2 bytes, int16u[1]):
+  | |         0150: 00 00                                           [..]
+  | | 14) FocalLength = 10.04 (1004/100)
+  | |     - Tag 0x920a (8 bytes, rational64u[1]):
+  | |         02a8: ec 03 00 00 64 00 00 00                         [....d...]
+  | | 15) FlashpixVersion = 0100
+  | |     - Tag 0xa000 (4 bytes, undef[4]):
+  | |         0168: 30 31 30 30                                     [0100]
+  | | 16) ColorSpace = 1
+  | |     - Tag 0xa001 (2 bytes, int16u[1]):
+  | |         0174: 01 00                                           [..]
+  | | 17) ExifImageWidth = 1024
+  | |     - Tag 0xa002 (4 bytes, int32u[1]):
+  | |         0180: 00 04 00 00                                     [....]
+  | | 18) ExifImageHeight = 768
+  | |     - Tag 0xa003 (4 bytes, int32u[1]):
+  | |         018c: 00 03 00 00                                     [....]
+  | | 19) RelatedSoundFile = 
+  | |     - Tag 0xa004 (13 bytes, string[13]):
+  | |         02b0: 00 00 00 00 00 00 0c 00 0e 01 02 00 20          [............ ]
+  | | 20) InteropOffset (SubDirectory) -->
+  | |     - Tag 0xa005 (4 bytes, int32u[1]):
+  | |         01a4: b8 01 00 00                                     [....]
+  | | + [InteropIFD directory with 2 entries, Little-endian]
+  | | | 0)  InteropIndex = R98
+  | | |     - Tag 0x0001 (4 bytes, string[4]):
+  | | |         01ce: 52 39 38 00                                     [R98.]
+  | | | 1)  InteropVersion = 0100
+  | | |     - Tag 0x0002 (4 bytes, undef[4]):
+  | | |         01da: 30 31 30 30                                     [0100]
+  | | 21) FileSource = 3
+  | |     - Tag 0xa300 (1 bytes, undef[1]):
+  | |         01b0: 03                                              [.]
+  | | 22) SceneType = 1
+  | |     - Tag 0xa301 (1 bytes, undef[1]):
+  | |         01bc: 01                                              [.]
+  | 11) GPSInfo (SubDirectory) -->
+  |     - Tag 0x8825 (4 bytes, int32u[1]):
+  |         00a2: d6 01 00 00                                     [....]
+  | + [GPS directory with 1 entries, Little-endian]
+  | | 0)  GPSVersionID = 2 2 0 0
+  | |     - Tag 0x0000 (4 bytes, int8u[4]):
+  | |         01ec: 02 02 00 00                                     [....]
+  + [IFD1 directory with 12 entries, Little-endian]
+  | 0)  ImageDescription =  DIGITAL CAMERA 
+  |     - Tag 0x010e (32 bytes, string[32]):
+  |         0496: 20 44 49 47 49 54 41 4c 20 43 41 4d 45 52 41 20 [ DIGITAL CAMERA ]
+  |         04a6: 00 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [.               ]
+  | 1)  Make = Digital
+  |     - Tag 0x010f (8 bytes, string[8]):
+  |         04b6: 44 69 67 69 74 61 6c 00                         [Digital.]
+  | 2)  Model = Digital Cam
+  |     - Tag 0x0110 (12 bytes, string[12]):
+  |         04be: 44 69 67 69 74 61 6c 20 43 61 6d 00             [Digital Cam.]
+  | 3)  Orientation = 1
+  |     - Tag 0x0112 (2 bytes, int16u[1]):
+  |         02e4: 01 00                                           [..]
+  | 4)  XResolution = 72 (72/1)
+  |     - Tag 0x011a (8 bytes, rational64u[1]):
+  |         04ca: 48 00 00 00 01 00 00 00                         [H.......]
+  | 5)  YResolution = 72 (72/1)
+  |     - Tag 0x011b (8 bytes, rational64u[1]):
+  |         04d2: 48 00 00 00 01 00 00 00                         [H.......]
+  | 6)  ResolutionUnit = 2
+  |     - Tag 0x0128 (2 bytes, int16u[1]):
+  |         0308: 02 00                                           [..]
+  | 7)  Software = M4021M-1006
+  |     - Tag 0x0131 (12 bytes, string[12]):
+  |         04da: 4d 34 30 32 31 4d 2d 31 30 30 36 00             [M4021M-1006.]
+  | 8)  ModifyDate = 2004:01:18 04:27:28
+  |     - Tag 0x0132 (20 bytes, string[20]):
+  |         04e6: 32 30 30 34 3a 30 31 3a 31 38 20 30 34 3a 32 37 [2004:01:18 04:27]
+  |         04f6: 3a 32 38 00                                     [:28.]
+  | 9)  YCbCrPositioning = 2
+  |     - Tag 0x0213 (2 bytes, int16u[1]):
+  |         032c: 02 00                                           [..]
+  | 10) ExifOffset (SubDirectory) -->
+  |     - Tag 0x8769 (4 bytes, int32u[1]):
+  |         0338: 40 03 00 00                                     [@...]
+  | + [ExifIFD directory with 23 entries, Little-endian]
+  | | 0)  ExposureTime = 0.003157741836 (1000/316682)
+  | |     - Tag 0x829a (8 bytes, rational64u[1]):
+  | |         04fa: e8 03 00 00 0a d5 04 00                         [........]
+  | | 1)  FNumber = 7.4 (740/100)
+  | |     - Tag 0x829d (8 bytes, rational64u[1]):
+  | |         0502: e4 02 00 00 64 00 00 00                         [....d...]
+  | | 2)  ExposureProgram = 2
+  | |     - Tag 0x8822 (2 bytes, int16u[1]):
+  | |         036e: 02 00                                           [..]
+  | | 3)  ISO = 100
+  | |     - Tag 0x8827 (2 bytes, int16u[1]):
+  | |         037a: 64 00                                           [d.]
+  | | 4)  ExifVersion = 0220
+  | |     - Tag 0x9000 (4 bytes, undef[4]):
+  | |         0386: 30 32 32 30                                     [0220]
+  | | 5)  DateTimeOriginal = 2006:04:26 00:26:14
+  | |     - Tag 0x9003 (20 bytes, string[20]):
+  | |         050a: 32 30 30 36 3a 30 34 3a 32 36 20 30 30 3a 32 36 [2006:04:26 00:26]
+  | |         051a: 3a 31 34 00                                     [:14.]
+  | | 6)  CreateDate = 2006:04:26 00:26:14
+  | |     - Tag 0x9004 (20 bytes, string[20]):
+  | |         051e: 32 30 30 36 3a 30 34 3a 32 36 20 30 30 3a 32 36 [2006:04:26 00:26]
+  | |         052e: 3a 31 34 00                                     [:14.]
+  | | 7)  ComponentsConfiguration = 1 2 3 0
+  | |     - Tag 0x9101 (4 bytes, undef[4] read as int8u[4]):
+  | |         03aa: 01 02 03 00                                     [....]
+  | | 8)  CompressedBitsPerPixel = 2 (2/1)
+  | |     - Tag 0x9102 (8 bytes, rational64u[1]):
+  | |         0532: 02 00 00 00 01 00 00 00                         [........]
+  | | 9)  ExposureCompensation = 15.4 (154/10)
+  | |     - Tag 0x9204 (8 bytes, rational64s[1]):
+  | |         053a: 9a 00 00 00 0a 00 00 00                         [........]
+  | | 10) MaxApertureValue = 3.05 (61/20)
+  | |     - Tag 0x9205 (8 bytes, rational64u[1]):
+  | |         0542: 3d 00 00 00 14 00 00 00                         [=.......]
+  | | 11) MeteringMode = 2
+  | |     - Tag 0x9207 (2 bytes, int16u[1]):
+  | |         03da: 02 00                                           [..]
+  | | 12) LightSource = 0
+  | |     - Tag 0x9208 (2 bytes, int16u[1]):
+  | |         03e6: 00 00                                           [..]
+  | | 13) Flash = 0
+  | |     - Tag 0x9209 (2 bytes, int16u[1]):
+  | |         03f2: 00 00                                           [..]
+  | | 14) FocalLength = 10.04 (1004/100)
+  | |     - Tag 0x920a (8 bytes, rational64u[1]):
+  | |         054a: ec 03 00 00 64 00 00 00                         [....d...]
+  | | 15) FlashpixVersion = 0100
+  | |     - Tag 0xa000 (4 bytes, undef[4]):
+  | |         040a: 30 31 30 30                                     [0100]
+  | | 16) ColorSpace = 1
+  | |     - Tag 0xa001 (2 bytes, int16u[1]):
+  | |         0416: 01 00                                           [..]
+  | | 17) ExifImageWidth = 1024
+  | |     - Tag 0xa002 (4 bytes, int32u[1]):
+  | |         0422: 00 04 00 00                                     [....]
+  | | 18) ExifImageHeight = 768
+  | |     - Tag 0xa003 (4 bytes, int32u[1]):
+  | |         042e: 00 03 00 00                                     [....]
+  | | 19) RelatedSoundFile = 
+  | |     - Tag 0xa004 (13 bytes, string[13]):
+  | |         0552: 00 00 00 00 00 00 00 00 00 00 00 00 00          [.............]
+  | | 20) InteropOffset (SubDirectory) -->
+  | |     - Tag 0xa005 (4 bytes, int32u[1]):
+  | |         0446: 5a 04 00 00                                     [Z...]
+  | | + [InteropIFD directory with 2 entries, Little-endian]
+  | | | 0)  InteropIndex = R98
+  | | |     - Tag 0x0001 (4 bytes, string[4]):
+  | | |         0470: 52 39 38 00                                     [R98.]
+  | | | 1)  InteropVersion = 0100
+  | | |     - Tag 0x0002 (4 bytes, undef[4]):
+  | | |         047c: 30 31 30 30                                     [0100]
+  | | 21) FileSource = 3
+  | |     - Tag 0xa300 (1 bytes, undef[1]):
+  | |         0452: 03                                              [.]
+  | | 22) SceneType = 1
+  | |     - Tag 0xa301 (1 bytes, undef[1]):
+  | |         045e: 01                                              [.]
+  | 11) GPSInfo (SubDirectory) -->
+  |     - Tag 0x8825 (4 bytes, int32u[1]):
+  |         0344: 78 04 00 00                                     [x...]
+  | + [GPS directory with 1 entries, Little-endian]
+  | | 0)  GPSVersionID = 2 2 0 0
+  | |     - Tag 0x0000 (4 bytes, int8u[4]):
+  | |         048e: 02 02 00 00                                     [....]
+JPEG DQT (130 bytes):
+      0563: 00 02 01 01 01 01 01 02 01 01 01 02 02 02 02 02 [................]
+      0573: 04 03 02 02 02 02 05 04 04 03 04 06 05 06 06 06 [................]
+      0583: 05 06 06 06 07 09 08 06 07 09 07 06 06 08 0b 08 [................]
+      0593: 09 0a 0a 0a 0a 0a 06 08 0b 0c 0b 0a 0c 09 0a 0a [................]
+      05a3: 0a 01 02 02 02 02 02 02 05 03 03 05 0a 07 06 07 [................]
+      05b3: 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a [................]
+      05c3: 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a [................]
+      [snip 18 bytes]
+JPEG DRI (2 bytes):
+      05e9: 00 00                                           [..]
+JPEG DHT (416 bytes):
+      05ef: 00 00 01 05 01 01 01 01 01 01 00 00 00 00 00 00 [................]
+      05ff: 00 00 01 02 03 04 05 06 07 08 09 0a 0b 10 00 02 [................]
+      060f: 01 03 03 02 04 03 05 05 04 04 00 00 01 7d 01 02 [.............}..]
+      061f: 03 00 04 11 05 12 21 31 41 06 13 51 61 07 22 71 [......!1A..Qa."q]
+      062f: 14 32 81 91 a1 08 23 42 b1 c1 15 52 d1 f0 24 33 [.2....#B...R..$3]
+      063f: 62 72 82 09 0a 16 17 18 19 1a 25 26 27 28 29 2a [br........%&'()*]
+      064f: 34 35 36 37 38 39 3a 43 44 45 46 47 48 49 4a 53 [456789:CDEFGHIJS]
+      [snip 304 bytes]
+JPEG SOF0 (15 bytes):
+      0793: 08 03 00 04 00 03 01 21 00 02 11 01 03 11 01    [.......!.......]
+  ImageWidth = 1024
+  ImageHeight = 768
+  EncodingProcess = 0
+  BitsPerSample = 8
+  ColorComponents = 3
+  YCbCrSubSampling = 2 1
+JPEG SOS
+JPEG EOI

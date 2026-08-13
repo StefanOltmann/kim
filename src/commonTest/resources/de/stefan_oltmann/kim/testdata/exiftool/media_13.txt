@@ -1,0 +1,179 @@
+  ExifToolVersion = 13.59
+  FileName = media_13.jpg
+  Directory = C:/Users/micro/IdeaProjects/kim/src/commonTest/resources/de/stefan_oltmann/kim/testdata/full
+  FileSize = 1052616
+  FileModifyDate = 1776264339.09555
+  FileAccessDate = 1786601295.12257
+  FileCreateDate = 1776264339.09455
+  FilePermissions = 33206
+  FileType = JPEG
+  FileTypeExtension = JPG
+  MIMEType = image/jpeg
+JPEG APP0 (14 bytes):
+      0006: 4a 46 49 46 00 01 01 00 00 01 00 01 00 00       [JFIF..........]
+  + [BinaryData directory, 9 bytes, Big-endian]
+  | JFIFVersion = 1 1
+  | - Tag 0x0000 (2 bytes, int8u[2]):
+  |     000b: 01 01                                           [..]
+  | ResolutionUnit = 0
+  | - Tag 0x0002 (1 bytes, int8u[1]):
+  |     000d: 00                                              [.]
+  | XResolution = 1
+  | - Tag 0x0003 (2 bytes, int16u[1]):
+  |     000e: 00 01                                           [..]
+  | YResolution = 1
+  | - Tag 0x0005 (2 bytes, int16u[1]):
+  |     0010: 00 01                                           [..]
+  | ThumbnailWidth = 0
+  | - Tag 0x0007 (1 bytes, int8u[1]):
+  |     0012: 00                                              [.]
+  | ThumbnailHeight = 0
+  | - Tag 0x0008 (1 bytes, int8u[1]):
+  |     0013: 00                                              [.]
+JPEG APP1 (210 bytes):
+      0018: 45 78 69 66 00 00 4d 4d 00 2a 00 00 00 08 00 05 [Exif..MM.*......]
+      0028: 01 1a 00 05 00 00 00 01 00 00 00 4a 01 1b 00 05 [...........J....]
+      0038: 00 00 00 01 00 00 00 52 01 28 00 03 00 00 00 01 [.......R.(......]
+      0048: 00 01 00 00 02 13 00 03 00 00 00 01 00 01 00 00 [................]
+      0058: 88 25 00 04 00 00 00 01 00 00 00 5a 00 00 00 00 [.%.........Z....]
+      0068: 00 00 00 01 00 00 00 01 00 00 00 01 00 00 00 01 [................]
+      0078: 00 05 00 00 00 01 00 00 00 04 02 03 00 00 00 01 [................]
+      [snip 98 bytes]
+  ExifByteOrder = MM
+  + [IFD0 directory with 5 entries, Big-endian]
+  | 0)  XResolution = 1 (1/1)
+  |     - Tag 0x011a (8 bytes, rational64u[1]):
+  |         0068: 00 00 00 01 00 00 00 01                         [........]
+  | 1)  YResolution = 1 (1/1)
+  |     - Tag 0x011b (8 bytes, rational64u[1]):
+  |         0070: 00 00 00 01 00 00 00 01                         [........]
+  | 2)  ResolutionUnit = 1
+  |     - Tag 0x0128 (2 bytes, int16u[1]):
+  |         0048: 00 01                                           [..]
+  | 3)  YCbCrPositioning = 1
+  |     - Tag 0x0213 (2 bytes, int16u[1]):
+  |         0054: 00 01                                           [..]
+  | 4)  GPSInfo (SubDirectory) -->
+  |     - Tag 0x8825 (4 bytes, int32u[1]):
+  |         0060: 00 00 00 5a                                     [...Z]
+  | + [GPS directory with 5 entries, Big-endian]
+  | | 0)  GPSVersionID = 2 3 0 0
+  | |     - Tag 0x0000 (4 bytes, int8u[4]):
+  | |         0082: 02 03 00 00                                     [....]
+  | | 1)  GPSLatitudeRef = N
+  | |     - Tag 0x0001 (2 bytes, string[2]):
+  | |         008e: 4e 00                                           [N.]
+  | | 2)  GPSLatitude = 34 3 8.043120022 (34/1 3/1 29285/3641)
+  | |     - Tag 0x0002 (24 bytes, rational64u[3]):
+  | |         00ba: 00 00 00 22 00 00 00 01 00 00 00 03 00 00 00 01 [..."............]
+  | |         00ca: 00 00 72 65 00 00 0e 39                         [..re...9]
+  | | 3)  GPSLongitudeRef = W
+  | |     - Tag 0x0003 (2 bytes, string[2]):
+  | |         00a6: 57 00                                           [W.]
+  | | 4)  GPSLongitude = 118 14 37.26564004 (118/1 14/1 38719/1039)
+  | |     - Tag 0x0004 (24 bytes, rational64u[3]):
+  | |         00d2: 00 00 00 76 00 00 00 01 00 00 00 0e 00 00 00 01 [...v............]
+  | |         00e2: 00 00 97 3f 00 00 04 0f                         [...?....]
+JPEG APP13 (158 bytes):
+      00ee: 50 68 6f 74 6f 73 68 6f 70 20 33 2e 30 00 38 42 [Photoshop 3.0.8B]
+      00fe: 49 4d 04 04 00 00 00 00 00 84 1c 02 78 00 39 62 [IM..........x.9b]
+      010e: 72 6f 77 6e 20 61 6e 64 20 62 6c 61 63 6b 20 74 [rown and black t]
+      011e: 69 67 65 72 20 6c 79 69 6e 67 20 6f 6e 20 67 72 [iger lying on gr]
+      012e: 65 65 6e 20 67 72 61 73 73 20 64 75 72 69 6e 67 [een grass during]
+      013e: 20 64 61 79 74 69 6d 65 1c 02 00 00 02 00 04 1c [ daytime........]
+      014e: 02 19 00 05 70 6c 61 6e 74 1c 02 19 00 06 6d 61 [....plant.....ma]
+      [snip 46 bytes]
+  + [Photoshop directory, 144 bytes]
+  | IPTCData (SubDirectory) -->
+  | - Tag 0x0404 (132 bytes):
+  |     0108: 1c 02 78 00 39 62 72 6f 77 6e 20 61 6e 64 20 62 [..x.9brown and b]
+  |     0118: 6c 61 63 6b 20 74 69 67 65 72 20 6c 79 69 6e 67 [lack tiger lying]
+  |     0128: 20 6f 6e 20 67 72 65 65 6e 20 67 72 61 73 73 20 [ on green grass ]
+  |     0138: 64 75 72 69 6e 67 20 64 61 79 74 69 6d 65 1c 02 [during daytime..]
+  |     0148: 00 00 02 00 04 1c 02 19 00 05 70 6c 61 6e 74 1c [..........plant.]
+  |     0158: 02 19 00 06 6d 61 6d 6d 61 6c 1c 02 19 00 04 66 [....mammal.....f]
+  |     0168: 6f 6f 64 1c 02 19 00 09 73 65 61 73 6f 6e 69 6e [ood.....seasonin]
+  |     0178: 67 1c 02 19 00 05 66 6c 6f 72 61 1c 02 19 00 04 [g.....flora.....]
+  |     0188: 64 69 6c 6c                                     [dill]
+  | + [IPTC directory, 132 bytes]
+  | | CurrentIPTCDigest = .`.a.l......,$#R
+  | | -- IPTCApplication record --
+  | | Caption-Abstract = brown and black tiger lying on green grass during daytime
+  | | - Tag 0x0078, IPTCApplication record (57 bytes, string[0,2000]):
+  | |     010d: 62 72 6f 77 6e 20 61 6e 64 20 62 6c 61 63 6b 20 [brown and black ]
+  | |     011d: 74 69 67 65 72 20 6c 79 69 6e 67 20 6f 6e 20 67 [tiger lying on g]
+  | |     012d: 72 65 65 6e 20 67 72 61 73 73 20 64 75 72 69 6e [reen grass durin]
+  | |     013d: 67 20 64 61 79 74 69 6d 65                      [g daytime]
+  | | ApplicationRecordVersion = 4
+  | | - Tag 0x0000, IPTCApplication record (2 bytes, int16u):
+  | |     014b: 00 04                                           [..]
+  | | Keywords = plant
+  | | - Tag 0x0019, IPTCApplication record (5 bytes, string[0,64]):
+  | |     0152: 70 6c 61 6e 74                                  [plant]
+  | | Keywords = mammal
+  | | - Tag 0x0019, IPTCApplication record (6 bytes, string[0,64]):
+  | |     015c: 6d 61 6d 6d 61 6c                               [mammal]
+  | | Keywords = food
+  | | - Tag 0x0019, IPTCApplication record (4 bytes, string[0,64]):
+  | |     0167: 66 6f 6f 64                                     [food]
+  | | Keywords = seasoning
+  | | - Tag 0x0019, IPTCApplication record (9 bytes, string[0,64]):
+  | |     0170: 73 65 61 73 6f 6e 69 6e 67                      [seasoning]
+  | | Keywords = flora
+  | | - Tag 0x0019, IPTCApplication record (5 bytes, string[0,64]):
+  | |     017e: 66 6c 6f 72 61                                  [flora]
+  | | Keywords = dill
+  | | - Tag 0x0019, IPTCApplication record (4 bytes, string[0,64]):
+  | |     0188: 64 69 6c 6c                                     [dill]
+JPEG APP1 (2810 bytes):
+      0190: 68 74 74 70 3a 2f 2f 6e 73 2e 61 64 6f 62 65 2e [http://ns.adobe.]
+      01a0: 63 6f 6d 2f 78 61 70 2f 31 2e 30 2f 00 3c 3f 78 [com/xap/1.0/.<?x]
+      01b0: 70 61 63 6b 65 74 20 62 65 67 69 6e 3d 27 ef bb [packet begin='..]
+      01c0: bf 27 20 69 64 3d 27 57 35 4d 30 4d 70 43 65 68 [.' id='W5M0MpCeh]
+      01d0: 69 48 7a 72 65 53 7a 4e 54 63 7a 6b 63 39 64 27 [iHzreSzNTczkc9d']
+      01e0: 3f 3e 0a 3c 78 3a 78 6d 70 6d 65 74 61 20 78 6d [?>.<x:xmpmeta xm]
+      01f0: 6c 6e 73 3a 78 3d 27 61 64 6f 62 65 3a 6e 73 3a [lns:x='adobe:ns:]
+      [snip 2698 bytes]
+  + [XMP directory, 2781 bytes]
+  | XMPToolkit = Image::ExifTool 12.27
+  | Rating = 1
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmp:Rating'
+JPEG DQT (65 bytes):
+      0c8e: 00 06 04 05 05 05 04 06 05 05 05 07 06 06 08 09 [................]
+      0c9e: 10 0a 09 09 09 09 13 0e 0e 0b 10 17 14 18 18 16 [................]
+      0cae: 14 16 15 19 1c 24 1e 19 1a 22 1b 15 16 1f 2b 1f [.....$..."....+.]
+      0cbe: 22 25 26 28 28 28 18 1e 2c 2f 2c 27 2f 24 27 28 ["%&(((..,/,'/$'(]
+      0cce: 27                                              [']
+JPEG DQT (65 bytes):
+      0cd3: 01 06 07 07 09 08 09 12 0a 0a 12 27 1a 16 1a 27 [...........'...']
+      0ce3: 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 ['''''''''''''''']
+      0cf3: 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 ['''''''''''''''']
+      0d03: 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 ['''''''''''''''']
+      0d13: 27                                              [']
+JPEG SOF0 (15 bytes):
+      0d18: 08 04 38 07 80 03 01 11 00 02 11 01 03 11 01    [..8............]
+  ImageWidth = 1920
+  ImageHeight = 1080
+  EncodingProcess = 0
+  BitsPerSample = 8
+  ColorComponents = 3
+  YCbCrSubSampling = 1 1
+JPEG DHT (26 bytes):
+      0d2b: 00 00 02 03 01 01 01 01 00 00 00 00 00 00 00 00 [................]
+      0d3b: 00 04 05 02 03 06 07 01 00 08                   [..........]
+JPEG DHT (75 bytes):
+      0d49: 10 00 02 01 03 03 02 04 04 04 03 07 03 03 01 01 [................]
+      0d59: 11 01 02 03 04 05 11 00 12 21 06 31 13 22 41 51 [.........!.1."AQ]
+      0d69: 14 32 61 71 07 23 81 91 15 42 a1 33 52 62 b1 c1 [.2aq.#...B.3Rb..]
+      0d79: d1 f0 24 72 e1 16 43 82 f1 25 34 53 92 a2 08 17 [..$r..C..%4S....]
+      0d89: 63 73 44 26 83 b2 c2 35 93 d2 e2                [csD&...5...]
+JPEG DHT (25 bytes):
+      0d98: 01 00 02 03 01 01 01 00 00 00 00 00 00 00 00 00 [................]
+      0da8: 00 03 04 01 02 05 00 06 07                      [.........]
+JPEG DHT (54 bytes):
+      0db5: 11 00 02 02 01 04 01 03 02 05 04 01 05 01 00 01 [................]
+      0dc5: 05 01 02 00 03 11 04 12 21 31 41 13 22 51 32 61 [........!1A."Q2a]
+      0dd5: 05 14 23 71 a1 42 81 91 b1 c1 33 52 e1 f0 f1 d1 [..#q.B....3R....]
+      0de5: 15 24 62 06 43 a2                               [.$b.C.]
+JPEG SOS
+JPEG EOI

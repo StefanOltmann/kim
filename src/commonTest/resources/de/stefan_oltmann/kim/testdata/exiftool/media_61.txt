@@ -1,0 +1,55 @@
+  ExifToolVersion = 13.59
+  FileName = media_61.gif
+  Directory = C:/Users/micro/IdeaProjects/kim/src/commonTest/resources/de/stefan_oltmann/kim/testdata/full
+  FileSize = 1373759
+  FileModifyDate = 1776264338.13071
+  FileAccessDate = 1786601583.54563
+  FileCreateDate = 1776264338.12972
+  FilePermissions = 33206
+  FileType = GIF
+  FileTypeExtension = GIF
+  MIMEType = image/gif
+  GIFVersion = 89a
+  ScreenDescriptor (SubDirectory) -->
+  + [BinaryData directory, 7 bytes, Little-endian]
+  | ImageWidth = 3000
+  | - Tag 0x0000 (2 bytes, int16u[1]):
+  |     0000: b8 0b                                           [..]
+  | ImageHeight = 3000
+  | - Tag 0x0002 (2 bytes, int16u[1]):
+  |     0002: b8 0b                                           [..]
+  | HasColorMap = 1
+  | - Tag '4.1', mask 0x80 (1 bytes, int8u[1]):
+  |     0004: e7                                              [.]
+  | ColorResolutionDepth = 6
+  | - Tag '4.2', mask 0x70 (1 bytes, int8u[1]):
+  |     0004: e7                                              [.]
+  | BitsPerPixel = 7
+  | - Tag '4.3', mask 0x07 (1 bytes, int8u[1]):
+  |     0004: e7                                              [.]
+  | BackgroundColor = 254
+  | - Tag 0x0005 (1 bytes, int8u[1]):
+  |     0005: fe                                              [.]
+  | PixelAspectRatio = 0
+  | - Tag 0x0006 (1 bytes, int8u[1]):
+  |     0006: 00                                              [.]
+Application Extension: XMP Data/XMP
+  + [XMP directory, 1004 bytes]
+  | Title = Sample GIF
+  | - Tag 'x:xmpmeta/x:metadata/rdf:RDF/rdf:Description/dc:title'
+  | Creator = kim
+  | - Tag 'x:xmpmeta/x:metadata/rdf:RDF/rdf:Description/dc:creator'
+  | Subject = Example GIF with XMP metadata
+  | - Tag 'x:xmpmeta/x:metadata/rdf:RDF/rdf:Description/dc:subject'
+  | Description = This is a sample GIF used to demonstrate XMP metadata embedding.
+  | - Tag 'x:xmpmeta/x:metadata/rdf:RDF/rdf:Description/dc:description'
+  | Date = 2025-04-04
+  | - Tag 'x:xmpmeta/x:metadata/rdf:RDF/rdf:Description/dc:date'
+  | CreatorTool = exiftool
+  | - Tag 'x:xmpmeta/x:metadata/rdf:RDF/rdf:Description/xmp:CreatorTool'
+  | Label = Demo GIF
+  | - Tag 'x:xmpmeta/x:metadata/rdf:RDF/rdf:Description/xmp:Label'
+  | Rights = CC-BY 4.0
+  | - Tag 'x:xmpmeta/x:metadata/rdf:RDF/rdf:Description/xmp:Rights'
+  | [adding XMP-xmp:Rights]
+Image: left=0 top=0 width=3000 height=3000

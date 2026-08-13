@@ -1,0 +1,1892 @@
+  ExifToolVersion = 13.59
+  FileName = media_3.jpg
+  Directory = C:/Users/micro/IdeaProjects/kim/src/commonTest/resources/de/stefan_oltmann/kim/testdata/full
+  FileSize = 1005915
+  FileModifyDate = 1776264337.62815
+  FileAccessDate = 1786601293.14171
+  FileCreateDate = 1776264337.62615
+  FilePermissions = 33206
+  FileType = JPEG
+  FileTypeExtension = JPG
+  MIMEType = image/jpeg
+JPEG APP1 (13006 bytes):
+      0006: 45 78 69 66 00 00 49 49 2a 00 08 00 00 00 09 00 [Exif..II*.......]
+      0016: 0e 01 02 00 17 00 00 00 7a 00 00 00 0f 01 02 00 [........z.......]
+      0026: 14 00 00 00 92 00 00 00 10 01 02 00 0f 00 00 00 [................]
+      0036: a6 00 00 00 1a 01 05 00 01 00 00 00 b6 00 00 00 [................]
+      0046: 1b 01 05 00 01 00 00 00 be 00 00 00 28 01 03 00 [............(...]
+      0056: 01 00 00 00 02 00 00 00 31 01 02 00 29 00 00 00 [........1...)...]
+      0066: c6 00 00 00 32 01 02 00 14 00 00 00 f0 00 00 00 [....2...........]
+      [snip 12894 bytes]
+  ExifByteOrder = II
+  + [IFD0 directory with 9 entries, Little-endian]
+  | 0)  ImageDescription = OLYMPUS DIGITAL CAMERA
+  |     - Tag 0x010e (23 bytes, string[23]):
+  |         0086: 4f 4c 59 4d 50 55 53 20 44 49 47 49 54 41 4c 20 [OLYMPUS DIGITAL ]
+  |         0096: 43 41 4d 45 52 41 00                            [CAMERA.]
+  | 1)  Make = OLYMPUS CORPORATION
+  |     - Tag 0x010f (20 bytes, string[20]):
+  |         009e: 4f 4c 59 4d 50 55 53 20 43 4f 52 50 4f 52 41 54 [OLYMPUS CORPORAT]
+  |         00ae: 49 4f 4e 00                                     [ION.]
+  | 2)  Model = E-M10 Mark III
+  |     - Tag 0x0110 (15 bytes, string[15]):
+  |         00b2: 45 2d 4d 31 30 20 4d 61 72 6b 20 49 49 49 00    [E-M10 Mark III.]
+  | 3)  XResolution = 240 (240/1)
+  |     - Tag 0x011a (8 bytes, rational64u[1]):
+  |         00c2: f0 00 00 00 01 00 00 00                         [........]
+  | 4)  YResolution = 240 (240/1)
+  |     - Tag 0x011b (8 bytes, rational64u[1]):
+  |         00ca: f0 00 00 00 01 00 00 00                         [........]
+  | 5)  ResolutionUnit = 2
+  |     - Tag 0x0128 (2 bytes, int16u[1]):
+  |         005a: 02 00                                           [..]
+  | 6)  Software = Adobe Photoshop Lightroom 6.14 (Windows)
+  |     - Tag 0x0131 (41 bytes, string[41]):
+  |         00d2: 41 64 6f 62 65 20 50 68 6f 74 6f 73 68 6f 70 20 [Adobe Photoshop ]
+  |         00e2: 4c 69 67 68 74 72 6f 6f 6d 20 36 2e 31 34 20 28 [Lightroom 6.14 (]
+  |         00f2: 57 69 6e 64 6f 77 73 29 00                      [Windows).]
+  | 7)  ModifyDate = 2020:04:30 21:24:18
+  |     - Tag 0x0132 (20 bytes, string[20]):
+  |         00fc: 32 30 32 30 3a 30 34 3a 33 30 20 32 31 3a 32 34 [2020:04:30 21:24]
+  |         010c: 3a 31 38 00                                     [:18.]
+  | 8)  ExifOffset (SubDirectory) -->
+  |     - Tag 0x8769 (4 bytes, int32u[1]):
+  |         007e: 04 01 00 00                                     [....]
+  | + [ExifIFD directory with 36 entries, Little-endian]
+  | | 0)  ExposureTime = 0.004 (1/250)
+  | |     - Tag 0x829a (8 bytes, rational64u[1]):
+  | |         02c6: 01 00 00 00 fa 00 00 00                         [........]
+  | | 1)  FNumber = 5.6 (56/10)
+  | |     - Tag 0x829d (8 bytes, rational64u[1]):
+  | |         02ce: 38 00 00 00 0a 00 00 00                         [8.......]
+  | | 2)  ExposureProgram = 3
+  | |     - Tag 0x8822 (2 bytes, int16u[1]):
+  | |         0132: 03 00                                           [..]
+  | | 3)  ISO = 500
+  | |     - Tag 0x8827 (2 bytes, int16u[1]):
+  | |         013e: f4 01                                           [..]
+  | | 4)  SensitivityType = 1
+  | |     - Tag 0x8830 (2 bytes, int16u[1]):
+  | |         014a: 01 00                                           [..]
+  | | 5)  ExifVersion = 0231
+  | |     - Tag 0x9000 (4 bytes, undef[4]):
+  | |         0156: 30 32 33 31                                     [0231]
+  | | 6)  DateTimeOriginal = 2020:04:30 15:08:15
+  | |     - Tag 0x9003 (20 bytes, string[20]):
+  | |         02d6: 32 30 32 30 3a 30 34 3a 33 30 20 31 35 3a 30 38 [2020:04:30 15:08]
+  | |         02e6: 3a 31 35 00                                     [:15.]
+  | | 7)  CreateDate = 2020:04:30 15:08:15
+  | |     - Tag 0x9004 (20 bytes, string[20]):
+  | |         02ea: 32 30 32 30 3a 30 34 3a 33 30 20 31 35 3a 30 38 [2020:04:30 15:08]
+  | |         02fa: 3a 31 35 00                                     [:15.]
+  | | 8)  ShutterSpeedValue = 7.965784 (7965784/1000000)
+  | |     - Tag 0x9201 (8 bytes, rational64s[1]):
+  | |         02fe: 58 8c 79 00 40 42 0f 00                         [X.y.@B..]
+  | | 9)  ApertureValue = 4.970854 (4970854/1000000)
+  | |     - Tag 0x9202 (8 bytes, rational64u[1]):
+  | |         0306: 66 d9 4b 00 40 42 0f 00                         [f.K.@B..]
+  | | 10) ExposureCompensation = 0 (0/10)
+  | |     - Tag 0x9204 (8 bytes, rational64s[1]):
+  | |         030e: 00 00 00 00 0a 00 00 00                         [........]
+  | | 11) MaxApertureValue = 3.61328125 (925/256)
+  | |     - Tag 0x9205 (8 bytes, rational64u[1]):
+  | |         0316: 9d 03 00 00 00 01 00 00                         [........]
+  | | 12) MeteringMode = 5
+  | |     - Tag 0x9207 (2 bytes, int16u[1]):
+  | |         01aa: 05 00                                           [..]
+  | | 13) LightSource = 0
+  | |     - Tag 0x9208 (2 bytes, int16u[1]):
+  | |         01b6: 00 00                                           [..]
+  | | 14) Flash = 8
+  | |     - Tag 0x9209 (2 bytes, int16u[1]):
+  | |         01c2: 08 00                                           [..]
+  | | 15) FocalLength = 30 (30/1)
+  | |     - Tag 0x920a (8 bytes, rational64u[1]):
+  | |         031e: 1e 00 00 00 01 00 00 00                         [........]
+  | | 16) ColorSpace = 1
+  | |     - Tag 0xa001 (2 bytes, int16u[1]):
+  | |         01da: 01 00                                           [..]
+  | | 17) FocalPlaneXResolution = 2661.021454 (87196351/32768)
+  | |     - Tag 0xa20e (8 bytes, rational64u[1]):
+  | |         0326: bf 82 32 05 00 80 00 00                         [..2.....]
+  | | 18) FocalPlaneYResolution = 2661.021454 (87196351/32768)
+  | |     - Tag 0xa20f (8 bytes, rational64u[1]):
+  | |         032e: bf 82 32 05 00 80 00 00                         [..2.....]
+  | | 19) FocalPlaneResolutionUnit = 3
+  | |     - Tag 0xa210 (2 bytes, int16u[1]):
+  | |         01fe: 03 00                                           [..]
+  | | 20) FileSource = 3
+  | |     - Tag 0xa300 (1 bytes, undef[1]):
+  | |         020a: 03                                              [.]
+  | | 21) CFAPattern = .....
+  | |     - Tag 0xa302 (8 bytes, undef[8]):
+  | |         0336: 02 00 02 00 00 01 01 02                         [........]
+  | | 22) CustomRendered = 0
+  | |     - Tag 0xa401 (2 bytes, int16u[1]):
+  | |         0222: 00 00                                           [..]
+  | | 23) ExposureMode = 0
+  | |     - Tag 0xa402 (2 bytes, int16u[1]):
+  | |         022e: 00 00                                           [..]
+  | | 24) WhiteBalance = 0
+  | |     - Tag 0xa403 (2 bytes, int16u[1]):
+  | |         023a: 00 00                                           [..]
+  | | 25) DigitalZoomRatio = 1 (100/100)
+  | |     - Tag 0xa404 (8 bytes, rational64u[1]):
+  | |         033e: 64 00 00 00 64 00 00 00                         [d...d...]
+  | | 26) FocalLengthIn35mmFormat = 60
+  | |     - Tag 0xa405 (2 bytes, int16u[1]):
+  | |         0252: 3c 00                                           [<.]
+  | | 27) SceneCaptureType = 0
+  | |     - Tag 0xa406 (2 bytes, int16u[1]):
+  | |         025e: 00 00                                           [..]
+  | | 28) GainControl = 2
+  | |     - Tag 0xa407 (2 bytes, int16u[1]):
+  | |         026a: 02 00                                           [..]
+  | | 29) Contrast = 0
+  | |     - Tag 0xa408 (2 bytes, int16u[1]):
+  | |         0276: 00 00                                           [..]
+  | | 30) Saturation = 0
+  | |     - Tag 0xa409 (2 bytes, int16u[1]):
+  | |         0282: 00 00                                           [..]
+  | | 31) Sharpness = 0
+  | |     - Tag 0xa40a (2 bytes, int16u[1]):
+  | |         028e: 00 00                                           [..]
+  | | 32) SerialNumber = BHXB09700
+  | |     - Tag 0xa431 (10 bytes, string[10]):
+  | |         0346: 42 48 58 42 30 39 37 30 30 00                   [BHXB09700.]
+  | | 33) LensInfo = 30 30 3.5 3.5 (30/1 30/1 35/10 35/10)
+  | |     - Tag 0xa432 (32 bytes, rational64u[4]):
+  | |         0350: 1e 00 00 00 01 00 00 00 1e 00 00 00 01 00 00 00 [................]
+  | |         0360: 23 00 00 00 0a 00 00 00 23 00 00 00 0a 00 00 00 [#.......#.......]
+  | | 34) LensModel = OLYMPUS M.30mm F3.5 Macro
+  | |     - Tag 0xa434 (26 bytes, string[26]):
+  | |         0370: 4f 4c 59 4d 50 55 53 20 4d 2e 33 30 6d 6d 20 46 [OLYMPUS M.30mm F]
+  | |         0380: 33 2e 35 20 4d 61 63 72 6f 00                   [3.5 Macro.]
+  | | 35) LensSerialNumber = ACBA37456
+  | |     - Tag 0xa435 (10 bytes, string[10]):
+  | |         038a: 41 43 42 41 33 37 34 35 36 00                   [ACBA37456.]
+  + [IFD1 directory with 6 entries, Little-endian]
+  | 0)  Compression = 6
+  |     - Tag 0x0103 (2 bytes, int16u[1]):
+  |         039e: 06 00                                           [..]
+  | 1)  XResolution = 72 (72/1)
+  |     - Tag 0x011a (8 bytes, rational64u[1]):
+  |         03e2: 48 00 00 00 01 00 00 00                         [H.......]
+  | 2)  YResolution = 72 (72/1)
+  |     - Tag 0x011b (8 bytes, rational64u[1]):
+  |         03ea: 48 00 00 00 01 00 00 00                         [H.......]
+  | 3)  ResolutionUnit = 2
+  |     - Tag 0x0128 (2 bytes, int16u[1]):
+  |         03c2: 02 00                                           [..]
+  | 4)  ThumbnailOffset = 998
+  |     - Tag 0x0201 (4 bytes, int32u[1]):
+  |         03ce: e6 03 00 00                                     [....]
+  | 5)  ThumbnailLength = 12001
+  |     - Tag 0x0202 (4 bytes, int32u[1]):
+  |         03da: e1 2e 00 00                                     [....]
+JPEG APP13 (12288 bytes):
+      32d8: 50 68 6f 74 6f 73 68 6f 70 20 33 2e 30 00 38 42 [Photoshop 3.0.8B]
+      32e8: 49 4d 03 ed 00 00 00 00 00 10 00 f0 00 00 00 01 [IM..............]
+      32f8: 00 01 00 f0 00 00 00 01 00 01 38 42 49 4d 04 04 [..........8BIM..]
+      3308: 00 00 00 00 00 a4 1c 01 5a 00 03 1b 25 47 1c 01 [........Z...%G..]
+      3318: 00 00 02 00 04 1c 02 00 00 02 00 04 1c 02 37 00 [..............7.]
+      3328: 08 32 30 32 30 30 34 33 30 1c 02 3c 00 06 31 35 [.20200430..<..15]
+      3338: 30 38 31 35 1c 02 3e 00 08 32 30 32 30 30 34 33 [0815..>..2020043]
+      [snip 12176 bytes]
+  + [Photoshop directory, 12274 bytes]
+  | ResolutionInfo (SubDirectory) -->
+  | - Tag 0x03ed (16 bytes):
+  |     32f2: 00 f0 00 00 00 01 00 01 00 f0 00 00 00 01 00 01 [................]
+  | + [BinaryData directory, 16 bytes, Big-endian]
+  | | XResolution = 15728640
+  | | - Tag 0x0000 (4 bytes, int32u[1]):
+  | |     32f2: 00 f0 00 00                                     [....]
+  | | DisplayedUnitsX = 1
+  | | - Tag 0x0002 (2 bytes, int16u[1]):
+  | |     32f6: 00 01                                           [..]
+  | | YResolution = 15728640
+  | | - Tag 0x0004 (4 bytes, int32u[1]):
+  | |     32fa: 00 f0 00 00                                     [....]
+  | | DisplayedUnitsY = 1
+  | | - Tag 0x0006 (2 bytes, int16u[1]):
+  | |     32fe: 00 01                                           [..]
+  | IPTCData (SubDirectory) -->
+  | - Tag 0x0404 (164 bytes):
+  |     330e: 1c 01 5a 00 03 1b 25 47 1c 01 00 00 02 00 04 1c [..Z...%G........]
+  |     331e: 02 00 00 02 00 04 1c 02 37 00 08 32 30 32 30 30 [........7..20200]
+  |     332e: 34 33 30 1c 02 3c 00 06 31 35 30 38 31 35 1c 02 [430..<..150815..]
+  |     333e: 3e 00 08 32 30 32 30 30 34 33 30 1c 02 3f 00 06 [>..20200430..?..]
+  |     334e: 31 35 30 38 31 35 1c 02 78 00 3d 72 65 64 20 61 [150815..x.=red a]
+  |     335e: 6e 64 20 62 6c 61 63 6b 20 62 65 65 74 6c 65 20 [nd black beetle ]
+  |     336e: 6f 6e 20 62 72 6f 77 6e 20 64 72 69 65 64 20 6c [on brown dried l]
+  |     337e: 65 61 66 20 69 6e 20 6d 61 63 72 6f 20 70 68 6f [eaf in macro pho]
+  |     338e: 74 6f 67 72 61 70 68 79 1c 02 19 00 0c 69 6e 76 [tography.....inv]
+  |     339e: 65 72 74 65 62 72 61 74 65 1c 02 19 00 06 61 6e [ertebrate.....an]
+  |     33ae: 69 6d 61 6c                                     [imal]
+  | + [IPTC directory, 164 bytes]
+  | | CurrentIPTCDigest = ..........2..1p.
+  | | -- IPTCEnvelope record --
+  | | CodedCharacterSet = .%G
+  | | - Tag 0x005a, IPTCEnvelope record (3 bytes, string[0,32]):
+  | |     3313: 1b 25 47                                        [.%G]
+  | | EnvelopeRecordVersion = 4
+  | | - Tag 0x0000, IPTCEnvelope record (2 bytes, int16u):
+  | |     331b: 00 04                                           [..]
+  | | -- IPTCApplication record --
+  | | ApplicationRecordVersion = 4
+  | | - Tag 0x0000, IPTCApplication record (2 bytes, int16u):
+  | |     3322: 00 04                                           [..]
+  | | DateCreated = 20200430
+  | | - Tag 0x0037, IPTCApplication record (8 bytes, digits[8]):
+  | |     3329: 32 30 32 30 30 34 33 30                         [20200430]
+  | | TimeCreated = 150815
+  | | - Tag 0x003c, IPTCApplication record (6 bytes, string[11]):
+  | |     3336: 31 35 30 38 31 35                               [150815]
+  | | DigitalCreationDate = 20200430
+  | | - Tag 0x003e, IPTCApplication record (8 bytes, digits[8]):
+  | |     3341: 32 30 32 30 30 34 33 30                         [20200430]
+  | | DigitalCreationTime = 150815
+  | | - Tag 0x003f, IPTCApplication record (6 bytes, string[11]):
+  | |     334e: 31 35 30 38 31 35                               [150815]
+  | | Caption-Abstract = red and black beetle on brown dried leaf in macro photography
+  | | - Tag 0x0078, IPTCApplication record (61 bytes, string[0,2000]):
+  | |     3359: 72 65 64 20 61 6e 64 20 62 6c 61 63 6b 20 62 65 [red and black be]
+  | |     3369: 65 74 6c 65 20 6f 6e 20 62 72 6f 77 6e 20 64 72 [etle on brown dr]
+  | |     3379: 69 65 64 20 6c 65 61 66 20 69 6e 20 6d 61 63 72 [ied leaf in macr]
+  | |     3389: 6f 20 70 68 6f 74 6f 67 72 61 70 68 79          [o photography]
+  | | Keywords = invertebrate
+  | | - Tag 0x0019, IPTCApplication record (12 bytes, string[0,64]):
+  | |     339b: 69 6e 76 65 72 74 65 62 72 61 74 65             [invertebrate]
+  | | Keywords = animal
+  | | - Tag 0x0019, IPTCApplication record (6 bytes, string[0,64]):
+  | |     33ac: 61 6e 69 6d 61 6c                               [animal]
+  | PhotoshopThumbnail = ....h.h.................................................................................................................................................Adobed........................................................................s......!.1AQ..a"q..2.....B#.R..3.b.$r..%C4S...cs.5D'...6.Tdt....&.......EF..V.U(........eu........fv........7GWgw........8HXhx........)9IYiy........*:JZjz.......................m.....!.1A.Q.a".q..2.......#B.Rbr.3$4C...S%.c...s.5.D..T......&6E.'dtU7....()...........eu........FVfv........GWgw........8HXhx........9IYiy........*:JZjz................?..0%..]..h....b..W.*...4...;.a......E..6......I....Q.!. ..K.b.0*.....T....;abC...1...!..Z.[..o.v*.*..-.Z._...i.+.|...._U>.mik[q.0Z..l..lmiNKjv.kJ-..m....(M4.a#W!"."..........Q...]..&F,wP.6.T...e.6..QN4.C ..J......`6..8.,hv.kH[.z...$1.V...0.!...Z.............qV...U.._....`Xt.17,.LX..k..D..,0.\.".!..F.a.^...j..$$.......e.....".&...yp.HP....g..6......Rr..x..n2.L.X..`Q0 t..'g.0......9{He.n...l....qJ...Te......Z..L.....f....)g.Zb...EpZ....6...4p..V.........+....v.+...r+.>".(Kl...$..1...{d.F<.y4..H.d.F..m....o..Mr.OudI;e.-..ih..)....1...!........>.dl.UH.@3%.y.&j.33.q2.9......q.V.w.W..%.[0*03Ux.\.X-d.|+\.. o4..$."H!..:ye;o...$..._..c...1Z.....g.....,HK.^-....p..(v*.*.........3@K....].b..%.R.0X......Us"..T..HI...&.......D.hItg.R...P..Q....P...9vk..g:f......,.\......c5].q&.....R.k..8...,BM&....3....Ul"..P(i..cE.X..5.|....N.&........t...t..^*..)2l..y`.I..%!..i.$..%r|T.......?...)2n.b..f6".d.`BOs.+.X.\.Gv@r<2..P.&-......K......c..wk>.A...I[-.Wn.@bJ.r.O_.%.3...FVeL.L.....!.2.Y...j`...Z.EV...a9IG...M.>.X..4.[..L.$.5-."...HJ..".....}.lr..!...~.n{..+_L...b`.*Gl....eVzie...x..Cit..j..X....x../...h6..*@....L.f...f....X.0.U..G|..q.X..Y...AR..b.....P....r.)..P..C.;..2b,.]m7'...X...Q.FQ"..se..(..Na@Te&L.^;@...T.......,.won.....U..;...P...Q.G.....R*rA&J........tZ|hkM.q$.V..:d.&....LI.%Z... .....5{mZ.d.4..8.%J..75rq.....F.!=.f\C.".dB....S.T..I...).G.x....$..0...S....D..x;y!....|...8..."J@N4.cL..n.d6P..cL.....eJ..AQ\PSXQM2a..P.e.j.%J.,....jF.X..#..............7.*[snip]
+  | - Tag 0x040c (12029 bytes):
+  |     33be: 00 00 00 01 00 00 00 cd 00 00 01 00 00 00 02 68 [...............h]
+  |     33ce: 00 02 68 00 00 00 2e e1 00 18 00 01 ff d8 ff db [..h.............]
+  |     33de: 00 84 00 06 04 04 04 05 04 06 05 05 06 09 06 05 [................]
+  |     33ee: 06 09 0b 08 06 06 08 0b 0c 0a 0a 0b 0a 0a 0c 10 [................]
+  |     33fe: 0c 0c 0c 0c 0c 0c 10 0c 0c 0c 0c 0c 0c 0c 0c 0c [................]
+  |     340e: 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c [................]
+  |     341e: 0c 0c 0c 01 07 07 07 0d 0c 0d 18 10 10 18 14 0e [................]
+  |     342e: 0e 0e 14 14 0e 0e 0e 0e 14 11 0c 0c 0c 0c 0c 11 [................]
+  |     343e: 11 0c 0c 0c 0c 0c 0c 11 0c 0c 0c 0c 0c 0c 0c 0c [................]
+  |     344e: 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c [................]
+  |     345e: 0c 0c 0c 0c ff dd 00 04 00 1a ff ee 00 0e 41 64 [..............Ad]
+  |     346e: 6f 62 65 00 64 c0 00 00 00 01 ff c0 00 11 08 01 [obe.d...........]
+  |     347e: 00 00 cd 03 00 11 00 01 11 01 02 11 01 ff c4 01 [................]
+  |     348e: a2 00 00 00 07 01 01 01 01 01 00 00 00 00 00 00 [................]
+  |     349e: 00 00 04 05 03 02 06 01 00 07 08 09 0a 0b 01 00 [................]
+  |     34ae: 02 02 03 01 01 01 01 01 00 00 00 00 00 00 00 01 [................]
+  |     34be: 00 02 03 04 05 06 07 08 09 0a 0b 10 00 02 01 03 [................]
+  |     34ce: 03 02 04 02 06 07 03 04 02 06 02 73 01 02 03 11 [...........s....]
+  |     34de: 04 00 05 21 12 31 41 51 06 13 61 22 71 81 14 32 [...!.1AQ..a"q..2]
+  |     34ee: 91 a1 07 15 b1 42 23 c1 52 d1 e1 33 16 62 f0 24 [.....B#.R..3.b.$]
+  |     34fe: 72 82 f1 25 43 34 53 92 a2 b2 63 73 c2 35 44 27 [r..%C4S...cs.5D']
+  |     350e: 93 a3 b3 36 17 54 64 74 c3 d2 e2 08 26 83 09 0a [...6.Tdt....&...]
+  |     351e: 18 19 84 94 45 46 a4 b4 56 d3 55 28 1a f2 e3 f3 [....EF..V.U(....]
+  |     352e: c4 d4 e4 f4 65 75 85 95 a5 b5 c5 d5 e5 f5 66 76 [....eu........fv]
+  |     353e: 86 96 a6 b6 c6 d6 e6 f6 37 47 57 67 77 87 97 a7 [........7GWgw...]
+  |     354e: b7 c7 d7 e7 f7 38 48 58 68 78 88 98 a8 b8 c8 d8 [.....8HXhx......]
+  |     355e: e8 f8 29 39 49 59 69 79 89 99 a9 b9 c9 d9 e9 f9 [..)9IYiy........]
+  |     356e: 2a 3a 4a 5a 6a 7a 8a 9a aa ba ca da ea fa 11 00 [*:JZjz..........]
+  |     357e: 02 02 01 02 03 05 05 04 05 06 04 08 03 03 6d 01 [..............m.]
+  |     358e: 00 02 11 03 04 21 12 31 41 05 51 13 61 22 06 71 [.....!.1A.Q.a".q]
+  |     359e: 81 91 32 a1 b1 f0 14 c1 d1 e1 23 42 15 52 62 72 [..2.......#B.Rbr]
+  |     35ae: f1 33 24 34 43 82 16 92 53 25 a2 63 b2 c2 07 73 [.3$4C...S%.c...s]
+  |     35be: d2 35 e2 44 83 17 54 93 08 09 0a 18 19 26 36 45 [.5.D..T......&6E]
+  |     35ce: 1a 27 64 74 55 37 f2 a3 b3 c3 28 29 d3 e3 f3 84 [.'dtU7....()....]
+  |     35de: 94 a4 b4 c4 d4 e4 f4 65 75 85 95 a5 b5 c5 d5 e5 [.......eu.......]
+  |     35ee: f5 46 56 66 76 86 96 a6 b6 c6 d6 e6 f6 47 57 67 [.FVfv........GWg]
+  |     35fe: 77 87 97 a7 b7 c7 d7 e7 f7 38 48 58 68 78 88 98 [w........8HXhx..]
+  |     360e: a8 b8 c8 d8 e8 f8 39 49 59 69 79 89 99 a9 b9 c9 [......9IYiy.....]
+  |     361e: d9 e9 f9 2a 3a 4a 5a 6a 7a 8a 9a aa ba ca da ea [...*:JZjz.......]
+  |     362e: fa ff da 00 0c 03 00 00 01 11 02 11 00 3f 00 f2 [.............?..]
+  |     363e: ed 30 25 d4 c5 5d c7 15 68 a9 18 aa da 62 ae c5 [.0%..]..h....b..]
+  |     364e: 57 2e 2a ab 1a 16 34 18 aa 2e 3b 16 61 d3 05 a6 [W.*...4...;.a...]
+  |     365e: 9a 96 c6 45 15 a6 36 b4 ba c9 8a bd 0e 49 0c 9a [...E..6......I..]
+  |     366e: cc 06 51 81 21 1c 20 db 16 4b c4 62 9d 30 2a 94 [..Q.!. ..K.b.0*.]
+  |     367e: b0 d4 1d b1 54 b6 ee d3 90 3b 61 62 43 1a bd b7 [....T....;abC...]
+  |     368e: 31 b9 db 14 21 08 c5 5a c5 5b 07 15 6f 15 76 2a [1...!..Z.[..o.v*]
+  |     369e: d6 2a d6 14 2d c5 5a c5 5f ff d0 f3 69 b0 2b d7 [.*..-.Z._...i.+.]
+  |     36ae: 7c af 89 9f 0b 5f 55 3e 18 6d 69 6b 5b 71 1d 30 [|...._U>.mik[q.0]
+  |     36be: 5a d2 d1 6c cd db 6c 6d 69 4e 4b 6a 76 c3 6b 4a [Z..l..lmiNKjv.kJ]
+  |     36ce: 2d 19 18 6d 14 b4 0a 1c 28 4d 34 bb 61 23 57 21 [-..m....(M4.a#W!]
+  |     36de: 22 ca 22 d9 0d bd 88 a0 a0 ca 8c 9b 84 51 0d a6 ["."..........Q..]
+  |     36ee: 86 5d c6 0e 26 46 2c 77 50 b5 36 b7 54 a5 01 dc [.]..&F,wP.6.T...]
+  |     36fe: 65 f1 36 e3 c8 51 4e 34 99 43 20 1d f2 4a 13 f8 [e.6..QN4.C ..J..]
+  |     370e: a3 e4 06 06 60 36 d0 15 38 ad 2c 68 76 c1 6b 48 [....`6..8.,hv.kH]
+  |     371e: 5b 8b 7a 83 b6 16 24 31 fd 56 ca a0 90 30 b1 21 [[.z...$1.V...0.!]
+  |     372e: 8f c8 85 5a 87 02 a9 11 8a 1a c2 ad 83 8a b7 8a [...Z............]
+  |     373e: b4 71 56 b0 a1 ac 55 d4 c5 5f ff d1 e2 0f 60 58 [.qV...U.._....`X]
+  |     374e: 74 cc 31 37 2c c1 4c 58 d3 f6 6b 87 8d 44 17 1d [t.17,.LX..k..D..]
+  |     375e: 2c 30 a9 5c 1e 22 f0 21 de cd 46 c0 61 e2 5e 15 [,0.\.".!..F.a.^.]
+  |     376e: 09 ac 6a a4 d3 24 24 c0 c5 2e 9a cc 8a d0 65 80 [..j..$$.......e.]
+  |     377e: b5 90 81 96 22 a7 26 0b 12 9d 79 70 ab 48 50 f5 [....".&...yp.HP.]
+  |     378e: ed 95 e4 67 8f 9b 36 b2 b3 aa 8d b3 16 52 72 e3 [...g..6......Rr.]
+  |     379e: 14 78 b1 a2 6e 32 1c 4c f8 58 7f 9a 60 51 30 20 [.x..n2.L.X..`Q0 ]
+  |     37ae: 74 cc bc 27 67 13 30 dd 03 a4 cd c1 c0 39 7b 48 [t..'g.0......9{H]
+  |     37be: 65 b6 6e 18 0c 89 6c 09 87 a4 19 71 4a 91 8b 02 [e.n...l....qJ...]
+  |     37ce: 54 65 82 a3 14 10 94 df 5a d4 11 4c 93 02 18 ae [Te......Z..L....]
+  |     37de: a3 66 c8 c4 d3 16 29 67 03 5a 62 ab c4 0c 45 70 [.f....)g.Zb...Ep]
+  |     37ee: 5a d2 c7 88 8c 36 b4 b7 14 34 70 ab b1 56 b0 a1 [Z....6...4p..V..]
+  |     37fe: d8 ab ff d2 e6 b1 d9 2b 0e 99 a7 e3 76 dc 2b c6 [.......+....v.+.]
+  |     380e: 94 a0 72 2b be 3e 22 f0 28 4b 6c 06 d4 c2 24 83 [..r+.>".(Kl...$.]
+  |     381e: 14 31 d3 0b 12 7b 64 fc 46 3c 08 79 34 b9 05 48 [.1...{d.F<.y4..H]
+  |     382e: 1b 64 c6 46 06 09 6d d5 98 15 04 6f 96 c6 4d 72 [.d.F..m....o..Mr]
+  |     383e: 8a 4f 75 64 49 3b 65 d1 2d 12 0d 69 68 f0 dd 29 [.OudI;e.-..ih..)]
+  |     384e: 03 0c 85 86 31 e6 f4 9d 21 8c 90 a9 a6 f4 cc 09 [....1...!.......]
+  |     385e: 87 3e 07 64 6c ee 55 48 a6 40 33 25 86 79 8e 26 [.>.dl.UH.@3%.y.&]
+  |     386e: 6a 92 33 33 11 71 32 86 39 13 18 dc 1f 0c c9 71 [j.33.q2.9......q]
+  |     387e: d9 56 93 77 c9 57 12 ce 25 91 5b 30 2a 30 33 55 [.V.w.W..%.[0*03U]
+  |     388e: 78 c7 5c 08 58 2d 64 90 7c 2b 5c 04 a4 20 6f 34 [x.\.X-d.|+\.. o4]
+  |     389e: e9 80 24 ae 22 48 21 8f ea 3a 79 65 3b 6f 92 b6 [..$."H!..:ye;o..]
+  |     38ae: 04 24 ff 00 a1 a4 5f 8d 97 63 91 94 96 31 5a f6 [.$...._..c...1Z.]
+  |     38be: a4 0e 99 1b 67 c2 84 9a 0c 90 2c 48 4b a6 5e 2d [....g.....,HK.^-]
+  |     38ce: 93 0c 0a 9d 70 a1 bc 28 76 2a de 2a ff 00 ff d3 [....p..(v*.*....]
+  |     38de: 85 c0 91 a8 a9 ea 33 40 4b bb 01 d2 cb 5d 94 62 [......3@K....].b]
+  |     38ee: 14 a1 25 88 52 b9 30 58 90 e4 0b c4 0e f8 55 73 [..%.R.0X......Us]
+  |     38fe: 22 04 dc 54 e0 05 48 49 ee f4 e9 26 90 b0 14 19 ["..T..HI...&....]
+  |     390e: 93 09 d3 44 a1 68 49 74 67 e1 52 b5 cb 06 50 c0 [...D.hItg.R...P.]
+  |     391e: e2 51 b5 d1 09 b9 50 17 e7 93 39 76 6b 18 b7 67 [.Q....P...9vk..g]
+  |     392e: 3a 66 9a d1 a2 80 b9 85 2c 96 5c b1 0a 09 84 d6 [:f......,.\.....]
+  |     393e: 0a 63 35 5d f0 71 26 98 96 bf a6 b1 52 15 6b e1 [.c5].q&.....R.k.]
+  |     394e: 99 38 a6 d1 96 2c 42 4d 26 e2 a6 89 d3 33 04 83 [.8...,BM&....3..]
+  |     395e: 89 c2 55 6c 22 ba 86 50 28 69 92 e2 63 45 98 58 [..Ul"..P(i..cE.X]
+  |     396e: 09 1a 35 db 7c 8d b6 04 fb 4e d2 26 9c 86 90 11 [..5.|....N.&....]
+  |     397e: 1f eb c8 ca 74 c8 04 e9 74 d8 e3 5e 2a b4 03 29 [....t...t..^*..)]
+  |     398e: 32 6c 01 07 79 60 bc 49 a6 11 25 21 8e dc 69 0b [2l..y`.I..%!..i.]
+  |     399e: 24 fb 8a 25 72 7c 54 c3 86 d4 ef f4 88 8c 3f 0a [$..%r|T.......?.]
+  |     39ae: d2 83 29 32 6e 11 62 97 b6 66 36 22 9b 64 c1 60 [..)2n.b..f6".d.`]
+  |     39be: 42 4f 73 15 2b b6 58 0b 5c 82 47 76 40 72 3c 32 [BOs.+.X.\.Gv@r<2]
+  |     39ce: d0 d2 50 d9 26 2d 83 8a ae c2 86 f1 4b ff d4 e7 [..P.&-......K...]
+  |     39de: a6 e6 83 63 9a 1a 77 6b 3e b4 41 dc e1 01 49 5b [...c..wk>.A...I[]
+  |     39ee: 2d dd 57 6e b8 40 62 4a db 72 fd 4f 5f 0c 25 01 [-.Wn.@bJ.r.O_.%.]
+  |     39fe: 33 b6 80 c8 46 56 65 4c c0 4c a3 d3 93 8e e3 21 [3...FVeL.L.....!]
+  |     3a0e: e2 32 e1 59 2e 9c 87 6a 60 f1 17 85 5a c3 45 56 [.2.Y...j`...Z.EV]
+  |     3a1e: 97 97 1a 61 39 49 47 00 0c 96 db 4d 01 3e ce 00 [...a9IG....M.>..]
+  |     3a2e: 58 92 aa 34 ce 5b 11 b6 4c 16 24 a0 35 2d 12 22 [X..4.[..L.$.5-."]
+  |     3a3e: b4 09 be 48 4a 91 cd 22 97 cb a3 7f 84 7d d9 6c [...HJ..".....}.l]
+  |     3a4e: 72 a0 c0 21 db ca a5 7e ca 6e 7b e5 be 2b 5f 00 [r..!...~.n{..+_.]
+  |     3a5e: 4c f4 bd 05 62 60 ce 2a 47 6c 97 8c c0 e3 65 56 [L...b`.*Gl....eV]
+  |     3a6e: 7a 69 65 14 14 18 78 98 94 43 69 74 1b e3 6a 97 [zie...x..Cit..j.]
+  |     3a7e: dd 58 8a 1d b6 18 78 92 c7 2f ed f8 c8 68 36 18 [.X....x../...h6.]
+  |     3a8e: db 2a 40 ca 9f 0d 0f 4c 89 66 18 de b1 66 a6 a4 [.*@....L.f...f..]
+  |     3a9e: 0c 94 58 c8 30 ed 55 96 10 47 7c c8 80 71 e6 58 [..X.0.U..G|..q.X]
+  |     3aae: d4 ac 59 c9 cb 83 41 52 c2 87 62 ad 83 8a ae 18 [..Y...AR..b.....]
+  |     3abe: 50 ff 00 ff d5 e5 72 bb 29 eb 9a 50 1d c9 43 cb [P.....r.)..P..C.]
+  |     3ace: 3b 8e 9d 32 62 2c 09 5d 6d 37 27 1c b1 90 58 94 [;..2b,.]m7'...X.]
+  |     3ade: e6 d1 51 8d 46 51 22 da 02 73 65 10 07 28 9c 9b [..Q.FQ"..se..(..]
+  |     3aee: 00 4e 61 40 54 65 26 4c a9 5e 3b 40 c7 a6 0b 54 [.Na@Te&L.^;@...T]
+  |     3afe: c6 d6 cf 89 04 0c 98 2c 0a 77 6f 6e 08 e9 96 02 [.......,.won....]
+  |     3b0e: d4 55 fe ac 3b 0c 93 0b 50 96 c0 b7 51 92 47 12 [.U..;...P...Q.G.]
+  |     3b1e: 15 f4 b5 0d 52 2a 72 41 26 4a 8f a6 ab 0e 94 c9 [....R*rA&J......]
+  |     3b2e: db 0b 74 5a 7c 68 6b 4d f0 71 24 a6 56 d1 80 3a [..tZ|hkM.q$.V..:]
+  |     3b3e: 64 e3 26 b2 15 1d 06 4c 49 8d 25 5a 8a 92 a4 20 [d.&....LI.%Z... ]
+  |     3b4e: f9 9c 95 a4 06 35 7b 6d 5a 9a 64 83 34 92 e5 38 [.....5{mZ.d.4..8]
+  |     3b5e: d7 25 4a c7 b5 37 00 35 72 71 8b 19 16 05 ae 46 [.%J..7.5rq.....F]
+  |     3b6e: cf 21 3d bb 66 5c 43 89 22 c7 64 42 18 e4 9a d6 [.!=.f\C.".dB....]
+  |     3b7e: 53 15 54 8e da 49 0e c3 01 29 a4 47 d4 78 8d c6 [S.T..I...).G.x..]
+  |     3b8e: f9 1e 24 f0 ac 30 d0 e1 b4 53 ff d6 e5 17 44 93 [..$..0...S....D.]
+  |     3b9e: 9a 78 3b 79 21 da 8c 07 8f 7c 9b 12 ba 38 c2 ef [.x;y!....|...8..]
+  |     [snip 9997 bytes]
+  | IPTCDigest = .y.......F.`....
+  | - Tag 0x0425 (16 bytes):
+  |     62c8: 8b 79 a3 97 1e f2 c8 01 b6 46 9a 60 03 a1 ad 1a [.y.......F.`....]
+  | Warning = IPTCDigest is not current. XMP may be out of sync
+JPEG APP2 (3158 bytes):
+      62dc: 49 43 43 5f 50 52 4f 46 49 4c 45 00 01 01 00 00 [ICC_PROFILE.....]
+      62ec: 0c 48 4c 69 6e 6f 02 10 00 00 6d 6e 74 72 52 47 [.HLino....mntrRG]
+      62fc: 42 20 58 59 5a 20 07 ce 00 02 00 09 00 06 00 31 [B XYZ .........1]
+      630c: 00 00 61 63 73 70 4d 53 46 54 00 00 00 00 49 45 [..acspMSFT....IE]
+      631c: 43 20 73 52 47 42 00 00 00 00 00 00 00 00 00 00 [C sRGB..........]
+      632c: 00 00 00 00 f6 d6 00 01 00 00 00 00 d3 2d 48 50 [.............-HP]
+      633c: 20 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [  ..............]
+      [snip 3046 bytes]
+ICC_Profile chunk 1 of 1
+  + [ICC_Profile directory with 17 entries, 3144 bytes]
+  | ProfileHeader (SubDirectory) -->
+  | + [BinaryData directory, 128 bytes, Big-endian]
+  | | ProfileCMMType = Lino
+  | | - Tag 0x0004 (4 bytes, string[4]):
+  | |     0004: 4c 69 6e 6f                                     [Lino]
+  | | ProfileVersion = 528
+  | | - Tag 0x0008 (2 bytes, int16s[1]):
+  | |     0008: 02 10                                           [..]
+  | | ProfileClass = mntr
+  | | - Tag 0x000c (4 bytes, string[4]):
+  | |     000c: 6d 6e 74 72                                     [mntr]
+  | | ColorSpaceData = RGB 
+  | | - Tag 0x0010 (4 bytes, string[4]):
+  | |     0010: 52 47 42 20                                     [RGB ]
+  | | ProfileConnectionSpace = XYZ 
+  | | - Tag 0x0014 (4 bytes, string[4]):
+  | |     0014: 58 59 5a 20                                     [XYZ ]
+  | | ProfileDateTime = 1998 2 9 6 49 0
+  | | - Tag 0x0018 (12 bytes, int16u[6]):
+  | |     0018: 07 ce 00 02 00 09 00 06 00 31 00 00             [.........1..]
+  | | ProfileFileSignature = acsp
+  | | - Tag 0x0024 (4 bytes, string[4]):
+  | |     0024: 61 63 73 70                                     [acsp]
+  | | PrimaryPlatform = MSFT
+  | | - Tag 0x0028 (4 bytes, string[4]):
+  | |     0028: 4d 53 46 54                                     [MSFT]
+  | | CMMFlags = 0
+  | | - Tag 0x002c (4 bytes, int32u[1]):
+  | |     002c: 00 00 00 00                                     [....]
+  | | DeviceManufacturer = IEC 
+  | | - Tag 0x0030 (4 bytes, string[4]):
+  | |     0030: 49 45 43 20                                     [IEC ]
+  | | DeviceModel = sRGB
+  | | - Tag 0x0034 (4 bytes, string[4]):
+  | |     0034: 73 52 47 42                                     [sRGB]
+  | | DeviceAttributes = 0 0
+  | | - Tag 0x0038 (8 bytes, int32u[2]):
+  | |     0038: 00 00 00 00 00 00 00 00                         [........]
+  | | RenderingIntent = 0
+  | | - Tag 0x0040 (4 bytes, int32u[1]):
+  | |     0040: 00 00 00 00                                     [....]
+  | | ConnectionSpaceIlluminant = 0.9642 1 0.82491
+  | | - Tag 0x0044 (12 bytes, fixed32s[3]):
+  | |     0044: 00 00 f6 d6 00 01 00 00 00 00 d3 2d             [...........-]
+  | | ProfileCreator = HP  
+  | | - Tag 0x0050 (4 bytes, string[4]):
+  | |     0050: 48 50 20 20                                     [HP  ]
+  | | ProfileID = 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  | | - Tag 0x0054 (16 bytes, int8u[16]):
+  | |     0054: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  | 0)  ProfileCopyright = Copyright (c) 1998 Hewlett-Packard Company
+  |     - Tag 'cprt' (51 bytes, type 'text'):
+  |         0150: 74 65 78 74 00 00 00 00 43 6f 70 79 72 69 67 68 [text....Copyrigh]
+  |         0160: 74 20 28 63 29 20 31 39 39 38 20 48 65 77 6c 65 [t (c) 1998 Hewle]
+  |         0170: 74 74 2d 50 61 63 6b 61 72 64 20 43 6f 6d 70 61 [tt-Packard Compa]
+  |         0180: 6e 79 00                                        [ny.]
+  | 1)  ProfileDescription = sRGB IEC61966-2.1
+  |     - Tag 'desc' (108 bytes, type 'desc'):
+  |         0184: 64 65 73 63 00 00 00 00 00 00 00 12 73 52 47 42 [desc........sRGB]
+  |         0194: 20 49 45 43 36 31 39 36 36 2d 32 2e 31 00 00 00 [ IEC61966-2.1...]
+  |         01a4: 00 00 00 00 00 00 00 00 12 73 52 47 42 20 49 45 [.........sRGB IE]
+  |         01b4: 43 36 31 39 36 36 2d 32 2e 31 00 00 00 00 00 00 [C61966-2.1......]
+  |         01c4: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  |         01d4: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  |         01e4: 00 00 00 00 00 00 00 00 00 00 00 00             [............]
+  | 2)  MediaWhitePoint = 0.95045 1 1.08905
+  |     - Tag 'wtpt' (20 bytes, type 'XYZ '):
+  |         01f0: 58 59 5a 20 00 00 00 00 00 00 f3 51 00 01 00 00 [XYZ .......Q....]
+  |         0200: 00 01 16 cc                                     [....]
+  | 3)  MediaBlackPoint = 0 0 0
+  |     - Tag 'bkpt' (20 bytes, type 'XYZ '):
+  |         0204: 58 59 5a 20 00 00 00 00 00 00 00 00 00 00 00 00 [XYZ ............]
+  |         0214: 00 00 00 00                                     [....]
+  | 4)  RedMatrixColumn = 0.43607 0.22249 0.01392
+  |     - Tag 'rXYZ' (20 bytes, type 'XYZ '):
+  |         0218: 58 59 5a 20 00 00 00 00 00 00 6f a2 00 00 38 f5 [XYZ ......o...8.]
+  |         0228: 00 00 03 90                                     [....]
+  | 5)  GreenMatrixColumn = 0.38515 0.71687 0.09708
+  |     - Tag 'gXYZ' (20 bytes, type 'XYZ '):
+  |         022c: 58 59 5a 20 00 00 00 00 00 00 62 99 00 00 b7 85 [XYZ ......b.....]
+  |         023c: 00 00 18 da                                     [....]
+  | 6)  BlueMatrixColumn = 0.14307 0.06061 0.7141
+  |     - Tag 'bXYZ' (20 bytes, type 'XYZ '):
+  |         0240: 58 59 5a 20 00 00 00 00 00 00 24 a0 00 00 0f 84 [XYZ ......$.....]
+  |         0250: 00 00 b6 cf                                     [....]
+  | 7)  DeviceMfgDesc = IEC http://www.iec.ch
+  |     - Tag 'dmnd' (112 bytes, type 'desc'):
+  |         0254: 64 65 73 63 00 00 00 00 00 00 00 16 49 45 43 20 [desc........IEC ]
+  |         0264: 68 74 74 70 3a 2f 2f 77 77 77 2e 69 65 63 2e 63 [http://www.iec.c]
+  |         0274: 68 00 00 00 00 00 00 00 00 00 00 00 16 49 45 43 [h............IEC]
+  |         0284: 20 68 74 74 70 3a 2f 2f 77 77 77 2e 69 65 63 2e [ http://www.iec.]
+  |         0294: 63 68 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [ch..............]
+  |         02a4: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  |         02b4: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  | 8)  DeviceModelDesc = IEC 61966-2.1 Default RGB colour space - sRGB
+  |     - Tag 'dmdd' (136 bytes, type 'desc'):
+  |         02c4: 64 65 73 63 00 00 00 00 00 00 00 2e 49 45 43 20 [desc........IEC ]
+  |         02d4: 36 31 39 36 36 2d 32 2e 31 20 44 65 66 61 75 6c [61966-2.1 Defaul]
+  |         02e4: 74 20 52 47 42 20 63 6f 6c 6f 75 72 20 73 70 61 [t RGB colour spa]
+  |         02f4: 63 65 20 2d 20 73 52 47 42 00 00 00 00 00 00 00 [ce - sRGB.......]
+  |         0304: 00 00 00 00 2e 49 45 43 20 36 31 39 36 36 2d 32 [.....IEC 61966-2]
+  |         0314: 2e 31 20 44 65 66 61 75 6c 74 20 52 47 42 20 63 [.1 Default RGB c]
+  |         0324: 6f 6c 6f 75 72 20 73 70 61 63 65 20 2d 20 73 52 [olour space - sR]
+  |         0334: 47 42 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [GB..............]
+  |         0344: 00 00 00 00 00 00 00 00                         [........]
+  | 9)  ViewingCondDesc = Reference Viewing Condition in IEC61966-2.1
+  |     - Tag 'vued' (134 bytes, type 'desc'):
+  |         034c: 64 65 73 63 00 00 00 00 00 00 00 2c 52 65 66 65 [desc.......,Refe]
+  |         035c: 72 65 6e 63 65 20 56 69 65 77 69 6e 67 20 43 6f [rence Viewing Co]
+  |         036c: 6e 64 69 74 69 6f 6e 20 69 6e 20 49 45 43 36 31 [ndition in IEC61]
+  |         037c: 39 36 36 2d 32 2e 31 00 00 00 00 00 00 00 00 00 [966-2.1.........]
+  |         038c: 00 00 2c 52 65 66 65 72 65 6e 63 65 20 56 69 65 [..,Reference Vie]
+  |         039c: 77 69 6e 67 20 43 6f 6e 64 69 74 69 6f 6e 20 69 [wing Condition i]
+  |         03ac: 6e 20 49 45 43 36 31 39 36 36 2d 32 2e 31 00 00 [n IEC61966-2.1..]
+  |         03bc: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  |         03cc: 00 00 00 00 00 00                               [......]
+  | 10) ViewingConditions (SubDirectory) -->
+  |     - Tag 'view' (36 bytes, type 'view'):
+  |         03d4: 76 69 65 77 00 00 00 00 00 13 a4 fe 00 14 5f 2e [view.........._.]
+  |         03e4: 00 10 cf 14 00 03 ed cc 00 04 13 0b 00 03 5c 9e [..............\.]
+  |         03f4: 00 00 00 01                                     [....]
+  | + [BinaryData directory, 36 bytes, Big-endian]
+  | | ViewingCondIlluminant = 19.6445 20.3718 16.8089
+  | | - Tag 0x0008 (12 bytes, fixed32s[3]):
+  | |     66c6: 00 13 a4 fe 00 14 5f 2e 00 10 cf 14             [......_.....]
+  | | ViewingCondSurround = 3.92889 4.07439 3.36179
+  | | - Tag 0x0014 (12 bytes, fixed32s[3]):
+  | |     66d2: 00 03 ed cc 00 04 13 0b 00 03 5c 9e             [..........\.]
+  | | ViewingCondIlluminantType = 1
+  | | - Tag 0x0020 (4 bytes, int32u[1]):
+  | |     66de: 00 00 00 01                                     [....]
+  | 11) Luminance = 76.03647 80 87.12462
+  |     - Tag 'lumi' (20 bytes, type 'XYZ '):
+  |         03f8: 58 59 5a 20 00 00 00 00 00 4c 09 56 00 50 00 00 [XYZ .....L.V.P..]
+  |         0408: 00 57 1f e7                                     [.W..]
+  | 12) Measurement (SubDirectory) -->
+  |     - Tag 'meas' (36 bytes, type 'meas'):
+  |         040c: 6d 65 61 73 00 00 00 00 00 00 00 01 00 00 00 00 [meas............]
+  |         041c: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 02 8f [................]
+  |         042c: 00 00 00 02                                     [....]
+  | + [BinaryData directory, 36 bytes, Big-endian]
+  | | MeasurementObserver = 1
+  | | - Tag 0x0008 (4 bytes, int32u[1]):
+  | |     66fe: 00 00 00 01                                     [....]
+  | | MeasurementBacking = 0 0 0
+  | | - Tag 0x000c (12 bytes, fixed32s[3]):
+  | |     6702: 00 00 00 00 00 00 00 00 00 00 00 00             [............]
+  | | MeasurementGeometry = 0
+  | | - Tag 0x0018 (4 bytes, int32u[1]):
+  | |     670e: 00 00 00 00                                     [....]
+  | | MeasurementFlare = 0.00999
+  | | - Tag 0x001c (4 bytes, fixed32u[1]):
+  | |     6712: 00 00 02 8f                                     [....]
+  | | MeasurementIlluminant = 2
+  | | - Tag 0x0020 (4 bytes, int32u[1]):
+  | |     6716: 00 00 00 02                                     [....]
+  | 13) Technology = CRT 
+  |     - Tag 'tech' (12 bytes, type 'sig '):
+  |         0430: 73 69 67 20 00 00 00 00 43 52 54 20             [sig ....CRT ]
+  | 14) RedTRC = curv.......#(-27;@EJOTY^chmrw|......................................%.+.2.8.>.E.L.R.Y.`.g.n.u.|.........................................&./.8.A.K.T.].g.q.z..............................!.-.8.C.O.Z.f.r.~......................... .-.;.H.U.c.q.~.......................+.:.I.X.g.w.....................'.7.H.Y.j.{...................+.=.O.a.t...................2.F.Z.n.................%.:.O.d.y...............'.=.T.j...............".9.Q.i...............*.C.\.u.............&.@.Z.t...............I.d.............%.A.^.z...........&.C.a.~...........1.O.m...........&.E.d...........#.C.c...........'.I.j...........4.V.x.........&.I.l...........A.e...........@.e......... .E.k.........*.Q.w.........;.c.........*.R.{.........G.p.........@.j.........>.i...... . A l . . .!.!H!u!.!.!."'"U".".".#.#8#f#.#.#.$.$M$|$.$.%.%8%h%.%.%.&'&W&.&.&.'.'I'z'.'.(.(?(q(.(.).)8)k).).*.*5*h*.*.+.+6+i+.+.,.,9,n,.,.-.-A-v-.-....L....../$/Z/././.050l0.0.1.1J1.1.1.2*2c2.2.3.3F3.3.3.4+4e4.4.5.5M5.5.5.676r6.6.7$7`7.7.8.8P8.8.9.9B9.9.9.:6:t:.:.;-;k;.;.<'<e<.<.="=a=.=.> >`>.>.?!?a?.?.@#@d@.@.A)AjA.A.B0BrB.B.C:C}C.D.DGD.D.E.EUE.E.F"FgF.F.G5G{G.H.HKH.H.I.IcI.I.J7J}J.K.KSK.K.L*LrL.M.MJM.M.N%NnN.OOIO.O.P'PqP.Q.QPQ.Q.R1R|R.S.S_S.S.TBT.T.U(UuU.V.V\V.V.WDW.W.X/X}X.Y.YiY.Z.ZVZ.Z.[E[.[.\5\.\.]']x].^.^l^._._a_.`.`W`.`.aOa.a.bIb.b.cCc.c.d@d.d.e=e.e.f=f.f.g=g.g.h?h.h.iCi.i.jHj.j.kOk.k.lWl.m.m`m.n.nkn.o.oxo.p+p.p.q:q.q.rKr.s.s]s.t.tpt.u(u.u.v>v.v.wVw.x.xnx.y*y.y.zFz.{.{c{.|!|.|.}A}.~.~b~..#.....G.....k...0.....W.........G.....r...;.....i...3.....d...0.....c...1.....f...6.....n...?.....z...M... ....._...4.....u...L...$.....h...B.........d...@.........i...G...&.....v...V...8.........n...R...7.........u...\...D...-........u...`...K...8...%.........y...h...Y...J...;.......!.............z...p...g..._...X...Q...K...F...A...=...:...8...6...5...5...6...7...9...<...?...D...I...N...U...\...d...l...v.................)...6...D...S...c...s.............2...F...[...p.........(...@...X...r.........4...P...m.........8...W...w.....)...K...m..
+  |     - Tag 'rTRC' (2060 bytes, type 'curv'):
+  |         043c: 63 75 72 76 00 00 00 00 00 00 04 00 00 00 00 05 [curv............]
+  |         044c: 00 0a 00 0f 00 14 00 19 00 1e 00 23 00 28 00 2d [...........#.(.-]
+  |         045c: 00 32 00 37 00 3b 00 40 00 45 00 4a 00 4f 00 54 [.2.7.;.@.E.J.O.T]
+  |         046c: 00 59 00 5e 00 63 00 68 00 6d 00 72 00 77 00 7c [.Y.^.c.h.m.r.w.|]
+  |         047c: 00 81 00 86 00 8b 00 90 00 95 00 9a 00 9f 00 a4 [................]
+  |         048c: 00 a9 00 ae 00 b2 00 b7 00 bc 00 c1 00 c6 00 cb [................]
+  |         049c: 00 d0 00 d5 00 db 00 e0 00 e5 00 eb 00 f0 00 f6 [................]
+  |         04ac: 00 fb 01 01 01 07 01 0d 01 13 01 19 01 1f 01 25 [...............%]
+  |         04bc: 01 2b 01 32 01 38 01 3e 01 45 01 4c 01 52 01 59 [.+.2.8.>.E.L.R.Y]
+  |         04cc: 01 60 01 67 01 6e 01 75 01 7c 01 83 01 8b 01 92 [.`.g.n.u.|......]
+  |         04dc: 01 9a 01 a1 01 a9 01 b1 01 b9 01 c1 01 c9 01 d1 [................]
+  |         04ec: 01 d9 01 e1 01 e9 01 f2 01 fa 02 03 02 0c 02 14 [................]
+  |         04fc: 02 1d 02 26 02 2f 02 38 02 41 02 4b 02 54 02 5d [...&./.8.A.K.T.]]
+  |         050c: 02 67 02 71 02 7a 02 84 02 8e 02 98 02 a2 02 ac [.g.q.z..........]
+  |         051c: 02 b6 02 c1 02 cb 02 d5 02 e0 02 eb 02 f5 03 00 [................]
+  |         052c: 03 0b 03 16 03 21 03 2d 03 38 03 43 03 4f 03 5a [.....!.-.8.C.O.Z]
+  |         053c: 03 66 03 72 03 7e 03 8a 03 96 03 a2 03 ae 03 ba [.f.r.~..........]
+  |         054c: 03 c7 03 d3 03 e0 03 ec 03 f9 04 06 04 13 04 20 [............... ]
+  |         055c: 04 2d 04 3b 04 48 04 55 04 63 04 71 04 7e 04 8c [.-.;.H.U.c.q.~..]
+  |         056c: 04 9a 04 a8 04 b6 04 c4 04 d3 04 e1 04 f0 04 fe [................]
+  |         057c: 05 0d 05 1c 05 2b 05 3a 05 49 05 58 05 67 05 77 [.....+.:.I.X.g.w]
+  |         058c: 05 86 05 96 05 a6 05 b5 05 c5 05 d5 05 e5 05 f6 [................]
+  |         059c: 06 06 06 16 06 27 06 37 06 48 06 59 06 6a 06 7b [.....'.7.H.Y.j.{]
+  |         05ac: 06 8c 06 9d 06 af 06 c0 06 d1 06 e3 06 f5 07 07 [................]
+  |         05bc: 07 19 07 2b 07 3d 07 4f 07 61 07 74 07 86 07 99 [...+.=.O.a.t....]
+  |         05cc: 07 ac 07 bf 07 d2 07 e5 07 f8 08 0b 08 1f 08 32 [...............2]
+  |         05dc: 08 46 08 5a 08 6e 08 82 08 96 08 aa 08 be 08 d2 [.F.Z.n..........]
+  |         05ec: 08 e7 08 fb 09 10 09 25 09 3a 09 4f 09 64 09 79 [.......%.:.O.d.y]
+  |         05fc: 09 8f 09 a4 09 ba 09 cf 09 e5 09 fb 0a 11 0a 27 [...............']
+  |         060c: 0a 3d 0a 54 0a 6a 0a 81 0a 98 0a ae 0a c5 0a dc [.=.T.j..........]
+  |         061c: 0a f3 0b 0b 0b 22 0b 39 0b 51 0b 69 0b 80 0b 98 [.....".9.Q.i....]
+  |         062c: 0b b0 0b c8 0b e1 0b f9 0c 12 0c 2a 0c 43 0c 5c [...........*.C.\]
+  |         063c: 0c 75 0c 8e 0c a7 0c c0 0c d9 0c f3 0d 0d 0d 26 [.u.............&]
+  |         064c: 0d 40 0d 5a 0d 74 0d 8e 0d a9 0d c3 0d de 0d f8 [.@.Z.t..........]
+  |         065c: 0e 13 0e 2e 0e 49 0e 64 0e 7f 0e 9b 0e b6 0e d2 [.....I.d........]
+  |         066c: 0e ee 0f 09 0f 25 0f 41 0f 5e 0f 7a 0f 96 0f b3 [.....%.A.^.z....]
+  |         067c: 0f cf 0f ec 10 09 10 26 10 43 10 61 10 7e 10 9b [.......&.C.a.~..]
+  |         068c: 10 b9 10 d7 10 f5 11 13 11 31 11 4f 11 6d 11 8c [.........1.O.m..]
+  |         069c: 11 aa 11 c9 11 e8 12 07 12 26 12 45 12 64 12 84 [.........&.E.d..]
+  |         06ac: 12 a3 12 c3 12 e3 13 03 13 23 13 43 13 63 13 83 [.........#.C.c..]
+  |         06bc: 13 a4 13 c5 13 e5 14 06 14 27 14 49 14 6a 14 8b [.........'.I.j..]
+  |         06cc: 14 ad 14 ce 14 f0 15 12 15 34 15 56 15 78 15 9b [.........4.V.x..]
+  |         06dc: 15 bd 15 e0 16 03 16 26 16 49 16 6c 16 8f 16 b2 [.......&.I.l....]
+  |         06ec: 16 d6 16 fa 17 1d 17 41 17 65 17 89 17 ae 17 d2 [.......A.e......]
+  |         06fc: 17 f7 18 1b 18 40 18 65 18 8a 18 af 18 d5 18 fa [.....@.e........]
+  |         070c: 19 20 19 45 19 6b 19 91 19 b7 19 dd 1a 04 1a 2a [. .E.k.........*]
+  |         071c: 1a 51 1a 77 1a 9e 1a c5 1a ec 1b 14 1b 3b 1b 63 [.Q.w.........;.c]
+  |         072c: 1b 8a 1b b2 1b da 1c 02 1c 2a 1c 52 1c 7b 1c a3 [.........*.R.{..]
+  |         073c: 1c cc 1c f5 1d 1e 1d 47 1d 70 1d 99 1d c3 1d ec [.......G.p......]
+  |         074c: 1e 16 1e 40 1e 6a 1e 94 1e be 1e e9 1f 13 1f 3e [...@.j.........>]
+  |         075c: 1f 69 1f 94 1f bf 1f ea 20 15 20 41 20 6c 20 98 [.i...... . A l .]
+  |         076c: 20 c4 20 f0 21 1c 21 48 21 75 21 a1 21 ce 21 fb [ . .!.!H!u!.!.!.]
+  |         077c: 22 27 22 55 22 82 22 af 22 dd 23 0a 23 38 23 66 ["'"U".".".#.#8#f]
+  |         078c: 23 94 23 c2 23 f0 24 1f 24 4d 24 7c 24 ab 24 da [#.#.#.$.$M$|$.$.]
+  |         079c: 25 09 25 38 25 68 25 97 25 c7 25 f7 26 27 26 57 [%.%8%h%.%.%.&'&W]
+  |         07ac: 26 87 26 b7 26 e8 27 18 27 49 27 7a 27 ab 27 dc [&.&.&.'.'I'z'.'.]
+  |         07bc: 28 0d 28 3f 28 71 28 a2 28 d4 29 06 29 38 29 6b [(.(?(q(.(.).)8)k]
+  |         07cc: 29 9d 29 d0 2a 02 2a 35 2a 68 2a 9b 2a cf 2b 02 [).).*.*5*h*.*.+.]
+  |         07dc: 2b 36 2b 69 2b 9d 2b d1 2c 05 2c 39 2c 6e 2c a2 [+6+i+.+.,.,9,n,.]
+  |         07ec: 2c d7 2d 0c 2d 41 2d 76 2d ab 2d e1 2e 16 2e 4c [,.-.-A-v-.-....L]
+  |         07fc: 2e 82 2e b7 2e ee 2f 24 2f 5a 2f 91 2f c7 2f fe [....../$/Z/././.]
+  |         080c: 30 35 30 6c 30 a4 30 db 31 12 31 4a 31 82 31 ba [050l0.0.1.1J1.1.]
+  |         081c: 31 f2 32 2a 32 63 32 9b 32 d4 33 0d 33 46 33 7f [1.2*2c2.2.3.3F3.]
+  |         082c: 33 b8 33 f1 34 2b 34 65 34 9e 34 d8 35 13 35 4d [3.3.4+4e4.4.5.5M]
+  |         083c: 35 87 35 c2 35 fd 36 37 36 72 36 ae 36 e9 37 24 [5.5.5.676r6.6.7$]
+  |         084c: 37 60 37 9c 37 d7 38 14 38 50 38 8c 38 c8 39 05 [7`7.7.8.8P8.8.9.]
+  |         085c: 39 42 39 7f 39 bc 39 f9 3a 36 3a 74 3a b2 3a ef [9B9.9.9.:6:t:.:.]
+  |         086c: 3b 2d 3b 6b 3b aa 3b e8 3c 27 3c 65 3c a4 3c e3 [;-;k;.;.<'<e<.<.]
+  |         087c: 3d 22 3d 61 3d a1 3d e0 3e 20 3e 60 3e a0 3e e0 [="=a=.=.> >`>.>.]
+  |         088c: 3f 21 3f 61 3f a2 3f e2 40 23 40 64 40 a6 40 e7 [?!?a?.?.@#@d@.@.]
+  |         089c: 41 29 41 6a 41 ac 41 ee 42 30 42 72 42 b5 42 f7 [A)AjA.A.B0BrB.B.]
+  |         08ac: 43 3a 43 7d 43 c0 44 03 44 47 44 8a 44 ce 45 12 [C:C}C.D.DGD.D.E.]
+  |         08bc: 45 55 45 9a 45 de 46 22 46 67 46 ab 46 f0 47 35 [EUE.E.F"FgF.F.G5]
+  |         08cc: 47 7b 47 c0 48 05 48 4b 48 91 48 d7 49 1d 49 63 [G{G.H.HKH.H.I.Ic]
+  |         08dc: 49 a9 49 f0 4a 37 4a 7d 4a c4 4b 0c 4b 53 4b 9a [I.I.J7J}J.K.KSK.]
+  |         08ec: 4b e2 4c 2a 4c 72 4c ba 4d 02 4d 4a 4d 93 4d dc [K.L*LrL.M.MJM.M.]
+  |         08fc: 4e 25 4e 6e 4e b7 4f 00 4f 49 4f 93 4f dd 50 27 [N%NnN.O.OIO.O.P']
+  |         090c: 50 71 50 bb 51 06 51 50 51 9b 51 e6 52 31 52 7c [PqP.Q.QPQ.Q.R1R|]
+  |         091c: 52 c7 53 13 53 5f 53 aa 53 f6 54 42 54 8f 54 db [R.S.S_S.S.TBT.T.]
+  |         092c: 55 28 55 75 55 c2 56 0f 56 5c 56 a9 56 f7 57 44 [U(UuU.V.V\V.V.WD]
+  |         093c: 57 92 57 e0 58 2f 58 7d 58 cb 59 1a 59 69 59 b8 [W.W.X/X}X.Y.YiY.]
+  |         094c: 5a 07 5a 56 5a a6 5a f5 5b 45 5b 95 5b e5 5c 35 [Z.ZVZ.Z.[E[.[.\5]
+  |         095c: 5c 86 5c d6 5d 27 5d 78 5d c9 5e 1a 5e 6c 5e bd [\.\.]']x].^.^l^.]
+  |         096c: 5f 0f 5f 61 5f b3 60 05 60 57 60 aa 60 fc 61 4f [_._a_.`.`W`.`.aO]
+  |         097c: 61 a2 61 f5 62 49 62 9c 62 f0 63 43 63 97 63 eb [a.a.bIb.b.cCc.c.]
+  |         098c: 64 40 64 94 64 e9 65 3d 65 92 65 e7 66 3d 66 92 [d@d.d.e=e.e.f=f.]
+  |         099c: 66 e8 67 3d 67 93 67 e9 68 3f 68 96 68 ec 69 43 [f.g=g.g.h?h.h.iC]
+  |         09ac: 69 9a 69 f1 6a 48 6a 9f 6a f7 6b 4f 6b a7 6b ff [i.i.jHj.j.kOk.k.]
+  |         09bc: 6c 57 6c af 6d 08 6d 60 6d b9 6e 12 6e 6b 6e c4 [lWl.m.m`m.n.nkn.]
+  |         09cc: 6f 1e 6f 78 6f d1 70 2b 70 86 70 e0 71 3a 71 95 [o.oxo.p+p.p.q:q.]
+  |         09dc: 71 f0 72 4b 72 a6 73 01 73 5d 73 b8 74 14 74 70 [q.rKr.s.s]s.t.tp]
+  |         09ec: 74 cc 75 28 75 85 75 e1 76 3e 76 9b 76 f8 77 56 [t.u(u.u.v>v.v.wV]
+  |         09fc: 77 b3 78 11 78 6e 78 cc 79 2a 79 89 79 e7 7a 46 [w.x.xnx.y*y.y.zF]
+  |         0a0c: 7a a5 7b 04 7b 63 7b c2 7c 21 7c 81 7c e1 7d 41 [z.{.{c{.|!|.|.}A]
+  |         0a1c: 7d a1 7e 01 7e 62 7e c2 7f 23 7f 84 7f e5 80 47 [}.~.~b~..#.....G]
+  |         0a2c: 80 a8 81 0a 81 6b 81 cd 82 30 82 92 82 f4 83 57 [.....k...0.....W]
+  |         0a3c: 83 ba 84 1d 84 80 84 e3 85 47 85 ab 86 0e 86 72 [.........G.....r]
+  |         0a4c: 86 d7 87 3b 87 9f 88 04 88 69 88 ce 89 33 89 99 [...;.....i...3..]
+  |         0a5c: 89 fe 8a 64 8a ca 8b 30 8b 96 8b fc 8c 63 8c ca [...d...0.....c..]
+  |         0a6c: 8d 31 8d 98 8d ff 8e 66 8e ce 8f 36 8f 9e 90 06 [.1.....f...6....]
+  |         0a7c: 90 6e 90 d6 91 3f 91 a8 92 11 92 7a 92 e3 93 4d [.n...?.....z...M]
+  |         0a8c: 93 b6 94 20 94 8a 94 f4 95 5f 95 c9 96 34 96 9f [... ....._...4..]
+  |         0a9c: 97 0a 97 75 97 e0 98 4c 98 b8 99 24 99 90 99 fc [...u...L...$....]
+  |         0aac: 9a 68 9a d5 9b 42 9b af 9c 1c 9c 89 9c f7 9d 64 [.h...B.........d]
+  |         0abc: 9d d2 9e 40 9e ae 9f 1d 9f 8b 9f fa a0 69 a0 d8 [...@.........i..]
+  |         0acc: a1 47 a1 b6 a2 26 a2 96 a3 06 a3 76 a3 e6 a4 56 [.G...&.....v...V]
+  |         0adc: a4 c7 a5 38 a5 a9 a6 1a a6 8b a6 fd a7 6e a7 e0 [...8.........n..]
+  |         0aec: a8 52 a8 c4 a9 37 a9 a9 aa 1c aa 8f ab 02 ab 75 [.R...7.........u]
+  |         0afc: ab e9 ac 5c ac d0 ad 44 ad b8 ae 2d ae a1 af 16 [...\...D...-....]
+  |         0b0c: af 8b b0 00 b0 75 b0 ea b1 60 b1 d6 b2 4b b2 c2 [.....u...`...K..]
+  |         0b1c: b3 38 b3 ae b4 25 b4 9c b5 13 b5 8a b6 01 b6 79 [.8...%.........y]
+  |         0b2c: b6 f0 b7 68 b7 e0 b8 59 b8 d1 b9 4a b9 c2 ba 3b [...h...Y...J...;]
+  |         0b3c: ba b5 bb 2e bb a7 bc 21 bc 9b bd 15 bd 8f be 0a [.......!........]
+  |         0b4c: be 84 be ff bf 7a bf f5 c0 70 c0 ec c1 67 c1 e3 [.....z...p...g..]
+  |         0b5c: c2 5f c2 db c3 58 c3 d4 c4 51 c4 ce c5 4b c5 c8 [._...X...Q...K..]
+  |         0b6c: c6 46 c6 c3 c7 41 c7 bf c8 3d c8 bc c9 3a c9 b9 [.F...A...=...:..]
+  |         0b7c: ca 38 ca b7 cb 36 cb b6 cc 35 cc b5 cd 35 cd b5 [.8...6...5...5..]
+  |         0b8c: ce 36 ce b6 cf 37 cf b8 d0 39 d0 ba d1 3c d1 be [.6...7...9...<..]
+  |         0b9c: d2 3f d2 c1 d3 44 d3 c6 d4 49 d4 cb d5 4e d5 d1 [.?...D...I...N..]
+  |         0bac: d6 55 d6 d8 d7 5c d7 e0 d8 64 d8 e8 d9 6c d9 f1 [.U...\...d...l..]
+  |         0bbc: da 76 da fb db 80 dc 05 dc 8a dd 10 dd 96 de 1c [.v..............]
+  |         0bcc: de a2 df 29 df af e0 36 e0 bd e1 44 e1 cc e2 53 [...)...6...D...S]
+  |         0bdc: e2 db e3 63 e3 eb e4 73 e4 fc e5 84 e6 0d e6 96 [...c...s........]
+  |         0bec: e7 1f e7 a9 e8 32 e8 bc e9 46 e9 d0 ea 5b ea e5 [.....2...F...[..]
+  |         0bfc: eb 70 eb fb ec 86 ed 11 ed 9c ee 28 ee b4 ef 40 [.p.........(...@]
+  |         0c0c: ef cc f0 58 f0 e5 f1 72 f1 ff f2 8c f3 19 f3 a7 [...X...r........]
+  |         0c1c: f4 34 f4 c2 f5 50 f5 de f6 6d f6 fb f7 8a f8 19 [.4...P...m......]
+  |         [snip 28 bytes]
+  | 15) GreenTRC = curv.......#(-27;@EJOTY^chmrw|......................................%.+.2.8.>.E.L.R.Y.`.g.n.u.|.........................................&./.8.A.K.T.].g.q.z..............................!.-.8.C.O.Z.f.r.~......................... .-.;.H.U.c.q.~.......................+.:.I.X.g.w.....................'.7.H.Y.j.{...................+.=.O.a.t...................2.F.Z.n.................%.:.O.d.y...............'.=.T.j...............".9.Q.i...............*.C.\.u.............&.@.Z.t...............I.d.............%.A.^.z...........&.C.a.~...........1.O.m...........&.E.d...........#.C.c...........'.I.j...........4.V.x.........&.I.l...........A.e...........@.e......... .E.k.........*.Q.w.........;.c.........*.R.{.........G.p.........@.j.........>.i...... . A l . . .!.!H!u!.!.!."'"U".".".#.#8#f#.#.#.$.$M$|$.$.%.%8%h%.%.%.&'&W&.&.&.'.'I'z'.'.(.(?(q(.(.).)8)k).).*.*5*h*.*.+.+6+i+.+.,.,9,n,.,.-.-A-v-.-....L....../$/Z/././.050l0.0.1.1J1.1.1.2*2c2.2.3.3F3.3.3.4+4e4.4.5.5M5.5.5.676r6.6.7$7`7.7.8.8P8.8.9.9B9.9.9.:6:t:.:.;-;k;.;.<'<e<.<.="=a=.=.> >`>.>.?!?a?.?.@#@d@.@.A)AjA.A.B0BrB.B.C:C}C.D.DGD.D.E.EUE.E.F"FgF.F.G5G{G.H.HKH.H.I.IcI.I.J7J}J.K.KSK.K.L*LrL.M.MJM.M.N%NnN.OOIO.O.P'PqP.Q.QPQ.Q.R1R|R.S.S_S.S.TBT.T.U(UuU.V.V\V.V.WDW.W.X/X}X.Y.YiY.Z.ZVZ.Z.[E[.[.\5\.\.]']x].^.^l^._._a_.`.`W`.`.aOa.a.bIb.b.cCc.c.d@d.d.e=e.e.f=f.f.g=g.g.h?h.h.iCi.i.jHj.j.kOk.k.lWl.m.m`m.n.nkn.o.oxo.p+p.p.q:q.q.rKr.s.s]s.t.tpt.u(u.u.v>v.v.wVw.x.xnx.y*y.y.zFz.{.{c{.|!|.|.}A}.~.~b~..#.....G.....k...0.....W.........G.....r...;.....i...3.....d...0.....c...1.....f...6.....n...?.....z...M... ....._...4.....u...L...$.....h...B.........d...@.........i...G...&.....v...V...8.........n...R...7.........u...\...D...-........u...`...K...8...%.........y...h...Y...J...;.......!.............z...p...g..._...X...Q...K...F...A...=...:...8...6...5...5...6...7...9...<...?...D...I...N...U...\...d...l...v.................)...6...D...S...c...s.............2...F...[...p.........(...@...X...r.........4...P...m.........8...W...w.....)...K...m..
+  |     - Tag 'gTRC' (2060 bytes, type 'curv'):
+  |         043c: 63 75 72 76 00 00 00 00 00 00 04 00 00 00 00 05 [curv............]
+  |         044c: 00 0a 00 0f 00 14 00 19 00 1e 00 23 00 28 00 2d [...........#.(.-]
+  |         045c: 00 32 00 37 00 3b 00 40 00 45 00 4a 00 4f 00 54 [.2.7.;.@.E.J.O.T]
+  |         046c: 00 59 00 5e 00 63 00 68 00 6d 00 72 00 77 00 7c [.Y.^.c.h.m.r.w.|]
+  |         047c: 00 81 00 86 00 8b 00 90 00 95 00 9a 00 9f 00 a4 [................]
+  |         048c: 00 a9 00 ae 00 b2 00 b7 00 bc 00 c1 00 c6 00 cb [................]
+  |         049c: 00 d0 00 d5 00 db 00 e0 00 e5 00 eb 00 f0 00 f6 [................]
+  |         04ac: 00 fb 01 01 01 07 01 0d 01 13 01 19 01 1f 01 25 [...............%]
+  |         04bc: 01 2b 01 32 01 38 01 3e 01 45 01 4c 01 52 01 59 [.+.2.8.>.E.L.R.Y]
+  |         04cc: 01 60 01 67 01 6e 01 75 01 7c 01 83 01 8b 01 92 [.`.g.n.u.|......]
+  |         04dc: 01 9a 01 a1 01 a9 01 b1 01 b9 01 c1 01 c9 01 d1 [................]
+  |         04ec: 01 d9 01 e1 01 e9 01 f2 01 fa 02 03 02 0c 02 14 [................]
+  |         04fc: 02 1d 02 26 02 2f 02 38 02 41 02 4b 02 54 02 5d [...&./.8.A.K.T.]]
+  |         050c: 02 67 02 71 02 7a 02 84 02 8e 02 98 02 a2 02 ac [.g.q.z..........]
+  |         051c: 02 b6 02 c1 02 cb 02 d5 02 e0 02 eb 02 f5 03 00 [................]
+  |         052c: 03 0b 03 16 03 21 03 2d 03 38 03 43 03 4f 03 5a [.....!.-.8.C.O.Z]
+  |         053c: 03 66 03 72 03 7e 03 8a 03 96 03 a2 03 ae 03 ba [.f.r.~..........]
+  |         054c: 03 c7 03 d3 03 e0 03 ec 03 f9 04 06 04 13 04 20 [............... ]
+  |         055c: 04 2d 04 3b 04 48 04 55 04 63 04 71 04 7e 04 8c [.-.;.H.U.c.q.~..]
+  |         056c: 04 9a 04 a8 04 b6 04 c4 04 d3 04 e1 04 f0 04 fe [................]
+  |         057c: 05 0d 05 1c 05 2b 05 3a 05 49 05 58 05 67 05 77 [.....+.:.I.X.g.w]
+  |         058c: 05 86 05 96 05 a6 05 b5 05 c5 05 d5 05 e5 05 f6 [................]
+  |         059c: 06 06 06 16 06 27 06 37 06 48 06 59 06 6a 06 7b [.....'.7.H.Y.j.{]
+  |         05ac: 06 8c 06 9d 06 af 06 c0 06 d1 06 e3 06 f5 07 07 [................]
+  |         05bc: 07 19 07 2b 07 3d 07 4f 07 61 07 74 07 86 07 99 [...+.=.O.a.t....]
+  |         05cc: 07 ac 07 bf 07 d2 07 e5 07 f8 08 0b 08 1f 08 32 [...............2]
+  |         05dc: 08 46 08 5a 08 6e 08 82 08 96 08 aa 08 be 08 d2 [.F.Z.n..........]
+  |         05ec: 08 e7 08 fb 09 10 09 25 09 3a 09 4f 09 64 09 79 [.......%.:.O.d.y]
+  |         05fc: 09 8f 09 a4 09 ba 09 cf 09 e5 09 fb 0a 11 0a 27 [...............']
+  |         060c: 0a 3d 0a 54 0a 6a 0a 81 0a 98 0a ae 0a c5 0a dc [.=.T.j..........]
+  |         061c: 0a f3 0b 0b 0b 22 0b 39 0b 51 0b 69 0b 80 0b 98 [.....".9.Q.i....]
+  |         062c: 0b b0 0b c8 0b e1 0b f9 0c 12 0c 2a 0c 43 0c 5c [...........*.C.\]
+  |         063c: 0c 75 0c 8e 0c a7 0c c0 0c d9 0c f3 0d 0d 0d 26 [.u.............&]
+  |         064c: 0d 40 0d 5a 0d 74 0d 8e 0d a9 0d c3 0d de 0d f8 [.@.Z.t..........]
+  |         065c: 0e 13 0e 2e 0e 49 0e 64 0e 7f 0e 9b 0e b6 0e d2 [.....I.d........]
+  |         066c: 0e ee 0f 09 0f 25 0f 41 0f 5e 0f 7a 0f 96 0f b3 [.....%.A.^.z....]
+  |         067c: 0f cf 0f ec 10 09 10 26 10 43 10 61 10 7e 10 9b [.......&.C.a.~..]
+  |         068c: 10 b9 10 d7 10 f5 11 13 11 31 11 4f 11 6d 11 8c [.........1.O.m..]
+  |         069c: 11 aa 11 c9 11 e8 12 07 12 26 12 45 12 64 12 84 [.........&.E.d..]
+  |         06ac: 12 a3 12 c3 12 e3 13 03 13 23 13 43 13 63 13 83 [.........#.C.c..]
+  |         06bc: 13 a4 13 c5 13 e5 14 06 14 27 14 49 14 6a 14 8b [.........'.I.j..]
+  |         06cc: 14 ad 14 ce 14 f0 15 12 15 34 15 56 15 78 15 9b [.........4.V.x..]
+  |         06dc: 15 bd 15 e0 16 03 16 26 16 49 16 6c 16 8f 16 b2 [.......&.I.l....]
+  |         06ec: 16 d6 16 fa 17 1d 17 41 17 65 17 89 17 ae 17 d2 [.......A.e......]
+  |         06fc: 17 f7 18 1b 18 40 18 65 18 8a 18 af 18 d5 18 fa [.....@.e........]
+  |         070c: 19 20 19 45 19 6b 19 91 19 b7 19 dd 1a 04 1a 2a [. .E.k.........*]
+  |         071c: 1a 51 1a 77 1a 9e 1a c5 1a ec 1b 14 1b 3b 1b 63 [.Q.w.........;.c]
+  |         072c: 1b 8a 1b b2 1b da 1c 02 1c 2a 1c 52 1c 7b 1c a3 [.........*.R.{..]
+  |         073c: 1c cc 1c f5 1d 1e 1d 47 1d 70 1d 99 1d c3 1d ec [.......G.p......]
+  |         074c: 1e 16 1e 40 1e 6a 1e 94 1e be 1e e9 1f 13 1f 3e [...@.j.........>]
+  |         075c: 1f 69 1f 94 1f bf 1f ea 20 15 20 41 20 6c 20 98 [.i...... . A l .]
+  |         076c: 20 c4 20 f0 21 1c 21 48 21 75 21 a1 21 ce 21 fb [ . .!.!H!u!.!.!.]
+  |         077c: 22 27 22 55 22 82 22 af 22 dd 23 0a 23 38 23 66 ["'"U".".".#.#8#f]
+  |         078c: 23 94 23 c2 23 f0 24 1f 24 4d 24 7c 24 ab 24 da [#.#.#.$.$M$|$.$.]
+  |         079c: 25 09 25 38 25 68 25 97 25 c7 25 f7 26 27 26 57 [%.%8%h%.%.%.&'&W]
+  |         07ac: 26 87 26 b7 26 e8 27 18 27 49 27 7a 27 ab 27 dc [&.&.&.'.'I'z'.'.]
+  |         07bc: 28 0d 28 3f 28 71 28 a2 28 d4 29 06 29 38 29 6b [(.(?(q(.(.).)8)k]
+  |         07cc: 29 9d 29 d0 2a 02 2a 35 2a 68 2a 9b 2a cf 2b 02 [).).*.*5*h*.*.+.]
+  |         07dc: 2b 36 2b 69 2b 9d 2b d1 2c 05 2c 39 2c 6e 2c a2 [+6+i+.+.,.,9,n,.]
+  |         07ec: 2c d7 2d 0c 2d 41 2d 76 2d ab 2d e1 2e 16 2e 4c [,.-.-A-v-.-....L]
+  |         07fc: 2e 82 2e b7 2e ee 2f 24 2f 5a 2f 91 2f c7 2f fe [....../$/Z/././.]
+  |         080c: 30 35 30 6c 30 a4 30 db 31 12 31 4a 31 82 31 ba [050l0.0.1.1J1.1.]
+  |         081c: 31 f2 32 2a 32 63 32 9b 32 d4 33 0d 33 46 33 7f [1.2*2c2.2.3.3F3.]
+  |         082c: 33 b8 33 f1 34 2b 34 65 34 9e 34 d8 35 13 35 4d [3.3.4+4e4.4.5.5M]
+  |         083c: 35 87 35 c2 35 fd 36 37 36 72 36 ae 36 e9 37 24 [5.5.5.676r6.6.7$]
+  |         084c: 37 60 37 9c 37 d7 38 14 38 50 38 8c 38 c8 39 05 [7`7.7.8.8P8.8.9.]
+  |         085c: 39 42 39 7f 39 bc 39 f9 3a 36 3a 74 3a b2 3a ef [9B9.9.9.:6:t:.:.]
+  |         086c: 3b 2d 3b 6b 3b aa 3b e8 3c 27 3c 65 3c a4 3c e3 [;-;k;.;.<'<e<.<.]
+  |         087c: 3d 22 3d 61 3d a1 3d e0 3e 20 3e 60 3e a0 3e e0 [="=a=.=.> >`>.>.]
+  |         088c: 3f 21 3f 61 3f a2 3f e2 40 23 40 64 40 a6 40 e7 [?!?a?.?.@#@d@.@.]
+  |         089c: 41 29 41 6a 41 ac 41 ee 42 30 42 72 42 b5 42 f7 [A)AjA.A.B0BrB.B.]
+  |         08ac: 43 3a 43 7d 43 c0 44 03 44 47 44 8a 44 ce 45 12 [C:C}C.D.DGD.D.E.]
+  |         08bc: 45 55 45 9a 45 de 46 22 46 67 46 ab 46 f0 47 35 [EUE.E.F"FgF.F.G5]
+  |         08cc: 47 7b 47 c0 48 05 48 4b 48 91 48 d7 49 1d 49 63 [G{G.H.HKH.H.I.Ic]
+  |         08dc: 49 a9 49 f0 4a 37 4a 7d 4a c4 4b 0c 4b 53 4b 9a [I.I.J7J}J.K.KSK.]
+  |         08ec: 4b e2 4c 2a 4c 72 4c ba 4d 02 4d 4a 4d 93 4d dc [K.L*LrL.M.MJM.M.]
+  |         08fc: 4e 25 4e 6e 4e b7 4f 00 4f 49 4f 93 4f dd 50 27 [N%NnN.O.OIO.O.P']
+  |         090c: 50 71 50 bb 51 06 51 50 51 9b 51 e6 52 31 52 7c [PqP.Q.QPQ.Q.R1R|]
+  |         091c: 52 c7 53 13 53 5f 53 aa 53 f6 54 42 54 8f 54 db [R.S.S_S.S.TBT.T.]
+  |         092c: 55 28 55 75 55 c2 56 0f 56 5c 56 a9 56 f7 57 44 [U(UuU.V.V\V.V.WD]
+  |         093c: 57 92 57 e0 58 2f 58 7d 58 cb 59 1a 59 69 59 b8 [W.W.X/X}X.Y.YiY.]
+  |         094c: 5a 07 5a 56 5a a6 5a f5 5b 45 5b 95 5b e5 5c 35 [Z.ZVZ.Z.[E[.[.\5]
+  |         095c: 5c 86 5c d6 5d 27 5d 78 5d c9 5e 1a 5e 6c 5e bd [\.\.]']x].^.^l^.]
+  |         096c: 5f 0f 5f 61 5f b3 60 05 60 57 60 aa 60 fc 61 4f [_._a_.`.`W`.`.aO]
+  |         097c: 61 a2 61 f5 62 49 62 9c 62 f0 63 43 63 97 63 eb [a.a.bIb.b.cCc.c.]
+  |         098c: 64 40 64 94 64 e9 65 3d 65 92 65 e7 66 3d 66 92 [d@d.d.e=e.e.f=f.]
+  |         099c: 66 e8 67 3d 67 93 67 e9 68 3f 68 96 68 ec 69 43 [f.g=g.g.h?h.h.iC]
+  |         09ac: 69 9a 69 f1 6a 48 6a 9f 6a f7 6b 4f 6b a7 6b ff [i.i.jHj.j.kOk.k.]
+  |         09bc: 6c 57 6c af 6d 08 6d 60 6d b9 6e 12 6e 6b 6e c4 [lWl.m.m`m.n.nkn.]
+  |         09cc: 6f 1e 6f 78 6f d1 70 2b 70 86 70 e0 71 3a 71 95 [o.oxo.p+p.p.q:q.]
+  |         09dc: 71 f0 72 4b 72 a6 73 01 73 5d 73 b8 74 14 74 70 [q.rKr.s.s]s.t.tp]
+  |         09ec: 74 cc 75 28 75 85 75 e1 76 3e 76 9b 76 f8 77 56 [t.u(u.u.v>v.v.wV]
+  |         09fc: 77 b3 78 11 78 6e 78 cc 79 2a 79 89 79 e7 7a 46 [w.x.xnx.y*y.y.zF]
+  |         0a0c: 7a a5 7b 04 7b 63 7b c2 7c 21 7c 81 7c e1 7d 41 [z.{.{c{.|!|.|.}A]
+  |         0a1c: 7d a1 7e 01 7e 62 7e c2 7f 23 7f 84 7f e5 80 47 [}.~.~b~..#.....G]
+  |         0a2c: 80 a8 81 0a 81 6b 81 cd 82 30 82 92 82 f4 83 57 [.....k...0.....W]
+  |         0a3c: 83 ba 84 1d 84 80 84 e3 85 47 85 ab 86 0e 86 72 [.........G.....r]
+  |         0a4c: 86 d7 87 3b 87 9f 88 04 88 69 88 ce 89 33 89 99 [...;.....i...3..]
+  |         0a5c: 89 fe 8a 64 8a ca 8b 30 8b 96 8b fc 8c 63 8c ca [...d...0.....c..]
+  |         0a6c: 8d 31 8d 98 8d ff 8e 66 8e ce 8f 36 8f 9e 90 06 [.1.....f...6....]
+  |         0a7c: 90 6e 90 d6 91 3f 91 a8 92 11 92 7a 92 e3 93 4d [.n...?.....z...M]
+  |         0a8c: 93 b6 94 20 94 8a 94 f4 95 5f 95 c9 96 34 96 9f [... ....._...4..]
+  |         0a9c: 97 0a 97 75 97 e0 98 4c 98 b8 99 24 99 90 99 fc [...u...L...$....]
+  |         0aac: 9a 68 9a d5 9b 42 9b af 9c 1c 9c 89 9c f7 9d 64 [.h...B.........d]
+  |         0abc: 9d d2 9e 40 9e ae 9f 1d 9f 8b 9f fa a0 69 a0 d8 [...@.........i..]
+  |         0acc: a1 47 a1 b6 a2 26 a2 96 a3 06 a3 76 a3 e6 a4 56 [.G...&.....v...V]
+  |         0adc: a4 c7 a5 38 a5 a9 a6 1a a6 8b a6 fd a7 6e a7 e0 [...8.........n..]
+  |         0aec: a8 52 a8 c4 a9 37 a9 a9 aa 1c aa 8f ab 02 ab 75 [.R...7.........u]
+  |         0afc: ab e9 ac 5c ac d0 ad 44 ad b8 ae 2d ae a1 af 16 [...\...D...-....]
+  |         0b0c: af 8b b0 00 b0 75 b0 ea b1 60 b1 d6 b2 4b b2 c2 [.....u...`...K..]
+  |         0b1c: b3 38 b3 ae b4 25 b4 9c b5 13 b5 8a b6 01 b6 79 [.8...%.........y]
+  |         0b2c: b6 f0 b7 68 b7 e0 b8 59 b8 d1 b9 4a b9 c2 ba 3b [...h...Y...J...;]
+  |         0b3c: ba b5 bb 2e bb a7 bc 21 bc 9b bd 15 bd 8f be 0a [.......!........]
+  |         0b4c: be 84 be ff bf 7a bf f5 c0 70 c0 ec c1 67 c1 e3 [.....z...p...g..]
+  |         0b5c: c2 5f c2 db c3 58 c3 d4 c4 51 c4 ce c5 4b c5 c8 [._...X...Q...K..]
+  |         0b6c: c6 46 c6 c3 c7 41 c7 bf c8 3d c8 bc c9 3a c9 b9 [.F...A...=...:..]
+  |         0b7c: ca 38 ca b7 cb 36 cb b6 cc 35 cc b5 cd 35 cd b5 [.8...6...5...5..]
+  |         0b8c: ce 36 ce b6 cf 37 cf b8 d0 39 d0 ba d1 3c d1 be [.6...7...9...<..]
+  |         0b9c: d2 3f d2 c1 d3 44 d3 c6 d4 49 d4 cb d5 4e d5 d1 [.?...D...I...N..]
+  |         0bac: d6 55 d6 d8 d7 5c d7 e0 d8 64 d8 e8 d9 6c d9 f1 [.U...\...d...l..]
+  |         0bbc: da 76 da fb db 80 dc 05 dc 8a dd 10 dd 96 de 1c [.v..............]
+  |         0bcc: de a2 df 29 df af e0 36 e0 bd e1 44 e1 cc e2 53 [...)...6...D...S]
+  |         0bdc: e2 db e3 63 e3 eb e4 73 e4 fc e5 84 e6 0d e6 96 [...c...s........]
+  |         0bec: e7 1f e7 a9 e8 32 e8 bc e9 46 e9 d0 ea 5b ea e5 [.....2...F...[..]
+  |         0bfc: eb 70 eb fb ec 86 ed 11 ed 9c ee 28 ee b4 ef 40 [.p.........(...@]
+  |         0c0c: ef cc f0 58 f0 e5 f1 72 f1 ff f2 8c f3 19 f3 a7 [...X...r........]
+  |         0c1c: f4 34 f4 c2 f5 50 f5 de f6 6d f6 fb f7 8a f8 19 [.4...P...m......]
+  |         [snip 28 bytes]
+  | 16) BlueTRC = curv.......#(-27;@EJOTY^chmrw|......................................%.+.2.8.>.E.L.R.Y.`.g.n.u.|.........................................&./.8.A.K.T.].g.q.z..............................!.-.8.C.O.Z.f.r.~......................... .-.;.H.U.c.q.~.......................+.:.I.X.g.w.....................'.7.H.Y.j.{...................+.=.O.a.t...................2.F.Z.n.................%.:.O.d.y...............'.=.T.j...............".9.Q.i...............*.C.\.u.............&.@.Z.t...............I.d.............%.A.^.z...........&.C.a.~...........1.O.m...........&.E.d...........#.C.c...........'.I.j...........4.V.x.........&.I.l...........A.e...........@.e......... .E.k.........*.Q.w.........;.c.........*.R.{.........G.p.........@.j.........>.i...... . A l . . .!.!H!u!.!.!."'"U".".".#.#8#f#.#.#.$.$M$|$.$.%.%8%h%.%.%.&'&W&.&.&.'.'I'z'.'.(.(?(q(.(.).)8)k).).*.*5*h*.*.+.+6+i+.+.,.,9,n,.,.-.-A-v-.-....L....../$/Z/././.050l0.0.1.1J1.1.1.2*2c2.2.3.3F3.3.3.4+4e4.4.5.5M5.5.5.676r6.6.7$7`7.7.8.8P8.8.9.9B9.9.9.:6:t:.:.;-;k;.;.<'<e<.<.="=a=.=.> >`>.>.?!?a?.?.@#@d@.@.A)AjA.A.B0BrB.B.C:C}C.D.DGD.D.E.EUE.E.F"FgF.F.G5G{G.H.HKH.H.I.IcI.I.J7J}J.K.KSK.K.L*LrL.M.MJM.M.N%NnN.OOIO.O.P'PqP.Q.QPQ.Q.R1R|R.S.S_S.S.TBT.T.U(UuU.V.V\V.V.WDW.W.X/X}X.Y.YiY.Z.ZVZ.Z.[E[.[.\5\.\.]']x].^.^l^._._a_.`.`W`.`.aOa.a.bIb.b.cCc.c.d@d.d.e=e.e.f=f.f.g=g.g.h?h.h.iCi.i.jHj.j.kOk.k.lWl.m.m`m.n.nkn.o.oxo.p+p.p.q:q.q.rKr.s.s]s.t.tpt.u(u.u.v>v.v.wVw.x.xnx.y*y.y.zFz.{.{c{.|!|.|.}A}.~.~b~..#.....G.....k...0.....W.........G.....r...;.....i...3.....d...0.....c...1.....f...6.....n...?.....z...M... ....._...4.....u...L...$.....h...B.........d...@.........i...G...&.....v...V...8.........n...R...7.........u...\...D...-........u...`...K...8...%.........y...h...Y...J...;.......!.............z...p...g..._...X...Q...K...F...A...=...:...8...6...5...5...6...7...9...<...?...D...I...N...U...\...d...l...v.................)...6...D...S...c...s.............2...F...[...p.........(...@...X...r.........4...P...m.........8...W...w.....)...K...m..
+  |     - Tag 'bTRC' (2060 bytes, type 'curv'):
+  |         043c: 63 75 72 76 00 00 00 00 00 00 04 00 00 00 00 05 [curv............]
+  |         044c: 00 0a 00 0f 00 14 00 19 00 1e 00 23 00 28 00 2d [...........#.(.-]
+  |         045c: 00 32 00 37 00 3b 00 40 00 45 00 4a 00 4f 00 54 [.2.7.;.@.E.J.O.T]
+  |         046c: 00 59 00 5e 00 63 00 68 00 6d 00 72 00 77 00 7c [.Y.^.c.h.m.r.w.|]
+  |         047c: 00 81 00 86 00 8b 00 90 00 95 00 9a 00 9f 00 a4 [................]
+  |         048c: 00 a9 00 ae 00 b2 00 b7 00 bc 00 c1 00 c6 00 cb [................]
+  |         049c: 00 d0 00 d5 00 db 00 e0 00 e5 00 eb 00 f0 00 f6 [................]
+  |         04ac: 00 fb 01 01 01 07 01 0d 01 13 01 19 01 1f 01 25 [...............%]
+  |         04bc: 01 2b 01 32 01 38 01 3e 01 45 01 4c 01 52 01 59 [.+.2.8.>.E.L.R.Y]
+  |         04cc: 01 60 01 67 01 6e 01 75 01 7c 01 83 01 8b 01 92 [.`.g.n.u.|......]
+  |         04dc: 01 9a 01 a1 01 a9 01 b1 01 b9 01 c1 01 c9 01 d1 [................]
+  |         04ec: 01 d9 01 e1 01 e9 01 f2 01 fa 02 03 02 0c 02 14 [................]
+  |         04fc: 02 1d 02 26 02 2f 02 38 02 41 02 4b 02 54 02 5d [...&./.8.A.K.T.]]
+  |         050c: 02 67 02 71 02 7a 02 84 02 8e 02 98 02 a2 02 ac [.g.q.z..........]
+  |         051c: 02 b6 02 c1 02 cb 02 d5 02 e0 02 eb 02 f5 03 00 [................]
+  |         052c: 03 0b 03 16 03 21 03 2d 03 38 03 43 03 4f 03 5a [.....!.-.8.C.O.Z]
+  |         053c: 03 66 03 72 03 7e 03 8a 03 96 03 a2 03 ae 03 ba [.f.r.~..........]
+  |         054c: 03 c7 03 d3 03 e0 03 ec 03 f9 04 06 04 13 04 20 [............... ]
+  |         055c: 04 2d 04 3b 04 48 04 55 04 63 04 71 04 7e 04 8c [.-.;.H.U.c.q.~..]
+  |         056c: 04 9a 04 a8 04 b6 04 c4 04 d3 04 e1 04 f0 04 fe [................]
+  |         057c: 05 0d 05 1c 05 2b 05 3a 05 49 05 58 05 67 05 77 [.....+.:.I.X.g.w]
+  |         058c: 05 86 05 96 05 a6 05 b5 05 c5 05 d5 05 e5 05 f6 [................]
+  |         059c: 06 06 06 16 06 27 06 37 06 48 06 59 06 6a 06 7b [.....'.7.H.Y.j.{]
+  |         05ac: 06 8c 06 9d 06 af 06 c0 06 d1 06 e3 06 f5 07 07 [................]
+  |         05bc: 07 19 07 2b 07 3d 07 4f 07 61 07 74 07 86 07 99 [...+.=.O.a.t....]
+  |         05cc: 07 ac 07 bf 07 d2 07 e5 07 f8 08 0b 08 1f 08 32 [...............2]
+  |         05dc: 08 46 08 5a 08 6e 08 82 08 96 08 aa 08 be 08 d2 [.F.Z.n..........]
+  |         05ec: 08 e7 08 fb 09 10 09 25 09 3a 09 4f 09 64 09 79 [.......%.:.O.d.y]
+  |         05fc: 09 8f 09 a4 09 ba 09 cf 09 e5 09 fb 0a 11 0a 27 [...............']
+  |         060c: 0a 3d 0a 54 0a 6a 0a 81 0a 98 0a ae 0a c5 0a dc [.=.T.j..........]
+  |         061c: 0a f3 0b 0b 0b 22 0b 39 0b 51 0b 69 0b 80 0b 98 [.....".9.Q.i....]
+  |         062c: 0b b0 0b c8 0b e1 0b f9 0c 12 0c 2a 0c 43 0c 5c [...........*.C.\]
+  |         063c: 0c 75 0c 8e 0c a7 0c c0 0c d9 0c f3 0d 0d 0d 26 [.u.............&]
+  |         064c: 0d 40 0d 5a 0d 74 0d 8e 0d a9 0d c3 0d de 0d f8 [.@.Z.t..........]
+  |         065c: 0e 13 0e 2e 0e 49 0e 64 0e 7f 0e 9b 0e b6 0e d2 [.....I.d........]
+  |         066c: 0e ee 0f 09 0f 25 0f 41 0f 5e 0f 7a 0f 96 0f b3 [.....%.A.^.z....]
+  |         067c: 0f cf 0f ec 10 09 10 26 10 43 10 61 10 7e 10 9b [.......&.C.a.~..]
+  |         068c: 10 b9 10 d7 10 f5 11 13 11 31 11 4f 11 6d 11 8c [.........1.O.m..]
+  |         069c: 11 aa 11 c9 11 e8 12 07 12 26 12 45 12 64 12 84 [.........&.E.d..]
+  |         06ac: 12 a3 12 c3 12 e3 13 03 13 23 13 43 13 63 13 83 [.........#.C.c..]
+  |         06bc: 13 a4 13 c5 13 e5 14 06 14 27 14 49 14 6a 14 8b [.........'.I.j..]
+  |         06cc: 14 ad 14 ce 14 f0 15 12 15 34 15 56 15 78 15 9b [.........4.V.x..]
+  |         06dc: 15 bd 15 e0 16 03 16 26 16 49 16 6c 16 8f 16 b2 [.......&.I.l....]
+  |         06ec: 16 d6 16 fa 17 1d 17 41 17 65 17 89 17 ae 17 d2 [.......A.e......]
+  |         06fc: 17 f7 18 1b 18 40 18 65 18 8a 18 af 18 d5 18 fa [.....@.e........]
+  |         070c: 19 20 19 45 19 6b 19 91 19 b7 19 dd 1a 04 1a 2a [. .E.k.........*]
+  |         071c: 1a 51 1a 77 1a 9e 1a c5 1a ec 1b 14 1b 3b 1b 63 [.Q.w.........;.c]
+  |         072c: 1b 8a 1b b2 1b da 1c 02 1c 2a 1c 52 1c 7b 1c a3 [.........*.R.{..]
+  |         073c: 1c cc 1c f5 1d 1e 1d 47 1d 70 1d 99 1d c3 1d ec [.......G.p......]
+  |         074c: 1e 16 1e 40 1e 6a 1e 94 1e be 1e e9 1f 13 1f 3e [...@.j.........>]
+  |         075c: 1f 69 1f 94 1f bf 1f ea 20 15 20 41 20 6c 20 98 [.i...... . A l .]
+  |         076c: 20 c4 20 f0 21 1c 21 48 21 75 21 a1 21 ce 21 fb [ . .!.!H!u!.!.!.]
+  |         077c: 22 27 22 55 22 82 22 af 22 dd 23 0a 23 38 23 66 ["'"U".".".#.#8#f]
+  |         078c: 23 94 23 c2 23 f0 24 1f 24 4d 24 7c 24 ab 24 da [#.#.#.$.$M$|$.$.]
+  |         079c: 25 09 25 38 25 68 25 97 25 c7 25 f7 26 27 26 57 [%.%8%h%.%.%.&'&W]
+  |         07ac: 26 87 26 b7 26 e8 27 18 27 49 27 7a 27 ab 27 dc [&.&.&.'.'I'z'.'.]
+  |         07bc: 28 0d 28 3f 28 71 28 a2 28 d4 29 06 29 38 29 6b [(.(?(q(.(.).)8)k]
+  |         07cc: 29 9d 29 d0 2a 02 2a 35 2a 68 2a 9b 2a cf 2b 02 [).).*.*5*h*.*.+.]
+  |         07dc: 2b 36 2b 69 2b 9d 2b d1 2c 05 2c 39 2c 6e 2c a2 [+6+i+.+.,.,9,n,.]
+  |         07ec: 2c d7 2d 0c 2d 41 2d 76 2d ab 2d e1 2e 16 2e 4c [,.-.-A-v-.-....L]
+  |         07fc: 2e 82 2e b7 2e ee 2f 24 2f 5a 2f 91 2f c7 2f fe [....../$/Z/././.]
+  |         080c: 30 35 30 6c 30 a4 30 db 31 12 31 4a 31 82 31 ba [050l0.0.1.1J1.1.]
+  |         081c: 31 f2 32 2a 32 63 32 9b 32 d4 33 0d 33 46 33 7f [1.2*2c2.2.3.3F3.]
+  |         082c: 33 b8 33 f1 34 2b 34 65 34 9e 34 d8 35 13 35 4d [3.3.4+4e4.4.5.5M]
+  |         083c: 35 87 35 c2 35 fd 36 37 36 72 36 ae 36 e9 37 24 [5.5.5.676r6.6.7$]
+  |         084c: 37 60 37 9c 37 d7 38 14 38 50 38 8c 38 c8 39 05 [7`7.7.8.8P8.8.9.]
+  |         085c: 39 42 39 7f 39 bc 39 f9 3a 36 3a 74 3a b2 3a ef [9B9.9.9.:6:t:.:.]
+  |         086c: 3b 2d 3b 6b 3b aa 3b e8 3c 27 3c 65 3c a4 3c e3 [;-;k;.;.<'<e<.<.]
+  |         087c: 3d 22 3d 61 3d a1 3d e0 3e 20 3e 60 3e a0 3e e0 [="=a=.=.> >`>.>.]
+  |         088c: 3f 21 3f 61 3f a2 3f e2 40 23 40 64 40 a6 40 e7 [?!?a?.?.@#@d@.@.]
+  |         089c: 41 29 41 6a 41 ac 41 ee 42 30 42 72 42 b5 42 f7 [A)AjA.A.B0BrB.B.]
+  |         08ac: 43 3a 43 7d 43 c0 44 03 44 47 44 8a 44 ce 45 12 [C:C}C.D.DGD.D.E.]
+  |         08bc: 45 55 45 9a 45 de 46 22 46 67 46 ab 46 f0 47 35 [EUE.E.F"FgF.F.G5]
+  |         08cc: 47 7b 47 c0 48 05 48 4b 48 91 48 d7 49 1d 49 63 [G{G.H.HKH.H.I.Ic]
+  |         08dc: 49 a9 49 f0 4a 37 4a 7d 4a c4 4b 0c 4b 53 4b 9a [I.I.J7J}J.K.KSK.]
+  |         08ec: 4b e2 4c 2a 4c 72 4c ba 4d 02 4d 4a 4d 93 4d dc [K.L*LrL.M.MJM.M.]
+  |         08fc: 4e 25 4e 6e 4e b7 4f 00 4f 49 4f 93 4f dd 50 27 [N%NnN.O.OIO.O.P']
+  |         090c: 50 71 50 bb 51 06 51 50 51 9b 51 e6 52 31 52 7c [PqP.Q.QPQ.Q.R1R|]
+  |         091c: 52 c7 53 13 53 5f 53 aa 53 f6 54 42 54 8f 54 db [R.S.S_S.S.TBT.T.]
+  |         092c: 55 28 55 75 55 c2 56 0f 56 5c 56 a9 56 f7 57 44 [U(UuU.V.V\V.V.WD]
+  |         093c: 57 92 57 e0 58 2f 58 7d 58 cb 59 1a 59 69 59 b8 [W.W.X/X}X.Y.YiY.]
+  |         094c: 5a 07 5a 56 5a a6 5a f5 5b 45 5b 95 5b e5 5c 35 [Z.ZVZ.Z.[E[.[.\5]
+  |         095c: 5c 86 5c d6 5d 27 5d 78 5d c9 5e 1a 5e 6c 5e bd [\.\.]']x].^.^l^.]
+  |         096c: 5f 0f 5f 61 5f b3 60 05 60 57 60 aa 60 fc 61 4f [_._a_.`.`W`.`.aO]
+  |         097c: 61 a2 61 f5 62 49 62 9c 62 f0 63 43 63 97 63 eb [a.a.bIb.b.cCc.c.]
+  |         098c: 64 40 64 94 64 e9 65 3d 65 92 65 e7 66 3d 66 92 [d@d.d.e=e.e.f=f.]
+  |         099c: 66 e8 67 3d 67 93 67 e9 68 3f 68 96 68 ec 69 43 [f.g=g.g.h?h.h.iC]
+  |         09ac: 69 9a 69 f1 6a 48 6a 9f 6a f7 6b 4f 6b a7 6b ff [i.i.jHj.j.kOk.k.]
+  |         09bc: 6c 57 6c af 6d 08 6d 60 6d b9 6e 12 6e 6b 6e c4 [lWl.m.m`m.n.nkn.]
+  |         09cc: 6f 1e 6f 78 6f d1 70 2b 70 86 70 e0 71 3a 71 95 [o.oxo.p+p.p.q:q.]
+  |         09dc: 71 f0 72 4b 72 a6 73 01 73 5d 73 b8 74 14 74 70 [q.rKr.s.s]s.t.tp]
+  |         09ec: 74 cc 75 28 75 85 75 e1 76 3e 76 9b 76 f8 77 56 [t.u(u.u.v>v.v.wV]
+  |         09fc: 77 b3 78 11 78 6e 78 cc 79 2a 79 89 79 e7 7a 46 [w.x.xnx.y*y.y.zF]
+  |         0a0c: 7a a5 7b 04 7b 63 7b c2 7c 21 7c 81 7c e1 7d 41 [z.{.{c{.|!|.|.}A]
+  |         0a1c: 7d a1 7e 01 7e 62 7e c2 7f 23 7f 84 7f e5 80 47 [}.~.~b~..#.....G]
+  |         0a2c: 80 a8 81 0a 81 6b 81 cd 82 30 82 92 82 f4 83 57 [.....k...0.....W]
+  |         0a3c: 83 ba 84 1d 84 80 84 e3 85 47 85 ab 86 0e 86 72 [.........G.....r]
+  |         0a4c: 86 d7 87 3b 87 9f 88 04 88 69 88 ce 89 33 89 99 [...;.....i...3..]
+  |         0a5c: 89 fe 8a 64 8a ca 8b 30 8b 96 8b fc 8c 63 8c ca [...d...0.....c..]
+  |         0a6c: 8d 31 8d 98 8d ff 8e 66 8e ce 8f 36 8f 9e 90 06 [.1.....f...6....]
+  |         0a7c: 90 6e 90 d6 91 3f 91 a8 92 11 92 7a 92 e3 93 4d [.n...?.....z...M]
+  |         0a8c: 93 b6 94 20 94 8a 94 f4 95 5f 95 c9 96 34 96 9f [... ....._...4..]
+  |         0a9c: 97 0a 97 75 97 e0 98 4c 98 b8 99 24 99 90 99 fc [...u...L...$....]
+  |         0aac: 9a 68 9a d5 9b 42 9b af 9c 1c 9c 89 9c f7 9d 64 [.h...B.........d]
+  |         0abc: 9d d2 9e 40 9e ae 9f 1d 9f 8b 9f fa a0 69 a0 d8 [...@.........i..]
+  |         0acc: a1 47 a1 b6 a2 26 a2 96 a3 06 a3 76 a3 e6 a4 56 [.G...&.....v...V]
+  |         0adc: a4 c7 a5 38 a5 a9 a6 1a a6 8b a6 fd a7 6e a7 e0 [...8.........n..]
+  |         0aec: a8 52 a8 c4 a9 37 a9 a9 aa 1c aa 8f ab 02 ab 75 [.R...7.........u]
+  |         0afc: ab e9 ac 5c ac d0 ad 44 ad b8 ae 2d ae a1 af 16 [...\...D...-....]
+  |         0b0c: af 8b b0 00 b0 75 b0 ea b1 60 b1 d6 b2 4b b2 c2 [.....u...`...K..]
+  |         0b1c: b3 38 b3 ae b4 25 b4 9c b5 13 b5 8a b6 01 b6 79 [.8...%.........y]
+  |         0b2c: b6 f0 b7 68 b7 e0 b8 59 b8 d1 b9 4a b9 c2 ba 3b [...h...Y...J...;]
+  |         0b3c: ba b5 bb 2e bb a7 bc 21 bc 9b bd 15 bd 8f be 0a [.......!........]
+  |         0b4c: be 84 be ff bf 7a bf f5 c0 70 c0 ec c1 67 c1 e3 [.....z...p...g..]
+  |         0b5c: c2 5f c2 db c3 58 c3 d4 c4 51 c4 ce c5 4b c5 c8 [._...X...Q...K..]
+  |         0b6c: c6 46 c6 c3 c7 41 c7 bf c8 3d c8 bc c9 3a c9 b9 [.F...A...=...:..]
+  |         0b7c: ca 38 ca b7 cb 36 cb b6 cc 35 cc b5 cd 35 cd b5 [.8...6...5...5..]
+  |         0b8c: ce 36 ce b6 cf 37 cf b8 d0 39 d0 ba d1 3c d1 be [.6...7...9...<..]
+  |         0b9c: d2 3f d2 c1 d3 44 d3 c6 d4 49 d4 cb d5 4e d5 d1 [.?...D...I...N..]
+  |         0bac: d6 55 d6 d8 d7 5c d7 e0 d8 64 d8 e8 d9 6c d9 f1 [.U...\...d...l..]
+  |         0bbc: da 76 da fb db 80 dc 05 dc 8a dd 10 dd 96 de 1c [.v..............]
+  |         0bcc: de a2 df 29 df af e0 36 e0 bd e1 44 e1 cc e2 53 [...)...6...D...S]
+  |         0bdc: e2 db e3 63 e3 eb e4 73 e4 fc e5 84 e6 0d e6 96 [...c...s........]
+  |         0bec: e7 1f e7 a9 e8 32 e8 bc e9 46 e9 d0 ea 5b ea e5 [.....2...F...[..]
+  |         0bfc: eb 70 eb fb ec 86 ed 11 ed 9c ee 28 ee b4 ef 40 [.p.........(...@]
+  |         0c0c: ef cc f0 58 f0 e5 f1 72 f1 ff f2 8c f3 19 f3 a7 [...X...r........]
+  |         0c1c: f4 34 f4 c2 f5 50 f5 de f6 6d f6 fb f7 8a f8 19 [.4...P...m......]
+  |         [snip 28 bytes]
+JPEG APP1 (28160 bytes):
+      6f36: 68 74 74 70 3a 2f 2f 6e 73 2e 61 64 6f 62 65 2e [http://ns.adobe.]
+      6f46: 63 6f 6d 2f 78 61 70 2f 31 2e 30 2f 00 3c 3f 78 [com/xap/1.0/.<?x]
+      6f56: 70 61 63 6b 65 74 20 62 65 67 69 6e 3d 27 ef bb [packet begin='..]
+      6f66: bf 27 20 69 64 3d 27 57 35 4d 30 4d 70 43 65 68 [.' id='W5M0MpCeh]
+      6f76: 69 48 7a 72 65 53 7a 4e 54 63 7a 6b 63 39 64 27 [iHzreSzNTczkc9d']
+      6f86: 3f 3e 0a 3c 78 3a 78 6d 70 6d 65 74 61 20 78 6d [?>.<x:xmpmeta xm]
+      6f96: 6c 6e 73 3a 78 3d 27 61 64 6f 62 65 3a 6e 73 3a [lns:x='adobe:ns:]
+      [snip 28048 bytes]
+  + [XMP directory, 28131 bytes]
+  | XMPToolkit = Image::ExifTool 12.27
+  | DistortionCorrectionAlreadyApplied = True
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/aux:DistortionCorrectionAlreadyApplied'
+  | FlashCompensation = 0/256
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/aux:FlashCompensation'
+  | LateralChromaticAberrationCorrectionAlreadyApplied = True
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/aux:LateralChromaticAberrationCorrectionAlreadyApplied'
+  | Lens = OLYMPUS M.30mm F3.5 Macro
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/aux:Lens'
+  | LensInfo = 30/1 30/1 35/10 35/10
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/aux:LensInfo'
+  | LensSerialNumber = ACBA37456
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/aux:LensSerialNumber'
+  | SerialNumber = BHXB09700
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/aux:SerialNumber'
+  | Description = OLYMPUS DIGITAL CAMERA
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:description/rdf:Alt/rdf:li 10'
+  | Format = image/jpeg
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:format'
+  | DateCreated = 2020-04-30T15:08:15
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/photoshop:DateCreated'
+  | CreateDate = 2020-04-30T15:08:15
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmp:CreateDate'
+  | CreatorTool = Adobe Photoshop Lightroom 6.14 (Windows)
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmp:CreatorTool'
+  | MetadataDate = 2020-04-30T21:24:18+03:00
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmp:MetadataDate'
+  | ModifyDate = 2020-04-30T21:24:18+03:00
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmp:ModifyDate'
+  | Rating = 2
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmp:Rating'
+  | DerivedFromDocumentID = 4086326A817940C408F83F2277090335
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmpMM:DerivedFrom/stRef:documentID'
+  | DerivedFromOriginalDocumentID = 4086326A817940C408F83F2277090335
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmpMM:DerivedFrom/stRef:originalDocumentID'
+  | DocumentID = xmp.did:ff982fc2-4308-7048-beec-991da4c7c819
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmpMM:DocumentID'
+  | HistoryAction = derived
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmpMM:History/rdf:Seq/rdf:li 10/stEvt:action'
+  | HistoryParameters = converted from image/x-olympus-raw to image/jpeg, saved to new location
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmpMM:History/rdf:Seq/rdf:li 10/stEvt:parameters'
+  | HistoryAction = saved
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmpMM:History/rdf:Seq/rdf:li 11/stEvt:action'
+  | HistoryChanged = /
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmpMM:History/rdf:Seq/rdf:li 11/stEvt:changed'
+  | HistoryInstanceID = xmp.iid:ff982fc2-4308-7048-beec-991da4c7c819
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmpMM:History/rdf:Seq/rdf:li 11/stEvt:instanceID'
+  | HistorySoftwareAgent = Adobe Photoshop Lightroom 6.14 (Windows)
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmpMM:History/rdf:Seq/rdf:li 11/stEvt:softwareAgent'
+  | HistoryWhen = 2020-04-30T21:24:18+03:00
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmpMM:History/rdf:Seq/rdf:li 11/stEvt:when'
+  | InstanceID = xmp.iid:ff982fc2-4308-7048-beec-991da4c7c819
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmpMM:InstanceID'
+  | OriginalDocumentID = 4086326A817940C408F83F2277090335
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmpMM:OriginalDocumentID'
+  | AlreadyApplied = True
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:AlreadyApplied'
+  | AutoLateralCA = 1
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:AutoLateralCA'
+  | AutoWhiteVersion = 134348800
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:AutoWhiteVersion'
+  | Blacks2012 = +10
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:Blacks2012'
+  | BlueHue = -15
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:BlueHue'
+  | BlueSaturation = +25
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:BlueSaturation'
+  | CameraProfile = Camera Natural
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CameraProfile'
+  | CircGradBasedCorrActive = true
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionActive'
+  | CircGradBasedCorrAmount = 1.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionAmount'
+  | CircGradBasedCorrMaskAngle = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Angle'
+  | CircGradBasedCorrMaskBottom = 0.702472
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Bottom'
+  | CircGradBasedCorrMaskFeather = +100
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Feather'
+  | CircGradBasedCorrMaskFlipped = true
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Flipped'
+  | CircGradBasedCorrMaskLeft = 0.345434
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Left'
+  | CircGradBasedCorrMaskValue = 1.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:MaskValue'
+  | CircGradBasedCorrMaskMidpoint = +50
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Midpoint'
+  | CircGradBasedCorrMaskRight = 0.519469
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Right'
+  | CircGradBasedCorrMaskRoundness = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Roundness'
+  | CircGradBasedCorrMaskTop = 0.448111
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Top'
+  | CircGradBasedCorrMaskVersion = +2
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Version'
+  | CircGradBasedCorrMaskWhat = Mask/CircularGradient
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:What'
+  | CircGradBasedCorrBlacks2012 = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalBlacks2012'
+  | CircGradBasedCorrBrightness = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalBrightness'
+  | CircGradBasedCorrClarity2012 = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalClarity2012'
+  | CircGradBasedCorrContrast2012 = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalContrast2012'
+  | CircGradBasedCorrDefringe = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalDefringe'
+  | CircGradBasedCorrDehaze = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalDehaze'
+  | CircGradBasedCorrExposure2012 = 0.286750
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalExposure2012'
+  | CircGradBasedCorrHighlights2012 = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalHighlights2012'
+  | CircGradBasedCorrLuminanceNoise = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalLuminanceNoise'
+  | CircGradBasedCorrMoire = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalMoire'
+  | CircGradBasedCorrSaturation = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalSaturation'
+  | CircGradBasedCorrShadows2012 = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalShadows2012'
+  | CircGradBasedCorrSharpness = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalSharpness'
+  | CircGradBasedCorrTemperature = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalTemperature'
+  | CircGradBasedCorrTint = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalTint'
+  | CircGradBasedCorrToningHue = 240.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalToningHue'
+  | CircGradBasedCorrToningSaturation = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalToningSaturation'
+  | CircGradBasedCorrWhites2012 = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalWhites2012'
+  | CircGradBasedCorrWhat = Correction
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CircularGradientBasedCorrections/rdf:Seq/rdf:li 10/crs:What'
+  | Clarity2012 = -16
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:Clarity2012'
+  | ColorNoiseReduction = 25
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ColorNoiseReduction'
+  | ColorNoiseReductionDetail = 50
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ColorNoiseReductionDetail'
+  | ColorNoiseReductionSmoothness = 50
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ColorNoiseReductionSmoothness'
+  | Contrast2012 = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:Contrast2012'
+  | ConvertToGrayscale = False
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ConvertToGrayscale'
+  | CropAngle = -6.96018
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CropAngle'
+  | CropBottom = 0.927253
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CropBottom'
+  | CropConstrainToWarp = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CropConstrainToWarp'
+  | CropLeft = 0.16874
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CropLeft'
+  | CropRight = 0.683865
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CropRight'
+  | CropTop = 0.255126
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:CropTop'
+  | DefringeGreenAmount = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:DefringeGreenAmount'
+  | DefringeGreenHueHi = 60
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:DefringeGreenHueHi'
+  | DefringeGreenHueLo = 40
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:DefringeGreenHueLo'
+  | DefringePurpleAmount = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:DefringePurpleAmount'
+  | DefringePurpleHueHi = 70
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:DefringePurpleHueHi'
+  | DefringePurpleHueLo = 30
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:DefringePurpleHueLo'
+  | Dehaze = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:Dehaze'
+  | Exposure2012 = 0.00
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:Exposure2012'
+  | GradientBasedCorrActive = true
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionActive'
+  | GradientBasedCorrAmount = 1.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionAmount'
+  | GradientBasedCorrMaskFullX = 0.471141
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:FullX'
+  | GradientBasedCorrMaskFullY = 0.939926
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:FullY'
+  | GradientBasedCorrMaskValue = 1.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:MaskValue'
+  | GradientBasedCorrMaskWhat = Mask/Gradient
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:What'
+  | GradientBasedCorrMaskZeroX = 0.447089
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:ZeroX'
+  | GradientBasedCorrMaskZeroY = 0.655993
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:ZeroY'
+  | GradientBasedCorrBlacks2012 = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalBlacks2012'
+  | GradientBasedCorrBrightness = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalBrightness'
+  | GradientBasedCorrClarity2012 = 0.007750
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalClarity2012'
+  | GradientBasedCorrContrast2012 = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalContrast2012'
+  | GradientBasedCorrDefringe = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalDefringe'
+  | GradientBasedCorrDehaze = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalDehaze'
+  | GradientBasedCorrExposure2012 = -0.100750
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalExposure2012'
+  | GradientBasedCorrHighlights2012 = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalHighlights2012'
+  | GradientBasedCorrLuminanceNoise = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalLuminanceNoise'
+  | GradientBasedCorrMoire = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalMoire'
+  | GradientBasedCorrSaturation = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalSaturation'
+  | GradientBasedCorrShadows2012 = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalShadows2012'
+  | GradientBasedCorrSharpness = -1.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalSharpness'
+  | GradientBasedCorrTemperature = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalTemperature'
+  | GradientBasedCorrTint = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalTint'
+  | GradientBasedCorrToningHue = 240.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalToningHue'
+  | GradientBasedCorrToningSaturation = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalToningSaturation'
+  | GradientBasedCorrWhites2012 = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalWhites2012'
+  | GradientBasedCorrWhat = Correction
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GradientBasedCorrections/rdf:Seq/rdf:li 10/crs:What'
+  | GrainAmount = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GrainAmount'
+  | GreenHue = -10
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GreenHue'
+  | GreenSaturation = -10
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:GreenSaturation'
+  | HasCrop = True
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:HasCrop'
+  | HasSettings = True
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:HasSettings'
+  | Highlights2012 = -84
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:Highlights2012'
+  | HueAdjustmentAqua = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:HueAdjustmentAqua'
+  | HueAdjustmentBlue = +5
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:HueAdjustmentBlue'
+  | HueAdjustmentGreen = +18
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:HueAdjustmentGreen'
+  | HueAdjustmentMagenta = +15
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:HueAdjustmentMagenta'
+  | HueAdjustmentOrange = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:HueAdjustmentOrange'
+  | HueAdjustmentPurple = +30
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:HueAdjustmentPurple'
+  | HueAdjustmentRed = +8
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:HueAdjustmentRed'
+  | HueAdjustmentYellow = -48
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:HueAdjustmentYellow'
+  | LensManualDistortionAmount = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:LensManualDistortionAmount'
+  | LensProfileEnable = 1
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:LensProfileEnable'
+  | LensProfileSetup = LensDefaults
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:LensProfileSetup'
+  | LuminanceAdjustmentAqua = +1
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:LuminanceAdjustmentAqua'
+  | LuminanceAdjustmentBlue = -10
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:LuminanceAdjustmentBlue'
+  | LuminanceAdjustmentGreen = -47
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:LuminanceAdjustmentGreen'
+  | LuminanceAdjustmentMagenta = -25
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:LuminanceAdjustmentMagenta'
+  | LuminanceAdjustmentOrange = -6
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:LuminanceAdjustmentOrange'
+  | LuminanceAdjustmentPurple = -10
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:LuminanceAdjustmentPurple'
+  | LuminanceAdjustmentRed = -20
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:LuminanceAdjustmentRed'
+  | LuminanceAdjustmentYellow = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:LuminanceAdjustmentYellow'
+  | LuminanceNoiseReductionContrast = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:LuminanceNoiseReductionContrast'
+  | LuminanceNoiseReductionDetail = 50
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:LuminanceNoiseReductionDetail'
+  | LuminanceSmoothing = 10
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:LuminanceSmoothing'
+  | PaintCorrectionActive = true
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionActive'
+  | PaintCorrectionAmount = 1.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionAmount'
+  | PaintCorrectionMaskCenterWeight = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:CenterWeight'
+  | PaintCorrectionMaskDabs = d 0.610881 0.481687
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 10'
+  | PaintCorrectionMaskDabs = d 0.620105 0.534419
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 11'
+  | PaintCorrectionMaskDabs = d 0.625388 0.588143
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 12'
+  | PaintCorrectionMaskDabs = d 0.625680 0.642374
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 13'
+  | PaintCorrectionMaskDabs = d 0.625680 0.696612
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 14'
+  | PaintCorrectionMaskDabs = d 0.629284 0.750435
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 15'
+  | PaintCorrectionMaskDabs = d 0.633725 0.800150
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 16'
+  | PaintCorrectionMaskDabs = d 0.642095 0.747157
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 17'
+  | PaintCorrectionMaskDabs = d 0.645528 0.693143
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 18'
+  | PaintCorrectionMaskDabs = d 0.647145 0.638948
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 19'
+  | PaintCorrectionMaskDabs = d 0.647245 0.584723
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 210'
+  | PaintCorrectionMaskDabs = d 0.644364 0.530632
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 211'
+  | PaintCorrectionMaskDabs = d 0.647204 0.582074
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 212'
+  | PaintCorrectionMaskDabs = d 0.650448 0.636140
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 213'
+  | PaintCorrectionMaskDabs = d 0.653721 0.690203
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 214'
+  | PaintCorrectionMaskDabs = d 0.655921 0.741574
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 215'
+  | PaintCorrectionMaskDabs = d 0.653779 0.687442
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 216'
+  | PaintCorrectionMaskDabs = d 0.646901 0.633994
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 217'
+  | PaintCorrectionMaskDabs = d 0.637894 0.581127
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 218'
+  | PaintCorrectionMaskDabs = d 0.628722 0.528295
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 219'
+  | PaintCorrectionMaskDabs = d 0.625328 0.540444
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 220'
+  | PaintCorrectionMaskDabs = d 0.624725 0.594676
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 221'
+  | PaintCorrectionMaskDabs = d 0.625022 0.648914
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 222'
+  | PaintCorrectionMaskDabs = d 0.626352 0.607175
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 223'
+  | PaintCorrectionMaskDabs = d 0.623402 0.553079
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 224'
+  | PaintCorrectionMaskDabs = d 0.616672 0.500606
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 225'
+  | PaintCorrectionMaskDabs = d 0.616949 0.554842
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 226'
+  | PaintCorrectionMaskDabs = d 0.616428 0.550300
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 227'
+  | PaintCorrectionMaskDabs = d 0.607216 0.497549
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 228'
+  | PaintCorrectionMaskDabs = d 0.596753 0.445147
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 229'
+  | PaintCorrectionMaskDabs = d 0.600021 0.478894
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 230'
+  | PaintCorrectionMaskDabs = d 0.598434 0.454855
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 231'
+  | PaintCorrectionMaskDabs = d 0.581926 0.409236
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 232'
+  | PaintCorrectionMaskDabs = d 0.590936 0.461899
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 233'
+  | PaintCorrectionMaskDabs = d 0.604927 0.512212
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 234'
+  | PaintCorrectionMaskDabs = d 0.610550 0.562039
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 235'
+  | PaintCorrectionMaskDabs = d 0.620352 0.614649
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 236'
+  | PaintCorrectionMaskDabs = d 0.626943 0.668152
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 237'
+  | PaintCorrectionMaskDabs = d 0.631716 0.721999
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 238'
+  | PaintCorrectionMaskDabs = d 0.641849 0.774397
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Dabs/rdf:Seq/rdf:li 239'
+  | PaintCorrectionMaskFlow = 0.687000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Flow'
+  | PaintCorrectionMaskValue = 1.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:MaskValue'
+  | PaintCorrectionMaskRadius = 0.135597
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:Radius'
+  | PaintCorrectionMaskWhat = Mask/Paint
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 10/crs:What'
+  | PaintCorrectionMaskCenterWeight = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 11/crs:CenterWeight'
+  | PaintCorrectionMaskDabs = d 0.242839 0.820612
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 11/crs:Dabs/rdf:Seq/rdf:li 10'
+  | PaintCorrectionMaskDabs = d 0.237692 0.834207
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 11/crs:Dabs/rdf:Seq/rdf:li 11'
+  | PaintCorrectionMaskDabs = d 0.237692 0.779969
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 11/crs:Dabs/rdf:Seq/rdf:li 12'
+  | PaintCorrectionMaskDabs = d 0.237928 0.791930
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 11/crs:Dabs/rdf:Seq/rdf:li 13'
+  | PaintCorrectionMaskDabs = d 0.240202 0.826093
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 11/crs:Dabs/rdf:Seq/rdf:li 14'
+  | PaintCorrectionMaskDabs = d 0.241552 0.839256
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 11/crs:Dabs/rdf:Seq/rdf:li 15'
+  | PaintCorrectionMaskDabs = d 0.240816 0.837668
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 11/crs:Dabs/rdf:Seq/rdf:li 16'
+  | PaintCorrectionMaskDabs = d 0.231901 0.842783
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 11/crs:Dabs/rdf:Seq/rdf:li 17'
+  | PaintCorrectionMaskDabs = d 0.230272 0.788652
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 11/crs:Dabs/rdf:Seq/rdf:li 18'
+  | PaintCorrectionMaskDabs = d 0.224501 0.773922
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 11/crs:Dabs/rdf:Seq/rdf:li 19'
+  | PaintCorrectionMaskDabs = d 0.224501 0.719683
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 11/crs:Dabs/rdf:Seq/rdf:li 210'
+  | PaintCorrectionMaskDabs = d 0.225483 0.704995
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 11/crs:Dabs/rdf:Seq/rdf:li 211'
+  | PaintCorrectionMaskFlow = 0.687000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 11/crs:Flow'
+  | PaintCorrectionMaskValue = 1.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 11/crs:MaskValue'
+  | PaintCorrectionMaskRadius = 0.135597
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 11/crs:Radius'
+  | PaintCorrectionMaskWhat = Mask/Paint
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 11/crs:What'
+  | PaintCorrectionMaskCenterWeight = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 12/crs:CenterWeight'
+  | PaintCorrectionMaskDabs = d 0.226110 0.664020
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 12/crs:Dabs/rdf:Seq/rdf:li 10'
+  | PaintCorrectionMaskDabs = d 0.232486 0.717588
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 12/crs:Dabs/rdf:Seq/rdf:li 11'
+  | PaintCorrectionMaskDabs = d 0.232799 0.670566
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 12/crs:Dabs/rdf:Seq/rdf:li 12'
+  | PaintCorrectionMaskDabs = d 0.233025 0.724795
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 12/crs:Dabs/rdf:Seq/rdf:li 13'
+  | PaintCorrectionMaskDabs = d 0.234153 0.699187
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 12/crs:Dabs/rdf:Seq/rdf:li 14'
+  | PaintCorrectionMaskDabs = d 0.231798 0.712948
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 12/crs:Dabs/rdf:Seq/rdf:li 15'
+  | PaintCorrectionMaskDabs = d 0.221593 0.682138
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 12/crs:Dabs/rdf:Seq/rdf:li 16'
+  | PaintCorrectionMaskFlow = 0.687000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 12/crs:Flow'
+  | PaintCorrectionMaskValue = 1.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 12/crs:MaskValue'
+  | PaintCorrectionMaskRadius = 0.135597
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 12/crs:Radius'
+  | PaintCorrectionMaskWhat = Mask/Paint
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 12/crs:What'
+  | PaintCorrectionMaskCenterWeight = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 13/crs:CenterWeight'
+  | PaintCorrectionMaskDabs = d 0.217424 0.649862
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 13/crs:Dabs/rdf:Seq/rdf:li 10'
+  | PaintCorrectionMaskDabs = d 0.223416 0.703495
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 13/crs:Dabs/rdf:Seq/rdf:li 11'
+  | PaintCorrectionMaskDabs = d 0.231698 0.656464
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 13/crs:Dabs/rdf:Seq/rdf:li 12'
+  | PaintCorrectionMaskDabs = d 0.233487 0.705027
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 13/crs:Dabs/rdf:Seq/rdf:li 13'
+  | PaintCorrectionMaskFlow = 0.687000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 13/crs:Flow'
+  | PaintCorrectionMaskValue = 1.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 13/crs:MaskValue'
+  | PaintCorrectionMaskRadius = 0.135597
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 13/crs:Radius'
+  | PaintCorrectionMaskWhat = Mask/Paint
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 13/crs:What'
+  | PaintCorrectionMaskCenterWeight = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 14/crs:CenterWeight'
+  | PaintCorrectionMaskDabs = d 0.236083 0.670884
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 14/crs:Dabs/rdf:Seq/rdf:li 10'
+  | PaintCorrectionMaskDabs = d 0.239606 0.724917
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 14/crs:Dabs/rdf:Seq/rdf:li 11'
+  | PaintCorrectionMaskDabs = d 0.238537 0.687193
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 14/crs:Dabs/rdf:Seq/rdf:li 12'
+  | PaintCorrectionMaskDabs = d 0.236000 0.673476
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 14/crs:Dabs/rdf:Seq/rdf:li 13'
+  | PaintCorrectionMaskDabs = d 0.235129 0.727702
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 14/crs:Dabs/rdf:Seq/rdf:li 14'
+  | PaintCorrectionMaskDabs = d 0.236083 0.684962
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 14/crs:Dabs/rdf:Seq/rdf:li 15'
+  | PaintCorrectionMaskFlow = 0.687000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 14/crs:Flow'
+  | PaintCorrectionMaskValue = 1.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 14/crs:MaskValue'
+  | PaintCorrectionMaskRadius = 0.135597
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 14/crs:Radius'
+  | PaintCorrectionMaskWhat = Mask/Paint
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 14/crs:What'
+  | PaintCorrectionMaskCenterWeight = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 15/crs:CenterWeight'
+  | PaintCorrectionMaskDabs = d 0.229327 0.362420
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 15/crs:Dabs/rdf:Seq/rdf:li 10'
+  | PaintCorrectionMaskDabs = d 0.224352 0.416251
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 15/crs:Dabs/rdf:Seq/rdf:li 11'
+  | PaintCorrectionMaskDabs = d 0.239816 0.377775
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 15/crs:Dabs/rdf:Seq/rdf:li 12'
+  | PaintCorrectionMaskDabs = d 0.236548 0.408153
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 15/crs:Dabs/rdf:Seq/rdf:li 13'
+  | PaintCorrectionMaskDabs = d 0.237542 0.423037
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 15/crs:Dabs/rdf:Seq/rdf:li 14'
+  | PaintCorrectionMaskDabs = d 0.244602 0.416914
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 15/crs:Dabs/rdf:Seq/rdf:li 15'
+  | PaintCorrectionMaskDabs = d 0.249595 0.394578
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 15/crs:Dabs/rdf:Seq/rdf:li 16'
+  | PaintCorrectionMaskDabs = d 0.242510 0.447946
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 15/crs:Dabs/rdf:Seq/rdf:li 17'
+  | PaintCorrectionMaskDabs = d 0.238985 0.501936
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 15/crs:Dabs/rdf:Seq/rdf:li 18'
+  | PaintCorrectionMaskDabs = d 0.240338 0.544066
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 15/crs:Dabs/rdf:Seq/rdf:li 19'
+  | PaintCorrectionMaskDabs = d 0.238908 0.597662
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 15/crs:Dabs/rdf:Seq/rdf:li 210'
+  | PaintCorrectionMaskDabs = d 0.238075 0.651889
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 15/crs:Dabs/rdf:Seq/rdf:li 211'
+  | PaintCorrectionMaskDabs = d 0.237370 0.706067
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 15/crs:Dabs/rdf:Seq/rdf:li 212'
+  | PaintCorrectionMaskDabs = d 0.231901 0.758224
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 15/crs:Dabs/rdf:Seq/rdf:li 213'
+  | PaintCorrectionMaskDabs = d 0.231963 0.811572
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 15/crs:Dabs/rdf:Seq/rdf:li 214'
+  | PaintCorrectionMaskDabs = d 0.237586 0.865236
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 15/crs:Dabs/rdf:Seq/rdf:li 215'
+  | PaintCorrectionMaskFlow = 0.918000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 15/crs:Flow'
+  | PaintCorrectionMaskValue = 1.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 15/crs:MaskValue'
+  | PaintCorrectionMaskRadius = 0.135597
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 15/crs:Radius'
+  | PaintCorrectionMaskWhat = Mask/Paint
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 15/crs:What'
+  | PaintCorrectionMaskCenterWeight = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 16/crs:CenterWeight'
+  | PaintCorrectionMaskDabs = d 0.640800 0.779855
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 16/crs:Dabs/rdf:Seq/rdf:li 10'
+  | PaintCorrectionMaskDabs = d 0.645762 0.726080
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 16/crs:Dabs/rdf:Seq/rdf:li 11'
+  | PaintCorrectionMaskDabs = d 0.648727 0.672068
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 16/crs:Dabs/rdf:Seq/rdf:li 12'
+  | PaintCorrectionMaskDabs = d 0.646492 0.617994
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 16/crs:Dabs/rdf:Seq/rdf:li 13'
+  | PaintCorrectionMaskDabs = d 0.639456 0.564592
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 16/crs:Dabs/rdf:Seq/rdf:li 14'
+  | PaintCorrectionMaskDabs = d 0.631113 0.511529
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 16/crs:Dabs/rdf:Seq/rdf:li 15'
+  | PaintCorrectionMaskDabs = d 0.618556 0.459987
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 16/crs:Dabs/rdf:Seq/rdf:li 16'
+  | PaintCorrectionMaskDabs = d 0.609974 0.429956
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 16/crs:Dabs/rdf:Seq/rdf:li 17'
+  | PaintCorrectionMaskDabs = d 0.621597 0.481932
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 16/crs:Dabs/rdf:Seq/rdf:li 18'
+  | PaintCorrectionMaskDabs = d 0.633149 0.533923
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 16/crs:Dabs/rdf:Seq/rdf:li 19'
+  | PaintCorrectionMaskDabs = d 0.628719 0.502499
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 16/crs:Dabs/rdf:Seq/rdf:li 210'
+  | PaintCorrectionMaskFlow = 0.918000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 16/crs:Flow'
+  | PaintCorrectionMaskValue = 1.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 16/crs:MaskValue'
+  | PaintCorrectionMaskRadius = 0.135597
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 16/crs:Radius'
+  | PaintCorrectionMaskWhat = Mask/Paint
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 16/crs:What'
+  | PaintCorrectionMaskCenterWeight = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 17/crs:CenterWeight'
+  | PaintCorrectionMaskDabs = d 0.622463 0.479542
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 17/crs:Dabs/rdf:Seq/rdf:li 10'
+  | PaintCorrectionMaskDabs = d 0.623864 0.533748
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 17/crs:Dabs/rdf:Seq/rdf:li 11'
+  | PaintCorrectionMaskDabs = d 0.627279 0.587781
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 17/crs:Dabs/rdf:Seq/rdf:li 12'
+  | PaintCorrectionMaskDabs = d 0.624503 0.575236
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 17/crs:Dabs/rdf:Seq/rdf:li 13'
+  | PaintCorrectionMaskDabs = d 0.618239 0.521646
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 17/crs:Dabs/rdf:Seq/rdf:li 14'
+  | PaintCorrectionMaskDabs = d 0.616598 0.504911
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 17/crs:Dabs/rdf:Seq/rdf:li 15'
+  | PaintCorrectionMaskDabs = d 0.623071 0.558458
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 17/crs:Dabs/rdf:Seq/rdf:li 16'
+  | PaintCorrectionMaskDabs = d 0.626645 0.546009
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 17/crs:Dabs/rdf:Seq/rdf:li 17'
+  | PaintCorrectionMaskDabs = d 0.624722 0.491993
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 17/crs:Dabs/rdf:Seq/rdf:li 18'
+  | PaintCorrectionMaskFlow = 0.918000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 17/crs:Flow'
+  | PaintCorrectionMaskValue = 1.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 17/crs:MaskValue'
+  | PaintCorrectionMaskRadius = 0.135597
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 17/crs:Radius'
+  | PaintCorrectionMaskWhat = Mask/Paint
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 17/crs:What'
+  | PaintCorrectionMaskCenterWeight = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:CenterWeight'
+  | PaintCorrectionMaskDabs = d 0.614420 0.446507
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:Dabs/rdf:Seq/rdf:li 10'
+  | PaintCorrectionMaskDabs = d 0.625375 0.498742
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:Dabs/rdf:Seq/rdf:li 11'
+  | PaintCorrectionMaskDabs = d 0.636331 0.550977
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:Dabs/rdf:Seq/rdf:li 12'
+  | PaintCorrectionMaskDabs = d 0.628723 0.513678
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:Dabs/rdf:Seq/rdf:li 13'
+  | PaintCorrectionMaskDabs = d 0.616257 0.462099
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:Dabs/rdf:Seq/rdf:li 14'
+  | PaintCorrectionMaskDabs = d 0.599426 0.412752
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:Dabs/rdf:Seq/rdf:li 15'
+  | PaintCorrectionMaskDabs = d 0.574708 0.369997
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:Dabs/rdf:Seq/rdf:li 16'
+  | PaintCorrectionMaskDabs = d 0.590505 0.388526
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:Dabs/rdf:Seq/rdf:li 17'
+  | PaintCorrectionMaskDabs = d 0.567561 0.357011
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:Dabs/rdf:Seq/rdf:li 18'
+  | PaintCorrectionMaskDabs = d 0.544818 0.350241
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:Dabs/rdf:Seq/rdf:li 19'
+  | PaintCorrectionMaskDabs = d 0.569429 0.363618
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:Dabs/rdf:Seq/rdf:li 210'
+  | PaintCorrectionMaskDabs = d 0.537043 0.338195
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:Dabs/rdf:Seq/rdf:li 211'
+  | PaintCorrectionMaskDabs = d 0.571237 0.363120
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:Dabs/rdf:Seq/rdf:li 212'
+  | PaintCorrectionMaskDabs = d 0.588229 0.410874
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:Dabs/rdf:Seq/rdf:li 213'
+  | PaintCorrectionMaskDabs = d 0.602036 0.461893
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:Dabs/rdf:Seq/rdf:li 214'
+  | PaintCorrectionMaskDabs = d 0.607968 0.515512
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:Dabs/rdf:Seq/rdf:li 215'
+  | PaintCorrectionMaskDabs = d 0.610459 0.569562
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:Dabs/rdf:Seq/rdf:li 216'
+  | PaintCorrectionMaskFlow = 0.918000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:Flow'
+  | PaintCorrectionMaskValue = 1.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:MaskValue'
+  | PaintCorrectionMaskRadius = 0.135597
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:Radius'
+  | PaintCorrectionMaskWhat = Mask/Paint
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 18/crs:What'
+  | PaintCorrectionMaskCenterWeight = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 19/crs:CenterWeight'
+  | PaintCorrectionMaskDabs = d 0.611203 0.580790
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 19/crs:Dabs/rdf:Seq/rdf:li 10'
+  | PaintCorrectionMaskDabs = d 0.613860 0.634912
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 19/crs:Dabs/rdf:Seq/rdf:li 11'
+  | PaintCorrectionMaskDabs = d 0.619654 0.688584
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 19/crs:Dabs/rdf:Seq/rdf:li 12'
+  | PaintCorrectionMaskDabs = d 0.628727 0.741443
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 19/crs:Dabs/rdf:Seq/rdf:li 13'
+  | PaintCorrectionMaskDabs = d 0.640476 0.793359
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 19/crs:Dabs/rdf:Seq/rdf:li 14'
+  | PaintCorrectionMaskDabs = d 0.655437 0.843586
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 19/crs:Dabs/rdf:Seq/rdf:li 15'
+  | PaintCorrectionMaskDabs = d 0.680571 0.885792
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 19/crs:Dabs/rdf:Seq/rdf:li 16'
+  | PaintCorrectionMaskDabs = d 0.714799 0.914002
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 19/crs:Dabs/rdf:Seq/rdf:li 17'
+  | PaintCorrectionMaskDabs = d 0.737572 0.921030
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 19/crs:Dabs/rdf:Seq/rdf:li 18'
+  | PaintCorrectionMaskFlow = 0.918000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 19/crs:Flow'
+  | PaintCorrectionMaskValue = 1.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 19/crs:MaskValue'
+  | PaintCorrectionMaskRadius = 0.135597
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 19/crs:Radius'
+  | PaintCorrectionMaskWhat = Mask/Paint
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:CorrectionMasks/rdf:Seq/rdf:li 19/crs:What'
+  | PaintCorrectionBlacks2012 = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalBlacks2012'
+  | PaintCorrectionBrightness = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalBrightness'
+  | PaintCorrectionClarity2012 = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalClarity2012'
+  | PaintCorrectionContrast2012 = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalContrast2012'
+  | PaintCorrectionDefringe = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalDefringe'
+  | PaintCorrectionDehaze = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalDehaze'
+  | PaintCorrectionExposure2012 = -0.069750
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalExposure2012'
+  | PaintCorrectionHighlights2012 = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalHighlights2012'
+  | PaintCorrectionLuminanceNoise = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalLuminanceNoise'
+  | PaintCorrectionMoire = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalMoire'
+  | PaintCorrectionSaturation = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalSaturation'
+  | PaintCorrectionShadows2012 = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalShadows2012'
+  | PaintCorrectionSharpness = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalSharpness'
+  | PaintCorrectionTemperature = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalTemperature'
+  | PaintCorrectionTint = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalTint'
+  | PaintCorrectionToningHue = 240.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalToningHue'
+  | PaintCorrectionToningSaturation = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalToningSaturation'
+  | PaintCorrectionWhites2012 = 0.000000
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:LocalWhites2012'
+  | PaintCorrectionWhat = Correction
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PaintBasedCorrections/rdf:Seq/rdf:li 10/crs:What'
+  | ParametricDarks = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ParametricDarks'
+  | ParametricHighlightSplit = 75
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ParametricHighlightSplit'
+  | ParametricHighlights = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ParametricHighlights'
+  | ParametricLights = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ParametricLights'
+  | ParametricMidtoneSplit = 60
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ParametricMidtoneSplit'
+  | ParametricShadowSplit = 14
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ParametricShadowSplit'
+  | ParametricShadows = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ParametricShadows'
+  | PerspectiveAspect = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PerspectiveAspect'
+  | PerspectiveHorizontal = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PerspectiveHorizontal'
+  | PerspectiveRotate = 0.0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PerspectiveRotate'
+  | PerspectiveScale = 100
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PerspectiveScale'
+  | PerspectiveUpright = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PerspectiveUpright'
+  | PerspectiveVertical = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PerspectiveVertical'
+  | PerspectiveX = 0.00
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PerspectiveX'
+  | PerspectiveY = 0.00
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PerspectiveY'
+  | PostCropVignetteAmount = -38
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PostCropVignetteAmount'
+  | PostCropVignetteFeather = 50
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PostCropVignetteFeather'
+  | PostCropVignetteHighlightContrast = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PostCropVignetteHighlightContrast'
+  | PostCropVignetteMidpoint = 50
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PostCropVignetteMidpoint'
+  | PostCropVignetteRoundness = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PostCropVignetteRoundness'
+  | PostCropVignetteStyle = 1
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:PostCropVignetteStyle'
+  | ProcessVersion = 6.7
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ProcessVersion'
+  | RedHue = +10
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:RedHue'
+  | RedSaturation = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:RedSaturation'
+  | Saturation = +5
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:Saturation'
+  | SaturationAdjustmentAqua = -16
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:SaturationAdjustmentAqua'
+  | SaturationAdjustmentBlue = -65
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:SaturationAdjustmentBlue'
+  | SaturationAdjustmentGreen = -30
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:SaturationAdjustmentGreen'
+  | SaturationAdjustmentMagenta = -18
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:SaturationAdjustmentMagenta'
+  | SaturationAdjustmentOrange = -28
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:SaturationAdjustmentOrange'
+  | SaturationAdjustmentPurple = -10
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:SaturationAdjustmentPurple'
+  | SaturationAdjustmentRed = -19
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:SaturationAdjustmentRed'
+  | SaturationAdjustmentYellow = -31
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:SaturationAdjustmentYellow'
+  | ShadowTint = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ShadowTint'
+  | Shadows2012 = +15
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:Shadows2012'
+  | SharpenDetail = 25
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:SharpenDetail'
+  | SharpenEdgeMasking = 81
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:SharpenEdgeMasking'
+  | SharpenRadius = +1.2
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:SharpenRadius'
+  | Sharpness = 58
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:Sharpness'
+  | SplitToningBalance = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:SplitToningBalance'
+  | SplitToningHighlightHue = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:SplitToningHighlightHue'
+  | SplitToningHighlightSaturation = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:SplitToningHighlightSaturation'
+  | SplitToningShadowHue = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:SplitToningShadowHue'
+  | SplitToningShadowSaturation = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:SplitToningShadowSaturation'
+  | ColorTemperature = 4650
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:Temperature'
+  | Tint = +11
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:Tint'
+  | ToneCurve = 0, 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurve/rdf:Seq/rdf:li 10'
+  | ToneCurve = 255, 255
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurve/rdf:Seq/rdf:li 11'
+  | ToneCurveBlue = 0, 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurveBlue/rdf:Seq/rdf:li 10'
+  | ToneCurveBlue = 255, 255
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurveBlue/rdf:Seq/rdf:li 11'
+  | ToneCurveGreen = 0, 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurveGreen/rdf:Seq/rdf:li 10'
+  | ToneCurveGreen = 255, 255
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurveGreen/rdf:Seq/rdf:li 11'
+  | ToneCurveName = Linear
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurveName'
+  | ToneCurveName2012 = Custom
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurveName2012'
+  | ToneCurvePV2012 = 0, 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurvePV2012/rdf:Seq/rdf:li 10'
+  | ToneCurvePV2012 = 63, 64
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurvePV2012/rdf:Seq/rdf:li 11'
+  | ToneCurvePV2012 = 125, 125
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurvePV2012/rdf:Seq/rdf:li 12'
+  | ToneCurvePV2012 = 192, 191
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurvePV2012/rdf:Seq/rdf:li 13'
+  | ToneCurvePV2012 = 255, 255
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurvePV2012/rdf:Seq/rdf:li 14'
+  | ToneCurvePV2012Blue = 0, 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurvePV2012Blue/rdf:Seq/rdf:li 10'
+  | ToneCurvePV2012Blue = 40, 26
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurvePV2012Blue/rdf:Seq/rdf:li 11'
+  | ToneCurvePV2012Blue = 119, 124
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurvePV2012Blue/rdf:Seq/rdf:li 12'
+  | ToneCurvePV2012Blue = 181, 200
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurvePV2012Blue/rdf:Seq/rdf:li 13'
+  | ToneCurvePV2012Blue = 255, 255
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurvePV2012Blue/rdf:Seq/rdf:li 14'
+  | ToneCurvePV2012Green = 0, 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurvePV2012Green/rdf:Seq/rdf:li 10'
+  | ToneCurvePV2012Green = 40, 25
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurvePV2012Green/rdf:Seq/rdf:li 11'
+  | ToneCurvePV2012Green = 119, 125
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurvePV2012Green/rdf:Seq/rdf:li 12'
+  | ToneCurvePV2012Green = 182, 199
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurvePV2012Green/rdf:Seq/rdf:li 13'
+  | ToneCurvePV2012Green = 255, 255
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurvePV2012Green/rdf:Seq/rdf:li 14'
+  | ToneCurvePV2012Red = 0, 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurvePV2012Red/rdf:Seq/rdf:li 10'
+  | ToneCurvePV2012Red = 41, 25
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurvePV2012Red/rdf:Seq/rdf:li 11'
+  | ToneCurvePV2012Red = 118, 124
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurvePV2012Red/rdf:Seq/rdf:li 12'
+  | ToneCurvePV2012Red = 185, 195
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurvePV2012Red/rdf:Seq/rdf:li 13'
+  | ToneCurvePV2012Red = 255, 255
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurvePV2012Red/rdf:Seq/rdf:li 14'
+  | ToneCurveRed = 0, 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurveRed/rdf:Seq/rdf:li 10'
+  | ToneCurveRed = 255, 255
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneCurveRed/rdf:Seq/rdf:li 11'
+  | ToneMapStrength = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:ToneMapStrength'
+  | UprightCenterMode = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:UprightCenterMode'
+  | UprightCenterNormX = 0.5
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:UprightCenterNormX'
+  | UprightCenterNormY = 0.5
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:UprightCenterNormY'
+  | UprightFocalLength35mm = 35
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:UprightFocalLength35mm'
+  | UprightFocalMode = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:UprightFocalMode'
+  | UprightFourSegmentsCount = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:UprightFourSegmentsCount'
+  | UprightPreview = False
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:UprightPreview'
+  | UprightTransformCount = 6
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:UprightTransformCount'
+  | UprightVersion = 151388160
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:UprightVersion'
+  | Version = 10.1
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:Version'
+  | Vibrance = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:Vibrance'
+  | VignetteAmount = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:VignetteAmount'
+  | WhiteBalance = As Shot
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:WhiteBalance'
+  | Whites2012 = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/crs:Whites2012'
+JPEG APP14 (12 bytes):
+      dd3a: 41 64 6f 62 65 00 64 c0 00 00 00 01             [Adobe.d.....]
+  + [BinaryData directory, 7 bytes, Big-endian]
+  | DCTEncodeVersion = 100
+  | - Tag 0x0000 (2 bytes, int16u[1]):
+  |     dd3f: 00 64                                           [.d]
+  | APP14Flags0 = 49152
+  | - Tag 0x0001 (2 bytes, int16u[1]):
+  |     dd41: c0 00                                           [..]
+  | APP14Flags1 = 0
+  | - Tag 0x0002 (2 bytes, int16u[1]):
+  |     dd43: 00 00                                           [..]
+  | ColorTransform = 1
+  | - Tag 0x0003 (1 bytes, int8u[1]):
+  |     dd45: 01                                              [.]
+JPEG DQT (65 bytes):
+      dd4a: 00 01 01 01 01 01 01 01 01 01 01 03 01 01 03 03 [................]
+      dd5a: 05 03 03 03 03 03 06 04 05 04 05 07 06 08 07 07 [................]
+      dd6a: 06 07 07 07 09 0b 0a 08 09 0b 09 07 07 0a 0d 0a [................]
+      dd7a: 0b 0b 0c 0d 0d 0d 09 0a 0e 0f 0e 0d 0f 0c 0d 0d [................]
+      dd8a: 0c                                              [.]
+JPEG DQT (65 bytes):
+      dd8f: 01 01 03 03 03 03 03 06 03 03 06 0c 08 07 08 0c [................]
+      dd9f: 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c [................]
+      ddaf: 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c [................]
+      ddbf: 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c [................]
+      ddcf: 0c                                              [.]
+JPEG SOF0 (15 bytes):
+      ddd4: 08 0a 20 08 1a 03 00 11 00 01 11 01 02 11 01    [.. ............]
+  ImageWidth = 2074
+  ImageHeight = 2592
+  EncodingProcess = 0
+  BitsPerSample = 8
+  ColorComponents = 3
+  YCbCrSubSampling = 1 1
+JPEG DHT (29 bytes):
+      dde7: 00 00 02 02 03 01 01 01 01 01 00 00 00 00 00 00 [................]
+      ddf7: 00 04 05 03 06 01 02 07 00 08 09 0a 0b          [.............]
+JPEG DHT (86 bytes):
+      de08: 10 00 01 02 03 04 07 05 04 07 05 06 04 04 04 02 [................]
+      de18: 0b 02 00 03 01 04 12 05 11 13 22 06 21 23 31 32 [..........".!#12]
+      de28: 41 42 07 14 51 52 61 33 62 71 81 08 15 43 72 91 [AB..QRa3bq...Cr.]
+      de38: a1 b1 24 53 82 c1 d1 16 63 92 a2 e1 f0 09 34 b2 [..$S....c.....4.]
+      de48: f1 17 25 73 c2 18 44 83 93 d2 e2 54 f2 0a 26 35 [..%s..D....T..&5]
+      de58: a3 64 b3 19 1a 74                               [.d...t]
+JPEG DHT (27 bytes):
+      de62: 01 00 02 03 01 01 01 01 01 00 00 00 00 00 00 00 [................]
+      de72: 00 02 03 00 01 04 05 06 07 08 09                [...........]
+JPEG DHT (54 bytes):
+      de81: 11 01 01 00 02 02 02 02 01 03 02 04 05 05 00 00 [................]
+      de91: 07 00 01 02 11 03 21 12 31 04 41 51 13 22 61 05 [......!.1.AQ."a.]
+      dea1: 71 14 32 81 f0 23 91 a1 b1 c1 06 42 d1 e1 f1 15 [q.2..#.....B....]
+      deb1: 33 52 24 62 16 72                               [3R$b.r]
+JPEG SOS
+JPEG EOI

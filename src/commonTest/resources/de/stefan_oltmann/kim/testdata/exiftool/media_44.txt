@@ -1,0 +1,77 @@
+  ExifToolVersion = 13.59
+  FileName = media_44.jpg
+  Directory = C:/Users/micro/IdeaProjects/kim/src/commonTest/resources/de/stefan_oltmann/kim/testdata/full
+  FileSize = 613
+  FileModifyDate = 1776264331.86837
+  FileAccessDate = 1786601301.79536
+  FileCreateDate = 1776264331.86837
+  FilePermissions = 33206
+  FileType = JPEG
+  FileTypeExtension = JPG
+  MIMEType = image/jpeg
+  Warning = [minor] Skipped unknown 40 bytes after JPEG RST5 segment
+JPEG RST5
+JPEG COM (17 bytes):
+      0030: 74 61 76 69 73 6f 40 67 6f 6f 67 6c 65 2e 63 6f [taviso@google.co]
+      0040: 6d                                              [m]
+  Comment = taviso@google.com
+JPEG DQT (65 bytes):
+      0045: 00 ef 0b 0c 01 0c 0a a6 0e 0d 58 12 12 10 13 18 [..........X.....]
+      0055: 28 1a 18 16 16 18 31 c9 25 1d 28 3a 33 3d 3c 39 [(.....1.%.(:3=<9]
+      0065: 33 04 37 40 48 5c 4e 40 44 57 45 37 38 50 6d 51 [3.7@H\N@DWE78PmQ]
+      0075: 57 5f 7f 67 68 67 3e 4d 71 79 70 64 78 5c 65 67 [W_.ghg>Mqypdx\eg]
+      0085: 63                                              [c]
+JPEG DQT (65 bytes):
+      008a: 01 ee 12 12 18 fb 04 2f 1a 1a 2f 63 42 38 42 63 [......./../cB8Bc]
+      009a: 63 63 63 60 63 63 63 63 63 63 63 63 63 63 63 63 [ccc`cccccccccccc]
+      00aa: 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 [cccccccccccccccc]
+      00ba: 63 63 63 63 63 63 63 63 63 63 63 63 63 96 63 63 [ccccccccccccc.cc]
+      00ca: 63                                              [c]
+JPEG SOF2 (15 bytes):
+      00cf: 08 0c 05 0b 04 03 01 21 00 02 11 01 03 11 01    [.......!.......]
+  ImageWidth = 2820
+  ImageHeight = 3077
+  EncodingProcess = 2
+  BitsPerSample = 8
+  ColorComponents = 3
+  YCbCrSubSampling = 2 1
+JPEG DHT (19 bytes):
+      00e2: 00 01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+      00f2: 00 07 03                                        [...]
+JPEG DHT (19 bytes):
+      00f9: 01 01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+      0109: 00 03 05                                        [...]
+  Warning = [minor] Skipped unknown 18 bytes after JPEG DRI segment
+JPEG DRI (2 bytes):
+      0110: 00 01                                           [..]
+  Warning = [minor] Skipped unknown 33 bytes after JPEG NULL segment
+JPEG DHT (22 bytes):
+      014b: 11 00 02 03 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+      015b: 00 01 01 03 14 f0                               [......]
+JPEG SOS
+JPEG DHT (23 bytes):
+      0172: 11 00 01 05 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+      0182: 00 00 01 02 20 31 a1                            [.... 1.]
+JPEG SOS
+JPEG DHT (21 bytes):
+      019a: 10 00 03 01 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+      01aa: 00 00 02 32 92                                  [...2.]
+JPEG SOS
+JPEG marker 0x3b
+JPEG RST2
+JPEG SOS
+JPEG DHT (22 bytes):
+      01f1: 11 00 02 03 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+      0201: 00 00 01 51 61 f0                               [...Qa.]
+JPEG APP0 (6 bytes):
+      020b: 01 af 01 01 3f 10                               [....?.]
+  Warning = [minor] Unknown APP0 segment
+JPEG DHT (21 bytes):
+      0218: 11 01 00 03 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+      0228: 00 01 30 91 d1                                  [..0..]
+JPEG SOS
+JPEG DHT (22 bytes):
+      023f: 10 01 00 03 01 00 00 00 00 00 00 00 00 00 00 00 [................]
+      024f: 00 01 00 21 71 c1                               [...!q.]
+JPEG SOS
+  Warning = JPEG format error

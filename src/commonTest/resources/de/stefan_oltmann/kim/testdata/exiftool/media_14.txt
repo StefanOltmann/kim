@@ -1,0 +1,137 @@
+  ExifToolVersion = 13.59
+  FileName = media_14.jpg
+  Directory = C:/Users/micro/IdeaProjects/kim/src/commonTest/resources/de/stefan_oltmann/kim/testdata/full
+  FileSize = 219679
+  FileModifyDate = 1776264336.6716
+  FileAccessDate = 1786601295.2716
+  FileCreateDate = 1776264336.6706
+  FilePermissions = 33206
+  FileType = JPEG
+  FileTypeExtension = JPG
+  MIMEType = image/jpeg
+JPEG APP0 (14 bytes):
+      0006: 4a 46 49 46 00 01 01 01 01 2c 01 2c 00 00       [JFIF.....,.,..]
+  + [BinaryData directory, 9 bytes, Big-endian]
+  | JFIFVersion = 1 1
+  | - Tag 0x0000 (2 bytes, int8u[2]):
+  |     000b: 01 01                                           [..]
+  | ResolutionUnit = 1
+  | - Tag 0x0002 (1 bytes, int8u[1]):
+  |     000d: 01                                              [.]
+  | XResolution = 300
+  | - Tag 0x0003 (2 bytes, int16u[1]):
+  |     000e: 01 2c                                           [.,]
+  | YResolution = 300
+  | - Tag 0x0005 (2 bytes, int16u[1]):
+  |     0010: 01 2c                                           [.,]
+  | ThumbnailWidth = 0
+  | - Tag 0x0007 (1 bytes, int8u[1]):
+  |     0012: 00                                              [.]
+  | ThumbnailHeight = 0
+  | - Tag 0x0008 (1 bytes, int8u[1]):
+  |     0013: 00                                              [.]
+JPEG APP1 (72 bytes):
+      0018: 45 78 69 66 00 00 4d 4d 00 2a 00 00 00 08 00 01 [Exif..MM.*......]
+      0028: 87 69 00 04 00 00 00 01 00 00 00 1a 00 00 00 00 [.i..............]
+      0038: 00 01 92 86 00 07 00 00 00 16 00 00 00 2c 00 00 [.............,..]
+      0048: 00 00 47 00 6f 00 6f 00 64 00 46 00 6f 00 6e 00 [..G.o.o.d.F.o.n.]
+      0058: 2e 00 72 00 75 00 00 00                         [..r.u...]
+  ExifByteOrder = MM
+  + [IFD0 directory with 1 entries, Big-endian]
+  | 0)  ExifOffset (SubDirectory) -->
+  |     - Tag 0x8769 (4 bytes, int32u[1]):
+  |         0030: 00 00 00 1a                                     [....]
+  | + [ExifIFD directory with 1 entries, Big-endian]
+  | | 0)  UserComment = GoodFon.ru
+  | |     - Tag 0x9286 (22 bytes, undef[22]):
+  | |         004a: 47 00 6f 00 6f 00 64 00 46 00 6f 00 6e 00 2e 00 [G.o.o.d.F.o.n...]
+  | |         005a: 72 00 75 00 00 00                               [r.u...]
+  | | Warning = Invalid EXIF text encoding for UserComment
+JPEG APP13 (108 bytes):
+      0064: 50 68 6f 74 6f 73 68 6f 70 20 33 2e 30 00 38 42 [Photoshop 3.0.8B]
+      0074: 49 4d 04 04 00 00 00 00 00 52 1c 02 78 00 20 62 [IM.......R..x. b]
+      0084: 72 6f 77 6e 20 74 75 72 74 6c 65 20 73 77 69 6d [rown turtle swim]
+      0094: 6d 69 6e 67 20 75 6e 64 65 72 77 61 74 65 72 1c [ming underwater.]
+      00a4: 02 00 00 02 00 04 1c 02 19 00 08 74 6f 72 74 6f [...........torto]
+      00b4: 69 73 65 1c 02 19 00 08 73 65 61 20 6c 69 66 65 [ise.....sea life]
+      00c4: 1c 02 19 00 07 72 65 70 74 69 6c 65             [.....reptile]
+  + [Photoshop directory, 94 bytes]
+  | IPTCData (SubDirectory) -->
+  | - Tag 0x0404 (82 bytes):
+  |     007e: 1c 02 78 00 20 62 72 6f 77 6e 20 74 75 72 74 6c [..x. brown turtl]
+  |     008e: 65 20 73 77 69 6d 6d 69 6e 67 20 75 6e 64 65 72 [e swimming under]
+  |     009e: 77 61 74 65 72 1c 02 00 00 02 00 04 1c 02 19 00 [water...........]
+  |     00ae: 08 74 6f 72 74 6f 69 73 65 1c 02 19 00 08 73 65 [.tortoise.....se]
+  |     00be: 61 20 6c 69 66 65 1c 02 19 00 07 72 65 70 74 69 [a life.....repti]
+  |     00ce: 6c 65                                           [le]
+  | + [IPTC directory, 82 bytes]
+  | | CurrentIPTCDigest = ../R.D.......a..
+  | | -- IPTCApplication record --
+  | | Caption-Abstract = brown turtle swimming underwater
+  | | - Tag 0x0078, IPTCApplication record (32 bytes, string[0,2000]):
+  | |     0083: 62 72 6f 77 6e 20 74 75 72 74 6c 65 20 73 77 69 [brown turtle swi]
+  | |     0093: 6d 6d 69 6e 67 20 75 6e 64 65 72 77 61 74 65 72 [mming underwater]
+  | | ApplicationRecordVersion = 4
+  | | - Tag 0x0000, IPTCApplication record (2 bytes, int16u):
+  | |     00a8: 00 04                                           [..]
+  | | Keywords = tortoise
+  | | - Tag 0x0019, IPTCApplication record (8 bytes, string[0,64]):
+  | |     00af: 74 6f 72 74 6f 69 73 65                         [tortoise]
+  | | Keywords = sea life
+  | | - Tag 0x0019, IPTCApplication record (8 bytes, string[0,64]):
+  | |     00bc: 73 65 61 20 6c 69 66 65                         [sea life]
+  | | Keywords = reptile
+  | | - Tag 0x0019, IPTCApplication record (7 bytes, string[0,64]):
+  | |     00c9: 72 65 70 74 69 6c 65                            [reptile]
+JPEG APP1 (2810 bytes):
+      00d4: 68 74 74 70 3a 2f 2f 6e 73 2e 61 64 6f 62 65 2e [http://ns.adobe.]
+      00e4: 63 6f 6d 2f 78 61 70 2f 31 2e 30 2f 00 3c 3f 78 [com/xap/1.0/.<?x]
+      00f4: 70 61 63 6b 65 74 20 62 65 67 69 6e 3d 27 ef bb [packet begin='..]
+      0104: bf 27 20 69 64 3d 27 57 35 4d 30 4d 70 43 65 68 [.' id='W5M0MpCeh]
+      0114: 69 48 7a 72 65 53 7a 4e 54 63 7a 6b 63 39 64 27 [iHzreSzNTczkc9d']
+      0124: 3f 3e 0a 3c 78 3a 78 6d 70 6d 65 74 61 20 78 6d [?>.<x:xmpmeta xm]
+      0134: 6c 6e 73 3a 78 3d 27 61 64 6f 62 65 3a 6e 73 3a [lns:x='adobe:ns:]
+      [snip 2698 bytes]
+  + [XMP directory, 2781 bytes]
+  | XMPToolkit = Image::ExifTool 12.27
+  | Rating = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmp:Rating'
+JPEG DQT (65 bytes):
+      0bd2: 00 04 05 03 03 03 02 04 03 03 03 04 04 04 04 05 [................]
+      0be2: 0a 06 05 05 05 05 0c 08 08 0d 0a 0e 0c 1b 0e 0e [................]
+      0bf2: 0c 0d 0d 0f 11 16 12 0f 10 15 10 0d 0d 14 1a 14 [................]
+      0c02: 15 17 18 19 19 19 0f 12 1b 1e 1b 18 1c 16 18 19 [................]
+      0c12: 18                                              [.]
+JPEG DQT (65 bytes):
+      0c17: 01 04 04 04 05 05 05 0b 06 06 0b 18 10 0d 10 18 [................]
+      0c27: 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 [................]
+      0c37: 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 [................]
+      0c47: 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 [................]
+      0c57: 18                                              [.]
+JPEG SOF0 (15 bytes):
+      0c5c: 08 04 b0 07 80 03 01 22 00 02 11 01 03 11 01    [.......".......]
+  ImageWidth = 1920
+  ImageHeight = 1200
+  EncodingProcess = 0
+  BitsPerSample = 8
+  ColorComponents = 3
+  YCbCrSubSampling = 2 2
+JPEG DHT (27 bytes):
+      0c6f: 00 00 02 02 03 01 01 01 00 00 00 00 00 00 00 00 [................]
+      0c7f: 00 00 01 02 06 04 05 07 03 08 09                [...........]
+JPEG DHT (80 bytes):
+      0c8e: 10 00 00 05 02 03 05 04 05 09 05 06 05 03 04 00 [................]
+      0c9e: 07 00 01 02 03 04 05 11 06 12 21 13 22 31 32 42 [..........!."12B]
+      0cae: 07 14 41 51 23 52 61 62 f0 15 71 72 81 82 91 92 [..AQ#Rab..qr....]
+      0cbe: a1 b1 08 33 a2 b2 c2 16 24 43 53 c1 d2 63 d1 e1 [...3....$CS..c..]
+      0cce: e2 f2 17 34 73 25 44 83 f1 93 b3 54 a3 26 c3 d3 [...4s%D....T.&..]
+JPEG DHT (26 bytes):
+      0ce2: 01 01 01 00 03 01 01 01 01 00 00 00 00 00 00 00 [................]
+      0cf2: 00 00 01 02 03 04 05 06 07 08                   [..........]
+JPEG DHT (51 bytes):
+      0d00: 11 00 02 03 00 02 02 02 02 02 02 02 01 03 03 03 [................]
+      0d10: 05 00 01 02 03 11 04 21 12 31 05 41 13 22 06 51 [.......!.1.A.".Q]
+      0d20: 14 32 61 71 23 42 81 91 15 a1 b1 33 43 d1 e1 07 [.2aq#B.....3C...]
+      0d30: 16 25 c1                                        [.%.]
+JPEG SOS
+JPEG EOI

@@ -1,0 +1,1249 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+ "http://www.w3.org/TR/1998/REC-html40-19980424/loose.dtd">
+<html>
+<head>
+<title>
+HTML Dump (C:/Users/micro/IdeaProjects/kim/src/commonTest/resources/de/stefan_oltmann/kim/testdata/full/media_61.gif)</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+<!--
+/* character style ID's */
+.D { color: #000000 } /* default color */
+.V { color: #ff0000 } /* duplicate block 1 */
+.W { color: #004400 } /* normal block 1 */
+.X { color: #ff4488 } /* duplicate block 2 */
+.Y { color: #448844 } /* normal block 2 */
+.U { color: #cc8844 } /* unused data block */
+.H { color: #0000ff } /* highlighted tag name */
+.F { color: #aa00dd } /* actual offset differs */
+.M { text-decoration: underline } /* maker notes data */
+.tt { /* tooltip text */
+    visibility: hidden;
+    position: absolute;
+    white-space: nowrap;
+    top: 0;
+    left: 0;
+    font-family: Verdana, sans-serif;
+    font-size: .7em;
+    padding: 2px 4px;
+    border: 1px solid gray;
+    z-index: 3;
+}
+.tb { /* tooltip background */
+    visibility: hidden;
+    position: absolute;
+    background: #ffffdd;
+    zoom: 1;
+    -moz-opacity: 0.8;
+    -khtml-opacity: 0.8;
+    -ms-filter: 'progid:DXImageTransform.Microsoft.Alpha(Opacity=80)';
+    filter: alpha(opacity=80);
+    opacity: 0.8;
+    z-index: 2;
+}
+/* table styles */
+table.dump {
+  border-top: 1px solid gray;
+  border-bottom: 1px solid gray;
+}
+table.dump td { padding: .2em .3em }
+td.c2 {
+  border-left: 1px solid gray;
+  border-right: 1px solid gray;
+}
+pre   { margin: 0 }
+table { font-size: .9em }
+body  { color: black; background: white }
+-->
+</style>
+<script language="JavaScript" type="text/JavaScript">
+<!-- Begin
+// tooltip positioning constants
+var TMAR = 4;   // top/left margins
+var BMAR = 16;  // bottom/right margins (scrollbars may overhang inner dimensions)
+var XOFF = 10;  // x offset from cursor
+var YOFF = 40;  // y offset
+var YMIN = 10;  // minimum y offset
+var YTOP = 20;  // y offset when above cursor
+// common variables
+var safari1 = navigator.userAgent.indexOf("Safari/312.6") >= 0;
+var ie6 = navigator.userAgent.toLowerCase().indexOf('msie 6') >= 0;
+var mspan = new Array;
+var clicked = 0;
+var hlist, tt, tb, firstOutEvt, lastInEvt;
+
+function GetElementsByClass(classname, tagname) {
+  var found = new Array();
+  var list = document.getElementsByTagName(tagname);
+  var len = list.length;
+  for (var i=0, j=0; i<len; ++i) {
+    var classes = list[i].className.split(' ');
+    for (var k=0; k<classes.length; ++k) {
+      if (classes[k] == classname) {
+        found[j++] = list[i];
+        break;
+      }
+    }
+  }
+  return found;
+}
+
+// click mouse
+function doClick(e)
+{
+  if (!clicked) {
+    firstOutEvt = lastInEvt = undefined;
+    high(e, 2);
+    if (hlist) clicked = 1;
+  } else {
+    clicked = 0;
+    if (firstOutEvt) high(firstOutEvt, 0);
+    if (lastInEvt) high(lastInEvt, 1);
+  }
+}
+
+// move tooltip
+function move(e)
+{
+  if (!tt) return;
+  if (ie6 && (tt.style.top  == '' || tt.style.top  == 0) &&
+             (tt.style.left == '' || tt.style.left == 0))
+  {
+    tt.style.width  = tt.offsetWidth  + 'px';
+    tt.style.height = tt.offsetHeight + 'px';
+  }
+  var w, h;
+  // browser inconsistencies make getting window size more complex than it should be,
+  // and even then we don't know if it is smaller due to scrollbar width
+  if (typeof(window.innerWidth) == 'number') {
+    w = window.innerWidth;
+    h = window.innerHeight;
+  } else if (document.documentElement && document.documentElement.clientWidth) {
+    w = document.documentElement.clientWidth;
+    h = document.documentElement.clientHeight;
+  } else {
+    w = document.body.clientWidth;
+    h = document.body.clientHeight;
+  }
+  var x = e.clientX + XOFF;
+  var y = e.clientY + YOFF;
+  if (safari1) { // patch for people still using OS X 10.3.9
+    x -= document.body.scrollLeft + document.documentElement.scrollLeft;
+    y -= document.body.scrollTop  + document.documentElement.scrollTop;
+  }
+  var mx = w - BMAR - tt.offsetWidth;
+  var my = h - BMAR - tt.offsetHeight;
+  if (y > my + YOFF - YMIN) y = e.clientY - YTOP - tt.offsetHeight;
+  if (x > mx) x = mx;
+  if (y > my) y = my;
+  if (x < TMAR) x = TMAR;
+  if (y < TMAR) y = TMAR;
+  x += document.body.scrollLeft + document.documentElement.scrollLeft;
+  y += document.body.scrollTop  + document.documentElement.scrollTop;
+  tb.style.width  = tt.offsetWidth  + 'px';
+  tb.style.height = tt.offsetHeight + 'px';
+  tt.style.top  = tb.style.top  = y + 'px';
+  tt.style.left = tb.style.left = x + 'px';
+  tt.style.visibility = tb.style.visibility = 'visible';
+}
+
+// highlight/unhighlight text
+function high(e,on) {
+  if (on) {
+    lastInEvt = e;
+  } else {
+    if (!firstOutEvt) firstOutEvt = e;
+  }
+  if (clicked) return;
+  var targ;
+  if (e.target) targ = e.target;
+  else if (e.srcElement) targ = e.srcElement;
+  if (targ.nodeType == 3) targ = targ.parentNode; // defeat Safari bug
+  if (!targ.name) targ = targ.parentNode; // go up another level if necessary
+  if (targ.name && document.getElementsByName) {
+    // un-highlight current objects
+    if (hlist) {
+      for (var i=0; i<hlist.length; ++i) {
+        for (var j=0; j<hlist[i].length; ++j) {
+          hlist[i][j].style.background = 'transparent';
+        }
+      }
+      hlist = null;
+    }
+    if (tt) {
+      // hide old tooltip
+      tt.style.visibility = tb.style.visibility = 'hidden';
+      tt = null;
+    }
+    if (on) {
+      if (targ.name.substring(0,1) == 't') {
+        // show our tooltip (ID is different than name to avoid confusing IE)
+        tt = document.getElementById('p' + targ.name.substring(1));
+        if (tt) {
+          tb = document.getElementById('tb');
+          move(e);
+        }
+      }
+      // highlight anchor elements with the same name
+      hlist = new Array;
+      hlist.push(document.getElementsByName(targ.name));
+      // is this an IFD pointer?
+      var pos = targ.className.indexOf('Offset_');
+      if (pos > 0) {
+        // add elements from this IFD to our highlight list
+        hlist.push(document.getElementsByClassName(targ.className.substr(pos+7)));
+      }
+      // use class name to highlight span elements if necessary
+      for (var i=0; i<mspan.length; ++i) {
+        if (mspan[i] != targ.name) continue;
+        // add these span elements to our highlight list
+        hlist.push(GetElementsByClass(targ.name, 'span'));
+        break;
+      }
+      for (var i=0; i<hlist.length; ++i) {
+        for (var j=0; j<hlist[i].length; ++j) {
+          hlist[i][j].style.background = on == 2 ? '#ffbbbb' : '#ffcc99';
+        }
+      }
+    }
+  }
+}
+
+// End --->
+</script></head>
+<body><noscript><b class=V>--&gt;
+Enable JavaScript for active highlighting and information tool tips!
+</b></noscript>
+<table class=dump cellspacing=0 cellpadding=2>
+<tr><td valign='top'><pre> 0000
+ 0010
+ 0020
+ 0030
+ 0040
+ 0050
+ 0060
+ 0070
+ 0080
+ 0090
+ 00a0
+ 00b0
+ 00c0
+ 00d0
+ 00e0
+ 00f0
+ 0100
+ 0110
+ 0120
+ 0130
+ 0140
+ 0150
+ 0160
+ 0170
+ 0180
+ 0190
+ 01a0
+ 01b0
+ 01c0
+ 01d0
+ 01e0
+ 01f0
+ 0200
+ 0210
+ 0220
+ 0230
+ 0240
+ 0250
+ 0260
+ 0270
+ 0280
+ 0290
+ 02a0
+ 02b0
+ 02c0
+ 02d0
+ 02e0
+ 02f0
+ 0300
+ 0310
+ 0320
+ 0330
+ 0340
+ 0350
+ 0360
+ 0370
+ 0380
+ 0390
+ 03a0
+ 03b0
+ 03c0
+ 03d0
+ 03e0
+ 03f0
+ 0400
+ 0410
+ 0420
+ 0430
+ 0440
+ 0450
+ 0460
+ 0470
+ 0480
+ 0490
+ 04a0
+ 04b0
+ 04c0
+ 04d0
+ 04e0
+ 04f0
+ 0500
+ 0510
+ 0520
+ 0530
+ 0540
+ 0550
+ 0560
+ 0570
+ 0580
+ 0590
+ 05a0
+ 05b0
+ 05c0
+ 05d0
+ 05e0
+ 05f0
+ 0600
+ 0610
+ 0620
+ 0630
+ 0640
+ 0650
+ 0660
+ 0670
+ 0680
+ 0690
+ 06a0
+ 06b0
+ 06c0
+ 06d0
+ 06e0
+ 06f0
+ 0700
+ 0710
+ 0720
+ 0730
+ 0740
+ 0750
+ 0760
+ 0770
+ 0780
+ 0790
+ 07a0
+ 07b0
+ 07c0
+ 07d0
+ 07e0
+ 07f0
+  ...
+14ee40
+14ee50
+14ee60
+14ee70
+14ee80
+14ee90
+14eea0
+14eeb0
+14eec0
+14eed0
+14eee0
+14eef0
+14ef00
+14ef10
+14ef20
+14ef30
+14ef40
+14ef50
+14ef60
+14ef70
+14ef80
+14ef90
+14efa0
+14efb0
+14efc0
+14efd0
+14efe0
+14eff0
+14f000
+14f010
+14f020
+14f030
+14f040
+14f050
+14f060
+14f070
+14f080
+14f090
+14f0a0
+14f0b0
+14f0c0
+14f0d0
+14f0e0
+14f0f0
+14f100
+14f110
+14f120
+14f130
+14f140
+14f150
+14f160
+14f170
+14f180
+14f190
+14f1a0
+14f1b0
+14f1c0
+14f1d0
+14f1e0
+14f1f0
+14f200
+14f210
+14f220
+14f230
+14f240
+14f250
+14f260
+14f270
+14f280
+14f290
+14f2a0
+14f2b0
+14f2c0
+14f2d0
+14f2e0
+14f2f0
+14f300
+14f310
+14f320
+14f330
+14f340
+14f350
+14f360
+14f370
+14f380
+14f390
+14f3a0
+14f3b0
+14f3c0
+14f3d0
+14f3e0
+14f3f0
+14f400
+14f410
+14f420
+14f430
+14f440
+14f450
+14f460
+14f470
+14f480
+14f490
+14f4a0
+14f4b0
+14f4c0
+14f4d0
+14f4e0
+14f4f0
+14f500
+14f510
+14f520
+14f530
+14f540
+14f550
+14f560
+14f570
+14f580
+14f590
+14f5a0
+14f5b0
+14f5c0
+14f5d0
+14f5e0
+14f5f0
+14f600
+14f610
+14f620
+14f630
+</pre></td><td valign="top"><pre onmouseover="high(event,1)" onmouseout="high(event,0)" onmousemove="move(event)" onmousedown="doClick(event)"><a name=t0 class=U>47 49 46 38 39 61 b8 0b  b8 0b e7 fe 00 0c 1e 00
+10 27 00 18 26 00 23 28  02 18 2f 00 1f 2d 00 27
+2c 00 30 2d 00 29 32 00  20 37 00 40 31 02 34 3a
+00 3c 38 00 4c 38 00 5c  3a 00 64 39 00 5a 3b 1c
+46 41 2e 49 44 00 35 4d  05 59 43 00 71 3e 00 4e
+49 22 6d 43 00 82 41 00  82 49 00 79 4e 03 6a 52
+15 91 4b 00 9b 4c 00 a2  4c 00 3f 66 59 7a 54 58
+ac 49 39 ac 54 00 8a 5c  3e 91 56 6f 9b 57 41 b6
+55 00 69 65 61 aa 5b 00  9a 5f 18 a6 5c 29 b5 5c
+00 55 73 a2 8e 62 9f bd  64 00 cb 61 00 c5 63 00
+bc 67 19 c4 6a 00 3c 8b  b0 d1 6d 00 be 71 1a ce
+70 00 cb 73 00 c5 75 00  6a 85 94 5e 88 a0 c0 73
+31 bb 75 40 c9 73 25 73  86 97 56 8e aa 54 90 b2
+e3 75 00 b9 7b 54 b1 7d  63 62 90 ae df 78 00 db
+7a 00 4b 9e 69 78 8c a3  50 97 b7 d7 7d 00 7a 8e
+9f d4 7e 14 4e 9a c1 c0  7a 9a 74 90 af d5 81 00
+60 97 b4 ae 85 7e a0 87  9f 5e 9a bd 6d 97 b0 6a
+98 b7 d7 83 29 6d 95 da  59 9c d7 e5 83 00 44 a4
+ce e2 86 00 d8 85 35 d2  8b 1c da 8b 00 e0 8a 00
+72 9d b6 9b 8e db 86 99  aa d3 89 54 d8 89 46 6c
+a4 c1 69 a5 c8 75 a3 c2  8a 9f aa 5a aa dd 50 ae
+d9 f9 8d 00 ef 91 00 a2  98 d0 d5 91 69 8c a1 b8
+eb 94 00 a3 9a c2 66 ac  ce 62 ad d4 f6 91 00 8f
+a2 b4 d4 93 74 e9 97 00  7f a9 c3 75 ad ca 87 ac
+94 d1 97 81 65 b1 ec 90  a8 c9 e9 9d 0e 75 b1 d4
+ea 9c 27 f2 9d 00 5d b9  e5 4f bc fa 98 ab bd 83
+b1 d0 e8 9d 57 c2 a3 ac  e7 9e 67 eb a0 47 6f ba
+e1 d3 a1 9b f9 a2 0d 7d  b8 dc 8b b5 cf 80 b8 d5
+75 bb dd c7 a7 9f f0 a3  3c 5a c2 fa 59 c5 eb ba
+ab c1 ff a6 00 df a7 6b  92 b4 f2 62 c3 f5 59 cf
+93 81 bb f3 a1 b5 c7 8c  ba d9 a3 b4 e6 fa a8 37
+6b c6 f2 88 bf dd 79 c3  eb e9 aa 7e 68 c8 fb a4
+b9 d1 86 c1 e5 94 bf d9  87 cb 90 f9 ad 54 ea af
+8c aa be d0 e8 b0 98 73  cd fa 96 c4 e4 a4 bf ef
+f9 b1 68 df b5 9b 7d cc  fa 90 c8 e6 77 d1 fd 88
+cd f0 8f cb ef f9 b5 7b  9e c9 e3 86 d0 f9 c4 c0
+d5 d3 bd c3 ad c6 e8 7f  d3 fa bc c2 e5 72 d8 f6
+a6 c9 f5 9f ce ee b5 c9  db fb ba 8f 92 d2 fc 8b
+d5 fe 9a d2 f0 99 d5 f9  ee c1 b1 fc bf 9b 93 d8
+fb a8 d2 fb e2 c5 c0 bb  ce e7 a9 d4 ee a3 d5 fc
+f9 c2 aa ab d7 d7 ee c5  bf 96 db fe bd d0 f1 9d
+d9 fe 85 e3 f8 aa d8 f9  9c dd fa bf d4 e6 a3 db
+fa b4 d8 fa d7 d1 e3 e6  ce d4 a7 df fe ae dd fd
+87 ee e4 b4 df fa cb db  da ad e2 fb 87 f0 ec f8
+d0 ce 80 f2 f6 bc df fc  c9 dd f0 b7 e2 fd cd dc
+f6 c2 e2 f8 d2 de f3 f2  d6 df c0 e3 ff ca e1 fa
+fe d4 df bf e7 fc ec dc  e9 c7 e7 fd e1 e1 f3 b7
+ef f3 d3 e7 fa e9 e3 ef  ce eb fb d7 ec fe e4 ee
+fc de f0 fc ed ec f7 ea  f1 fa e4 f4 fa 21 ff 0b
+58 4d 50 20 44 61 74 61  58 4d 50 3c 78 3a 78 6d
+70 6d 65 74 61 20 78 6d  6c 6e 73 3a 78 3d 22 61
+64 6f 62 65 3a 6e 73 3a  6d 65 74 61 2f 22 3e 0a
+20 20 3c 78 3a 6d 65 74  61 64 61 74 61 3e 0a 20
+20 20 20 3c 72 64 66 3a  52 44 46 20 78 6d 6c 6e
+73 3a 72 64 66 3d 22 68  74 74 70 3a 2f 2f 77 77
+77 2e 77 33 2e 6f 72 67  2f 31 39 39 39 2f 30 32
+2f 32 32 2d 72 64 66 2d  73 79 6e 74 61 78 2d 6e
+73 23 22 3e 0a 20 20 20  20 20 20 3c 72 64 66 3a
+44 65 73 63 72 69 70 74  69 6f 6e 20 72 64 66 3a
+61 62 6f 75 74 3d 22 22  0a 20 20 20 20 20 20 20
+20 78 6d 6c 6e 73 3a 64  63 3d 22 68 74 74 70 3a
+2f 2f 70 75 72 6c 2e 6f  72 67 2f 64 63 2f 65 6c
+65 6d 65 6e 74 73 2f 31  2e 31 2f 22 0a 20 20 20
+20 20 20 20 20 78 6d 6c  6e 73 3a 78 6d 70 3d 22
+68 74 74 70 3a 2f 2f 6e  73 2e 61 64 6f 62 65 2e
+63 6f 6d 2f 78 61 70 2f  31 2e 30 2f 22 3e 0a 20
+20 20 20 20 20 20 20 3c  64 63 3a 74 69 74 6c 65
+3e 53 61 6d 70 6c 65 20  47 49 46 3c 2f 64 63 3a
+74 69 74 6c 65 3e 0a 20  20 20 20 20 20 20 20 3c
+64 63 3a 63 72 65 61 74  6f 72 3e 6b 69 6d 3c 2f
+64 63 3a 63 72 65 61 74  6f 72 3e 0a 20 20 20 20
+20 20 20 20 3c 64 63 3a  73 75 62 6a 65 63 74 3e
+45 78 61 6d 70 6c 65 20  47 49 46 20 77 69 74 68
+20 58 4d 50 20 6d 65 74  61 64 61 74 61 3c 2f 64
+63 3a 73 75 62 6a 65 63  74 3e 0a 20 20 20 20 20
+20 20 20 3c 64 63 3a 64  65 73 63 72 69 70 74 69
+6f 6e 3e 54 68 69 73 20  69 73 20 61 20 73 61 6d
+70 6c 65 20 47 49 46 20  75 73 65 64 20 74 6f 20
+64 65 6d 6f 6e 73 74 72  61 74 65 20 58 4d 50 20
+6d 65 74 61 64 61 74 61  20 65 6d 62 65 64 64 69
+6e 67 2e 3c 2f 64 63 3a  64 65 73 63 72 69 70 74
+69 6f 6e 3e 0a 20 20 20  20 20 20 20 20 3c 64 63
+3a 64 61 74 65 3e 32 30  32 35 2d 30 34 2d 30 34
+3c 2f 64 63 3a 64 61 74  65 3e 0a 20 20 20 20 20
+20 20 20 3c 78 6d 70 3a  43 72 65 61 74 6f 72 54
+6f 6f 6c 3e 65 78 69 66  74 6f 6f 6c 3c 2f 78 6d
+70 3a 43 72 65 61 74 6f  72 54 6f 6f 6c 3e 0a 20
+20 20 20 20 20 20 20 3c  78 6d 70 3a 4c 61 62 65
+6c 3e 44 65 6d 6f 20 47  49 46 3c 2f 78 6d 70 3a
+4c 61 62 65 6c 3e 0a 20  20 20 20 20 20 20 20 3c
+78 6d 70 3a 52 69 67 68  74 73 3e 43 43 2d 42 59
+20 34 2e 30 3c 2f 78 6d  70 3a 52 69 67 68 74 73
+3e 0a 20 20 20 20 20 20  3c 2f 72 64 66 3a 44 65
+73 63 72 69 70 74 69 6f  6e 3e 0a 20 20 20 20 3c
+2f 72 64 66 3a 52 44 46  3e 0a 20 20 3c 2f 78 3a
+6d 65 74 61 64 61 74 61  3e 0a 3c 2f 78 3a 78 6d
+70 6d 65 74 61 3e 0a 01  ff fe fd fc fb fa f9 f8
+f7 f6 f5 f4 f3 f2 f1 f0  ef ee ed ec eb ea e9 e8
+e7 e6 e5 e4 e3 e2 e1 e0  df de dd dc db da d9 d8
+d7 d6 d5 d4 d3 d2 d1 d0  cf ce cd cc cb ca c9 c8
+c7 c6 c5 c4 c3 c2 c1 c0  bf be bd bc bb ba b9 b8
+b7 b6 b5 b4 b3 b2 b1 b0  af ae ad ac ab aa a9 a8
+a7 a6 a5 a4 a3 a2 a1 a0  9f 9e 9d 9c 9b 9a 99 98
+97 96 95 94 93 92 91 90  8f 8e 8d 8c 8b 8a 89 88
+87 86 85 84 83 82 81 80  7f 7e 7d 7c 7b 7a 79 78
+77 76 75 74 73 72 71 70  6f 6e 6d 6c 6b 6a 69 68
+67 66 65 64 63 62 61 60  5f 5e 5d 5c 5b 5a 59 58
+57 56 55 54 53 52 51 50  4f 4e 4d 4c 4b 4a 49 48
+47 46 45 44 43 42 41 40  3f 3e 3d 3c 3b 3a 39 38
+37 36 35 34 33 32 31 30  2f 2e 2d 2c 2b 2a 29 28
+27 26 25 24 23 22 21 20  1f 1e 1d 1c 1b 1a 19 18
+17 16 15 14 13 12 11 10  0f 0e 0d 0c 0b 0a 09 08
+07 06 05 04 03 02 01 00  00 2c 00 00 00 00 b8 0b
+b8 0b 00 08 fe 00 99 09  1c 48 b0 a0 c1 83 08 13
+2a 5c c8 b0 a1 c3 87 10  23 4a 9c 48 51 22 b4 8b
+18 33 6a dc c8 b1 a3 c7  8f 20 43 8a 1c 49 b2 a4
+c9 93 28 53 aa 5c c9 b2  a5 cb 97 2d 91 c9 9c 49
+b3 a6 cd 9b 38 65 62 cc  29 d3 1a 4f 64 30 83 c2
+fc 49 b4 a8 d1 a3 48 8b  16 5b ca b4 a9 d3 a7 50
+a3 4a 9d 4a b5 aa d5 ab  58 b3 6a dd ca b5 ab d7
+af 60 c3 8a 1d ab 55 97  d9 b3 68 d3 9e 35 c6 56
+ad db b7 ba 8c b9 95 0b  77 ed 5b ba 73 eb ea dd
+cb b7 af 5f b5 6d e3 fe  1d 4c b8 b0 e1 c3 88 13
+2b 5e 3c 78 96 e3 c7 90  23 4b 9e 4c b9 b2 e5 cb
+98 33 6b de 5c d9 95 67  ce a0 41 d7 72 55 2b 54
+28 cf a8 53 ab 4e 3d eb  73 eb d5 8f 5d 39 ae 05
+19 b5 63 cf b5 68 bf be  cd bb 77 64 d9 bf 4d b3
+f6 1d bb 75 a8 df b3 4e  af f6 7c 5a 38 6a e5 c2
+               [snip 85604 lines]               
+ad af 7d ef 4b 19 c1 26  f1 ae 52 cc 56 6f 66 e3
+98 69 a5 53 af 4b f4 6b  e2 0c 8b e0 e4 10 f6 8c
+09 a6 e7 62 1f 4c c7 33  42 56 76 04 ba 67 65 0f
+5a 61 e1 d9 4e 78 98 3d  58 f3 30 bc 3c 3f 22 34
+a2 06 52 de c3 4a 8b e2  14 ab 78 c5 28 5e 2d 6a
+37 a4 48 8e da 76 c6 34  ae b1 8d 6f 6c 32 dc de
+a8 b7 3c ee b1 8f c5 24  d3 2d bd f7 93 c3 9d a1
+3a c0 71 dc 4f c8 41 22  10 50 1a 73 7d ea ca e9
+4a 59 24 53 db 6a a9 12  e0 a8 eb 2e ea 50 db ed
+ae 01 0a d0 92 00 90 77  cc bd 1c 2f 99 45 f5 95
+63 22 33 bd 75 6b 66 5b  98 81 0d f7 0e 99 b8 84
+51 2b 7e ef 8c e7 3c eb  19 ae fa c5 16 38 3d 97
+44 cd f5 d7 ae 7d 0d 0e  3a 07 6c 60 e3 34 78 d1
+f6 94 8e ea ba c8 1e fe  48 7b 91 d1 60 84 b0 a5
+2f 4d c6 7f ce eb 8f 00  e3 70 1c 1b 9b c7 39 76
+1a 8e c9 63 e8 65 e7 e8  20 3f ea 51 d5 f1 61 b1
+ab 5f 0d eb 58 77 ef 45  29 72 31 85 62 1c 22 1c
+eb 7a d7 bc ee b5 af 75  6c a3 1f 0b 7b d8 c4 0e
+b2 96 e6 bc bf 22 0b 44  1c c7 85 85 1b 48 50 82
+26 b3 d2 b9 40 9d b2 50  05 70 94 97 58 d9 ba 41
+c1 5a 57 63 c2 e5 2e 67  17 cc df 3d b3 b9 cb d6
+c0 73 3b e5 2b c6 2c 40  57 cb 12 01 b0 ba 10 16
+a6 04 87 9c 87 1c df 81  ec 79 df fc ee b7 bf 07
+d7 e7 bb 5a 4b 9c 4c 0c  74 39 05 b3 57 69 09 9a
+9d b8 19 67 3b 29 0d 71  49 3f 9a 75 b7 8b b8 15
+31 9d d8 09 63 1c 5e 19  a6 2c 7b 02 aa e9 e3 3d
+56 61 1b e6 30 aa e5 38  50 52 7b 98 c4 25 36 79
+aa bf 21 eb 98 cb 7c e6  34 5f 24 ad 25 64 eb 14
+e1 1a 44 be ee b9 cf 7f  0e 74 49 02 bb 46 5d 82
+1f b1 8f 8e f4 dd fe 22  5b 7f ca 96 07 b3 ab e1
+6c 27 8c 40 da 7a 6a 9a  47 9c f6 11 6b 5f 3b db
+da 46 21 06 67 c2 5d a5  86 5b 97 8b 6a 54 a9 ca
+ad ee b4 a3 4d 2b 0c 54  fb 51 40 65 15 96 b8 7b
+27 f0 96 b7 9b dd 12 67  c5 21 3b df 02 f9 b7 df
+ff 0e f8 c0 4b 46 b0 d5  0a a7 a0 fd 3c 1b 40 57
+2e 5a 85 8f e2 a0 17 9e  e8 da 58 5c ae 93 a6 0e
+78 b8 b8 45 49 8b 07 d2  9a 5f f0 3c 27 3f ae 8d
+8b 7e f4 68 b4 d7 ee 34  1c d9 96 03 d4 5e 05 f5
+34 41 27 fb d8 da 75 bc  d4 93 45 f9 40 41 5b f3
+dc eb 7e f7 32 a7 51 22  7d 3f be a0 0b 7f f8 c4
+2f 3e c9 86 4e a3 a2 5b  32 e9 cc 6f 7e 26 97 be
+b7 a6 33 3b 18 51 9f ba  93 2f 02 65 ac 6b 5f eb
+5b 07 00 a1 08 c0 6d ec  8a 7b fc 32 29 2a da dd
+8e fe a8 04 35 fd 5e 79  fb 55 b8 9a c2 ba ab f7
+ee d0 b0 77 6a cc 3a 67  be d3 59 f0 fc ef bf ff
+f9 1f 70 0d 37 fe 39 ff  85 70 cc 72 70 e3 e4 67
+4d 14 79 0b 48 1b a0 e7  4e 8e d6 79 d5 d1 45 97
+17 81 5e e4 68 e6 e1 80  a1 47 7a 1b c8 81 ed b1
+72 1f a7 71 f3 b1 72 0d  15 7b a5 97 59 22 87 82
+aa b6 59 01 55 30 09 b2  82 12 c5 7b 31 28 83 33
+18 5a 3b 57 31 36 18 52  c6 a7 83 3b c8 83 3d b8
+63 07 61 74 5b 12 84 ce  47 84 45 88 33 d0 a7 37
+d2 c7 0d d4 e7 06 52 07  01 10 b0 5c 18 91 40 57
+f7 27 dc 07 4b 53 b3 12  e0 37 4b dd e6 54 63 67
+4b 5b 06 66 e4 86 6d ec  47 86 68 66 66 e8 27 66
+5e f1 7e da 75 00 65 01  01 68 d1 66 b0 70 37 f6
+c7 2c 7b 57 67 68 f5 7f  79 a8 87 7b 78 5f 7d 46
+80 db 22 39 86 a7 1b 7c  15 4e 86 96 80 8e c7 80
+0b 98 81 95 a6 1d 13 58  81 84 f5 88 f4 b2 88 83
+d5 81 95 c8 58 9b e6 82  25 b7 4f 1f e7 46 7c 04
+47 21 e7 7a 74 c4 47 a1  86 82 9f 56 62 0e 75 20
+34 a8 8a ab fe c8 8a 81  84 83 12 a2 23 39 c7 5a
+c0 67 73 3e 68 8b b7 88  8b bf 06 84 cb 27 84 bc
+68 84 bf 08 8c 3b 83 84  3e d3 74 e8 d0 6c 4d 38
+75 50 58 75 3f 45 85 56  78 6d 02 20 66 d5 a5 28
+b4 e4 6d 66 87 4b 5d d5  13 5f 76 76 e7 57 86 65
+28 5d e9 17 4c 6c 68 01  11 10 01 68 31 05 76 33
+87 71 f1 1a 4b a7 7f 7c  e8 8e ef 08 8f d9 44 78
+81 01 88 b0 41 18 da f2  78 d7 02 3a 88 56 44 89
+98 68 93 c8 88 58 14 89  e9 32 90 16 78 81 02 09
+90 9e 41 90 cf 61 89 0d  c9 3b ef 32 3c a8 a7 1e
+11 26 1e 06 25 6a 9f 68  91 ae b7 3c 96 05 7b ab
+56 8a 10 a5 50 8f d5 8a  23 49 92 a1 25 8b 85 b4
+24 af 18 21 b1 e8 5a 30  46 8b 32 96 8b 31 29 93
+33 29 5b c8 37 23 ca b7  52 c1 a8 93 3b 09 5c c3
+48 2b c5 c8 6c d5 f7 84  37 91 7d cd e8 8c eb c7
+75 2e 11 00 5e 28 41 d5  b8 5d d6 58 7e 45 25 86
+51 d5 8d fe 55 a9 86 48  89 86 69 76 4c 3c d1 86
+f1 66 8e e8 e8 2a 74 28  2b f9 77 87 f2 15 8f 67
+89 96 69 09 38 f3 b8 78  8c 67 88 99 03 60 d7 72
+8f 91 43 88 70 b9 80 93  73 4e 09 49 45 0e e9 79
+d6 a1 97 0a 89 2e 0a c6  97 83 c9 81 c4 83 89 fe
+b4 47 18 19 61 b3 a7 82  99 58 6a 0e 83 47 25 29
+99 93 69 48 af 85 22 27  79 99 2c a3 92 10 c2 92
+10 82 99 fa b0 99 1a 42  93 a3 49 9a a5 e9 48 36
+09 23 38 99 5b 3c c9 9a  ad 39 5c 3e f9 26 40 c9
+0c 42 09 01 44 49 6d 47  99 6e d4 45 35 17 a4 65
+43 a1 5d 17 24 95 a6 42  6e 62 68 95 56 19 35 57
+c9 36 ec 27 66 29 a1 66  3b d1 86 2c 14 87 6e 51
+7f ea 38 96 f8 56 96 fa  a6 96 d9 a9 9d db 89 70
+90 e1 87 d0 e2 1b 87 87  57 47 a4 44 83 68 80 02
+c6 8f e8 09 79 8a f6 97  a5 03 81 11 98 45 da 71
+90 06 49 46 ed 79 79 5a  c4 90 84 69 89 21 98 7a
+17 46 fe 59 a4 a8 46 6b  f4 4f 0c 43 62 14 c9 98
+22 28 8a 04 3a 8a ad 46  99 0d ea a0 35 07 52 37
+f7 31 2f f2 99 b5 28 a1  9e f9 21 a1 19 23 b0 88
+32 2b 29 3e a6 d9 73 48  42 23 2b 03 23 2b 43 a2
+38 92 24 20 0a 74 58 b2  9a bd 78 93 60 92 9a ae
+29 a3 ba 55 53 58 32 67  37 c5 17 74 86 0e d5 10
+0c 4d 48 02 4f 18 85 cd  d5 4a b8 f9 8c 4a e9 11
+31 81 65 60 87 4b 5e c8  28 ee 06 6e c2 b9 8d 1d
+54 9c de e8 7e 6d d7 7e  ea 37 55 26 01 8d 24 71
+4c 32 c1 00 f0 f6 95 eb  f5 16 62 39 43 fb 63 18
+78 58 9d 7d f7 17 d8 c9  9d 6d ea a6 68 79 38 87
+61 1a 7d 71 1c 74 7a 1a  9b 33 57 73 01 0e 76 ea
+19 aa 91 a7 6e 59 80 8c  c7 57 72 89 39 ab 01 9e
+fe 25 1c 73 d5 8f bb f1  44 86 76 60 cd a1 8f 0d
+18 1a e2 52 45 07 79 45  e1 91 79 5c a4 a9 98 77
+9f 8d d8 68 14 a7 2e f1  f2 68 91 e8 3a 9e fa 45
+96 fe 07 98 9b d7 a9 fa  89 3b 6c 24 91 a7 27 46
+11 39 6a af 0a 50 b3 17  62 20 d7 91 a8 68 98 a7
+08 a0 25 e8 91 18 d6 82  0f 2a ac c3 fa 6a 11 9a
+0f 15 b2 a1 13 83 6b 15  ea a1 33 22 9a 17 0a 9a
+1d ca 99 1f aa a2 bc 26  a2 33 72 a2 f9 60 a2 2a
+93 23 29 5a ad 3d c7 a2  3f e8 a2 31 fa 25 e4 3a
+a3 e7 ba 49 35 7a 25 37  7a 43 3a ca a3 3e 0a a4
+4b 43 6d 59 f7 34 44 8a  12 c8 b9 55 da 76 a4 18
+11 14 4b ca a4 3a 61 41  c1 e9 29 53 4a a5 f8 0a
+35 6f 27 15 69 38 4c 5a  4a 12 1b 41 2a 5e 0a a6
+2d 70 8e 62 3a 9d f7 57  a6 fa 73 a6 66 89 7f 1a
+3b 96 6f ea b1 1f bb 87  71 6a 18 73 0a 1a 8c 53
+b2 a6 81 a7 d4 79 64 7c  4a 2c 7f ba 1b 81 1a 1b
+e6 24 80 e0 f9 b2 85 da  8f a1 a3 a8 e9 c9 a8 36
+eb 1d fa 48 2d 73 2a 79  7b d9 88 9f b7 aa 7e c9
+3a 13 c7 a9 f0 69 1a f3  b9 79 a2 ba a9 93 06 4f
+2c 44 7b 71 08 59 b4 ad  53 b5 ac 7a 1e b2 fa aa
+fc a9 89 12 f6 90 24 f7  b5 e1 d1 72 20 e7 9f 2c
+e8 82 1b 69 50 a9 86 b6  28 d7 20 01 01 00 3b</a>
+</pre></td><td class=c2 valign="top"><pre onmouseover="high(event,1)" onmouseout="high(event,0)" onmousemove="move(event)" onmousedown="doClick(event)"><a name=t0 class=U>GIF89a..........
+.'..&amp;.#(../..-.'
+,.0-.)2. 7.@1.4:
+.&lt;8.L8.\:.d9.Z;.
+FA.ID.5M.YC.q&gt;.N
+I"mC..A..I.yN.jR
+..K..L..L.?fYzTX
+.I9.T..\&gt;.Vo.WA.
+U.iea.[.._..\).\
+.Us..b..d..a..c.
+.g..j.&lt;...m..q..
+p..s..u.j..^...s
+1.u@.s%s..V..T..
+.u..{T.}cb...x..
+z.K.ix..P...}.z.
+..~.N...z.t.....
+`....~...^..m..j
+....)m..Y.....D.
+......5.........
+r..........T..Fl
+..i..u.....Z..P.
+............i...
+......f..b......
+....t......u....
+....e........u..
+..'...]..O......
+....W.....g..Go.
+.......}........
+u.......&lt;Z..Y...
+.......k...b..Y.
+...............7
+k.....y....~h...
+.............T..
+.......s........
+..h...}.....w...
+.......{........
+.............r..
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+.............!..
+XMP DataXMP&lt;x:xm
+pmeta xmlns:x="a
+dobe:ns:meta/"&gt;.
+  &lt;x:metadata&gt;. 
+   &lt;rdf:RDF xmln
+s:rdf="http://ww
+w.w3.org/1999/02
+/22-rdf-syntax-n
+s#"&gt;.      &lt;rdf:
+Description rdf:
+about="".       
+ xmlns:dc="http:
+//purl.org/dc/el
+ements/1.1/".   
+     xmlns:xmp="
+http://ns.adobe.
+com/xap/1.0/"&gt;. 
+       &lt;dc:title
+&gt;Sample GIF&lt;/dc:
+title&gt;.        &lt;
+dc:creator&gt;kim&lt;/
+dc:creator&gt;.    
+    &lt;dc:subject&gt;
+Example GIF with
+ XMP metadata&lt;/d
+c:subject&gt;.     
+   &lt;dc:descripti
+on&gt;This is a sam
+ple GIF used to 
+demonstrate XMP 
+metadata embeddi
+ng.&lt;/dc:descript
+ion&gt;.        &lt;dc
+:date&gt;2025-04-04
+&lt;/dc:date&gt;.     
+   &lt;xmp:CreatorT
+ool&gt;exiftool&lt;/xm
+p:CreatorTool&gt;. 
+       &lt;xmp:Labe
+l&gt;Demo GIF&lt;/xmp:
+Label&gt;.        &lt;
+xmp:Rights&gt;CC-BY
+ 4.0&lt;/xmp:Rights
+&gt;.      &lt;/rdf:De
+scription&gt;.    &lt;
+/rdf:RDF&gt;.  &lt;/x:
+metadata&gt;.&lt;/x:xm
+pmeta&gt;..........
+................
+................
+................
+................
+................
+................
+................
+.........~}|{zyx
+wvutsrqponmlkjih
+gfedcba`_^]\[ZYX
+WVUTSRQPONMLKJIH
+GFEDCBA@?&gt;=&lt;;:98
+76543210/.-,+*)(
+'&amp;%$#"! ........
+................
+.........,......
+.........H......
+*\......#J.HQ"..
+.3j...... C..I..
+..(S.\.....-...I
+....8eb.)..Od0..
+.I....H..[.....P
+.J.J....X.j.....
+.`....U...h..5.V
+........w.[.s...
+..._.m...L......
++^&lt;x....#K.L....
+.3k.\..g..A.rU+T
+(..S.N=.s...]9..
+..c..h....wd..M.
+...u...N..|Z8j..
+     [snip]     
+..}.K..&amp;..R.Vof.
+.i.S.K.k........
+...b.L.3BVv..ge.
+Za..Nx.=X.0.&lt;?"4
+..R..J....x.(^-j
+7.H..v.4...ol2..
+..&lt;....$.-......
+:.q.O.A".P.s}...
+JY$S.j.......P..
+.......w.../.E..
+c"3.ukf[........
+Q+~...&lt;......8=.
+D....}..:.l`.4x.
+........H{..`...
+/M.......p....9v
+...c.e.. ?.Q..a.
+._..Xw.E)r1.b.".
+.z.....ul...{...
+.....".D.....HP.
+&amp;...@..P.p..X..A
+.ZWc...g...=....
+.s;.+.,@W.......
+.........y......
+...ZK.L.t9..Wi..
+...g;).qI?.u....
+1...c.^..,{....=
+Va..0..8PR{..%6y
+..!...|.4_$.%d..
+..D......tI..F].
+......."[.......
+l'.@.zj.G...k_;.
+.F!.g.]..[..jT..
+....M+.T.Q@e...{
+'......g.!;.....
+....KF......&lt;.@W
+.Z........X\....
+x..EI...._.&lt;'?..
+.~.h...4.....^..
+4A'...u...E.@A[.
+..~.2.Q"}?......
+/&gt;..N..[2..o~&amp;..
+..3;.Q.../.e.k_.
+[.....m..{.2)*..
+....5.^y.U......
+...wj.:g..Y.....
+..p.7.9..p.rp..g
+M.y.H...N..y..E.
+..^.h....Gz.....
+r..q..r..{..Y"..
+..Y.U0.....{1(.3
+.Z;W16.R...;..=.
+c.at[...G.E.3..7
+......R....\..@W
+.'..KS...7K..Tcg
+K[.f..m.G.hff.'f
+^.~.u.e..h.f.p7.
+.,{Wgh..y..{x_}F
+.."9...|.N......
+.......X........
+....X...%.O..F|.
+G!.zt.G....Vb.u 
+4...........#9.Z
+.gs&gt;h........'..
+h....;..&gt;.t..lM8
+uPXu?E.Vxm. f..(
+..mf.K].._vv.W.e
+(]..Llh....h1.v3
+.q..K..|......Dx
+....A...x..:.VD.
+.h...X...2..x...
+..A..a...;.2&lt;...
+.&amp;..%j.h...&lt;..{.
+V...P...#I..%...
+$..!..Z0F.2..1).
+3)[.7#..R...;.\.
+H+..l...7.}.....
+u...^(A..].X~E%.
+Q...U..H..ivL&lt;..
+.f...*t(+.w....g
+..i.8..x.g...`.r
+..C.p...sN.IE..y
+................
+.G..a....Xj..G%)
+..iH.."'y.,.....
+.......B..I...H6
+.#8.[&lt;...9\&gt;.&amp;@.
+.B..DImG.n.E5..e
+C.].$..Bnbh.V.5W
+.6.'f).f;..,..nQ
+..8..V.........p
+........WG.D.h..
+....y........E.q
+..IF.yyZ...i.!.z
+.F.Y..Fk.O.Cb...
+"(..:..F....5.R7
+.1/...(...!..#..
+2+)&gt;..sHB#+.#+C.
+8.$ .tX...x.`...
+)..USX2g7..t....
+.MH.O....J...J..
+1.e`.K^.(..n....
+T...~m.~.7U&amp;..$q
+L2........b9C.c.
+xX.}.....m..hy8.
+a.}q.tz..3Ws..v.
+....nY...Wr.9...
+.%.s....D.v`....
+...RE.yE..y\...w
+...h.....h..:..E
+.........;l$..'F
+.9j..P..b ...h..
+..%......*...j..
+......k...3"....
+.......&amp;.3r..`.*
+.#)Z.=..?..1.%.:
+...I5z%7zC:..&gt;..
+KCmY.4D....U.v..
+..K..:aA..)SJ...
+5o'.i8LZJ..A*^..
+-p.b:..W..s.f...
+;.o.....qj.s...S
+.....yd|J,......
+.$.............6
+...H-s*y{.....~.
+:....i...y.....O
+,D{q.Y..S..z....
+......$....r ..,
+...iP...(. ...;</a>
+</pre></td><td valign="top"><pre onmouseover="high(event,1)" onmouseout="high(event,0)" onmousemove="move(event)" onmousedown="doClick(event)"><a name=t0 class=U>[unknown data]</a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre></td></tr></table>
+<div id=tb class=tb> </div>
+<div id=p0 class=tt>[unknown data]<br>Size: 1373759 bytes</div>
+</body></html>
