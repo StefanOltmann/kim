@@ -21,7 +21,7 @@ Little-endian (Intel, II)
 0000000366 0x829a ExposureTime = 1/60 (0.016667)
 0000000378 0x829d FNumber = 5/1 (5.0)
 0000000390 0x8822 ExposureProgram = 3
-0000000402 0x8827 PhotographicSensitivity = 400
+0000000402 0x8827 ISO = 400
 0000000414 0x8830 SensitivityType = 2
 0000000426 0x8832 RecommendedExposureIndex = 400
 0000000438 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x30]
@@ -41,7 +41,7 @@ Little-endian (Intel, II)
 0000000606 0xa000 FlashpixVersion = [0x30, 0x31, 0x30, 0x30]
 0000000618 0xa001 ColorSpace = 1
 0000000630 0xa002 ExifImageWidth = 5184
-0000000642 0xa003 ExifImageLength = 3456
+0000000642 0xa003 ExifImageHeight = 3456
 0000000654 0xa005 InteropOffset = 8720
 0000000666 0xa20e FocalPlaneXResolution = 5184000/905 (5728.176796)
 0000000678 0xa20f FocalPlaneYResolution = 3456000/595 (5808.403361)
@@ -67,7 +67,7 @@ Little-endian (Intel, II)
 0000020082 0x0003 GPSLongitudeRef = E
 0000020094 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory SubIFD @ 8750 ----
+---- Directory IFD1 @ 8750 ----
 0000008752 0x0103 Compression = 6
 0000008764 0x011a XResolution = 72/1 (72.0)
 0000008776 0x011b YResolution = 72/1 (72.0)
@@ -75,6 +75,46 @@ Little-endian (Intel, II)
 0000008800 0x0201 JpgFromRawStart = 8844
 0000008812 0x0202 JpgFromRawLength = 11200
 
+---- Directory MakerNoteCanon @ 898 ----
+0000000900 0x0001 CanonCameraSettings = [49 shorts]
+0000000912 0x0002 Unknown = [0, 24, 8902, 19690]
+0000000924 0x0003 Unknown = [0, 0, 0, 0]
+0000000936 0x0004 Unknown = [34 shorts]
+0000000948 0x0006 CanonImageType = Canon EOS 60D
+0000000960 0x0007 CanonFirmwareVersion = Firmware Version 1.1.1
+0000000972 0x0009 OwnerName = Stefan Oltmann
+0000000984 0x000c SerialNumber = 1581036387
+0000000996 0x000d Unknown = [1536 bytes]
+0000001008 0x0010 CanonModelID = -2147483001
+0000001020 0x0013 Unknown = [0, 159, 7, 112]
+0000001032 0x0015 Unknown = -1610612736
+0000001044 0x0019 Unknown = 1
+0000001056 0x0026 Unknown = [48 shorts]
+0000001068 0x0083 Unknown = 0
+0000001080 0x0093 Unknown = [27 shorts]
+0000001092 0x0095 LensModel = EF-S15-85mm f/3.5-5.6 IS USM
+0000001104 0x0096 InternalSerialNumber = WB0607529
+0000001116 0x0097 Unknown = [1024 bytes]
+0000001128 0x0098 Unknown = [0, 0, 0, 0]
+0000001140 0x0099 Unknown = [74 ints]
+0000001152 0x009a Unknown = [0, 5184, 3456, 0, 0]
+0000001164 0x00a0 Unknown = [28, 0, 3, 0, 0, 0, 0, 0, -1, 5000, 129, 0, 0, 0]
+0000001176 0x00aa Unknown = [12, 401, 1024, 1024, 792, 0]
+0000001188 0x00b4 Unknown = 1
+0000001200 0x00d0 Unknown = 0
+0000001212 0x00e0 Unknown = [17 shorts]
+0000001224 0x4001 Unknown = [1346 shorts]
+0000001236 0x4008 Unknown = [129, 129, 129]
+0000001248 0x4009 Unknown = [0, 0, 0]
+0000001260 0x4010 Unknown = 
+0000001272 0x4011 Unknown = [252 bytes]
+0000001284 0x4012 Unknown = 
+0000001296 0x4015 Unknown = [116 bytes]
+0000001308 0x4016 Unknown = [24, 0, 1, 0, 0, 1]
+0000001320 0x4017 Unknown = [197383, 1811939375]
+0000001332 0x4018 Unknown = [12, 0, 3]
+0000001344 0x4019 LensInfo = [30 bytes]
+0000001356 0x4020 Unknown = [20, 0, 0, 0, 0]
 
 ---- IPTC ----
 Keywords (25) = 'Umlauts: äöüß'

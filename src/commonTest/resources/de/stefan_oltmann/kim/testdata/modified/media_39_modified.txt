@@ -24,7 +24,7 @@ Little-endian (Intel, II)
 0000000894 0x829a ExposureTime = 1/80 (0.0125)
 0000000906 0x829d FNumber = 50/10 (5.0)
 0000000918 0x8822 ExposureProgram = 4
-0000000930 0x8827 PhotographicSensitivity = 400
+0000000930 0x8827 ISO = 400
 0000000942 0x8830 SensitivityType = 1
 0000000954 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x30]
 0000000966 0x9003 DateTimeOriginal = 2023:05:10 13:37:42
@@ -40,7 +40,7 @@ Little-endian (Intel, II)
 0000001086 0xa000 FlashpixVersion = [0x30, 0x31, 0x30, 0x30]
 0000001098 0xa001 ColorSpace = 1
 0000001110 0xa002 ExifImageWidth = 4608
-0000001122 0xa003 ExifImageLength = 3456
+0000001122 0xa003 ExifImageHeight = 3456
 0000001134 0xa005 InteropOffset = 1444
 0000001146 0xa300 FileSource = 3
 0000001158 0xa401 CustomRendered = 0
@@ -66,14 +66,13 @@ Little-endian (Intel, II)
 0000013438 0x0003 GPSLongitudeRef = E
 0000013450 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory SubIFD @ 13514 ----
+---- Directory IFD1 @ 13514 ----
 0000013516 0x0103 Compression = 6
 0000013528 0x011a XResolution = 72/1 (72.0)
 0000013540 0x011b YResolution = 72/1 (72.0)
 0000013552 0x0128 ResolutionUnit = 2
 0000013564 0x0201 JpgFromRawStart = 13600
 0000013576 0x0202 JpgFromRawLength = 9032
-
 
 ---- IPTC ----
 Keywords (25) = 'Umlauts: äöüß'

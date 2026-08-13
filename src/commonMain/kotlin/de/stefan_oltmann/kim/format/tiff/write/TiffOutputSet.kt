@@ -310,5 +310,6 @@ internal val MetadataUpdate.isExifUpdate: Boolean
         is MetadataUpdate.Description,
         is MetadataUpdate.GpsCoordinates,
         is MetadataUpdate.GpsCoordinatesAndLocationShown -> true
+
         else -> false
     }

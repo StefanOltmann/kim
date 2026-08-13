@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ramon Bouckaert
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,11 +18,10 @@
 package de.stefan_oltmann.kim.format.gif
 
 import de.stefan_oltmann.kim.Kim
-import de.stefan_oltmann.kim.common.writeBytes
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
-import kotlinx.io.files.Path
+import de.stefan_oltmann.kim.testdata.ModifiedBytesVerifier
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -111,21 +111,7 @@ class GifWriterTest {
             actual = actualMetadata.xmp
         )
 
-        val expectedBytes = KimTestData.getModifiedBytesOf(KimTestData.GIF_TEST_IMAGE_INDEX)
-
-        val equals = expectedBytes.contentEquals(newBytes)
-
-        if (!equals) {
-
-            Path("build/media_${KimTestData.GIF_TEST_IMAGE_INDEX}_modified.gif")
-                .writeBytes(newBytes)
-
-            /* Also write a string representation to see differences more quickly. */
-            Path("build/media_${KimTestData.GIF_TEST_IMAGE_INDEX}_modified.txt")
-                .writeBytes(Kim.readMetadata(newBytes).toString().encodeToByteArray())
-
-            fail("Bytes for test image #${KimTestData.GIF_TEST_IMAGE_INDEX} are different.")
-        }
+        ModifiedBytesVerifier.verify(KimTestData.GIF_TEST_IMAGE_INDEX, "gif", newBytes)
     }
 
     /**

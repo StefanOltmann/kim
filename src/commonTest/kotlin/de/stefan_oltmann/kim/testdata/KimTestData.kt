@@ -172,6 +172,18 @@ object KimTestData {
     fun getModifiedBytesOf(index: Int): ByteArray =
         Resource("$RESOURCE_PATH/modified/media_${index}_modified.${getExtension(index)}").readBytes()
 
+    /**
+     * Returns whether a modified version of the given media file is available.
+     */
+    fun hasModifiedBytesOf(index: Int): Boolean =
+        Resource("$RESOURCE_PATH/modified/media_${index}_modified.${getExtension(index)}").exists()
+
+    /**
+     * Returns the committed metadata text dump of the modified media file.
+     */
+    fun getModifiedToStringText(index: Int): ByteArray =
+        Resource("$RESOURCE_PATH/modified/media_${index}_modified.txt").readBytes()
+
     fun getExifThumbnailBytesOf(index: Int): ByteArray =
         Resource("$RESOURCE_PATH/exifthumbs/media_${index}_exifthumb.jpg").readBytes()
 

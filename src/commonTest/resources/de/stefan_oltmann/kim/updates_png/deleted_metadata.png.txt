@@ -1,0 +1,2 @@
+File format : PNG
+Resolution  : 500 x 333

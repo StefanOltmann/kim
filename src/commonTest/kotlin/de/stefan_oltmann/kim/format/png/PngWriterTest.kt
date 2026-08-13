@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +17,6 @@
 package de.stefan_oltmann.kim.format.png
 
 import de.stefan_oltmann.kim.Kim
-import de.stefan_oltmann.kim.common.writeBytes
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcBlock
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcConstants
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
@@ -30,14 +30,13 @@ import de.stefan_oltmann.kim.format.tiff.write.TiffWriterLossy
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
-import kotlinx.io.files.Path
+import de.stefan_oltmann.kim.testdata.ModifiedBytesVerifier
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
-import kotlin.test.fail
 
 class PngWriterTest {
 
@@ -182,21 +181,7 @@ class PngWriterTest {
                 actual = actualMetadata.xmp
             )
 
-            val expectedBytes = KimTestData.getModifiedBytesOf(index)
-
-            val equals = expectedBytes.contentEquals(newBytes)
-
-            if (!equals) {
-
-                Path("build/media_${index}_modified.png")
-                    .writeBytes(newBytes)
-
-                /* Also write a string representation to see differences more quickly. */
-                Path("build/media_${index}_modified.txt")
-                    .writeBytes(Kim.readMetadata(newBytes).toString().encodeToByteArray())
-
-                fail("Bytes for test image #$index are different.")
-            }
+            ModifiedBytesVerifier.verify(index, "png", newBytes)
         }
     }
 }

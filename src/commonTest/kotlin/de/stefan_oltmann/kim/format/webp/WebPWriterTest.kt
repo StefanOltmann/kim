@@ -17,7 +17,6 @@
 package de.stefan_oltmann.kim.format.webp
 
 import de.stefan_oltmann.kim.Kim
-import de.stefan_oltmann.kim.common.writeBytes
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriterLossless
@@ -27,7 +26,7 @@ import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8X
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
-import kotlinx.io.files.Path
+import de.stefan_oltmann.kim.testdata.ModifiedBytesVerifier
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -36,7 +35,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-import kotlin.test.fail
 
 class WebPWriterTest {
 
@@ -161,21 +159,7 @@ class WebPWriterTest {
                 actual = actualMetadata.xmp
             )
 
-            val expectedBytes = KimTestData.getModifiedBytesOf(index)
-
-            val equals = expectedBytes.contentEquals(newBytes)
-
-            if (!equals) {
-
-                Path("build/media_${index}_modified.webp")
-                    .writeBytes(newBytes)
-
-                /* Also write a string representation to see differences more quickly. */
-                Path("build/media_${index}_modified.txt")
-                    .writeBytes(Kim.readMetadata(newBytes).toString().encodeToByteArray())
-
-                fail("Bytes for test image #$index are different.")
-            }
+            ModifiedBytesVerifier.verify(index, "webp", newBytes)
         }
     }
 

@@ -472,6 +472,9 @@ abstract class AbstractUpdaterTest(
 
         val resource = Resource("$resourcePath/$fileName")
 
+        /*
+         * Write the reference image if it does not exist.
+         */
         if (!resource.exists()) {
 
             Path("build/$fileName")
@@ -482,22 +485,46 @@ abstract class AbstractUpdaterTest(
 
         val expectedBytes = resource.readBytes()
 
-        val equals = expectedBytes.contentEquals(actualBytes)
+        if (!expectedBytes.contentEquals(actualBytes)) {
 
-        if (!equals) {
+            val updateDir = Path("build/updates_$format")
 
-            val parentDir = Path("build/updates_$format")
+            SystemFileSystem.createDirectories(updateDir)
 
-            SystemFileSystem.createDirectories(parentDir)
-
-            Path(parentDir, fileName)
+            Path(updateDir, fileName)
                 .writeBytes(actualBytes)
 
-            /* Also write a string representation to see differences more quickly. */
-            Path(parentDir, "$fileName.txt")
+            /* Also write a string representation to make differences easier to inspect. */
+            Path(updateDir, "$fileName.txt")
                 .writeBytes(Kim.readMetadata(actualBytes).toString().encodeToByteArray())
 
-            fail("Photo $fileName has not the expected bytes!")
+            fail("Photo $fileName does not match the reference image.")
+        }
+
+        /*
+         * Make sure the string representation of the metadata matches the committed golden.
+         */
+        val actualStringRepresentation = Kim.readMetadata(actualBytes).toString()
+
+        val expectedResource = Resource("$resourcePath/$fileName.txt")
+
+        /*
+         * Write the reference text dump if it does not exist.
+         */
+        if (!expectedResource.exists()) {
+
+            Path("build/$fileName.txt")
+                .writeBytes(actualStringRepresentation.encodeToByteArray())
+
+            fail("Reference text dump $fileName.txt does not exist.")
+        }
+
+        if (actualStringRepresentation != expectedResource.readText()) {
+
+            Path("build/$fileName.txt")
+                .writeBytes(actualStringRepresentation.encodeToByteArray())
+
+            fail("Photo $fileName does not match the expected string representation.")
         }
     }
 }
