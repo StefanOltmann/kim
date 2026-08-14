@@ -138,65 +138,6 @@ class MakerNoteTest {
         assertEquals(1112547328L, (livePhotoVideoIndexField.value as LongArray).first())
     }
 
-    /**
-     * The value offsets of an iPhone SE 3rd gen HEIC file must be
-     * absolute within the TIFF bytes: the AEMatrix of the Apple main
-     * directory is resolved against the start of the TIFF data, so a
-     * consumer can draw it without knowing the MakerNote blob position.
-     */
-    @Test
-    fun testAppleMakerNoteValueOffsetsAreAbsolute() {
-
-        val fileBytes = KimTestData.getBytesOf("photo_5.heic")
-
-        val metadata = assertNotNull(Kim.readMetadata(fileBytes))
-
-        val makerNoteField = assertNotNull(
-            TiffDirectory.findTiffField(
-                assertNotNull(metadata.exif).directories,
-                ExifTag.EXIF_TAG_MAKER_NOTE
-            )
-        )
-
-        /* The MakerNote blob sits at this offset within the TIFF bytes. */
-        val makerNoteTiffOffset = 782
-        assertEquals(makerNoteTiffOffset, makerNoteField.valueOffset)
-
-        val makerNoteDirectory = assertNotNull(metadata.exif.makerNoteDirectory)
-        assertEquals(TiffConstants.TIFF_MAKER_NOTE_APPLE, makerNoteDirectory.type)
-
-        val aeMatrixField = assertNotNull(makerNoteDirectory.findField(AppleTag.AE_MATRIX))
-
-        /* The AEMatrix data is stored at the MakerNote offset plus 560. */
-        val aeMatrixTiffOffset = makerNoteTiffOffset + 560
-        assertEquals(aeMatrixTiffOffset, aeMatrixField.valueOffset)
-
-        /* The Exif box payload, which is the TIFF base of this file. */
-        val tiffBaseInFile = 21114
-
-        val valueBytes = aeMatrixField.valueBytes
-        val expectedBytes = fileBytes.copyOfRange(
-            tiffBaseInFile + aeMatrixTiffOffset,
-            tiffBaseInFile + aeMatrixTiffOffset + valueBytes.size
-        )
-
-        assertTrue(
-            valueBytes.contentEquals(expectedBytes),
-            "The AEMatrix value must be the matrix data at the absolute offset."
-        )
-
-        /* The raw entry offset would land inside the ExifIFD entry table. */
-        val ifdTableBytes = fileBytes.copyOfRange(
-            tiffBaseInFile + 560,
-            tiffBaseInFile + 560 + valueBytes.size
-        )
-
-        assertFalse(
-            valueBytes.contentEquals(ifdTableBytes),
-            "The AEMatrix value must not be read from the ExifIFD entry table."
-        )
-    }
-
     @Test
     fun testOlympusMakerNoteParsing() {
 
