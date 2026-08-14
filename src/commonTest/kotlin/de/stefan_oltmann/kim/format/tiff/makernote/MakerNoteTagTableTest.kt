@@ -59,14 +59,19 @@ class MakerNoteTagTableTest {
 
             if (tag.tag <= previousTag)
                 fail(
-                    "$name table is not sorted: 0x%04X after 0x%04X".format(
-                        tag.tag, previousTag
-                    )
+                    "$name table is not sorted: ${toHex(tag.tag)} after ${toHex(previousTag)}"
                 )
 
             previousTag = tag.tag
         }
 
         assertEquals(tags.size, tags.map { it.tag }.toSet().size, "$name table has duplicate tags")
+    }
+
+    private fun toHex(value: Int): String {
+
+        val hex = value.toString(16).uppercase()
+
+        return "0x" + hex.padStart(4, '0')
     }
 }
