@@ -22,7 +22,7 @@ import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
-import de.stefan_oltmann.kim.format.tiff.write.TiffWriterBase
+import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8X
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
@@ -59,12 +59,7 @@ internal object WebPUpdater : MetadataUpdater {
 
             val exifBytesWriter = ByteArrayByteWriter()
 
-            TiffWriterBase
-                .createTiffWriter(
-                    byteOrder = outputSet.byteOrder,
-                    oldExifBytes = metadata.exifBytes
-                )
-                .write(exifBytesWriter, outputSet)
+            TiffWriter(byteOrder = outputSet.byteOrder).write(exifBytesWriter, outputSet)
 
             exifBytesWriter.toByteArray()
 
@@ -145,12 +140,7 @@ internal object WebPUpdater : MetadataUpdater {
 
         val exifBytesWriter = ByteArrayByteWriter()
 
-        TiffWriterBase
-            .createTiffWriter(
-                byteOrder = outputSet.byteOrder,
-                oldExifBytes = metadata.exifBytes
-            )
-            .write(exifBytesWriter, outputSet)
+        TiffWriter(byteOrder = outputSet.byteOrder).write(exifBytesWriter, outputSet)
 
         val exifBytes = exifBytesWriter.toByteArray()
 

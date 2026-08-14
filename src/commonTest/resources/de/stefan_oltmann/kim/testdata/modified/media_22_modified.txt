@@ -14,7 +14,7 @@ Little-endian (Intel, II)
 0000000094 0x0132 ModifyDate = 2023:05:10 13:37:42
 0000000106 0x0213 YCbCrPositioning = 1
 0000000118 0x8769 ExifOffset = 214
-0000000130 0x8825 GPSInfo = 904
+0000000130 0x8825 GPSInfo = 810
 
 ---- Directory ExifIFD @ 214 ----
 0000000216 0x829a ExposureTime = 1/120 (0.008333)
@@ -51,20 +51,20 @@ Little-endian (Intel, II)
 0000000588 0xa433 LensMake = Apple
 0000000600 0xa434 LensModel = iPhone 11 Pro Max back dual camera 6mm f/2
 
----- Directory GPS @ 904 ----
-0000000906 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000000918 0x0001 GPSLatitudeRef = N
-0000000930 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000000942 0x0003 GPSLongitudeRef = E
-0000000954 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 810 ----
+0000000812 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000000824 0x0001 GPSLatitudeRef = N
+0000000836 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000000848 0x0003 GPSLongitudeRef = E
+0000000860 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory IFD1 @ 810 ----
-0000000812 0x0103 Compression = 6
-0000000824 0x011a XResolution = 72/1 (72.0)
-0000000836 0x011b YResolution = 72/1 (72.0)
-0000000848 0x0128 ResolutionUnit = 2
-0000000860 0x0201 JpgFromRawStart = 8370
-0000000872 0x0202 JpgFromRawLength = 7487
+---- Directory IFD1 @ 924 ----
+0000000926 0x0103 Compression = 6
+0000000938 0x011a XResolution = 72/1 (72.0)
+0000000950 0x011b YResolution = 72/1 (72.0)
+0000000962 0x0128 ResolutionUnit = 2
+0000000974 0x0201 JpgFromRawStart = 1018
+0000000986 0x0202 JpgFromRawLength = 7487
 
 ---- IPTC ----
 Keywords (25) = 'Umlauts: äöüß'

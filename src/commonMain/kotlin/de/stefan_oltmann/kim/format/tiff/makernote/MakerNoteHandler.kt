@@ -38,9 +38,9 @@ import de.stefan_oltmann.kim.input.skipBytes
  * while the rest of the MakerNote is still read, and the file is never
  * rejected for that reason. ExifTool prints a warning in this case
  * ("Maker notes could not be parsed"), but the MakerNote survives the
- * rewrite unchanged either way, because TiffWriterLossless freezes the
- * whole MakerNote field region byte for byte. A file is only rejected
- * when the MakerNote field itself cannot be read, which matches
+ * rewrite unchanged either way, because the writer keeps the whole
+ * MakerNote value byte for byte at its original offset. A file is only
+ * rejected when the MakerNote field itself cannot be read, which matches
  * ExifTool's fatal error for that case.
  */
 @Suppress("MagicNumber")
@@ -122,7 +122,7 @@ internal open class MakerNoteHandler {
      * Like ExifTool, a sub-directory that cannot be read is skipped
      * instead of rejecting the file: the MakerNote is kept as an
      * opaque binary block and survives the rewrite unchanged, because
-     * TiffWriterLossless freezes the whole MakerNote field region.
+     * the writer keeps the whole MakerNote value at its original offset.
      */
     protected fun readMakerNoteSubDirectories(
         byteReader: RandomAccessByteReader,
@@ -171,7 +171,7 @@ internal open class MakerNoteHandler {
      * Like ExifTool, a sub-directory that cannot be read is skipped
      * instead of rejecting the file: the MakerNote is kept as an
      * opaque binary block and survives the rewrite unchanged, because
-     * TiffWriterLossless freezes the whole MakerNote field region.
+     * the writer keeps the whole MakerNote value at its original offset.
      */
     protected fun readMakerNoteBlobSubDirectories(
         directory: TiffDirectory,
@@ -256,7 +256,7 @@ internal open class MakerNoteHandler {
      * Like ExifTool, a sub-directory that cannot be read is skipped
      * instead of rejecting the file: the MakerNote is kept as an
      * opaque binary block and survives the rewrite unchanged, because
-     * TiffWriterLossless freezes the whole MakerNote field region.
+     * the writer keeps the whole MakerNote value at its original offset.
      */
     private fun readNestedMakerNoteBlobSubDirectories(
         parentDirectory: TiffDirectory,

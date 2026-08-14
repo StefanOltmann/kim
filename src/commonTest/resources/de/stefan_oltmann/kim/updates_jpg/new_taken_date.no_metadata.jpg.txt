@@ -4,11 +4,11 @@ Resolution  : 2304 x 1536
 Version 42
 Big-endian (Motorola, MM)
 ---- Directory IFD0 @ 8 ----
-0000000010 0x8769 ExifOffset = 28
+0000000010 0x8769 ExifOffset = 26
 
----- Directory ExifIFD @ 28 ----
-0000000030 0x9003 DateTimeOriginal = 2023:07:12 14:48:45
-0000000042 0x9004 DateTimeDigitized = 2023:07:12 14:48:45
+---- Directory ExifIFD @ 26 ----
+0000000028 0x9003 DateTimeOriginal = 2023:07:12 14:48:45
+0000000040 0x9004 DateTimeDigitized = 2023:07:12 14:48:45
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

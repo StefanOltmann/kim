@@ -11,7 +11,7 @@ Little-endian (Intel, II)
 0000000058 0x0132 ModifyDate = 2023:05:10 13:37:42
 0000000070 0x8298 Copyright = CEDRIC LETSCH
 0000000082 0x8769 ExifOffset = 160
-0000000094 0x8825 GPSInfo = 348
+0000000094 0x8825 GPSInfo = 254
 
 ---- Directory ExifIFD @ 160 ----
 0000000162 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x31]
@@ -19,20 +19,20 @@ Little-endian (Intel, II)
 0000000186 0x9004 DateTimeDigitized = 2023:05:10 13:37:42
 0000000198 0xa001 ColorSpace = 1
 
----- Directory GPS @ 348 ----
-0000000350 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000000362 0x0001 GPSLatitudeRef = N
-0000000374 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000000386 0x0003 GPSLongitudeRef = E
-0000000398 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 254 ----
+0000000256 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000000268 0x0001 GPSLatitudeRef = N
+0000000280 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000000292 0x0003 GPSLongitudeRef = E
+0000000304 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory IFD1 @ 254 ----
-0000000256 0x0103 Compression = 6
-0000000268 0x011a XResolution = 72/1 (72.0)
-0000000280 0x011b YResolution = 72/1 (72.0)
-0000000292 0x0128 ResolutionUnit = 2
-0000000304 0x0201 JpgFromRawStart = 9788
-0000000316 0x0202 JpgFromRawLength = 9559
+---- Directory IFD1 @ 368 ----
+0000000370 0x0103 Compression = 6
+0000000382 0x011a XResolution = 72/1 (72.0)
+0000000394 0x011b YResolution = 72/1 (72.0)
+0000000406 0x0128 ResolutionUnit = 2
+0000000418 0x0201 JpgFromRawStart = 462
+0000000430 0x0202 JpgFromRawLength = 9559
 
 ---- IPTC ----
 Keywords (25) = 'Umlauts: äöüß'

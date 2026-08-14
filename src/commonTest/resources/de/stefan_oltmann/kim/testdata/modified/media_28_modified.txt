@@ -14,7 +14,7 @@ Little-endian (Intel, II)
 0000000094 0x0132 ModifyDate = 2023:05:10 13:37:42
 0000000106 0x0213 YCbCrPositioning = 2
 0000000118 0x8769 ExifOffset = 234
-0000000130 0x8825 GPSInfo = 18576
+0000000130 0x8825 GPSInfo = 18612
 
 ---- Directory ExifIFD @ 234 ----
 0000000236 0x829a ExposureTime = 1/4000 (2.5E-4)
@@ -42,7 +42,7 @@ Little-endian (Intel, II)
 0000000500 0xa001 ColorSpace = 1
 0000000512 0xa002 ExifImageWidth = 2304
 0000000524 0xa003 ExifImageHeight = 1536
-0000000536 0xa005 InteropOffset = 18522
+0000000536 0xa005 InteropOffset = 18558
 0000000548 0xa20e FocalPlaneXResolution = 2304000/879 (2621.16041)
 0000000560 0xa20f FocalPlaneYResolution = 1536000/586 (2621.16041)
 0000000572 0xa210 FocalPlaneResolutionUnit = 2
@@ -59,26 +59,26 @@ Little-endian (Intel, II)
 0000000704 0xa434 LensModel = EF-M18-55mm f/3.5-5.6 IS STM
 0000000716 0xa435 LensSerialNumber = 0000455071
 
----- Directory InteropIFD @ 18522 ----
-0000018524 0x0001 InteroperabilityIndex = R98
-0000018536 0x0002 InteroperabilityVersion = [0x30, 0x31, 0x30, 0x30]
-0000018548 0x1001 RelatedImageWidth = 2304
-0000018560 0x1002 RelatedImageHeight = 1536
+---- Directory InteropIFD @ 18558 ----
+0000018560 0x0001 InteroperabilityIndex = R98
+0000018572 0x0002 InteroperabilityVersion = [0x30, 0x31, 0x30, 0x30]
+0000018584 0x1001 RelatedImageWidth = 2304
+0000018596 0x1002 RelatedImageHeight = 1536
 
----- Directory GPS @ 18576 ----
-0000018578 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000018590 0x0001 GPSLatitudeRef = N
-0000018602 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000018614 0x0003 GPSLongitudeRef = E
-0000018626 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 18612 ----
+0000018614 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000018626 0x0001 GPSLatitudeRef = N
+0000018638 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000018650 0x0003 GPSLongitudeRef = E
+0000018662 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory IFD1 @ 18690 ----
-0000018692 0x0103 Compression = 6
-0000018704 0x011a XResolution = 180/1 (180.0)
-0000018716 0x011b YResolution = 180/1 (180.0)
-0000018728 0x0128 ResolutionUnit = 2
-0000018740 0x0201 JpgFromRawStart = 18784
-0000018752 0x0202 JpgFromRawLength = 3209
+---- Directory IFD1 @ 18726 ----
+0000018728 0x0103 Compression = 6
+0000018740 0x011a XResolution = 180/1 (180.0)
+0000018752 0x011b YResolution = 180/1 (180.0)
+0000018764 0x0128 ResolutionUnit = 2
+0000018776 0x0201 JpgFromRawStart = 18820
+0000018788 0x0202 JpgFromRawLength = 3209
 
 ---- Directory MakerNoteCanon @ 864 ----
 0000000866 0x0001 CanonCameraSettings = [50 shorts]

@@ -14,7 +14,7 @@ Little-endian (Intel, II)
 0000000094 0x0132 ModifyDate = 2023:05:10 13:37:42
 0000000106 0x013b Artist = Alexander Andrews
 0000000118 0x8769 ExifOffset = 244
-0000000130 0x8825 GPSInfo = 10830
+0000000130 0x8825 GPSInfo = 910
 
 ---- Directory ExifIFD @ 244 ----
 0000000246 0x829a ExposureTime = 1/40 (0.025)
@@ -59,23 +59,23 @@ Little-endian (Intel, II)
 0000000714 0xa431 BodySerialNumber = 8020595
 0000000726 0xa432 LensSpecification = [700/10 (70.0), 2000/10 (200.0), 28/10 (2.8), 28/10 (2.8)]
 
----- Directory GPS @ 10830 ----
-0000010832 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000010844 0x0001 GPSLatitudeRef = N
-0000010856 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000010868 0x0003 GPSLongitudeRef = E
-0000010880 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 910 ----
+0000000912 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000000924 0x0001 GPSLatitudeRef = N
+0000000936 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000000948 0x0003 GPSLongitudeRef = E
+0000000960 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory IFD1 @ 910 ----
-0000000912 0x00fe NewSubfileType = 1
-0000000924 0x0100 ImageWidth = 174
-0000000936 0x0101 ImageHeight = 256
-0000000948 0x0102 BitsPerSample = [8, 8, 8]
-0000000960 0x0103 Compression = 6
-0000000972 0x0106 PhotometricInterpretation = 6
-0000000984 0x0115 SamplesPerPixel = 3
-0000000996 0x0201 JpgFromRawStart = 1030
-0000001008 0x0202 JpgFromRawLength = 9800
+---- Directory IFD1 @ 1024 ----
+0000001026 0x00fe NewSubfileType = 1
+0000001038 0x0100 ImageWidth = 174
+0000001050 0x0101 ImageHeight = 256
+0000001062 0x0102 BitsPerSample = [8, 8, 8]
+0000001074 0x0103 Compression = 6
+0000001086 0x0106 PhotometricInterpretation = 6
+0000001098 0x0115 SamplesPerPixel = 3
+0000001110 0x0201 JpgFromRawStart = 1144
+0000001122 0x0202 JpgFromRawLength = 9800
 
 ---- IPTC ----
 Keywords (25) = 'mammal'

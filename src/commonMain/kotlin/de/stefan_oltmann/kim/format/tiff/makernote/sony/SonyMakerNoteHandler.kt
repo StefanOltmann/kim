@@ -32,8 +32,8 @@ import de.stefan_oltmann.kim.input.skipBytes
  *
  * Like ExifTool, a block of the MakerNote that cannot be read is
  * skipped instead of rejecting the file: the MakerNote is kept as an
- * opaque binary block and survives the rewrite unchanged, because
- * TiffWriterLossless freezes the whole MakerNote field region.
+ * opaque binary block and survives the rewrite unchanged, because the
+ * writer keeps the whole MakerNote value at its original offset.
  */
 @Suppress("MagicNumber")
 internal object SonyMakerNoteHandler : MakerNoteHandler() {

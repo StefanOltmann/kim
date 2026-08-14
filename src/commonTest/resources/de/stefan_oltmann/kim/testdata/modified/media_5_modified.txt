@@ -13,7 +13,7 @@ Little-endian (Intel, II)
 0000000082 0x0131 Software = Adobe Photoshop Lightroom Classic 8.1 (Macintosh)
 0000000094 0x0132 ModifyDate = 2023:05:10 13:37:42
 0000000106 0x8769 ExifOffset = 236
-0000000118 0x8825 GPSInfo = 968
+0000000118 0x8825 GPSInfo = 874
 
 ---- Directory ExifIFD @ 236 ----
 0000000238 0x829a ExposureTime = 1/200 (0.005)
@@ -53,20 +53,20 @@ Little-endian (Intel, II)
 0000000646 0xa434 LensModel = XF90mmF2 R LM WR
 0000000658 0xa435 LensSerialNumber = 65B00914
 
----- Directory GPS @ 968 ----
-0000000970 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000000982 0x0001 GPSLatitudeRef = N
-0000000994 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000001006 0x0003 GPSLongitudeRef = E
-0000001018 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 874 ----
+0000000876 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000000888 0x0001 GPSLatitudeRef = N
+0000000900 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000000912 0x0003 GPSLongitudeRef = E
+0000000924 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory IFD1 @ 874 ----
-0000000876 0x0103 Compression = 6
-0000000888 0x011a XResolution = 72/1 (72.0)
-0000000900 0x011b YResolution = 72/1 (72.0)
-0000000912 0x0128 ResolutionUnit = 2
-0000000924 0x0201 JpgFromRawStart = 13484
-0000000936 0x0202 JpgFromRawLength = 12539
+---- Directory IFD1 @ 988 ----
+0000000990 0x0103 Compression = 6
+0000001002 0x011a XResolution = 72/1 (72.0)
+0000001014 0x011b YResolution = 72/1 (72.0)
+0000001026 0x0128 ResolutionUnit = 2
+0000001038 0x0201 JpgFromRawStart = 1082
+0000001050 0x0202 JpgFromRawLength = 12539
 
 ---- IPTC ----
 Keywords (25) = 'london'

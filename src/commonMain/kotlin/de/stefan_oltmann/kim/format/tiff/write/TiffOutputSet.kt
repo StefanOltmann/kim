@@ -62,7 +62,24 @@ public class TiffOutputSet(
         if (findDirectory(directory.type) != null)
             throw ImageWriteException("Output set already contains a directory of that type.")
 
-        directories.add(directory)
+        /*
+         * Sub-directories are inserted before the thumbnail directory, so
+         * the embedded thumbnail stays the last block of the EXIF data.
+         */
+        if (directory.type < 0) {
+
+            val thumbnailDirectoryIndex =
+                directories.indexOfFirst { it.type == TiffConstants.TIFF_DIRECTORY_TYPE_IFD1 }
+
+            if (thumbnailDirectoryIndex >= 0)
+                directories.add(thumbnailDirectoryIndex, directory)
+            else
+                directories.add(directory)
+
+        } else {
+
+            directories.add(directory)
+        }
 
         return directory
     }

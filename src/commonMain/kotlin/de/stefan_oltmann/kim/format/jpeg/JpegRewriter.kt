@@ -18,7 +18,6 @@
 package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.common.ImageWriteException
-import de.stefan_oltmann.kim.common.getRemainingBytes
 import de.stefan_oltmann.kim.common.toBytes
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcBlock
@@ -31,9 +30,7 @@ import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceImageData
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegmentExif
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
-import de.stefan_oltmann.kim.format.tiff.write.TiffWriterBase
-import de.stefan_oltmann.kim.format.tiff.write.TiffWriterLossless
-import de.stefan_oltmann.kim.format.tiff.write.TiffWriterLossy
+import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.copyRemainingTo
 import de.stefan_oltmann.kim.input.readRemainingBytes
@@ -89,7 +86,7 @@ public object JpegRewriter {
     }
 
     @JvmStatic
-    public fun updateExifMetadataLossless(
+    public fun updateExifMetadata(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
         outputSet: TiffOutputSet
@@ -99,39 +96,15 @@ public object JpegRewriter {
 
         writeSegments(
             byteWriter = byteWriter,
-            segments = replaceExifSegments(segments, createExifSegmentBytes(segments, outputSet))
+            segments = replaceExifSegments(segments, createExifSegmentBytes(outputSet))
         )
     }
 
     /**
      * Returns the payload of the new EXIF APP1 segment for the given output set.
-     *
-     * If the JPEG contains an EXIF segment already, its bytes are reused as the
-     * base of a lossless TIFF rewrite, otherwise a lossy writer is used.
      */
-    private fun createExifSegmentBytes(
-        segments: List<JFIFPiece>,
-        outputSet: TiffOutputSet
-    ): ByteArray {
-
-        val exifSegmentPieces =
-            segments.filterIsInstance<JFIFPieceSegment>().filter(JFIFPieceSegment::isExifSegment)
-
-        val writer: TiffWriterBase = if (exifSegmentPieces.isNotEmpty()) {
-
-            val exifPiece = exifSegmentPieces.first()
-
-            val exifBytes = exifPiece.segmentBytes.getRemainingBytes(JpegConstants.EXIF_IDENTIFIER_CODE.size)
-
-            TiffWriterLossless(outputSet.byteOrder, exifBytes)
-
-        } else {
-
-            TiffWriterLossy(outputSet.byteOrder)
-        }
-
-        return writeExifSegment(writer, outputSet)
-    }
+    private fun createExifSegmentBytes(outputSet: TiffOutputSet): ByteArray =
+        writeExifSegment(TiffWriter(outputSet.byteOrder), outputSet)
 
     /**
      * Removes all EXIF segments from the given segments and returns them with
@@ -196,7 +169,7 @@ public object JpegRewriter {
     }
 
     private fun writeExifSegment(
-        writer: TiffWriterBase,
+        writer: TiffWriter,
         outputSet: TiffOutputSet
     ): ByteArray {
 
@@ -349,7 +322,7 @@ public object JpegRewriter {
         if (outputSet != null)
             updatedSegments = replaceExifSegments(
                 updatedSegments,
-                createExifSegmentBytes(updatedSegments, outputSet)
+                createExifSegmentBytes(outputSet)
             )
 
         if (iptc != null) {

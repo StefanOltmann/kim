@@ -17,7 +17,7 @@ Little-endian (Intel, II)
 0000000130 0x0213 YCbCrPositioning = 2
 0000000142 0x8298 Copyright = Fleur Hocking
 0000000154 0x8769 ExifOffset = 892
-0000000166 0x8825 GPSInfo = 13400
+0000000166 0x8825 GPSInfo = 13500
 0000000178 0xc4a5 PrintIM = [528 bytes]
 
 ---- Directory ExifIFD @ 892 ----
@@ -41,7 +41,7 @@ Little-endian (Intel, II)
 0000001098 0xa001 ColorSpace = 1
 0000001110 0xa002 ExifImageWidth = 4608
 0000001122 0xa003 ExifImageHeight = 3456
-0000001134 0xa005 InteropOffset = 1444
+0000001134 0xa005 InteropOffset = 13470
 0000001146 0xa300 FileSource = 3
 0000001158 0xa401 CustomRendered = 0
 0000001170 0xa402 ExposureMode = 1
@@ -55,24 +55,24 @@ Little-endian (Intel, II)
 0000001266 0xa432 LensSpecification = [40/1 (40.0), 150/1 (150.0), 40/10 (4.0), 56/10 (5.6)]
 0000001278 0xa434 LensModel = OLYMPUS M.40-150mm F4.0-5.6 R
 
----- Directory InteropIFD @ 1444 ----
-0000001446 0x0001 InteroperabilityIndex = R98
-0000001458 0x0002 InteroperabilityVersion = [0x30, 0x31, 0x30, 0x30]
+---- Directory InteropIFD @ 13470 ----
+0000013472 0x0001 InteroperabilityIndex = R98
+0000013484 0x0002 InteroperabilityVersion = [0x30, 0x31, 0x30, 0x30]
 
----- Directory GPS @ 13400 ----
-0000013402 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000013414 0x0001 GPSLatitudeRef = N
-0000013426 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000013438 0x0003 GPSLongitudeRef = E
-0000013450 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 13500 ----
+0000013502 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000013514 0x0001 GPSLatitudeRef = N
+0000013526 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000013538 0x0003 GPSLongitudeRef = E
+0000013550 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory IFD1 @ 13514 ----
-0000013516 0x0103 Compression = 6
-0000013528 0x011a XResolution = 72/1 (72.0)
-0000013540 0x011b YResolution = 72/1 (72.0)
-0000013552 0x0128 ResolutionUnit = 2
-0000013564 0x0201 JpgFromRawStart = 13600
-0000013576 0x0202 JpgFromRawLength = 9032
+---- Directory IFD1 @ 13614 ----
+0000013616 0x0103 Compression = 6
+0000013628 0x011a XResolution = 72/1 (72.0)
+0000013640 0x011b YResolution = 72/1 (72.0)
+0000013652 0x0128 ResolutionUnit = 2
+0000013664 0x0201 JpgFromRawStart = 13708
+0000013676 0x0202 JpgFromRawLength = 9032
 
 ---- Directory MakerNoteOlympus @ 1498 ----
 0000001500 0x0200 SpecialMode = [0, 0, 0]

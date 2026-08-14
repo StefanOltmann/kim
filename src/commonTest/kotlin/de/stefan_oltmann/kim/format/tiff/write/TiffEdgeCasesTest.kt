@@ -39,7 +39,7 @@ import kotlin.test.assertFailsWith
 class TiffEdgeCasesTest {
 
     private fun write(outputSet: TiffOutputSet) {
-        TiffWriterLossy(ByteOrder.LITTLE_ENDIAN).write(
+        TiffWriter(ByteOrder.LITTLE_ENDIAN).write(
             ByteArrayByteWriter(),
             outputSet
         )

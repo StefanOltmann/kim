@@ -20,7 +20,7 @@ import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.common.writeBytes
 import de.stefan_oltmann.kim.format.tiff.constant.GeoTiffTag
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
-import de.stefan_oltmann.kim.format.tiff.write.TiffWriterLossy
+import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlinx.io.files.Path
@@ -64,7 +64,7 @@ class GeoTiffUpdateTest {
 
         val byteWriter = ByteArrayByteWriter()
 
-        val writer = TiffWriterLossy(outputSet.byteOrder)
+        val writer = TiffWriter(outputSet.byteOrder)
 
         writer.write(
             byteWriter = byteWriter,

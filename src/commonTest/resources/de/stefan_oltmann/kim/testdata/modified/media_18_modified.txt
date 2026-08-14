@@ -17,7 +17,7 @@ Little-endian (Intel, II)
 0000000130 0x0211 YCbCrCoefficients = [299/1000 (0.299), 587/1000 (0.587), 114/1000 (0.114)]
 0000000142 0x0213 YCbCrPositioning = 2
 0000000154 0x8769 ExifOffset = 340
-0000000166 0x8825 GPSInfo = 8796
+0000000166 0x8825 GPSInfo = 8734
 
 ---- Directory ExifIFD @ 340 ----
 0000000342 0x829a ExposureTime = 1/640 (0.001563)
@@ -44,7 +44,7 @@ Little-endian (Intel, II)
 0000000594 0xa001 ColorSpace = -1
 0000000606 0xa002 ExifImageWidth = 3456
 0000000618 0xa003 ExifImageHeight = 2304
-0000000630 0xa005 InteropOffset = 8696
+0000000630 0xa005 InteropOffset = 8704
 0000000642 0xa20e FocalPlaneXResolution = 3456000/905 (3818.78453)
 0000000654 0xa20f FocalPlaneYResolution = 2304000/595 (3872.268908)
 0000000666 0xa210 FocalPlaneResolutionUnit = 2
@@ -59,22 +59,22 @@ Little-endian (Intel, II)
 0000000774 0xa435 LensSerialNumber = 00004d77bd
 0000000786 0xa500 Gamma = 22/10 (2.2)
 
----- Directory InteropIFD @ 8696 ----
-0000008698 0x0001 InteroperabilityIndex = R03
-0000008710 0x0002 InteroperabilityVersion = [0x30, 0x31, 0x30, 0x30]
+---- Directory InteropIFD @ 8704 ----
+0000008706 0x0001 InteroperabilityIndex = R03
+0000008718 0x0002 InteroperabilityVersion = [0x30, 0x31, 0x30, 0x30]
 
----- Directory GPS @ 8796 ----
-0000008798 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000008810 0x0001 GPSLatitudeRef = N
-0000008822 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000008834 0x0003 GPSLongitudeRef = E
-0000008846 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 8734 ----
+0000008736 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000008748 0x0001 GPSLatitudeRef = N
+0000008760 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000008772 0x0003 GPSLongitudeRef = E
+0000008784 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory IFD1 @ 8726 ----
-0000008728 0x0103 Compression = 6
-0000008740 0x011a XResolution = 72/1 (72.0)
-0000008752 0x011b YResolution = 72/1 (72.0)
-0000008764 0x0128 ResolutionUnit = 2
+---- Directory IFD1 @ 8848 ----
+0000008850 0x0103 Compression = 6
+0000008862 0x011a XResolution = 72/1 (72.0)
+0000008874 0x011b YResolution = 72/1 (72.0)
+0000008886 0x0128 ResolutionUnit = 2
 
 ---- Directory MakerNoteCanon @ 902 ----
 0000000904 0x0001 CanonCameraSettings = [49 shorts]

@@ -4,17 +4,17 @@ Resolution  : null
 Version 42
 Big-endian (Motorola, MM)
 ---- Directory IFD0 @ 8 ----
-0000000010 0x8769 ExifOffset = 40
-0000000022 0x8825 GPSInfo = 48
+0000000010 0x8769 ExifOffset = 38
+0000000022 0x8825 GPSInfo = 44
 
----- Directory ExifIFD @ 40 ----
+---- Directory ExifIFD @ 38 ----
 
----- Directory GPS @ 48 ----
-0000000050 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000000062 0x0001 GPSLatitudeRef = N
-0000000074 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000000086 0x0003 GPSLongitudeRef = E
-0000000098 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 44 ----
+0000000046 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000000058 0x0001 GPSLatitudeRef = N
+0000000070 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000000082 0x0003 GPSLongitudeRef = E
+0000000094 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

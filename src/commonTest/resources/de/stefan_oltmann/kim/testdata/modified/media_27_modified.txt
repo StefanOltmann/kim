@@ -55,7 +55,7 @@ Little-endian (Intel, II)
 0000000872 0x011a XResolution = 72/1 (72.0)
 0000000884 0x011b YResolution = 72/1 (72.0)
 0000000896 0x0128 ResolutionUnit = 2
-0000000908 0x0201 JpgFromRawStart = 10626
+0000000908 0x0201 JpgFromRawStart = 952
 0000000920 0x0202 JpgFromRawLength = 9685
 
 ---- IPTC ----

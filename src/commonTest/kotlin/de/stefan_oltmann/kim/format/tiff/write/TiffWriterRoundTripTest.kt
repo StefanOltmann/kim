@@ -164,7 +164,7 @@ class TiffWriterRoundTripTest {
 
         val byteWriter = ByteArrayByteWriter()
 
-        TiffWriterLossy(ByteOrder.LITTLE_ENDIAN).write(byteWriter, outputSet)
+        TiffWriter(ByteOrder.LITTLE_ENDIAN).write(byteWriter, outputSet)
 
         val writtenBytes = byteWriter.toByteArray()
 
@@ -297,7 +297,7 @@ class TiffWriterRoundTripTest {
 
         val byteWriter = ByteArrayByteWriter()
 
-        TiffWriterLossy(ByteOrder.LITTLE_ENDIAN).write(byteWriter, outputSet)
+        TiffWriter(ByteOrder.LITTLE_ENDIAN).write(byteWriter, outputSet)
 
         val writtenBytes = byteWriter.toByteArray()
 
@@ -327,7 +327,7 @@ class TiffWriterRoundTripTest {
 
         val byteWriter = ByteArrayByteWriter()
 
-        TiffWriterLossy(ByteOrder.BIG_ENDIAN).write(byteWriter, outputSet)
+        TiffWriter(ByteOrder.BIG_ENDIAN).write(byteWriter, outputSet)
 
         val writtenBytes = byteWriter.toByteArray()
 
@@ -347,6 +347,37 @@ class TiffWriterRoundTripTest {
     }
 
     @Test
+    fun testThumbnailIsWrittenBehindAddedSubDirectories() {
+
+        val outputSet = TiffOutputSet()
+
+        outputSet.addRootDirectory()
+        outputSet.addExifDirectory()
+
+        outputSet.setThumbnailBytes(ByteArray(64))
+
+        /* The GPS directory is added after the thumbnail, but must still be written before it. */
+        outputSet.addGPSDirectory()
+
+        val byteWriter = ByteArrayByteWriter()
+
+        TiffWriter(ByteOrder.LITTLE_ENDIAN).write(byteWriter, outputSet)
+
+        val contents = TiffReader.read(byteWriter.toByteArray())
+
+        val gpsDirectory = contents.findTiffDirectory(TiffConstants.TIFF_DIRECTORY_GPS)
+        val thumbnailDirectory = contents.findTiffDirectory(TiffConstants.TIFF_DIRECTORY_TYPE_IFD1)
+
+        assertNotNull(gpsDirectory)
+        assertNotNull(thumbnailDirectory)
+
+        assertTrue(
+            gpsDirectory.offset < thumbnailDirectory.offset,
+            "The GPS directory must be written before the thumbnail directory."
+        )
+    }
+
+    @Test
     fun testCreateOutputSetFromExistingFile() {
 
         val bytes = Resource("de/stefan_oltmann/kim/updates_tif/empty.tif").readBytes()
@@ -361,7 +392,7 @@ class TiffWriterRoundTripTest {
 
         val byteWriter = ByteArrayByteWriter()
 
-        TiffWriterLossy(outputSet.byteOrder).write(byteWriter, outputSet)
+        TiffWriter(outputSet.byteOrder).write(byteWriter, outputSet)
 
         val writtenBytes = byteWriter.toByteArray()
 
@@ -374,20 +405,6 @@ class TiffWriterRoundTripTest {
             expected = "Modified",
             actual = readRootDirectory.findField(TiffTag.TIFF_TAG_IMAGE_DESCRIPTION)?.value
         )
-    }
-
-    @Test
-    fun testCreateTiffWriterChoosesLosslessForExistingData() {
-
-        val bytes = Resource("de/stefan_oltmann/kim/updates_tif/empty.tif").readBytes()
-
-        val writer = TiffWriterBase.createTiffWriter(ByteOrder.LITTLE_ENDIAN, bytes)
-
-        assertTrue(writer is TiffWriterLossless)
-
-        val lossyWriter = TiffWriterBase.createTiffWriter(ByteOrder.LITTLE_ENDIAN, null)
-
-        assertTrue(lossyWriter is TiffWriterLossy)
     }
 
     @Test
@@ -513,7 +530,7 @@ class TiffWriterRoundTripTest {
         val byteWriter = ByteArrayByteWriter()
 
         assertFailsWith<ImageWriteException> {
-            TiffWriterLossy(ByteOrder.LITTLE_ENDIAN).write(byteWriter, outputSet)
+            TiffWriter(ByteOrder.LITTLE_ENDIAN).write(byteWriter, outputSet)
         }
     }
 
@@ -527,7 +544,7 @@ class TiffWriterRoundTripTest {
         val byteWriter = ByteArrayByteWriter()
 
         assertFailsWith<ImageWriteException> {
-            TiffWriterLossy(ByteOrder.LITTLE_ENDIAN).write(byteWriter, outputSet)
+            TiffWriter(ByteOrder.LITTLE_ENDIAN).write(byteWriter, outputSet)
         }
     }
 
@@ -543,7 +560,7 @@ class TiffWriterRoundTripTest {
 
         val byteWriter = ByteArrayByteWriter()
 
-        TiffWriterLossy(outputSet.byteOrder).write(byteWriter, outputSet)
+        TiffWriter(outputSet.byteOrder).write(byteWriter, outputSet)
 
         val writtenBytes = byteWriter.toByteArray()
 

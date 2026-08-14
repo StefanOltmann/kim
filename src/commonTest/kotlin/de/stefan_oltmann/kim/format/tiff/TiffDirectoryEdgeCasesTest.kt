@@ -24,7 +24,7 @@ import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeByte
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeShort
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
-import de.stefan_oltmann.kim.format.tiff.write.TiffWriterLossy
+import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
@@ -207,7 +207,7 @@ class TiffDirectoryEdgeCasesTest {
 
         val byteWriter = ByteArrayByteWriter()
 
-        TiffWriterLossy(ByteOrder.BIG_ENDIAN).write(byteWriter, outputSet)
+        TiffWriter(ByteOrder.BIG_ENDIAN).write(byteWriter, outputSet)
 
         val metadata = TiffImageParser.parseMetadata(
             ByteArrayByteReader(byteWriter.toByteArray())

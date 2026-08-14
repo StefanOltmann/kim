@@ -16,7 +16,7 @@ Little-endian (Intel, II)
 0000000118 0x0213 YCbCrPositioning = 2
 0000000130 0x8298 Copyright = Stefan Oltmann
 0000000142 0x8769 ExifOffset = 400
-0000000154 0x8825 GPSInfo = 1298
+0000000154 0x8825 GPSInfo = 3486
 0000000166 0xc4a5 PrintIM = [106 bytes]
 
 ---- Directory ExifIFD @ 400 ----
@@ -44,7 +44,7 @@ Little-endian (Intel, II)
 0000000654 0xa001 ColorSpace = 1
 0000000666 0xa002 ExifImageWidth = 6240
 0000000678 0xa003 ExifImageHeight = 4160
-0000000690 0xa005 InteropOffset = 1122
+0000000690 0xa005 InteropOffset = 3456
 0000000702 0xa20e FocalPlaneXResolution = 2660/1 (2660.0)
 0000000714 0xa20f FocalPlaneYResolution = 2660/1 (2660.0)
 0000000726 0xa210 FocalPlaneResolutionUnit = 3
@@ -64,27 +64,27 @@ Little-endian (Intel, II)
 0000000894 0xa434 LensModel = XC35mmF2
 0000000906 0xa435 LensSerialNumber = 0AA16656
 
----- Directory InteropIFD @ 1122 ----
-0000001124 0x0001 InteroperabilityIndex = R98
-0000001136 0x0002 InteroperabilityVersion = [0x30, 0x31, 0x30, 0x30]
+---- Directory InteropIFD @ 3456 ----
+0000003458 0x0001 InteroperabilityIndex = R98
+0000003470 0x0002 InteroperabilityVersion = [0x30, 0x31, 0x30, 0x30]
 
----- Directory GPS @ 1298 ----
-0000001300 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000001312 0x0001 GPSLatitudeRef = N
-0000001324 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000001336 0x0003 GPSLongitudeRef = E
-0000001348 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 3486 ----
+0000003488 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000003500 0x0001 GPSLatitudeRef = N
+0000003512 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000003524 0x0003 GPSLongitudeRef = E
+0000003536 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory IFD1 @ 1152 ----
-0000001154 0x0103 Compression = 6
-0000001166 0x0112 Orientation = 1
-0000001178 0x011a XResolution = 72/1 (72.0)
-0000001190 0x011b YResolution = 72/1 (72.0)
-0000001202 0x0128 ResolutionUnit = 2
-0000001214 0x013b Artist = Stefan Oltmann
-0000001226 0x0201 JpgFromRawStart = 3796
-0000001238 0x0202 JpgFromRawLength = 9359
-0000001250 0x0213 YCbCrPositioning = 2
+---- Directory IFD1 @ 3600 ----
+0000003602 0x0103 Compression = 6
+0000003614 0x0112 Orientation = 1
+0000003626 0x011a XResolution = 72/1 (72.0)
+0000003638 0x011b YResolution = 72/1 (72.0)
+0000003650 0x0128 ResolutionUnit = 2
+0000003662 0x013b Artist = Stefan Oltmann
+0000003674 0x0201 JpgFromRawStart = 3746
+0000003686 0x0202 JpgFromRawLength = 9359
+0000003698 0x0213 YCbCrPositioning = 2
 
 ---- Directory MakerNoteFujiFilm @ 2188 ----
 0000002190 0x0000 Version = [0x30, 0x31, 0x33, 0x30]

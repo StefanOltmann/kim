@@ -15,7 +15,7 @@ Little-endian (Intel, II)
 0000000106 0x0213 YCbCrPositioning = 1
 0000000118 0x0214 ReferenceBlackWhite = [0/1 (0.0), 255/1 (255.0), 0/1 (0.0), 255/1 (255.0), 0/1 (0.0), 255/1 (255.0)]
 0000000130 0x8769 ExifOffset = 286
-0000000142 0x8825 GPSInfo = 12716
+0000000142 0x8825 GPSInfo = 12724
 
 ---- Directory ExifIFD @ 286 ----
 0000000288 0x829a ExposureTime = 1/40 (0.025)
@@ -56,12 +56,12 @@ Little-endian (Intel, II)
 0000000708 0xa40a Sharpness = 0
 0000000720 0xa40c SubjectDistanceRange = 0
 
----- Directory GPS @ 12716 ----
-0000012718 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000012730 0x0001 GPSLatitudeRef = N
-0000012742 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000012754 0x0003 GPSLongitudeRef = E
-0000012766 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 12724 ----
+0000012726 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000012738 0x0001 GPSLatitudeRef = N
+0000012750 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000012762 0x0003 GPSLongitudeRef = E
+0000012774 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
 ---- Directory MakerNoteNikon @ 848 ----
 0000000850 0x0001 MakerNoteVersion = [0x30, 0x32, 0x31, 0x30]
