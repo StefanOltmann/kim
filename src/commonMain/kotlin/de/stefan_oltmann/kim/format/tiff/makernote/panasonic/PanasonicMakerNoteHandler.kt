@@ -79,7 +79,6 @@ internal object PanasonicMakerNoteHandler : MakerNoteHandler() {
 
             readMakerNoteBlobSubDirectories(
                 directory = directory,
-                valueOffsetBase = 0,
                 byteOrder = ByteOrder.LITTLE_ENDIAN,
                 blobPointers = BLOB_POINTERS,
                 addDirectory = addDirectory

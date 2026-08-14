@@ -261,16 +261,16 @@ Little-endian (Intel, II)
 0000018154 0x0001 AmbienceSelection = 0
 
 ---- Directory MakerNoteCanonFilterInfo @ 18194 ----
-0000000028 0x0101 GrainyBWFilter = -1
-0000000052 0x0201 SoftFocusFilter = -1
-0000000076 0x0301 ToyCameraFilter = -1
-0000000100 0x0401 MiniatureFilter = -1
-0000000112 0x0402 MiniatureFilterOrientation = -1
-0000000124 0x0403 MiniatureFilterPosition = -1
-0000000136 0x0404 MiniatureFilterParameter = -1
-0000000160 0x0501 FisheyeFilter = -1
-0000000184 0x0601 PaintingFilter = -1
-0000000208 0x0701 WatercolorFilter = -1
+0000018222 0x0101 GrainyBWFilter = -1
+0000018246 0x0201 SoftFocusFilter = -1
+0000018270 0x0301 ToyCameraFilter = -1
+0000018294 0x0401 MiniatureFilter = -1
+0000018306 0x0402 MiniatureFilterOrientation = -1
+0000018318 0x0403 MiniatureFilterPosition = -1
+0000018330 0x0404 MiniatureFilterParameter = -1
+0000018354 0x0501 FisheyeFilter = -1
+0000018378 0x0601 PaintingFilter = -1
+0000018402 0x0701 WatercolorFilter = -1
 
 ---- IPTC ----
 Caption/Abstract (120) = 'time lapse photography of fire'

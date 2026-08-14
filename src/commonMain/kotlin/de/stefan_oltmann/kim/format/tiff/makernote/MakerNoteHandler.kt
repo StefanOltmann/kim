@@ -19,6 +19,7 @@ import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.format.tiff.TiffDirectory
 import de.stefan_oltmann.kim.format.tiff.TiffField
 import de.stefan_oltmann.kim.format.tiff.TiffReader
+import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.makernote.nikon.NikonDecryptor
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.input.RandomAccessByteReader
@@ -49,9 +50,9 @@ internal open class MakerNoteHandler {
     /**
      * Reads the IFD of a MakerNote at the given offset.
      *
-     * The value offsets inside MakerNotes are usually relative to the
-     * beginning of the MakerNote data, so they are resolved via the
-     * given [valueOffsetBase].
+     * The [valueOffsetBase] resolves the MakerNote value offsets
+     * against the start of the TIFF bytes, so the stored fields always
+     * carry absolute offsets.
      */
     protected fun readMakerNoteDirectory(
         byteReader: RandomAccessByteReader,
@@ -175,7 +176,6 @@ internal open class MakerNoteHandler {
      */
     protected fun readMakerNoteBlobSubDirectories(
         directory: TiffDirectory,
-        valueOffsetBase: Int,
         byteOrder: ByteOrder,
         blobPointers: List<MakerNoteBlobPointer>,
         addDirectory: (TiffDirectory) -> Unit,
@@ -217,7 +217,7 @@ internal open class MakerNoteHandler {
 
                 val subDirectory = readMakerNoteBlobSubDirectory(
                     blobBytes = blobBytes,
-                    blobOffset = valueOffsetBase + (field.valueOffset ?: 0),
+                    blobOffset = getAbsoluteValueOffset(field),
                     blobLength = blobLength,
                     byteOrder = byteOrder,
                     directoryType = effectivePointer.directoryType,
@@ -232,7 +232,6 @@ internal open class MakerNoteHandler {
                 readNestedMakerNoteBlobSubDirectories(
                     parentDirectory = subDirectory,
                     parentBlobBytes = blobBytes,
-                    valueOffsetBase = valueOffsetBase,
                     byteOrder = byteOrder,
                     nestedBlobPointers = effectivePointer.nestedBlobPointers,
                     addDirectory = addDirectory
@@ -261,7 +260,6 @@ internal open class MakerNoteHandler {
     private fun readNestedMakerNoteBlobSubDirectories(
         parentDirectory: TiffDirectory,
         parentBlobBytes: ByteArray,
-        valueOffsetBase: Int,
         byteOrder: ByteOrder,
         nestedBlobPointers: List<MakerNoteBlobPointer>,
         addDirectory: (TiffDirectory) -> Unit
@@ -287,7 +285,8 @@ internal open class MakerNoteHandler {
 
                 readMakerNoteBlobSubDirectory(
                     blobBytes = nestedBlobBytes,
-                    blobOffset = valueOffsetBase + (field?.valueOffset ?: 0),
+                    blobOffset = field?.let { getAbsoluteValueOffset(it) }
+                        ?: parentDirectory.offset + nestedPointer.tagId,
                     blobLength = nestedBlobLength,
                     byteOrder = byteOrder,
                     directoryType = nestedPointer.directoryType,
@@ -377,6 +376,14 @@ internal open class MakerNoteHandler {
 
         return directory
     }
+
+    /**
+     * Returns the absolute offset of the value bytes of the given
+     * field within the TIFF data, which is the in-entry value slot
+     * when the value is stored locally.
+     */
+    protected fun getAbsoluteValueOffset(field: TiffField): Int =
+        field.valueOffset ?: field.offset + TiffConstants.TIFF_ENTRY_VALUE_OFFSET
 
     /**
      * Reads a 16-bit integer from the given position.

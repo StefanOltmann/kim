@@ -156,26 +156,26 @@ Little-endian (Intel, II)
 0000002982 0x4100 FacesDetected = 0
 0000002994 0x4200 NumFaceElements = 0
 
----- Directory MakerNoteFujiFilmPrioritySettings @ 0 ----
-0000000000 0x0000 AF-SPriority = 2
-0000000000 0x0000 AF-CPriority = 1
+---- Directory MakerNoteFujiFilmPrioritySettings @ 2414 ----
+0000002414 0x0000 AF-SPriority = 2
+0000002414 0x0000 AF-CPriority = 1
 
----- Directory MakerNoteFujiFilmFocusSettings @ 0 ----
-0000000000 0x0000 FocusMode2 = 2
-0000000000 0x0000 PreAF = 1
-0000000000 0x0000 AFAreaMode = 0
-0000000000 0x0000 AFAreaPointSize = 0
-0000000000 0x0000 AFAreaZoneSize = 0
+---- Directory MakerNoteFujiFilmFocusSettings @ 2438 ----
+0000002438 0x0000 FocusMode2 = 2
+0000002438 0x0000 PreAF = 1
+0000002438 0x0000 AFAreaMode = 0
+0000002438 0x0000 AFAreaPointSize = 0
+0000002438 0x0000 AFAreaZoneSize = 0
 
----- Directory MakerNoteFujiFilmAFCSettings @ 0 ----
-0000000000 0x0000 AF-CSetting = 258
-0000000000 0x0000 AF-CTrackingSensitivity = 2
-0000000000 0x0000 AF-CSpeedTrackingSensitivity = 0
-0000000000 0x0000 AF-CZoneAreaSwitching = 1
+---- Directory MakerNoteFujiFilmAFCSettings @ 2450 ----
+0000002450 0x0000 AF-CSetting = 258
+0000002450 0x0000 AF-CTrackingSensitivity = 2
+0000002450 0x0000 AF-CSpeedTrackingSensitivity = 0
+0000002450 0x0000 AF-CZoneAreaSwitching = 1
 
----- Directory MakerNoteFujiFilmDriveSettings @ 0 ----
-0000000000 0x0000 DriveMode = 1
-0000000000 0x0000 DriveSpeed = 0
+---- Directory MakerNoteFujiFilmDriveSettings @ 2642 ----
+0000002642 0x0000 DriveMode = 1
+0000002642 0x0000 DriveSpeed = 0
 
 ---- IPTC ----
 Keywords (25) = 'Umlauts: äöüß'

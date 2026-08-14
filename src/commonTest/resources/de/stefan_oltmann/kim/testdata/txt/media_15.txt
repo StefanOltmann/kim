@@ -173,10 +173,10 @@ Big-endian (Motorola, MM)
 0000004062 0x0040 ToningEffect = -1
 0000004063 0x0041 ToningSaturation = -1
 
----- Directory MakerNoteNikonWorldTime @ 3122 ----
-0000003122 0x0000 TimeZone = 60
-0000003124 0x0002 DaylightSavings = 1
-0000003125 0x0003 DateDisplayFormat = 2
+---- Directory MakerNoteNikonWorldTime @ 3404 ----
+0000003404 0x0000 TimeZone = 60
+0000003406 0x0002 DaylightSavings = 1
+0000003407 0x0003 DateDisplayFormat = 2
 
 ---- Directory MakerNoteNikonISOInfo @ 4066 ----
 0000004066 0x0000 ISO = 118

@@ -186,10 +186,10 @@ Big-endian (Motorola, MM)
 0000001940 0x0038 ToningEffect = -1
 0000001941 0x0039 ToningSaturation = -1
 
----- Directory MakerNoteNikonWorldTime @ 1034 ----
-0000001034 0x0000 TimeZone = 120
-0000001036 0x0002 DaylightSavings = 1
-0000001037 0x0003 DateDisplayFormat = 2
+---- Directory MakerNoteNikonWorldTime @ 1340 ----
+0000001340 0x0000 TimeZone = 120
+0000001342 0x0002 DaylightSavings = 1
+0000001343 0x0003 DateDisplayFormat = 2
 
 ---- Directory MakerNoteNikonISOInfo @ 1944 ----
 0000001944 0x0000 ISO = 72
@@ -207,23 +207,23 @@ Big-endian (Motorola, MM)
 0000003981 0x0321 ShutterCount = 250
 0000004211 0x0407 CustomSettingsD5100 = [34 bytes]
 
----- Directory MakerNoteNikonCustomSettings @ 5245 ----
-0000005245 0x0000 AF-CPrioritySelection = -125
-0000005246 0x0001 AFAssist = 96
-0000005248 0x0003 Beep = -114
-0000005249 0x0004 FileNumberSequence = 12
-0000005250 0x0005 RangeFinder = 0
-0000005251 0x0006 EVStepSize = 0
-0000005255 0x000a ExposureDelayMode = 3
-0000005257 0x000c AutoBracketSet = 32
-0000005258 0x000d TimerFunctionButton = 0
-0000005261 0x0010 AELockButton = 0
-0000005262 0x0011 ShutterReleaseButtonAE-L = 8
-0000005263 0x0012 MeteringTime = 16
-0000005264 0x0013 SelfTimerTime = -127
-0000005265 0x0014 ImageReviewTime = 0
-0000005266 0x0015 PlaybackMenusTime = 68
-0000005268 0x0017 InternalFlash = 0
+---- Directory MakerNoteNikonCustomSettings @ 4211 ----
+0000004211 0x0000 AF-CPrioritySelection = -125
+0000004212 0x0001 AFAssist = 96
+0000004214 0x0003 Beep = -114
+0000004215 0x0004 FileNumberSequence = 12
+0000004216 0x0005 RangeFinder = 0
+0000004217 0x0006 EVStepSize = 0
+0000004221 0x000a ExposureDelayMode = 3
+0000004223 0x000c AutoBracketSet = 32
+0000004224 0x000d TimerFunctionButton = 0
+0000004227 0x0010 AELockButton = 0
+0000004228 0x0011 ShutterReleaseButtonAE-L = 8
+0000004229 0x0012 MeteringTime = 16
+0000004230 0x0013 SelfTimerTime = -127
+0000004231 0x0014 ImageReviewTime = 0
+0000004232 0x0015 PlaybackMenusTime = 68
+0000004234 0x0017 InternalFlash = 0
 
 ---- Directory MakerNoteNikonColorBalance @ 12716 ----
 0000013004 0x0000 WB_GRBGLevels = [256, 541, 340, 256]

@@ -375,6 +375,14 @@ public object TiffReader {
         else
             directoryTypeMap.getValue(offsetField)
 
+    /**
+     * Reads the fields of one TIFF directory.
+     *
+     * The stored value offsets are absolute, resolved against the
+     * start of the TIFF bytes via the [valueOffsetBase] that the
+     * directory's offsets live in, so consumers can use them without
+     * per-directory knowledge of that base.
+     */
     private fun readTiffFields(
         byteReader: RandomAccessByteReader,
         fieldsOffset: Int,
@@ -489,7 +497,7 @@ public object TiffReader {
                     fieldType = fieldType,
                     count = count,
                     localValue = if (isLocalValue) valueOrOffset else null,
-                    valueOffset = if (!isLocalValue) valueOrOffset else null,
+                    valueOffset = if (!isLocalValue) valueOffsetBase + valueOrOffset else null,
                     valueBytes = valueBytes,
                     byteOrder = byteOrder,
                     sortHint = entryIndex
@@ -692,11 +700,10 @@ public object TiffReader {
     }
 
     /**
-     * Reads the IFD of a MakerNote at the given offset.
+     * Parses the GeoTIFF directory from the GeoKeyDirectory tag of the
+     * given directories, or returns null when the tag is missing.
      *
-     * The value offsets inside MakerNotes are usually relative to the
-     * beginning of the MakerNote data, so they are resolved via the
-     * given [valueOffsetBase].
+     * Failures are silent, because GeoTIFF interpretation is optional.
      */
     private fun tryToParseGeoTiff(
         directories: MutableList<TiffDirectory>

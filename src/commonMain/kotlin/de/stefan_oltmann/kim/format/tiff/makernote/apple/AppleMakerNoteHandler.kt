@@ -69,7 +69,6 @@ internal object AppleMakerNoteHandler : MakerNoteHandler() {
 
             readRunTime(
                 directory = directory,
-                valueOffsetBase = makerNoteValueOffset,
                 byteOrder = byteOrder,
                 addDirectory = addDirectory
             )
@@ -84,7 +83,6 @@ internal object AppleMakerNoteHandler : MakerNoteHandler() {
      */
     private fun readRunTime(
         directory: TiffDirectory,
-        valueOffsetBase: Int,
         byteOrder: ByteOrder,
         addDirectory: (TiffDirectory) -> Unit
     ) {
@@ -189,15 +187,17 @@ internal object AppleMakerNoteHandler : MakerNoteHandler() {
 
             val valueBytes = readInt(valueOffset, byteCount)
 
+            val absoluteOffset = getAbsoluteValueOffset(field)
+
             fields.add(
                 TiffField(
-                    offset = valueOffsetBase + (field.valueOffset ?: 0),
+                    offset = absoluteOffset,
                     tag = index + 1,
                     directoryType = TIFF_MAKER_NOTE_APPLE_RUN_TIME,
                     fieldType = FieldTypeInt64,
                     count = 1,
                     localValue = null,
-                    valueOffset = valueOffsetBase + (field.valueOffset ?: 0),
+                    valueOffset = absoluteOffset,
                     valueBytes = valueBytes,
                     byteOrder = byteOrder,
                     sortHint = index
@@ -212,7 +212,7 @@ internal object AppleMakerNoteHandler : MakerNoteHandler() {
             TiffDirectory(
                 type = TIFF_MAKER_NOTE_APPLE_RUN_TIME,
                 entries = fields,
-                offset = valueOffsetBase + (field.valueOffset ?: 0),
+                offset = getAbsoluteValueOffset(field),
                 nextDirectoryOffset = 0,
                 byteOrder = byteOrder
             )

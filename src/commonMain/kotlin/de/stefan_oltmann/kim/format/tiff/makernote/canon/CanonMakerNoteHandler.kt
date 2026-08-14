@@ -243,7 +243,6 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
 
         readMakerNoteBlobSubDirectories(
             directory = directory,
-            valueOffsetBase = 0,
             byteOrder = byteOrder,
             blobPointers = BLOB_POINTERS,
             addDirectory = addDirectory,
@@ -252,14 +251,12 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
 
         readFilterInfo(
             directory = directory,
-            valueOffsetBase = 0,
             byteOrder = byteOrder,
             addDirectory = addDirectory
         )
 
         readCustomFunctions(
             directory = directory,
-            valueOffsetBase = 0,
             byteOrder = byteOrder,
             addDirectory = addDirectory
         )
@@ -332,12 +329,13 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
      */
     private fun readCustomFunctions(
         directory: TiffDirectory,
-        valueOffsetBase: Int,
         byteOrder: ByteOrder,
         addDirectory: (TiffDirectory) -> Unit
     ) {
 
         val field = directory.entries.find { it.tag == 0x000f } ?: return
+
+        val blobOffset = getAbsoluteValueOffset(field)
 
         val blob = field.valueBytes
 
@@ -387,13 +385,13 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
 
                 fields.add(
                     TiffField(
-                        offset = valueOffsetBase + pos - valueLength,
+                        offset = blobOffset + pos - valueLength,
                         tag = tag,
                         directoryType = TIFF_MAKER_NOTE_CANON_CUSTOM_FUNCTIONS,
                         fieldType = FieldTypeLong,
                         count = count,
                         localValue = null,
-                        valueOffset = valueOffsetBase + pos - valueLength,
+                        valueOffset = blobOffset + pos - valueLength,
                         valueBytes = valueBytes,
                         byteOrder = byteOrder,
                         sortHint = tag
@@ -409,7 +407,7 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
             TiffDirectory(
                 type = TIFF_MAKER_NOTE_CANON_CUSTOM_FUNCTIONS,
                 entries = fields,
-                offset = valueOffsetBase + (field.valueOffset ?: 0),
+                offset = blobOffset,
                 nextDirectoryOffset = 0,
                 byteOrder = byteOrder
             )
@@ -424,12 +422,13 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
      */
     private fun readFilterInfo(
         directory: TiffDirectory,
-        valueOffsetBase: Int,
         byteOrder: ByteOrder,
         addDirectory: (TiffDirectory) -> Unit
     ) {
 
         val field = directory.entries.find { it.tag == 0x4024 } ?: return
+
+        val blobOffset = getAbsoluteValueOffset(field)
 
         val blob = field.valueBytes
 
@@ -483,13 +482,13 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
 
                 fields.add(
                     TiffField(
-                        offset = valueOffsetBase + pos - valueLength,
+                        offset = blobOffset + pos - valueLength,
                         tag = tag,
                         directoryType = TIFF_MAKER_NOTE_CANON_FILTER_INFO,
                         fieldType = FieldTypeLong,
                         count = count,
                         localValue = null,
-                        valueOffset = valueOffsetBase + pos - valueLength,
+                        valueOffset = blobOffset + pos - valueLength,
                         valueBytes = valueBytes,
                         byteOrder = byteOrder,
                         sortHint = tag
@@ -502,7 +501,7 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
             TiffDirectory(
                 type = TIFF_MAKER_NOTE_CANON_FILTER_INFO,
                 entries = fields,
-                offset = valueOffsetBase + (field.valueOffset ?: 0),
+                offset = blobOffset,
                 nextDirectoryOffset = 0,
                 byteOrder = byteOrder
             )
