@@ -23,9 +23,12 @@ Kim is a Kotlin Multiplatform library for reading and writing image metadata.
 * JXL: Read & Write EXIF & XMP of uncompressed files
 * TIFF / RAW: Read EXIF & XMP
     + Full support for Adobe DNG, Canon CR2, Canon CR3 & Fujifilm RAF
-    + Support for Nikon NEF, Sony ARW & Olympus ORF without lens info
-    + Support for Panasonic RW2 without lens info and image size
-    + API for preview image extraction of DNG, CR2, CR3, RAF, NEF, ARW & RW2
+    + Support for Nikon NEF, Sony ARW & Panasonic RW2
+    + API for preview image extraction of DNG, CR2, CR3, RAF, NEF, ARW, RW2 & ORF
+* MakerNote reading for Canon, Nikon, Sony, Fujifilm, Apple, Olympus, Panasonic, Pentax, Ricoh,
+  Samsung, Sigma and Leica cameras, including the sub-directories with camera settings, white
+  balance, AF, flash and lens data, the camera-encrypted Nikon data and the model specific Canon
+  CameraInfo and CustomFunctions records
 * GIF: Read & Write XMP
 * Handling of XMP content through
   [XMP Core for Kotlin Multiplatform](https://github.com/StefanOltmann/xmpcore)
@@ -281,11 +284,8 @@ Java projects.
   codestream box (`jxlc`). JPEG, PNG, GIF and JPEG XL files with split codestream boxes (`jxlp`) are
   streamed in bounded chunks.
 * Does not read brotli compressed metadata of JPEG XL due to missing brotli KMP libs.
-* MakerNote support is experimental and limited.
-    + Can't extract preview image of ORF as offsets are burried into MakerNote.
-    + Can't identify lens info of NEF, ARW, RW2 & ORF because this is constructed from MakerNote
-      fields.
-    + Missing image size for RW2 as this is also burried in MakerNotes.
+* The MakerNotes of GoPro cameras and the undocumented records of the oldest Canon and Sony models
+  are not interpreted.
 * There is right now no convienient tooling for GeoTiff like there is for GPS.
 
 ### Regarding HEIC & AVIF metadata

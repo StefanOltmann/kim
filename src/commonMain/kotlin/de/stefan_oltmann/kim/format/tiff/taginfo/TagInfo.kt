@@ -31,7 +31,8 @@ public abstract class TagInfo(
     public val fieldType: FieldType<out Any>,
     public val length: Int = LENGTH_UNKNOWN,
     public val directoryType: TiffDirectoryType? = EXIF_DIRECTORY_UNKNOWN,
-    public val isOffset: Boolean = false
+    public val isOffset: Boolean = false,
+    public val mask: Int? = null
 ) {
 
     /** Return a proper Tag ID like 0x0100. */

@@ -23,7 +23,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoDoubles
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoShorts
 
 /**
- * See https://exiftool.org/TagNames/GeoTiff.html
+ * See https://exiftool.sourceforge.net/TagNames/GeoTiff.html
  */
 @Suppress("MagicNumber")
 public object GeoTiffTag {

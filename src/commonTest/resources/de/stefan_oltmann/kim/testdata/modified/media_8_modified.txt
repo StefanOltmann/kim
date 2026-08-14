@@ -16,9 +16,9 @@ Little-endian (Intel, II)
 0000000118 0x0213 YCbCrPositioning = 1
 0000000130 0x8769 ExifOffset = 1574
 0000000142 0x8825 GPSInfo = 2262
-0000000154 0x9c9b Unknown = [87 shorts]
-0000000166 0x9c9e Unknown = [409 shorts]
-0000000178 0x9c9f Unknown = [98 shorts]
+0000000154 0x9c9b XPTitle = [87 shorts]
+0000000166 0x9c9e XPKeywords = [409 shorts]
+0000000178 0x9c9f XPSubject = [98 shorts]
 
 ---- Directory ExifIFD @ 1574 ----
 0000001576 0x829a ExposureTime = 1/200 (0.005)

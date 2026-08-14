@@ -81,61 +81,249 @@ Little-endian (Intel, II)
 0000046770 0x0116 RowsPerStrip = 432
 0000046782 0x0117 PreviewImageLength = 1731456
 0000046794 0x011c PlanarConfiguration = 1
-0000046806 0xc5d9 Unknown = 2
-0000046818 0xc6c5 Unknown = 3
-0000046830 0xc6dc Unknown = [649, 432, 19, 0]
+0000046806 0xc5d9 Exif_0xc5d9 = 2
+0000046818 0xc6c5 SRawType = 3
+0000046830 0xc6dc Exif_0xc6dc = [649, 432, 19, 0]
 
 ---- Directory SubIFD2 @ 46868 ----
 0000046870 0x0103 Compression = 6
 0000046882 0x0111 JpgFromRawStart = 5038148
 0000046894 0x0117 JpgFromRawLength = 20971770
-0000046906 0xc5d8 Unknown = 1
-0000046918 0xc5e0 Unknown = 3
-0000046930 0xc640 Unknown = [2, 1728, 1888]
-0000046942 0xc6c5 Unknown = 1
+0000046906 0xc5d8 Exif_0xc5d8 = 1
+0000046918 0xc5e0 CR2CFAPattern = 3
+0000046930 0xc640 RawImageSegmentation = [2, 1728, 1888]
+0000046942 0xc6c5 SRawType = 1
 
 ---- Directory MakerNoteCanon @ 984 ----
 0000000986 0x0001 CanonCameraSettings = [49 shorts]
-0000000998 0x0002 Unknown = [0, 24, 8902, 19690]
-0000001010 0x0003 Unknown = [0, 0, 0, 0]
-0000001022 0x0004 Unknown = [34 shorts]
+0000000998 0x0002 CanonFocalLength = [0, 24, 8902, 19690]
+0000001010 0x0003 CanonFlashInfo = [0, 0, 0, 0]
+0000001022 0x0004 CanonShotInfo = [34 shorts]
 0000001034 0x0006 CanonImageType = Canon EOS 60D
 0000001046 0x0007 CanonFirmwareVersion = Firmware Version 1.1.1
 0000001058 0x0009 OwnerName = Stefan Oltmann
 0000001070 0x000c SerialNumber = 1581036387
-0000001082 0x000d Unknown = [1536 bytes]
+0000001082 0x000d CanonCameraInfo = [1536 bytes]
 0000001094 0x0010 CanonModelID = -2147483001
-0000001106 0x0013 Unknown = [0, 159, 7, 112]
-0000001118 0x0015 Unknown = -1610612736
-0000001130 0x0019 Unknown = 1
-0000001142 0x0026 Unknown = [48 shorts]
-0000001154 0x0083 Unknown = 0
-0000001166 0x0093 Unknown = [27 shorts]
+0000001106 0x0013 ThumbnailImageValidArea = [0, 159, 7, 112]
+0000001118 0x0015 SerialNumberFormat = -1610612736
+0000001130 0x0019 Canon_0x0019 = 1
+0000001142 0x0026 CanonAFInfo2 = [48 shorts]
+0000001154 0x0083 OriginalDecisionDataOffset = 0
+0000001166 0x0093 CanonFileInfo = [27 shorts]
 0000001178 0x0095 LensModel = EF-S15-85mm f/3.5-5.6 IS USM
 0000001190 0x0096 InternalSerialNumber = WB0607529
-0000001202 0x0097 Unknown = [1024 bytes]
-0000001214 0x0098 Unknown = [0, 0, 0, 0]
-0000001226 0x0099 Unknown = [74 ints]
-0000001238 0x009a Unknown = [0, 5184, 3456, 0, 0]
-0000001250 0x00a0 Unknown = [28, 0, 3, 0, 0, 0, 0, 0, -1, 5000, 129, 0, 0, 0]
-0000001262 0x00aa Unknown = [12, 401, 1024, 1024, 792, 0]
-0000001274 0x00b4 Unknown = 1
-0000001286 0x00d0 Unknown = 0
-0000001298 0x00e0 Unknown = [17 shorts]
-0000001310 0x4001 Unknown = [1346 shorts]
-0000001322 0x4002 Unknown = [10458 shorts]
-0000001334 0x4005 Unknown = [16472 bytes]
-0000001346 0x4008 Unknown = [129, 129, 129]
-0000001358 0x4009 Unknown = [0, 0, 0]
-0000001370 0x4010 Unknown = 
-0000001382 0x4011 Unknown = [252 bytes]
-0000001394 0x4012 Unknown = 
-0000001406 0x4015 Unknown = [116 bytes]
-0000001418 0x4016 Unknown = [24, 0, 1, 0, 0, 1]
-0000001430 0x4017 Unknown = [197383, 1811939375]
-0000001442 0x4018 Unknown = [12, 0, 3]
+0000001202 0x0097 DustRemovalData = [1024 bytes]
+0000001214 0x0098 CropInfo = [0, 0, 0, 0]
+0000001226 0x0099 CustomFunctions2 = [74 ints]
+0000001238 0x009a AspectInfo = [0, 5184, 3456, 0, 0]
+0000001250 0x00a0 ProcessingInfo = [28, 0, 3, 0, 0, 0, 0, 0, -1, 5000, 129, 0, 0, 0]
+0000001262 0x00aa MeasuredColor = [12, 401, 1024, 1024, 792, 0]
+0000001274 0x00b4 ColorSpace = 1
+0000001286 0x00d0 VRDOffset = 0
+0000001298 0x00e0 SensorInfo = [17 shorts]
+0000001310 0x4001 ColorData = [1346 shorts]
+0000001322 0x4002 CRWParam = [10458 shorts]
+0000001334 0x4005 Flavor = [16472 bytes]
+0000001346 0x4008 PictureStyleUserDef = [129, 129, 129]
+0000001358 0x4009 PictureStylePC = [0, 0, 0]
+0000001370 0x4010 CustomPictureStyleFileName = 
+0000001382 0x4011 Canon_0x4011 = [252 bytes]
+0000001394 0x4012 Canon_0x4012 = 
+0000001406 0x4015 VignettingCorr = [116 bytes]
+0000001418 0x4016 VignettingCorr2 = [24, 0, 1, 0, 0, 1]
+0000001430 0x4017 Canon_0x4017 = [197383, 1811939375]
+0000001442 0x4018 LightingOpt = [12, 0, 3]
 0000001454 0x4019 LensInfo = [30 bytes]
-0000001466 0x4020 Unknown = [0, 0, 0, 0, 0]
+0000001466 0x4020 AmbienceInfo = [0, 0, 0, 0, 0]
+
+---- Directory MakerNoteCanonCameraSettings @ 1482 ----
+0000001484 0x0001 MacroMode = 2
+0000001486 0x0002 SelfTimer = 0
+0000001488 0x0003 Quality = 4
+0000001490 0x0004 CanonFlashMode = 0
+0000001492 0x0005 ContinuousDrive = 5
+0000001496 0x0007 FocusMode = 1
+0000001500 0x0009 RecordMode = 7
+0000001502 0x000a CanonImageSize = 0
+0000001504 0x000b EasyMode = 1
+0000001506 0x000c DigitalZoom = 0
+0000001508 0x000d Contrast = 0
+0000001510 0x000e Saturation = 0
+0000001512 0x000f Sharpness = 32767
+0000001514 0x0010 CameraISO = 32767
+0000001516 0x0011 MeteringMode = 3
+0000001518 0x0012 FocusRange = 2
+0000001520 0x0013 AFPoint = 0
+0000001522 0x0014 CanonExposureMode = 3
+0000001526 0x0016 LensType = 488
+0000001528 0x0017 MaxFocalLength = 85
+0000001530 0x0018 MinFocalLength = 15
+0000001532 0x0019 FocalUnits = 1
+0000001534 0x001a MaxAperture = 132
+0000001536 0x001b MinAperture = 304
+0000001538 0x001c FlashModel = 0
+0000001540 0x001d FlashBits = 0
+0000001546 0x0020 FocusContinuous = -1
+0000001548 0x0021 AESetting = -1
+0000001550 0x0022 ImageStabilization = -1
+0000001552 0x0023 DisplayAperture = 0
+0000001554 0x0024 ZoomSourceWidth = 0
+0000001556 0x0025 ZoomTargetWidth = 0
+0000001560 0x0027 SpotMeteringMode = -1
+0000001562 0x0028 PhotoEffect = -1
+0000001564 0x0029 ManualFlashOutput = 0
+0000001566 0x002a ColorTone = 0
+0000001574 0x002e SRAWQuality = 0
+
+---- Directory MakerNoteCanonFocalLength @ 1580 ----
+0000001580 0x0000 FocalType = 0
+0000001582 0x0001 FocalLength = 24
+0000001584 0x0002 FocalPlaneXUnknown = 8902
+0000001586 0x0003 FocalPlaneYUnknown = 19690
+
+---- Directory MakerNoteCanonShotInfo @ 1596 ----
+0000001598 0x0001 AutoISO = 0
+0000001600 0x0002 BaseISO = 224
+0000001602 0x0003 MeasuredEV = 124
+0000001604 0x0004 TargetAperture = 148
+0000001606 0x0005 TargetExposureTime = 192
+0000001608 0x0006 ExposureCompensation = 0
+0000001610 0x0007 WhiteBalance = 0
+0000001612 0x0008 SlowShutter = 3
+0000001614 0x0009 SequenceNumber = 0
+0000001616 0x000a OpticalZoomCode = 8
+0000001620 0x000c CameraTemperature = 149
+0000001622 0x000d FlashGuideNumber = 0
+0000001624 0x000e AFPointsInFocus = 0
+0000001626 0x000f FlashExposureComp = 0
+0000001628 0x0010 AutoExposureBracketing = 0
+0000001630 0x0011 AEBBracketValue = 0
+0000001632 0x0012 ControlMode = 0
+0000001634 0x0013 FocusDistanceUpper = 0
+0000001638 0x0015 FNumber = 152
+0000001640 0x0016 ExposureTime = 196
+0000001642 0x0017 MeasuredEV2 = 117
+0000001644 0x0018 BulbDuration = 0
+0000001648 0x001a CameraType = 248
+0000001650 0x001b AutoRotate = -1
+0000001652 0x001c NDFilter = -1
+0000001654 0x001d SelfTimer2 = -1
+0000001662 0x0021 FlashOutput = 0
+
+---- Directory MakerNoteCanonCameraInfo @ 1752 ----
+0000001755 0x0003 FNumber = 46
+0000001756 0x0004 ExposureTime = 104
+0000001758 0x0006 ISO = 88
+0000001777 0x0019 CameraTemperature = -107
+0000001782 0x001e FocalLength = 24
+0000001806 0x0036 CameraOrientation = 0
+0000001810 0x003a CameraOrientation = 0
+0000001837 0x0055 FocusDistanceUpper = 48
+0000001839 0x0057 FocusDistanceLower = 45
+0000001877 0x007d ColorTemperature = 5000
+0000001984 0x00e8 LensType = 488
+0000001986 0x00ea MinFocalLength = 15
+0000001988 0x00ec MaxFocalLength = 85
+0000002161 0x0199 FirmwareVersion = 1.1.1
+0000002225 0x01d9 FileIndex = 8471
+0000002237 0x01e5 DirectoryIndex = 102
+
+---- Directory MakerNoteCanonAFInfo2 @ 3296 ----
+0000003296 0x0000 AFInfoSize = 96
+0000003298 0x0001 AFAreaMode = 2
+0000003300 0x0002 NumAFPoints = 9
+0000003302 0x0003 ValidAFPoints = 9
+0000003304 0x0004 CanonImageWidth = 5184
+0000003306 0x0005 CanonImageHeight = 3456
+0000003308 0x0006 AFImageWidth = 5184
+0000003310 0x0007 AFImageHeight = 3456
+
+---- Directory MakerNoteCanonFileInfo @ 4000 ----
+0000004006 0x0003 BracketMode = 0
+0000004008 0x0004 BracketValue = 0
+0000004010 0x0005 BracketShotNumber = 0
+0000004012 0x0006 RawJpgQuality = 0
+0000004014 0x0007 RawJpgSize = 0
+0000004016 0x0008 LongExposureNoiseReduction2 = 0
+0000004018 0x0009 WBBracketMode = 0
+0000004024 0x000c WBBracketValueAB = 0
+0000004026 0x000d WBBracketValueGM = 0
+0000004028 0x000e FilterEffect = -1
+0000004030 0x000f ToningEffect = -1
+0000004032 0x0010 MacroMagnification = 109
+0000004038 0x0013 LiveViewShooting = 0
+0000004040 0x0014 FocusDistanceUpper = 48
+0000004042 0x0015 FocusDistanceLower = 45
+0000004046 0x0017 ShutterMode = 0
+0000004050 0x0019 FlashExposureLock = 0
+
+---- Directory MakerNoteCanonCropInfo @ 5164 ----
+0000005164 0x0000 CropLeftMargin = 0
+0000005166 0x0001 CropRightMargin = 0
+0000005168 0x0002 CropTopMargin = 0
+0000005170 0x0003 CropBottomMargin = 0
+
+---- Directory MakerNoteCanonAspectInfo @ 5468 ----
+0000005468 0x0000 AspectRatio = 0
+0000005472 0x0001 CroppedImageWidth = 5184
+0000005476 0x0002 CroppedImageHeight = 3456
+0000005480 0x0003 CroppedImageLeft = 0
+0000005484 0x0004 CroppedImageTop = 0
+
+---- Directory MakerNoteCanonProcessingInfo @ 5488 ----
+0000005490 0x0001 ToneCurve = 0
+0000005492 0x0002 Sharpness = 3
+0000005494 0x0003 SharpnessFrequency = 0
+0000005496 0x0004 SensorRedLevel = 0
+0000005498 0x0005 SensorBlueLevel = 0
+0000005500 0x0006 WhiteBalanceRed = 0
+0000005502 0x0007 WhiteBalanceBlue = 0
+0000005504 0x0008 WhiteBalance = -1
+0000005506 0x0009 ColorTemperature = 5000
+0000005508 0x000a PictureStyle = 129
+0000005510 0x000b DigitalGain = 0
+0000005512 0x000c WBShiftAB = 0
+0000005514 0x000d WBShiftGM = 0
+
+---- Directory MakerNoteCanonMeasuredColor @ 5516 ----
+0000005518 0x0001 MeasuredRGGB = [401, 1024, 1024, 792]
+
+---- Directory MakerNoteCanonSensorInfo @ 5528 ----
+0000005530 0x0001 SensorWidth = 5344
+0000005532 0x0002 SensorHeight = 3516
+0000005538 0x0005 SensorLeftBorder = 152
+0000005540 0x0006 SensorTopBorder = 56
+0000005542 0x0007 SensorRightBorder = 5335
+0000005544 0x0008 SensorBottomBorder = 3511
+0000005546 0x0009 BlackMaskLeftBorder = 0
+0000005548 0x000a BlackMaskTopBorder = 0
+0000005550 0x000b BlackMaskRightBorder = 0
+0000005552 0x000c BlackMaskBottomBorder = 0
+
+---- Directory MakerNoteCanonVignettingCorr @ 45970 ----
+0000045970 0x0000 VignettingCorrVersion = [0x00, 0x10, 0x74, 0x00]
+0000045974 0x0002 PeripheralLighting = 1
+0000045976 0x0003 DistortionCorrection = 0
+0000045978 0x0004 ChromaticAberrationCorr = 0
+0000045980 0x0005 ChromaticAberrationCorr = 0
+0000045982 0x0006 PeripheralLightingValue = 63
+0000045988 0x0009 DistortionCorrectionValue = 0
+0000045992 0x000b OriginalImageWidth = 5184
+0000045994 0x000c OriginalImageHeight = 3456
+
+---- Directory MakerNoteCanonVignettingCorr2 @ 46086 ----
+0000046106 0x0005 PeripheralLightingSetting = 1
+
+---- Directory MakerNoteCanonLightingOpt @ 46118 ----
+0000046122 0x0001 PeripheralIlluminationCorr = 0
+0000046126 0x0002 AutoLightingOptimizer = 3
+
+---- Directory MakerNoteCanonLensInfo @ 46130 ----
+0000046130 0x0000 LensSerialNumber = [0x00, 0x00, 0x11, 0x84, 0x84]
+
+---- Directory MakerNoteCanonAmbienceInfo @ 46160 ----
+0000046164 0x0001 AmbienceSelection = 0
 
 ---- XMP ----
 <?xpacket begin='﻿' id='W5M0MpCehiHzreSzNTczkc9d'?><x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:xmp="http://ns.adobe.com/xap/1.0/"><xmp:Rating>0</xmp:Rating></rdf:Description></rdf:RDF></x:xmpmeta>                                                                                                                                

@@ -29,8 +29,9 @@ public open class TagInfoByte : TagInfo {
     public constructor(
         tag: Int,
         name: String,
-        directoryType: TiffDirectoryType?
-    ) : super(tag, name, FieldTypeByte, 1, directoryType)
+        directoryType: TiffDirectoryType?,
+        mask: Int? = null
+    ) : super(tag, name, FieldTypeByte, 1, directoryType, mask = mask)
 
     public constructor(
         tag: Int,

@@ -25,6 +25,7 @@ import de.stefan_oltmann.kim.common.RationalNumbers
 import de.stefan_oltmann.kim.common.toSingleNumberHexes
 import de.stefan_oltmann.kim.format.tiff.TiffTags.getTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldType
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeSShort
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeShort
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoGpsText
@@ -45,7 +46,14 @@ public class TiffField(
     public val valueOffset: Int?,
     public val valueBytes: ByteArray,
     public val byteOrder: ByteOrder,
-    public val sortHint: Int
+    public val sortHint: Int,
+    /**
+     * The TagInfo that belongs to this field, when the parsing context
+     * already resolved it, for example a model-specific MakerNote blob
+     * table. The registry lookup would be ambiguous when several tables
+     * share the directory type but use the same tag for different names.
+     */
+    public val tagInfoOverride: TagInfo? = null
 ) {
 
     /**
@@ -60,7 +68,7 @@ public class TiffField(
         "0x" + tag.toString(HEX_RADIX).padStart(4, '0')
 
     /** TagInfo, if the tag is found in our registry. */
-    public val tagInfo: TagInfo? = getTag(directoryType, tag)
+    public val tagInfo: TagInfo? = tagInfoOverride ?: getTag(directoryType, tag)
 
     public val value: Any = if (tagInfo is TagInfoGpsText)
         tagInfo.getValue(this)
@@ -69,6 +77,25 @@ public class TiffField(
 
     public val valueDescription: String by lazy {
         try {
+
+            val maskedValue = tagInfo?.mask?.let { mask ->
+                when {
+                    value is Number -> (value.toInt() and mask) ushr mask.countTrailingZeroBits()
+                    value is ByteArray && value.size == 1 ->
+                        (value.first().toInt() and mask) ushr mask.countTrailingZeroBits()
+
+                    value is ShortArray && value.size == 1 ->
+                        (value.first().toInt() and mask) ushr mask.countTrailingZeroBits()
+
+                    value is IntArray && value.size == 1 ->
+                        (value.first() and mask) ushr mask.countTrailingZeroBits()
+
+                    else -> null
+                }
+            }
+
+            if (maskedValue != null)
+                return@lazy maskedValue.toString()
 
             if (value is ByteArray) {
 
@@ -125,6 +152,17 @@ public class TiffField(
                 return@lazy "[${value.size} floats]"
             }
 
+            if (value is LongArray) {
+
+                if (value.size == 1)
+                    return@lazy value.first().toString()
+
+                if (value.size <= MAX_ARRAY_LENGTH_DISPLAY_SIZE)
+                    return@lazy value.contentToString()
+
+                return@lazy "[${value.size} longs]"
+            }
+
             if (value is RationalNumbers) {
 
                 if (value.values.size == 1)
@@ -174,7 +212,10 @@ public class TiffField(
             val result = IntArray(value.size)
 
             repeat(result.size) { index ->
-                result[index] = value[index].toUShort().toInt()
+                result[index] = if (fieldType == FieldTypeSShort)
+                    value[index].toInt()
+                else
+                    value[index].toUShort().toInt()
             }
 
             return result

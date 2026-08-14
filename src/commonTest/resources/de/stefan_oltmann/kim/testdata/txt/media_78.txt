@@ -16,7 +16,7 @@ Big-endian (Motorola, MM)
 0000000118 0x4746 Rating = 0
 0000000130 0x8298 Copyright = 
 0000000142 0x8769 ExifOffset = 272
-0000000154 0x9003 Unknown = 2019:02:25 06:14:16
+0000000154 0x9003 DateTimeOriginal = 2019:02:25 06:14:16
 
 ---- Directory ExifIFD @ 272 ----
 0000000274 0x829a ExposureTime = 1/250 (0.004)

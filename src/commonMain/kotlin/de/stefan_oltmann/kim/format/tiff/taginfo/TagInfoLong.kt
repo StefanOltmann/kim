@@ -28,8 +28,9 @@ public class TagInfoLong : TagInfo {
     public constructor(
         tag: Int,
         name: String,
-        directoryType: TiffDirectoryType?
-    ) : super(tag, name, FieldTypeLong, 1, directoryType)
+        directoryType: TiffDirectoryType?,
+        mask: Int? = null
+    ) : super(tag, name, FieldTypeLong, 1, directoryType, mask = mask)
 
     public constructor(
         tag: Int,

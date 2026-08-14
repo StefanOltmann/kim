@@ -21,7 +21,7 @@ Little-endian (Intel, II)
 0000000178 0x0213 YCbCrPositioning = 2
 0000000190 0x8769 ExifOffset = 454
 0000000202 0xc4a5 PrintIM = [124 bytes]
-0000000214 0xc634 Unknown = [0x00, 0x00, 0x01, 0x00]
+0000000214 0xc634 DNGPrivateData = [0x00, 0x00, 0x01, 0x00]
 
 ---- Directory ExifIFD @ 454 ----
 0000000456 0x829a ExposureTime = 1/60 (0.016667)
@@ -74,13 +74,13 @@ Little-endian (Intel, II)
 0000118206 0x011a XResolution = 350/1 (350.0)
 0000118218 0x011b YResolution = 350/1 (350.0)
 0000118230 0x0128 ResolutionUnit = 2
-0000118242 0x828d Unknown = [2, 2]
-0000118254 0x828e Unknown = [0x00, 0x01, 0x01, 0x02]
-0000118266 0x7000 Unknown = 2
-0000118278 0x7001 Unknown = 1
-0000118290 0x7010 Unknown = [8000, 10400, 12900, 14100]
-0000118302 0x7011 Unknown = [4000, 7200, 10050, 12075]
-0000118314 0x7020 Unknown = 0
+0000118242 0x828d CFARepeatPatternDim = [2, 2]
+0000118254 0x828e CFAPattern = [0x00, 0x01, 0x01, 0x02]
+0000118266 0x7000 SonyRawFileType = 2
+0000118278 0x7001 Exif_0x7001 = 1
+0000118290 0x7010 SonyToneCurve = [8000, 10400, 12900, 14100]
+0000118302 0x7011 Exif_0x7011 = [4000, 7200, 10050, 12075]
+0000118314 0x7020 Exif_0x7020 = 0
 0000118326 0x0111 PreviewImageStart = 917504
 0000118338 0x0116 RowsPerStrip = 2858
 0000118350 0x0117 PreviewImageLength = 12255104
@@ -98,4 +98,97 @@ Little-endian (Intel, II)
 0000044288 0x0201 JpgFromRawStart = 47796
 0000044300 0x0202 JpgFromRawLength = 3884
 0000044312 0x0213 YCbCrPositioning = 2
+
+---- Directory MakerNoteSony5 @ 952 ----
+0000000954 0x0010 CameraInfo = [15360 bytes]
+0000000966 0x0018 Sony_0x0018 = [4096 bytes]
+0000000978 0x0020 MoreInfo = [20480 bytes]
+0000000990 0x0102 Quality = 6
+0000001002 0x0104 FlashExposureComp = 0/10 (0.0)
+0000001014 0x0105 Teleconverter = 0
+0000001026 0x0112 WhiteBalanceFineTune = 0
+0000001038 0x0114 CameraSettings = [2048 bytes]
+0000001050 0x0115 WhiteBalance = 0
+0000001062 0x0116 ExtraInfo = [30 bytes]
+0000001074 0x2000 MakerNoteVersion = 0
+0000001086 0x2002 Rating = 0
+0000001098 0x2003 Sony_0x2003 = 
+0000001110 0x2004 Contrast = 0
+0000001122 0x2005 Saturation = 0
+0000001134 0x2006 Sharpness = 0
+0000001146 0x2007 Brightness = 0
+0000001158 0x2008 LongExposureNoiseReduction = 0
+0000001170 0x2009 HighISONoiseReduction = 0
+0000001182 0xb000 FileFormat = [0x03, 0x01, 0x00, 0x00]
+0000001194 0xb001 SonyModelID = 274
+0000001206 0xb020 CreativeStyle = Standard
+0000001218 0xb021 ColorTemperature = 0
+0000001230 0xb022 ColorCompensationFilter = 0
+0000001242 0xb023 SceneMode = 0
+0000001254 0xb024 ZoneMatching = 0
+0000001266 0xb025 DynamicRangeOptimizer = 3
+0000001278 0xb026 ImageStabilization = 1
+0000001290 0xb027 LensType = 55
+0000001302 0xb029 ColorMode = 0
+0000001314 0xb02a LensSpec = [0x01, 0x00, 0x18, 0x00, 0x55, 0x35, 0x56, 0x02]
+0000001326 0xb02b FullImageSize = [2848, 4272]
+0000001338 0xb02c PreviewImageSize = [1080, 1616]
+0000001350 0x900b Tag900b = [400 bytes]
+
+---- Directory MakerNoteSonyCameraInfo3 @ 1366 ----
+0000001366 0x0000 LensSpec = [0x01, 0x00, 0x18, 0x00, 0x55, 0x35, 0x56, 0x02]
+0000001386 0x0014 AFPointSelected = 1
+0000001387 0x0015 FocusMode = 2
+0000001390 0x0018 AFPoint = 3
+0000001393 0x001b AFStatusActiveSensor = 36
+0000001395 0x001d AFStatusTop-right = -32768
+0000001397 0x001f AFStatusBottom-right = -32768
+0000001399 0x0021 AFStatusBottom = -32768
+0000001401 0x0023 AFStatusMiddleHorizontal = 36
+0000001403 0x0025 AFStatusCenterVertical = 50
+0000001405 0x0027 AFStatusTop = -32768
+0000001407 0x0029 AFStatusTop-left = -32768
+0000001409 0x002b AFStatusBottom-left = -32768
+0000001411 0x002d AFStatusLeft = -32768
+0000001413 0x002f AFStatusCenterHorizontal = 36
+0000001415 0x0031 AFStatusRight = -32768
+
+---- Directory MakerNoteSonyMoreSettings @ 120 ----
+0000000121 0x0001 DriveMode2 = 16
+0000000122 0x0002 ExposureProgram = 2
+0000000123 0x0003 MeteringMode = 1
+0000000124 0x0004 DynamicRangeOptimizerSetting = 16
+0000000126 0x0006 ColorSpace = 1
+0000000127 0x0007 CreativeStyleSetting = 16
+0000000128 0x0008 ContrastSetting = 0
+0000000129 0x0009 SaturationSetting = 0
+0000000130 0x000a SharpnessSetting = 0
+0000000133 0x000d WhiteBalanceSetting = 19
+0000000134 0x000e ColorTemperatureSetting = 55
+0000000135 0x000f ColorCompensationFilterSet = 0
+0000000136 0x0010 FlashMode = 1
+0000000137 0x0011 LongExposureNoiseReduction = 1
+0000000138 0x0012 HighISONoiseReduction = 16
+0000000139 0x0013 FocusMode = 1
+0000000141 0x0015 MultiFrameNoiseReduction = 16
+0000000142 0x0016 HDRSetting = 1
+0000000143 0x0017 HDRLevel = 33
+0000000144 0x0018 ViewingMode = 16
+0000000145 0x0019 FaceDetection = 16
+
+---- Directory MakerNoteSonyFaceInfo @ 376 ----
+0000000378 0x0002 FaceTest2 = 0
+0000000379 0x0003 FacesDetected = 0
+0000000384 0x0008 FaceTest8 = 0
+0000000387 0x000b PotentialFace1Position = 0
+0000000397 0x0015 PotentialFace2Position = 0
+0000000407 0x001f PotentialFace3Position = 0
+0000000417 0x0029 PotentialFace4Position = 0
+0000000427 0x0033 PotentialFace5Position = 0
+0000000437 0x003d PotentialFace6Position = 0
+0000000447 0x0047 PotentialFace7Position = 0
+0000000457 0x0051 PotentialFace8Position = 0
+0000000467 0x005b Face1Position = 0
+0000000477 0x0065 Face2Position = 0
+0000000487 0x006f Face3Position = 0
 

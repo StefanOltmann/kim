@@ -68,64 +68,176 @@ Big-endian (Motorola, MM)
 
 ---- Directory MakerNoteNikon @ 911 ----
 0000000913 0x0001 MakerNoteVersion = [0x30, 0x32, 0x31, 0x31]
-0000000925 0x0004 Unknown = 
-0000000937 0x0005 Unknown = 
-0000000949 0x0007 Unknown = 
-0000000961 0x0008 Unknown = 
-0000000973 0x0009 Unknown = 2023:05:10 13:37:42
-0000000985 0x000b Unknown = [0, 0]
-0000000997 0x000c Unknown = [858927154/976564282 (0.87954), 824193073/926104115 (0.889957), 3290170/67108864 (0.049027), Invalid rational (16777216/0)]
-0000001009 0x000d Unknown = [0x00, 0x01, 0x06, 0x00]
-0000001021 0x000e Unknown = [0xef, 0x01, 0x0c, 0x00]
-0000001033 0x0012 Unknown = [0xee, 0x01, 0x06, 0x00]
-0000001045 0x0016 Unknown = [0, 256, 0, 256]
-0000001057 0x0017 Unknown = [0x00, 0x01, 0x06, 0x00]
-0000001069 0x0018 Unknown = [0x00, 0x01, 0x06, 0x00]
-0000001081 0x0019 Unknown = Invalid rational (16777216/0)
-0000001093 0x001b Unknown = [0, 256, 0, 2816, 0, 1280, 0]
-0000001105 0x001c Unknown = [0x00, 0x01, 0x06]
-0000001117 0x001d Unknown = 
-0000001129 0x001e Unknown = 2
-0000001141 0x001f Unknown = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x4e]
-0000001153 0x0022 Unknown = 7
-0000001165 0x0023 Unknown = [68 bytes]
-0000001177 0x0024 Unknown = [0xe0, 0x01, 0x00, 0x00]
-0000001189 0x0025 Unknown = [0x00, 0x02, 0x00, 0x0d, 0x00, 0x00, 0x00, 0xf2, 0x02, 0x00, 0x00, 0x09, 0x00, 0x02]
-0000001201 0x002a Unknown = 0
-0000001213 0x002b Unknown = [0x00, 0x00, 0x00, 0x02, 0x03, 0x00, 0x00, 0x0b, 0x00, 0x08, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00]
-0000001225 0x002c Unknown = [574 bytes]
-0000001237 0x0035 Unknown = [0x4c, 0x00, 0x00, 0xb9, 0x00, 0x07, 0x00, 0x04]
-0000001249 0x003b Unknown = [0/3137339647 (0.0), 134219520/2315255808 (0.057972), 3204448333/16777984 (190.991262), 0/3221225472 (0.0)]
-0000001261 0x003c Unknown = 1
-0000001273 0x003e Unknown = 1
-0000001285 0x003f Unknown = [134219520/-1845493760 (-0.072728), 77/1174405120 (0.0)]
-0000001297 0x0040 Unknown = [0x49, 0x4e, 0x45, 0x20, 0x20, 0x20, 0x00, 0x41, 0x55, 0x54, 0x4f, 0x32]
-0000001309 0x0041 Unknown = [0x20, 0x20, 0x20, 0x20, 0x20, 0x20]
-0000001321 0x0042 Unknown = [0x00, 0x00, 0x00, 0x4d, 0x41, 0x4e]
+0000000925 0x0004 Quality = FINE   
+0000000937 0x0005 WhiteBalance = AUTO2       
+0000000949 0x0007 FocusMode = MANUAL
+0000000961 0x0008 FlashSetting =             
+0000000973 0x0009 FlashType =                    
+0000000985 0x000b WhiteBalanceFineTune = [0, 0]
+0000000997 0x000c WB_RBLevels = [497/256 (1.941406), 380/256 (1.484375), 256/256 (1.0), 256/256 (1.0)]
+0000001009 0x000d ProgramShift = [0x00, 0x01, 0x06, 0x00]
+0000001021 0x000e ExposureDifference = [0xef, 0x01, 0x0c, 0x00]
+0000001033 0x0012 FlashExposureComp = [0xee, 0x01, 0x06, 0x00]
+0000001045 0x0016 ImageBoundary = [0, 0, 7360, 4912]
+0000001057 0x0017 ExternalFlashExposureComp = [0x00, 0x01, 0x06, 0x00]
+0000001069 0x0018 FlashExposureBracketValue = [0x00, 0x01, 0x06, 0x00]
+0000001081 0x0019 ExposureBracketValue = 0/6 (0.0)
+0000001093 0x001b CropHiSpeed = [11, 7384, 4928, 7380, 4928, 0, 0]
+0000001105 0x001c ExposureTuning = [0x00, 0x01, 0x06]
+0000001117 0x001d SerialNumber = 8508190
+0000001129 0x001e ColorSpace = 2
+0000001141 0x001f VRInfo = [0x30, 0x31, 0x30, 0x30, 0x02, 0x02, 0x00, 0x00]
+0000001153 0x0022 ActiveD-Lighting = 7
+0000001165 0x0023 PictureControlData = [68 bytes]
+0000001177 0x0024 WorldTime = [0xe0, 0x01, 0x00, 0x00]
+0000001189 0x0025 ISOInfo = [0x48, 0x01, 0x0c, 0x00, 0x00, 0x00, 0x48, 0x01, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00]
+0000001201 0x002a VignetteControl = 0
+0000001213 0x002b DistortInfo = [0x30, 0x31, 0x30, 0x30, 0x00, 0x00, 0x02, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+0000001225 0x002c UnknownInfo = [574 bytes]
+0000001237 0x0035 HDRInfo = [0x30, 0x31, 0x30, 0x30, 0x00, 0x00, 0x00, 0xff]
+0000001249 0x003b Nikon_0x003b = [256/256 (1.0), 256/256 (1.0), 256/256 (1.0), 256/256 (1.0)]
+0000001261 0x003c Nikon_0x003c = 1
+0000001273 0x003e ImageSizeRAW = 1
+0000001285 0x003f WhiteBalanceFineTune = [0/4 (0.0), 0/4 (0.0)]
+0000001297 0x0040 Nikon_0x0040 = [0x30, 0x31, 0x30, 0x30, 0x01, 0x00, 0x43, 0x00, 0x30, 0x31, 0x31, 0x32]
+0000001309 0x0041 Nikon_0x0041 = [0x30, 0x31, 0x30, 0x30, 0x00, 0x01]
+0000001321 0x0042 Nikon_0x0042 = [0x30, 0x31, 0x30, 0x30, 0x03, 0x00]
 0000001333 0x0083 LensType = 0
-0000001345 0x0084 Lens = [536870988/538976288 (0.996094), 538976288/2105376 (256.000015), 536870912/538976288 (0.996094), 538976288/538976288 (1.0)]
-0000001357 0x0087 Unknown = 0
-0000001369 0x0089 Unknown = 1
-0000001381 0x008a Unknown = 1
+0000001345 0x0084 Lens = [850/10 (85.0), 850/10 (85.0), 14/10 (1.4), 14/10 (1.4)]
+0000001357 0x0087 FlashMode = 0
+0000001369 0x0089 ShootingMode = 1
+0000001381 0x008a Nikon_0x008a = 1
 0000001393 0x008b LensFStops = [0x54, 0x01, 0x0c, 0x00]
-0000001405 0x0091 Unknown = [16596 bytes]
-0000001417 0x0095 Unknown = Φ��
-0000001429 0x0097 Unknown = [1224 bytes]
-0000001441 0x0098 Unknown = [33 bytes]
-0000001453 0x009e Unknown = [10973, 6975, 10430, 20825, 22032, -2077, -2862, -29475, 16900, 4931]
-0000001465 0x00a2 Unknown = 20228364
-0000001477 0x00a3 Unknown = 0
+0000001405 0x0091 ShotInfo = [16596 bytes]
+0000001417 0x0095 NoiseReduction = OFF 
+0000001429 0x0097 ColorBalance = [1224 bytes]
+0000001441 0x0098 LensData = [33 bytes]
+0000001453 0x009e RetouchHistory = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+0000001465 0x00a2 ImageDataSize = 20228364
+0000001477 0x00a3 Nikon_0x00a3 = 0
 0000001489 0x00a7 ShutterCount = 55933
-0000001501 0x00a8 Unknown = [51 bytes]
-0000001513 0x00b0 Unknown = [0xb1, 0x89, 0xfe, 0xab, 0x8c, 0x54, 0xf8, 0x45, 0xa4, 0xa2, 0x67, 0xf3, 0x46, 0x60, 0x41, 0x5d]
-0000001525 0x00b1 Unknown = 6
-0000001537 0x00b6 Unknown = [0x58, 0x2e, 0x8b, 0x4f, 0xdb, 0x2c, 0x44, 0x24]
-0000001549 0x00b7 Unknown = [30 bytes]
-0000001561 0x00b8 Unknown = [172 bytes]
-0000001573 0x00b9 Unknown = [0x00, 0xff, 0x00, 0x00]
-0000001585 0x00bb Unknown = [0x22, 0x24, 0xed, 0x7d, 0xd4, 0xf2, 0xd7, 0x83]
-0000001597 0x00bf Unknown = 0
-0000001609 0x00c0 Unknown = [0xf6, 0x30, 0x31, 0xf9, 0x88, 0xde, 0xfb, 0xdf]
+0000001501 0x00a8 FlashInfo = [51 bytes]
+0000001513 0x00b0 MultiExposure = [0x30, 0x31, 0x30, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+0000001525 0x00b1 HighISONoiseReduction = 6
+0000001537 0x00b6 PowerUpTime = [0xe2, 0x07, 0x0a, 0x0a, 0x07, 0x33, 0x06, 0x00]
+0000001549 0x00b7 AFInfo2 = [30 bytes]
+0000001561 0x00b8 FileInfo = [172 bytes]
+0000001573 0x00b9 AFTune = [0x00, 0xff, 0x00, 0x00]
+0000001585 0x00bb RetouchInfo = [0x30, 0x32, 0x30, 0x30, 0xff, 0xff, 0xff, 0x00]
+0000001597 0x00bf SilentPhotography = 0
+0000001609 0x00c0 Nikon_0x00c0 = [0x34, 0x01, 0x0c, 0x00, 0x90, 0x01, 0x0c, 0x00]
+
+---- Directory MakerNoteNikonVRInfo @ 1789 ----
+0000001789 0x0000 VRInfoVersion = [0x30, 0x31, 0x30, 0x30]
+0000001793 0x0004 VibrationReduction = 2
+0000001795 0x0006 VRMode = 0
+
+---- Directory MakerNoteNikonPictureControl @ 1797 ----
+0000001797 0x0000 PictureControlVersion = [0x30, 0x32, 0x30, 0x30]
+0000001801 0x0004 PictureControlName = STANDARD
+0000001821 0x0018 PictureControlBase = STANDARD
+0000001845 0x0030 PictureControlAdjust = 2
+0000001846 0x0031 PictureControlQuickAdjust = -128
+0000001848 0x0033 Sharpness = -112
+0000001850 0x0035 Clarity = -124
+0000001852 0x0037 Contrast = -128
+0000001854 0x0039 Brightness = -128
+0000001856 0x003b Saturation = -128
+0000001858 0x003d Hue = 116
+0000001860 0x003f FilterEffect = -1
+0000001861 0x0040 ToningEffect = -1
+0000001862 0x0041 ToningSaturation = -1
+
+---- Directory MakerNoteNikonWorldTime @ 903 ----
+0000000903 0x0000 TimeZone = 480
+0000000905 0x0002 DaylightSavings = 0
+0000000906 0x0003 DateDisplayFormat = 0
+
+---- Directory MakerNoteNikonISOInfo @ 1865 ----
+0000001865 0x0000 ISO = 72
+0000001869 0x0004 ISOExpansion = 0
+0000001871 0x0006 ISO2 = 72
+0000001875 0x000a ISOExpansion2 = 0
+
+---- Directory MakerNoteNikonDistortInfo @ 1881 ----
+0000001881 0x0000 DistortionVersion = [0x30, 0x31, 0x30, 0x30]
+0000001885 0x0004 AutoDistortionControl = 0
+
+---- Directory MakerNoteNikonShotInfo @ 2589 ----
+0000002589 0x0000 ShotInfoVersion = [0x30, 0x32, 0x33, 0x33]
+0000002593 0x0004 FirmwareVersion = 1.11d
+0000002605 0x0010 DistortionControl = -108
+0000002691 0x0066 VR_0x66 = 0
+0000002695 0x006a ShutterCount = 0
+0000002699 0x006e DeletedImageCount = 996671488
+0000002706 0x0075 VibrationReduction = 59
+0000002719 0x0082 VibrationReduction = 0
+0000002932 0x0157 ShutterCount = [0x17, 0x46]
+0000003019 0x01ae VibrationReduction = -29
+0000003178 0x024d ShutterCount = -1878555383
+
+---- Directory MakerNoteNikonColorBalance @ 19193 ----
+0000019321 0x0000 WB_RGGBLevels = [497, 256, 256, 380]
+
+---- Directory MakerNoteNikonLensData @ 20417 ----
+0000020417 0x0000 LensDataVersion = 0204
+0000020421 0x0004 ExitPupilPosition = 25
+0000020422 0x0005 AFAperture = 11
+0000020425 0x0008 FocusPosition = 0
+0000020427 0x000a FocusDistance = 0
+0000020428 0x000b FocalLength = 98
+0000020429 0x000c LensIDNumber = 1
+0000020430 0x000d LensFStops = 84
+0000020431 0x000e MinFocalLength = 98
+0000020432 0x000f MaxFocalLength = 98
+0000020433 0x0010 MaxApertureAtMinFocal = 12
+0000020434 0x0011 MaxApertureAtMaxFocal = 12
+0000020435 0x0012 MCUVersion = 0
+0000020436 0x0013 EffectiveMaxAperture = 12
+
+---- Directory MakerNoteNikonFlashInfo @ 20473 ----
+0000020473 0x0000 FlashInfoVersion = [0x30, 0x31, 0x30, 0x37]
+0000020477 0x0004 FlashSource = 0
+0000020479 0x0006 ExternalFlashFirmware = [0x00, 0x00]
+0000020483 0x000a FlashCompensation = 0
+0000020485 0x000c FlashFocalLength = 0
+0000020486 0x000d RepeatingFlashRate = 0
+0000020487 0x000e RepeatingFlashCount = 0
+0000020488 0x000f FlashGNDistance = 0
+0000020513 0x0028 FlashGroupACompensation = 0
+0000020514 0x0029 FlashGroupBCompensation = 0
+0000020515 0x002a FlashGroupCCompensation = 0
+
+---- Directory MakerNoteNikonMultiExposure @ 20525 ----
+0000020525 0x0000 MultiExposureVersion = [0x30, 0x31, 0x30, 0x30]
+0000020529 0x0001 MultiExposureMode = 0
+0000020533 0x0002 MultiExposureShots = 0
+0000020537 0x0003 MultiExposureAutoGain = 0
+
+---- Directory MakerNoteNikonAFInfo2 @ 20549 ----
+0000020549 0x0000 AFInfo2Version = [0x30, 0x31, 0x30, 0x30]
+0000020553 0x0004 AFDetectionMethod = 0
+0000020554 0x0005 AFAreaMode = 0
+0000020555 0x0006 FocusPointSchema = 0
+0000020556 0x0007 PrimaryAFPoint = 0
+0000020557 0x0008 AFPointsUsed = [0x00, 0x00]
+0000020565 0x0010 AFImageWidth = 0
+0000020567 0x0012 AFImageHeight = 0
+0000020569 0x0014 AFAreaXPosition = 0
+0000020571 0x0016 AFAreaYPosition = 0
+0000020573 0x0018 AFAreaWidth = 0
+0000020575 0x001a AFAreaHeight = 0
+0000020577 0x001c ContrastDetectAFInFocus = 0
+
+---- Directory MakerNoteNikonFileInfo @ 20581 ----
+0000020581 0x0000 FileInfoVersion = [0x30, 0x31, 0x30, 0x30]
+0000020585 0x0002 MemoryCardNumber = 1
+0000020587 0x0003 DirectoryNumber = 791
+0000020589 0x0004 FileNumber = 4936
+
+---- Directory MakerNoteNikonRetouchInfo @ 20753 ----
+0000020753 0x0000 RetouchInfoVersion = [0x30, 0x32, 0x30, 0x30]
+0000020758 0x0005 RetouchNEFProcessing = -1
 
 ---- IPTC ----
 Keywords (25) = 'mammal'

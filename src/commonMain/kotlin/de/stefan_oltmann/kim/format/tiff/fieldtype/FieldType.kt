@@ -24,6 +24,7 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_BYTE_
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_DOUBLE_INDEX
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_FLOAT_INDEX
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_IFD_INDEX
+import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_INT64_INDEX
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_LONG_INDEX
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_RATIONAL_INDEX
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_SBYTE_INDEX
@@ -66,6 +67,7 @@ public interface FieldType<T> {
                 FIELD_TYPE_FLOAT_INDEX -> FieldTypeFloat
                 FIELD_TYPE_DOUBLE_INDEX -> FieldTypeDouble
                 FIELD_TYPE_IFD_INDEX -> FieldTypeIfd
+                FIELD_TYPE_INT64_INDEX -> FieldTypeInt64
                 else -> throw ImageReadException("Unknown field type $type")
             }
     }
