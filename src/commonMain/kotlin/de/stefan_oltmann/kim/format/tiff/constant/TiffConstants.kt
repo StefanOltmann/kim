@@ -40,6 +40,9 @@ public object TiffConstants {
     public const val TIFF_ENTRY_LENGTH: Int = 12
     public const val TIFF_ENTRY_MAX_VALUE_LENGTH: Int = 4
 
+    /** The position of the value slot within a TIFF entry. */
+    public const val TIFF_ENTRY_VALUE_OFFSET: Int = 8
+
     /** Root directory. */
     public const val TIFF_DIRECTORY_TYPE_IFD0: Int = 0
 

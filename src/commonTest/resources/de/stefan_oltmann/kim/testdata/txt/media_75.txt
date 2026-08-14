@@ -206,42 +206,42 @@ Little-endian (Intel, II)
 0000002205 0x02b3 FileIndex = 5989
 0000002217 0x02bf DirectoryIndex = 101
 
----- Directory MakerNoteCanonPictureStyleInfo @ 0 ----
-0000000000 0x0000 ContrastStandard = 0
-0000000016 0x0004 SharpnessStandard = -559038737
-0000000032 0x0008 SaturationStandard = 0
-0000000048 0x000c ColorToneStandard = 0
-0000000064 0x0010 FilterEffectStandard = -559038737
-0000000080 0x0014 ToningEffectStandard = 0
-0000000096 0x0018 ContrastPortrait = 0
-0000000112 0x001c SharpnessPortrait = -559038737
-0000000128 0x0020 SaturationPortrait = -559038737
-0000000144 0x0024 ColorTonePortrait = 0
-0000000160 0x0028 FilterEffectPortrait = -559038737
-0000000176 0x002c ToningEffectPortrait = 0
-0000000192 0x0030 ContrastLandscape = 0
-0000000208 0x0034 SharpnessLandscape = 0
-0000000224 0x0038 SaturationLandscape = 0
-0000000240 0x003c ColorToneLandscape = 8847495
-0000000256 0x0040 FilterEffectLandscape = 0
-0000000272 0x0044 ToningEffectLandscape = 0
-0000000288 0x0048 ContrastNeutral = 67109888
-0000000304 0x004c SharpnessNeutral = 0
-0000000320 0x0050 SaturationNeutral = 0
-0000000336 0x0054 ColorToneNeutral = 0
-0000000352 0x0058 FilterEffectNeutral = 0
-0000000368 0x005c ToningEffectNeutral = 67109888
-0000000384 0x0060 ContrastFaithful = 0
-0000000400 0x0064 SharpnessFaithful = 0
-0000000416 0x0068 SaturationFaithful = 0
-0000000432 0x006c ColorToneFaithful = 0
-0000000448 0x0070 FilterEffectFaithful = 67109888
-0000000464 0x0074 ToningEffectFaithful = 1444574504
-0000000480 0x0078 ContrastMonochrome = 4
-0000000496 0x007c SharpnessMonochrome = 268435456
-0000000512 0x0080 SaturationMonochrome = 14080
-0000000528 0x0084 ColorToneMonochrome = 0
-0000000544 0x0088 FilterEffectMonochrome = 0
+---- Directory MakerNoteCanonPictureStyleInfo @ 2489 ----
+0000002489 0x0000 ContrastStandard = 0
+0000002505 0x0004 SharpnessStandard = -559038737
+0000002521 0x0008 SaturationStandard = 0
+0000002537 0x000c ColorToneStandard = 0
+0000002553 0x0010 FilterEffectStandard = -559038737
+0000002569 0x0014 ToningEffectStandard = 0
+0000002585 0x0018 ContrastPortrait = 0
+0000002601 0x001c SharpnessPortrait = -559038737
+0000002617 0x0020 SaturationPortrait = -559038737
+0000002633 0x0024 ColorTonePortrait = 0
+0000002649 0x0028 FilterEffectPortrait = -559038737
+0000002665 0x002c ToningEffectPortrait = 0
+0000002681 0x0030 ContrastLandscape = 0
+0000002697 0x0034 SharpnessLandscape = 0
+0000002713 0x0038 SaturationLandscape = 0
+0000002729 0x003c ColorToneLandscape = 8847495
+0000002745 0x0040 FilterEffectLandscape = 0
+0000002761 0x0044 ToningEffectLandscape = 0
+0000002777 0x0048 ContrastNeutral = 67109888
+0000002793 0x004c SharpnessNeutral = 0
+0000002809 0x0050 SaturationNeutral = 0
+0000002825 0x0054 ColorToneNeutral = 0
+0000002841 0x0058 FilterEffectNeutral = 0
+0000002857 0x005c ToningEffectNeutral = 67109888
+0000002873 0x0060 ContrastFaithful = 0
+0000002889 0x0064 SharpnessFaithful = 0
+0000002905 0x0068 SaturationFaithful = 0
+0000002921 0x006c ColorToneFaithful = 0
+0000002937 0x0070 FilterEffectFaithful = 67109888
+0000002953 0x0074 ToningEffectFaithful = 1444574504
+0000002969 0x0078 ContrastMonochrome = 4
+0000002985 0x007c SharpnessMonochrome = 268435456
+0000003001 0x0080 SaturationMonochrome = 14080
+0000003017 0x0084 ColorToneMonochrome = 0
+0000003033 0x0088 FilterEffectMonochrome = 0
 
 ---- Directory MakerNoteCanonAFInfo2 @ 3058 ----
 0000003058 0x0000 AFInfoSize = 278
@@ -362,16 +362,16 @@ Little-endian (Intel, II)
 0000008904 0x0002 HDREffect = 0
 
 ---- Directory MakerNoteCanonFilterInfo @ 8684 ----
-0000000028 0x0101 GrainyBWFilter = -1
-0000000052 0x0201 SoftFocusFilter = -1
-0000000076 0x0301 ToyCameraFilter = -1
-0000000100 0x0401 MiniatureFilter = -1
-0000000112 0x0402 MiniatureFilterOrientation = 0
-0000000124 0x0403 MiniatureFilterPosition = 0
-0000000136 0x0404 MiniatureFilterParameter = 0
-0000000160 0x0501 FisheyeFilter = -1
-0000000184 0x0601 PaintingFilter = -1
-0000000208 0x0701 WatercolorFilter = -1
+0000008712 0x0101 GrainyBWFilter = -1
+0000008736 0x0201 SoftFocusFilter = -1
+0000008760 0x0301 ToyCameraFilter = -1
+0000008784 0x0401 MiniatureFilter = -1
+0000008796 0x0402 MiniatureFilterOrientation = 0
+0000008808 0x0403 MiniatureFilterPosition = 0
+0000008820 0x0404 MiniatureFilterParameter = 0
+0000008844 0x0501 FisheyeFilter = -1
+0000008868 0x0601 PaintingFilter = -1
+0000008892 0x0701 WatercolorFilter = -1
 
 ---- XMP ----
 <?xpacket begin='﻿' id='W5M0MpCehiHzreSzNTczkc9d'?>

@@ -22,8 +22,7 @@ import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.bmff.box.Box
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
-import de.stefan_oltmann.kim.format.tiff.write.TiffWriterLossless
-import de.stefan_oltmann.kim.format.tiff.write.TiffWriterLossy
+import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
@@ -153,17 +152,7 @@ class JxlWriterTest {
 
             val exifBytesWriter = ByteArrayByteWriter()
 
-            val oldExifBytes = oldMetadata.exifBytes
-
-            val writer = if (oldExifBytes != null)
-                TiffWriterLossless(
-                    byteOrder = tiffOutputSet.byteOrder,
-                    exifBytes = oldExifBytes
-                )
-            else
-                TiffWriterLossy(
-                    byteOrder = tiffOutputSet.byteOrder
-                )
+            val writer = TiffWriter(byteOrder = tiffOutputSet.byteOrder)
 
             writer.write(exifBytesWriter, tiffOutputSet)
 

@@ -13,7 +13,7 @@ Little-endian (Intel, II)
 0000000082 0x0132 ModifyDate = 2023:05:10 13:37:42
 0000000094 0x0213 YCbCrPositioning = 2
 0000000106 0x8769 ExifOffset = 190
-0000000118 0x8825 GPSInfo = 9056
+0000000118 0x8825 GPSInfo = 9086
 
 ---- Directory ExifIFD @ 190 ----
 0000000192 0x829a ExposureTime = 1/60 (0.016667)
@@ -40,7 +40,7 @@ Little-endian (Intel, II)
 0000000444 0xa001 ColorSpace = 1
 0000000456 0xa002 ExifImageWidth = 5472
 0000000468 0xa003 ExifImageHeight = 3648
-0000000480 0xa005 InteropOffset = 9026
+0000000480 0xa005 InteropOffset = 9056
 0000000492 0xa20e FocalPlaneXResolution = 5472000/899 (6086.76307)
 0000000504 0xa20f FocalPlaneYResolution = 3648000/599 (6090.15025)
 0000000516 0xa210 FocalPlaneResolutionUnit = 2
@@ -54,24 +54,24 @@ Little-endian (Intel, II)
 0000000612 0xa434 LensModel = EF50mm f/1.8 STM
 0000000624 0xa435 LensSerialNumber = 0000214e1c
 
----- Directory InteropIFD @ 9026 ----
-0000009028 0x0001 InteroperabilityIndex = R98
-0000009040 0x0002 InteroperabilityVersion = [0x30, 0x31, 0x30, 0x30]
+---- Directory InteropIFD @ 9056 ----
+0000009058 0x0001 InteroperabilityIndex = R98
+0000009070 0x0002 InteroperabilityVersion = [0x30, 0x31, 0x30, 0x30]
 
----- Directory GPS @ 9056 ----
-0000009058 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000009070 0x0001 GPSLatitudeRef = N
-0000009082 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000009094 0x0003 GPSLongitudeRef = E
-0000009106 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 9086 ----
+0000009088 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000009100 0x0001 GPSLatitudeRef = N
+0000009112 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000009124 0x0003 GPSLongitudeRef = E
+0000009136 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory IFD1 @ 9170 ----
-0000009172 0x0103 Compression = 6
-0000009184 0x011a XResolution = 72/1 (72.0)
-0000009196 0x011b YResolution = 72/1 (72.0)
-0000009208 0x0128 ResolutionUnit = 2
-0000009220 0x0201 JpgFromRawStart = 9264
-0000009232 0x0202 JpgFromRawLength = 8567
+---- Directory IFD1 @ 9200 ----
+0000009202 0x0103 Compression = 6
+0000009214 0x011a XResolution = 72/1 (72.0)
+0000009226 0x011b YResolution = 72/1 (72.0)
+0000009238 0x0128 ResolutionUnit = 2
+0000009250 0x0201 JpgFromRawStart = 9294
+0000009262 0x0202 JpgFromRawLength = 8567
 
 ---- Directory MakerNoteCanon @ 764 ----
 0000000766 0x0001 CanonCameraSettings = [49 shorts]
@@ -207,42 +207,42 @@ Little-endian (Intel, II)
 0000002205 0x02b3 FileIndex = 5989
 0000002217 0x02bf DirectoryIndex = 101
 
----- Directory MakerNoteCanonPictureStyleInfo @ 0 ----
-0000000000 0x0000 ContrastStandard = 0
-0000000016 0x0004 SharpnessStandard = -559038737
-0000000032 0x0008 SaturationStandard = 0
-0000000048 0x000c ColorToneStandard = 0
-0000000064 0x0010 FilterEffectStandard = -559038737
-0000000080 0x0014 ToningEffectStandard = 0
-0000000096 0x0018 ContrastPortrait = 0
-0000000112 0x001c SharpnessPortrait = -559038737
-0000000128 0x0020 SaturationPortrait = -559038737
-0000000144 0x0024 ColorTonePortrait = 0
-0000000160 0x0028 FilterEffectPortrait = -559038737
-0000000176 0x002c ToningEffectPortrait = 0
-0000000192 0x0030 ContrastLandscape = 0
-0000000208 0x0034 SharpnessLandscape = 0
-0000000224 0x0038 SaturationLandscape = 0
-0000000240 0x003c ColorToneLandscape = 8847495
-0000000256 0x0040 FilterEffectLandscape = 0
-0000000272 0x0044 ToningEffectLandscape = 0
-0000000288 0x0048 ContrastNeutral = 67109888
-0000000304 0x004c SharpnessNeutral = 0
-0000000320 0x0050 SaturationNeutral = 0
-0000000336 0x0054 ColorToneNeutral = 0
-0000000352 0x0058 FilterEffectNeutral = 0
-0000000368 0x005c ToningEffectNeutral = 67109888
-0000000384 0x0060 ContrastFaithful = 0
-0000000400 0x0064 SharpnessFaithful = 0
-0000000416 0x0068 SaturationFaithful = 0
-0000000432 0x006c ColorToneFaithful = 0
-0000000448 0x0070 FilterEffectFaithful = 67109888
-0000000464 0x0074 ToningEffectFaithful = 1444574504
-0000000480 0x0078 ContrastMonochrome = 4
-0000000496 0x007c SharpnessMonochrome = 268435456
-0000000512 0x0080 SaturationMonochrome = 14080
-0000000528 0x0084 ColorToneMonochrome = 0
-0000000544 0x0088 FilterEffectMonochrome = 0
+---- Directory MakerNoteCanonPictureStyleInfo @ 2489 ----
+0000002489 0x0000 ContrastStandard = 0
+0000002505 0x0004 SharpnessStandard = -559038737
+0000002521 0x0008 SaturationStandard = 0
+0000002537 0x000c ColorToneStandard = 0
+0000002553 0x0010 FilterEffectStandard = -559038737
+0000002569 0x0014 ToningEffectStandard = 0
+0000002585 0x0018 ContrastPortrait = 0
+0000002601 0x001c SharpnessPortrait = -559038737
+0000002617 0x0020 SaturationPortrait = -559038737
+0000002633 0x0024 ColorTonePortrait = 0
+0000002649 0x0028 FilterEffectPortrait = -559038737
+0000002665 0x002c ToningEffectPortrait = 0
+0000002681 0x0030 ContrastLandscape = 0
+0000002697 0x0034 SharpnessLandscape = 0
+0000002713 0x0038 SaturationLandscape = 0
+0000002729 0x003c ColorToneLandscape = 8847495
+0000002745 0x0040 FilterEffectLandscape = 0
+0000002761 0x0044 ToningEffectLandscape = 0
+0000002777 0x0048 ContrastNeutral = 67109888
+0000002793 0x004c SharpnessNeutral = 0
+0000002809 0x0050 SaturationNeutral = 0
+0000002825 0x0054 ColorToneNeutral = 0
+0000002841 0x0058 FilterEffectNeutral = 0
+0000002857 0x005c ToningEffectNeutral = 67109888
+0000002873 0x0060 ContrastFaithful = 0
+0000002889 0x0064 SharpnessFaithful = 0
+0000002905 0x0068 SaturationFaithful = 0
+0000002921 0x006c ColorToneFaithful = 0
+0000002937 0x0070 FilterEffectFaithful = 67109888
+0000002953 0x0074 ToningEffectFaithful = 1444574504
+0000002969 0x0078 ContrastMonochrome = 4
+0000002985 0x007c SharpnessMonochrome = 268435456
+0000003001 0x0080 SaturationMonochrome = 14080
+0000003017 0x0084 ColorToneMonochrome = 0
+0000003033 0x0088 FilterEffectMonochrome = 0
 
 ---- Directory MakerNoteCanonAFInfo2 @ 3058 ----
 0000003058 0x0000 AFInfoSize = 278
@@ -363,16 +363,16 @@ Little-endian (Intel, II)
 0000008904 0x0002 HDREffect = 0
 
 ---- Directory MakerNoteCanonFilterInfo @ 8684 ----
-0000000028 0x0101 GrainyBWFilter = -1
-0000000052 0x0201 SoftFocusFilter = -1
-0000000076 0x0301 ToyCameraFilter = -1
-0000000100 0x0401 MiniatureFilter = -1
-0000000112 0x0402 MiniatureFilterOrientation = 0
-0000000124 0x0403 MiniatureFilterPosition = 0
-0000000136 0x0404 MiniatureFilterParameter = 0
-0000000160 0x0501 FisheyeFilter = -1
-0000000184 0x0601 PaintingFilter = -1
-0000000208 0x0701 WatercolorFilter = -1
+0000008712 0x0101 GrainyBWFilter = -1
+0000008736 0x0201 SoftFocusFilter = -1
+0000008760 0x0301 ToyCameraFilter = -1
+0000008784 0x0401 MiniatureFilter = -1
+0000008796 0x0402 MiniatureFilterOrientation = 0
+0000008808 0x0403 MiniatureFilterPosition = 0
+0000008820 0x0404 MiniatureFilterParameter = 0
+0000008844 0x0501 FisheyeFilter = -1
+0000008868 0x0601 PaintingFilter = -1
+0000008892 0x0701 WatercolorFilter = -1
 
 ---- IPTC ----
 Object Name (5) = 'Gray cat portrait'

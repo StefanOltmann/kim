@@ -87,20 +87,6 @@ class JpegRewriterTest {
 
         for (index in 1..KimTestData.HIGHEST_JPEG_INDEX) {
 
-            // FIXME APP1 segment is too long for rewrite
-            if (index == 41)
-                continue
-
-            // FIXME Corrupt file. Normal fields have offset in Makernote space.
-            //   This should be detected to keep Makernote as is.
-            //   ExifTool behaves the same.
-            if (index == 42)
-                continue
-
-            // FIXME Handle extra ExifOffset in IFD1 (thumbnail)
-            if (index == 43)
-                continue
-
             /* Broken files are rejected by the segment length validation. */
             if (index == 44 || index == 45 || index == 47)
                 continue
@@ -154,7 +140,7 @@ class JpegRewriterTest {
 
             val exifWriter = ByteArrayByteWriter()
 
-            JpegRewriter.updateExifMetadataLossless(
+            JpegRewriter.updateExifMetadata(
                 ByteArrayByteReader(bytes), exifWriter, outputSet
             )
 
@@ -185,20 +171,6 @@ class JpegRewriterTest {
 
         for (index in 1..KimTestData.HIGHEST_JPEG_INDEX) {
 
-            // FIXME APP1 segment is too long for rewrite
-            if (index == 41)
-                continue
-
-            // FIXME Corrupt file. Normal fields have offset in Makernote space.
-            //   This should be detected to keep Makernote as is.
-            //   ExifTool behaves the same.
-            if (index == 42)
-                continue
-
-            // FIXME Handle extra ExifOffset in IFD1 (thumbnail)
-            if (index == 43)
-                continue
-
             /* Broken files are rejected by the segment length validation. */
             if (index == 44 || index == 45 || index == 47)
                 continue
@@ -211,7 +183,7 @@ class JpegRewriterTest {
 
             val byteWriter = ByteArrayByteWriter()
 
-            JpegRewriter.updateExifMetadataLossless(ByteArrayByteReader(bytes), byteWriter, expectedOutputSet)
+            JpegRewriter.updateExifMetadata(ByteArrayByteReader(bytes), byteWriter, expectedOutputSet)
 
             val newBytes = byteWriter.toByteArray()
 
@@ -535,7 +507,7 @@ class JpegRewriterTest {
         val byteWriter = ByteArrayByteWriter()
 
         assertFailsWith<ImageWriteException> {
-            JpegRewriter.updateExifMetadataLossless(
+            JpegRewriter.updateExifMetadata(
                 ByteArrayByteReader(baseJpeg),
                 byteWriter,
                 createOutputSetWithXmpField(smallestRejectedExifPayloadBytes - fixedExifBytes)
@@ -557,7 +529,7 @@ class JpegRewriterTest {
 
         val byteWriter = ByteArrayByteWriter()
 
-        JpegRewriter.updateExifMetadataLossless(
+        JpegRewriter.updateExifMetadata(
             ByteArrayByteReader(baseJpeg),
             byteWriter,
             createOutputSetWithXmpField(largestWriteableExifPayloadBytes - fixedExifBytes)
@@ -644,7 +616,7 @@ class JpegRewriterTest {
 
         val byteWriter = ByteArrayByteWriter()
 
-        JpegRewriter.updateExifMetadataLossless(ByteArrayByteReader(baseJpeg), byteWriter, outputSet)
+        JpegRewriter.updateExifMetadata(ByteArrayByteReader(baseJpeg), byteWriter, outputSet)
 
         return byteWriter.toByteArray()
     }

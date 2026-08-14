@@ -24,18 +24,161 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.TIFF_HEADER_SIZE
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.TIFF_VERSION
 import de.stefan_oltmann.kim.output.BinaryByteWriter
+import de.stefan_oltmann.kim.output.BinaryByteWriter.Companion.createBinaryByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
 
 /**
- * Base class for writing TIFF files.
+ * Writes TIFF data from scratch, which changes the file size.
+ *
+ * Like ExifTool, unreferenced space of the original EXIF block is not
+ * preserved, so blocks with large camera padding shrink considerably.
+ *
+ * The MakerNote value keeps its original offset, because some
+ * MakerNotes store absolute offsets inside their data that would break
+ * when the MakerNote is moved. Items that do not fit into the space
+ * before the MakerNote are written behind it.
  */
-public abstract class TiffWriterBase(
+public class TiffWriter(
     public val byteOrder: ByteOrder
 ) {
 
-    public abstract fun write(byteWriter: ByteWriter, outputSet: TiffOutputSet)
+    /**
+     * Writes the given [outputSet] as a new TIFF structure.
+     *
+     * Unreferenced space of the original EXIF block is dropped. The
+     * MakerNote value keeps its original offset and bytes, so MakerNotes
+     * with absolute internal offsets stay valid.
+     */
+    public fun write(
+        byteWriter: ByteWriter,
+        outputSet: TiffOutputSet
+    ) {
 
-    internal fun createOffsetItems(outputSet: TiffOutputSet): TiffOffsetItems {
+        val offsetItems = createOffsetItems(outputSet)
+
+        val outputItems = outputSet.getOutputItems(offsetItems)
+
+        val makerNoteField = outputSet.findMakerNoteField()
+
+        calcNewOffsets(outputItems, makerNoteField)
+
+        offsetItems.writeOffsetsToOutputFields()
+
+        /* Items are written in offset order, so the output stays ordered. */
+        val sortedItems = outputItems.sortedBy { it.offset }
+
+        val binaryByteWriter = createBinaryByteWriter(byteWriter, byteOrder)
+
+        writeInternal(
+            bos = binaryByteWriter,
+            outputItems = sortedItems,
+            offsetToFirstIFD = outputSet.getOrCreateRootDirectory().offset
+        )
+    }
+
+    private fun calcNewOffsets(
+        outputItems: List<TiffOutputItem>,
+        makerNoteField: TiffOutputField?
+    ) {
+
+        val makerNoteItem = makerNoteField?.separateValue
+        val makerNoteAnchor = makerNoteField?.originalOffset
+
+        var makerNotePending = makerNoteItem != null
+
+        var offset: Int = TIFF_HEADER_SIZE
+
+        for (outputItem in outputItems) {
+
+            if (outputItem === makerNoteItem) {
+
+                if (makerNotePending) {
+
+                    /*
+                     * Keep the MakerNote at its original offset. Because
+                     * some MakerNotes store absolute offsets inside their
+                     * data, the MakerNote must never move.
+                     */
+                    if (makerNoteAnchor != null && makerNoteAnchor > offset)
+                        offset = makerNoteAnchor
+
+                    outputItem.offset = offset
+
+                    offset += outputItem.getItemLength() +
+                        imageDataPaddingLength(outputItem.getItemLength())
+
+                    makerNotePending = false
+                }
+
+                continue
+            }
+
+            val itemLength = outputItem.getItemLength()
+
+            val nextOffset = offset + itemLength + imageDataPaddingLength(itemLength)
+
+            /*
+             * An item that would overlap the anchored MakerNote region is
+             * written behind the MakerNote: pad the gap with zeros and
+             * place the MakerNote at its anchor now.
+             */
+            val overlapsMakerNoteRegion = makerNotePending &&
+                makerNoteAnchor != null && nextOffset > makerNoteAnchor
+
+            if (overlapsMakerNoteRegion && makerNoteItem != null) {
+
+                val makerNoteStart = maxOf(offset, makerNoteAnchor)
+
+                makerNoteItem.offset = makerNoteStart
+
+                val makerNoteLength = makerNoteItem.getItemLength()
+
+                offset = makerNoteStart + makerNoteLength +
+                    imageDataPaddingLength(makerNoteLength)
+
+                makerNotePending = false
+            }
+
+            outputItem.offset = offset
+
+            offset += itemLength + imageDataPaddingLength(itemLength)
+        }
+    }
+
+    private fun writeInternal(
+        bos: BinaryByteWriter,
+        outputItems: List<TiffOutputItem>,
+        offsetToFirstIFD: Int
+    ) {
+
+        writeImageFileHeader(bos, offsetToFirstIFD)
+
+        var position = TIFF_HEADER_SIZE
+
+        for (outputItem in outputItems) {
+
+            /* Fill the gap to the next item with zeros. */
+            repeat(outputItem.offset - position) {
+                bos.write(0)
+            }
+
+            outputItem.writeItem(bos)
+
+            val length = outputItem.getItemLength()
+
+            val remainder = imageDataPaddingLength(length)
+
+            repeat(remainder) {
+                bos.write(0)
+            }
+
+            position = outputItem.offset + length + remainder
+        }
+    }
+
+    private fun createOffsetItems(
+        outputSet: TiffOutputSet
+    ): TiffOffsetItems {
 
         val directories = outputSet.getDirectories()
 
@@ -229,40 +372,35 @@ public abstract class TiffWriterBase(
         return tiffOffsetItems
     }
 
-    protected fun writeImageFileHeader(
-        byteWriter: BinaryByteWriter,
+    private fun writeImageFileHeader(
+        binaryByteWriter: BinaryByteWriter,
         offsetToFirstIFD: Int = TIFF_HEADER_SIZE
     ) {
 
         if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
-            byteWriter.write('I'.code)
-            byteWriter.write('I'.code)
+            binaryByteWriter.write('I'.code)
+            binaryByteWriter.write('I'.code)
         } else {
-            byteWriter.write('M'.code)
-            byteWriter.write('M'.code)
+            binaryByteWriter.write('M'.code)
+            binaryByteWriter.write('M'.code)
         }
 
-        byteWriter.write2Bytes(TIFF_VERSION)
-        byteWriter.write4Bytes(offsetToFirstIFD)
+        binaryByteWriter.write2Bytes(TIFF_VERSION)
+        binaryByteWriter.write4Bytes(offsetToFirstIFD)
     }
 
-    public companion object {
+    private companion object {
 
-        /** Returns an appropriate TiffImageWriter instance. */
-        public fun createTiffWriter(
-            byteOrder: ByteOrder,
-            oldExifBytes: ByteArray?
-        ): TiffWriterBase {
+        /*
+         * Attention: the TIFF 6.0 specification (Adobe, 1992) aligns all
+         * values on word boundaries, where a word is 2 bytes. Padding to
+         * 4-byte boundaries (inherited from Apache Commons Imaging) is not
+         * required by the spec and wastes space, so items are padded to
+         * even offsets only, like ExifTool does.
+         */
+        private const val WORD_SIZE = 2
 
-            return if (oldExifBytes != null)
-                TiffWriterLossless(
-                    byteOrder = byteOrder,
-                    exifBytes = oldExifBytes
-                )
-            else
-                TiffWriterLossy(
-                    byteOrder = byteOrder
-                )
-        }
+        private fun imageDataPaddingLength(dataLength: Int): Int =
+            (WORD_SIZE - dataLength % WORD_SIZE) % WORD_SIZE
     }
 }

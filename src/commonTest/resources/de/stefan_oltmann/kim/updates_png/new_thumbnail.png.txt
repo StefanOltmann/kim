@@ -17,7 +17,7 @@ Little-endian (Intel, II)
 0000000130 0x0132 ModifyDate = 2023:07:12 15:28:58
 0000000142 0x0213 YCbCrPositioning = 2
 0000000154 0x8769 ExifOffset = 258
-0000000166 0x8825 GPSInfo = 4568
+0000000166 0x8825 GPSInfo = 4576
 
 ---- Directory ExifIFD @ 258 ----
 0000000260 0x829a ExposureTime = 1/4000 (2.5E-4)
@@ -60,19 +60,19 @@ Little-endian (Intel, II)
 0000000704 0xa434 LensModel = EF-M18-55mm f/3.5-5.6 IS STM
 0000000716 0xa435 LensSerialNumber = 0000455071
 
----- Directory GPS @ 4568 ----
-0000004570 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+---- Directory GPS @ 4576 ----
+0000004578 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
 
----- Directory IFD1 @ 4586 ----
-0000004588 0x00fe NewSubfileType = 1
-0000004600 0x0100 ImageWidth = 256
-0000004612 0x0101 ImageHeight = 170
-0000004624 0x0102 BitsPerSample = [8, 8, 8]
-0000004636 0x0103 Compression = 6
-0000004648 0x0106 PhotometricInterpretation = 6
-0000004660 0x0115 SamplesPerPixel = 3
-0000004672 0x0201 JpgFromRawStart = 4706
-0000004684 0x0202 JpgFromRawLength = 13884
+---- Directory IFD1 @ 4594 ----
+0000004596 0x00fe NewSubfileType = 1
+0000004608 0x0100 ImageWidth = 256
+0000004620 0x0101 ImageHeight = 170
+0000004632 0x0102 BitsPerSample = [8, 8, 8]
+0000004644 0x0103 Compression = 6
+0000004656 0x0106 PhotometricInterpretation = 6
+0000004668 0x0115 SamplesPerPixel = 3
+0000004680 0x0201 JpgFromRawStart = 4714
+0000004692 0x0202 JpgFromRawLength = 13884
 
 ---- Directory MakerNoteCanon @ 840 ----
 0000000842 0x0003 CanonFlashInfo = [0, 0, 0, 0]

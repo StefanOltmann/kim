@@ -42,7 +42,11 @@ public class TiffField(
     public val count: Int,
     /** Set if field has a local value. */
     public val localValue: Int?,
-    /** Set if field has a offset pointer to its value. */
+    /**
+     * The absolute offset of the value within the TIFF bytes, resolved
+     * against the start of the read data, or null when the value is
+     * stored locally in the entry itself.
+     */
     public val valueOffset: Int?,
     public val valueBytes: ByteArray,
     public val byteOrder: ByteOrder,

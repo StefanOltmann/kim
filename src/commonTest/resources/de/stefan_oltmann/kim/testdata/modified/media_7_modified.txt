@@ -13,7 +13,7 @@ Little-endian (Intel, II)
 0000000082 0x0131 Software = Adobe Photoshop Lightroom 4.4 (Windows)
 0000000094 0x0132 ModifyDate = 2023:05:10 13:37:42
 0000000106 0x8769 ExifOffset = 226
-0000000118 0x8825 GPSInfo = 9398
+0000000118 0x8825 GPSInfo = 718
 
 ---- Directory ExifIFD @ 226 ----
 0000000228 0x829a ExposureTime = 1/500 (0.002)
@@ -47,20 +47,20 @@ Little-endian (Intel, II)
 0000000564 0xa40a Sharpness = 0
 0000000576 0xa434 LensModel = DT 0mm F0 SAM
 
----- Directory GPS @ 9398 ----
-0000009400 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000009412 0x0001 GPSLatitudeRef = N
-0000009424 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000009436 0x0003 GPSLongitudeRef = E
-0000009448 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 718 ----
+0000000720 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000000732 0x0001 GPSLatitudeRef = N
+0000000744 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000000756 0x0003 GPSLongitudeRef = E
+0000000768 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory IFD1 @ 718 ----
-0000000720 0x0103 Compression = 6
-0000000732 0x011a XResolution = 72/1 (72.0)
-0000000744 0x011b YResolution = 72/1 (72.0)
-0000000756 0x0128 ResolutionUnit = 2
-0000000768 0x0201 JpgFromRawStart = 812
-0000000780 0x0202 JpgFromRawLength = 8586
+---- Directory IFD1 @ 832 ----
+0000000834 0x0103 Compression = 6
+0000000846 0x011a XResolution = 72/1 (72.0)
+0000000858 0x011b YResolution = 72/1 (72.0)
+0000000870 0x0128 ResolutionUnit = 2
+0000000882 0x0201 JpgFromRawStart = 926
+0000000894 0x0202 JpgFromRawLength = 8586
 
 ---- IPTC ----
 Keywords (25) = 'grass'

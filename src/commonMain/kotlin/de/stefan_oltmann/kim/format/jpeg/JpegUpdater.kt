@@ -144,7 +144,7 @@ internal object JpegUpdater : MetadataUpdater {
 
         val byteWriter = ByteArrayByteWriter()
 
-        JpegRewriter.updateExifMetadataLossless(
+        JpegRewriter.updateExifMetadata(
             byteReader = ByteArrayByteReader(bytes),
             byteWriter = byteWriter,
             outputSet = outputSet

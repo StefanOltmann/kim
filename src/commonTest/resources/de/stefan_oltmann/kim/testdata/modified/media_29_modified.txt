@@ -19,7 +19,7 @@ Little-endian (Intel, II)
 0000000154 0x0131 Software = Adobe Photoshop CC (Windows)
 0000000166 0x0132 ModifyDate = 2023:05:10 13:37:42
 0000000178 0x8769 ExifOffset = 330
-0000000190 0x8825 GPSInfo = 5630
+0000000190 0x8825 GPSInfo = 1004
 
 ---- Directory ExifIFD @ 330 ----
 0000000332 0x829a ExposureTime = 1/250 (0.004)
@@ -61,20 +61,20 @@ Little-endian (Intel, II)
 0000000764 0xa434 LensModel = OLYMPUS M.14-42mm F3.5-5.6 II R
 0000000776 0xa435 LensSerialNumber = ABGD50966
 
----- Directory GPS @ 5630 ----
-0000005632 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000005644 0x0001 GPSLatitudeRef = N
-0000005656 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000005668 0x0003 GPSLongitudeRef = E
-0000005680 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 1004 ----
+0000001006 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000001018 0x0001 GPSLatitudeRef = N
+0000001030 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000001042 0x0003 GPSLongitudeRef = E
+0000001054 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory IFD1 @ 1004 ----
-0000001006 0x0103 Compression = 6
-0000001018 0x011a XResolution = 72/1 (72.0)
-0000001030 0x011b YResolution = 72/1 (72.0)
-0000001042 0x0128 ResolutionUnit = 2
-0000001054 0x0201 JpgFromRawStart = 1098
-0000001066 0x0202 JpgFromRawLength = 4532
+---- Directory IFD1 @ 1118 ----
+0000001120 0x0103 Compression = 6
+0000001132 0x011a XResolution = 72/1 (72.0)
+0000001144 0x011b YResolution = 72/1 (72.0)
+0000001156 0x0128 ResolutionUnit = 2
+0000001168 0x0201 JpgFromRawStart = 1212
+0000001180 0x0202 JpgFromRawLength = 4532
 
 ---- IPTC ----
 Keywords (25) = 'Umlauts: äöüß'

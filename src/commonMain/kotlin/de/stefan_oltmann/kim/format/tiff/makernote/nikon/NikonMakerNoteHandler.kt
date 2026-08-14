@@ -257,7 +257,6 @@ internal object NikonMakerNoteHandler : MakerNoteHandler() {
 
             readMakerNoteBlobSubDirectories(
                 directory = directory,
-                valueOffsetBase = tiffHeaderOffset,
                 byteOrder = byteOrder,
                 blobPointers = BLOB_POINTERS,
                 addDirectory = addDirectory,

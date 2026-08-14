@@ -6,7 +6,7 @@ import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.GeoTiffTag
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
-import de.stefan_oltmann.kim.format.tiff.write.TiffWriterLossy
+import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
 import de.stefan_oltmann.kim.input.DefaultRandomAccessByteReader
 import de.stefan_oltmann.kim.input.JvmInputStreamByteReader
 import de.stefan_oltmann.kim.input.KotlinIoSourceByteReader
@@ -78,7 +78,7 @@ fun updateTakenDateLowLevelApi() {
 
     OutputStreamByteWriter(outputFile.outputStream()).use { outputStreamByteWriter ->
 
-        JpegRewriter.updateExifMetadataLossless(
+        JpegRewriter.updateExifMetadata(
             byteReader = JvmInputStreamByteReader(inputFile.inputStream(), inputFile.length()),
             byteWriter = outputStreamByteWriter,
             outputSet = outputSet
@@ -114,7 +114,7 @@ fun setGeoTiffToJpeg() {
 
     OutputStreamByteWriter(outputFile.outputStream()).use { outputStreamByteWriter ->
 
-        JpegRewriter.updateExifMetadataLossless(
+        JpegRewriter.updateExifMetadata(
             byteReader = JvmInputStreamByteReader(inputFile.inputStream(), inputFile.length()),
             byteWriter = outputStreamByteWriter,
             outputSet = outputSet
@@ -172,7 +172,7 @@ fun setGeoTiffToTiff() {
 
     OutputStreamByteWriter(outputFile.outputStream()).use { outputStreamByteWriter ->
 
-        val tiffWriter = TiffWriterLossy(outputSet.byteOrder)
+        val tiffWriter = TiffWriter(outputSet.byteOrder)
 
         tiffWriter.write(
             byteWriter = outputStreamByteWriter,
@@ -229,7 +229,7 @@ fun setGeoTiffToTiffUsingKotlinx() {
 
     val byteArrayByteWriter = ByteArrayByteWriter()
 
-    val tiffWriter = TiffWriterLossy(outputSet.byteOrder)
+    val tiffWriter = TiffWriter(outputSet.byteOrder)
 
     tiffWriter.write(
         byteWriter = byteArrayByteWriter,

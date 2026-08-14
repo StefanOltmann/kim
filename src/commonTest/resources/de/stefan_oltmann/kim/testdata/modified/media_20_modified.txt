@@ -15,7 +15,7 @@ Little-endian (Intel, II)
 0000000106 0x0132 ModifyDate = 2023:05:10 13:37:42
 0000000118 0x0213 YCbCrPositioning = 2
 0000000130 0x8769 ExifOffset = 630
-0000000142 0x8825 GPSInfo = 6860
+0000000142 0x8825 GPSInfo = 1092
 0000000154 0xc4a5 PrintIM = [260 bytes]
 
 ---- Directory ExifIFD @ 630 ----
@@ -50,23 +50,23 @@ Little-endian (Intel, II)
 0000000968 0xa409 Saturation = 0
 0000000980 0xa40a Sharpness = 0
 
----- Directory GPS @ 6860 ----
-0000006862 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000006874 0x0001 GPSLatitudeRef = N
-0000006886 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000006898 0x0003 GPSLongitudeRef = E
-0000006910 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 1092 ----
+0000001094 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000001106 0x0001 GPSLatitudeRef = N
+0000001118 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000001130 0x0003 GPSLongitudeRef = E
+0000001142 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory IFD1 @ 1092 ----
-0000001094 0x00fe NewSubfileType = 1
-0000001106 0x0100 ImageWidth = 256
-0000001118 0x0101 ImageHeight = 256
-0000001130 0x0102 BitsPerSample = [8, 8, 8]
-0000001142 0x0103 Compression = 6
-0000001154 0x0106 PhotometricInterpretation = 6
-0000001166 0x0115 SamplesPerPixel = 3
-0000001178 0x0201 JpgFromRawStart = 1212
-0000001190 0x0202 JpgFromRawLength = 5648
+---- Directory IFD1 @ 1206 ----
+0000001208 0x00fe NewSubfileType = 1
+0000001220 0x0100 ImageWidth = 256
+0000001232 0x0101 ImageHeight = 256
+0000001244 0x0102 BitsPerSample = [8, 8, 8]
+0000001256 0x0103 Compression = 6
+0000001268 0x0106 PhotometricInterpretation = 6
+0000001280 0x0115 SamplesPerPixel = 3
+0000001292 0x0201 JpgFromRawStart = 1326
+0000001304 0x0202 JpgFromRawLength = 5648
 
 ---- IPTC ----
 Keywords (25) = 'Umlauts: äöüß'

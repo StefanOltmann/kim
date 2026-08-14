@@ -222,6 +222,8 @@ public class TiffDirectory(
 
                 outputField.sortHint = entry.sortHint
 
+                outputField.originalOffset = entry.valueOffset
+
                 outputDirectory.add(outputField)
             }
 

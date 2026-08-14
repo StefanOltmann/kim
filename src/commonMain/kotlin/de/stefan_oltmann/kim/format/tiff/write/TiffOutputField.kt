@@ -45,6 +45,16 @@ public class TiffOutputField(
     public val separateValue: TiffOutputValue? =
         if (isLocalValue) null else TiffOutputValue("Value of $this", bytes)
 
+    /**
+     * The offset of this field's value in the original EXIF block, or
+     * NULL when the field was added by an update.
+     *
+     * The writer keeps the MakerNote value at this offset, because some
+     * MakerNotes store absolute offsets inside their data that would
+     * break when the MakerNote is moved.
+     */
+    internal var originalOffset: Int? = null
+
     public var sortHint: Int = -1
 
     internal fun writeField(byteWriter: BinaryByteWriter) {

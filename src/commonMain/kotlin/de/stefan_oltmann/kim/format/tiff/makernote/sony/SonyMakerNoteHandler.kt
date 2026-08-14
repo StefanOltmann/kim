@@ -32,8 +32,8 @@ import de.stefan_oltmann.kim.input.skipBytes
  *
  * Like ExifTool, a block of the MakerNote that cannot be read is
  * skipped instead of rejecting the file: the MakerNote is kept as an
- * opaque binary block and survives the rewrite unchanged, because
- * TiffWriterLossless freezes the whole MakerNote field region.
+ * opaque binary block and survives the rewrite unchanged, because the
+ * writer keeps the whole MakerNote value at its original offset.
  */
 @Suppress("MagicNumber")
 internal object SonyMakerNoteHandler : MakerNoteHandler() {
@@ -123,7 +123,6 @@ internal object SonyMakerNoteHandler : MakerNoteHandler() {
 
             readMakerNoteBlobSubDirectories(
                 directory = directory,
-                valueOffsetBase = 0,
                 byteOrder = ByteOrder.LITTLE_ENDIAN,
                 blobPointers = BLOB_POINTERS,
                 addDirectory = addDirectory
@@ -131,7 +130,6 @@ internal object SonyMakerNoteHandler : MakerNoteHandler() {
 
             readMoreInfo(
                 directory = directory,
-                valueOffsetBase = 0,
                 byteOrder = ByteOrder.LITTLE_ENDIAN,
                 addDirectory = addDirectory
             )
@@ -146,12 +144,13 @@ internal object SonyMakerNoteHandler : MakerNoteHandler() {
      */
     private fun readMoreInfo(
         directory: TiffDirectory,
-        valueOffsetBase: Int,
         byteOrder: ByteOrder,
         addDirectory: (TiffDirectory) -> Unit
     ) {
 
         val field = directory.entries.find { it.tag == 0x0020 } ?: return
+
+        val blobOffset = getAbsoluteValueOffset(field)
 
         val blob = field.valueBytes
 
@@ -205,7 +204,7 @@ internal object SonyMakerNoteHandler : MakerNoteHandler() {
 
                 readMakerNoteBlobSubDirectory(
                     blobBytes = block,
-                    blobOffset = valueOffsetBase + offset,
+                    blobOffset = blobOffset + offset,
                     blobLength = block.size,
                     byteOrder = byteOrder,
                     directoryType = directoryType,

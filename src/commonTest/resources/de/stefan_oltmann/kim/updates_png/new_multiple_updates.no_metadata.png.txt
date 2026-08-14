@@ -6,19 +6,19 @@ Big-endian (Motorola, MM)
 ---- Directory IFD0 @ 8 ----
 0000000010 0x010e ImageDescription = Äußerst süße Vögel fliegen durch die Lüfte.
 0000000022 0x0112 Orientation = 6
-0000000034 0x8769 ExifOffset = 116
-0000000046 0x8825 GPSInfo = 188
+0000000034 0x8769 ExifOffset = 112
+0000000046 0x8825 GPSInfo = 182
 
----- Directory ExifIFD @ 116 ----
-0000000118 0x9003 DateTimeOriginal = 2023:07:12 14:48:45
-0000000130 0x9004 DateTimeDigitized = 2023:07:12 14:48:45
+---- Directory ExifIFD @ 112 ----
+0000000114 0x9003 DateTimeOriginal = 2023:07:12 14:48:45
+0000000126 0x9004 DateTimeDigitized = 2023:07:12 14:48:45
 
----- Directory GPS @ 188 ----
-0000000190 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000000202 0x0001 GPSLatitudeRef = N
-0000000214 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000000226 0x0003 GPSLongitudeRef = E
-0000000238 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 182 ----
+0000000184 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000000196 0x0001 GPSLatitudeRef = N
+0000000208 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000000220 0x0003 GPSLongitudeRef = E
+0000000232 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
 ---- IPTC ----
 Caption/Abstract (120) = 'time lapse photography of fire'

@@ -14,7 +14,7 @@ Little-endian (Intel, II)
 0000000094 0x0131 Software = Adobe Photoshop Lightroom 6.14 (Windows)
 0000000106 0x0132 ModifyDate = 2023:05:10 13:37:42
 0000000118 0x8769 ExifOffset = 284
-0000000130 0x8825 GPSInfo = 1022
+0000000130 0x8825 GPSInfo = 928
 
 ---- Directory ExifIFD @ 284 ----
 0000000286 0x829a ExposureTime = 1/250 (0.004)
@@ -54,20 +54,20 @@ Little-endian (Intel, II)
 0000000694 0xa434 LensModel = OLYMPUS M.30mm F3.5 Macro
 0000000706 0xa435 LensSerialNumber = ACBA37456
 
----- Directory GPS @ 1022 ----
-0000001024 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000001036 0x0001 GPSLatitudeRef = N
-0000001048 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000001060 0x0003 GPSLongitudeRef = E
-0000001072 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 928 ----
+0000000930 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000000942 0x0001 GPSLatitudeRef = N
+0000000954 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000000966 0x0003 GPSLongitudeRef = E
+0000000978 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory IFD1 @ 928 ----
-0000000930 0x0103 Compression = 6
-0000000942 0x011a XResolution = 72/1 (72.0)
-0000000954 0x011b YResolution = 72/1 (72.0)
-0000000966 0x0128 ResolutionUnit = 2
-0000000978 0x0201 JpgFromRawStart = 13000
-0000000990 0x0202 JpgFromRawLength = 12001
+---- Directory IFD1 @ 1042 ----
+0000001044 0x0103 Compression = 6
+0000001056 0x011a XResolution = 72/1 (72.0)
+0000001068 0x011b YResolution = 72/1 (72.0)
+0000001080 0x0128 ResolutionUnit = 2
+0000001092 0x0201 JpgFromRawStart = 1136
+0000001104 0x0202 JpgFromRawLength = 12001
 
 ---- IPTC ----
 Keywords (25) = 'invertebrate'

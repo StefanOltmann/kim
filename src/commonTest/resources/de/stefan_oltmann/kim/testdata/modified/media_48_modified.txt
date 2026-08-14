@@ -15,7 +15,7 @@ Big-endian (Motorola, MM)
 0000000106 0x013c HostComputer = iPhone SE (3rd generation)
 0000000118 0x0213 YCbCrPositioning = 1
 0000000130 0x8769 ExifOffset = 264
-0000000142 0x8825 GPSInfo = 2398
+0000000142 0x8825 GPSInfo = 2304
 
 ---- Directory ExifIFD @ 264 ----
 0000000266 0x829a ExposureTime = 1/100 (0.01)
@@ -55,20 +55,20 @@ Big-endian (Motorola, MM)
 0000000674 0xa434 LensModel = iPhone SE (3rd generation) back camera 3.99mm f/1.8
 0000000686 0xa460 NoiseReductionApplied = 2
 
----- Directory GPS @ 2398 ----
-0000002400 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000002412 0x0001 GPSLatitudeRef = N
-0000002424 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000002436 0x0003 GPSLongitudeRef = E
-0000002448 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 2304 ----
+0000002306 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000002318 0x0001 GPSLatitudeRef = N
+0000002330 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000002342 0x0003 GPSLongitudeRef = E
+0000002354 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory IFD1 @ 2304 ----
-0000002306 0x0103 Compression = 6
-0000002318 0x011a XResolution = 72/1 (72.0)
-0000002330 0x011b YResolution = 72/1 (72.0)
-0000002342 0x0128 ResolutionUnit = 2
-0000002354 0x0201 JpgFromRawStart = 13514
-0000002366 0x0202 JpgFromRawLength = 11130
+---- Directory IFD1 @ 2418 ----
+0000002420 0x0103 Compression = 6
+0000002432 0x011a XResolution = 72/1 (72.0)
+0000002444 0x011b YResolution = 72/1 (72.0)
+0000002456 0x0128 ResolutionUnit = 2
+0000002468 0x0201 JpgFromRawStart = 2512
+0000002480 0x0202 JpgFromRawLength = 11130
 
 ---- Directory MakerNoteApple @ 832 ----
 0000000834 0x0001 MakerNoteVersion = 14
