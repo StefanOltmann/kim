@@ -17,9 +17,9 @@
 package de.stefan_oltmann.kim.common
 
 import de.stefan_oltmann.kim.Kim
-import de.stefan_oltmann.kim.format.tiff.constant.FujiFilmTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
+import de.stefan_oltmann.kim.format.tiff.makernote.fujifilm.FujiFilmTag
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.BeforeTest
 import kotlin.test.Test

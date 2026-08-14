@@ -24,7 +24,7 @@ Little-endian (Intel, II)
 0000000350 0x9003 DateTimeOriginal = 2020:03:15 02:13:20
 0000000362 0x9004 DateTimeDigitized = 2020:03:15 02:13:20
 0000000374 0x9010 OffsetTime = +04:30
-0000000386 0x9012 Unknown = +03:00
+0000000386 0x9012 OffsetTimeDigitized = +03:00
 0000000398 0x9201 ShutterSpeedValue = 19868/4049 (4.906891)
 0000000410 0x9202 ApertureValue = 6/1 (6.0)
 0000000422 0x9207 MeteringMode = 5

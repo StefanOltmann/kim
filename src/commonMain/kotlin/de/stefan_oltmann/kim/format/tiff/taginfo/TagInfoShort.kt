@@ -26,5 +26,6 @@ import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeShort
 public class TagInfoShort(
     tag: Int,
     name: String,
-    directoryType: TiffDirectoryType?
-) : TagInfo(tag, name, FieldTypeShort, 1, directoryType)
+    directoryType: TiffDirectoryType?,
+    mask: Int? = null
+) : TagInfo(tag, name, FieldTypeShort, 1, directoryType, mask = mask)

@@ -119,7 +119,7 @@ public object PngImageParser : ImageParser {
      * According to https://dev.exiv2.org/projects/exiv2/wiki/The_Metadata_in_PNG_files
      * Exiv2 saves EXIF & IPTC in zTXT chunks. This library is widely used and therefore
      * we can expect a lot of files storing the information in that way.
-     * According to https://exiftool.org/TagNames/PNG.html it may even be in uncompressed text.
+     * According to https://exiftool.sourceforge.net/TagNames/PNG.html it may even be in uncompressed text.
      * So we look for all PNG text chunk types and take the first one that matches the keyword.
      */
     private fun getExifFromTextChunk(chunks: List<PngChunk>): Pair<ByteArray, TiffContents>? {

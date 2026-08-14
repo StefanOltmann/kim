@@ -29,6 +29,8 @@ public data class TiffContents(
     val directories: List<TiffDirectory>,
     /** Artificial MakerNote directory. */
     val makerNoteDirectory: TiffDirectory?,
+    /** Sub-directories of the MakerNote, for example the Olympus Equipment IFD. */
+    val makerNoteSubDirectories: List<TiffDirectory>,
     /** Artificial GeoTiff directory. */
     val geoTiffDirectory: GeoTiffDirectory?
 ) {
@@ -38,6 +40,9 @@ public data class TiffContents(
 
     public fun findTiffDirectory(directoryType: Int): TiffDirectory? =
         directories.find { it.type == directoryType }
+
+    public fun findMakerNoteSubDirectory(directoryType: Int): TiffDirectory? =
+        makerNoteSubDirectories.find { it.type == directoryType }
 
     public fun getExifThumbnailBytes(): ByteArray? =
         directories.asSequence()
@@ -78,6 +83,9 @@ public data class TiffContents(
         makerNoteDirectory?.let {
             sb.appendLine(makerNoteDirectory)
         }
+
+        for (subDirectory in makerNoteSubDirectories)
+            sb.appendLine(subDirectory)
 
         geoTiffDirectory?.let {
             sb.appendLine(geoTiffDirectory)

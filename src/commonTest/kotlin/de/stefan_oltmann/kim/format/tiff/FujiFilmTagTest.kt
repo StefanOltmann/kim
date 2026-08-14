@@ -15,8 +15,8 @@
  */
 package de.stefan_oltmann.kim.format.tiff
 
-import de.stefan_oltmann.kim.format.tiff.constant.FujiFilmTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
+import de.stefan_oltmann.kim.format.tiff.makernote.fujifilm.FujiFilmTag
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -82,7 +82,7 @@ class FujiFilmTagTest {
     @Test
     fun testTagValues() {
 
-        assertEquals(0x0000, FujiFilmTag.MAKER_NOTE_VERSION.tag)
+        assertEquals(0x0000, FujiFilmTag.VERSION.tag)
         assertEquals(0x0010, FujiFilmTag.INTERNAL_SERIAL_NUMBER.tag)
         assertEquals(0x1000, FujiFilmTag.QUALITY.tag)
         assertEquals(0x1001, FujiFilmTag.SHARPNESS.tag)

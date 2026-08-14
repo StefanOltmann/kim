@@ -33,6 +33,16 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.TIFF_DIRECTORY_T
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldType.Companion.getFieldType
 import de.stefan_oltmann.kim.format.tiff.geotiff.GeoTiffDirectory
+import de.stefan_oltmann.kim.format.tiff.makernote.MakerNoteParseResult
+import de.stefan_oltmann.kim.format.tiff.makernote.apple.AppleMakerNoteHandler
+import de.stefan_oltmann.kim.format.tiff.makernote.canon.CanonMakerNoteHandler
+import de.stefan_oltmann.kim.format.tiff.makernote.fujifilm.FujiFilmMakerNoteHandler
+import de.stefan_oltmann.kim.format.tiff.makernote.nikon.NikonMakerNoteHandler
+import de.stefan_oltmann.kim.format.tiff.makernote.olympus.OlympusMakerNoteHandler
+import de.stefan_oltmann.kim.format.tiff.makernote.panasonic.PanasonicMakerNoteHandler
+import de.stefan_oltmann.kim.format.tiff.makernote.pentax.PentaxMakerNoteHandler
+import de.stefan_oltmann.kim.format.tiff.makernote.ricoh.RicohMakerNoteHandler
+import de.stefan_oltmann.kim.format.tiff.makernote.sony.SonyMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoLong
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoLongs
@@ -42,7 +52,6 @@ import de.stefan_oltmann.kim.input.RandomAccessByteReader
 import de.stefan_oltmann.kim.input.read2BytesAsInt
 import de.stefan_oltmann.kim.input.read4BytesAsInt
 import de.stefan_oltmann.kim.input.readByte
-import de.stefan_oltmann.kim.input.readByteAsInt
 import de.stefan_oltmann.kim.input.readBytes
 import de.stefan_oltmann.kim.input.skipBytes
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
@@ -51,14 +60,8 @@ import kotlin.jvm.JvmStatic
 /**
  * Reads the contents of TIFF files.
  */
-@Suppress("TooManyFunctions")
+@Suppress("TooManyFunctions", "LargeClass")
 public object TiffReader {
-
-    internal const val NIKON_MAKER_NOTE_SIGNATURE = "Nikon\u0000"
-    internal const val FUJIFILM_MAKER_NOTE_SIGNATURE = "FUJIFILM"
-
-    /* The version field of the FujiFilm MakerNote is 4 bytes */
-    private const val FUJIFILM_MAKER_NOTE_VERSION_LENGTH = 4
 
     private val offsetFields = listOf(
         ExifTag.EXIF_TAG_EXIF_OFFSET,
@@ -67,6 +70,15 @@ public object TiffReader {
         ExifTag.EXIF_TAG_SUB_IFDS_OFFSET
     )
 
+    /**
+     * A sub-directory of a MakerNote that is stored as a binary blob.
+     *
+     * The fields are stored at tag * [byteOffsetMultiplier] within the
+     * blob, where the multiplier is the size of the data type that the
+     * vendor stores the fields in. [firstTag] and [offsetBase] shift the
+     * field positions for tables whose entries do not start at the
+     * beginning of the blob.
+     */
     private val directoryTypeMap = mapOf(
         ExifTag.EXIF_TAG_EXIF_OFFSET to TiffConstants.TIFF_DIRECTORY_EXIF,
         ExifTag.EXIF_TAG_GPSINFO to TiffConstants.TIFF_DIRECTORY_GPS,
@@ -123,14 +135,23 @@ public object TiffReader {
         if (directories.isEmpty())
             throw ImageReadException("Image did not contain any directories.")
 
-        val makerNoteDirectory =
+        val makerNoteParseResult =
             tryToParseMakerNote(directories, byteReader, tiffHeader.byteOrder)
 
         val geoTiffDirectory = tryToParseGeoTiff(directories)
 
-        return TiffContents(tiffHeader, directories, makerNoteDirectory, geoTiffDirectory)
+        return TiffContents(
+            header = tiffHeader,
+            directories = directories,
+            makerNoteDirectory = makerNoteParseResult?.makerNoteDirectory,
+            makerNoteSubDirectories = makerNoteParseResult?.subDirectories.orEmpty(),
+            geoTiffDirectory = geoTiffDirectory
+        )
     }
 
+    /**
+     * The MakerNote directory and its sub-directories.
+     */
     internal fun readTiffHeader(byteReader: ByteReader): TiffHeader {
 
         val byteOrder1 = byteReader.readByte("Byte order: First byte")
@@ -156,14 +177,16 @@ public object TiffReader {
             else -> throw ImageReadException("Invalid TIFF byte order ${byteOrderByte.toUInt()}")
         }
 
-    private fun readDirectory(
+    internal fun readDirectory(
         byteReader: RandomAccessByteReader,
         byteOrder: ByteOrder,
         directoryOffset: Int,
         directoryType: Int,
         visitedOffsets: MutableList<Int>,
         readTiffImageBytes: Boolean,
-        addDirectory: (TiffDirectory) -> Unit
+        addDirectory: (TiffDirectory) -> Unit,
+        valueOffsetBase: Int = 0,
+        followNextDirectory: Boolean = true
     ): Boolean {
 
         /* We don't want to visit a directory twice. */
@@ -192,7 +215,8 @@ public object TiffReader {
                 fieldsOffset = directoryOffset + 2,
                 entryCount = entryCount,
                 byteOrder = byteOrder,
-                directoryType = directoryType
+                directoryType = directoryType,
+                valueOffsetBase = valueOffsetBase
             )
 
         } catch (ex: Exception) {
@@ -221,7 +245,12 @@ public object TiffReader {
             byteOrder = byteOrder
         )
 
-        if (directory.hasJpegImageData())
+        /*
+         * Only the image directories (positive types) contain thumbnail data.
+         * MakerNote directories use tag IDs that collide with the standard
+         * JPEG thumbnail tags, so they must not be interpreted as thumbnails.
+         */
+        if (directoryType >= 0 && directory.hasJpegImageData())
             directory.thumbnailBytes = readThumbnailBytes(byteReader, directory)
 
         if (readTiffImageBytes && directory.hasStripImageData())
@@ -271,20 +300,35 @@ public object TiffReader {
                         addDirectory = addDirectory
                     )
 
-                } catch (ignore: ImageReadException) {
+                } catch (ex: ImageReadException) {
 
                     /*
-                     * If the subdirectory is broken we remove the field.
+                     * If the subdirectory is broken we remove the field,
+                     * because the file would otherwise not be updatable.
+                     *
+                     * Except for the ExifIFD, which carries the MakerNote:
+                     * removing it would drop the MakerNote on rewrite, so
+                     * such files are rejected, matching ExifTool's fatal
+                     * error for an unreadable MakerNote field.
                      */
+
+                    if (offsetField == ExifTag.EXIF_TAG_EXIF_OFFSET)
+                        throw ex
+
                     false
                 }
 
-                if (!subDirectoryRead)
+                if (!subDirectoryRead) {
+
+                    if (offsetField == ExifTag.EXIF_TAG_EXIF_OFFSET)
+                        throw ImageReadException("Failed to read the ExifIFD.")
+
                     fields.remove(field)
+                }
             }
         }
 
-        if (nextDirectoryOffset > 0)
+        if (followNextDirectory && nextDirectoryOffset > 0)
             readDirectory(
                 byteReader = byteReader,
                 byteOrder = byteOrder,
@@ -296,6 +340,23 @@ public object TiffReader {
             )
 
         return true
+    }
+
+    /**
+     * Rejects the file when the MakerNote field cannot be read.
+     *
+     * This mirrors ExifTool, which treats an unreadable MakerNote
+     * value as a fatal error ("Error reading value for ... ID 0x927c
+     * MakerNote") and aborts the write: a rewrite would otherwise
+     * drop the MakerNote silently and damage the file. Unlike
+     * unreadable MakerNote sub-directories, which ExifTool skips while
+     * keeping the MakerNote as an opaque binary block, an unreadable
+     * field cannot be preserved at all.
+     */
+    private fun rejectUnreadableMakerNote(tag: Int) {
+
+        if (tag == ExifTag.EXIF_TAG_MAKER_NOTE.tag)
+            throw ImageReadException("Failed to read the MakerNote.")
     }
 
     /*
@@ -319,7 +380,8 @@ public object TiffReader {
         fieldsOffset: Int,
         entryCount: Int,
         byteOrder: ByteOrder,
-        directoryType: Int
+        directoryType: Int,
+        valueOffsetBase: Int
     ): MutableList<TiffField> {
 
         /*
@@ -355,8 +417,11 @@ public object TiffReader {
              *
              * Except for the GPS directory where GPSVersionID is indeed zero,
              * but a valid field. So we shouldn't skip it.
+             *
+             * MakerNote directories use tag 0x0000 for their version fields,
+             * so they must not be skipped either.
              */
-            if (tag == 0 && directoryType != TiffConstants.TIFF_DIRECTORY_GPS)
+            if (tag == 0 && directoryType >= 0 && directoryType != TiffConstants.TIFF_DIRECTORY_GPS)
                 continue
 
             val fieldType = try {
@@ -364,8 +429,11 @@ public object TiffReader {
             } catch (ignore: ImageReadException) {
                 /*
                  * Skip over unknown field types, since we can't calculate
-                 * their size without knowing their type
+                 * their size without knowing their type.
+                 *
+                 * Except for fields that a rewrite cannot afford to lose.
                  */
+                rejectUnreadableMakerNote(tag)
                 continue
             }
 
@@ -378,27 +446,35 @@ public object TiffReader {
              * and a huge count can overflow the multiplication. Both would
              * result in a negative value length, which the local-value branch
              * cannot handle.
+             *
+             * Except for fields that a rewrite cannot afford to lose.
              */
-            if (count < 0 || valueLength < 0)
+            if (count < 0 || valueLength < 0) {
+                rejectUnreadableMakerNote(tag)
                 continue
+            }
 
             val isLocalValue: Boolean =
                 valueLength <= TiffConstants.TIFF_ENTRY_MAX_VALUE_LENGTH
 
             val valueBytes: ByteArray = if (!isLocalValue) {
 
-                val endPos = valueOrOffset + valueLength
+                val endPos = valueOffsetBase + valueOrOffset + valueLength
 
                 /*
                  * Ignore corrupt offsets.
                  *
                  * Note that the endPos may become negative if one value is too large for an int.
                  * That's why we need to check both offset and endPos for negativity.
+                 *
+                 * Except for fields that a rewrite cannot afford to lose.
                  */
-                if (valueOrOffset < 0 || endPos < 0 || endPos > byteReader.contentLength)
+                if (valueOrOffset < 0 || endPos < 0 || endPos > byteReader.contentLength) {
+                    rejectUnreadableMakerNote(tag)
                     continue
+                }
 
-                byteReader.readBytes(valueOrOffset, valueLength)
+                byteReader.readBytes(valueOffsetBase + valueOrOffset, valueLength)
 
             } else {
 
@@ -522,7 +598,7 @@ public object TiffReader {
         directories: MutableList<TiffDirectory>,
         byteReader: RandomAccessByteReader,
         byteOrder: ByteOrder
-    ): TiffDirectory? {
+    ): MakerNoteParseResult? {
 
         val makerNoteField = TiffDirectory.findTiffField(
             directories,
@@ -535,28 +611,31 @@ public object TiffReader {
                 directories, TiffTag.TIFF_TAG_MAKE
             )?.valueDescription
 
-            try {
+            val model = TiffDirectory.findTiffField(
+                directories, TiffTag.TIFF_TAG_MODEL
+            )?.valueDescription
 
-                var makerNoteDirectory: TiffDirectory? = null
+            val makerNoteDirectories = mutableListOf<TiffDirectory>()
 
-                createMakerNoteDirectory(
-                    byteReader = byteReader,
-                    makerNoteValueOffset = makerNoteField.valueOffset,
-                    make = make,
-                    byteOrder = byteOrder,
-                    addDirectory = {
-                        makerNoteDirectory = it
-                    }
-                )
+            createMakerNoteDirectory(
+                byteReader = byteReader,
+                makerNoteValueOffset = makerNoteField.valueOffset,
+                makerNoteLength = makerNoteField.count * makerNoteField.fieldType.size,
+                make = make,
+                model = model,
+                byteOrder = byteOrder,
+                addDirectory = {
+                    makerNoteDirectories.add(it)
+                }
+            )
 
-                return makerNoteDirectory
+            if (makerNoteDirectories.isEmpty())
+                return null
 
-            } catch (_: Exception) {
-                /*
-                 * Be silent here.
-                 * MakerNote support is experimental.
-                 */
-            }
+            return MakerNoteParseResult(
+                makerNoteDirectory = makerNoteDirectories.first(),
+                subDirectories = makerNoteDirectories.drop(1)
+            )
         }
 
         return null
@@ -565,110 +644,59 @@ public object TiffReader {
     /**
      * Try to read MakerNote and add it as a directory.
      *
-     * Note that this is experimental!
-     *
-     * See https://exiftool.org/makernote_types.html
+     * See https://exiftool.sourceforge.net/makernote_types.html
      */
     private fun createMakerNoteDirectory(
         byteReader: RandomAccessByteReader,
         makerNoteValueOffset: Int,
+        makerNoteLength: Int,
         make: String?,
+        model: String?,
         byteOrder: ByteOrder,
         addDirectory: (TiffDirectory) -> Unit
     ) {
 
-        if (make != null && make == "Canon") {
+        if (make == null)
+            return
 
-            readDirectory(
-                byteReader = byteReader,
-                byteOrder = byteOrder,
-                directoryOffset = makerNoteValueOffset,
-                directoryType = TiffConstants.TIFF_MAKER_NOTE_CANON,
-                visitedOffsets = mutableListOf<Int>(),
-                readTiffImageBytes = false,
-                addDirectory = addDirectory
-            )
-        }
-
-        if (make != null && make.trim().lowercase().startsWith("nikon")) {
-
-            byteReader.reset()
-            byteReader.skipBytes("offset", makerNoteValueOffset)
-
-            val nikonSignature = byteReader.readBytes(
-                fieldName = "Nikon MakerNote signature",
-                count = NIKON_MAKER_NOTE_SIGNATURE.length
-            ).decodeToString()
-
-            val nikonSignatureMatched = nikonSignature == NIKON_MAKER_NOTE_SIGNATURE
-
-            if (!nikonSignatureMatched)
-                return
-
-            val type = byteReader.readByteAsInt()
-
-            /* We only have test files for type 2 right now. */
-            if (type != 2)
-                return
-
-            readDirectory(
-                byteReader = byteReader,
-                byteOrder = ByteOrder.LITTLE_ENDIAN,
-                directoryOffset = makerNoteValueOffset + 18,
-                directoryType = TiffConstants.TIFF_MAKER_NOTE_NIKON,
-                visitedOffsets = mutableListOf<Int>(),
-                readTiffImageBytes = false,
-                addDirectory = addDirectory
-            )
-        }
-
-        if (make != null && make.contains("FUJIFILM", ignoreCase = true)) {
-
-            try {
-                byteReader.reset()
-                byteReader.skipBytes("offset", makerNoteValueOffset)
-
-                val fujiSignature = byteReader.readBytes(
-                    fieldName = "FujiFilm MakerNote signature",
-                    count = FUJIFILM_MAKER_NOTE_SIGNATURE.length
-                ).decodeToString()
-
-                val fujiSignatureMatched = fujiSignature == FUJIFILM_MAKER_NOTE_SIGNATURE
-
-                if (!fujiSignatureMatched)
-                    return
-
-                /*
-                 * Skip version (4 bytes).
-                 * The IFD starts immediately after the version bytes.
-                 * Fuji MakerNote IFD uses little-endian byte order.
-                 */
-                byteReader.skipBytes("version", FUJIFILM_MAKER_NOTE_VERSION_LENGTH)
-
-                /* IFD starts at offset 12 from the beginning of MakerNote data */
-                val ifdOffset = 12
-
-                readDirectory(
-                    byteReader = byteReader,
-                    byteOrder = ByteOrder.LITTLE_ENDIAN,
-                    directoryOffset = makerNoteValueOffset + ifdOffset,
-                    directoryType = TiffConstants.TIFF_MAKER_NOTE_FUJIFILM,
-                    visitedOffsets = mutableListOf<Int>(),
-                    readTiffImageBytes = false,
-                    addDirectory = addDirectory
+        when {
+            make == "Canon" ->
+                CanonMakerNoteHandler.read(
+                    byteReader, makerNoteValueOffset, makerNoteLength, byteOrder, model, addDirectory
                 )
-            } catch (ignore: Exception) {
-                /*
-                 * Be silent here.
-                 * MakerNote support is experimental.
-                 */
-            }
+
+            make.trim().lowercase().startsWith("nikon") ->
+                NikonMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+
+            make.contains("FUJIFILM", ignoreCase = true) ->
+                FujiFilmMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+
+            make.contains("Apple", ignoreCase = true) ->
+                AppleMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+
+            make.contains("PENTAX", ignoreCase = true) || make.contains("SAMSUNG", ignoreCase = true) ->
+                PentaxMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+
+            make.contains("RICOH", ignoreCase = true) ->
+                RicohMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+
+            make.contains("OLYMPUS", ignoreCase = true) ->
+                OlympusMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+
+            make.contains("Panasonic", ignoreCase = true) ->
+                PanasonicMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+
+            make.startsWith("SONY", ignoreCase = true) ->
+                SonyMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
         }
     }
 
     /**
-     * Inspect if MakerNotes are present and could be added as
-     * TiffDirectory. This is true for almost all manufacturers.
+     * Reads the IFD of a MakerNote at the given offset.
+     *
+     * The value offsets inside MakerNotes are usually relative to the
+     * beginning of the MakerNote data, so they are resolved via the
+     * given [valueOffsetBase].
      */
     private fun tryToParseGeoTiff(
         directories: MutableList<TiffDirectory>
@@ -698,3 +726,5 @@ public object TiffReader {
         }
     }
 }
+
+

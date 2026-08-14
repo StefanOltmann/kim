@@ -222,6 +222,11 @@ public object GpsTag {
     public const val GPS_TAG_GPS_DIFFERENTIAL_VALUE_NO_CORRECTION: Int = 0
     public const val GPS_TAG_GPS_DIFFERENTIAL_VALUE_DIFFERENTIAL_CORRECTED: Int = 1
 
+    public val GPS_TAG_GPS_H_POSITIONING_ERROR: TagInfoRational = TagInfoRational(
+        0x001f, "GPSHPositioningError",
+        TiffDirectoryType.EXIF_DIRECTORY_GPS
+    )
+
     public val ALL: List<TagInfo> = listOf(
         GPS_TAG_GPS_VERSION_ID, GPS_TAG_GPS_LATITUDE_REF,
         GPS_TAG_GPS_LATITUDE, GPS_TAG_GPS_LONGITUDE_REF,
@@ -237,6 +242,6 @@ public object GpsTag {
         GPS_TAG_GPS_DEST_BEARING,
         GPS_TAG_GPS_DEST_DISTANCE, GPS_TAG_GPS_PROCESSING_METHOD,
         GPS_TAG_GPS_AREA_INFORMATION, GPS_TAG_GPS_DATE_STAMP,
-        GPS_TAG_GPS_DIFFERENTIAL
+        GPS_TAG_GPS_DIFFERENTIAL, GPS_TAG_GPS_H_POSITIONING_ERROR
     )
 }

@@ -1,0 +1,98 @@
+  ExifToolVersion = 13.59
+  FileName = media_82.tif
+  Directory = C:/Users/micro/IdeaProjects/kim/src/commonTest/resources/de/stefan_oltmann/kim/testdata/full
+  FileSize = 502
+  FileModifyDate = 1776264339.17206
+  FileAccessDate = 1786601589.04683
+  FileCreateDate = 1776264339.17206
+  FilePermissions = 33206
+  FileType = TIFF
+  FileTypeExtension = TIF
+  MIMEType = image/tiff
+  ExifByteOrder = II
+  + [IFD0 directory with 21 entries, Little-endian]
+  | 0)  ImageWidth = 1
+  |     - Tag 0x0100 (2 bytes, int16u[1]):
+  |         0012: 01 00                                           [..]
+  | 1)  ImageHeight = 1
+  |     - Tag 0x0101 (2 bytes, int16u[1]):
+  |         001e: 01 00                                           [..]
+  | 2)  BitsPerSample = 8 8 8
+  |     - Tag 0x0102 (6 bytes, int16u[3]):
+  |         010a: 08 00 08 00 08 00                               [......]
+  | 3)  Compression = 8
+  |     - Tag 0x0103 (2 bytes, int16u[1]):
+  |         0036: 08 00                                           [..]
+  | 4)  PhotometricInterpretation = 2
+  |     - Tag 0x0106 (2 bytes, int16u[1]):
+  |         0042: 02 00                                           [..]
+  | 5)  ImageDescription = GeoTiff
+  |     - Tag 0x010e (8 bytes, string[8]):
+  |         0110: 47 65 6f 54 69 66 66 00                         [GeoTiff.]
+  | 6)  StripOffsets = 488
+  |     - Tag 0x0111 (4 bytes, int32u[1]):
+  |         005a: e8 01 00 00                                     [....]
+  | 7)  Orientation = 1
+  |     - Tag 0x0112 (2 bytes, int16u[1]):
+  |         0066: 01 00                                           [..]
+  | 8)  SamplesPerPixel = 3
+  |     - Tag 0x0115 (2 bytes, int16u[1]):
+  |         0072: 03 00                                           [..]
+  | 9)  RowsPerStrip = 128
+  |     - Tag 0x0116 (2 bytes, int16u[1]):
+  |         007e: 80 00                                           [..]
+  | 10) StripByteCounts = 14
+  |     - Tag 0x0117 (4 bytes, int32u[1]):
+  |         008a: 0e 00 00 00                                     [....]
+  | 11) XResolution = 1 (1/1)
+  |     - Tag 0x011a (8 bytes, rational64u[1]):
+  |         0118: 01 00 00 00 01 00 00 00                         [........]
+  | 12) YResolution = 1 (1/1)
+  |     - Tag 0x011b (8 bytes, rational64u[1]):
+  |         0120: 01 00 00 00 01 00 00 00                         [........]
+  | 13) PlanarConfiguration = 1
+  |     - Tag 0x011c (2 bytes, int16u[1]):
+  |         00ae: 01 00                                           [..]
+  | 14) PageName = 5.tiff
+  |     - Tag 0x011d (7 bytes, string[7]):
+  |         0128: 35 2e 74 69 66 66 00                            [5.tiff.]
+  | 15) ResolutionUnit = 2
+  |     - Tag 0x0128 (2 bytes, int16u[1]):
+  |         00c6: 02 00                                           [..]
+  | 16) Predictor = 2
+  |     - Tag 0x013d (2 bytes, int16u[1]):
+  |         00d2: 02 00                                           [..]
+  | 17) SampleFormat = 1 1 1
+  |     - Tag 0x0153 (6 bytes, int16u[3]):
+  |         0130: 01 00 01 00 01 00                               [......]
+  | 18) ModelTransform = 2.20848138989773e-05 6.25728403641909e-06 0 9.17998827675385 4.18281884587544e-06 -1.45788876841214e-05 0 48.6921129914342 0 0 0 0 0 0 0 1
+  |     - Tag 0x85d8 (128 bytes, double[16]):
+  |         0136: 14 fb dd da 58 28 f7 3e ca 12 9b 23 b5 3e da 3e [....X(.>...#.>.>]
+  |         0146: 00 00 00 00 00 00 00 00 72 a4 64 6c 27 5c 22 40 [........r.dl'\"@]
+  |         0156: 5b 92 4e 7d 44 8b d1 3e da 5e eb 10 fb 92 ee be [[.N}D..>.^......]
+  |         0166: 00 00 00 00 00 00 00 00 64 ac 93 28 97 58 48 40 [........d..(.XH@]
+  |         0176: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  |         0186: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  |         0196: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  |         01a6: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 f0 3f [...............?]
+  | 19) ExifOffset (SubDirectory) -->
+  |     - Tag 0x8769 (4 bytes, int32u[1]):
+  |         00f6: d6 01 00 00                                     [....]
+  | + [ExifIFD directory with 1 entries, Little-endian]
+  | | 0)  ColorSpace = 1
+  | |     - Tag 0xa001 (2 bytes, int16u[1]):
+  | |         01e0: 01 00                                           [..]
+  | 20) GeoTiffDirectory = ..............
+  |     - Tag 0x87af (32 bytes, int16u[16] read as undef[32]):
+  |         01b6: 01 00 00 00 02 00 03 00 00 04 00 00 01 00 02 00 [................]
+  |         01c6: 00 08 00 00 01 00 e6 10 01 04 00 00 01 00 01 00 [................]
+  + [GeoTiff directory with 3 entries]
+  | 0)  GTModelType = 2
+  |     - Tag 0x0400 (2 bytes, int16u[1]):
+  |         000e: 02 00                                           [..]
+  | 1)  GeographicType = 4326
+  |     - Tag 0x0800 (2 bytes, int16u[1]):
+  |         0016: e6 10                                           [..]
+  | 2)  GTRasterType = 1
+  |     - Tag 0x0401 (2 bytes, int16u[1]):
+  |         001e: 01 00                                           [..]

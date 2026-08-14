@@ -1,0 +1,3150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+ "http://www.w3.org/TR/1998/REC-html40-19980424/loose.dtd">
+<html>
+<head>
+<title>
+HTML Dump (C:/Users/micro/IdeaProjects/kim/src/commonTest/resources/de/stefan_oltmann/kim/testdata/full/media_85.mov)</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+<!--
+/* character style ID's */
+.D { color: #000000 } /* default color */
+.V { color: #ff0000 } /* duplicate block 1 */
+.W { color: #004400 } /* normal block 1 */
+.X { color: #ff4488 } /* duplicate block 2 */
+.Y { color: #448844 } /* normal block 2 */
+.U { color: #cc8844 } /* unused data block */
+.H { color: #0000ff } /* highlighted tag name */
+.F { color: #aa00dd } /* actual offset differs */
+.M { text-decoration: underline } /* maker notes data */
+.tt { /* tooltip text */
+    visibility: hidden;
+    position: absolute;
+    white-space: nowrap;
+    top: 0;
+    left: 0;
+    font-family: Verdana, sans-serif;
+    font-size: .7em;
+    padding: 2px 4px;
+    border: 1px solid gray;
+    z-index: 3;
+}
+.tb { /* tooltip background */
+    visibility: hidden;
+    position: absolute;
+    background: #ffffdd;
+    zoom: 1;
+    -moz-opacity: 0.8;
+    -khtml-opacity: 0.8;
+    -ms-filter: 'progid:DXImageTransform.Microsoft.Alpha(Opacity=80)';
+    filter: alpha(opacity=80);
+    opacity: 0.8;
+    z-index: 2;
+}
+/* table styles */
+table.dump {
+  border-top: 1px solid gray;
+  border-bottom: 1px solid gray;
+}
+table.dump td { padding: .2em .3em }
+td.c2 {
+  border-left: 1px solid gray;
+  border-right: 1px solid gray;
+}
+pre   { margin: 0 }
+table { font-size: .9em }
+body  { color: black; background: white }
+-->
+</style>
+<script language="JavaScript" type="text/JavaScript">
+<!-- Begin
+// tooltip positioning constants
+var TMAR = 4;   // top/left margins
+var BMAR = 16;  // bottom/right margins (scrollbars may overhang inner dimensions)
+var XOFF = 10;  // x offset from cursor
+var YOFF = 40;  // y offset
+var YMIN = 10;  // minimum y offset
+var YTOP = 20;  // y offset when above cursor
+// common variables
+var safari1 = navigator.userAgent.indexOf("Safari/312.6") >= 0;
+var ie6 = navigator.userAgent.toLowerCase().indexOf('msie 6') >= 0;
+var mspan = new Array;
+var clicked = 0;
+var hlist, tt, tb, firstOutEvt, lastInEvt;
+
+function GetElementsByClass(classname, tagname) {
+  var found = new Array();
+  var list = document.getElementsByTagName(tagname);
+  var len = list.length;
+  for (var i=0, j=0; i<len; ++i) {
+    var classes = list[i].className.split(' ');
+    for (var k=0; k<classes.length; ++k) {
+      if (classes[k] == classname) {
+        found[j++] = list[i];
+        break;
+      }
+    }
+  }
+  return found;
+}
+
+// click mouse
+function doClick(e)
+{
+  if (!clicked) {
+    firstOutEvt = lastInEvt = undefined;
+    high(e, 2);
+    if (hlist) clicked = 1;
+  } else {
+    clicked = 0;
+    if (firstOutEvt) high(firstOutEvt, 0);
+    if (lastInEvt) high(lastInEvt, 1);
+  }
+}
+
+// move tooltip
+function move(e)
+{
+  if (!tt) return;
+  if (ie6 && (tt.style.top  == '' || tt.style.top  == 0) &&
+             (tt.style.left == '' || tt.style.left == 0))
+  {
+    tt.style.width  = tt.offsetWidth  + 'px';
+    tt.style.height = tt.offsetHeight + 'px';
+  }
+  var w, h;
+  // browser inconsistencies make getting window size more complex than it should be,
+  // and even then we don't know if it is smaller due to scrollbar width
+  if (typeof(window.innerWidth) == 'number') {
+    w = window.innerWidth;
+    h = window.innerHeight;
+  } else if (document.documentElement && document.documentElement.clientWidth) {
+    w = document.documentElement.clientWidth;
+    h = document.documentElement.clientHeight;
+  } else {
+    w = document.body.clientWidth;
+    h = document.body.clientHeight;
+  }
+  var x = e.clientX + XOFF;
+  var y = e.clientY + YOFF;
+  if (safari1) { // patch for people still using OS X 10.3.9
+    x -= document.body.scrollLeft + document.documentElement.scrollLeft;
+    y -= document.body.scrollTop  + document.documentElement.scrollTop;
+  }
+  var mx = w - BMAR - tt.offsetWidth;
+  var my = h - BMAR - tt.offsetHeight;
+  if (y > my + YOFF - YMIN) y = e.clientY - YTOP - tt.offsetHeight;
+  if (x > mx) x = mx;
+  if (y > my) y = my;
+  if (x < TMAR) x = TMAR;
+  if (y < TMAR) y = TMAR;
+  x += document.body.scrollLeft + document.documentElement.scrollLeft;
+  y += document.body.scrollTop  + document.documentElement.scrollTop;
+  tb.style.width  = tt.offsetWidth  + 'px';
+  tb.style.height = tt.offsetHeight + 'px';
+  tt.style.top  = tb.style.top  = y + 'px';
+  tt.style.left = tb.style.left = x + 'px';
+  tt.style.visibility = tb.style.visibility = 'visible';
+}
+
+// highlight/unhighlight text
+function high(e,on) {
+  if (on) {
+    lastInEvt = e;
+  } else {
+    if (!firstOutEvt) firstOutEvt = e;
+  }
+  if (clicked) return;
+  var targ;
+  if (e.target) targ = e.target;
+  else if (e.srcElement) targ = e.srcElement;
+  if (targ.nodeType == 3) targ = targ.parentNode; // defeat Safari bug
+  if (!targ.name) targ = targ.parentNode; // go up another level if necessary
+  if (targ.name && document.getElementsByName) {
+    // un-highlight current objects
+    if (hlist) {
+      for (var i=0; i<hlist.length; ++i) {
+        for (var j=0; j<hlist[i].length; ++j) {
+          hlist[i][j].style.background = 'transparent';
+        }
+      }
+      hlist = null;
+    }
+    if (tt) {
+      // hide old tooltip
+      tt.style.visibility = tb.style.visibility = 'hidden';
+      tt = null;
+    }
+    if (on) {
+      if (targ.name.substring(0,1) == 't') {
+        // show our tooltip (ID is different than name to avoid confusing IE)
+        tt = document.getElementById('p' + targ.name.substring(1));
+        if (tt) {
+          tb = document.getElementById('tb');
+          move(e);
+        }
+      }
+      // highlight anchor elements with the same name
+      hlist = new Array;
+      hlist.push(document.getElementsByName(targ.name));
+      // is this an IFD pointer?
+      var pos = targ.className.indexOf('Offset_');
+      if (pos > 0) {
+        // add elements from this IFD to our highlight list
+        hlist.push(document.getElementsByClassName(targ.className.substr(pos+7)));
+      }
+      // use class name to highlight span elements if necessary
+      for (var i=0; i<mspan.length; ++i) {
+        if (mspan[i] != targ.name) continue;
+        // add these span elements to our highlight list
+        hlist.push(GetElementsByClass(targ.name, 'span'));
+        break;
+      }
+      for (var i=0; i<hlist.length; ++i) {
+        for (var j=0; j<hlist[i].length; ++j) {
+          hlist[i][j].style.background = on == 2 ? '#ffbbbb' : '#ffcc99';
+        }
+      }
+    }
+  }
+}
+mspan[0] = "t26";
+
+// End --->
+</script></head>
+<body><noscript><b class=V>--&gt;
+Enable JavaScript for active highlighting and information tool tips!
+</b></noscript>
+<table class=dump cellspacing=0 cellpadding=2>
+<tr><td valign='top'><pre> 0000
+ 0010
+ 0020
+ 0030
+ 0040
+ 0050
+ 0060
+ 0070
+ 0080
+ 0090
+ 00a0
+ 00b0
+ 00c0
+ 00d0
+ 00e0
+ 00f0
+ 0100
+ 0110
+ 0120
+ 0130
+ 0140
+ 0150
+ 0160
+ 0170
+ 0180
+ 0190
+ 01a0
+ 01b0
+ 01c0
+ 01d0
+ 01e0
+ 01f0
+ 0200
+ 0210
+ 0220
+ 0230
+ 0240
+ 0250
+ 0260
+ 0270
+ 0280
+ 0290
+ 02a0
+ 02b0
+ 02c0
+ 02d0
+ 02e0
+ 02f0
+ 0300
+ 0310
+ 0320
+ 0330
+ 0340
+ 0350
+ 0360
+ 0370
+ 0380
+ 0390
+ 03a0
+ 03b0
+ 03c0
+ 03d0
+ 03e0
+ 03f0
+ 0400
+ 0410
+ 0420
+ 0430
+ 0440
+ 0450
+ 0460
+ 0470
+ 0480
+ 0490
+ 04a0
+ 04b0
+ 04c0
+ 04d0
+ 04e0
+ 04f0
+ 0500
+ 0510
+ 0520
+ 0530
+ 0540
+ 0550
+ 0560
+ 0570
+ 0580
+ 0590
+ 05a0
+ 05b0
+ 05c0
+ 05d0
+ 05e0
+ 05f0
+ 0600
+ 0610
+ 0620
+ 0630
+ 0640
+ 0650
+ 0660
+ 0670
+ 0680
+ 0690
+ 06a0
+ 06b0
+ 06c0
+ 06d0
+ 06e0
+ 06f0
+ 0700
+ 0710
+ 0720
+ 0730
+ 0740
+ 0750
+ 0760
+ 0770
+ 0780
+ 0790
+ 07a0
+ 07b0
+ 07c0
+ 07d0
+ 07e0
+ 07f0
+  ...
+523d60
+523d70
+523d80
+523d90
+523da0
+523db0
+523dc0
+523dd0
+523de0
+523df0
+523e00
+523e10
+523e20
+523e30
+523e40
+523e50
+523e60
+523e70
+523e80
+523e90
+523ea0
+523eb0
+523ec0
+523ed0
+523ee0
+523ef0
+523f00
+523f10
+523f20
+523f30
+523f40
+523f50
+523f60
+523f70
+523f80
+523f90
+523fa0
+523fb0
+523fc0
+523fd0
+523fe0
+523ff0
+524000
+524010
+524020
+524030
+524040
+524050
+524060
+524070
+524080
+524090
+5240a0
+5240b0
+5240c0
+5240d0
+5240e0
+5240f0
+524100
+524110
+524120
+524130
+524140
+524150
+524160
+524170
+524180
+524190
+5241a0
+5241b0
+5241c0
+5241d0
+5241e0
+5241f0
+524200
+524210
+524220
+524230
+524240
+524250
+524260
+524270
+524280
+524290
+5242a0
+5242b0
+5242c0
+5242d0
+5242e0
+5242f0
+524300
+524310
+524320
+524330
+524340
+524350
+524360
+524370
+524380
+524390
+5243a0
+5243b0
+5243c0
+5243d0
+5243e0
+5243f0
+524400
+524410
+524420
+524430
+524440
+524450
+524460
+524470
+524480
+524490
+5244a0
+5244b0
+5244c0
+5244d0
+5244e0
+5244f0
+524500
+524510
+524520
+524530
+524540
+524550
+524558
+524564
+524570
+52457c
+524588
+524594
+5245a0
+5245ac
+5245b8
+5245c0
+5245d0
+5245e0
+5245f0
+524600
+524610
+524620
+524630
+524640
+524650
+524660
+524670
+524680
+524690
+5246a0
+5246b0
+5246c0
+5246d0
+5246e0
+5246f0
+524700
+524710
+524720
+524730
+524740
+524750
+524760
+524770
+524780
+524790
+5247a0
+5247b0
+5247c0
+5247d0
+5247e0
+5247f0
+524800
+524810
+524820
+524830
+524840
+524850
+524860
+524870
+524880
+524890
+5248a0
+5248b0
+5248c0
+5248d0
+5248e0
+5248e2
+5248ee
+5248fa
+524906
+524912
+52491e
+52492a
+524936
+524942
+52494e
+52495a
+524966
+524972
+52497e
+52498a
+524990
+5249a0
+5249b0
+5249c0
+5249d0
+5249e0
+5249f0
+524a00
+524a10
+524a1c
+524a28
+524a34
+524a40
+524a4c
+524a58
+524a64
+524a70
+524a7c
+524a88
+524a94
+524aa0
+524aac
+524ab8
+524ac4
+524ad0
+524adc
+524ae8
+524af4
+524b00
+524b0c
+524b18
+524b24
+524b30
+524b3c
+524b48
+524b54
+524b60
+524b6c
+524b78
+524b84
+524b90
+524b9c
+524ba8
+524bb4
+524bc0
+524bcc
+524bd8
+524be4
+524bf0
+524bfc
+524c08
+524c14
+524c20
+524c30
+524c40
+524c50
+524c60
+524c70
+524c80
+524c90
+524ca0
+524cb0
+524cc0
+524cd0
+524ce0
+524cf0
+524d00
+524d10
+524d20
+524d30
+524d40
+524d50
+524d60
+524d70
+524d80
+524d90
+524da0
+524db0
+524dc0
+524dd0
+524de0
+524df0
+524e00
+524e10
+524e20
+524e30
+524e40
+524e50
+524e60
+524e70
+524e80
+524e90
+524ea0
+524eb0
+524ec0
+524ed0
+524ee0
+524ef0
+524f00
+524f10
+524f20
+524f30
+524f40
+524f50
+524f60
+524f70
+524f80
+524f90
+524fa0
+524fb0
+524fc0
+524fd0
+524fe0
+524ff0
+525000
+525010
+525020
+525030
+525040
+525050
+525060
+525070
+525080
+525090
+5250a0
+5250b0
+5250c0
+5250d0
+5250e0
+5250f0
+525100
+525110
+525120
+525130
+525140
+525150
+525160
+525170
+525180
+525190
+5251a0
+5251b0
+5251c0
+5251d0
+5251e0
+5251f0
+525200
+525210
+525220
+525230
+525240
+525250
+525260
+525270
+525280
+525290
+5252a0
+5252b0
+5252c0
+5252d0
+5252e0
+5252f0
+525300
+525310
+525320
+525330
+525340
+525350
+525360
+525370
+525380
+525390
+5253a0
+5253b0
+5253c0
+5253d0
+5253e0
+5253f0
+525400
+525410
+525420
+525430
+525440
+525450
+525460
+525470
+525480
+525490
+5254a0
+5254b0
+5254c0
+5254d0
+5254e0
+5254f0
+525500
+525510
+525520
+525530
+525540
+525550
+525560
+525570
+525580
+525590
+5255a0
+5255b0
+5255c0
+5255d0
+5255e0
+5255f0
+525600
+525610
+525620
+525630
+525640
+525650
+525660
+525670
+525680
+525690
+5256a0
+5256b0
+5256c0
+5256d0
+5256e0
+5256f0
+525700
+525710
+525720
+525730
+525740
+525750
+525760
+525770
+525780
+525790
+5257a0
+5257b0
+5257c0
+5257d0
+5257e0
+5257f0
+525800
+525810
+525820
+525830
+525840
+525850
+525860
+525870
+525880
+525890
+5258a0
+5258b0
+  ...
+5ca810
+5ca820
+5ca830
+5ca840
+5ca850
+5ca860
+5ca870
+5ca880
+5ca890
+5ca8a0
+5ca8b0
+5ca8c0
+5ca8d0
+5ca8e0
+5ca8f0
+5ca900
+5ca910
+5ca920
+5ca930
+5ca940
+5ca950
+5ca960
+5ca970
+5ca980
+5ca990
+5ca9a0
+5ca9b0
+5ca9c0
+5ca9d0
+5ca9e0
+5ca9f0
+5caa00
+5caa10
+5caa20
+5caa30
+5caa40
+5caa50
+5caa60
+5caa70
+5caa80
+5caa90
+5caaa0
+5caab0
+5caac0
+5caad0
+5caae0
+5caaf0
+5cab00
+5cab10
+5cab20
+5cab30
+5cab40
+5cab50
+5cab60
+5cab70
+5cab80
+5cab90
+5caba0
+5cabb0
+5cabc0
+5cabd0
+5cabe0
+5cabf0
+5cac00
+5cac10
+5cac20
+5cac30
+5cac40
+5cac50
+5cac60
+5cac70
+5cac80
+5cac90
+5caca0
+5cacb0
+5cacc0
+5cacd0
+5cace0
+5cacf0
+5cad00
+5cad10
+5cad20
+5cad30
+5cad40
+5cad50
+5cad60
+5cad70
+5cad80
+5cad90
+5cada0
+5cadb0
+5cadc0
+5cadd0
+5cade0
+5cadf0
+5cae00
+5cae10
+5cae20
+5cae30
+5cae40
+5cae50
+5cae60
+5cae70
+5cae80
+5cae90
+5caea0
+5caeb0
+5caec0
+5caed0
+5caee0
+5caef0
+5caf00
+5caf10
+5caf20
+5caf30
+5caf40
+5caf50
+5caf60
+5caf70
+5caf80
+5caf90
+5cafa0
+5cafb0
+5cafc0
+5cafd0
+5cafe0
+5caff0
+</pre></td><td valign="top"><pre onmouseover="high(event,1)" onmouseout="high(event,0)" onmousemove="move(event)" onmousedown="doClick(event)"><a name=t0 class=U>00 00 00 14 66 74 79 70  71 74 20 20 00 00 00 00
+71 74 20 20 00 53 45 dc  6d 6f 6f 76 00 00 00 6c
+6d 76 68 64 00 00 00 00  e6 05 1c 78 e6 05 1c 78
+00 00 ea 60 00 01 d5 38  00 01 00 00 01 00 00 00
+00 00 00 00 00 00 00 00  00 01 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 01 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  40 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 04  00 4d 58 51 74 72 61 6b
+00 00 00 5c 74 6b 68 64  00 00 00 03 e6 05 1c 78
+e6 05 1c 78 00 00 00 01  00 00 00 00 00 01 d5 38
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 01 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 01 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+40 00 00 00 0f 00 00 00  08 70 00 00 00 00 00 24
+65 64 74 73 00 00 00 1c  65 6c 73 74 00 00 00 00
+00 00 00 01 00 01 d5 38  00 00 00 00 00 01 00 00
+00 00 00 14 74 72 65 66  00 00 00 0c 74 6d 63 64
+00 00 00 03 00 4d 57 b5  6d 64 69 61 00 00 00 20
+6d 64 68 64 00 00 00 00  e6 05 1c 78 e6 05 1c 78
+00 00 ea 60 00 01 d5 38  00 00 00 00 00 00 00 21
+68 64 6c 72 00 00 00 00  6d 68 6c 72 76 69 64 65
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 4d 57
+6c 6d 69 6e 66 00 00 00  14 76 6d 68 64 00 00 00
+01 00 00 00 00 00 00 00  00 00 00 00 24 64 69 6e
+66 00 00 00 1c 64 72 65  66 00 00 00 00 00 00 00
+01 00 00 00 0c 75 72 6c  20 00 00 00 01 00 4d 57
+2c 73 74 62 6c 00 00 00  f7 73 74 73 64 00 00 00
+00 00 00 00 01 00 00 00  e7 68 76 63 31 00 00 00
+00 00 00 00 01 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 0f 00 08  70 00 48 00 00 00 48 00
+00 00 00 00 00 00 01 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  18 ff ff 00 00 00 7f 68
+76 63 43 01 22 60 00 00  00 90 00 00 00 00 00 9c
+f0 00 fc fd fa fa 00 00  4f 03 a0 00 01 00 25 40
+01 1c 01 ff ff 22 60 00  00 03 00 90 00 00 03 00
+00 03 00 9c 2c 0c 00 02  00 00 03 00 77 e1 46 00
+02 00 02 80 a1 00 01 00  24 42 01 11 22 60 00 00
+03 00 90 00 00 03 00 00  03 00 9c 48 00 78 08 00
+87 13 65 2e 49 30 4b b9  b8 08 30 30 04 a2 00 01
+00 08 44 01 48 0f 2f 03  32 40 00 00 00 12 63 6f
+6c 72 6e 63 6c 63 00 01  00 06 00 06 00 00 0b c9
+66 72 65 65 00 80 01 81  02 82 03 83 04 84 05 85
+06 86 07 87 08 88 09 89  0a 8a 0b 8b 0c 8c 0d 8d
+0e 8e 0f 8f 10 90 11 91  12 92 13 93 14 94 15 95
+16 96 17 97 18 98 19 99  1a 9a 1b 9b 1c 9c 1d 9d
+1e 9e 1f 9f 20 a0 21 a1  22 a2 23 a3 24 a4 25 a5
+26 a6 27 a7 28 a8 29 a9  2a aa 2b ab 2c ac 2d ad
+2e ae 2f af 30 b0 31 b1  32 b2 33 b3 34 b4 35 b5
+36 b6 37 b7 38 b8 39 b9  3a ba 3b bb 3c bc 3d bd
+3e be 3f bf 40 c0 41 c1  42 c2 43 c3 44 c4 45 c5
+46 c6 47 c7 48 c8 49 c9  4a ca 4b cb 4c cc 4d cd
+4e ce 4f cf 50 d0 51 d1  52 d2 53 d3 54 d4 55 d5
+56 d6 57 d7 58 d8 59 d9  5a da 5b db 5c dc 5d dd
+5e de 5f df 60 e0 61 e1  62 e2 63 e3 64 e4 65 e5
+66 e6 67 e7 68 e8 69 e9  6a ea 6b eb 6c ec 6d ed
+6e ee 6f ef 70 f0 71 f1  72 f2 73 f3 74 f4 75 f5
+76 f6 77 f7 78 f8 79 f9  7a fa 7b fb 7c fc 7d fd
+7e fe 7f ff 00 80 01 81  02 82 03 83 04 84 05 85
+06 86 07 87 08 88 09 89  0a 8a 0b 8b 0c 8c 0d 8d
+0e 8e 0f 8f 10 90 11 91  12 92 13 93 14 94 15 95
+16 96 17 97 18 98 19 99  1a 9a 1b 9b 1c 9c 1d 9d
+1e 9e 1f 9f 20 a0 21 a1  22 a2 23 a3 24 a4 25 a5
+26 a6 27 a7 28 a8 29 a9  2a aa 2b ab 2c ac 2d ad
+2e ae 2f af 30 b0 31 b1  32 b2 33 b3 34 b4 35 b5
+36 b6 37 b7 38 b8 39 b9  3a ba 3b bb 3c bc 3d bd
+3e be 3f bf 40 c0 41 c1  42 c2 43 c3 44 c4 45 c5
+46 c6 47 c7 48 c8 49 c9  4a ca 4b cb 4c cc 4d cd
+4e ce 4f cf 50 d0 51 d1  52 d2 53 d3 54 d4 55 d5
+56 d6 57 d7 58 d8 59 d9  5a da 5b db 5c dc 5d dd
+5e de 5f df 60 e0 61 e1  62 e2 63 e3 64 e4 65 e5
+66 e6 67 e7 68 e8 69 e9  6a ea 6b eb 6c ec 6d ed
+6e ee 6f ef 70 f0 71 f1  72 f2 73 f3 74 f4 75 f5
+76 f6 77 f7 78 f8 79 f9  7a fa 7b fb 7c fc 7d fd
+7e fe 7f ff 00 80 01 81  02 82 03 83 04 84 05 85
+06 86 07 87 08 88 09 89  0a 8a 0b 8b 0c 8c 0d 8d
+0e 8e 0f 8f 10 90 11 91  12 92 13 93 14 94 15 95
+16 96 17 97 18 98 19 99  1a 9a 1b 9b 1c 9c 1d 9d
+1e 9e 1f 9f 20 a0 21 a1  22 a2 23 a3 24 a4 25 a5
+26 a6 27 a7 28 a8 29 a9  2a aa 2b ab 2c ac 2d ad
+2e ae 2f af 30 b0 31 b1  32 b2 33 b3 34 b4 35 b5
+36 b6 37 b7 38 b8 39 b9  3a ba 3b bb 3c bc 3d bd
+3e be 3f bf 40 c0 41 c1  42 c2 43 c3 44 c4 45 c5
+46 c6 47 c7 48 c8 49 c9  4a ca 4b cb 4c cc 4d cd
+4e ce 4f cf 50 d0 51 d1  52 d2 53 d3 54 d4 55 d5
+56 d6 57 d7 58 d8 59 d9  5a da 5b db 5c dc 5d dd
+5e de 5f df 60 e0 61 e1  62 e2 63 e3 64 e4 65 e5
+66 e6 67 e7 68 e8 69 e9  6a ea 6b eb 6c ec 6d ed
+6e ee 6f ef 70 f0 71 f1  72 f2 73 f3 74 f4 75 f5
+76 f6 77 f7 78 f8 79 f9  7a fa 7b fb 7c fc 7d fd
+7e fe 7f ff 00 80 01 81  02 82 03 83 04 84 05 85
+06 86 07 87 08 88 09 89  0a 8a 0b 8b 0c 8c 0d 8d
+0e 8e 0f 8f 10 90 11 91  12 92 13 93 14 94 15 95
+16 96 17 97 18 98 19 99  1a 9a 1b 9b 1c 9c 1d 9d
+1e 9e 1f 9f 20 a0 21 a1  22 a2 23 a3 24 a4 25 a5
+26 a6 27 a7 28 a8 29 a9  2a aa 2b ab 2c ac 2d ad
+2e ae 2f af 30 b0 31 b1  32 b2 33 b3 34 b4 35 b5
+36 b6 37 b7 38 b8 39 b9  3a ba 3b bb 3c bc 3d bd
+3e be 3f bf 40 c0 41 c1  42 c2 43 c3 44 c4 45 c5
+46 c6 47 c7 48 c8 49 c9  4a ca 4b cb 4c cc 4d cd
+4e ce 4f cf 50 d0 51 d1  52 d2 53 d3 54 d4 55 d5
+56 d6 57 d7 58 d8 59 d9  5a da 5b db 5c dc 5d dd
+5e de 5f df 60 e0 61 e1  62 e2 63 e3 64 e4 65 e5
+66 e6 67 e7 68 e8 69 e9  6a ea 6b eb 6c ec 6d ed
+6e ee 6f ef 70 f0 71 f1  72 f2 73 f3 74 f4 75 f5
+76 f6 77 f7 78 f8 79 f9  7a fa 7b fb 7c fc 7d fd
+7e fe 7f ff 00 80 01 81  02 82 03 83 04 84 05 85
+06 86 07 87 08 88 09 89  0a 8a 0b 8b 0c 8c 0d 8d
+0e 8e 0f 8f 10 90 11 91  12 92 13 93 14 94 15 95
+16 96 17 97 18 98 19 99  1a 9a 1b 9b 1c 9c 1d 9d
+1e 9e 1f 9f 20 a0 21 a1  22 a2 23 a3 24 a4 25 a5
+26 a6 27 a7 28 a8 29 a9  2a aa 2b ab 2c ac 2d ad
+2e ae 2f af 30 b0 31 b1  32 b2 33 b3 34 b4 35 b5
+36 b6 37 b7 38 b8 39 b9  3a ba 3b bb 3c bc 3d bd
+3e be 3f bf 40 c0 41 c1  42 c2 43 c3 44 c4 45 c5
+46 c6 47 c7 48 c8 49 c9  4a ca 4b cb 4c cc 4d cd
+4e ce 4f cf 50 d0 51 d1  52 d2 53 d3 54 d4 55 d5
+56 d6 57 d7 58 d8 59 d9  5a da 5b db 5c dc 5d dd
+5e de 5f df 60 e0 61 e1  62 e2 63 e3 64 e4 65 e5
+66 e6 67 e7 68 e8 69 e9  6a ea 6b eb 6c ec 6d ed
+6e ee 6f ef 70 f0 71 f1  72 f2 73 f3 74 f4 75 f5
+76 f6 77 f7 78 f8 79 f9  7a fa 7b fb 7c fc 7d fd
+7e fe 7f ff 00 80 01 81  02 82 03 83 04 84 05 85
+06 86 07 87 08 88 09 89  0a 8a 0b 8b 0c 8c 0d 8d
+0e 8e 0f 8f 10 90 11 91  12 92 13 93 14 94 15 95
+16 96 17 97 18 98 19 99  1a 9a 1b 9b 1c 9c 1d 9d
+1e 9e 1f 9f 20 a0 21 a1  22 a2 23 a3 24 a4 25 a5
+              [snip 336726 lines]               
+5b db 5c dc 5d dd 5e de  5f df 60 e0 61 e1 62 e2
+63 e3 64 e4 65 e5 66 e6  67 e7 68 e8 69 e9 6a ea
+6b eb 6c ec 6d ed 6e ee  6f ef 70 f0 71 f1 72 f2
+73 f3 74 f4 75 f5 76 f6  77 f7 78 f8 79 f9 7a fa
+7b fb 7c fc 7d fd 7e fe  7f ff 00 80 01 81 02 82
+03 83 04 84 05 85 06 86  07 87 08 88 09 89 0a 8a
+0b 8b 0c 8c 0d 8d 0e 8e  0f 8f 10 90 11 91 12 92
+13 93 14 94 15 95 16 96  17 97 18 98 19 99 1a 9a
+1b 9b 1c 9c 1d 9d 1e 9e  1f 9f 20 a0 21 a1 22 a2
+23 a3 24 a4 25 a5 26 a6  27 a7 28 a8 29 a9 2a aa
+2b ab 2c ac 2d ad 2e ae  2f af 30 b0 31 b1 32 b2
+33 b3 34 b4 35 b5 36 b6  37 b7 38 b8 39 b9 3a ba
+3b bb 3c bc 3d bd 3e be  3f bf 40 c0 41 c1 42 c2
+43 c3 44 c4 45 c5 46 c6  47 c7 48 c8 49 c9 4a ca
+4b cb 4c cc 4d cd 4e ce  4f cf 50 d0 51 d1 52 d2
+53 d3 54 d4 55 d5 56 d6  57 d7 58 d8 59 d9 5a da
+5b db 5c dc 5d dd 5e de  5f df 60 e0 61 e1 62 e2
+63 e3 64 e4 65 e5 66 e6  67 e7 68 e8 69 e9 6a ea
+6b eb 6c ec 6d ed 6e ee  6f ef 70 f0 71 f1 72 f2
+73 f3 74 f4 75 f5 76 f6  77 f7 78 f8 79 f9 7a fa
+7b fb 7c fc 7d fd 7e fe  7f ff 00 80 01 81 02 82
+03 83 04 84 05 85 06 86  07 87 08 88 09 89 0a 8a
+0b 8b 0c 8c 0d 8d 0e 8e  0f 8f 10 90 11 91 12 92
+13 93 14 94 15 95 16 96  17 97 18 98 19 99 1a 9a
+1b 9b 1c 9c 1d 9d 1e 9e  1f 9f 20 a0 21 a1 22 a2
+23 a3 24 a4 25 a5 26 a6  27 a7 28 a8 29 a9 2a aa
+2b ab 2c ac 2d ad 2e ae  2f af 30 b0 31 b1 32 b2
+33 b3 34 b4 35 b5 36 b6  37 b7 38 b8 39 b9 3a ba
+3b bb 3c bc 3d bd 3e be  3f bf 40 c0 41 c1 42 c2
+43 c3 44 c4 45 c5 46 c6  47 c7 48 c8 49 c9 4a ca
+4b cb 4c cc 4d cd 4e ce  4f cf 50 d0 51 d1 52 d2
+53 d3 54 d4 55 d5 56 d6  57 d7 58 d8 59 d9 5a da
+5b db 5c dc 5d dd 5e de  5f df 60 e0 61 e1 62 e2
+63 e3 64 e4 65 e5 66 e6  67 e7 68 e8 69 e9 6a ea
+6b eb 6c ec 6d ed 6e ee  6f ef 70 f0 71 f1 72 f2
+73 f3 74 f4 75 f5 76 f6  77 f7 78 f8 79 f9 7a fa
+7b fb 7c fc 7d fd 7e fe  7f ff 00 80 01 81 02 82
+03 83 04 84 05 85 06 86  07 87 08 88 09 89 0a 8a
+0b 8b 0c 8c 0d 8d 0e 8e  0f 8f 10 90 11 91 12 92
+13 93 14 94 15 95 16 96  17 97 18 98 19 99 1a 9a
+1b 9b 1c 9c 1d 9d 1e 9e  1f 9f 20 a0 21 a1 22 a2
+23 a3 24 a4 25 a5 26 a6  27 a7 28 a8 29 a9 2a aa
+2b ab 2c ac 2d ad 2e ae  2f af 30 b0 31 b1 32 b2
+33 b3 34 b4 35 b5 36 b6  37 b7 38 b8 39 b9 3a ba
+3b bb 3c bc 3d bd 3e be  3f bf 40 c0 41 c1 42 c2
+43 c3 44 c4 45 c5 46 c6  47 c7 48 c8 49 c9 4a ca
+4b cb 4c cc 4d cd 4e ce  4f cf 50 d0 51 d1 52 d2
+53 d3 54 d4 55 d5 56 d6  57 d7 58 d8 59 d9 5a da
+5b db 5c dc 5d dd 5e de  5f df 60 e0 61 e1 62 e2
+63 e3 64 e4 65 e5 66 e6  67 e7 68 e8 69 e9 6a ea
+6b eb 6c ec 6d ed 6e ee  6f ef 70 f0 71 f1 72 f2
+73 f3 74 f4 75 f5 76 f6  77 f7 78 f8 79 f9 7a fa
+7b fb 7c fc 7d fd 7e fe  7f ff 00 80 01 81 02 82
+03 83 04 84 05 85 06 86  07 87 08 88 09 89 0a 8a
+0b 8b 0c 8c 0d 8d 0e 8e  0f 8f 10 90 11 91 12 92
+13 93 14 94 15 95 16 96  17 97 18 98 19 99 1a 9a
+1b 9b 1c 9c 1d 9d 1e 9e  1f 9f 20 a0 21 a1 22 a2
+23 a3 24 a4 25 a5 26 a6  27 a7 28 a8 29 a9 2a aa
+2b ab 2c ac 2d ad 2e ae  2f af 30 b0 31 b1 32 b2
+33 b3 34 b4 35 b5 36 b6  37 b7 38 b8 39 b9 3a ba
+3b bb 3c bc 3d bd 3e be  3f bf 40 c0 41 c1 42 c2
+43 c3 44 c4 45 c5 46 c6  47 c7 48 c8 49 c9 4a ca
+4b cb 4c cc 4d cd 4e ce  4f cf 50 d0 51 d1 52 d2
+53 d3 54 d4 55 d5 56 d6  57 d7 58 d8 59 d9 5a da
+5b db 5c dc 5d dd 5e de  5f df 60 e0 61 e1 62 e2
+63 e3 64 e4 65 e5 66 e6  67 e7 68 e8 69 e9 6a ea
+6b eb 6c ec 6d ed 6e ee  6f ef 70 f0 71 f1 72 f2
+73 f3 74 f4 75 f5 76 f6  77 f7 78 f8 79 f9 7a fa
+7b fb 7c fc 7d fd 7e fe  7f ff 00 80 01 81 02 82
+03 83 04 84 05 85 06 86  07 87 08 88 09 89 0a 8a
+0b 8b 0c 8c 0d 8d 0e 8e  0f 8f 10 90 11 91 12 92
+13 93 14 94 15 95 16 96  17 97 18 98 19 99 1a 9a
+1b 9b 1c 9c 1d 9d 1e 9e  1f 9f 20 a0 21 a1 22 a2
+23 a3 24 a4 25 a5 26 a6  27 a7 28 a8 29 a9 2a aa
+2b ab 2c ac 2d ad 2e ae  2f af 30 b0 31 b1 32 b2
+33 b3 34 b4 35 b5 36 b6  37 b7 38 b8 39 b9 3a ba
+3b bb 3c bc 3d bd 3e be  3f bf 40 c0 41 c1 42 c2
+43 c3 44 c4 45 c5 46 c6  47 c7 48 c8 49 c9 4a ca
+4b cb 4c cc 4d cd 4e ce  4f cf 50 d0 51 d1 52 d2
+53 d3 54 d4 55 d5 56 d6  57 d7 58 d8 59 d9 5a da
+5b db 5c dc 5d dd 5e de  5f df 60 e0 61 e1 62 e2
+63 e3 64 e4 65 e5 66 e6  67 e7 68 e8 69 e9 6a ea
+6b eb 6c ec 6d ed 6e ee  6f ef 70 f0 71 f1 72 f2
+73 f3 74 f4 75 f5 76 f6  77 f7 78 f8 79 f9 7a fa
+7b fb 7c fc 7d fd 7e fe  7f ff 00 80 01 81 02 82
+03 83 04 84 05 85 06 86  07 87 08 88 09 89 0a 8a
+0b 8b 0c 8c 0d 8d 0e 8e  0f 8f 10 90 11 91 12 92
+13 93 14 94 15 95 16 96  17 97 18 98 19 99 1a 9a
+1b 9b 1c 9c 1d 9d 1e 9e  1f 9f 20 a0 21 a1 22 a2
+23 a3 24 a4 25 a5 26 a6  27 a7 28 a8 29 a9 2a aa
+2b ab 2c ac 2d ad 2e ae  2f af 30 b0 31 b1 32 b2
+33 b3 34 b4 35 b5 36 b6  37 b7 38 b8 39 b9 3a ba
+3b bb 3c bc 3d bd 3e be  3f bf 40 c0 41 c1 42 c2
+43 c3 44 c4 45 c5 46 c6  47 c7 48 c8 49 c9 4a ca
+4b cb 4c cc 4d cd 4e ce  4f cf 50 d0 51 d1 52 d2
+53 d3 54 d4 55 d5 56 d6  57 d7 58 d8 59 d9 5a da
+5b db 5c dc 5d dd 5e de  5f df 60 e0 61 e1 62 e2
+63 e3 64 e4 65 e5 66 e6  67 e7 68 e8 69 e9 6a ea
+6b eb 6c ec 6d ed 6e ee  6f ef 70 f0 71 f1 72 f2
+73 f3 74 f4 75 f5 76 f6  77 f7 78 f8 79 f9 7a fa
+7b fb 7c fc 7d fd 7e fe  7f ff 00 80 01 81 02 82
+03 83 04 84 05 85 06 86  07 87 08 88 09 89 0a 8a
+0b 8b 0c 8c 0d 8d 0e 8e  0f 8f 10 90 11 91 12 92
+13 93 14 94 15 95 16 96  17 97 18 98 19 99 1a 9a
+1b 9b 1c 9c 1d 9d 1e 9e  1f 9f 20 a0 21 a1 22 a2
+23 a3 24 a4 25 a5 26 a6  27 a7 28 a8 29 a9 2a aa
+2b ab 2c ac 2d ad 2e ae  2f af 30 b0 31 b1 32 b2
+33 b3 34 b4 35 b5 36 b6  37 b7 38 b8 39 b9 3a ba
+3b bb 3c bc 3d bd 3e be  3f bf 40 c0 41 c1 42 c2
+43 c3 44 c4 45 c5 46 c6  47 c7 48 c8 49 c9 4a ca
+4b cb 4c cc 4d cd 4e ce  4f cf 50 d0 51 d1 52 d2
+53 d3 54 d4 55 d5 56 d6  57 d7 58 d8 59 d9 5a da
+5b db 5c dc 5d dd 5e de  5f df 60 e0 61 e1 62 e2
+63 e3 64 e4 65 e5 66 e6  67 e7 68 e8 69 e9 6a ea
+6b eb 6c ec 6d ed 6e ee  6f ef 70 f0 71 f1 72 f2
+73 f3 74 f4 75 f5 76 f6  77 f7 78 f8 79 f9 7a fa
+7b fb 7c fc 7d fd 7e fe  7f ff 00 80 01 81 02 82
+03 83 00 01 01 3e 75 64  74 61 00 00 00 1a a9 66
+6d 74 00 0e 00 00 44 69  67 69 74 61 6c 20 43 61
+6d 65 72 61 00 00 00 44  a9 69 6e 66 00 38 00 00
+46 55 4a 49 46 49 4c 4d  20 44 49 47 49 54 41 4c
+20 43 41 4d 45 52 41 20  58 2d 54 34 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 26 46 46 4d 56
+46 55 4a 49 46 49 4c 4d  20 4d 4f 56 20 53 54 52
+45 41 4d 20 30 31 33 30  00 00 15 3c 09 06 00 00
+0b 8c 4d 56 54 47 00 00  00 00 00 00 00 01 78 0b
+00 00 01 00 00 00</a> <a name=t1 class=W>08 00</a>
+<a name=t2 class=Y>0f 01 02 00 09 00 00 00  66 00 00 00</a>
+<a name=t3 class=W>10 01 02 00 05 00 00 00  70 00 00 00</a>
+<a name=t4 class=Y>32 01 02 00 14 00 00 00  76 00 00 00</a>
+<a name=t5 class=W>3b 01 02 00 00 01 00 00  8a 00 00 00</a>
+<a name=t6 class=Y>01 02 04 00 01 00 00 00  aa 07 00 00</a>
+<a name=t7 class=W>02 02 04 00 01 00 00 00  ca 03 00 00</a>
+<a name=t8 class=Y>98 82 02 00 00 02 00 00  8a 01 00 00</a>
+<a name=t9 class='W Offset_o0'>69 87 04 00 01 00 00 00  8a 03 00 00</a>
+                         <a name=t10 class=Y>00 00 00 00</a> <a name=t2 class=W>46 55 4a 49
+46 49 4c 4d 00</a> <a name=t11 class=U>00</a> <a name=t3 class=Y>58 2d  54 34 00</a> <a name=t12 class=U>00</a> <a name=t4 class=W>32 30 32 36
+3a 30 34 3a 31 35 20 31  32 3a 34 33 3a 34 32 00</a>
+<a name=t5 class=Y>53 74 65 66 61 6e 20 4f  6c 74 6d 61 6e 6e 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 00</a>
+<a name=t8 class=W>53 74 65 66 61 6e 20 4f  6c 74 6d 61 6e 6e 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 00
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 00</a>
+<a name=t13 class='Y o0'>0e 00</a>
+<a name=t14 class='W o0'>9a 82 05 00 01 00 00 00  38 04 00 00</a>
+<a name=t15 class='Y o0'>9d 82 05 00 01 00 00 00  40 04 00 00</a>
+<a name=t16 class='W o0'>27 88 03 00 01 00 00 00  80 02 00 00</a>
+<a name=t17 class='Y o0'>30 88 03 00 01 00 00 00  01 00 00 00</a>
+<a name=t18 class='W o0'>03 90 02 00 14 00 00 00  48 04 00 00</a>
+<a name=t19 class='Y o0'>04 90 02 00 14 00 00 00  5c 04 00 00</a>
+<a name=t20 class='W o0'>10 90 02 00 07 00 00 00  70 04 00 00</a>
+<a name=t21 class='Y o0'>11 90 02 00 07 00 00 00  78 04 00 00</a>
+<a name=t22 class='W o0'>12 90 02 00 07 00 00 00  80 04 00 00</a>
+<a name=t23 class='Y o0'>01 92 0a 00 01 00 00 00  88 04 00 00</a>
+<a name=t24 class='W o0'>04 92 0a 00 01 00 00 00  90 04 00 00</a>
+<a name=t25 class='Y o0'>07 92 03 00 01 00 00 00  05 00 00 00</a>
+<a name=t26 class='W o0'>7c 92 07 00 f2 02 00 00  b8 04 00 00</a>
+<a name=t27 class='Y o0'>32 a4 05 00 04 00 00 00  98 04 00 00</a>
+                               <a name=t28 class='W o0'>00 00 00 00</a> <a name=t14 class=Y>0a 00
+00 00 b0 04 00 00</a> <a name=t15 class=W>68 01  00 00 64 00 00 00</a> <a name=t18 class=Y>32 30
+32 36 3a 30 34 3a 31 35  20 31 32 3a 34 33 3a 34
+32 00</a> <a name=t19 class=W>32 30 32 36 3a 30  34 3a 31 35 20 31 32 3a
+34 33 3a 34 32 00</a> <a name=t20 class=Y>2b 30  32 3a 30 30 00</a> <a name=t29 class=U>00</a> <a name=t21 class=W>2b 30
+32 3a 30 30 00</a> <a name=t30 class=U>00</a> <a name=t22 class=Y>2b 30  32 3a 30 30 00</a> <a name=t31 class=U>00</a> <a name=t23 class=W>b3 02
+00 00 64 00 00 00</a> <a name=t24 class=Y>00 00  00 00 64 00 00 00</a> <a name=t27 class=W>e4 0c
+00 00 64 00 00 00 e4 0c  00 00 64 00 00 00 8c 00
+00 00 64 00 00 00 8c 00  00 00 64 00 00 00</a> <span class='t26 M'><a name=t32 class=Y>46 55
+4a 49 46 49 4c 4d 0c 00  00 00</a> <a name=t33 class=W>2a 00</a>
+<a name=t34 class=Y>00 00 07 00 04 00 00 00  30 31 33 30</a>
+<a name=t35 class=W>10 00 02 00 30 00 00 00  0a 02 00 00</a>
+<a name=t36 class=Y>00 10 02 00 08 00 00 00  3a 02 00 00</a>
+<a name=t37 class=W>01 10 03 00 01 00 00 00  05 00 00 00</a>
+<a name=t38 class=Y>02 10 03 00 01 00 00 00  01 00 00 00</a>
+<a name=t39 class=W>03 10 03 00 01 00 00 00  00 00 00 00</a>
+<a name=t40 class=Y>0e 10 03 00 01 00 00 00  80 01 00 00</a>
+<a name=t41 class=W>10 10 03 00 01 00 00 00  00 80 00 00</a>
+<a name=t42 class=Y>11 10 0a 00 01 00 00 00  42 02 00 00</a>
+<a name=t43 class=W>21 10 03 00 01 00 00 00  ff ff 00 00</a>
+<a name=t44 class=Y>30 10 03 00 01 00 00 00  00 00 00 00</a>
+<a name=t45 class=W>31 10 03 00 01 00 00 00  00 03 00 00</a>
+<a name=t46 class=Y>40 10 09 00 01 00 00 00  00 00 00 00</a>
+<a name=t47 class=W>41 10 09 00 01 00 00 00  00 00 00 00</a>
+<a name=t48 class=Y>47 10 09 00 01 00 00 00  00 00 00 00</a>
+<a name=t49 class=W>00 11 03 00 01 00 00 00  00 00 00 00</a>
+<a name=t50 class=Y>00 12 03 00 01 00 00 00  00 00 00 00</a>
+<a name=t51 class=W>00 13 03 00 01 00 00 00  00 00 00 00</a>
+<a name=t52 class=Y>01 13 03 00 01 00 00 00  00 00 00 00</a>
+<a name=t53 class=W>02 13 03 00 01 00 00 00  00 00 00 00</a>
+<a name=t54 class=Y>03 13 03 00 01 00 00 00  00 00 00 00</a>
+<a name=t55 class=W>04 13 03 00 01 00 00 00  00 00 00 00</a>
+<a name=t56 class=Y>01 14 03 00 01 00 00 00  00 00 00 00</a>
+<a name=t57 class=W>02 14 03 00 01 00 00 00  01 00 00 00</a>
+<a name=t58 class=Y>03 14 03 00 01 00 00 00  64 00 00 00</a>
+<a name=t59 class=W>04 14 05 00 01 00 00 00  4a 02 00 00</a>
+<a name=t60 class=Y>05 14 05 00 01 00 00 00  52 02 00 00</a>
+<a name=t61 class=W>06 14 05 00 01 00 00 00  5a 02 00 00</a>
+<a name=t62 class=Y>07 14 05 00 01 00 00 00  62 02 00 00</a>
+<a name=t63 class=W>22 14 03 00 03 00 00 00  6a 02 00 00</a>
+<a name=t64 class=Y>24 14 03 00 01 00 00 00  00 10 00 00</a>
+<a name=t65 class=W>30 14 07 00 81 00 00 00  70 02 00 00</a>
+<a name=t66 class=Y>03 38 04 00 01 00 00 00  00 00 00 00</a>
+<a name=t67 class=W>04 38 03 00 01 00 00 00  01 00 00 00</a>
+<a name=t68 class=Y>05 38 03 00 01 00 00 00  01 00 00 00</a>
+<a name=t69 class=W>06 38 03 00 01 00 00 00  01 00 00 00</a>
+<a name=t70 class=Y>10 38 04 00 01 00 00 00  04 00 01 00</a>
+<a name=t71 class=W>20 38 03 00 01 00 00 00  3c 00 00 00</a>
+<a name=t72 class=Y>21 38 03 00 01 00 00 00  00 0f 00 00</a>
+<a name=t73 class=W>22 38 03 00 01 00 00 00  70 08 00 00</a>
+<a name=t74 class=Y>23 38 04 00 01 00 00 00  01 00 00 00</a>
+<a name=t75 class=W>24 38 04 00 01 00 00 00  01 00 00 00</a>
+</span>            <span class='t26 M'><a name=t76 class=Y>00 00 00 00</a>  <a name=t35 class=W>46 46 30 32 42 35 38 39
+32 31 38 38 20 20 20 20  20 35 39 33 35 33 36 33
+30 33 30 33 34 32 30 30  34 31 35 42 38 34 33 33
+30 33 31 30 31 39 33 00</a>  <a name=t36 class=Y>4e 4f 52 4d 41 4c 20 00</a>
+<a name=t42 class=W>00 00 00 00 64 00 00 00</a>  <a name=t59 class=Y>e4 0c 00 00 64 00 00 00</a>
+<a name=t60 class=W>e4 0c 00 00 64 00 00 00</a>  <a name=t61 class=Y>8c 00 00 00 64 00 00 00</a>
+<a name=t62 class=W>8c 00 00 00 64 00 00 00</a>  <a name=t63 class=Y>02 00 01 00 00 00</a> <a name=t65 class=W>00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00</a> <a name=t77 class=U>00</a></span>
+<a name=t78 class=Y>ff d8 ff c4 01 a2 00 00  01 05 01 01 01 01 01 01
+00 00 00 00 00 00 00 00  01 02 03 04 05 06 07 08
+09 0a 0b 10 00 02 01 03  03 02 04 03 05 05 04 04
+00 00 01 7d 01 02 03 00  04 11 05 12 21 31 41 06
+13 51 61 07 22 71 14 32  81 91 a1 08 23 42 b1 c1
+15 52 d1 f0 24 33 62 72  82 09 0a 16 17 18 19 1a
+25 26 27 28 29 2a 34 35  36 37 38 39 3a 43 44 45
+46 47 48 49 4a 53 54 55  56 57 58 59 5a 63 64 65
+66 67 68 69 6a 73 74 75  76 77 78 79 7a 83 84 85
+86 87 88 89 8a 92 93 94  95 96 97 98 99 9a a2 a3
+a4 a5 a6 a7 a8 a9 aa b2  b3 b4 b5 b6 b7 b8 b9 ba
+c2 c3 c4 c5 c6 c7 c8 c9  ca d2 d3 d4 d5 d6 d7 d8
+d9 da e1 e2 e3 e4 e5 e6  e7 e8 e9 ea f1 f2 f3 f4
+f5 f6 f7 f8 f9 fa 01 00  03 01 01 01 01 01 01 01
+01 01 00 00 00 00 00 00  01 02 03 04 05 06 07 08
+09 0a 0b 11 00 02 01 02  04 04 03 04 07 05 04 04
+00 01 02 77 00 01 02 03  11 04 05 21 31 06 12 41
+51 07 61 71 13 22 32 81  08 14 42 91 a1 b1 c1 09
+23 33 52 f0 15 62 72 d1  0a 16 24 34 e1 25 f1 17
+18 19 1a 26 27 28 29 2a  35 36 37 38 39 3a 43 44
+45 46 47 48 49 4a 53 54  55 56 57 58 59 5a 63 64
+65 66 67 68 69 6a 73 74  75 76 77 78 79 7a 82 83
+84 85 86 87 88 89 8a 92  93 94 95 96 97 98 99 9a
+a2 a3 a4 a5 a6 a7 a8 a9  aa b2 b3 b4 b5 b6 b7 b8
+b9 ba c2 c3 c4 c5 c6 c7  c8 c9 ca d2 d3 d4 d5 d6
+d7 d8 d9 da e2 e3 e4 e5  e6 e7 e8 e9 ea f2 f3 f4
+f5 f6 f7 f8 f9 fa ff db  00 84 00 01 01 01 01 01
+01 01 01 01 01 01 01 01  01 01 02 01 01 01 01 01
+03 02 02 01 02 03 03 03  03 03 03 03 03 04 04 05
+04 04 04 05 04 03 03 05  06 05 05 05 06 06 06 06
+03 04 07 07 07 06 07 05  06 06 06 01 01 01 01 01
+01 01 02 01 01 02 06 04  03 03 06 06 06 06 06 06
+06 06 06 06 06 06 06 06  06 06 06 06 06 06 06 06
+06 06 06 06 06 06 06 06  06 06 06 06 06 06 06 06
+06 06 06 06 06 06 06 06  06 06 06 06 ff c0 00 11
+08 00 78 00 a0 03 01 21  00 02 11 01 03 11 01 ff
+da 00 0c 03 01 00 02 11  03 11 00 3f 00 ff 00 3f
+fa 28 00 a2 80 0a 28 00  a2 80 0a 28 00 a2 80 0a
+28 00 a2 80 0a 28 00 a2  80 0a 28 00 a2 80 0a 28
+00 a2 80 0a 28 00 a2 80  0a 28 00 a2 80 0a 28 00
+a2 80 0a 28 00 a2 80 0a  28 00 a2 80 0a 28 00 a2
+80 0a 28 00 a2 80 0a 28  00 a2 80 0a 28 00 a2 80
+0a 28 00 a2 80 0a 28 00  a2 80 0a 28 00 a2 80 0a
+28 00 a2 80 0a 28 00 a2  80 0a 28 00 a2 80 0a 28
+00 a2 80 0a 28 00 a2 80  0a 28 00 a2 80 0a 28 00
+a2 80 0a 28 00 a2 80 0a  28 00 a2 80 0a 28 00 a2
+80 0a 28 00 a2 80 0a 28  00 a2 80 0a 28 00 a2 80
+0a 28 00 a2 80 0a 28 00  a2 80 0a 28 00 a2 80 0a
+28 00 a2 80 0a 28 00 a2  80 0a 28 00 a2 80 0a 28
+00 a2 80 0a 28 00 a2 80  0a 28 00 a2 80 0a 28 00
+a2 80 0a 28 00 a2 80 0a  28 00 a2 80 0a 28 00 a2
+80 0a 28 00 a2 80 0a 28  00 a2 80 0a 28 00 a2 80
+0a 28 00 a2 80 0a 28 00  a2 80 0a 28 00 a2 80 0a
+28 00 a2 80 0a 28 00 a2  80 0a 28 00 a2 80 0a 28
+00 a2 80 0a 28 00 a2 80  0a 28 00 a2 80 0a 28 00
+a2 80 0a 28 00 a2 80 0a  28 00 a2 80 0a 28 00 a2
+80 0a 28 00 a2 80 0a 28  00 a2 80 0a 28 00 a2 80
+0a 28 00 a2 80 0a 28 00  a2 80 0a 28 00 a2 80 0a
+28 00 a2 80 0a 28 00 a2  80 0a 28 00 a2 80 0a 28
+00 a2 80 0a 28 00 a2 80  0a 28 00 a2 80 0a 28 00
+a2 80 0a 28 00 a2 80 3f  ff d9</a> <a name=t79 class=U>00 00 f5 26 66 72
+65 65 00 80 01 81 02 82  03 83 04 84 05 85 06 86
+07 87 08 88 09 89 0a 8a  0b 8b 0c 8c 0d 8d 0e 8e
+0f 8f 10 90 11 91 12 92  13 93 14 94 15 95 16 96
+17 97 18 98 19 99 1a 9a  1b 9b 1c 9c 1d 9d 1e 9e
+1f 9f 20 a0 21 a1 22 a2  23 a3 24 a4 25 a5 26 a6
+27 a7 28 a8 29 a9 2a aa  2b ab 2c ac 2d ad 2e ae
+2f af 30 b0 31 b1 32 b2  33 b3 34 b4 35 b5 36 b6
+37 b7 38 b8 39 b9 3a ba  3b bb 3c bc 3d bd 3e be
+3f bf 40 c0 41 c1 42 c2  43 c3 44 c4 45 c5 46 c6
+47 c7 48 c8 49 c9 4a ca  4b cb 4c cc 4d cd 4e ce
+4f cf 50 d0 51 d1 52 d2  53 d3 54 d4 55 d5 56 d6
+57 d7 58 d8 59 d9 5a da  5b db 5c dc 5d dd 5e de
+5f df 60 e0 61 e1 62 e2  63 e3 64 e4 65 e5 66 e6
+67 e7 68 e8 69 e9 6a ea  6b eb 6c ec 6d ed 6e ee
+6f ef 70 f0 71 f1 72 f2  73 f3 74 f4 75 f5 76 f6
+77 f7 78 f8 79 f9 7a fa  7b fb 7c fc 7d fd 7e fe
+7f ff 00 80 01 81 02 82  03 83 04 84 05 85 06 86
+07 87 08 88 09 89 0a 8a  0b 8b 0c 8c 0d 8d 0e 8e
+0f 8f 10 90 11 91 12 92  13 93 14 94 15 95 16 96
+17 97 18 98 19 99 1a 9a  1b 9b 1c 9c 1d 9d 1e 9e
+1f 9f 20 a0 21 a1 22 a2  23 a3 24 a4 25 a5 26 a6
+27 a7 28 a8 29 a9 2a aa  2b ab 2c ac 2d ad 2e ae
+2f af 30 b0 31 b1 32 b2  33 b3 34 b4 35 b5 36 b6
+37 b7 38 b8 39 b9 3a ba  3b bb 3c bc 3d bd 3e be
+3f bf 40 c0 41 c1 42 c2  43 c3 44 c4 45 c5 46 c6
+47 c7 48 c8 49 c9 4a ca  4b cb 4c cc 4d cd 4e ce
+4f cf 50 d0 51 d1 52 d2  53 d3 54 d4 55 d5 56 d6
+57 d7 58 d8 59 d9 5a da  5b db 5c dc 5d dd 5e de
+5f df 60 e0 61 e1 62 e2  63 e3 64 e4 65 e5 66 e6
+67 e7 68 e8 69 e9 6a ea  6b eb 6c ec 6d ed 6e ee
+6f ef 70 f0 71 f1 72 f2  73 f3 74 f4 75 f5 76 f6
+77 f7 78 f8 79 f9 7a fa  7b fb 7c fc 7d fd 7e fe
+7f ff 00 80 01 81 02 82  03 83 04 84 05 85 06 86
+07 87 08 88 09 89 0a 8a  0b 8b 0c 8c 0d 8d 0e 8e
+0f 8f 10 90 11 91 12 92  13 93 14 94 15 95 16 96
+17 97 18 98 19 99 1a 9a  1b 9b 1c 9c 1d 9d 1e 9e
+1f 9f 20 a0 21 a1 22 a2  23 a3 24 a4 25 a5 26 a6
+27 a7 28 a8 29 a9 2a aa  2b ab 2c ac 2d ad 2e ae
+2f af 30 b0 31 b1 32 b2  33 b3 34 b4 35 b5 36 b6
+37 b7 38 b8 39 b9 3a ba  3b bb 3c bc 3d bd 3e be
+3f bf 40 c0 41 c1 42 c2  43 c3 44 c4 45 c5 46 c6
+47 c7 48 c8 49 c9 4a ca  4b cb 4c cc 4d cd 4e ce
+4f cf 50 d0 51 d1 52 d2  53 d3 54 d4 55 d5 56 d6
+57 d7 58 d8 59 d9 5a da  5b db 5c dc 5d dd 5e de
+5f df 60 e0 61 e1 62 e2  63 e3 64 e4 65 e5 66 e6
+67 e7 68 e8 69 e9 6a ea  6b eb 6c ec 6d ed 6e ee
+6f ef 70 f0 71 f1 72 f2  73 f3 74 f4 75 f5 76 f6
+77 f7 78 f8 79 f9 7a fa  7b fb 7c fc 7d fd 7e fe
+7f ff 00 80 01 81 02 82  03 83 04 84 05 85 06 86
+07 87 08 88 09 89 0a 8a  0b 8b 0c 8c 0d 8d 0e 8e
+0f 8f 10 90 11 91 12 92  13 93 14 94 15 95 16 96
+17 97 18 98 19 99 1a 9a  1b 9b 1c 9c 1d 9d 1e 9e
+1f 9f 20 a0 21 a1 22 a2  23 a3 24 a4 25 a5 26 a6
+27 a7 28 a8 29 a9 2a aa  2b ab 2c ac 2d ad 2e ae
+2f af 30 b0 31 b1 32 b2  33 b3 34 b4 35 b5 36 b6
+37 b7 38 b8 39 b9 3a ba  3b bb 3c bc 3d bd 3e be
+3f bf 40 c0 41 c1 42 c2  43 c3 44 c4 45 c5 46 c6
+47 c7 48 c8 49 c9 4a ca  4b cb 4c cc 4d cd 4e ce
+4f cf 50 d0 51 d1 52 d2  53 d3 54 d4 55 d5 56 d6
+57 d7 58 d8 59 d9 5a da  5b db 5c dc 5d dd 5e de
+5f df 60 e0 61 e1 62 e2  63 e3 64 e4 65 e5 66 e6
+67 e7 68 e8 69 e9 6a ea  6b eb 6c ec 6d ed 6e ee
+6f ef 70 f0 71 f1 72 f2  73 f3 74 f4 75 f5 76 f6
+77 f7 78 f8 79 f9 7a fa  7b fb 7c fc 7d fd 7e fe
+7f ff 00 80 01 81 02 82  03 83 04 84 05 85 06 86
+07 87 08 88 09 89 0a 8a  0b 8b 0c 8c 0d 8d 0e 8e
+0f 8f 10 90 11 91 12 92  13 93 14 94 15 95 16 96
+17 97 18 98 19 99 1a 9a  1b 9b 1c 9c 1d 9d 1e 9e
+1f 9f 20 a0 21 a1 22 a2  23 a3 24 a4 25 a5 26 a6
+27 a7 28 a8 29 a9 2a aa  2b ab 2c ac 2d ad 2e ae
+2f af 30 b0 31 b1 32 b2  33 b3 34 b4 35 b5 36 b6
+37 b7 38 b8 39 b9 3a ba  3b bb 3c bc 3d bd 3e be
+3f bf 40 c0 41 c1 42 c2  43 c3 44 c4 45 c5 46 c6
+47 c7 48 c8 49 c9 4a ca  4b cb 4c cc 4d cd 4e ce
+4f cf 50 d0 51 d1 52 d2  53 d3 54 d4 55 d5 56 d6
+57 d7 58 d8 59 d9 5a da  5b db 5c dc 5d dd 5e de
+5f df 60 e0 61 e1 62 e2  63 e3 64 e4 65 e5 66 e6
+67 e7 68 e8 69 e9 6a ea  6b eb 6c ec 6d ed 6e ee
+6f ef 70 f0 71 f1 72 f2  73 f3 74 f4 75 f5 76 f6
+77 f7 78 f8 79 f9 7a fa  7b fb 7c fc 7d fd 7e fe
+7f ff 00 80 01 81 02 82  03 83 04 84 05 85 06 86
+07 87 08 88 09 89 0a 8a  0b 8b 0c 8c 0d 8d 0e 8e
+0f 8f 10 90 11 91 12 92  13 93 14 94 15 95 16 96
+17 97 18 98 19 99 1a 9a  1b 9b 1c 9c 1d 9d 1e 9e
+1f 9f 20 a0 21 a1 22 a2  23 a3 24 a4 25 a5 26 a6
+27 a7 28 a8 29 a9 2a aa  2b ab 2c ac 2d ad 2e ae
+2f af 30 b0 31 b1 32 b2  33 b3 34 b4 35 b5 36 b6
+37 b7 38 b8 39 b9 3a ba  3b bb 3c bc 3d bd 3e be
+3f bf 40 c0 41 c1 42 c2  43 c3 44 c4 45 c5 46 c6
+47 c7 48 c8 49 c9 4a ca  4b cb 4c cc 4d cd 4e ce
+4f cf 50 d0 51 d1 52 d2  53 d3 54 d4 55 d5 56 d6
+57 d7 58 d8 59 d9 5a da  5b db 5c dc 5d dd 5e de
+5f df 60 e0 61 e1 62 e2  63 e3 64 e4 65 e5 66 e6
+67 e7 68 e8 69 e9 6a ea  6b eb 6c ec 6d ed 6e ee
+6f ef 70 f0 71 f1 72 f2  73 f3 74 f4 75 f5 76 f6
+77 f7 78 f8 79 f9 7a fa  7b fb 7c fc 7d fd 7e fe
+7f ff 00 80 01 81 02 82  03 83 04 84 05 85 06 86
+07 87 08 88 09 89 0a 8a  0b 8b 0c 8c 0d 8d 0e 8e
+0f 8f 10 90 11 91 12 92  13 93 14 94 15 95 16 96
+17 97 18 98 19 99 1a 9a  1b 9b 1c 9c 1d 9d 1e 9e
+1f 9f 20 a0 21 a1 22 a2  23 a3 24 a4 25 a5 26 a6
+27 a7 28 a8 29 a9 2a aa  2b ab 2c ac 2d ad 2e ae
+2f af 30 b0 31 b1 32 b2  33 b3 34 b4 35 b5 36 b6
+37 b7 38 b8 39 b9 3a ba  3b bb 3c bc 3d bd 3e be
+3f bf 40 c0 41 c1 42 c2  43 c3 44 c4 45 c5 46 c6
+47 c7 48 c8 49 c9 4a ca  4b cb 4c cc 4d cd 4e ce
+4f cf 50 d0 51 d1 52 d2  53 d3 54 d4 55 d5 56 d6
+57 d7 58 d8 59 d9 5a da  5b db 5c dc 5d dd 5e de
+5f df 60 e0 61 e1 62 e2  63 e3 64 e4 65 e5 66 e6
+67 e7 68 e8 69 e9 6a ea  6b eb 6c ec 6d ed 6e ee
+6f ef 70 f0 71 f1 72 f2  73 f3 74 f4 75 f5 76 f6
+77 f7 78 f8 79 f9 7a fa  7b fb 7c fc 7d fd 7e fe
+7f ff 00 80 01 81 02 82  03 83 04 84 05 85 06 86
+07 87 08 88 09 89 0a 8a  0b 8b 0c 8c 0d 8d 0e 8e
+0f 8f 10 90 11 91 12 92  13 93 14 94 15 95 16 96
+17 97 18 98 19 99 1a 9a  1b 9b 1c 9c 1d 9d 1e 9e
+1f 9f 20 a0 21 a1 22 a2  23 a3 24 a4 25 a5 26 a6
+27 a7 28 a8 29 a9 2a aa  2b ab 2c ac 2d ad 2e ae
+2f af 30 b0 31 b1 32 b2  33 b3 34 b4 35 b5 36 b6
+37 b7 38 b8 39 b9 3a ba  3b bb 3c bc 3d bd 3e be
+3f bf 40 c0 41 c1 42 c2  43 c3 44 c4 45 c5 46 c6
+47 c7 48 c8 49 c9 4a ca  4b cb 4c cc 4d cd 4e ce
+4f cf 50 d0 51 d1 52 d2  53 d3 54 d4 55 d5 56 d6
+57 d7 58 d8 59 d9 5a da  5b db 5c dc 5d dd 5e de
+5f df 60 e0 61 e1 62 e2  63 e3 64 e4 65 e5 66 e6
+67 e7 68 e8 69 e9 6a ea  6b eb 6c ec 6d ed 6e ee
+6f ef 70 f0 71 f1 72 f2  73 f3 74 f4 75 f5 76 f6
+               [snip 42229 lines]               
+00 03 00 00 03 00 00 03  00 16 cf f8 00 00 03 00
+73 47 c0 00 00 03 00 00  03 00 00 03 00 00 03 00
+31 a0 00 00 00 bb 02 01  a4 0f 90 6b 80 af e3 c7
+1d ca 8a 34 00 00 03 00  00 03 00 00 03 00 00 03
+00 00 03 00 00 03 00 00  03 00 00 03 00 00 03 00
+00 03 00 00 03 00 00 03  00 00 03 00 00 03 00 00
+03 00 00 03 00 00 03 00  00 03 00 00 03 00 00 03
+00 00 03 03 a4 89 d7 00  1f 3e d5 41 72 eb 7f fe
+b4 bb 96 61 71 ed 66 63  48 00 00 75 80 00 00 03
+00 00 03 00 00 03 00 00  03 00 00 03 00 00 03 00
+00 03 00 00 03 00 00 03  00 00 03 00 00 03 00 00
+03 00 00 03 00 00 03 00  04 ae 2b 80 00 00 03 00
+00 03 00 00 03 00 00 03  00 00 03 00 00 03 00 00
+03 00 00 03 00 00 03 00  00 03 00 00 03 00 00 63
+40 00 00 00 c4 02 01 a4  11 90 6b 80 af e3 c7 1d
+ca 8a 34 07 9a b8 00 00  03 00 00 03 00 00 03 00
+00 16 9f 0c 9e 68 3b 1a  64 41 cb 5c 3d 23 98 0c
+69 bd f0 00 01 3a 00 00  03 00 00 03 00 00 03 00
+00 03 00 00 03 00 00 03  00 00 03 00 00 03 00 00
+03 00 00 03 00 00 03 00  00 03 00 00 03 00 00 03
+00 00 03 00 00 03 00 00  03 00 00 03 00 00 03 00
+00 03 00 00 03 00 00 03  00 00 03 00 00 03 00 00
+03 00 00 03 00 00 03 00  00 03 00 00 03 00 00 03
+00 00 03 00 00 03 00 00  03 00 00 03 00 00 03 00
+00 03 00 00 03 00 00 03  00 00 03 00 00 03 00 00
+03 00 00 03 00 00 03 00  00 03 00 00 03 00 7c f6
+cd 08 f2 b7 a8 dc fd ad  c0 00 00 00 ac 02 01 a4
+13 90 6b 80 af e3 c7 1d  ca 8a 34 00 00 03 00 00
+03 00 00 03 00 00 03 00  03 55 07 c0 00 00 03 00
+00 03 00 00 03 00 00 03  00 00 03 00 00 03 00 00
+03 00 00 03 00 00 03 00  00 03 00 00 03 00 00 03
+00 00 03 00 00 03 00 00  03 00 00 03 00 00 f9 93
+00 00 03 00 00 03 00 00  03 00 00 03 00 00 03 00
+00 03 00 00 03 00 00 03  00 00 03 00 00 03 00 00
+03 00 00 03 00 00 03 00  00 03 00 00 03 00 00 03
+00 00 03 00 00 03 00 00  03 00 00 03 00 00 52 d0
+a8 00 00 03 00 00 03 00  00 03 00 00 03 00 00 03
+00 00 03 00 00 03 00 02  3a 00 00 00 ce 02 01 a4
+15 90 6b 80 af e3 c7 1d  ca 8a 34 00 00 03 00 00
+03 00 00 03 00 00 03 00  00 03 00 00 03 00 00 03
+00 00 03 00 00 03 00 00  03 00 00 03 00 00 03 00
+00 03 00 00 03 00 00 03  00 00 03 00 00 03 00 00
+03 00 00 03 00 00 03 00  00 03 00 00 03 00 00 03
+00 00 03 00 00 03 00 00  1f 61 fd d4 db ce 56 37
+d5 e6 04 60 00 00 8d 00  00 03 00 00 03 00 00 03
+00 00 03 00 00 03 00 00  03 00 00 03 00 00 03 00
+00 03 00 00 3a 43 69 18  7a a6 9c 2d 54 a0 16 8d
+a8 00 00 19 60 00 00 03  00 00 03 00 00 03 00 00
+03 00 00 03 00 00 03 00  00 10 24 39 bf ae a0 3d
+0c 94 00 00 03 00 00 03  00 00 03 00 05 d0 be 88
+f1 03 3e fe b4 29 44 10  00 ce 80 00 00 00 b9 02
+01 a4 17 90 6b 80 af e3  c7 1d ca 8a 34 00 00 03
+00 00 03 00 00 03 00 00  03 00 00 03 00 00 03 00
+00 03 00 00 03 00 00 03  00 00 03 00 00 03 00 00
+03 00 00 03 00 00 03 00  00 43 af bc 23 11 26 5f
+fa 56 40 7b 73 5d 40 00  00 03 00 00 03 00 00 03
+00 00 03 00 00 03 00 00  03 00 00 03 00 00 03 00
+00 03 00 00 03 00 67 8a  10 00 00 03 00 00 03 00
+00 03 00 00 03 00 00 03  00 00 03 00 00 03 00 00
+03 00 00 03 00 00 03 00  00 03 03 ed a7 80 00 00
+03 00 00 03 00 00 03 00  00 03 00 00 03 00 00 03
+00 00 03 00 00 03 00 00  03 00 00 03 00 00 03 00
+00 03 00 0f 04 5e 0b 48  00 00 00 b6 02 01 a4 19
+90 6b 80 af e3 c7 1d ca  8a 34 00 00 03 00 00 03
+00 00 03 00 00 03 00 00  03 00 00 03 00 00 03 00
+00 03 00 00 03 00 00 03  00 00 03 00 00 03 00 00
+03 00 00 03 00 00 42 69  5c 00 00 03 00 00 03 00
+00 03 00 00 03 00 00 03  00 00 03 00 00 03 00 00
+03 00 00 03 00 00 03 00  00 03 00 00 03 00 00 03
+00 00 03 00 00 03 00 00  03 00 00 03 00 00 03 00
+00 03 00 00 03 00 00 03  00 00 03 00 00 03 00 00
+03 00 00 03 00 00 03 00  00 03 00 00 03 00 00 03
+00 00 03 00 00 03 00 00  03 00 00 03 00 00 03 00
+05 dd 2d e2 a6 00 06 9b  e4 28 a1 6c d7 93 f0 23
+04 44 00 00 00 ab 02 01  a4 1b 90 6b 80 af e3 c7
+1d ca 8a 34 00 00 03 00  00 03 00 00 03 00 00 03
+00 00 03 00 00 03 00 00  03 00 00 03 00 00 03 00
+00 03 00 00 03 00 00 03  00 00 03 00 00 03 00 00
+03 00 00 03 00 00 03 00  00 03 00 00 03 00 00 03
+00 00 03 00 00 03 00 00  03 00 00 03 00 00 03 00
+00 03 00 00 03 00 00 03  00 00 03 00 00 03 00 00
+03 00 00 03 00 00 03 00  00 03 00 00 03 00 00 03
+00 00 03 00 00 03 00 00  03 00 00 03 00 00 03 00
+00 03 00 00 03 00 00 03  00 00 03 00 00 03 00 00
+03 00 00 03 00 00 03 00  00 03 00 00 03 00 00 ed
+80 00 00 00 bc 02 01 a4  1d 90 6b 80 af e3 c7 1d
+ca 8a 34 00 00 03 00 00  03 00 00 03 00 00 03 00
+00 03 00 00 03 00 00 03  00 00 03 00 00 03 00 00
+03 00 00 03 00 00 03 00  00 03 00 00 03 00 00 03
+00 00 03 00 00 03 00 00  03 00 00 03 00 00 03 00
+00 03 00 0d 55 09 6e 1b  14 00 00 03 00 00 03 00
+00 03 00 00 03 00 00 03  00 00 03 00 00 03 00 00
+03 00 00 03 00 00 03 00  00 03 00 00 03 00 00 03
+00 00 03 00 00 03 00 00  03 00 00 03 00 00 03 00
+00 03 00 00 03 00 00 03  00 2d 5f c3 19 fc 1d ae
+7d 27 c9 46 0a ff a0 00  00 03 00 00 03 00 00 03
+00 00 86 21 ed d5 0b a0  00 00 03 00 00 03 00 03
+5a 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00</a>
+</pre></td><td class=c2 valign="top"><pre onmouseover="high(event,1)" onmouseout="high(event,0)" onmousemove="move(event)" onmousedown="doClick(event)"><a name=t0 class=U>....ftypqt  ....
+qt  .SE.moov...l
+mvhd.......x...x
+...`...8........
+................
+................
+........@.......
+................
+.........MXQtrak
+...\tkhd.......x
+...x...........8
+................
+................
+................
+@........p.....$
+edts....elst....
+.......8........
+....tref....tmcd
+.....MW.mdia... 
+mdhd.......x...x
+...`...8.......!
+hdlr....mhlrvide
+..............MW
+lminf....vmhd...
+............$din
+f....dref.......
+.....url .....MW
+,stbl....stsd...
+.........hvc1...
+................
+........p.H...H.
+................
+................
+...............h
+vcC."`..........
+........O.....%@
+....."`.........
+....,.......w.F.
+........$B.."`..
+...........H.x..
+..e.I0K...00....
+..D.H./.2@....co
+lrnclc..........
+free............
+................
+................
+................
+.... .!.".#.$.%.
+&amp;.'.(.).*.+.,.-.
+../.0.1.2.3.4.5.
+6.7.8.9.:.;.&lt;.=.
+&gt;.?.@.A.B.C.D.E.
+F.G.H.I.J.K.L.M.
+N.O.P.Q.R.S.T.U.
+V.W.X.Y.Z.[.\.].
+^._.`.a.b.c.d.e.
+f.g.h.i.j.k.l.m.
+n.o.p.q.r.s.t.u.
+v.w.x.y.z.{.|.}.
+~...............
+................
+................
+................
+.... .!.".#.$.%.
+&amp;.'.(.).*.+.,.-.
+../.0.1.2.3.4.5.
+6.7.8.9.:.;.&lt;.=.
+&gt;.?.@.A.B.C.D.E.
+F.G.H.I.J.K.L.M.
+N.O.P.Q.R.S.T.U.
+V.W.X.Y.Z.[.\.].
+^._.`.a.b.c.d.e.
+f.g.h.i.j.k.l.m.
+n.o.p.q.r.s.t.u.
+v.w.x.y.z.{.|.}.
+~...............
+................
+................
+................
+.... .!.".#.$.%.
+&amp;.'.(.).*.+.,.-.
+../.0.1.2.3.4.5.
+6.7.8.9.:.;.&lt;.=.
+&gt;.?.@.A.B.C.D.E.
+F.G.H.I.J.K.L.M.
+N.O.P.Q.R.S.T.U.
+V.W.X.Y.Z.[.\.].
+^._.`.a.b.c.d.e.
+f.g.h.i.j.k.l.m.
+n.o.p.q.r.s.t.u.
+v.w.x.y.z.{.|.}.
+~...............
+................
+................
+................
+.... .!.".#.$.%.
+&amp;.'.(.).*.+.,.-.
+../.0.1.2.3.4.5.
+6.7.8.9.:.;.&lt;.=.
+&gt;.?.@.A.B.C.D.E.
+F.G.H.I.J.K.L.M.
+N.O.P.Q.R.S.T.U.
+V.W.X.Y.Z.[.\.].
+^._.`.a.b.c.d.e.
+f.g.h.i.j.k.l.m.
+n.o.p.q.r.s.t.u.
+v.w.x.y.z.{.|.}.
+~...............
+................
+................
+................
+.... .!.".#.$.%.
+&amp;.'.(.).*.+.,.-.
+../.0.1.2.3.4.5.
+6.7.8.9.:.;.&lt;.=.
+&gt;.?.@.A.B.C.D.E.
+F.G.H.I.J.K.L.M.
+N.O.P.Q.R.S.T.U.
+V.W.X.Y.Z.[.\.].
+^._.`.a.b.c.d.e.
+f.g.h.i.j.k.l.m.
+n.o.p.q.r.s.t.u.
+v.w.x.y.z.{.|.}.
+~...............
+................
+................
+................
+.... .!.".#.$.%.
+     [snip]     
+[.\.].^._.`.a.b.
+c.d.e.f.g.h.i.j.
+k.l.m.n.o.p.q.r.
+s.t.u.v.w.x.y.z.
+{.|.}.~.........
+................
+................
+................
+.......... .!.".
+#.$.%.&amp;.'.(.).*.
++.,.-.../.0.1.2.
+3.4.5.6.7.8.9.:.
+;.&lt;.=.&gt;.?.@.A.B.
+C.D.E.F.G.H.I.J.
+K.L.M.N.O.P.Q.R.
+S.T.U.V.W.X.Y.Z.
+[.\.].^._.`.a.b.
+c.d.e.f.g.h.i.j.
+k.l.m.n.o.p.q.r.
+s.t.u.v.w.x.y.z.
+{.|.}.~.........
+................
+................
+................
+.......... .!.".
+#.$.%.&amp;.'.(.).*.
++.,.-.../.0.1.2.
+3.4.5.6.7.8.9.:.
+;.&lt;.=.&gt;.?.@.A.B.
+C.D.E.F.G.H.I.J.
+K.L.M.N.O.P.Q.R.
+S.T.U.V.W.X.Y.Z.
+[.\.].^._.`.a.b.
+c.d.e.f.g.h.i.j.
+k.l.m.n.o.p.q.r.
+s.t.u.v.w.x.y.z.
+{.|.}.~.........
+................
+................
+................
+.......... .!.".
+#.$.%.&amp;.'.(.).*.
++.,.-.../.0.1.2.
+3.4.5.6.7.8.9.:.
+;.&lt;.=.&gt;.?.@.A.B.
+C.D.E.F.G.H.I.J.
+K.L.M.N.O.P.Q.R.
+S.T.U.V.W.X.Y.Z.
+[.\.].^._.`.a.b.
+c.d.e.f.g.h.i.j.
+k.l.m.n.o.p.q.r.
+s.t.u.v.w.x.y.z.
+{.|.}.~.........
+................
+................
+................
+.......... .!.".
+#.$.%.&amp;.'.(.).*.
++.,.-.../.0.1.2.
+3.4.5.6.7.8.9.:.
+;.&lt;.=.&gt;.?.@.A.B.
+C.D.E.F.G.H.I.J.
+K.L.M.N.O.P.Q.R.
+S.T.U.V.W.X.Y.Z.
+[.\.].^._.`.a.b.
+c.d.e.f.g.h.i.j.
+k.l.m.n.o.p.q.r.
+s.t.u.v.w.x.y.z.
+{.|.}.~.........
+................
+................
+................
+.......... .!.".
+#.$.%.&amp;.'.(.).*.
++.,.-.../.0.1.2.
+3.4.5.6.7.8.9.:.
+;.&lt;.=.&gt;.?.@.A.B.
+C.D.E.F.G.H.I.J.
+K.L.M.N.O.P.Q.R.
+S.T.U.V.W.X.Y.Z.
+[.\.].^._.`.a.b.
+c.d.e.f.g.h.i.j.
+k.l.m.n.o.p.q.r.
+s.t.u.v.w.x.y.z.
+{.|.}.~.........
+................
+................
+................
+.......... .!.".
+#.$.%.&amp;.'.(.).*.
++.,.-.../.0.1.2.
+3.4.5.6.7.8.9.:.
+;.&lt;.=.&gt;.?.@.A.B.
+C.D.E.F.G.H.I.J.
+K.L.M.N.O.P.Q.R.
+S.T.U.V.W.X.Y.Z.
+[.\.].^._.`.a.b.
+c.d.e.f.g.h.i.j.
+k.l.m.n.o.p.q.r.
+s.t.u.v.w.x.y.z.
+{.|.}.~.........
+................
+................
+................
+.......... .!.".
+#.$.%.&amp;.'.(.).*.
++.,.-.../.0.1.2.
+3.4.5.6.7.8.9.:.
+;.&lt;.=.&gt;.?.@.A.B.
+C.D.E.F.G.H.I.J.
+K.L.M.N.O.P.Q.R.
+S.T.U.V.W.X.Y.Z.
+[.\.].^._.`.a.b.
+c.d.e.f.g.h.i.j.
+k.l.m.n.o.p.q.r.
+s.t.u.v.w.x.y.z.
+{.|.}.~.........
+.....&gt;udta.....f
+mt....Digital Ca
+mera...D.inf.8..
+FUJIFILM DIGITAL
+ CAMERA X-T4....
+................
+...........&amp;FFMV
+FUJIFILM MOV STR
+EAM 0130...&lt;....
+..MVTG........x.
+......</a><a name=t1 class=W>..</a>
+<a name=t2 class=Y>........f...</a>
+<a name=t3 class=W>........p...</a>
+<a name=t4 class=Y>2.......v...</a>
+<a name=t5 class=W>;...........</a>
+<a name=t6 class=Y>............</a>
+<a name=t7 class=W>............</a>
+<a name=t8 class=Y>............</a>
+<a name=t9 class='W Offset_o0'>i...........</a>
+        <a name=t10 class=Y>....</a><a name=t2 class=W>FUJI
+FILM.</a><a name=t11 class=U>.</a><a name=t3 class=Y>X-T4.</a><a name=t12 class=U>.</a><a name=t4 class=W>2026
+:04:15 12:43:42.</a>
+<a name=t5 class=Y>Stefan Oltmann  
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+               .</a>
+<a name=t8 class=W>Stefan Oltmann  
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+               .
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+               .</a>
+<a name=t13 class='Y o0'>..</a>
+<a name=t14 class='W o0'>........8...</a>
+<a name=t15 class='Y o0'>........@...</a>
+<a name=t16 class='W o0'>'...........</a>
+<a name=t17 class='Y o0'>0...........</a>
+<a name=t18 class='W o0'>........H...</a>
+<a name=t19 class='Y o0'>........\...</a>
+<a name=t20 class='W o0'>........p...</a>
+<a name=t21 class='Y o0'>........x...</a>
+<a name=t22 class='W o0'>............</a>
+<a name=t23 class='Y o0'>............</a>
+<a name=t24 class='W o0'>............</a>
+<a name=t25 class='Y o0'>............</a>
+<a name=t26 class='W o0'>|...........</a>
+<a name=t27 class='Y o0'>2...........</a>
+          <a name=t28 class='W o0'>....</a><a name=t14 class=Y>..
+......</a><a name=t15 class=W>h...d...</a><a name=t18 class=Y>20
+26:04:15 12:43:4
+2.</a><a name=t19 class=W>2026:04:15 12:
+43:42.</a><a name=t20 class=Y>+02:00.</a><a name=t29 class=U>.</a><a name=t21 class=W>+0
+2:00.</a><a name=t30 class=U>.</a><a name=t22 class=Y>+02:00.</a><a name=t31 class=U>.</a><a name=t23 class=W>..
+..d...</a><a name=t24 class=Y>....d...</a><a name=t27 class=W>..
+..d.......d.....
+..d.......d...</a><span class='t26 M'><a name=t32 class=Y>FU
+JIFILM....</a><a name=t33 class=W>*.</a>
+<a name=t34 class=Y>........0130</a>
+<a name=t35 class=W>....0.......</a>
+<a name=t36 class=Y>........:...</a>
+<a name=t37 class=W>............</a>
+<a name=t38 class=Y>............</a>
+<a name=t39 class=W>............</a>
+<a name=t40 class=Y>............</a>
+<a name=t41 class=W>............</a>
+<a name=t42 class=Y>........B...</a>
+<a name=t43 class=W>!...........</a>
+<a name=t44 class=Y>0...........</a>
+<a name=t45 class=W>1...........</a>
+<a name=t46 class=Y>@...........</a>
+<a name=t47 class=W>A...........</a>
+<a name=t48 class=Y>G...........</a>
+<a name=t49 class=W>............</a>
+<a name=t50 class=Y>............</a>
+<a name=t51 class=W>............</a>
+<a name=t52 class=Y>............</a>
+<a name=t53 class=W>............</a>
+<a name=t54 class=Y>............</a>
+<a name=t55 class=W>............</a>
+<a name=t56 class=Y>............</a>
+<a name=t57 class=W>............</a>
+<a name=t58 class=Y>........d...</a>
+<a name=t59 class=W>........J...</a>
+<a name=t60 class=Y>........R...</a>
+<a name=t61 class=W>........Z...</a>
+<a name=t62 class=Y>........b...</a>
+<a name=t63 class=W>".......j...</a>
+<a name=t64 class=Y>$...........</a>
+<a name=t65 class=W>0.......p...</a>
+<a name=t66 class=Y>.8..........</a>
+<a name=t67 class=W>.8..........</a>
+<a name=t68 class=Y>.8..........</a>
+<a name=t69 class=W>.8..........</a>
+<a name=t70 class=Y>.8..........</a>
+<a name=t71 class=W> 8......&lt;...</a>
+<a name=t72 class=Y>!8..........</a>
+<a name=t73 class=W>"8......p...</a>
+<a name=t74 class=Y>#8..........</a>
+<a name=t75 class=W>$8..........</a>
+</span>    <span class='t26 M'><a name=t76 class=Y>....</a><a name=t35 class=W>FF02B589
+2188     5935363
+03034200415B8433
+0310193.</a><a name=t36 class=Y>NORMAL .</a>
+<a name=t42 class=W>....d...</a><a name=t59 class=Y>....d...</a>
+<a name=t60 class=W>....d...</a><a name=t61 class=Y>....d...</a>
+<a name=t62 class=W>....d...</a><a name=t63 class=Y>......</a><a name=t65 class=W>..
+................
+................
+................
+................
+................
+................
+................
+...............</a><a name=t77 class=U>.</a></span>
+<a name=t78 class=Y>................
+................
+................
+...}........!1A.
+.Qa."q.2....#B..
+.R..$3br........
+%&amp;'()*456789:CDE
+FGHIJSTUVWXYZcde
+fghijstuvwxyz...
+................
+................
+................
+................
+................
+................
+................
+...w.......!1..A
+Q.aq."2...B.....
+#3R..br...$4.%..
+...&amp;'()*56789:CD
+EFGHIJSTUVWXYZcd
+efghijstuvwxyz..
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+..x....!........
+...........?...?
+.(....(....(....
+(....(....(....(
+....(....(....(.
+...(....(....(..
+..(....(....(...
+.(....(....(....
+(....(....(....(
+....(....(....(.
+...(....(....(..
+..(....(....(...
+.(....(....(....
+(....(....(....(
+....(....(....(.
+...(....(....(..
+..(....(....(...
+.(....(....(....
+(....(....(....(
+....(....(....(.
+...(....(....(..
+..(....(....(...
+.(....(....(....
+(....(....(....(
+....(....(....(.
+...(...?..</a><a name=t79 class=U>...&amp;fr
+ee..............
+................
+................
+................
+.. .!.".#.$.%.&amp;.
+'.(.).*.+.,.-...
+/.0.1.2.3.4.5.6.
+7.8.9.:.;.&lt;.=.&gt;.
+?.@.A.B.C.D.E.F.
+G.H.I.J.K.L.M.N.
+O.P.Q.R.S.T.U.V.
+W.X.Y.Z.[.\.].^.
+_.`.a.b.c.d.e.f.
+g.h.i.j.k.l.m.n.
+o.p.q.r.s.t.u.v.
+w.x.y.z.{.|.}.~.
+................
+................
+................
+................
+.. .!.".#.$.%.&amp;.
+'.(.).*.+.,.-...
+/.0.1.2.3.4.5.6.
+7.8.9.:.;.&lt;.=.&gt;.
+?.@.A.B.C.D.E.F.
+G.H.I.J.K.L.M.N.
+O.P.Q.R.S.T.U.V.
+W.X.Y.Z.[.\.].^.
+_.`.a.b.c.d.e.f.
+g.h.i.j.k.l.m.n.
+o.p.q.r.s.t.u.v.
+w.x.y.z.{.|.}.~.
+................
+................
+................
+................
+.. .!.".#.$.%.&amp;.
+'.(.).*.+.,.-...
+/.0.1.2.3.4.5.6.
+7.8.9.:.;.&lt;.=.&gt;.
+?.@.A.B.C.D.E.F.
+G.H.I.J.K.L.M.N.
+O.P.Q.R.S.T.U.V.
+W.X.Y.Z.[.\.].^.
+_.`.a.b.c.d.e.f.
+g.h.i.j.k.l.m.n.
+o.p.q.r.s.t.u.v.
+w.x.y.z.{.|.}.~.
+................
+................
+................
+................
+.. .!.".#.$.%.&amp;.
+'.(.).*.+.,.-...
+/.0.1.2.3.4.5.6.
+7.8.9.:.;.&lt;.=.&gt;.
+?.@.A.B.C.D.E.F.
+G.H.I.J.K.L.M.N.
+O.P.Q.R.S.T.U.V.
+W.X.Y.Z.[.\.].^.
+_.`.a.b.c.d.e.f.
+g.h.i.j.k.l.m.n.
+o.p.q.r.s.t.u.v.
+w.x.y.z.{.|.}.~.
+................
+................
+................
+................
+.. .!.".#.$.%.&amp;.
+'.(.).*.+.,.-...
+/.0.1.2.3.4.5.6.
+7.8.9.:.;.&lt;.=.&gt;.
+?.@.A.B.C.D.E.F.
+G.H.I.J.K.L.M.N.
+O.P.Q.R.S.T.U.V.
+W.X.Y.Z.[.\.].^.
+_.`.a.b.c.d.e.f.
+g.h.i.j.k.l.m.n.
+o.p.q.r.s.t.u.v.
+w.x.y.z.{.|.}.~.
+................
+................
+................
+................
+.. .!.".#.$.%.&amp;.
+'.(.).*.+.,.-...
+/.0.1.2.3.4.5.6.
+7.8.9.:.;.&lt;.=.&gt;.
+?.@.A.B.C.D.E.F.
+G.H.I.J.K.L.M.N.
+O.P.Q.R.S.T.U.V.
+W.X.Y.Z.[.\.].^.
+_.`.a.b.c.d.e.f.
+g.h.i.j.k.l.m.n.
+o.p.q.r.s.t.u.v.
+w.x.y.z.{.|.}.~.
+................
+................
+................
+................
+.. .!.".#.$.%.&amp;.
+'.(.).*.+.,.-...
+/.0.1.2.3.4.5.6.
+7.8.9.:.;.&lt;.=.&gt;.
+?.@.A.B.C.D.E.F.
+G.H.I.J.K.L.M.N.
+O.P.Q.R.S.T.U.V.
+W.X.Y.Z.[.\.].^.
+_.`.a.b.c.d.e.f.
+g.h.i.j.k.l.m.n.
+o.p.q.r.s.t.u.v.
+w.x.y.z.{.|.}.~.
+................
+................
+................
+................
+.. .!.".#.$.%.&amp;.
+'.(.).*.+.,.-...
+/.0.1.2.3.4.5.6.
+7.8.9.:.;.&lt;.=.&gt;.
+?.@.A.B.C.D.E.F.
+G.H.I.J.K.L.M.N.
+O.P.Q.R.S.T.U.V.
+W.X.Y.Z.[.\.].^.
+_.`.a.b.c.d.e.f.
+g.h.i.j.k.l.m.n.
+o.p.q.r.s.t.u.v.
+     [snip]     
+................
+sG..............
+1..........k....
+...4............
+................
+................
+................
+.........&gt;.Ar...
+...aq.fcH..u....
+................
+................
+..........+.....
+................
+...............c
+@.........k.....
+..4.............
+.....h;.dA.\=#..
+i....:..........
+................
+................
+................
+................
+................
+................
+................
+..............|.
+................
+..k.......4.....
+.........U......
+................
+................
+................
+................
+................
+................
+..............R.
+................
+........:.......
+..k.......4.....
+................
+................
+................
+................
+.........a....V7
+...`............
+................
+....:Ci.z..-T...
+....`...........
+..........$9...=
+................
+..&gt;..)D.........
+....k.......4...
+................
+................
+.........C..#.&amp;_
+.V@{s]@.........
+................
+......g.........
+................
+................
+................
+................
+.....^.H........
+.k.......4......
+................
+................
+......Bi\.......
+................
+................
+................
+................
+................
+................
+..-......(.l...#
+.D.........k....
+...4............
+................
+................
+................
+................
+................
+................
+................
+................
+................
+..........k.....
+..4.............
+................
+................
+................
+....U.n.........
+................
+................
+................
+.........-_.....
+}'.F............
+...!............
+Z...............
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................</a>
+</pre></td><td valign="top"><pre onmouseover="high(event,1)" onmouseout="high(event,0)" onmousemove="move(event)" onmousedown="doClick(event)"><a name=t0 class=U>[unused 5391702 bytes]</a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a name=t1 class=W>IFD0 entries</a>
+<a name=t2 class=Y>IFD0-00 <span class=F>Make</span></a>
+<a name=t3 class=W>IFD0-01 <span class=F>Model</span></a>
+<a name=t4 class=Y>IFD0-02 <span class=F>ModifyDate</span></a>
+<a name=t5 class=W>IFD0-03 <span class=F>Artist</span></a>
+<a name=t6 class=Y>IFD0-04 ThumbnailOffset</a>
+<a name=t7 class=W>IFD0-05 ThumbnailLength</a>
+<a name=t8 class=Y>IFD0-06 <span class=F>Copyright</span></a>
+<a name=t9 class='W Offset_o0'>IFD0-07 ExifOffset</a>
+<a name=t10 class=Y>Next IFD</a>
+<a name=t2 class=W>Make value</a> <a name=t11 class=U>[pad byte]</a> <a name=t3 class=Y>Model value</a> <a name=t12 class=U>[pad byte]</a>
+<a name=t4 class=W>ModifyDate value</a>
+<a name=t5 class=Y>Artist value</a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a name=t8 class=W>Copyright value</a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a name=t13 class='Y o0'>ExifIFD entries</a>
+<a name=t14 class='W o0'>ExifIFD-00 <span class=F>ExposureTime</span></a>
+<a name=t15 class='Y o0'>ExifIFD-01 <span class=F>FNumber</span></a>
+<a name=t16 class='W o0'>ExifIFD-02 ISO</a>
+<a name=t17 class='Y o0'>ExifIFD-03 SensitivityType</a>
+<a name=t18 class='W o0'>ExifIFD-04 <span class=F>DateTimeOriginal</span></a>
+<a name=t19 class='Y o0'>ExifIFD-05 <span class=F>CreateDate</span></a>
+<a name=t20 class='W o0'>ExifIFD-06 <span class=F>OffsetTime</span></a>
+<a name=t21 class='Y o0'>ExifIFD-07 <span class=F>OffsetTimeOriginal</span></a>
+<a name=t22 class='W o0'>ExifIFD-08 <span class=F>OffsetTimeDigitized</span></a>
+<a name=t23 class='Y o0'>ExifIFD-09 <span class=F>ShutterSpeedValue</span></a>
+<a name=t24 class='W o0'>ExifIFD-10 <span class=F>ExposureCompensation</span></a>
+<a name=t25 class='Y o0'>ExifIFD-11 MeteringMode</a>
+<a name=t26 class='W o0'>ExifIFD-12 <span class=F>MakerNoteFujiFilm</span></a>
+<a name=t27 class='Y o0'>ExifIFD-13 <span class=F>LensInfo</span></a>
+<a name=t28 class='W o0'>Next IFD</a>
+<a name=t14 class=Y>ExposureTime value</a> <a name=t15 class=W>FNumber value</a>
+<a name=t18 class=Y>DateTimeOriginal value</a>
+<a name=t19 class=W>CreateDate value</a>
+<a name=t20 class=Y>OffsetTime value</a> <a name=t29 class=U>[pad byte]</a>
+<a name=t21 class=W>OffsetTimeOriginal value</a> <a name=t30 class=U>[pad byte]</a> <a name=t22 class=Y>OffsetTimeDigitized value</a> <a name=t31 class=U>[pad byte]</a>
+<a name=t23 class=W>ShutterSpeedValue value</a> <a name=t24 class=Y>ExposureCompensation value</a>
+<a name=t27 class=W>LensInfo value</a>
+<a name=t32 class=Y>MakerNotes header</a>
+<a name=t33 class=W>MakerNoteFujiFilm entries</a>
+<a name=t34 class=Y>MakerNotes-00 Version</a>
+<a name=t35 class=W>MakerNotes-01 <span class=F>InternalSerialNumber</span></a>
+<a name=t36 class=Y>MakerNotes-02 <span class=F>Quality</span></a>
+<a name=t37 class=W>MakerNotes-03 Sharpness</a>
+<a name=t38 class=Y>MakerNotes-04 WhiteBalance</a>
+<a name=t39 class=W>MakerNotes-05 Saturation</a>
+<a name=t40 class=Y>MakerNotes-06 NoiseReduction</a>
+<a name=t41 class=W>MakerNotes-07 FujiFlashMode</a>
+<a name=t42 class=Y>MakerNotes-08 <span class=F>FlashExposureComp</span></a>
+<a name=t43 class=W>MakerNotes-09 FocusMode</a>
+<a name=t44 class=Y>MakerNotes-10 SlowSync</a>
+<a name=t45 class=W>MakerNotes-11 PictureMode</a>
+<a name=t46 class=Y>MakerNotes-12 ShadowTone</a>
+<a name=t47 class=W>MakerNotes-13 HighlightTone</a>
+<a name=t48 class=Y>MakerNotes-14 GrainEffectRoughness</a>
+<a name=t49 class=W>MakerNotes-15 AutoBracketing</a>
+<a name=t50 class=Y>MakerNotes-16 FujiFilm_0x1200</a>
+<a name=t51 class=W>MakerNotes-17 BlurWarning</a>
+<a name=t52 class=Y>MakerNotes-18 FocusWarning</a>
+<a name=t53 class=W>MakerNotes-19 ExposureWarning</a>
+<a name=t54 class=Y>MakerNotes-20 FujiFilm_0x1303</a>
+<a name=t55 class=W>MakerNotes-21 FujiFilm_0x1304</a>
+<a name=t56 class=Y>MakerNotes-22 FilmMode</a>
+<a name=t57 class=W>MakerNotes-23 DynamicRangeSetting</a>
+<a name=t58 class=Y>MakerNotes-24 DevelopmentDynamicRange</a>
+<a name=t59 class=W>MakerNotes-25 <span class=F>MinFocalLength</span></a>
+<a name=t60 class=Y>MakerNotes-26 <span class=F>MaxFocalLength</span></a>
+<a name=t61 class=W>MakerNotes-27 <span class=F>MaxApertureAtMinFocal</span></a>
+<a name=t62 class=Y>MakerNotes-28 <span class=F>MaxApertureAtMaxFocal</span></a>
+<a name=t63 class=W>MakerNotes-29 <span class=F>ImageStabilization</span></a>
+<a name=t64 class=Y>MakerNotes-30 FujiFilm_0x1424</a>
+<a name=t65 class=W>MakerNotes-31 <span class=F>FujiFilm_0x1430</span></a>
+<a name=t66 class=Y>MakerNotes-32 VideoRecordingMode</a>
+<a name=t67 class=W>MakerNotes-33 PeripheralLighting</a>
+<a name=t68 class=Y>MakerNotes-34 FujiFilm_0x3805</a>
+<a name=t69 class=W>MakerNotes-35 VideoCompression</a>
+<a name=t70 class=Y>MakerNotes-36 FujiFilm_0x3810</a>
+<a name=t71 class=W>MakerNotes-37 FrameRate</a>
+<a name=t72 class=Y>MakerNotes-38 FrameWidth</a>
+<a name=t73 class=W>MakerNotes-39 FrameHeight</a>
+<a name=t74 class=Y>MakerNotes-40 FujiFilm_0x3823</a>
+<a name=t75 class=W>MakerNotes-41 FullHDHighSpeedRec</a>
+<a name=t76 class=Y>Next IFD</a>
+<a name=t35 class=W>InternalSerialNumber value</a>
+
+<a name=t36 class=Y>Quality value</a>
+<a name=t42 class=W>FlashExposureComp value</a> <a name=t59 class=Y>MinFocalLength value</a>
+<a name=t60 class=W>MaxFocalLength value</a> <a name=t61 class=Y>MaxApertureAtMinFocal value</a>
+<a name=t62 class=W>MaxApertureAtMaxFocal value</a> <a name=t63 class=Y>ImageStabilization value</a>
+<a name=t65 class=W>FujiFilm_0x1430 value</a>
+
+
+
+
+
+
+<a name=t77 class=U>[pad byte]</a>
+<a name=t78 class=Y>(IFD0:Thumbnail data)</a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a name=t79 class=U>[unknown data]</a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre></td></tr></table>
+<div id=tb class=tb> </div>
+<div id=p1 class=tt><b>IFD0 entries</b><br>Entry count: 8<br>(2 bytes)</div>
+<div id=p2 class=tt><b>IFD0-00 <span class=F>Make</span></b><br>Tag ID: 0x010f<br>Format: string[9]<br>Size: 9 bytes<br>Value offset: 0x0066<br>Actual offset: 0x5245bc<br>Offset base: 0x524556<br>Value: FUJIFILM</div>
+<div id=p3 class=tt><b>IFD0-01 <span class=F>Model</span></b><br>Tag ID: 0x0110<br>Format: string[5]<br>Size: 5 bytes<br>Value offset: 0x0070<br>Actual offset: 0x5245c6<br>Offset base: 0x524556<br>Value: X-T4</div>
+<div id=p4 class=tt><b>IFD0-02 <span class=F>ModifyDate</span></b><br>Tag ID: 0x0132<br>Format: string[20]<br>Size: 20 bytes<br>Value offset: 0x0076<br>Actual offset: 0x5245cc<br>Offset base: 0x524556<br>Value: 2026:04:15 12:43:42</div>
+<div id=p5 class=tt><b>IFD0-03 <span class=F>Artist</span></b><br>Tag ID: 0x013b<br>Format: string[256]<br>Size: 256 bytes<br>Value offset: 0x008a<br>Actual offset: 0x5245e0<br>Offset base: 0x524556<br>Value: Stefan Oltmann              [...]</div>
+<div id=p6 class=tt><b>IFD0-04 ThumbnailOffset</b><br>Tag ID: 0x0201<br>Format: int32u[1]<br>Size: 4 bytes<br>Value: 0x07aa<br>Actual offset: 0x524d00<br>Offset base: 0x524556</div>
+<div id=p7 class=tt><b>IFD0-05 ThumbnailLength</b><br>Tag ID: 0x0202<br>Format: int32u[1]<br>Size: 4 bytes<br>Value: 970</div>
+<div id=p8 class=tt><b>IFD0-06 <span class=F>Copyright</span></b><br>Tag ID: 0x8298<br>Format: string[512] read as undef[512]<br>Size: 512 bytes<br>Value offset: 0x018a<br>Actual offset: 0x5246e0<br>Offset base: 0x524556<br>Value: Stefan Oltmann              [...]</div>
+<div id=p9 class=tt><b>IFD0-07 ExifOffset</b><br>Tag ID: 0x8769<br>Format: int32u[1]<br>Size: 4 bytes<br>Value: 0x038a<br>Actual offset: 0x5248e0<br>Offset base: 0x524556</div>
+<div id=p10 class=tt><b>Next IFD</b><br>IFD1 offset: 0x0000<br>(4 bytes)</div>
+<div id=p13 class=tt><b>ExifIFD entries</b><br>Entry count: 14<br>(2 bytes)</div>
+<div id=p14 class=tt><b>ExifIFD-00 <span class=F>ExposureTime</span></b><br>Tag ID: 0x829a<br>Format: rational64u[1]<br>Size: 8 bytes<br>Value offset: 0x0438<br>Actual offset: 0x52498e<br>Offset base: 0x524556<br>Value: 0.008333333333 (10/1200)</div>
+<div id=p15 class=tt><b>ExifIFD-01 <span class=F>FNumber</span></b><br>Tag ID: 0x829d<br>Format: rational64u[1]<br>Size: 8 bytes<br>Value offset: 0x0440<br>Actual offset: 0x524996<br>Offset base: 0x524556<br>Value: 3.6 (360/100)</div>
+<div id=p16 class=tt><b>ExifIFD-02 ISO</b><br>Tag ID: 0x8827<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 640</div>
+<div id=p17 class=tt><b>ExifIFD-03 SensitivityType</b><br>Tag ID: 0x8830<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 1</div>
+<div id=p18 class=tt><b>ExifIFD-04 <span class=F>DateTimeOriginal</span></b><br>Tag ID: 0x9003<br>Format: string[20]<br>Size: 20 bytes<br>Value offset: 0x0448<br>Actual offset: 0x52499e<br>Offset base: 0x524556<br>Value: 2026:04:15 12:43:42</div>
+<div id=p19 class=tt><b>ExifIFD-05 <span class=F>CreateDate</span></b><br>Tag ID: 0x9004<br>Format: string[20]<br>Size: 20 bytes<br>Value offset: 0x045c<br>Actual offset: 0x5249b2<br>Offset base: 0x524556<br>Value: 2026:04:15 12:43:42</div>
+<div id=p20 class=tt><b>ExifIFD-06 <span class=F>OffsetTime</span></b><br>Tag ID: 0x9010<br>Format: string[7]<br>Size: 7 bytes<br>Value offset: 0x0470<br>Actual offset: 0x5249c6<br>Offset base: 0x524556<br>Value: +02:00</div>
+<div id=p21 class=tt><b>ExifIFD-07 <span class=F>OffsetTimeOriginal</span></b><br>Tag ID: 0x9011<br>Format: string[7]<br>Size: 7 bytes<br>Value offset: 0x0478<br>Actual offset: 0x5249ce<br>Offset base: 0x524556<br>Value: +02:00</div>
+<div id=p22 class=tt><b>ExifIFD-08 <span class=F>OffsetTimeDigitized</span></b><br>Tag ID: 0x9012<br>Format: string[7]<br>Size: 7 bytes<br>Value offset: 0x0480<br>Actual offset: 0x5249d6<br>Offset base: 0x524556<br>Value: +02:00</div>
+<div id=p23 class=tt><b>ExifIFD-09 <span class=F>ShutterSpeedValue</span></b><br>Tag ID: 0x9201<br>Format: rational64s[1]<br>Size: 8 bytes<br>Value offset: 0x0488<br>Actual offset: 0x5249de<br>Offset base: 0x524556<br>Value: 6.91 (691/100)</div>
+<div id=p24 class=tt><b>ExifIFD-10 <span class=F>ExposureCompensation</span></b><br>Tag ID: 0x9204<br>Format: rational64s[1]<br>Size: 8 bytes<br>Value offset: 0x0490<br>Actual offset: 0x5249e6<br>Offset base: 0x524556<br>Value: 0 (0/100)</div>
+<div id=p25 class=tt><b>ExifIFD-11 MeteringMode</b><br>Tag ID: 0x9207<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 5</div>
+<div id=p26 class=tt><b>ExifIFD-12 <span class=F>MakerNoteFujiFilm</span></b><br>Tag ID: 0x927c<br>Format: undef[754]<br>Size: 754 bytes<br>Value offset: 0x04b8<br>Actual offset: 0x524a0e<br>Offset base: 0x524556<br>Value: FUJIFILM....*.........0130..[...]</div>
+<div id=p27 class=tt><b>ExifIFD-13 <span class=F>LensInfo</span></b><br>Tag ID: 0xa432<br>Format: rational64u[4]<br>Size: 32 bytes<br>Value offset: 0x0498<br>Actual offset: 0x5249ee<br>Offset base: 0x524556<br>Value: 33 33 1.4 1.4 (3300/100 3300[...]</div>
+<div id=p28 class=tt><b>Next IFD</b><br>Next IFD offset: 0x0000<br>(4 bytes)</div>
+<div id=p32 class=tt><b>MakerNotes header</b><br>MakerNoteFujiFilm<br>(12 bytes)</div>
+<div id=p33 class=tt><b>MakerNoteFujiFilm entries</b><br>Entry count: 42<br>(2 bytes)</div>
+<div id=p34 class=tt><b>MakerNotes-00 Version</b><br>Tag ID: 0x0000<br>Format: undef[4]<br>Size: 4 bytes<br>Value: 0130</div>
+<div id=p35 class=tt><b>MakerNotes-01 <span class=F>InternalSerialNumber</span></b><br>Tag ID: 0x0010<br>Format: string[48]<br>Size: 48 bytes<br>Value offset: 0x020a<br>Actual offset: 0x524c18<br>Offset base: 0x524a0e<br>Value: FF02B5892188     59353630303[...]</div>
+<div id=p36 class=tt><b>MakerNotes-02 <span class=F>Quality</span></b><br>Tag ID: 0x1000<br>Format: string[8]<br>Size: 8 bytes<br>Value offset: 0x023a<br>Actual offset: 0x524c48<br>Offset base: 0x524a0e<br>Value: NORMAL </div>
+<div id=p37 class=tt><b>MakerNotes-03 Sharpness</b><br>Tag ID: 0x1001<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 0x5</div>
+<div id=p38 class=tt><b>MakerNotes-04 WhiteBalance</b><br>Tag ID: 0x1002<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 0x1</div>
+<div id=p39 class=tt><b>MakerNotes-05 Saturation</b><br>Tag ID: 0x1003<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 0x0</div>
+<div id=p40 class=tt><b>MakerNotes-06 NoiseReduction</b><br>Tag ID: 0x100e<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 0x180</div>
+<div id=p41 class=tt><b>MakerNotes-07 FujiFlashMode</b><br>Tag ID: 0x1010<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 0x8000</div>
+<div id=p42 class=tt><b>MakerNotes-08 <span class=F>FlashExposureComp</span></b><br>Tag ID: 0x1011<br>Format: rational64s[1]<br>Size: 8 bytes<br>Value offset: 0x0242<br>Actual offset: 0x524c50<br>Offset base: 0x524a0e<br>Value: 0 (0/100)</div>
+<div id=p43 class=tt><b>MakerNotes-09 FocusMode</b><br>Tag ID: 0x1021<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 65535</div>
+<div id=p44 class=tt><b>MakerNotes-10 SlowSync</b><br>Tag ID: 0x1030<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 0</div>
+<div id=p45 class=tt><b>MakerNotes-11 PictureMode</b><br>Tag ID: 0x1031<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 0x300</div>
+<div id=p46 class=tt><b>MakerNotes-12 ShadowTone</b><br>Tag ID: 0x1040<br>Format: int32s[1]<br>Size: 4 bytes<br>Value: 0</div>
+<div id=p47 class=tt><b>MakerNotes-13 HighlightTone</b><br>Tag ID: 0x1041<br>Format: int32s[1]<br>Size: 4 bytes<br>Value: 0</div>
+<div id=p48 class=tt><b>MakerNotes-14 GrainEffectRoughness</b><br>Tag ID: 0x1047<br>Format: int32s[1]<br>Size: 4 bytes<br>Value: 0</div>
+<div id=p49 class=tt><b>MakerNotes-15 AutoBracketing</b><br>Tag ID: 0x1100<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 0</div>
+<div id=p50 class=tt><b>MakerNotes-16 FujiFilm_0x1200</b><br>Tag ID: 0x1200<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 0</div>
+<div id=p51 class=tt><b>MakerNotes-17 BlurWarning</b><br>Tag ID: 0x1300<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 0</div>
+<div id=p52 class=tt><b>MakerNotes-18 FocusWarning</b><br>Tag ID: 0x1301<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 0</div>
+<div id=p53 class=tt><b>MakerNotes-19 ExposureWarning</b><br>Tag ID: 0x1302<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 0</div>
+<div id=p54 class=tt><b>MakerNotes-20 FujiFilm_0x1303</b><br>Tag ID: 0x1303<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 0</div>
+<div id=p55 class=tt><b>MakerNotes-21 FujiFilm_0x1304</b><br>Tag ID: 0x1304<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 0</div>
+<div id=p56 class=tt><b>MakerNotes-22 FilmMode</b><br>Tag ID: 0x1401<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 0x0</div>
+<div id=p57 class=tt><b>MakerNotes-23 DynamicRangeSetting</b><br>Tag ID: 0x1402<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 0x1</div>
+<div id=p58 class=tt><b>MakerNotes-24 DevelopmentDynamicRange</b><br>Tag ID: 0x1403<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 100</div>
+<div id=p59 class=tt><b>MakerNotes-25 <span class=F>MinFocalLength</span></b><br>Tag ID: 0x1404<br>Format: rational64u[1]<br>Size: 8 bytes<br>Value offset: 0x024a<br>Actual offset: 0x524c58<br>Offset base: 0x524a0e<br>Value: 33 (3300/100)</div>
+<div id=p60 class=tt><b>MakerNotes-26 <span class=F>MaxFocalLength</span></b><br>Tag ID: 0x1405<br>Format: rational64u[1]<br>Size: 8 bytes<br>Value offset: 0x0252<br>Actual offset: 0x524c60<br>Offset base: 0x524a0e<br>Value: 33 (3300/100)</div>
+<div id=p61 class=tt><b>MakerNotes-27 <span class=F>MaxApertureAtMinFocal</span></b><br>Tag ID: 0x1406<br>Format: rational64u[1]<br>Size: 8 bytes<br>Value offset: 0x025a<br>Actual offset: 0x524c68<br>Offset base: 0x524a0e<br>Value: 1.4 (140/100)</div>
+<div id=p62 class=tt><b>MakerNotes-28 <span class=F>MaxApertureAtMaxFocal</span></b><br>Tag ID: 0x1407<br>Format: rational64u[1]<br>Size: 8 bytes<br>Value offset: 0x0262<br>Actual offset: 0x524c70<br>Offset base: 0x524a0e<br>Value: 1.4 (140/100)</div>
+<div id=p63 class=tt><b>MakerNotes-29 <span class=F>ImageStabilization</span></b><br>Tag ID: 0x1422<br>Format: int16u[3]<br>Size: 6 bytes<br>Value offset: 0x026a<br>Actual offset: 0x524c78<br>Offset base: 0x524a0e<br>Value: 2 1 0</div>
+<div id=p64 class=tt><b>MakerNotes-30 FujiFilm_0x1424</b><br>Tag ID: 0x1424<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 4096</div>
+<div id=p65 class=tt><b>MakerNotes-31 <span class=F>FujiFilm_0x1430</span></b><br>Tag ID: 0x1430<br>Format: undef[129]<br>Size: 129 bytes<br>Value offset: 0x0270<br>Actual offset: 0x524c7e<br>Offset base: 0x524a0e<br>Value: ............................[...]</div>
+<div id=p66 class=tt><b>MakerNotes-32 VideoRecordingMode</b><br>Tag ID: 0x3803<br>Format: int32u[1]<br>Size: 4 bytes<br>Value: 0x0</div>
+<div id=p67 class=tt><b>MakerNotes-33 PeripheralLighting</b><br>Tag ID: 0x3804<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 1</div>
+<div id=p68 class=tt><b>MakerNotes-34 FujiFilm_0x3805</b><br>Tag ID: 0x3805<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 1</div>
+<div id=p69 class=tt><b>MakerNotes-35 VideoCompression</b><br>Tag ID: 0x3806<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 1</div>
+<div id=p70 class=tt><b>MakerNotes-36 FujiFilm_0x3810</b><br>Tag ID: 0x3810<br>Format: int32u[1]<br>Size: 4 bytes<br>Value: 65540</div>
+<div id=p71 class=tt><b>MakerNotes-37 FrameRate</b><br>Tag ID: 0x3820<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 60</div>
+<div id=p72 class=tt><b>MakerNotes-38 FrameWidth</b><br>Tag ID: 0x3821<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 3840</div>
+<div id=p73 class=tt><b>MakerNotes-39 FrameHeight</b><br>Tag ID: 0x3822<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 2160</div>
+<div id=p74 class=tt><b>MakerNotes-40 FujiFilm_0x3823</b><br>Tag ID: 0x3823<br>Format: int32u[1]<br>Size: 4 bytes<br>Value: 1</div>
+<div id=p75 class=tt><b>MakerNotes-41 FullHDHighSpeedRec</b><br>Tag ID: 0x3824<br>Format: int32u[1]<br>Size: 4 bytes<br>Value: 1</div>
+<div id=p76 class=tt><b>Next IFD</b><br>Next IFD offset: 0x0000<br>(4 bytes)</div>
+<div id=p78 class=tt>(IFD0:Thumbnail data)<br>Size: 970 bytes</div>
+<div id=p79 class=tt>[unknown data]<br>Size: 679734 bytes</div>
+</body></html>

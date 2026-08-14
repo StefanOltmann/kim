@@ -19,7 +19,7 @@ Big-endian (Motorola, MM)
 0000000170 0x9004 DateTimeDigitized = 2023:05:10 13:37:42
 0000000182 0x9010 OffsetTime = +01:00
 0000000194 0x9011 OffsetTimeOriginal = +01:00
-0000000206 0x9012 Unknown = +01:00
+0000000206 0x9012 OffsetTimeDigitized = +01:00
 0000000218 0x9202 ApertureValue = 188/100 (1.88)
 0000000230 0x9209 Flash = 0
 0000000242 0x920a FocalLength = 559/100 (5.59)

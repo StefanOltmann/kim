@@ -32,7 +32,7 @@ Little-endian (Intel, II)
 0000000392 0x9004 DateTimeDigitized = 2020:03:11 17:37:33
 0000000404 0x9010 OffsetTime = +07:00
 0000000416 0x9011 OffsetTimeOriginal = +08:00
-0000000428 0x9012 Unknown = +08:00
+0000000428 0x9012 OffsetTimeDigitized = +08:00
 0000000440 0x9201 ShutterSpeedValue = 6965784/1000000 (6.965784)
 0000000452 0x9202 ApertureValue = 5310704/1000000 (5.310704)
 0000000464 0x9204 ExposureCompensation = 0/1 (0.0)

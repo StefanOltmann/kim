@@ -21,10 +21,14 @@ import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.jpeg.JpegImageParser
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcTypes
 import de.stefan_oltmann.kim.format.tiff.GPSInfo
+import de.stefan_oltmann.kim.format.tiff.TiffDirectory
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
-import de.stefan_oltmann.kim.format.tiff.constant.FujiFilmTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
+import de.stefan_oltmann.kim.format.tiff.makernote.fujifilm.FujiFilmTag
+import de.stefan_oltmann.kim.format.tiff.makernote.nikon.NikonTag
+import de.stefan_oltmann.kim.format.tiff.makernote.sony.SonyLensType
+import de.stefan_oltmann.kim.format.tiff.makernote.sony.SonyTag
 import de.stefan_oltmann.kim.format.xmp.XmpReader
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.GpsCoordinates
@@ -37,6 +41,8 @@ import kotlinx.datetime.toInstant
 import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
 import kotlin.time.ExperimentalTime
+
+private const val NIKON_LENS_VALUE_COUNT: Int = 4
 
 /**
  * Converts a MediaMetadata into a MetadataSummary.
@@ -73,7 +79,9 @@ public object MetadataSummaryConverter {
         val cameraModel = mediaMetadata.findStringValue(TiffTag.TIFF_TAG_MODEL)
 
         val lensMake = mediaMetadata.findStringValue(ExifTag.EXIF_TAG_LENS_MAKE)
+
         val lensModel = mediaMetadata.findStringValue(ExifTag.EXIF_TAG_LENS_MODEL)
+            ?: extractLensModelFromMakerNote(mediaMetadata)
 
         /*
          * Look for ISO at the standard place and fall back to test RW2 logic.
@@ -324,6 +332,71 @@ public object MetadataSummaryConverter {
         val filmModeValue = filmModeField.toShort()?.toInt() ?: return null
 
         return FujiFilmTag.getFilmModeName(filmModeValue)
+    }
+
+    /**
+     * Some RAW formats store the lens data only in the MakerNote.
+     * Sony ARW files have the lens model in the LensType tag,
+     * Nikon NEF files have the lens specification in the Lens tag.
+     */
+    private fun extractLensModelFromMakerNote(metadata: MediaMetadata): String? {
+
+        val makerNoteDir = metadata.exif?.makerNoteDirectory ?: return null
+
+        return when (makerNoteDir.type) {
+
+            TiffConstants.TIFF_MAKER_NOTE_SONY,
+            TiffConstants.TIFF_MAKER_NOTE_SONY5,
+            TiffConstants.TIFF_MAKER_NOTE_SONY_ERICSSON -> {
+
+                val lensType = makerNoteDir.findField(SonyTag.LENS_TYPE)?.toInt() ?: return null
+
+                SonyLensType.fromValue(lensType)?.displayName
+            }
+
+            TiffConstants.TIFF_MAKER_NOTE_NIKON -> createNikonLensModel(makerNoteDir)
+
+            else -> null
+        }
+    }
+
+    /**
+     * The Nikon Lens tag contains the focal length range and the
+     * aperture range as four rational values.
+     */
+    private fun createNikonLensModel(makerNoteDir: TiffDirectory): String? {
+
+        val lensField = makerNoteDir.findField(NikonTag.LENS) ?: return null
+
+        val rationals = (lensField.value as? RationalNumbers)?.values ?: return null
+
+        if (rationals.size < NIKON_LENS_VALUE_COUNT)
+            return null
+
+        val minFocalLength = rationals[0].doubleValue()
+        val maxFocalLength = rationals[1].doubleValue()
+        val minAperture = rationals[2].doubleValue()
+        val maxAperture = rationals[3].doubleValue()
+
+        val focalLengths = if (minFocalLength == maxFocalLength)
+            formatLensValue(minFocalLength) + "mm"
+        else
+            formatLensValue(minFocalLength) + "-" + formatLensValue(maxFocalLength) + "mm"
+
+        val apertures = if (minAperture == maxAperture)
+            "f/" + formatLensValue(minAperture)
+        else
+            "f/" + formatLensValue(minAperture) + "-" + formatLensValue(maxAperture)
+
+        return "$focalLengths $apertures"
+    }
+
+    private fun formatLensValue(value: Double): String {
+
+        if (value == value.toLong().toDouble())
+            return value.toLong().toString()
+
+        return value.toString()
     }
 }
 

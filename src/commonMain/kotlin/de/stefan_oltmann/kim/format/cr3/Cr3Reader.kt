@@ -27,6 +27,7 @@ import de.stefan_oltmann.kim.format.tiff.TiffDirectory
 import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
+import de.stefan_oltmann.kim.format.tiff.makernote.canon.CanonMakerNoteHandler
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.ImageSize
 import de.stefan_oltmann.kim.model.MediaFormat
@@ -70,11 +71,28 @@ internal object Cr3Reader {
             directoryType = TiffConstants.TIFF_DIRECTORY_EXIF
         )?.directories?.firstOrNull()
 
-        val makerNoteDirectory: TiffDirectory? = readTiffContents(
+        val makerNoteContents = readTiffContents(
             boxes = subBoxes,
             boxType = BoxType.CMT3,
             directoryType = TiffConstants.TIFF_MAKER_NOTE_CANON
-        )?.directories?.firstOrNull()
+        )
+
+        val makerNoteDirectory: TiffDirectory? = makerNoteContents?.directories?.firstOrNull()
+
+        val makerNoteSubDirectories = mutableListOf<TiffDirectory>()
+
+        makerNoteContents?.let { contents ->
+            makerNoteDirectory?.let { directory ->
+                CanonMakerNoteHandler.readSubDirectories(
+                    directory = directory,
+                    byteOrder = contents.header.byteOrder,
+                    model = idf0Directory.entries
+                        .find { it.tag == TiffTag.TIFF_TAG_MODEL.tag }
+                        ?.valueDescription,
+                    addDirectory = { makerNoteSubDirectories.add(it) }
+                )
+            }
+        }
 
         val gpsIfdDirectory: TiffDirectory? = readTiffContents(
             boxes = subBoxes,
@@ -86,6 +104,7 @@ internal object Cr3Reader {
             header = idf0.header,
             directories = listOfNotNull(idf0Directory, exifIfdDirectory, gpsIfdDirectory),
             makerNoteDirectory = makerNoteDirectory,
+            makerNoteSubDirectories = makerNoteSubDirectories,
             geoTiffDirectory = null // not present in CR3
         )
 

@@ -46,6 +46,7 @@ class PreviewExtractorEdgeCasesTest {
             )
         ),
         makerNoteDirectory = null,
+        makerNoteSubDirectories = emptyList(),
         geoTiffDirectory = null
     )
 

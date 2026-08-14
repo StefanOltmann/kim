@@ -26,6 +26,12 @@ public enum class ByteOrder(
     BIG_ENDIAN("Big-endian (Motorola, MM)"),
     LITTLE_ENDIAN("Little-endian (Intel, II)");
 
+    /**
+     * The reversed byte order.
+     */
+    public fun reversed(): ByteOrder =
+        if (this == BIG_ENDIAN) LITTLE_ENDIAN else BIG_ENDIAN
+
     override fun toString(): String = displayName
 
 }

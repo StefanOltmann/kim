@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -83,6 +84,48 @@ private fun Int.toBytes(result: ByteArray, offset: Int, byteOrder: ByteOrder) {
         result[offset + 2] = (this shr 8).toByte()
         result[offset + 3] = (this shr 0).toByte()
     } else {
+        result[offset + 3] = (this shr 24).toByte()
+        result[offset + 2] = (this shr 16).toByte()
+        result[offset + 1] = (this shr 8).toByte()
+        result[offset + 0] = (this shr 0).toByte()
+    }
+}
+
+internal fun Long.toBytes(byteOrder: ByteOrder): ByteArray {
+
+    val result = ByteArray(8)
+
+    this.toBytes(result, 0, byteOrder)
+
+    return result
+}
+
+internal fun LongArray.toBytes(byteOrder: ByteOrder): ByteArray {
+
+    val result = ByteArray(size * 8)
+
+    for (i in indices)
+        this[i].toBytes(result, i * 8, byteOrder)
+
+    return result
+}
+
+private fun Long.toBytes(result: ByteArray, offset: Int, byteOrder: ByteOrder) {
+
+    if (byteOrder == ByteOrder.BIG_ENDIAN) {
+        result[offset + 0] = (this shr 56).toByte()
+        result[offset + 1] = (this shr 48).toByte()
+        result[offset + 2] = (this shr 40).toByte()
+        result[offset + 3] = (this shr 32).toByte()
+        result[offset + 4] = (this shr 24).toByte()
+        result[offset + 5] = (this shr 16).toByte()
+        result[offset + 6] = (this shr 8).toByte()
+        result[offset + 7] = (this shr 0).toByte()
+    } else {
+        result[offset + 7] = (this shr 56).toByte()
+        result[offset + 6] = (this shr 48).toByte()
+        result[offset + 5] = (this shr 40).toByte()
+        result[offset + 4] = (this shr 32).toByte()
         result[offset + 3] = (this shr 24).toByte()
         result[offset + 2] = (this shr 16).toByte()
         result[offset + 1] = (this shr 8).toByte()
@@ -257,7 +300,41 @@ internal fun ByteArray.toInts(byteOrder: ByteOrder): IntArray =
 private fun ByteArray.toInts(offset: Int, length: Int, byteOrder: ByteOrder): IntArray =
     IntArray(length / 4) { index -> toInt(offset + 4 * index, byteOrder) }
 
-private fun ByteArray.toFloat(offset: Int, byteOrder: ByteOrder): Float {
+private fun ByteArray.toLong(offset: Int, byteOrder: ByteOrder): Long {
+
+    val byte0 = 0xFFL and this[offset + 0].toLong()
+    val byte1 = 0xFFL and this[offset + 1].toLong()
+    val byte2 = 0xFFL and this[offset + 2].toLong()
+    val byte3 = 0xFFL and this[offset + 3].toLong()
+    val byte4 = 0xFFL and this[offset + 4].toLong()
+    val byte5 = 0xFFL and this[offset + 5].toLong()
+    val byte6 = 0xFFL and this[offset + 6].toLong()
+    val byte7 = 0xFFL and this[offset + 7].toLong()
+
+    val bits: Long = if (byteOrder == ByteOrder.BIG_ENDIAN) {
+        (
+            byte0 shl 56 or (byte1 shl 48) or (byte2 shl 40)
+                or (byte3 shl 32) or (byte4 shl 24) or (byte5 shl 16)
+                or (byte6 shl 8) or (byte7 shl 0)
+            )
+    } else {
+        (
+            byte7 shl 56 or (byte6 shl 48) or (byte5 shl 40)
+                or (byte4 shl 32) or (byte3 shl 24) or (byte2 shl 16)
+                or (byte1 shl 8) or (byte0 shl 0)
+            )
+    }
+
+    return bits
+}
+
+internal fun ByteArray.toLongs(byteOrder: ByteOrder): LongArray =
+    LongArray(size / 8) { index -> toLong(8 * index, byteOrder) }
+
+private fun ByteArray.toFloat(
+    offset: Int,
+    byteOrder: ByteOrder
+): Float {
 
     val byte0 = 0xFF and this[offset + 0].toInt()
     val byte1 = 0xFF and this[offset + 1].toInt()

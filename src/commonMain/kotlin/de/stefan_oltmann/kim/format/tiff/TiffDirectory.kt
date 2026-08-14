@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2007-2023 The Apache Software Foundation
  *
@@ -286,7 +287,16 @@ public class TiffDirectory(
                 TiffConstants.TIFF_MAKER_NOTE_CANON -> "MakerNoteCanon"
                 TiffConstants.TIFF_MAKER_NOTE_NIKON -> "MakerNoteNikon"
                 TiffConstants.TIFF_MAKER_NOTE_FUJIFILM -> "MakerNoteFujiFilm"
-                else -> "Unknown type $type"
+                TiffConstants.TIFF_MAKER_NOTE_APPLE -> "MakerNoteApple"
+                TiffConstants.TIFF_MAKER_NOTE_OLYMPUS -> "MakerNoteOlympus"
+                TiffConstants.TIFF_MAKER_NOTE_PANASONIC -> "MakerNotePanasonic"
+                TiffConstants.TIFF_MAKER_NOTE_SONY -> "MakerNoteSony"
+                TiffConstants.TIFF_MAKER_NOTE_SONY5 -> "MakerNoteSony5"
+                TiffConstants.TIFF_MAKER_NOTE_SONY_ERICSSON -> "MakerNoteSonyEricsson"
+                else -> TiffDirectoryType.entries
+                    .firstOrNull { it.typeId == type }
+                    ?.displayName
+                    ?: "Unknown type $type"
             }
         }
 

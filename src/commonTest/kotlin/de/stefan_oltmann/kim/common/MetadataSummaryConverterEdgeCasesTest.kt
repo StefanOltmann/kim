@@ -96,6 +96,7 @@ class MetadataSummaryConverterEdgeCasesTest {
             ),
             directories = directories,
             makerNoteDirectory = null,
+            makerNoteSubDirectories = emptyList(),
             geoTiffDirectory = null
         )
     }
@@ -118,6 +119,7 @@ class MetadataSummaryConverterEdgeCasesTest {
             ),
             directories = listOf(gpsDirectory),
             makerNoteDirectory = null,
+            makerNoteSubDirectories = emptyList(),
             geoTiffDirectory = null
         )
     }
@@ -151,6 +153,7 @@ class MetadataSummaryConverterEdgeCasesTest {
             ),
             directories = listOf(thumbnailDirectory),
             makerNoteDirectory = null,
+            makerNoteSubDirectories = emptyList(),
             geoTiffDirectory = null
         )
     }

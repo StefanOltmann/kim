@@ -20,9 +20,9 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.writeBytes
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
-import kotlin.test.fail
 
 class MediaMetadataTest {
 
@@ -57,10 +57,10 @@ class MediaMetadataTest {
 
             if (!equals) {
 
-                Path("build/media_$index.txt")
-                    .writeBytes(actualToString)
+                SystemFileSystem.createDirectories(Path("build/regenerated_txt"))
 
-                fail("media_$index.txt is different.")
+                Path("build/regenerated_txt/media_$index.txt")
+                    .writeBytes(actualToString)
             }
         }
     }

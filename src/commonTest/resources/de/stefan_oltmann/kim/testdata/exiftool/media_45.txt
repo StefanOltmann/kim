@@ -1,0 +1,49 @@
+  ExifToolVersion = 13.59
+  FileName = media_45.jpg
+  Directory = C:/Users/micro/IdeaProjects/kim/src/commonTest/resources/de/stefan_oltmann/kim/testdata/full
+  FileSize = 357
+  FileModifyDate = 1776264330.06333
+  FileAccessDate = 1786601302.01043
+  FileCreateDate = 1776264330.06233
+  FilePermissions = 33206
+  FileType = JPEG
+  FileTypeExtension = JPG
+  MIMEType = image/jpeg
+  Warning = [minor] Skipped unknown 9 bytes after JPEG APP0 segment
+JPEG APP0 (270 bytes):
+      0006: 4a 46 49 46 00 04 49 00 00 64 9c 8b 27 00 ff d2 [JFIF..I..d..'...]
+      0016: cf 11 38 75 63 6b 2d 00 8d 32 04 00 00 00 25 00 [..8uck-..2....%.]
+      0026: ee 34 ee 00 67 90 83 6f 50 d6 8a bc c0 dd c6 5f [.4..g..oP......_]
+      0036: 81 ff db a4 84 00 4d 04 4d 95 f2 d6 3a 05 63 19 [......M.M...:.c.]
+      0046: 09 2a cb 9e 0e 94 0a c2 06 08 0b 8e 0a 95 0b 0a [.*..............]
+      0056: 92 69 c4 0c 0c 1b 4a 0c b6 39 0c 0e 66 10 0f 0b [.i....J..9..f...]
+      0066: 5e f6 be 14 14 13 ff 1c 1b 1b 1b 1c d2 a1 b7 1f [^...............]
+      [snip 158 bytes]
+  + [BinaryData directory, 265 bytes, Big-endian]
+  | JFIFVersion = 4 73
+  | - Tag 0x0000 (2 bytes, int8u[2]):
+  |     000b: 04 49                                           [.I]
+  | ResolutionUnit = 0
+  | - Tag 0x0002 (1 bytes, int8u[1]):
+  |     000d: 00                                              [.]
+  | XResolution = 100
+  | - Tag 0x0003 (2 bytes, int16u[1]):
+  |     000e: 00 64                                           [.d]
+  | YResolution = 40075
+  | - Tag 0x0005 (2 bytes, int16u[1]):
+  |     0010: 9c 8b                                           [..]
+  | ThumbnailWidth = 39
+  | - Tag 0x0007 (1 bytes, int8u[1]):
+  |     0012: 27                                              [']
+  | ThumbnailHeight = 0
+  | - Tag 0x0008 (1 bytes, int8u[1]):
+  |     0013: 00                                              [.]
+  | ThumbnailTIFF = 
+  | - Tag 0x0009 (0 bytes, undef):
+  Warning = [minor] Skipped unknown 35 bytes after JPEG APP14 segment
+JPEG APP14 (6 bytes):
+      0121: 03 f7 ad 02 48 d7                               [....H.]
+  Warning = [minor] Unknown APP14 segment
+  Warning = [minor] Skipped unknown 13 bytes after JPEG TEM segment
+JPEG TEM
+  Warning = JPEG format error

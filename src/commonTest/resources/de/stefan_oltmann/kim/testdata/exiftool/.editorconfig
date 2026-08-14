@@ -1,0 +1,4 @@
+root = true
+
+[*]
+ij_formatter_enabled = false

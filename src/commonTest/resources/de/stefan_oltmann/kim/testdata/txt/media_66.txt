@@ -25,44 +25,44 @@ Little-endian (Intel, II)
 0000000226 0x02bc XMP = [6763 bytes]
 0000000238 0x8298 Copyright = Stefan Oltmann
 0000000250 0x8769 ExifOffset = 108934
-0000000262 0x9211 Unknown = 0
+0000000262 0x9211 ImageNumber = 0
 0000000274 0xc612 DNGVersion = [0x01, 0x04, 0x00, 0x00]
-0000000286 0xc613 Unknown = [0x01, 0x01, 0x00, 0x00]
-0000000298 0xc614 Unknown = Canon EOS 60D
-0000000310 0xc621 Unknown = [7428/10000 (0.7428), -1897/10000 (-0.1897), -491/10000 (-0.0491), -3505/10000 (-0.3505), 10963/10000 (1.0963), 2929/10000 (0.2929), -337/10000 (-0.0337), 1242/10000 (0.1242), 6413/10000 (0.6413)]
-0000000322 0xc622 Unknown = [6719/10000 (0.6719), -994/10000 (-0.0994), -925/10000 (-0.0925), -4408/10000 (-0.4408), 12426/10000 (1.2426), 2211/10000 (0.2211), -887/10000 (-0.0887), 2129/10000 (0.2129), 6051/10000 (0.6051)]
-0000000334 0xc623 Unknown = [10102/10000 (1.0102), 0/10000 (0.0), 0/10000 (0.0), 0/10000 (0.0), 10000/10000 (1.0), 0/10000 (0.0), 0/10000 (0.0), 0/10000 (0.0), 9529/10000 (0.9529)]
-0000000346 0xc624 Unknown = [10102/10000 (1.0102), 0/10000 (0.0), 0/10000 (0.0), 0/10000 (0.0), 10000/10000 (1.0), 0/10000 (0.0), 0/10000 (0.0), 0/10000 (0.0), 9529/10000 (0.9529)]
-0000000358 0xc627 Unknown = [1000000/1000000 (1.0), 1000000/1000000 (1.0), 1000000/1000000 (1.0)]
-0000000370 0xc628 Unknown = [429710/1000000 (0.42971), 1000000/1000000 (1.0), 704264/1000000 (0.704264)]
-0000000382 0xc62a Unknown = 0/100 (0.0)
-0000000394 0xc62b Unknown = 80/100 (0.8)
-0000000406 0xc62c Unknown = 125/100 (1.25)
-0000000418 0xc62e Unknown = 100/100 (1.0)
-0000000430 0xc62f Unknown = 1581036387
-0000000442 0xc630 Unknown = [15/1 (15.0), 85/1 (85.0), Invalid rational (0/0), Invalid rational (0/0)]
-0000000454 0xc633 Unknown = 1/1 (1.0)
-0000000466 0xc634 Unknown = [45224 bytes]
-0000000478 0xc65a Unknown = 17
-0000000490 0xc65b Unknown = 21
-0000000502 0xc65d Unknown = [0x2e, 0xc3, 0x25, 0x29, 0x70, 0xf6, 0x2a, 0xf0, 0x9e, 0x5b, 0xe2, 0xe2, 0xaa, 0xe6, 0xe3, 0x2f]
-0000000514 0xc68b Unknown = photo_57.cr2
-0000000526 0xc6f3 Unknown = com.adobe
-0000000538 0xc6f4 Unknown = com.adobe
-0000000550 0xc6f8 Unknown = Adobe Standard
-0000000562 0xc6fd Unknown = 0
-0000000574 0xc6fe Unknown = Copyright 2010 Adobe Systems, Inc.
-0000000586 0xc714 Unknown = [7550/10000 (0.755), 645/10000 (0.0645), 1448/10000 (0.1448), 2138/10000 (0.2138), 8936/10000 (0.8936), -1075/10000 (-0.1075), -5/10000 (-5.0E-4), -4306/10000 (-0.4306), 12562/10000 (1.2562)]
-0000000598 0xc715 Unknown = [7286/10000 (0.7286), 1385/10000 (0.1385), 972/10000 (0.0972), 2600/10000 (0.26), 9468/10000 (0.9468), -2068/10000 (-0.2068), 93/10000 (0.0093), -2268/10000 (-0.2268), 10426/10000 (1.0426)]
-0000000610 0xc716 Unknown = Adobe DNG Converter
-0000000622 0xc717 Unknown = 15.4
-0000000634 0xc719 Unknown = [0xaf, 0xda, 0x71, 0x6c, 0x9c, 0x81, 0xbc, 0x81, 0xa5, 0x9a, 0xa6, 0xda, 0xdf, 0xfe, 0xbb, 0x69]
-0000000646 0xc71a Unknown = 2
-0000000658 0xc71b Unknown = 2023-07-26T06:11:34+02:00
-0000000670 0xc725 Unknown = [36, 8, 16]
-0000000682 0xc726 Unknown = [13824 floats]
-0000000694 0xc761 Unknown = [1.366262302586404E-4, 3.882895441490322E-7]
-0000000706 0xc7a7 Unknown = [0x67, 0x76, 0x02, 0xf9, 0x81, 0x09, 0x13, 0xa4, 0xf5, 0xcb, 0x71, 0xc8, 0x83, 0x3d, 0x77, 0xf1]
+0000000286 0xc613 DNGBackwardVersion = [0x01, 0x01, 0x00, 0x00]
+0000000298 0xc614 UniqueCameraModel = Canon EOS 60D
+0000000310 0xc621 ColorMatrix1 = [7428/10000 (0.7428), -1897/10000 (-0.1897), -491/10000 (-0.0491), -3505/10000 (-0.3505), 10963/10000 (1.0963), 2929/10000 (0.2929), -337/10000 (-0.0337), 1242/10000 (0.1242), 6413/10000 (0.6413)]
+0000000322 0xc622 ColorMatrix2 = [6719/10000 (0.6719), -994/10000 (-0.0994), -925/10000 (-0.0925), -4408/10000 (-0.4408), 12426/10000 (1.2426), 2211/10000 (0.2211), -887/10000 (-0.0887), 2129/10000 (0.2129), 6051/10000 (0.6051)]
+0000000334 0xc623 CameraCalibration1 = [10102/10000 (1.0102), 0/10000 (0.0), 0/10000 (0.0), 0/10000 (0.0), 10000/10000 (1.0), 0/10000 (0.0), 0/10000 (0.0), 0/10000 (0.0), 9529/10000 (0.9529)]
+0000000346 0xc624 CameraCalibration2 = [10102/10000 (1.0102), 0/10000 (0.0), 0/10000 (0.0), 0/10000 (0.0), 10000/10000 (1.0), 0/10000 (0.0), 0/10000 (0.0), 0/10000 (0.0), 9529/10000 (0.9529)]
+0000000358 0xc627 AnalogBalance = [1000000/1000000 (1.0), 1000000/1000000 (1.0), 1000000/1000000 (1.0)]
+0000000370 0xc628 AsShotNeutral = [429710/1000000 (0.42971), 1000000/1000000 (1.0), 704264/1000000 (0.704264)]
+0000000382 0xc62a BaselineExposure = 0/100 (0.0)
+0000000394 0xc62b BaselineNoise = 80/100 (0.8)
+0000000406 0xc62c BaselineSharpness = 125/100 (1.25)
+0000000418 0xc62e LinearResponseLimit = 100/100 (1.0)
+0000000430 0xc62f CameraSerialNumber = 1581036387
+0000000442 0xc630 LensInfo = [15/1 (15.0), 85/1 (85.0), Invalid rational (0/0), Invalid rational (0/0)]
+0000000454 0xc633 ShadowScale = 1/1 (1.0)
+0000000466 0xc634 DNGPrivateData = [45224 bytes]
+0000000478 0xc65a CalibrationIlluminant1 = 17
+0000000490 0xc65b CalibrationIlluminant2 = 21
+0000000502 0xc65d RawDataUniqueID = [0x2e, 0xc3, 0x25, 0x29, 0x70, 0xf6, 0x2a, 0xf0, 0x9e, 0x5b, 0xe2, 0xe2, 0xaa, 0xe6, 0xe3, 0x2f]
+0000000514 0xc68b OriginalRawFileName = photo_57.cr2
+0000000526 0xc6f3 CameraCalibrationSignature = com.adobe
+0000000538 0xc6f4 ProfileCalibrationSignature = com.adobe
+0000000550 0xc6f8 ProfileName = Adobe Standard
+0000000562 0xc6fd ProfileEmbedPolicy = 0
+0000000574 0xc6fe ProfileCopyright = Copyright 2010 Adobe Systems, Inc.
+0000000586 0xc714 ForwardMatrix1 = [7550/10000 (0.755), 645/10000 (0.0645), 1448/10000 (0.1448), 2138/10000 (0.2138), 8936/10000 (0.8936), -1075/10000 (-0.1075), -5/10000 (-5.0E-4), -4306/10000 (-0.4306), 12562/10000 (1.2562)]
+0000000598 0xc715 ForwardMatrix2 = [7286/10000 (0.7286), 1385/10000 (0.1385), 972/10000 (0.0972), 2600/10000 (0.26), 9468/10000 (0.9468), -2068/10000 (-0.2068), 93/10000 (0.0093), -2268/10000 (-0.2268), 10426/10000 (1.0426)]
+0000000610 0xc716 PreviewApplicationName = Adobe DNG Converter
+0000000622 0xc717 PreviewApplicationVersion = 15.4
+0000000634 0xc719 PreviewSettingsDigest = [0xaf, 0xda, 0x71, 0x6c, 0x9c, 0x81, 0xbc, 0x81, 0xa5, 0x9a, 0xa6, 0xda, 0xdf, 0xfe, 0xbb, 0x69]
+0000000646 0xc71a PreviewColorSpace = 2
+0000000658 0xc71b PreviewDateTime = 2023-07-26T06:11:34+02:00
+0000000670 0xc725 ProfileLookTableDims = [36, 8, 16]
+0000000682 0xc726 ProfileLookTableData = [13824 floats]
+0000000694 0xc761 NoiseProfile = [1.366262302586404E-4, 3.882895441490322E-7]
+0000000706 0xc7a7 NewRawImageDigest = [0x67, 0x76, 0x02, 0xf9, 0x81, 0x09, 0x13, 0xa4, 0xf5, 0xcb, 0x71, 0xc8, 0x83, 0x3d, 0x77, 0xf1]
 
 ---- Directory ExifIFD @ 108934 ----
 0000108936 0x829a ExposureTime = 1/60 (0.016667)
@@ -111,21 +111,21 @@ Little-endian (Intel, II)
 0000109656 0x0143 TileLength = 256
 0000109668 0x0144 TileOffsets = [294 ints]
 0000109680 0x0145 TileByteCounts = [294 ints]
-0000109692 0x828d Unknown = [2, 2]
-0000109704 0x828e Unknown = [0x00, 0x01, 0x01, 0x02]
-0000109716 0xc616 Unknown = [0x00, 0x01, 0x02]
-0000109728 0xc617 Unknown = 1
-0000109740 0xc619 Unknown = [2, 2]
-0000109752 0xc61a Unknown = [524032/256 (2047.0), 524032/256 (2047.0), 524032/256 (2047.0), 524032/256 (2047.0)]
-0000109764 0xc61d Unknown = 15000
-0000109776 0xc61e Unknown = [1/1 (1.0), 1/1 (1.0)]
-0000109788 0xc61f Unknown = [10/1 (10.0), 5/1 (5.0)]
-0000109800 0xc620 Unknown = [5184/1 (5184.0), 3456/1 (3456.0)]
-0000109812 0xc62d Unknown = 250
-0000109824 0xc632 Unknown = 100/100 (1.0)
-0000109836 0xc65c Unknown = 1/1 (1.0)
-0000109848 0xc68d Unknown = [51, 142, 3516, 5344]
-0000109860 0xc761 Unknown = [1.366262302586404E-4, 3.882895441490322E-7]
+0000109692 0x828d CFARepeatPatternDim = [2, 2]
+0000109704 0x828e CFAPattern = [0x00, 0x01, 0x01, 0x02]
+0000109716 0xc616 CFAPlaneColor = [0x00, 0x01, 0x02]
+0000109728 0xc617 CFALayout = 1
+0000109740 0xc619 BlackLevelRepeatDim = [2, 2]
+0000109752 0xc61a BlackLevel = [524032/256 (2047.0), 524032/256 (2047.0), 524032/256 (2047.0), 524032/256 (2047.0)]
+0000109764 0xc61d WhiteLevel = 15000
+0000109776 0xc61e DefaultScale = [1/1 (1.0), 1/1 (1.0)]
+0000109788 0xc61f DefaultCropOrigin = [10/1 (10.0), 5/1 (5.0)]
+0000109800 0xc620 DefaultCropSize = [5184/1 (5184.0), 3456/1 (3456.0)]
+0000109812 0xc62d BayerGreenSplit = 250
+0000109824 0xc632 AntiAliasStrength = 100/100 (1.0)
+0000109836 0xc65c BestQualityScale = 1/1 (1.0)
+0000109848 0xc68d ActiveArea = [51, 142, 3516, 5344]
+0000109860 0xc761 NoiseProfile = [1.366262302586404E-4, 3.882895441490322E-7]
 
 ---- Directory SubIFD1 @ 112356 ----
 0000112358 0x00fe NewSubfileType = 1
@@ -143,11 +143,11 @@ Little-endian (Intel, II)
 0000112502 0x0212 YCbCrSubSampling = [2, 2]
 0000112514 0x0213 YCbCrPositioning = 0
 0000112526 0x0214 ReferenceBlackWhite = [0/1 (0.0), 255/1 (255.0), 128/1 (128.0), 255/1 (255.0), 128/1 (128.0), 255/1 (255.0)]
-0000112538 0xc716 Unknown = Adobe DNG Converter
-0000112550 0xc717 Unknown = 15.4
-0000112562 0xc719 Unknown = [0xaf, 0xda, 0x71, 0x6c, 0x9c, 0x81, 0xbc, 0x81, 0xa5, 0x9a, 0xa6, 0xda, 0xdf, 0xfe, 0xbb, 0x69]
-0000112574 0xc71a Unknown = 2
-0000112586 0xc71b Unknown = 2023-07-26T06:11:34+02:00
+0000112538 0xc716 PreviewApplicationName = Adobe DNG Converter
+0000112550 0xc717 PreviewApplicationVersion = 15.4
+0000112562 0xc719 PreviewSettingsDigest = [0xaf, 0xda, 0x71, 0x6c, 0x9c, 0x81, 0xbc, 0x81, 0xa5, 0x9a, 0xa6, 0xda, 0xdf, 0xfe, 0xbb, 0x69]
+0000112574 0xc71a PreviewColorSpace = 2
+0000112586 0xc71b PreviewDateTime = 2023-07-26T06:11:34+02:00
 
 ---- Directory SubIFD2 @ 112748 ----
 0000112750 0x00fe NewSubfileType = 1
@@ -162,10 +162,10 @@ Little-endian (Intel, II)
 0000112858 0x0143 TileLength = 576
 0000112870 0x0144 TileOffsets = [313734, 343958, 403788, 463356, 493450, 512300, 580486, 656646]
 0000112882 0x0145 TileByteCounts = [30223, 59830, 59567, 30093, 18849, 68186, 76159, 22869]
-0000112894 0xc716 Unknown = Adobe DNG Converter
-0000112906 0xc717 Unknown = 15.4
-0000112918 0xc741 Unknown = [256 bytes]
-0000112930 0xc7aa Unknown = 256
+0000112894 0xc716 PreviewApplicationName = Adobe DNG Converter
+0000112906 0xc717 PreviewApplicationVersion = 15.4
+0000112918 0xc741 OpcodeList2 = [256 bytes]
+0000112930 0xc7aa CacheVersion = 256
 
 ---- Directory SubIFD3 @ 113298 ----
 0000113300 0x00fe NewSubfileType = 1
@@ -180,11 +180,11 @@ Little-endian (Intel, II)
 0000113408 0x0143 TileLength = 341
 0000113420 0x0144 TileOffsets = 679516
 0000113432 0x0145 TileByteCounts = 34398
-0000113444 0xc61a Unknown = [51/1 (51.0), 51/1 (51.0), 50/1 (50.0)]
-0000113456 0xc716 Unknown = Adobe DNG Converter
-0000113468 0xc717 Unknown = 15.4
-0000113480 0xc741 Unknown = [256 bytes]
-0000113492 0xc7aa Unknown = 256
+0000113444 0xc61a BlackLevel = [51/1 (51.0), 51/1 (51.0), 50/1 (50.0)]
+0000113456 0xc716 PreviewApplicationName = Adobe DNG Converter
+0000113468 0xc717 PreviewApplicationVersion = 15.4
+0000113480 0xc741 OpcodeList2 = [256 bytes]
+0000113492 0xc7aa CacheVersion = 256
 
 ---- Directory IFD1 @ 113820 ----
 0000113822 0x00fe NewSubfileType = 1
@@ -199,11 +199,11 @@ Little-endian (Intel, II)
 0000113930 0x0143 TileLength = 171
 0000113942 0x0144 TileOffsets = 713914
 0000113954 0x0145 TileByteCounts = 11318
-0000113966 0xc61a Unknown = [51/1 (51.0), 51/1 (51.0), 51/1 (51.0)]
-0000113978 0xc716 Unknown = Adobe DNG Converter
-0000113990 0xc717 Unknown = 15.4
-0000114002 0xc741 Unknown = [256 bytes]
-0000114014 0xc7aa Unknown = 256
+0000113966 0xc61a BlackLevel = [51/1 (51.0), 51/1 (51.0), 51/1 (51.0)]
+0000113978 0xc716 PreviewApplicationName = Adobe DNG Converter
+0000113990 0xc717 PreviewApplicationVersion = 15.4
+0000114002 0xc741 OpcodeList2 = [256 bytes]
+0000114014 0xc7aa CacheVersion = 256
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

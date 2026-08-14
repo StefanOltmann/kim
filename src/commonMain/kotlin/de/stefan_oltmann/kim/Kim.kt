@@ -32,6 +32,7 @@ import de.stefan_oltmann.kim.format.jpeg.JpegMetadataExtractor
 import de.stefan_oltmann.kim.format.jpeg.JpegUpdater
 import de.stefan_oltmann.kim.format.jxl.JxlUpdater
 import de.stefan_oltmann.kim.format.nef.NefPreviewExtractor
+import de.stefan_oltmann.kim.format.orf.OrfPreviewExtractor
 import de.stefan_oltmann.kim.format.png.PngMetadataExtractor
 import de.stefan_oltmann.kim.format.png.PngUpdater
 import de.stefan_oltmann.kim.format.raf.RafMetadataExtractor
@@ -147,15 +148,13 @@ public object Kim {
 
             val tiffContents = TiffReader.read(reader)
 
-            /**
-             * *Note:* Olympus ORF is currently unsupported because the preview offset
-             * is burried in the Olympus MakerNotes, which are currently not interpreted.
-             */
             return@use when (mediaFormat) {
 
                 MediaFormat.CR2 -> Cr2PreviewExtractor.extractPreviewImage(tiffContents, reader)
 
                 MediaFormat.RW2 -> Rw2PreviewExtractor.extractPreviewImage(tiffContents, reader)
+
+                MediaFormat.ORF -> OrfPreviewExtractor.extractPreviewImage(tiffContents, reader)
 
                 MediaFormat.TIFF -> {
 

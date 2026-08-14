@@ -1,0 +1,1385 @@
+  ExifToolVersion = 13.59
+  FileName = media_8.jpg
+  Directory = C:/Users/micro/IdeaProjects/kim/src/commonTest/resources/de/stefan_oltmann/kim/testdata/full
+  FileSize = 4432967
+  FileModifyDate = 1776264330.20985
+  FileAccessDate = 1786601294.07501
+  FileCreateDate = 1776264330.19884
+  FilePermissions = 33206
+  FileType = JPEG
+  FileTypeExtension = JPG
+  MIMEType = image/jpeg
+JPEG APP1 (2520 bytes):
+      0006: 45 78 69 66 00 00 49 49 2a 00 08 00 00 00 0e 00 [Exif..II*.......]
+      0016: 0e 01 02 00 62 00 00 00 b6 00 00 00 0f 01 02 00 [....b...........]
+      0026: 04 00 00 00 44 4a 49 00 10 01 02 00 07 00 00 00 [....DJI.........]
+      0036: 18 01 00 00 1a 01 05 00 01 00 00 00 20 01 00 00 [............ ...]
+      0046: 1b 01 05 00 01 00 00 00 28 01 00 00 28 01 03 00 [........(...(...]
+      0056: 01 00 00 00 02 00 00 00 31 01 02 00 32 00 00 00 [........1...2...]
+      0066: 30 01 00 00 32 01 02 00 14 00 00 00 62 01 00 00 [0...2.......b...]
+      [snip 2408 bytes]
+  ExifByteOrder = II
+  + [IFD0 directory with 14 entries, Little-endian]
+  | 0)  ImageDescription = Aerial picture of Campuhan Ridge Walk , Scenic Green Valley in Ubud Bali. Drone photo. Indonesia.
+  |     - Tag 0x010e (98 bytes, string[98]):
+  |         00c2: 41 65 72 69 61 6c 20 70 69 63 74 75 72 65 20 6f [Aerial picture o]
+  |         00d2: 66 20 43 61 6d 70 75 68 61 6e 20 52 69 64 67 65 [f Campuhan Ridge]
+  |         00e2: 20 57 61 6c 6b 20 2c 20 53 63 65 6e 69 63 20 47 [ Walk , Scenic G]
+  |         00f2: 72 65 65 6e 20 56 61 6c 6c 65 79 20 69 6e 20 55 [reen Valley in U]
+  |         0102: 62 75 64 20 42 61 6c 69 2e 20 44 72 6f 6e 65 20 [bud Bali. Drone ]
+  |         0112: 70 68 6f 74 6f 2e 20 49 6e 64 6f 6e 65 73 69 61 [photo. Indonesia]
+  |         0122: 2e 00                                           [..]
+  | 1)  Make = DJI
+  |     - Tag 0x010f (4 bytes, string[4]):
+  |         002a: 44 4a 49 00                                     [DJI.]
+  | 2)  Model = FC2103
+  |     - Tag 0x0110 (7 bytes, string[7]):
+  |         0124: 46 43 32 31 30 33 00                            [FC2103.]
+  | 3)  XResolution = 350 (350/1)
+  |     - Tag 0x011a (8 bytes, rational64u[1]):
+  |         012c: 5e 01 00 00 01 00 00 00                         [^.......]
+  | 4)  YResolution = 350 (350/1)
+  |     - Tag 0x011b (8 bytes, rational64u[1]):
+  |         0134: 5e 01 00 00 01 00 00 00                         [^.......]
+  | 5)  ResolutionUnit = 2
+  |     - Tag 0x0128 (2 bytes, int16u[1]):
+  |         005a: 02 00                                           [..]
+  | 6)  Software = Adobe Photoshop Lightroom Classic 8.0 (Macintosh)
+  |     - Tag 0x0131 (50 bytes, string[50]):
+  |         013c: 41 64 6f 62 65 20 50 68 6f 74 6f 73 68 6f 70 20 [Adobe Photoshop ]
+  |         014c: 4c 69 67 68 74 72 6f 6f 6d 20 43 6c 61 73 73 69 [Lightroom Classi]
+  |         015c: 63 20 38 2e 30 20 28 4d 61 63 69 6e 74 6f 73 68 [c 8.0 (Macintosh]
+  |         016c: 29 00                                           [).]
+  | 7)  ModifyDate = 2018:11:02 22:07:18
+  |     - Tag 0x0132 (20 bytes, string[20]):
+  |         016e: 32 30 31 38 3a 31 31 3a 30 32 20 32 32 3a 30 37 [2018:11:02 22:07]
+  |         017e: 3a 31 38 00                                     [:18.]
+  | 8)  YCbCrPositioning = 1
+  |     - Tag 0x0213 (2 bytes, int16u[1]):
+  |         007e: 01 00                                           [..]
+  | 9)  ExifOffset (SubDirectory) -->
+  |     - Tag 0x8769 (4 bytes, int32u[1]):
+  |         008a: 1a 06 00 00                                     [....]
+  | + [ExifIFD directory with 33 entries, Little-endian]
+  | | 0)  ExposureTime = 0.005 (1/200)
+  | |     - Tag 0x829a (8 bytes, rational64u[1]):
+  | |         07b8: 01 00 00 00 c8 00 00 00                         [........]
+  | | 1)  FNumber = 2.8 (28/10)
+  | |     - Tag 0x829d (8 bytes, rational64u[1]):
+  | |         07c0: 1c 00 00 00 0a 00 00 00                         [........]
+  | | 2)  ExposureProgram = 1
+  | |     - Tag 0x8822 (2 bytes, int16u[1]):
+  | |         0648: 01 00                                           [..]
+  | | 3)  ISO = 100
+  | |     - Tag 0x8827 (2 bytes, int16u[1]):
+  | |         0654: 64 00                                           [d.]
+  | | 4)  ExifVersion = 0230
+  | |     - Tag 0x9000 (4 bytes, undef[4]):
+  | |         0660: 30 32 33 30                                     [0230]
+  | | 5)  DateTimeOriginal = 2018:10:07 07:23:09
+  | |     - Tag 0x9003 (20 bytes, string[20]):
+  | |         07c8: 32 30 31 38 3a 31 30 3a 30 37 20 30 37 3a 32 33 [2018:10:07 07:23]
+  | |         07d8: 3a 30 39 00                                     [:09.]
+  | | 6)  CreateDate = 2018:10:07 07:23:09
+  | |     - Tag 0x9004 (20 bytes, string[20]):
+  | |         07dc: 32 30 31 38 3a 31 30 3a 30 37 20 30 37 3a 32 33 [2018:10:07 07:23]
+  | |         07ec: 3a 30 39 00                                     [:09.]
+  | | 7)  ComponentsConfiguration = 1 2 3 0
+  | |     - Tag 0x9101 (4 bytes, undef[4] read as int8u[4]):
+  | |         0684: 01 02 03 00                                     [....]
+  | | 8)  ShutterSpeedValue = 7.643856 (7643856/1000000)
+  | |     - Tag 0x9201 (8 bytes, rational64s[1]):
+  | |         07f0: d0 a2 74 00 40 42 0f 00                         [..t.@B..]
+  | | 9)  ApertureValue = 2.970854 (2970854/1000000)
+  | |     - Tag 0x9202 (8 bytes, rational64u[1]):
+  | |         07f8: e6 54 2d 00 40 42 0f 00                         [.T-.@B..]
+  | | 10) ExposureCompensation = -2.3 (-23/10)
+  | |     - Tag 0x9204 (8 bytes, rational64s[1]):
+  | |         0800: e9 ff ff ff 0a 00 00 00                         [........]
+  | | 11) MaxApertureValue = 2.971 (2971/1000)
+  | |     - Tag 0x9205 (8 bytes, rational64u[1]):
+  | |         0808: 9b 0b 00 00 e8 03 00 00                         [........]
+  | | 12) MeteringMode = 1
+  | |     - Tag 0x9207 (2 bytes, int16u[1]):
+  | |         06c0: 01 00                                           [..]
+  | | 13) LightSource = 0
+  | |     - Tag 0x9208 (2 bytes, int16u[1]):
+  | |         06cc: 00 00                                           [..]
+  | | 14) Flash = 32
+  | |     - Tag 0x9209 (2 bytes, int16u[1]):
+  | |         06d8: 20 00                                           [ .]
+  | | 15) FocalLength = 4.5 (45/10)
+  | |     - Tag 0x920a (8 bytes, rational64u[1]):
+  | |         0810: 2d 00 00 00 0a 00 00 00                         [-.......]
+  | | 16) UserComment = ASCIISSUCv3H4sIAAAAAAAAE22NOw7DMAiG78LsobOvEmUgDk0sIVsCPFSW716oMnb7+F9MOFBrgTyBzmpdKjLkV4LKPNQErfbmwkpQ0OjyAGmk8aJWPk7uPBPbjAxkgAQ6joCV/mi7V7rdJLEj1M6gN7KSG0JMqPFj271iaON3zbW+/Ph+vKwAAAA=
+  | |     - Tag 0x9286 (190 bytes, undef[190]):
+  | |         0818: 41 53 43 49 49 00 00 00 53 53 55 43 76 33 48 34 [ASCII...SSUCv3H4]
+  | |         0828: 73 49 41 41 41 41 41 41 41 41 45 32 32 4e 4f 77 [sIAAAAAAAAE22NOw]
+  | |         0838: 37 44 4d 41 69 47 37 38 4c 73 6f 62 4f 76 45 6d [7DMAiG78LsobOvEm]
+  | |         0848: 55 67 44 6b 30 73 49 56 73 43 50 46 53 57 37 31 [UgDk0sIVsCPFSW71]
+  | |         0858: 36 6f 4d 6e 62 37 2b 46 39 4d 4f 46 42 72 67 54 [6oMnb7+F9MOFBrgT]
+  | |         0868: 79 42 7a 6d 70 64 4b 6a 4c 6b 56 34 4c 4b 50 4e [yBzmpdKjLkV4LKPN]
+  | |         0878: 51 45 72 66 62 6d 77 6b 70 51 30 4f 6a 79 41 47 [QErfbmwkpQ0OjyAG]
+  | |         0888: 6d 6b 38 61 4a 57 50 6b 37 75 50 42 50 62 6a 41 [mk8aJWPk7uPBPbjA]
+  | |         0898: 78 6b 67 41 51 36 6a 6f 43 56 2f 6d 69 37 56 37 [xkgAQ6joCV/mi7V7]
+  | |         08a8: 72 64 4a 4c 45 6a 31 4d 36 67 4e 37 4b 53 47 30 [rdJLEj1M6gN7KSG0]
+  | |         08b8: 4a 4d 71 50 46 6a 32 37 31 69 61 4f 4e 33 7a 62 [JMqPFj271iaON3zb]
+  | |         08c8: 57 2b 2f 50 68 2b 76 4b 77 41 41 41 41 3d       [W+/Ph+vKwAAAA=]
+  | | 17) FlashpixVersion = 0100
+  | |     - Tag 0xa000 (4 bytes, undef[4]):
+  | |         06fc: 30 31 30 30                                     [0100]
+  | | 18) ColorSpace = 1
+  | |     - Tag 0xa001 (2 bytes, int16u[1]):
+  | |         0708: 01 00                                           [..]
+  | | 19) ExifImageWidth = 0
+  | |     - Tag 0xa002 (4 bytes, int32u[1]):
+  | |         0714: 00 00 00 00                                     [....]
+  | | 20) ExifImageHeight = 0
+  | |     - Tag 0xa003 (4 bytes, int32u[1]):
+  | |         0720: 00 00 00 00                                     [....]
+  | | 21) FileSource = 3
+  | |     - Tag 0xa300 (1 bytes, undef[1]):
+  | |         072c: 03                                              [.]
+  | | 22) SceneType = 1
+  | |     - Tag 0xa301 (1 bytes, undef[1]):
+  | |         0738: 01                                              [.]
+  | | 23) CustomRendered = 0
+  | |     - Tag 0xa401 (2 bytes, int16u[1]):
+  | |         0744: 00 00                                           [..]
+  | | 24) ExposureMode = 1
+  | |     - Tag 0xa402 (2 bytes, int16u[1]):
+  | |         0750: 01 00                                           [..]
+  | | 25) WhiteBalance = 0
+  | |     - Tag 0xa403 (2 bytes, int16u[1]):
+  | |         075c: 00 00                                           [..]
+  | | 26) FocalLengthIn35mmFormat = 24
+  | |     - Tag 0xa405 (2 bytes, int16u[1]):
+  | |         0768: 18 00                                           [..]
+  | | 27) SceneCaptureType = 0
+  | |     - Tag 0xa406 (2 bytes, int16u[1]):
+  | |         0774: 00 00                                           [..]
+  | | 28) GainControl = 0
+  | |     - Tag 0xa407 (2 bytes, int16u[1]):
+  | |         0780: 00 00                                           [..]
+  | | 29) Contrast = 0
+  | |     - Tag 0xa408 (2 bytes, int16u[1]):
+  | |         078c: 00 00                                           [..]
+  | | 30) Saturation = 0
+  | |     - Tag 0xa409 (2 bytes, int16u[1]):
+  | |         0798: 00 00                                           [..]
+  | | 31) Sharpness = 2
+  | |     - Tag 0xa40a (2 bytes, int16u[1]):
+  | |         07a4: 02 00                                           [..]
+  | | 32) SubjectDistanceRange = 0
+  | |     - Tag 0xa40c (2 bytes, int16u[1]):
+  | |         07b0: 00 00                                           [..]
+  | 10) GPSInfo (SubDirectory) -->
+  |     - Tag 0x8825 (4 bytes, int32u[1]):
+  |         0096: ca 08 00 00                                     [....]
+  | + [GPS directory with 7 entries, Little-endian]
+  | | 0)  GPSVersionID = 2 3 0 0
+  | |     - Tag 0x0000 (4 bytes, int8u[4]):
+  | |         08e0: 02 03 00 00                                     [....]
+  | | 1)  GPSLatitudeRef = S
+  | |     - Tag 0x0001 (2 bytes, string[2]):
+  | |         08ec: 53 00                                           [S.]
+  | | 2)  GPSLatitude = 8 30 0 (8/1 30/1 0/1)
+  | |     - Tag 0x0002 (24 bytes, rational64u[3]):
+  | |         0930: 08 00 00 00 01 00 00 00 1e 00 00 00 01 00 00 00 [................]
+  | |         0940: 00 00 00 00 01 00 00 00                         [........]
+  | | 3)  GPSLongitudeRef = E
+  | |     - Tag 0x0003 (2 bytes, string[2]):
+  | |         0904: 45 00                                           [E.]
+  | | 4)  GPSLongitude = 115 15 16.800012 (115/1 15/1 279989/16666)
+  | |     - Tag 0x0004 (24 bytes, rational64u[3]):
+  | |         0948: 73 00 00 00 01 00 00 00 0f 00 00 00 01 00 00 00 [s...............]
+  | |         0958: b5 45 04 00 1a 41 00 00                         [.E...A..]
+  | | 5)  GPSAltitudeRef = 0
+  | |     - Tag 0x0005 (1 bytes, int8u[1]):
+  | |         091c: 00                                              [.]
+  | | 6)  GPSAltitude = 27.1 (271/10)
+  | |     - Tag 0x0006 (8 bytes, rational64u[1]):
+  | |         0960: 0f 01 00 00 0a 00 00 00                         [........]
+  | 11) XPTitle = Aerial picture of Campuhan Ridge Walk , Scenic Green Valley in Ubud Bali. Drone photo.
+  |     - Tag 0x9c9b (174 bytes, int16u[87] read as undef[174]):
+  |         0182: 41 00 65 00 72 00 69 00 61 00 6c 00 20 00 70 00 [A.e.r.i.a.l. .p.]
+  |         0192: 69 00 63 00 74 00 75 00 72 00 65 00 20 00 6f 00 [i.c.t.u.r.e. .o.]
+  |         01a2: 66 00 20 00 43 00 61 00 6d 00 70 00 75 00 68 00 [f. .C.a.m.p.u.h.]
+  |         01b2: 61 00 6e 00 20 00 52 00 69 00 64 00 67 00 65 00 [a.n. .R.i.d.g.e.]
+  |         01c2: 20 00 57 00 61 00 6c 00 6b 00 20 00 2c 00 20 00 [ .W.a.l.k. .,. .]
+  |         01d2: 53 00 63 00 65 00 6e 00 69 00 63 00 20 00 47 00 [S.c.e.n.i.c. .G.]
+  |         01e2: 72 00 65 00 65 00 6e 00 20 00 56 00 61 00 6c 00 [r.e.e.n. .V.a.l.]
+  |         01f2: 6c 00 65 00 79 00 20 00 69 00 6e 00 20 00 55 00 [l.e.y. .i.n. .U.]
+  |         0202: 62 00 75 00 64 00 20 00 42 00 61 00 6c 00 69 00 [b.u.d. .B.a.l.i.]
+  |         0212: 2e 00 20 00 44 00 72 00 6f 00 6e 00 65 00 20 00 [.. .D.r.o.n.e. .]
+  |         0222: 70 00 68 00 6f 00 74 00 6f 00 2e 00 00 00       [p.h.o.t.o.....]
+  | 12) XPKeywords = hill; nature; path; ubud; landscape; trekking; tree; travel; green; bali; background; grass; beautiful; ridge; tourism; walk; asia; summer; sky; indonesia; scenic; campuhan; holidays; road; tropical; trail; field; paradise; paddy; palm; photography; planet; view; bali indonesia; outdoor; panoramic; drone; scene; nobody; growth; cloud; sunny; scenery; way; plant; environment; terrace; forest; natural; trek
+  |     - Tag 0x9c9e (818 bytes, int16u[409] read as undef[818]):
+  |         0230: 68 00 69 00 6c 00 6c 00 3b 00 20 00 6e 00 61 00 [h.i.l.l.;. .n.a.]
+  |         0240: 74 00 75 00 72 00 65 00 3b 00 20 00 70 00 61 00 [t.u.r.e.;. .p.a.]
+  |         0250: 74 00 68 00 3b 00 20 00 75 00 62 00 75 00 64 00 [t.h.;. .u.b.u.d.]
+  |         0260: 3b 00 20 00 6c 00 61 00 6e 00 64 00 73 00 63 00 [;. .l.a.n.d.s.c.]
+  |         0270: 61 00 70 00 65 00 3b 00 20 00 74 00 72 00 65 00 [a.p.e.;. .t.r.e.]
+  |         0280: 6b 00 6b 00 69 00 6e 00 67 00 3b 00 20 00 74 00 [k.k.i.n.g.;. .t.]
+  |         0290: 72 00 65 00 65 00 3b 00 20 00 74 00 72 00 61 00 [r.e.e.;. .t.r.a.]
+  |         02a0: 76 00 65 00 6c 00 3b 00 20 00 67 00 72 00 65 00 [v.e.l.;. .g.r.e.]
+  |         02b0: 65 00 6e 00 3b 00 20 00 62 00 61 00 6c 00 69 00 [e.n.;. .b.a.l.i.]
+  |         02c0: 3b 00 20 00 62 00 61 00 63 00 6b 00 67 00 72 00 [;. .b.a.c.k.g.r.]
+  |         02d0: 6f 00 75 00 6e 00 64 00 3b 00 20 00 67 00 72 00 [o.u.n.d.;. .g.r.]
+  |         02e0: 61 00 73 00 73 00 3b 00 20 00 62 00 65 00 61 00 [a.s.s.;. .b.e.a.]
+  |         02f0: 75 00 74 00 69 00 66 00 75 00 6c 00 3b 00 20 00 [u.t.i.f.u.l.;. .]
+  |         0300: 72 00 69 00 64 00 67 00 65 00 3b 00 20 00 74 00 [r.i.d.g.e.;. .t.]
+  |         0310: 6f 00 75 00 72 00 69 00 73 00 6d 00 3b 00 20 00 [o.u.r.i.s.m.;. .]
+  |         0320: 77 00 61 00 6c 00 6b 00 3b 00 20 00 61 00 73 00 [w.a.l.k.;. .a.s.]
+  |         0330: 69 00 61 00 3b 00 20 00 73 00 75 00 6d 00 6d 00 [i.a.;. .s.u.m.m.]
+  |         0340: 65 00 72 00 3b 00 20 00 73 00 6b 00 79 00 3b 00 [e.r.;. .s.k.y.;.]
+  |         0350: 20 00 69 00 6e 00 64 00 6f 00 6e 00 65 00 73 00 [ .i.n.d.o.n.e.s.]
+  |         0360: 69 00 61 00 3b 00 20 00 73 00 63 00 65 00 6e 00 [i.a.;. .s.c.e.n.]
+  |         0370: 69 00 63 00 3b 00 20 00 63 00 61 00 6d 00 70 00 [i.c.;. .c.a.m.p.]
+  |         0380: 75 00 68 00 61 00 6e 00 3b 00 20 00 68 00 6f 00 [u.h.a.n.;. .h.o.]
+  |         0390: 6c 00 69 00 64 00 61 00 79 00 73 00 3b 00 20 00 [l.i.d.a.y.s.;. .]
+  |         03a0: 72 00 6f 00 61 00 64 00 3b 00 20 00 74 00 72 00 [r.o.a.d.;. .t.r.]
+  |         03b0: 6f 00 70 00 69 00 63 00 61 00 6c 00 3b 00 20 00 [o.p.i.c.a.l.;. .]
+  |         03c0: 74 00 72 00 61 00 69 00 6c 00 3b 00 20 00 66 00 [t.r.a.i.l.;. .f.]
+  |         03d0: 69 00 65 00 6c 00 64 00 3b 00 20 00 70 00 61 00 [i.e.l.d.;. .p.a.]
+  |         03e0: 72 00 61 00 64 00 69 00 73 00 65 00 3b 00 20 00 [r.a.d.i.s.e.;. .]
+  |         03f0: 70 00 61 00 64 00 64 00 79 00 3b 00 20 00 70 00 [p.a.d.d.y.;. .p.]
+  |         0400: 61 00 6c 00 6d 00 3b 00 20 00 70 00 68 00 6f 00 [a.l.m.;. .p.h.o.]
+  |         0410: 74 00 6f 00 67 00 72 00 61 00 70 00 68 00 79 00 [t.o.g.r.a.p.h.y.]
+  |         0420: 3b 00 20 00 70 00 6c 00 61 00 6e 00 65 00 74 00 [;. .p.l.a.n.e.t.]
+  |         0430: 3b 00 20 00 76 00 69 00 65 00 77 00 3b 00 20 00 [;. .v.i.e.w.;. .]
+  |         0440: 62 00 61 00 6c 00 69 00 20 00 69 00 6e 00 64 00 [b.a.l.i. .i.n.d.]
+  |         0450: 6f 00 6e 00 65 00 73 00 69 00 61 00 3b 00 20 00 [o.n.e.s.i.a.;. .]
+  |         0460: 6f 00 75 00 74 00 64 00 6f 00 6f 00 72 00 3b 00 [o.u.t.d.o.o.r.;.]
+  |         0470: 20 00 70 00 61 00 6e 00 6f 00 72 00 61 00 6d 00 [ .p.a.n.o.r.a.m.]
+  |         0480: 69 00 63 00 3b 00 20 00 64 00 72 00 6f 00 6e 00 [i.c.;. .d.r.o.n.]
+  |         0490: 65 00 3b 00 20 00 73 00 63 00 65 00 6e 00 65 00 [e.;. .s.c.e.n.e.]
+  |         04a0: 3b 00 20 00 6e 00 6f 00 62 00 6f 00 64 00 79 00 [;. .n.o.b.o.d.y.]
+  |         04b0: 3b 00 20 00 67 00 72 00 6f 00 77 00 74 00 68 00 [;. .g.r.o.w.t.h.]
+  |         04c0: 3b 00 20 00 63 00 6c 00 6f 00 75 00 64 00 3b 00 [;. .c.l.o.u.d.;.]
+  |         04d0: 20 00 73 00 75 00 6e 00 6e 00 79 00 3b 00 20 00 [ .s.u.n.n.y.;. .]
+  |         04e0: 73 00 63 00 65 00 6e 00 65 00 72 00 79 00 3b 00 [s.c.e.n.e.r.y.;.]
+  |         04f0: 20 00 77 00 61 00 79 00 3b 00 20 00 70 00 6c 00 [ .w.a.y.;. .p.l.]
+  |         0500: 61 00 6e 00 74 00 3b 00 20 00 65 00 6e 00 76 00 [a.n.t.;. .e.n.v.]
+  |         0510: 69 00 72 00 6f 00 6e 00 6d 00 65 00 6e 00 74 00 [i.r.o.n.m.e.n.t.]
+  |         0520: 3b 00 20 00 74 00 65 00 72 00 72 00 61 00 63 00 [;. .t.e.r.r.a.c.]
+  |         0530: 65 00 3b 00 20 00 66 00 6f 00 72 00 65 00 73 00 [e.;. .f.o.r.e.s.]
+  |         0540: 74 00 3b 00 20 00 6e 00 61 00 74 00 75 00 72 00 [t.;. .n.a.t.u.r.]
+  |         0550: 61 00 6c 00 3b 00 20 00 74 00 72 00 65 00 6b 00 [a.l.;. .t.r.e.k.]
+  |         0560: 00 00                                           [..]
+  | 13) XPSubject = Aerial picture of Campuhan Ridge Walk , Scenic Green Valley in Ubud Bali. Drone photo. Indonesia.
+  |     - Tag 0x9c9f (196 bytes, int16u[98] read as undef[196]):
+  |         0562: 41 00 65 00 72 00 69 00 61 00 6c 00 20 00 70 00 [A.e.r.i.a.l. .p.]
+  |         0572: 69 00 63 00 74 00 75 00 72 00 65 00 20 00 6f 00 [i.c.t.u.r.e. .o.]
+  |         0582: 66 00 20 00 43 00 61 00 6d 00 70 00 75 00 68 00 [f. .C.a.m.p.u.h.]
+  |         0592: 61 00 6e 00 20 00 52 00 69 00 64 00 67 00 65 00 [a.n. .R.i.d.g.e.]
+  |         05a2: 20 00 57 00 61 00 6c 00 6b 00 20 00 2c 00 20 00 [ .W.a.l.k. .,. .]
+  |         05b2: 53 00 63 00 65 00 6e 00 69 00 63 00 20 00 47 00 [S.c.e.n.i.c. .G.]
+  |         05c2: 72 00 65 00 65 00 6e 00 20 00 56 00 61 00 6c 00 [r.e.e.n. .V.a.l.]
+  |         05d2: 6c 00 65 00 79 00 20 00 69 00 6e 00 20 00 55 00 [l.e.y. .i.n. .U.]
+  |         05e2: 62 00 75 00 64 00 20 00 42 00 61 00 6c 00 69 00 [b.u.d. .B.a.l.i.]
+  |         05f2: 2e 00 20 00 44 00 72 00 6f 00 6e 00 65 00 20 00 [.. .D.r.o.n.e. .]
+  |         0602: 70 00 68 00 6f 00 74 00 6f 00 2e 00 20 00 49 00 [p.h.o.t.o... .I.]
+  |         0612: 6e 00 64 00 6f 00 6e 00 65 00 73 00 69 00 61 00 [n.d.o.n.e.s.i.a.]
+  |         0622: 2e 00 00 00                                     [....]
+  + [IFD1 directory with 8 entries, Little-endian]
+  | 0)  Compression = 6
+  |     - Tag 0x0103 (2 bytes, int16u[1]):
+  |         0972: 06 00                                           [..]
+  | 1)  XResolution = 72 (72/1)
+  |     - Tag 0x011a (8 bytes, rational64u[1]):
+  |         09ce: 48 00 00 00 01 00 00 00                         [H.......]
+  | 2)  YResolution = 72 (72/1)
+  |     - Tag 0x011b (8 bytes, rational64u[1]):
+  |         09d6: 48 00 00 00 01 00 00 00                         [H.......]
+  | 3)  ResolutionUnit = 2
+  |     - Tag 0x0128 (2 bytes, int16u[1]):
+  |         0996: 02 00                                           [..]
+  | 4)  ThumbnailOffset = 0
+  |     - Tag 0x0201 (4 bytes, int32u[1]):
+  |         09a2: 00 00 00 00                                     [....]
+  | Warning = Duplicate tag 0x0201 ThumbnailOffset in IFD1
+  | 5)  ThumbnailOffset = 2514
+  |     - Tag 0x0201 (4 bytes, int32u[1]):
+  |         09ae: d2 09 00 00                                     [....]
+  | 6)  ThumbnailLength = 11460
+  |     - Tag 0x0202 (4 bytes, int32u[1]):
+  |         09ba: c4 2c 00 00                                     [.,..]
+  | Warning = Duplicate tag 0x0202 ThumbnailLength in IFD1
+  | 7)  ThumbnailLength = 0
+  |     - Tag 0x0202 (4 bytes, int32u[1]):
+  |         09c6: 00 00 00 00                                     [....]
+JPEG APP1 (6856 bytes):
+      09e2: 68 74 74 70 3a 2f 2f 6e 73 2e 61 64 6f 62 65 2e [http://ns.adobe.]
+      09f2: 63 6f 6d 2f 78 61 70 2f 31 2e 30 2f 00 3c 3f 78 [com/xap/1.0/.<?x]
+      0a02: 70 61 63 6b 65 74 20 62 65 67 69 6e 3d 27 ef bb [packet begin='..]
+      0a12: bf 27 20 69 64 3d 27 57 35 4d 30 4d 70 43 65 68 [.' id='W5M0MpCeh]
+      0a22: 69 48 7a 72 65 53 7a 4e 54 63 7a 6b 63 39 64 27 [iHzreSzNTczkc9d']
+      0a32: 3f 3e 0a 3c 78 3a 78 6d 70 6d 65 74 61 20 78 6d [?>.<x:xmpmeta xm]
+      0a42: 6c 6e 73 3a 78 3d 27 61 64 6f 62 65 3a 6e 73 3a [lns:x='adobe:ns:]
+      [snip 6744 bytes]
+  + [XMP directory, 6827 bytes]
+  | XMPToolkit = Image::ExifTool 12.27
+  | LastKeywordXMP = hill
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 10'
+  | LastKeywordXMP =  nature
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 11'
+  | LastKeywordXMP =  path
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 12'
+  | LastKeywordXMP =  ubud
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 13'
+  | LastKeywordXMP =  landscape
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 14'
+  | LastKeywordXMP =  trekking
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 15'
+  | LastKeywordXMP =  tree
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 16'
+  | LastKeywordXMP =  travel
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 17'
+  | LastKeywordXMP =  green
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 18'
+  | LastKeywordXMP =  bali
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 19'
+  | LastKeywordXMP =  background
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 210'
+  | LastKeywordXMP =  grass
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 211'
+  | LastKeywordXMP =  beautiful
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 212'
+  | LastKeywordXMP =  ridge
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 213'
+  | LastKeywordXMP =  tourism
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 214'
+  | LastKeywordXMP =  walk
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 215'
+  | LastKeywordXMP =  asia
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 216'
+  | LastKeywordXMP =  summer
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 217'
+  | LastKeywordXMP =  sky
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 218'
+  | LastKeywordXMP =  indonesia
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 219'
+  | LastKeywordXMP =  scenic
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 220'
+  | LastKeywordXMP =  campuhan
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 221'
+  | LastKeywordXMP =  holidays
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 222'
+  | LastKeywordXMP =  road
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 223'
+  | LastKeywordXMP =  tropical
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 224'
+  | LastKeywordXMP =  trail
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 225'
+  | LastKeywordXMP =  field
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 226'
+  | LastKeywordXMP =  paradise
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 227'
+  | LastKeywordXMP =  paddy
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 228'
+  | LastKeywordXMP =  palm
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 229'
+  | LastKeywordXMP =  photography
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 230'
+  | LastKeywordXMP =  planet
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 231'
+  | LastKeywordXMP =  view
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 232'
+  | LastKeywordXMP =  bali indonesia
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 233'
+  | LastKeywordXMP =  outdoor
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 234'
+  | LastKeywordXMP =  panoramic
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 235'
+  | LastKeywordXMP =  drone
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 236'
+  | LastKeywordXMP =  scene
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 237'
+  | LastKeywordXMP =  nobody
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 238'
+  | LastKeywordXMP =  growth
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 239'
+  | LastKeywordXMP =  cloud
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 240'
+  | LastKeywordXMP =  sunny
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 241'
+  | LastKeywordXMP =  scenery
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 242'
+  | LastKeywordXMP =  way
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 243'
+  | LastKeywordXMP =  plant
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 244'
+  | LastKeywordXMP =  environment
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 245'
+  | LastKeywordXMP =  terrace
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 246'
+  | LastKeywordXMP =  forest
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 247'
+  | LastKeywordXMP =  natural
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 248'
+  | LastKeywordXMP =  trek
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/MicrosoftPhoto:LastKeywordXMP/rdf:Seq/rdf:li 249'
+  | Description = Aerial picture of Campuhan Ridge Walk , Scenic Green Valley in Ubud Bali. Drone photo. Indonesia.
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:description/rdf:Alt/rdf:li 10'
+  | Subject = hill
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 10'
+  | Subject =  nature
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 11'
+  | Subject =  path
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 12'
+  | Subject =  ubud
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 13'
+  | Subject =  landscape
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 14'
+  | Subject =  trekking
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 15'
+  | Subject =  tree
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 16'
+  | Subject =  travel
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 17'
+  | Subject =  green
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 18'
+  | Subject =  bali
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 19'
+  | Subject =  background
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 210'
+  | Subject =  grass
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 211'
+  | Subject =  beautiful
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 212'
+  | Subject =  ridge
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 213'
+  | Subject =  tourism
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 214'
+  | Subject =  walk
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 215'
+  | Subject =  asia
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 216'
+  | Subject =  summer
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 217'
+  | Subject =  sky
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 218'
+  | Subject =  indonesia
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 219'
+  | Subject =  scenic
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 220'
+  | Subject =  campuhan
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 221'
+  | Subject =  holidays
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 222'
+  | Subject =  road
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 223'
+  | Subject =  tropical
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 224'
+  | Subject =  trail
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 225'
+  | Subject =  field
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 226'
+  | Subject =  paradise
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 227'
+  | Subject =  paddy
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 228'
+  | Subject =  palm
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 229'
+  | Subject =  photography
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 230'
+  | Subject =  planet
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 231'
+  | Subject =  view
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 232'
+  | Subject =  bali indonesia
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 233'
+  | Subject =  outdoor
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 234'
+  | Subject =  panoramic
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 235'
+  | Subject =  drone
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 236'
+  | Subject =  scene
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 237'
+  | Subject =  nobody
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 238'
+  | Subject =  growth
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 239'
+  | Subject =  cloud
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 240'
+  | Subject =  sunny
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 241'
+  | Subject =  scenery
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 242'
+  | Subject =  way
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 243'
+  | Subject =  plant
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 244'
+  | Subject =  environment
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 245'
+  | Subject =  terrace
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 246'
+  | Subject =  forest
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 247'
+  | Subject =  natural
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 248'
+  | Subject =  trek
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:subject/rdf:Seq/rdf:li 249'
+  | Title = Aerial picture of Campuhan Ridge Walk , Scenic Green Valley in Ubud Bali. Drone photo.
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:title/rdf:Alt/rdf:li 10'
+  | DateCreated = 2018-10-07T07:23:09
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/photoshop:DateCreated'
+  | CreateDate = 2018-10-07T07:23:09
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmp:CreateDate'
+  | CreatorTool = Adobe Photoshop Lightroom Classic 8.0 (Macintosh)
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmp:CreatorTool'
+  | ModifyDate = 2018-11-02T22:07:18
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmp:ModifyDate'
+  | Rating = 1
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmp:Rating'
+JPEG APP13 (11830 bytes):
+      24ae: 50 68 6f 74 6f 73 68 6f 70 20 33 2e 30 00 38 42 [Photoshop 3.0.8B]
+      24be: 49 4d 03 ed 00 00 00 00 00 10 01 5e 00 00 00 01 [IM.........^....]
+      24ce: 00 01 01 5e 00 00 00 01 00 01 38 42 49 4d 04 04 [...^......8BIM..]
+      24de: 00 00 00 00 00 f7 1c 01 5a 00 03 1b 25 47 1c 01 [........Z...%G..]
+      24ee: 00 00 02 00 04 1c 02 00 00 02 00 04 1c 02 19 00 [................]
+      24fe: 05 67 72 65 65 6e 1c 02 19 00 05 73 6c 6f 70 65 [.green.....slope]
+      250e: 1c 02 19 00 0b 61 65 72 69 61 6c 20 76 69 65 77 [.....aerial view]
+      [snip 11718 bytes]
+  + [Photoshop directory, 11816 bytes]
+  | ResolutionInfo (SubDirectory) -->
+  | - Tag 0x03ed (16 bytes):
+  |     24c8: 01 5e 00 00 00 01 00 01 01 5e 00 00 00 01 00 01 [.^.......^......]
+  | + [BinaryData directory, 16 bytes, Big-endian]
+  | | XResolution = 22937600
+  | | - Tag 0x0000 (4 bytes, int32u[1]):
+  | |     24c8: 01 5e 00 00                                     [.^..]
+  | | DisplayedUnitsX = 1
+  | | - Tag 0x0002 (2 bytes, int16u[1]):
+  | |     24cc: 00 01                                           [..]
+  | | YResolution = 22937600
+  | | - Tag 0x0004 (4 bytes, int32u[1]):
+  | |     24d0: 01 5e 00 00                                     [.^..]
+  | | DisplayedUnitsY = 1
+  | | - Tag 0x0006 (2 bytes, int16u[1]):
+  | |     24d4: 00 01                                           [..]
+  | IPTCData (SubDirectory) -->
+  | - Tag 0x0404 (247 bytes):
+  |     24e4: 1c 01 5a 00 03 1b 25 47 1c 01 00 00 02 00 04 1c [..Z...%G........]
+  |     24f4: 02 00 00 02 00 04 1c 02 19 00 05 67 72 65 65 6e [...........green]
+  |     2504: 1c 02 19 00 05 73 6c 6f 70 65 1c 02 19 00 0b 61 [.....slope.....a]
+  |     2514: 65 72 69 61 6c 20 76 69 65 77 1c 02 19 00 06 6e [erial view.....n]
+  |     2524: 61 74 75 72 65 1c 02 19 00 07 73 63 65 6e 65 72 [ature.....scener]
+  |     2534: 79 1c 02 19 00 08 6f 75 74 64 6f 6f 72 73 1c 02 [y.....outdoors..]
+  |     2544: 19 00 08 6d 6f 75 6e 74 61 69 6e 1c 02 19 00 09 [...mountain.....]
+  |     2554: 6c 61 6e 64 73 63 61 70 65 1c 02 37 00 08 32 30 [landscape..7..20]
+  |     2564: 31 38 31 30 30 37 1c 02 3c 00 06 30 37 32 33 30 [181007..<..07230]
+  |     2574: 39 1c 02 3e 00 08 32 30 31 38 31 30 30 37 1c 02 [9..>..20181007..]
+  |     2584: 3f 00 06 30 37 32 33 30 39 1c 02 78 00 49 67 72 [?..072309..x.Igr]
+  |     2594: 65 65 6e 20 63 6f 76 65 72 65 64 20 6d 6f 75 6e [een covered moun]
+  |     25a4: 74 61 69 6e 20 77 69 74 68 20 67 72 61 79 20 63 [tain with gray c]
+  |     25b4: 6f 6e 63 72 65 74 65 20 77 61 6c 6b 69 6e 67 20 [oncrete walking ]
+  |     25c4: 70 61 74 68 20 61 65 72 69 61 6c 20 70 68 6f 74 [path aerial phot]
+  |     25d4: 6f 67 72 61 70 68 79                            [ography]
+  | + [IPTC directory, 247 bytes]
+  | | CurrentIPTCDigest = ...Aj.......>...
+  | | -- IPTCEnvelope record --
+  | | CodedCharacterSet = .%G
+  | | - Tag 0x005a, IPTCEnvelope record (3 bytes, string[0,32]):
+  | |     24e9: 1b 25 47                                        [.%G]
+  | | EnvelopeRecordVersion = 4
+  | | - Tag 0x0000, IPTCEnvelope record (2 bytes, int16u):
+  | |     24f1: 00 04                                           [..]
+  | | -- IPTCApplication record --
+  | | ApplicationRecordVersion = 4
+  | | - Tag 0x0000, IPTCApplication record (2 bytes, int16u):
+  | |     24f8: 00 04                                           [..]
+  | | Keywords = green
+  | | - Tag 0x0019, IPTCApplication record (5 bytes, string[0,64]):
+  | |     24ff: 67 72 65 65 6e                                  [green]
+  | | Keywords = slope
+  | | - Tag 0x0019, IPTCApplication record (5 bytes, string[0,64]):
+  | |     2509: 73 6c 6f 70 65                                  [slope]
+  | | Keywords = aerial view
+  | | - Tag 0x0019, IPTCApplication record (11 bytes, string[0,64]):
+  | |     2513: 61 65 72 69 61 6c 20 76 69 65 77                [aerial view]
+  | | Keywords = nature
+  | | - Tag 0x0019, IPTCApplication record (6 bytes, string[0,64]):
+  | |     2523: 6e 61 74 75 72 65                               [nature]
+  | | Keywords = scenery
+  | | - Tag 0x0019, IPTCApplication record (7 bytes, string[0,64]):
+  | |     252e: 73 63 65 6e 65 72 79                            [scenery]
+  | | Keywords = outdoors
+  | | - Tag 0x0019, IPTCApplication record (8 bytes, string[0,64]):
+  | |     253a: 6f 75 74 64 6f 6f 72 73                         [outdoors]
+  | | Keywords = mountain
+  | | - Tag 0x0019, IPTCApplication record (8 bytes, string[0,64]):
+  | |     2547: 6d 6f 75 6e 74 61 69 6e                         [mountain]
+  | | Keywords = landscape
+  | | - Tag 0x0019, IPTCApplication record (9 bytes, string[0,64]):
+  | |     2554: 6c 61 6e 64 73 63 61 70 65                      [landscape]
+  | | DateCreated = 20181007
+  | | - Tag 0x0037, IPTCApplication record (8 bytes, digits[8]):
+  | |     2562: 32 30 31 38 31 30 30 37                         [20181007]
+  | | TimeCreated = 072309
+  | | - Tag 0x003c, IPTCApplication record (6 bytes, string[11]):
+  | |     256f: 30 37 32 33 30 39                               [072309]
+  | | DigitalCreationDate = 20181007
+  | | - Tag 0x003e, IPTCApplication record (8 bytes, digits[8]):
+  | |     257a: 32 30 31 38 31 30 30 37                         [20181007]
+  | | DigitalCreationTime = 072309
+  | | - Tag 0x003f, IPTCApplication record (6 bytes, string[11]):
+  | |     2587: 30 37 32 33 30 39                               [072309]
+  | | Caption-Abstract = green covered mountain with gray concrete walking path aerial photography
+  | | - Tag 0x0078, IPTCApplication record (73 bytes, string[0,2000]):
+  | |     2592: 67 72 65 65 6e 20 63 6f 76 65 72 65 64 20 6d 6f [green covered mo]
+  | |     25a2: 75 6e 74 61 69 6e 20 77 69 74 68 20 67 72 61 79 [untain with gray]
+  | |     25b2: 20 63 6f 6e 63 72 65 74 65 20 77 61 6c 6b 69 6e [ concrete walkin]
+  | |     25c2: 67 20 70 61 74 68 20 61 65 72 69 61 6c 20 70 68 [g path aerial ph]
+  | |     25d2: 6f 74 6f 67 72 61 70 68 79                      [otography]
+  | PhotoshopThumbnail = .....@,............................................................................................................................................ ...Adobed........................................................................s......!.1AQ..a"q..2.....B#.R..3.b.$r..%C4S...cs.5D'...6.Tdt....&.......EF..V.U(........eu........fv........7GWgw........8HXhx........)9IYiy........*:JZjz.......................m.....!.1A.Q.a".q..2.......#B.Rbr.3$4C...S%.c...s.5.D..T......&6E.'dtU7....()...........eu........FVfv........GWgw........8HXhx........9IYiy........*:JZjz................?...;Tf`q.Q.....j....*d.#ei.E.(../.A.~{b.M..8..S.;....z..{d......90X.\....6JU..v....PN...........HI......`..G_}.Fl.7...e....p.M....7.....o|..7....|....q.T.KH.dj.[.cb+.+...1"Y...........c(W%h.QB.s....F.^.C.<....Z....$.Us[9U#..8..7...$.'F.J......x.$/.).C...%p...;.{.i .....}.! .[....yPl..p-.Z..4...#]..........}.N.rHc..*M(...#i.&......G.q%V.*.>.....1.$.DRC...0?,x....$..-U..{}..56.J0....\<H.)%.7.h....q&.S]....$u.._...Qq#c....n(D(<@..cZ.V...'... .Gg.(>..w..p...x."....a...l{d.e..v=...M..<.,...D9TP..6<....u.%(j..4...AEI,.....(..k.."V..qM..v..|..S,.......t....)<$.;........f<...BH.9Y~.iM..0^.<..yZCAU....".......l.....c...#.G..du$R....d...+..h.........e..x/....6...j..i..A^.J.A.G..Z....>.\...s,.e_.....d...}...7l.HCI2.@.oR1....t=....[C4..;..,.$(+u.n....Y....L.&..'f..2%mZ..aP$.?d.~.....K$.#..@1J.....k.nk....?......f[..9....B.}......%7..AL .XH.@..wc.a.%..>.V...|AIX....4.Q.,j.i.#.....@DG"..j..)...Z.At....I.i...`....T#.a..d...,.......+J..y...K..]...*G..*.5.....G..qFZI..J#...z...L.d.Z..''. .A..~..e!t..^........)...Fe....k.d.j.v.|...I.C...c..~.@G....h...?hd.eil.I..N.P..:....89..3.s.j......h*......2s..'"Uc-$PwU./.|..C.b.....D.....?2p./T..h....f..V5......J...q_.*...l'.4.....^...s).T...........+E**.(.=.6.+F....`UW.......MH...%L.}CB....4.|..E. .8..>I.FE)O..r ...%.!...A..S..y1.J..P:.C~....xeFt[.Q.Gxb.%oN.1JG..d....D.l..md2...0.n.h....G."...-...XU.$N;..9...dBk*"KR.J...&.........$....H..~&.(N...r]Y.h..s.......q..R..........<..0..k2#.%..-b...'.J.JR...I.F;.`..........%.[snip]
+  | - Tag 0x040c (11488 bytes):
+  |     25e8: 00 00 00 01 00 00 01 00 00 00 00 c0 00 00 03 00 [................]
+  |     25f8: 00 02 40 00 00 00 2c c4 00 18 00 01 ff d8 ff db [..@...,.........]
+  |     2608: 00 84 00 06 04 04 04 05 04 06 05 05 06 09 06 05 [................]
+  |     2618: 06 09 0b 08 06 06 08 0b 0c 0a 0a 0b 0a 0a 0c 10 [................]
+  |     2628: 0c 0c 0c 0c 0c 0c 10 0c 0c 0c 0c 0c 0c 0c 0c 0c [................]
+  |     2638: 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c [................]
+  |     2648: 0c 0c 0c 01 07 07 07 0d 0c 0d 18 10 10 18 14 0e [................]
+  |     2658: 0e 0e 14 14 0e 0e 0e 0e 14 11 0c 0c 0c 0c 0c 11 [................]
+  |     2668: 11 0c 0c 0c 0c 0c 0c 11 0c 0c 0c 0c 0c 0c 0c 0c [................]
+  |     2678: 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c [................]
+  |     2688: 0c 0c 0c 0c ff dd 00 04 00 20 ff ee 00 0e 41 64 [......... ....Ad]
+  |     2698: 6f 62 65 00 64 c0 00 00 00 01 ff c0 00 11 08 00 [obe.d...........]
+  |     26a8: c0 01 00 03 00 11 00 01 11 01 02 11 01 ff c4 01 [................]
+  |     26b8: a2 00 00 00 07 01 01 01 01 01 00 00 00 00 00 00 [................]
+  |     26c8: 00 00 04 05 03 02 06 01 00 07 08 09 0a 0b 01 00 [................]
+  |     26d8: 02 02 03 01 01 01 01 01 00 00 00 00 00 00 00 01 [................]
+  |     26e8: 00 02 03 04 05 06 07 08 09 0a 0b 10 00 02 01 03 [................]
+  |     26f8: 03 02 04 02 06 07 03 04 02 06 02 73 01 02 03 11 [...........s....]
+  |     2708: 04 00 05 21 12 31 41 51 06 13 61 22 71 81 14 32 [...!.1AQ..a"q..2]
+  |     2718: 91 a1 07 15 b1 42 23 c1 52 d1 e1 33 16 62 f0 24 [.....B#.R..3.b.$]
+  |     2728: 72 82 f1 25 43 34 53 92 a2 b2 63 73 c2 35 44 27 [r..%C4S...cs.5D']
+  |     2738: 93 a3 b3 36 17 54 64 74 c3 d2 e2 08 26 83 09 0a [...6.Tdt....&...]
+  |     2748: 18 19 84 94 45 46 a4 b4 56 d3 55 28 1a f2 e3 f3 [....EF..V.U(....]
+  |     2758: c4 d4 e4 f4 65 75 85 95 a5 b5 c5 d5 e5 f5 66 76 [....eu........fv]
+  |     2768: 86 96 a6 b6 c6 d6 e6 f6 37 47 57 67 77 87 97 a7 [........7GWgw...]
+  |     2778: b7 c7 d7 e7 f7 38 48 58 68 78 88 98 a8 b8 c8 d8 [.....8HXhx......]
+  |     2788: e8 f8 29 39 49 59 69 79 89 99 a9 b9 c9 d9 e9 f9 [..)9IYiy........]
+  |     2798: 2a 3a 4a 5a 6a 7a 8a 9a aa ba ca da ea fa 11 00 [*:JZjz..........]
+  |     27a8: 02 02 01 02 03 05 05 04 05 06 04 08 03 03 6d 01 [..............m.]
+  |     27b8: 00 02 11 03 04 21 12 31 41 05 51 13 61 22 06 71 [.....!.1A.Q.a".q]
+  |     27c8: 81 91 32 a1 b1 f0 14 c1 d1 e1 23 42 15 52 62 72 [..2.......#B.Rbr]
+  |     27d8: f1 33 24 34 43 82 16 92 53 25 a2 63 b2 c2 07 73 [.3$4C...S%.c...s]
+  |     27e8: d2 35 e2 44 83 17 54 93 08 09 0a 18 19 26 36 45 [.5.D..T......&6E]
+  |     27f8: 1a 27 64 74 55 37 f2 a3 b3 c3 28 29 d3 e3 f3 84 [.'dtU7....()....]
+  |     2808: 94 a4 b4 c4 d4 e4 f4 65 75 85 95 a5 b5 c5 d5 e5 [.......eu.......]
+  |     2818: f5 46 56 66 76 86 96 a6 b6 c6 d6 e6 f6 47 57 67 [.FVfv........GWg]
+  |     2828: 77 87 97 a7 b7 c7 d7 e7 f7 38 48 58 68 78 88 98 [w........8HXhx..]
+  |     2838: a8 b8 c8 d8 e8 f8 39 49 59 69 79 89 99 a9 b9 c9 [......9IYiy.....]
+  |     2848: d9 e9 f9 2a 3a 4a 5a 6a 7a 8a 9a aa ba ca da ea [...*:JZjz.......]
+  |     2858: fa ff da 00 0c 03 00 00 01 11 02 11 00 3f 00 e5 [.............?..]
+  |     2868: 08 cc 3b 54 66 60 71 11 51 18 e3 1c 95 08 6a d4 [..;Tf`q.Q.....j.]
+  |     2878: 1d c1 1f 2a 64 ad 23 65 69 ef 45 c2 28 92 1e 2f [...*d.#ei.E.(../]
+  |     2888: da 41 b5 7e 7b 62 10 4d b4 0a 38 d9 b8 53 a0 3b [.A.~{b.M..8..S.;]
+  |     2898: e4 98 97 06 7a d3 95 7b 64 83 15 e5 8e e0 f4 39 [....z..{d......9]
+  |     28a8: 30 58 14 5c 12 bc 88 05 36 4a 55 ba ec 76 c2 9e [0X.\....6JU..v..]
+  |     28b8: 89 84 50 4e 94 e6 eb e8 9f b2 d5 1f a8 91 be 48 [..PN...........H]
+  |     28c8: 49 06 08 88 82 8a 87 60 87 b5 47 5f 7d b2 46 6c [I......`..G_}.Fl]
+  |     28d8: 04 37 dd 17 19 65 14 07 a6 fd 70 f3 4d d2 a2 1a [.7...e....p.M...]
+  |     28e8: 80 37 a9 eb 86 98 db 6f 7c b0 ec 37 a1 dc f5 cc [.7.....o|..7....]
+  |     28f8: 7c b3 e8 1c 8c 71 ea 54 7f 4b 48 11 64 6a 98 5b [|....q.T.KH.dj.[]
+  |     2908: ac 63 62 2b df 2b e3 95 b3 31 00 22 59 c3 0a a9 [.cb+.+...1."Y...]
+  |     2918: e2 9d 81 f1 c9 8c a2 b7 63 28 57 25 68 d6 51 42 [........c(W%h.QB]
+  |     2928: a7 73 f7 e4 84 c1 46 e1 5e 05 43 c8 3c bc 1a 87 [.s....F.^.C.<...]
+  |     2938: 8f 5a 13 d6 9d 0e 24 a4 55 73 5b 39 55 23 d3 90 [.Z....$.Us[9U#..]
+  |     2948: 38 a7 c4 37 db ef 03 24 11 27 46 cd 4a fe cf 80 [8..7...$.'F.J...]
+  |     2958: c4 a0 15 78 cf 24 2f cc 29 fe 43 d4 fc b0 25 70 [...x.$/.).C...%p]
+  |     2968: 94 d7 e1 3b f8 7b 0c 69 20 b7 1c a1 98 8f 7d f1 [...;.{.i .....}.]
+  |     2978: 21 20 ba 5b 91 12 b4 8e 79 50 6c a3 ad 70 2d a5 [! .[....yPl..p-.]
+  |     2988: 5a 96 a3 34 92 15 ad 23 5d 80 fa 06 05 b4 ac b7 [Z..4...#].......]
+  |     2998: da a1 d8 7d df 4e 05 72 48 63 05 c1 2a 4d 28 06 [...}.N.rHc..*M(.]
+  |     29a8: df ab 23 69 a5 26 93 8a 12 e6 ac 0d 47 d2 71 25 [..#i.&......G.q%]
+  |     29b8: 56 c7 2a c8 3e d7 1d ce f9 11 31 d5 24 14 44 52 [V.*.>.....1.$.DR]
+  |     29c8: 43 1a 93 c8 30 3f 2c 78 c2 ee b4 dd 24 84 f1 2d [C...0?,x....$..-]
+  |     29d8: 55 1b 10 7b 7d 19 1e 35 36 a2 4a 30 0c 06 dd 8f [U..{}..56.J0....]
+  |     29e8: 5c 3c 48 b5 29 25 8c 37 12 68 cf b0 1d f0 71 26 [\<H.)%.7.h....q&]
+  |     29f8: d0 53 5d c2 ae ea 01 24 75 c7 89 5f ff d0 e5 51 [.S]....$u.._...Q]
+  |     2a08: 71 23 63 c4 f8 93 99 6e 28 44 28 3c 40 07 fd 63 [q#c....n(D(<@..c]
+  |     2a18: 5a e1 56 d8 b0 14 27 90 f0 c9 20 ab 47 67 1b 28 [Z.V...'... .Gg.(]
+  |     2a28: 3e b2 02 77 09 bd 70 82 8e 15 78 8a 22 10 ca bc [>..w..p...x."...]
+  |     2a38: 9b 61 c8 1a f8 6c 7b 64 97 65 d3 90 76 3d 06 c3 [.a...l{d.e..v=..]
+  |     2a48: e5 4d c0 1f 3c 90 2c 0a d8 b9 44 39 54 50 8c 97 [.M..<.,...D9TP..]
+  |     2a58: 36 3c 91 96 d2 97 75 e7 25 28 6a ac d5 34 f1 c3 [6<....u.%(j..4..]
+  |     2a68: c9 41 45 49 2c 8c 15 01 0e aa 28 08 e8 6b e1 84 [.AEI,.....(..k..]
+  |     2a78: 22 56 88 8e 71 4d ea a4 76 de bb 7c b0 f1 53 00 ["V..qM..v..|..S.]
+  |     2a88: 2c a2 e1 ba 82 9c 83 d4 74 ef e1 89 c8 29 3c 24 [,.......t....)<$]
+  |     2a98: 14 3b c9 1c 84 9a f0 15 dc 1a 66 3c 8d b9 10 42 [.;........f<...B]
+  |     2aa8: 48 1a 39 59 7e c4 69 4d cf 8d 30 5e c9 3c d4 fd [H.9Y~.iM..0^.<..]
+  |     2ab8: 79 5a 43 41 55 ee db ef 91 22 98 84 da ce e9 dd [yZCAU...."......]
+  |     2ac8: 04 6c a3 82 af c2 c3 63 d7 c7 c7 23 13 47 9a 94 [.l.....c...#.G..]
+  |     2ad8: 64 75 24 52 8c be 07 ae 64 f1 06 1c 2b be 12 68 [du$R....d...+..h]
+  |     2ae8: c0 1a 0d 81 eb f2 c9 aa f4 65 a9 1c 78 2f be f4 [.........e..x/..]
+  |     2af8: f6 c5 36 ae d0 b8 6a a8 f8 69 b2 e4 41 5e ab 4a [..6...j..i..A^.J]
+  |     2b08: 80 41 1f 47 f4 c9 5a d2 9b dc 84 3e 0d 5c 0c ad [.A.G..Z....>.\..]
+  |     2b18: 05 73 2c 94 65 5f 89 98 d4 93 83 64 14 1b 1a 7d [.s,.e_.....d...}]
+  |     2b28: a1 d3 ed 37 6c 89 48 43 49 32 90 40 1b 6f 52 31 [...7l.HCI2.@.oR1]
+  |     2b38: a4 da 84 92 74 3d 80 f1 dc e0 5b 43 34 84 02 3b [....t=....[C4..;]
+  |     2b48: f4 1f 2c 04 24 28 2b 75 df 6e f9 02 12 ef 59 c8 [..,.$(+u.n....Y.]
+  |     2b58: d8 f5 e9 4c 04 26 d6 83 27 66 a1 ee 32 25 6d 5a [...L.&..'f..2%mZ]
+  |     2b68: 0b a9 61 50 24 dd 3f 64 0a 7e 18 0a d2 8c b7 4b [..aP$.?d.~.....K]
+  |     2b78: 24 eb 23 ec 07 40 31 4a 1e ec c5 c8 18 6b f1 6e [$.#..@1J.....k.n]
+  |     2b88: 6b d7 10 a6 ba 3f ff d1 e4 c2 83 d8 66 5b 88 a8 [k....?......f[..]
+  |     2b98: 39 0d c1 db 08 42 f5 7d fd fb 9c 92 11 0b 25 37 [9....B.}......%7]
+  |     2ba8: ad 07 41 4c 20 a1 58 48 a5 40 dd 8d 77 63 d4 61 [..AL .XH.@..wc.a]
+  |     2bb8: 08 25 16 dc 3e cd 56 b4 14 a7 7c 41 49 58 15 11 [.%..>.V...|AIX..]
+  |     2bc8: ca f2 34 ed 51 d3 2c 6a 90 69 b8 23 8a f7 f0 c7 [..4.Q.,j.i.#....]
+  |     2bd8: 8d 40 44 47 22 d3 88 6a 9a ee 29 b8 c3 19 5a 91 [.@DG"..j..)...Z.]
+  |     2be8: 41 74 92 80 80 82 49 fa 69 8c 8a c5 60 bc 98 a7 [At....I.i...`...]
+  |     2bf8: 1e 54 23 c3 61 90 e1 64 ac 07 05 2c cf c9 88 e9 [.T#.a..d...,....]
+  |     2c08: fd 99 03 2b 4a c6 8e 79 8a a2 ad 4b d4 83 5d b0 [...+J..y...K..].]
+  |     2c18: 19 00 c8 2a 47 0c 90 2a f3 35 1b 92 06 ff 00 86 [...*G..*.5......]
+  |     2c28: 47 88 16 71 46 5a 49 ca 7f 4a 23 c9 8d 0d 7a 8d [G..qFZI..J#...z.]
+  |     2c38: fa 03 4c 07 64 84 5a c5 aa 27 27 af 20 ac 41 8d [..L.d.Z..''. .A.]
+  |     2c48: 0d 7e 9a 8c 65 21 74 80 08 5e 97 ee 9c 8c bf 11 [.~..e!t..^......]
+  |     2c58: a0 e8 29 c4 f4 c9 46 65 8c 86 e8 fb 6b 8e 64 12 [..)...Fe....k.d.]
+  |     2c68: 6a 87 76 a7 7c b8 1b 0c 49 a4 43 de 04 1c 63 04 [j.v.|...I.C...c.]
+  |     2c78: 90 7e ec 40 47 12 9d cd e0 68 88 1b b9 3f 68 64 [.~.@G....h...?hd]
+  |     2c88: 80 65 69 6c a5 49 af d3 4e f8 50 a0 d2 3a a0 aa [.eil.I..N.P..:..]
+  |     2c98: f5 fb 38 39 a6 90 33 b9 73 d7 6a f4 c2 b4 a6 cc [..89..3.s.j.....]
+  |     2ca8: aa 68 2a cd d6 be f9 14 a9 32 73 05 b6 27 22 55 [.h*......2s..'"U]
+  |     2cb8: 63 2d 24 50 77 55 a7 2f bf 7c 16 9a 43 fa 62 a6 [c-$PwU./.|..C.b.]
+  |     2cc8: 9b 1e e7 b6 44 a6 d4 b6 03 e1 3f 32 70 14 2f 54 [....D.....?2p./T]
+  |     2cd8: a1 05 68 e4 f7 ca c9 66 14 e6 56 35 00 0a 8d 98 [..h....f..V5....]
+  |     2ce8: 0e d8 01 4a 1d ea 87 71 5f 0c 2a b5 e5 04 6c 00 [...J...q_.*...l.]
+  |     2cf8: 27 be 34 af ff d2 e4 eb 5e c6 b4 fc 73 29 c5 54 ['.4.....^...s).T]
+  |     2d08: e6 a3 db 0a 1c a4 13 b0 a0 f1 19 2b 45 2a 2a 82 [...........+E**.]
+  |     2d18: 28 0d 3d 8e 36 a4 2b 46 ce 17 e5 92 60 55 57 89 [(.=.6.+F....`UW.]
+  |     2d28: f8 94 e4 c2 17 19 4d 48 af f5 df 25 4c 14 7d 43 [......MH...%L.}C]
+  |     2d38: 42 06 e7 f9 b2 34 cd 7c 0d ca 45 15 20 f7 38 94 [B....4.|..E. .8.]
+  |     2d48: d2 3e 49 03 46 45 29 4f f3 e8 72 20 a7 85 d1 25 [.>I.FE)O..r ...%]
+  |     2d58: b0 21 8b d3 9f 41 d7 f5 53 04 a4 79 31 a4 4a db [.!...A..S..y1.J.]
+  |     2d68: 09 50 3a 90 43 7e d3 b8 0d f7 78 65 46 74 5b 04 [.P:.C~....xeFt[.]
+  |     2d78: 51 11 47 78 62 91 25 6f 4e de 31 4a 47 c5 89 00 [Q.Gxb.%oN.1JG...]
+  |     2d88: 64 0c 85 f9 a4 44 b7 6c e4 80 6d 64 32 b1 15 11 [d....D.l..md2...]
+  |     2d98: 30 03 6e 9f 68 d2 b8 cb cd 47 93 22 d0 ed d5 2d [0.n.h....G."...-]
+  |     2da8: c9 bb b7 58 55 87 24 4e 3b 9a e5 39 0d 9d 8b 64 [...XU.$N;..9...d]
+  |     2db8: 42 6b 2a 22 4b 52 81 4a 80 14 f4 26 82 86 98 cd [Bk*"KR.J...&....]
+  |     2dc8: b4 84 06 a3 a7 24 bc a6 89 05 48 f8 d4 7e 26 99 [.....$....H..~&.]
+  |     [snip 9456 bytes]
+  | IPTCDigest = T......su.g'.Z..
+  | - Tag 0x0425 (16 bytes):
+  |     52d4: 54 fb 8c 9f 99 1a 97 73 75 e0 67 27 ed 5a e9 16 [T......su.g'.Z..]
+  | Warning = IPTCDigest is not current. XMP may be out of sync
+JPEG APP2 (3158 bytes):
+      52e8: 49 43 43 5f 50 52 4f 46 49 4c 45 00 01 01 00 00 [ICC_PROFILE.....]
+      52f8: 0c 48 4c 69 6e 6f 02 10 00 00 6d 6e 74 72 52 47 [.HLino....mntrRG]
+      5308: 42 20 58 59 5a 20 07 ce 00 02 00 09 00 06 00 31 [B XYZ .........1]
+      5318: 00 00 61 63 73 70 4d 53 46 54 00 00 00 00 49 45 [..acspMSFT....IE]
+      5328: 43 20 73 52 47 42 00 00 00 00 00 00 00 00 00 00 [C sRGB..........]
+      5338: 00 00 00 00 f6 d6 00 01 00 00 00 00 d3 2d 48 50 [.............-HP]
+      5348: 20 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [  ..............]
+      [snip 3046 bytes]
+ICC_Profile chunk 1 of 1
+  + [ICC_Profile directory with 17 entries, 3144 bytes]
+  | ProfileHeader (SubDirectory) -->
+  | + [BinaryData directory, 128 bytes, Big-endian]
+  | | ProfileCMMType = Lino
+  | | - Tag 0x0004 (4 bytes, string[4]):
+  | |     0004: 4c 69 6e 6f                                     [Lino]
+  | | ProfileVersion = 528
+  | | - Tag 0x0008 (2 bytes, int16s[1]):
+  | |     0008: 02 10                                           [..]
+  | | ProfileClass = mntr
+  | | - Tag 0x000c (4 bytes, string[4]):
+  | |     000c: 6d 6e 74 72                                     [mntr]
+  | | ColorSpaceData = RGB 
+  | | - Tag 0x0010 (4 bytes, string[4]):
+  | |     0010: 52 47 42 20                                     [RGB ]
+  | | ProfileConnectionSpace = XYZ 
+  | | - Tag 0x0014 (4 bytes, string[4]):
+  | |     0014: 58 59 5a 20                                     [XYZ ]
+  | | ProfileDateTime = 1998 2 9 6 49 0
+  | | - Tag 0x0018 (12 bytes, int16u[6]):
+  | |     0018: 07 ce 00 02 00 09 00 06 00 31 00 00             [.........1..]
+  | | ProfileFileSignature = acsp
+  | | - Tag 0x0024 (4 bytes, string[4]):
+  | |     0024: 61 63 73 70                                     [acsp]
+  | | PrimaryPlatform = MSFT
+  | | - Tag 0x0028 (4 bytes, string[4]):
+  | |     0028: 4d 53 46 54                                     [MSFT]
+  | | CMMFlags = 0
+  | | - Tag 0x002c (4 bytes, int32u[1]):
+  | |     002c: 00 00 00 00                                     [....]
+  | | DeviceManufacturer = IEC 
+  | | - Tag 0x0030 (4 bytes, string[4]):
+  | |     0030: 49 45 43 20                                     [IEC ]
+  | | DeviceModel = sRGB
+  | | - Tag 0x0034 (4 bytes, string[4]):
+  | |     0034: 73 52 47 42                                     [sRGB]
+  | | DeviceAttributes = 0 0
+  | | - Tag 0x0038 (8 bytes, int32u[2]):
+  | |     0038: 00 00 00 00 00 00 00 00                         [........]
+  | | RenderingIntent = 0
+  | | - Tag 0x0040 (4 bytes, int32u[1]):
+  | |     0040: 00 00 00 00                                     [....]
+  | | ConnectionSpaceIlluminant = 0.9642 1 0.82491
+  | | - Tag 0x0044 (12 bytes, fixed32s[3]):
+  | |     0044: 00 00 f6 d6 00 01 00 00 00 00 d3 2d             [...........-]
+  | | ProfileCreator = HP  
+  | | - Tag 0x0050 (4 bytes, string[4]):
+  | |     0050: 48 50 20 20                                     [HP  ]
+  | | ProfileID = 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  | | - Tag 0x0054 (16 bytes, int8u[16]):
+  | |     0054: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  | 0)  ProfileCopyright = Copyright (c) 1998 Hewlett-Packard Company
+  |     - Tag 'cprt' (51 bytes, type 'text'):
+  |         0150: 74 65 78 74 00 00 00 00 43 6f 70 79 72 69 67 68 [text....Copyrigh]
+  |         0160: 74 20 28 63 29 20 31 39 39 38 20 48 65 77 6c 65 [t (c) 1998 Hewle]
+  |         0170: 74 74 2d 50 61 63 6b 61 72 64 20 43 6f 6d 70 61 [tt-Packard Compa]
+  |         0180: 6e 79 00                                        [ny.]
+  | 1)  ProfileDescription = sRGB IEC61966-2.1
+  |     - Tag 'desc' (108 bytes, type 'desc'):
+  |         0184: 64 65 73 63 00 00 00 00 00 00 00 12 73 52 47 42 [desc........sRGB]
+  |         0194: 20 49 45 43 36 31 39 36 36 2d 32 2e 31 00 00 00 [ IEC61966-2.1...]
+  |         01a4: 00 00 00 00 00 00 00 00 12 73 52 47 42 20 49 45 [.........sRGB IE]
+  |         01b4: 43 36 31 39 36 36 2d 32 2e 31 00 00 00 00 00 00 [C61966-2.1......]
+  |         01c4: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  |         01d4: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  |         01e4: 00 00 00 00 00 00 00 00 00 00 00 00             [............]
+  | 2)  MediaWhitePoint = 0.95045 1 1.08905
+  |     - Tag 'wtpt' (20 bytes, type 'XYZ '):
+  |         01f0: 58 59 5a 20 00 00 00 00 00 00 f3 51 00 01 00 00 [XYZ .......Q....]
+  |         0200: 00 01 16 cc                                     [....]
+  | 3)  MediaBlackPoint = 0 0 0
+  |     - Tag 'bkpt' (20 bytes, type 'XYZ '):
+  |         0204: 58 59 5a 20 00 00 00 00 00 00 00 00 00 00 00 00 [XYZ ............]
+  |         0214: 00 00 00 00                                     [....]
+  | 4)  RedMatrixColumn = 0.43607 0.22249 0.01392
+  |     - Tag 'rXYZ' (20 bytes, type 'XYZ '):
+  |         0218: 58 59 5a 20 00 00 00 00 00 00 6f a2 00 00 38 f5 [XYZ ......o...8.]
+  |         0228: 00 00 03 90                                     [....]
+  | 5)  GreenMatrixColumn = 0.38515 0.71687 0.09708
+  |     - Tag 'gXYZ' (20 bytes, type 'XYZ '):
+  |         022c: 58 59 5a 20 00 00 00 00 00 00 62 99 00 00 b7 85 [XYZ ......b.....]
+  |         023c: 00 00 18 da                                     [....]
+  | 6)  BlueMatrixColumn = 0.14307 0.06061 0.7141
+  |     - Tag 'bXYZ' (20 bytes, type 'XYZ '):
+  |         0240: 58 59 5a 20 00 00 00 00 00 00 24 a0 00 00 0f 84 [XYZ ......$.....]
+  |         0250: 00 00 b6 cf                                     [....]
+  | 7)  DeviceMfgDesc = IEC http://www.iec.ch
+  |     - Tag 'dmnd' (112 bytes, type 'desc'):
+  |         0254: 64 65 73 63 00 00 00 00 00 00 00 16 49 45 43 20 [desc........IEC ]
+  |         0264: 68 74 74 70 3a 2f 2f 77 77 77 2e 69 65 63 2e 63 [http://www.iec.c]
+  |         0274: 68 00 00 00 00 00 00 00 00 00 00 00 16 49 45 43 [h............IEC]
+  |         0284: 20 68 74 74 70 3a 2f 2f 77 77 77 2e 69 65 63 2e [ http://www.iec.]
+  |         0294: 63 68 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [ch..............]
+  |         02a4: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  |         02b4: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  | 8)  DeviceModelDesc = IEC 61966-2.1 Default RGB colour space - sRGB
+  |     - Tag 'dmdd' (136 bytes, type 'desc'):
+  |         02c4: 64 65 73 63 00 00 00 00 00 00 00 2e 49 45 43 20 [desc........IEC ]
+  |         02d4: 36 31 39 36 36 2d 32 2e 31 20 44 65 66 61 75 6c [61966-2.1 Defaul]
+  |         02e4: 74 20 52 47 42 20 63 6f 6c 6f 75 72 20 73 70 61 [t RGB colour spa]
+  |         02f4: 63 65 20 2d 20 73 52 47 42 00 00 00 00 00 00 00 [ce - sRGB.......]
+  |         0304: 00 00 00 00 2e 49 45 43 20 36 31 39 36 36 2d 32 [.....IEC 61966-2]
+  |         0314: 2e 31 20 44 65 66 61 75 6c 74 20 52 47 42 20 63 [.1 Default RGB c]
+  |         0324: 6f 6c 6f 75 72 20 73 70 61 63 65 20 2d 20 73 52 [olour space - sR]
+  |         0334: 47 42 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [GB..............]
+  |         0344: 00 00 00 00 00 00 00 00                         [........]
+  | 9)  ViewingCondDesc = Reference Viewing Condition in IEC61966-2.1
+  |     - Tag 'vued' (134 bytes, type 'desc'):
+  |         034c: 64 65 73 63 00 00 00 00 00 00 00 2c 52 65 66 65 [desc.......,Refe]
+  |         035c: 72 65 6e 63 65 20 56 69 65 77 69 6e 67 20 43 6f [rence Viewing Co]
+  |         036c: 6e 64 69 74 69 6f 6e 20 69 6e 20 49 45 43 36 31 [ndition in IEC61]
+  |         037c: 39 36 36 2d 32 2e 31 00 00 00 00 00 00 00 00 00 [966-2.1.........]
+  |         038c: 00 00 2c 52 65 66 65 72 65 6e 63 65 20 56 69 65 [..,Reference Vie]
+  |         039c: 77 69 6e 67 20 43 6f 6e 64 69 74 69 6f 6e 20 69 [wing Condition i]
+  |         03ac: 6e 20 49 45 43 36 31 39 36 36 2d 32 2e 31 00 00 [n IEC61966-2.1..]
+  |         03bc: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  |         03cc: 00 00 00 00 00 00                               [......]
+  | 10) ViewingConditions (SubDirectory) -->
+  |     - Tag 'view' (36 bytes, type 'view'):
+  |         03d4: 76 69 65 77 00 00 00 00 00 13 a4 fe 00 14 5f 2e [view.........._.]
+  |         03e4: 00 10 cf 14 00 03 ed cc 00 04 13 0b 00 03 5c 9e [..............\.]
+  |         03f4: 00 00 00 01                                     [....]
+  | + [BinaryData directory, 36 bytes, Big-endian]
+  | | ViewingCondIlluminant = 19.6445 20.3718 16.8089
+  | | - Tag 0x0008 (12 bytes, fixed32s[3]):
+  | |     56d2: 00 13 a4 fe 00 14 5f 2e 00 10 cf 14             [......_.....]
+  | | ViewingCondSurround = 3.92889 4.07439 3.36179
+  | | - Tag 0x0014 (12 bytes, fixed32s[3]):
+  | |     56de: 00 03 ed cc 00 04 13 0b 00 03 5c 9e             [..........\.]
+  | | ViewingCondIlluminantType = 1
+  | | - Tag 0x0020 (4 bytes, int32u[1]):
+  | |     56ea: 00 00 00 01                                     [....]
+  | 11) Luminance = 76.03647 80 87.12462
+  |     - Tag 'lumi' (20 bytes, type 'XYZ '):
+  |         03f8: 58 59 5a 20 00 00 00 00 00 4c 09 56 00 50 00 00 [XYZ .....L.V.P..]
+  |         0408: 00 57 1f e7                                     [.W..]
+  | 12) Measurement (SubDirectory) -->
+  |     - Tag 'meas' (36 bytes, type 'meas'):
+  |         040c: 6d 65 61 73 00 00 00 00 00 00 00 01 00 00 00 00 [meas............]
+  |         041c: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 02 8f [................]
+  |         042c: 00 00 00 02                                     [....]
+  | + [BinaryData directory, 36 bytes, Big-endian]
+  | | MeasurementObserver = 1
+  | | - Tag 0x0008 (4 bytes, int32u[1]):
+  | |     570a: 00 00 00 01                                     [....]
+  | | MeasurementBacking = 0 0 0
+  | | - Tag 0x000c (12 bytes, fixed32s[3]):
+  | |     570e: 00 00 00 00 00 00 00 00 00 00 00 00             [............]
+  | | MeasurementGeometry = 0
+  | | - Tag 0x0018 (4 bytes, int32u[1]):
+  | |     571a: 00 00 00 00                                     [....]
+  | | MeasurementFlare = 0.00999
+  | | - Tag 0x001c (4 bytes, fixed32u[1]):
+  | |     571e: 00 00 02 8f                                     [....]
+  | | MeasurementIlluminant = 2
+  | | - Tag 0x0020 (4 bytes, int32u[1]):
+  | |     5722: 00 00 00 02                                     [....]
+  | 13) Technology = CRT 
+  |     - Tag 'tech' (12 bytes, type 'sig '):
+  |         0430: 73 69 67 20 00 00 00 00 43 52 54 20             [sig ....CRT ]
+  | 14) RedTRC = curv.......#(-27;@EJOTY^chmrw|......................................%.+.2.8.>.E.L.R.Y.`.g.n.u.|.........................................&./.8.A.K.T.].g.q.z..............................!.-.8.C.O.Z.f.r.~......................... .-.;.H.U.c.q.~.......................+.:.I.X.g.w.....................'.7.H.Y.j.{...................+.=.O.a.t...................2.F.Z.n.................%.:.O.d.y...............'.=.T.j...............".9.Q.i...............*.C.\.u.............&.@.Z.t...............I.d.............%.A.^.z...........&.C.a.~...........1.O.m...........&.E.d...........#.C.c...........'.I.j...........4.V.x.........&.I.l...........A.e...........@.e......... .E.k.........*.Q.w.........;.c.........*.R.{.........G.p.........@.j.........>.i...... . A l . . .!.!H!u!.!.!."'"U".".".#.#8#f#.#.#.$.$M$|$.$.%.%8%h%.%.%.&'&W&.&.&.'.'I'z'.'.(.(?(q(.(.).)8)k).).*.*5*h*.*.+.+6+i+.+.,.,9,n,.,.-.-A-v-.-....L....../$/Z/././.050l0.0.1.1J1.1.1.2*2c2.2.3.3F3.3.3.4+4e4.4.5.5M5.5.5.676r6.6.7$7`7.7.8.8P8.8.9.9B9.9.9.:6:t:.:.;-;k;.;.<'<e<.<.="=a=.=.> >`>.>.?!?a?.?.@#@d@.@.A)AjA.A.B0BrB.B.C:C}C.D.DGD.D.E.EUE.E.F"FgF.F.G5G{G.H.HKH.H.I.IcI.I.J7J}J.K.KSK.K.L*LrL.M.MJM.M.N%NnN.OOIO.O.P'PqP.Q.QPQ.Q.R1R|R.S.S_S.S.TBT.T.U(UuU.V.V\V.V.WDW.W.X/X}X.Y.YiY.Z.ZVZ.Z.[E[.[.\5\.\.]']x].^.^l^._._a_.`.`W`.`.aOa.a.bIb.b.cCc.c.d@d.d.e=e.e.f=f.f.g=g.g.h?h.h.iCi.i.jHj.j.kOk.k.lWl.m.m`m.n.nkn.o.oxo.p+p.p.q:q.q.rKr.s.s]s.t.tpt.u(u.u.v>v.v.wVw.x.xnx.y*y.y.zFz.{.{c{.|!|.|.}A}.~.~b~..#.....G.....k...0.....W.........G.....r...;.....i...3.....d...0.....c...1.....f...6.....n...?.....z...M... ....._...4.....u...L...$.....h...B.........d...@.........i...G...&.....v...V...8.........n...R...7.........u...\...D...-........u...`...K...8...%.........y...h...Y...J...;.......!.............z...p...g..._...X...Q...K...F...A...=...:...8...6...5...5...6...7...9...<...?...D...I...N...U...\...d...l...v.................)...6...D...S...c...s.............2...F...[...p.........(...@...X...r.........4...P...m.........8...W...w.....)...K...m..
+  |     - Tag 'rTRC' (2060 bytes, type 'curv'):
+  |         043c: 63 75 72 76 00 00 00 00 00 00 04 00 00 00 00 05 [curv............]
+  |         044c: 00 0a 00 0f 00 14 00 19 00 1e 00 23 00 28 00 2d [...........#.(.-]
+  |         045c: 00 32 00 37 00 3b 00 40 00 45 00 4a 00 4f 00 54 [.2.7.;.@.E.J.O.T]
+  |         046c: 00 59 00 5e 00 63 00 68 00 6d 00 72 00 77 00 7c [.Y.^.c.h.m.r.w.|]
+  |         047c: 00 81 00 86 00 8b 00 90 00 95 00 9a 00 9f 00 a4 [................]
+  |         048c: 00 a9 00 ae 00 b2 00 b7 00 bc 00 c1 00 c6 00 cb [................]
+  |         049c: 00 d0 00 d5 00 db 00 e0 00 e5 00 eb 00 f0 00 f6 [................]
+  |         04ac: 00 fb 01 01 01 07 01 0d 01 13 01 19 01 1f 01 25 [...............%]
+  |         04bc: 01 2b 01 32 01 38 01 3e 01 45 01 4c 01 52 01 59 [.+.2.8.>.E.L.R.Y]
+  |         04cc: 01 60 01 67 01 6e 01 75 01 7c 01 83 01 8b 01 92 [.`.g.n.u.|......]
+  |         04dc: 01 9a 01 a1 01 a9 01 b1 01 b9 01 c1 01 c9 01 d1 [................]
+  |         04ec: 01 d9 01 e1 01 e9 01 f2 01 fa 02 03 02 0c 02 14 [................]
+  |         04fc: 02 1d 02 26 02 2f 02 38 02 41 02 4b 02 54 02 5d [...&./.8.A.K.T.]]
+  |         050c: 02 67 02 71 02 7a 02 84 02 8e 02 98 02 a2 02 ac [.g.q.z..........]
+  |         051c: 02 b6 02 c1 02 cb 02 d5 02 e0 02 eb 02 f5 03 00 [................]
+  |         052c: 03 0b 03 16 03 21 03 2d 03 38 03 43 03 4f 03 5a [.....!.-.8.C.O.Z]
+  |         053c: 03 66 03 72 03 7e 03 8a 03 96 03 a2 03 ae 03 ba [.f.r.~..........]
+  |         054c: 03 c7 03 d3 03 e0 03 ec 03 f9 04 06 04 13 04 20 [............... ]
+  |         055c: 04 2d 04 3b 04 48 04 55 04 63 04 71 04 7e 04 8c [.-.;.H.U.c.q.~..]
+  |         056c: 04 9a 04 a8 04 b6 04 c4 04 d3 04 e1 04 f0 04 fe [................]
+  |         057c: 05 0d 05 1c 05 2b 05 3a 05 49 05 58 05 67 05 77 [.....+.:.I.X.g.w]
+  |         058c: 05 86 05 96 05 a6 05 b5 05 c5 05 d5 05 e5 05 f6 [................]
+  |         059c: 06 06 06 16 06 27 06 37 06 48 06 59 06 6a 06 7b [.....'.7.H.Y.j.{]
+  |         05ac: 06 8c 06 9d 06 af 06 c0 06 d1 06 e3 06 f5 07 07 [................]
+  |         05bc: 07 19 07 2b 07 3d 07 4f 07 61 07 74 07 86 07 99 [...+.=.O.a.t....]
+  |         05cc: 07 ac 07 bf 07 d2 07 e5 07 f8 08 0b 08 1f 08 32 [...............2]
+  |         05dc: 08 46 08 5a 08 6e 08 82 08 96 08 aa 08 be 08 d2 [.F.Z.n..........]
+  |         05ec: 08 e7 08 fb 09 10 09 25 09 3a 09 4f 09 64 09 79 [.......%.:.O.d.y]
+  |         05fc: 09 8f 09 a4 09 ba 09 cf 09 e5 09 fb 0a 11 0a 27 [...............']
+  |         060c: 0a 3d 0a 54 0a 6a 0a 81 0a 98 0a ae 0a c5 0a dc [.=.T.j..........]
+  |         061c: 0a f3 0b 0b 0b 22 0b 39 0b 51 0b 69 0b 80 0b 98 [.....".9.Q.i....]
+  |         062c: 0b b0 0b c8 0b e1 0b f9 0c 12 0c 2a 0c 43 0c 5c [...........*.C.\]
+  |         063c: 0c 75 0c 8e 0c a7 0c c0 0c d9 0c f3 0d 0d 0d 26 [.u.............&]
+  |         064c: 0d 40 0d 5a 0d 74 0d 8e 0d a9 0d c3 0d de 0d f8 [.@.Z.t..........]
+  |         065c: 0e 13 0e 2e 0e 49 0e 64 0e 7f 0e 9b 0e b6 0e d2 [.....I.d........]
+  |         066c: 0e ee 0f 09 0f 25 0f 41 0f 5e 0f 7a 0f 96 0f b3 [.....%.A.^.z....]
+  |         067c: 0f cf 0f ec 10 09 10 26 10 43 10 61 10 7e 10 9b [.......&.C.a.~..]
+  |         068c: 10 b9 10 d7 10 f5 11 13 11 31 11 4f 11 6d 11 8c [.........1.O.m..]
+  |         069c: 11 aa 11 c9 11 e8 12 07 12 26 12 45 12 64 12 84 [.........&.E.d..]
+  |         06ac: 12 a3 12 c3 12 e3 13 03 13 23 13 43 13 63 13 83 [.........#.C.c..]
+  |         06bc: 13 a4 13 c5 13 e5 14 06 14 27 14 49 14 6a 14 8b [.........'.I.j..]
+  |         06cc: 14 ad 14 ce 14 f0 15 12 15 34 15 56 15 78 15 9b [.........4.V.x..]
+  |         06dc: 15 bd 15 e0 16 03 16 26 16 49 16 6c 16 8f 16 b2 [.......&.I.l....]
+  |         06ec: 16 d6 16 fa 17 1d 17 41 17 65 17 89 17 ae 17 d2 [.......A.e......]
+  |         06fc: 17 f7 18 1b 18 40 18 65 18 8a 18 af 18 d5 18 fa [.....@.e........]
+  |         070c: 19 20 19 45 19 6b 19 91 19 b7 19 dd 1a 04 1a 2a [. .E.k.........*]
+  |         071c: 1a 51 1a 77 1a 9e 1a c5 1a ec 1b 14 1b 3b 1b 63 [.Q.w.........;.c]
+  |         072c: 1b 8a 1b b2 1b da 1c 02 1c 2a 1c 52 1c 7b 1c a3 [.........*.R.{..]
+  |         073c: 1c cc 1c f5 1d 1e 1d 47 1d 70 1d 99 1d c3 1d ec [.......G.p......]
+  |         074c: 1e 16 1e 40 1e 6a 1e 94 1e be 1e e9 1f 13 1f 3e [...@.j.........>]
+  |         075c: 1f 69 1f 94 1f bf 1f ea 20 15 20 41 20 6c 20 98 [.i...... . A l .]
+  |         076c: 20 c4 20 f0 21 1c 21 48 21 75 21 a1 21 ce 21 fb [ . .!.!H!u!.!.!.]
+  |         077c: 22 27 22 55 22 82 22 af 22 dd 23 0a 23 38 23 66 ["'"U".".".#.#8#f]
+  |         078c: 23 94 23 c2 23 f0 24 1f 24 4d 24 7c 24 ab 24 da [#.#.#.$.$M$|$.$.]
+  |         079c: 25 09 25 38 25 68 25 97 25 c7 25 f7 26 27 26 57 [%.%8%h%.%.%.&'&W]
+  |         07ac: 26 87 26 b7 26 e8 27 18 27 49 27 7a 27 ab 27 dc [&.&.&.'.'I'z'.'.]
+  |         07bc: 28 0d 28 3f 28 71 28 a2 28 d4 29 06 29 38 29 6b [(.(?(q(.(.).)8)k]
+  |         07cc: 29 9d 29 d0 2a 02 2a 35 2a 68 2a 9b 2a cf 2b 02 [).).*.*5*h*.*.+.]
+  |         07dc: 2b 36 2b 69 2b 9d 2b d1 2c 05 2c 39 2c 6e 2c a2 [+6+i+.+.,.,9,n,.]
+  |         07ec: 2c d7 2d 0c 2d 41 2d 76 2d ab 2d e1 2e 16 2e 4c [,.-.-A-v-.-....L]
+  |         07fc: 2e 82 2e b7 2e ee 2f 24 2f 5a 2f 91 2f c7 2f fe [....../$/Z/././.]
+  |         080c: 30 35 30 6c 30 a4 30 db 31 12 31 4a 31 82 31 ba [050l0.0.1.1J1.1.]
+  |         081c: 31 f2 32 2a 32 63 32 9b 32 d4 33 0d 33 46 33 7f [1.2*2c2.2.3.3F3.]
+  |         082c: 33 b8 33 f1 34 2b 34 65 34 9e 34 d8 35 13 35 4d [3.3.4+4e4.4.5.5M]
+  |         083c: 35 87 35 c2 35 fd 36 37 36 72 36 ae 36 e9 37 24 [5.5.5.676r6.6.7$]
+  |         084c: 37 60 37 9c 37 d7 38 14 38 50 38 8c 38 c8 39 05 [7`7.7.8.8P8.8.9.]
+  |         085c: 39 42 39 7f 39 bc 39 f9 3a 36 3a 74 3a b2 3a ef [9B9.9.9.:6:t:.:.]
+  |         086c: 3b 2d 3b 6b 3b aa 3b e8 3c 27 3c 65 3c a4 3c e3 [;-;k;.;.<'<e<.<.]
+  |         087c: 3d 22 3d 61 3d a1 3d e0 3e 20 3e 60 3e a0 3e e0 [="=a=.=.> >`>.>.]
+  |         088c: 3f 21 3f 61 3f a2 3f e2 40 23 40 64 40 a6 40 e7 [?!?a?.?.@#@d@.@.]
+  |         089c: 41 29 41 6a 41 ac 41 ee 42 30 42 72 42 b5 42 f7 [A)AjA.A.B0BrB.B.]
+  |         08ac: 43 3a 43 7d 43 c0 44 03 44 47 44 8a 44 ce 45 12 [C:C}C.D.DGD.D.E.]
+  |         08bc: 45 55 45 9a 45 de 46 22 46 67 46 ab 46 f0 47 35 [EUE.E.F"FgF.F.G5]
+  |         08cc: 47 7b 47 c0 48 05 48 4b 48 91 48 d7 49 1d 49 63 [G{G.H.HKH.H.I.Ic]
+  |         08dc: 49 a9 49 f0 4a 37 4a 7d 4a c4 4b 0c 4b 53 4b 9a [I.I.J7J}J.K.KSK.]
+  |         08ec: 4b e2 4c 2a 4c 72 4c ba 4d 02 4d 4a 4d 93 4d dc [K.L*LrL.M.MJM.M.]
+  |         08fc: 4e 25 4e 6e 4e b7 4f 00 4f 49 4f 93 4f dd 50 27 [N%NnN.O.OIO.O.P']
+  |         090c: 50 71 50 bb 51 06 51 50 51 9b 51 e6 52 31 52 7c [PqP.Q.QPQ.Q.R1R|]
+  |         091c: 52 c7 53 13 53 5f 53 aa 53 f6 54 42 54 8f 54 db [R.S.S_S.S.TBT.T.]
+  |         092c: 55 28 55 75 55 c2 56 0f 56 5c 56 a9 56 f7 57 44 [U(UuU.V.V\V.V.WD]
+  |         093c: 57 92 57 e0 58 2f 58 7d 58 cb 59 1a 59 69 59 b8 [W.W.X/X}X.Y.YiY.]
+  |         094c: 5a 07 5a 56 5a a6 5a f5 5b 45 5b 95 5b e5 5c 35 [Z.ZVZ.Z.[E[.[.\5]
+  |         095c: 5c 86 5c d6 5d 27 5d 78 5d c9 5e 1a 5e 6c 5e bd [\.\.]']x].^.^l^.]
+  |         096c: 5f 0f 5f 61 5f b3 60 05 60 57 60 aa 60 fc 61 4f [_._a_.`.`W`.`.aO]
+  |         097c: 61 a2 61 f5 62 49 62 9c 62 f0 63 43 63 97 63 eb [a.a.bIb.b.cCc.c.]
+  |         098c: 64 40 64 94 64 e9 65 3d 65 92 65 e7 66 3d 66 92 [d@d.d.e=e.e.f=f.]
+  |         099c: 66 e8 67 3d 67 93 67 e9 68 3f 68 96 68 ec 69 43 [f.g=g.g.h?h.h.iC]
+  |         09ac: 69 9a 69 f1 6a 48 6a 9f 6a f7 6b 4f 6b a7 6b ff [i.i.jHj.j.kOk.k.]
+  |         09bc: 6c 57 6c af 6d 08 6d 60 6d b9 6e 12 6e 6b 6e c4 [lWl.m.m`m.n.nkn.]
+  |         09cc: 6f 1e 6f 78 6f d1 70 2b 70 86 70 e0 71 3a 71 95 [o.oxo.p+p.p.q:q.]
+  |         09dc: 71 f0 72 4b 72 a6 73 01 73 5d 73 b8 74 14 74 70 [q.rKr.s.s]s.t.tp]
+  |         09ec: 74 cc 75 28 75 85 75 e1 76 3e 76 9b 76 f8 77 56 [t.u(u.u.v>v.v.wV]
+  |         09fc: 77 b3 78 11 78 6e 78 cc 79 2a 79 89 79 e7 7a 46 [w.x.xnx.y*y.y.zF]
+  |         0a0c: 7a a5 7b 04 7b 63 7b c2 7c 21 7c 81 7c e1 7d 41 [z.{.{c{.|!|.|.}A]
+  |         0a1c: 7d a1 7e 01 7e 62 7e c2 7f 23 7f 84 7f e5 80 47 [}.~.~b~..#.....G]
+  |         0a2c: 80 a8 81 0a 81 6b 81 cd 82 30 82 92 82 f4 83 57 [.....k...0.....W]
+  |         0a3c: 83 ba 84 1d 84 80 84 e3 85 47 85 ab 86 0e 86 72 [.........G.....r]
+  |         0a4c: 86 d7 87 3b 87 9f 88 04 88 69 88 ce 89 33 89 99 [...;.....i...3..]
+  |         0a5c: 89 fe 8a 64 8a ca 8b 30 8b 96 8b fc 8c 63 8c ca [...d...0.....c..]
+  |         0a6c: 8d 31 8d 98 8d ff 8e 66 8e ce 8f 36 8f 9e 90 06 [.1.....f...6....]
+  |         0a7c: 90 6e 90 d6 91 3f 91 a8 92 11 92 7a 92 e3 93 4d [.n...?.....z...M]
+  |         0a8c: 93 b6 94 20 94 8a 94 f4 95 5f 95 c9 96 34 96 9f [... ....._...4..]
+  |         0a9c: 97 0a 97 75 97 e0 98 4c 98 b8 99 24 99 90 99 fc [...u...L...$....]
+  |         0aac: 9a 68 9a d5 9b 42 9b af 9c 1c 9c 89 9c f7 9d 64 [.h...B.........d]
+  |         0abc: 9d d2 9e 40 9e ae 9f 1d 9f 8b 9f fa a0 69 a0 d8 [...@.........i..]
+  |         0acc: a1 47 a1 b6 a2 26 a2 96 a3 06 a3 76 a3 e6 a4 56 [.G...&.....v...V]
+  |         0adc: a4 c7 a5 38 a5 a9 a6 1a a6 8b a6 fd a7 6e a7 e0 [...8.........n..]
+  |         0aec: a8 52 a8 c4 a9 37 a9 a9 aa 1c aa 8f ab 02 ab 75 [.R...7.........u]
+  |         0afc: ab e9 ac 5c ac d0 ad 44 ad b8 ae 2d ae a1 af 16 [...\...D...-....]
+  |         0b0c: af 8b b0 00 b0 75 b0 ea b1 60 b1 d6 b2 4b b2 c2 [.....u...`...K..]
+  |         0b1c: b3 38 b3 ae b4 25 b4 9c b5 13 b5 8a b6 01 b6 79 [.8...%.........y]
+  |         0b2c: b6 f0 b7 68 b7 e0 b8 59 b8 d1 b9 4a b9 c2 ba 3b [...h...Y...J...;]
+  |         0b3c: ba b5 bb 2e bb a7 bc 21 bc 9b bd 15 bd 8f be 0a [.......!........]
+  |         0b4c: be 84 be ff bf 7a bf f5 c0 70 c0 ec c1 67 c1 e3 [.....z...p...g..]
+  |         0b5c: c2 5f c2 db c3 58 c3 d4 c4 51 c4 ce c5 4b c5 c8 [._...X...Q...K..]
+  |         0b6c: c6 46 c6 c3 c7 41 c7 bf c8 3d c8 bc c9 3a c9 b9 [.F...A...=...:..]
+  |         0b7c: ca 38 ca b7 cb 36 cb b6 cc 35 cc b5 cd 35 cd b5 [.8...6...5...5..]
+  |         0b8c: ce 36 ce b6 cf 37 cf b8 d0 39 d0 ba d1 3c d1 be [.6...7...9...<..]
+  |         0b9c: d2 3f d2 c1 d3 44 d3 c6 d4 49 d4 cb d5 4e d5 d1 [.?...D...I...N..]
+  |         0bac: d6 55 d6 d8 d7 5c d7 e0 d8 64 d8 e8 d9 6c d9 f1 [.U...\...d...l..]
+  |         0bbc: da 76 da fb db 80 dc 05 dc 8a dd 10 dd 96 de 1c [.v..............]
+  |         0bcc: de a2 df 29 df af e0 36 e0 bd e1 44 e1 cc e2 53 [...)...6...D...S]
+  |         0bdc: e2 db e3 63 e3 eb e4 73 e4 fc e5 84 e6 0d e6 96 [...c...s........]
+  |         0bec: e7 1f e7 a9 e8 32 e8 bc e9 46 e9 d0 ea 5b ea e5 [.....2...F...[..]
+  |         0bfc: eb 70 eb fb ec 86 ed 11 ed 9c ee 28 ee b4 ef 40 [.p.........(...@]
+  |         0c0c: ef cc f0 58 f0 e5 f1 72 f1 ff f2 8c f3 19 f3 a7 [...X...r........]
+  |         0c1c: f4 34 f4 c2 f5 50 f5 de f6 6d f6 fb f7 8a f8 19 [.4...P...m......]
+  |         [snip 28 bytes]
+  | 15) GreenTRC = curv.......#(-27;@EJOTY^chmrw|......................................%.+.2.8.>.E.L.R.Y.`.g.n.u.|.........................................&./.8.A.K.T.].g.q.z..............................!.-.8.C.O.Z.f.r.~......................... .-.;.H.U.c.q.~.......................+.:.I.X.g.w.....................'.7.H.Y.j.{...................+.=.O.a.t...................2.F.Z.n.................%.:.O.d.y...............'.=.T.j...............".9.Q.i...............*.C.\.u.............&.@.Z.t...............I.d.............%.A.^.z...........&.C.a.~...........1.O.m...........&.E.d...........#.C.c...........'.I.j...........4.V.x.........&.I.l...........A.e...........@.e......... .E.k.........*.Q.w.........;.c.........*.R.{.........G.p.........@.j.........>.i...... . A l . . .!.!H!u!.!.!."'"U".".".#.#8#f#.#.#.$.$M$|$.$.%.%8%h%.%.%.&'&W&.&.&.'.'I'z'.'.(.(?(q(.(.).)8)k).).*.*5*h*.*.+.+6+i+.+.,.,9,n,.,.-.-A-v-.-....L....../$/Z/././.050l0.0.1.1J1.1.1.2*2c2.2.3.3F3.3.3.4+4e4.4.5.5M5.5.5.676r6.6.7$7`7.7.8.8P8.8.9.9B9.9.9.:6:t:.:.;-;k;.;.<'<e<.<.="=a=.=.> >`>.>.?!?a?.?.@#@d@.@.A)AjA.A.B0BrB.B.C:C}C.D.DGD.D.E.EUE.E.F"FgF.F.G5G{G.H.HKH.H.I.IcI.I.J7J}J.K.KSK.K.L*LrL.M.MJM.M.N%NnN.OOIO.O.P'PqP.Q.QPQ.Q.R1R|R.S.S_S.S.TBT.T.U(UuU.V.V\V.V.WDW.W.X/X}X.Y.YiY.Z.ZVZ.Z.[E[.[.\5\.\.]']x].^.^l^._._a_.`.`W`.`.aOa.a.bIb.b.cCc.c.d@d.d.e=e.e.f=f.f.g=g.g.h?h.h.iCi.i.jHj.j.kOk.k.lWl.m.m`m.n.nkn.o.oxo.p+p.p.q:q.q.rKr.s.s]s.t.tpt.u(u.u.v>v.v.wVw.x.xnx.y*y.y.zFz.{.{c{.|!|.|.}A}.~.~b~..#.....G.....k...0.....W.........G.....r...;.....i...3.....d...0.....c...1.....f...6.....n...?.....z...M... ....._...4.....u...L...$.....h...B.........d...@.........i...G...&.....v...V...8.........n...R...7.........u...\...D...-........u...`...K...8...%.........y...h...Y...J...;.......!.............z...p...g..._...X...Q...K...F...A...=...:...8...6...5...5...6...7...9...<...?...D...I...N...U...\...d...l...v.................)...6...D...S...c...s.............2...F...[...p.........(...@...X...r.........4...P...m.........8...W...w.....)...K...m..
+  |     - Tag 'gTRC' (2060 bytes, type 'curv'):
+  |         043c: 63 75 72 76 00 00 00 00 00 00 04 00 00 00 00 05 [curv............]
+  |         044c: 00 0a 00 0f 00 14 00 19 00 1e 00 23 00 28 00 2d [...........#.(.-]
+  |         045c: 00 32 00 37 00 3b 00 40 00 45 00 4a 00 4f 00 54 [.2.7.;.@.E.J.O.T]
+  |         046c: 00 59 00 5e 00 63 00 68 00 6d 00 72 00 77 00 7c [.Y.^.c.h.m.r.w.|]
+  |         047c: 00 81 00 86 00 8b 00 90 00 95 00 9a 00 9f 00 a4 [................]
+  |         048c: 00 a9 00 ae 00 b2 00 b7 00 bc 00 c1 00 c6 00 cb [................]
+  |         049c: 00 d0 00 d5 00 db 00 e0 00 e5 00 eb 00 f0 00 f6 [................]
+  |         04ac: 00 fb 01 01 01 07 01 0d 01 13 01 19 01 1f 01 25 [...............%]
+  |         04bc: 01 2b 01 32 01 38 01 3e 01 45 01 4c 01 52 01 59 [.+.2.8.>.E.L.R.Y]
+  |         04cc: 01 60 01 67 01 6e 01 75 01 7c 01 83 01 8b 01 92 [.`.g.n.u.|......]
+  |         04dc: 01 9a 01 a1 01 a9 01 b1 01 b9 01 c1 01 c9 01 d1 [................]
+  |         04ec: 01 d9 01 e1 01 e9 01 f2 01 fa 02 03 02 0c 02 14 [................]
+  |         04fc: 02 1d 02 26 02 2f 02 38 02 41 02 4b 02 54 02 5d [...&./.8.A.K.T.]]
+  |         050c: 02 67 02 71 02 7a 02 84 02 8e 02 98 02 a2 02 ac [.g.q.z..........]
+  |         051c: 02 b6 02 c1 02 cb 02 d5 02 e0 02 eb 02 f5 03 00 [................]
+  |         052c: 03 0b 03 16 03 21 03 2d 03 38 03 43 03 4f 03 5a [.....!.-.8.C.O.Z]
+  |         053c: 03 66 03 72 03 7e 03 8a 03 96 03 a2 03 ae 03 ba [.f.r.~..........]
+  |         054c: 03 c7 03 d3 03 e0 03 ec 03 f9 04 06 04 13 04 20 [............... ]
+  |         055c: 04 2d 04 3b 04 48 04 55 04 63 04 71 04 7e 04 8c [.-.;.H.U.c.q.~..]
+  |         056c: 04 9a 04 a8 04 b6 04 c4 04 d3 04 e1 04 f0 04 fe [................]
+  |         057c: 05 0d 05 1c 05 2b 05 3a 05 49 05 58 05 67 05 77 [.....+.:.I.X.g.w]
+  |         058c: 05 86 05 96 05 a6 05 b5 05 c5 05 d5 05 e5 05 f6 [................]
+  |         059c: 06 06 06 16 06 27 06 37 06 48 06 59 06 6a 06 7b [.....'.7.H.Y.j.{]
+  |         05ac: 06 8c 06 9d 06 af 06 c0 06 d1 06 e3 06 f5 07 07 [................]
+  |         05bc: 07 19 07 2b 07 3d 07 4f 07 61 07 74 07 86 07 99 [...+.=.O.a.t....]
+  |         05cc: 07 ac 07 bf 07 d2 07 e5 07 f8 08 0b 08 1f 08 32 [...............2]
+  |         05dc: 08 46 08 5a 08 6e 08 82 08 96 08 aa 08 be 08 d2 [.F.Z.n..........]
+  |         05ec: 08 e7 08 fb 09 10 09 25 09 3a 09 4f 09 64 09 79 [.......%.:.O.d.y]
+  |         05fc: 09 8f 09 a4 09 ba 09 cf 09 e5 09 fb 0a 11 0a 27 [...............']
+  |         060c: 0a 3d 0a 54 0a 6a 0a 81 0a 98 0a ae 0a c5 0a dc [.=.T.j..........]
+  |         061c: 0a f3 0b 0b 0b 22 0b 39 0b 51 0b 69 0b 80 0b 98 [.....".9.Q.i....]
+  |         062c: 0b b0 0b c8 0b e1 0b f9 0c 12 0c 2a 0c 43 0c 5c [...........*.C.\]
+  |         063c: 0c 75 0c 8e 0c a7 0c c0 0c d9 0c f3 0d 0d 0d 26 [.u.............&]
+  |         064c: 0d 40 0d 5a 0d 74 0d 8e 0d a9 0d c3 0d de 0d f8 [.@.Z.t..........]
+  |         065c: 0e 13 0e 2e 0e 49 0e 64 0e 7f 0e 9b 0e b6 0e d2 [.....I.d........]
+  |         066c: 0e ee 0f 09 0f 25 0f 41 0f 5e 0f 7a 0f 96 0f b3 [.....%.A.^.z....]
+  |         067c: 0f cf 0f ec 10 09 10 26 10 43 10 61 10 7e 10 9b [.......&.C.a.~..]
+  |         068c: 10 b9 10 d7 10 f5 11 13 11 31 11 4f 11 6d 11 8c [.........1.O.m..]
+  |         069c: 11 aa 11 c9 11 e8 12 07 12 26 12 45 12 64 12 84 [.........&.E.d..]
+  |         06ac: 12 a3 12 c3 12 e3 13 03 13 23 13 43 13 63 13 83 [.........#.C.c..]
+  |         06bc: 13 a4 13 c5 13 e5 14 06 14 27 14 49 14 6a 14 8b [.........'.I.j..]
+  |         06cc: 14 ad 14 ce 14 f0 15 12 15 34 15 56 15 78 15 9b [.........4.V.x..]
+  |         06dc: 15 bd 15 e0 16 03 16 26 16 49 16 6c 16 8f 16 b2 [.......&.I.l....]
+  |         06ec: 16 d6 16 fa 17 1d 17 41 17 65 17 89 17 ae 17 d2 [.......A.e......]
+  |         06fc: 17 f7 18 1b 18 40 18 65 18 8a 18 af 18 d5 18 fa [.....@.e........]
+  |         070c: 19 20 19 45 19 6b 19 91 19 b7 19 dd 1a 04 1a 2a [. .E.k.........*]
+  |         071c: 1a 51 1a 77 1a 9e 1a c5 1a ec 1b 14 1b 3b 1b 63 [.Q.w.........;.c]
+  |         072c: 1b 8a 1b b2 1b da 1c 02 1c 2a 1c 52 1c 7b 1c a3 [.........*.R.{..]
+  |         073c: 1c cc 1c f5 1d 1e 1d 47 1d 70 1d 99 1d c3 1d ec [.......G.p......]
+  |         074c: 1e 16 1e 40 1e 6a 1e 94 1e be 1e e9 1f 13 1f 3e [...@.j.........>]
+  |         075c: 1f 69 1f 94 1f bf 1f ea 20 15 20 41 20 6c 20 98 [.i...... . A l .]
+  |         076c: 20 c4 20 f0 21 1c 21 48 21 75 21 a1 21 ce 21 fb [ . .!.!H!u!.!.!.]
+  |         077c: 22 27 22 55 22 82 22 af 22 dd 23 0a 23 38 23 66 ["'"U".".".#.#8#f]
+  |         078c: 23 94 23 c2 23 f0 24 1f 24 4d 24 7c 24 ab 24 da [#.#.#.$.$M$|$.$.]
+  |         079c: 25 09 25 38 25 68 25 97 25 c7 25 f7 26 27 26 57 [%.%8%h%.%.%.&'&W]
+  |         07ac: 26 87 26 b7 26 e8 27 18 27 49 27 7a 27 ab 27 dc [&.&.&.'.'I'z'.'.]
+  |         07bc: 28 0d 28 3f 28 71 28 a2 28 d4 29 06 29 38 29 6b [(.(?(q(.(.).)8)k]
+  |         07cc: 29 9d 29 d0 2a 02 2a 35 2a 68 2a 9b 2a cf 2b 02 [).).*.*5*h*.*.+.]
+  |         07dc: 2b 36 2b 69 2b 9d 2b d1 2c 05 2c 39 2c 6e 2c a2 [+6+i+.+.,.,9,n,.]
+  |         07ec: 2c d7 2d 0c 2d 41 2d 76 2d ab 2d e1 2e 16 2e 4c [,.-.-A-v-.-....L]
+  |         07fc: 2e 82 2e b7 2e ee 2f 24 2f 5a 2f 91 2f c7 2f fe [....../$/Z/././.]
+  |         080c: 30 35 30 6c 30 a4 30 db 31 12 31 4a 31 82 31 ba [050l0.0.1.1J1.1.]
+  |         081c: 31 f2 32 2a 32 63 32 9b 32 d4 33 0d 33 46 33 7f [1.2*2c2.2.3.3F3.]
+  |         082c: 33 b8 33 f1 34 2b 34 65 34 9e 34 d8 35 13 35 4d [3.3.4+4e4.4.5.5M]
+  |         083c: 35 87 35 c2 35 fd 36 37 36 72 36 ae 36 e9 37 24 [5.5.5.676r6.6.7$]
+  |         084c: 37 60 37 9c 37 d7 38 14 38 50 38 8c 38 c8 39 05 [7`7.7.8.8P8.8.9.]
+  |         085c: 39 42 39 7f 39 bc 39 f9 3a 36 3a 74 3a b2 3a ef [9B9.9.9.:6:t:.:.]
+  |         086c: 3b 2d 3b 6b 3b aa 3b e8 3c 27 3c 65 3c a4 3c e3 [;-;k;.;.<'<e<.<.]
+  |         087c: 3d 22 3d 61 3d a1 3d e0 3e 20 3e 60 3e a0 3e e0 [="=a=.=.> >`>.>.]
+  |         088c: 3f 21 3f 61 3f a2 3f e2 40 23 40 64 40 a6 40 e7 [?!?a?.?.@#@d@.@.]
+  |         089c: 41 29 41 6a 41 ac 41 ee 42 30 42 72 42 b5 42 f7 [A)AjA.A.B0BrB.B.]
+  |         08ac: 43 3a 43 7d 43 c0 44 03 44 47 44 8a 44 ce 45 12 [C:C}C.D.DGD.D.E.]
+  |         08bc: 45 55 45 9a 45 de 46 22 46 67 46 ab 46 f0 47 35 [EUE.E.F"FgF.F.G5]
+  |         08cc: 47 7b 47 c0 48 05 48 4b 48 91 48 d7 49 1d 49 63 [G{G.H.HKH.H.I.Ic]
+  |         08dc: 49 a9 49 f0 4a 37 4a 7d 4a c4 4b 0c 4b 53 4b 9a [I.I.J7J}J.K.KSK.]
+  |         08ec: 4b e2 4c 2a 4c 72 4c ba 4d 02 4d 4a 4d 93 4d dc [K.L*LrL.M.MJM.M.]
+  |         08fc: 4e 25 4e 6e 4e b7 4f 00 4f 49 4f 93 4f dd 50 27 [N%NnN.O.OIO.O.P']
+  |         090c: 50 71 50 bb 51 06 51 50 51 9b 51 e6 52 31 52 7c [PqP.Q.QPQ.Q.R1R|]
+  |         091c: 52 c7 53 13 53 5f 53 aa 53 f6 54 42 54 8f 54 db [R.S.S_S.S.TBT.T.]
+  |         092c: 55 28 55 75 55 c2 56 0f 56 5c 56 a9 56 f7 57 44 [U(UuU.V.V\V.V.WD]
+  |         093c: 57 92 57 e0 58 2f 58 7d 58 cb 59 1a 59 69 59 b8 [W.W.X/X}X.Y.YiY.]
+  |         094c: 5a 07 5a 56 5a a6 5a f5 5b 45 5b 95 5b e5 5c 35 [Z.ZVZ.Z.[E[.[.\5]
+  |         095c: 5c 86 5c d6 5d 27 5d 78 5d c9 5e 1a 5e 6c 5e bd [\.\.]']x].^.^l^.]
+  |         096c: 5f 0f 5f 61 5f b3 60 05 60 57 60 aa 60 fc 61 4f [_._a_.`.`W`.`.aO]
+  |         097c: 61 a2 61 f5 62 49 62 9c 62 f0 63 43 63 97 63 eb [a.a.bIb.b.cCc.c.]
+  |         098c: 64 40 64 94 64 e9 65 3d 65 92 65 e7 66 3d 66 92 [d@d.d.e=e.e.f=f.]
+  |         099c: 66 e8 67 3d 67 93 67 e9 68 3f 68 96 68 ec 69 43 [f.g=g.g.h?h.h.iC]
+  |         09ac: 69 9a 69 f1 6a 48 6a 9f 6a f7 6b 4f 6b a7 6b ff [i.i.jHj.j.kOk.k.]
+  |         09bc: 6c 57 6c af 6d 08 6d 60 6d b9 6e 12 6e 6b 6e c4 [lWl.m.m`m.n.nkn.]
+  |         09cc: 6f 1e 6f 78 6f d1 70 2b 70 86 70 e0 71 3a 71 95 [o.oxo.p+p.p.q:q.]
+  |         09dc: 71 f0 72 4b 72 a6 73 01 73 5d 73 b8 74 14 74 70 [q.rKr.s.s]s.t.tp]
+  |         09ec: 74 cc 75 28 75 85 75 e1 76 3e 76 9b 76 f8 77 56 [t.u(u.u.v>v.v.wV]
+  |         09fc: 77 b3 78 11 78 6e 78 cc 79 2a 79 89 79 e7 7a 46 [w.x.xnx.y*y.y.zF]
+  |         0a0c: 7a a5 7b 04 7b 63 7b c2 7c 21 7c 81 7c e1 7d 41 [z.{.{c{.|!|.|.}A]
+  |         0a1c: 7d a1 7e 01 7e 62 7e c2 7f 23 7f 84 7f e5 80 47 [}.~.~b~..#.....G]
+  |         0a2c: 80 a8 81 0a 81 6b 81 cd 82 30 82 92 82 f4 83 57 [.....k...0.....W]
+  |         0a3c: 83 ba 84 1d 84 80 84 e3 85 47 85 ab 86 0e 86 72 [.........G.....r]
+  |         0a4c: 86 d7 87 3b 87 9f 88 04 88 69 88 ce 89 33 89 99 [...;.....i...3..]
+  |         0a5c: 89 fe 8a 64 8a ca 8b 30 8b 96 8b fc 8c 63 8c ca [...d...0.....c..]
+  |         0a6c: 8d 31 8d 98 8d ff 8e 66 8e ce 8f 36 8f 9e 90 06 [.1.....f...6....]
+  |         0a7c: 90 6e 90 d6 91 3f 91 a8 92 11 92 7a 92 e3 93 4d [.n...?.....z...M]
+  |         0a8c: 93 b6 94 20 94 8a 94 f4 95 5f 95 c9 96 34 96 9f [... ....._...4..]
+  |         0a9c: 97 0a 97 75 97 e0 98 4c 98 b8 99 24 99 90 99 fc [...u...L...$....]
+  |         0aac: 9a 68 9a d5 9b 42 9b af 9c 1c 9c 89 9c f7 9d 64 [.h...B.........d]
+  |         0abc: 9d d2 9e 40 9e ae 9f 1d 9f 8b 9f fa a0 69 a0 d8 [...@.........i..]
+  |         0acc: a1 47 a1 b6 a2 26 a2 96 a3 06 a3 76 a3 e6 a4 56 [.G...&.....v...V]
+  |         0adc: a4 c7 a5 38 a5 a9 a6 1a a6 8b a6 fd a7 6e a7 e0 [...8.........n..]
+  |         0aec: a8 52 a8 c4 a9 37 a9 a9 aa 1c aa 8f ab 02 ab 75 [.R...7.........u]
+  |         0afc: ab e9 ac 5c ac d0 ad 44 ad b8 ae 2d ae a1 af 16 [...\...D...-....]
+  |         0b0c: af 8b b0 00 b0 75 b0 ea b1 60 b1 d6 b2 4b b2 c2 [.....u...`...K..]
+  |         0b1c: b3 38 b3 ae b4 25 b4 9c b5 13 b5 8a b6 01 b6 79 [.8...%.........y]
+  |         0b2c: b6 f0 b7 68 b7 e0 b8 59 b8 d1 b9 4a b9 c2 ba 3b [...h...Y...J...;]
+  |         0b3c: ba b5 bb 2e bb a7 bc 21 bc 9b bd 15 bd 8f be 0a [.......!........]
+  |         0b4c: be 84 be ff bf 7a bf f5 c0 70 c0 ec c1 67 c1 e3 [.....z...p...g..]
+  |         0b5c: c2 5f c2 db c3 58 c3 d4 c4 51 c4 ce c5 4b c5 c8 [._...X...Q...K..]
+  |         0b6c: c6 46 c6 c3 c7 41 c7 bf c8 3d c8 bc c9 3a c9 b9 [.F...A...=...:..]
+  |         0b7c: ca 38 ca b7 cb 36 cb b6 cc 35 cc b5 cd 35 cd b5 [.8...6...5...5..]
+  |         0b8c: ce 36 ce b6 cf 37 cf b8 d0 39 d0 ba d1 3c d1 be [.6...7...9...<..]
+  |         0b9c: d2 3f d2 c1 d3 44 d3 c6 d4 49 d4 cb d5 4e d5 d1 [.?...D...I...N..]
+  |         0bac: d6 55 d6 d8 d7 5c d7 e0 d8 64 d8 e8 d9 6c d9 f1 [.U...\...d...l..]
+  |         0bbc: da 76 da fb db 80 dc 05 dc 8a dd 10 dd 96 de 1c [.v..............]
+  |         0bcc: de a2 df 29 df af e0 36 e0 bd e1 44 e1 cc e2 53 [...)...6...D...S]
+  |         0bdc: e2 db e3 63 e3 eb e4 73 e4 fc e5 84 e6 0d e6 96 [...c...s........]
+  |         0bec: e7 1f e7 a9 e8 32 e8 bc e9 46 e9 d0 ea 5b ea e5 [.....2...F...[..]
+  |         0bfc: eb 70 eb fb ec 86 ed 11 ed 9c ee 28 ee b4 ef 40 [.p.........(...@]
+  |         0c0c: ef cc f0 58 f0 e5 f1 72 f1 ff f2 8c f3 19 f3 a7 [...X...r........]
+  |         0c1c: f4 34 f4 c2 f5 50 f5 de f6 6d f6 fb f7 8a f8 19 [.4...P...m......]
+  |         [snip 28 bytes]
+  | 16) BlueTRC = curv.......#(-27;@EJOTY^chmrw|......................................%.+.2.8.>.E.L.R.Y.`.g.n.u.|.........................................&./.8.A.K.T.].g.q.z..............................!.-.8.C.O.Z.f.r.~......................... .-.;.H.U.c.q.~.......................+.:.I.X.g.w.....................'.7.H.Y.j.{...................+.=.O.a.t...................2.F.Z.n.................%.:.O.d.y...............'.=.T.j...............".9.Q.i...............*.C.\.u.............&.@.Z.t...............I.d.............%.A.^.z...........&.C.a.~...........1.O.m...........&.E.d...........#.C.c...........'.I.j...........4.V.x.........&.I.l...........A.e...........@.e......... .E.k.........*.Q.w.........;.c.........*.R.{.........G.p.........@.j.........>.i...... . A l . . .!.!H!u!.!.!."'"U".".".#.#8#f#.#.#.$.$M$|$.$.%.%8%h%.%.%.&'&W&.&.&.'.'I'z'.'.(.(?(q(.(.).)8)k).).*.*5*h*.*.+.+6+i+.+.,.,9,n,.,.-.-A-v-.-....L....../$/Z/././.050l0.0.1.1J1.1.1.2*2c2.2.3.3F3.3.3.4+4e4.4.5.5M5.5.5.676r6.6.7$7`7.7.8.8P8.8.9.9B9.9.9.:6:t:.:.;-;k;.;.<'<e<.<.="=a=.=.> >`>.>.?!?a?.?.@#@d@.@.A)AjA.A.B0BrB.B.C:C}C.D.DGD.D.E.EUE.E.F"FgF.F.G5G{G.H.HKH.H.I.IcI.I.J7J}J.K.KSK.K.L*LrL.M.MJM.M.N%NnN.OOIO.O.P'PqP.Q.QPQ.Q.R1R|R.S.S_S.S.TBT.T.U(UuU.V.V\V.V.WDW.W.X/X}X.Y.YiY.Z.ZVZ.Z.[E[.[.\5\.\.]']x].^.^l^._._a_.`.`W`.`.aOa.a.bIb.b.cCc.c.d@d.d.e=e.e.f=f.f.g=g.g.h?h.h.iCi.i.jHj.j.kOk.k.lWl.m.m`m.n.nkn.o.oxo.p+p.p.q:q.q.rKr.s.s]s.t.tpt.u(u.u.v>v.v.wVw.x.xnx.y*y.y.zFz.{.{c{.|!|.|.}A}.~.~b~..#.....G.....k...0.....W.........G.....r...;.....i...3.....d...0.....c...1.....f...6.....n...?.....z...M... ....._...4.....u...L...$.....h...B.........d...@.........i...G...&.....v...V...8.........n...R...7.........u...\...D...-........u...`...K...8...%.........y...h...Y...J...;.......!.............z...p...g..._...X...Q...K...F...A...=...:...8...6...5...5...6...7...9...<...?...D...I...N...U...\...d...l...v.................)...6...D...S...c...s.............2...F...[...p.........(...@...X...r.........4...P...m.........8...W...w.....)...K...m..
+  |     - Tag 'bTRC' (2060 bytes, type 'curv'):
+  |         043c: 63 75 72 76 00 00 00 00 00 00 04 00 00 00 00 05 [curv............]
+  |         044c: 00 0a 00 0f 00 14 00 19 00 1e 00 23 00 28 00 2d [...........#.(.-]
+  |         045c: 00 32 00 37 00 3b 00 40 00 45 00 4a 00 4f 00 54 [.2.7.;.@.E.J.O.T]
+  |         046c: 00 59 00 5e 00 63 00 68 00 6d 00 72 00 77 00 7c [.Y.^.c.h.m.r.w.|]
+  |         047c: 00 81 00 86 00 8b 00 90 00 95 00 9a 00 9f 00 a4 [................]
+  |         048c: 00 a9 00 ae 00 b2 00 b7 00 bc 00 c1 00 c6 00 cb [................]
+  |         049c: 00 d0 00 d5 00 db 00 e0 00 e5 00 eb 00 f0 00 f6 [................]
+  |         04ac: 00 fb 01 01 01 07 01 0d 01 13 01 19 01 1f 01 25 [...............%]
+  |         04bc: 01 2b 01 32 01 38 01 3e 01 45 01 4c 01 52 01 59 [.+.2.8.>.E.L.R.Y]
+  |         04cc: 01 60 01 67 01 6e 01 75 01 7c 01 83 01 8b 01 92 [.`.g.n.u.|......]
+  |         04dc: 01 9a 01 a1 01 a9 01 b1 01 b9 01 c1 01 c9 01 d1 [................]
+  |         04ec: 01 d9 01 e1 01 e9 01 f2 01 fa 02 03 02 0c 02 14 [................]
+  |         04fc: 02 1d 02 26 02 2f 02 38 02 41 02 4b 02 54 02 5d [...&./.8.A.K.T.]]
+  |         050c: 02 67 02 71 02 7a 02 84 02 8e 02 98 02 a2 02 ac [.g.q.z..........]
+  |         051c: 02 b6 02 c1 02 cb 02 d5 02 e0 02 eb 02 f5 03 00 [................]
+  |         052c: 03 0b 03 16 03 21 03 2d 03 38 03 43 03 4f 03 5a [.....!.-.8.C.O.Z]
+  |         053c: 03 66 03 72 03 7e 03 8a 03 96 03 a2 03 ae 03 ba [.f.r.~..........]
+  |         054c: 03 c7 03 d3 03 e0 03 ec 03 f9 04 06 04 13 04 20 [............... ]
+  |         055c: 04 2d 04 3b 04 48 04 55 04 63 04 71 04 7e 04 8c [.-.;.H.U.c.q.~..]
+  |         056c: 04 9a 04 a8 04 b6 04 c4 04 d3 04 e1 04 f0 04 fe [................]
+  |         057c: 05 0d 05 1c 05 2b 05 3a 05 49 05 58 05 67 05 77 [.....+.:.I.X.g.w]
+  |         058c: 05 86 05 96 05 a6 05 b5 05 c5 05 d5 05 e5 05 f6 [................]
+  |         059c: 06 06 06 16 06 27 06 37 06 48 06 59 06 6a 06 7b [.....'.7.H.Y.j.{]
+  |         05ac: 06 8c 06 9d 06 af 06 c0 06 d1 06 e3 06 f5 07 07 [................]
+  |         05bc: 07 19 07 2b 07 3d 07 4f 07 61 07 74 07 86 07 99 [...+.=.O.a.t....]
+  |         05cc: 07 ac 07 bf 07 d2 07 e5 07 f8 08 0b 08 1f 08 32 [...............2]
+  |         05dc: 08 46 08 5a 08 6e 08 82 08 96 08 aa 08 be 08 d2 [.F.Z.n..........]
+  |         05ec: 08 e7 08 fb 09 10 09 25 09 3a 09 4f 09 64 09 79 [.......%.:.O.d.y]
+  |         05fc: 09 8f 09 a4 09 ba 09 cf 09 e5 09 fb 0a 11 0a 27 [...............']
+  |         060c: 0a 3d 0a 54 0a 6a 0a 81 0a 98 0a ae 0a c5 0a dc [.=.T.j..........]
+  |         061c: 0a f3 0b 0b 0b 22 0b 39 0b 51 0b 69 0b 80 0b 98 [.....".9.Q.i....]
+  |         062c: 0b b0 0b c8 0b e1 0b f9 0c 12 0c 2a 0c 43 0c 5c [...........*.C.\]
+  |         063c: 0c 75 0c 8e 0c a7 0c c0 0c d9 0c f3 0d 0d 0d 26 [.u.............&]
+  |         064c: 0d 40 0d 5a 0d 74 0d 8e 0d a9 0d c3 0d de 0d f8 [.@.Z.t..........]
+  |         065c: 0e 13 0e 2e 0e 49 0e 64 0e 7f 0e 9b 0e b6 0e d2 [.....I.d........]
+  |         066c: 0e ee 0f 09 0f 25 0f 41 0f 5e 0f 7a 0f 96 0f b3 [.....%.A.^.z....]
+  |         067c: 0f cf 0f ec 10 09 10 26 10 43 10 61 10 7e 10 9b [.......&.C.a.~..]
+  |         068c: 10 b9 10 d7 10 f5 11 13 11 31 11 4f 11 6d 11 8c [.........1.O.m..]
+  |         069c: 11 aa 11 c9 11 e8 12 07 12 26 12 45 12 64 12 84 [.........&.E.d..]
+  |         06ac: 12 a3 12 c3 12 e3 13 03 13 23 13 43 13 63 13 83 [.........#.C.c..]
+  |         06bc: 13 a4 13 c5 13 e5 14 06 14 27 14 49 14 6a 14 8b [.........'.I.j..]
+  |         06cc: 14 ad 14 ce 14 f0 15 12 15 34 15 56 15 78 15 9b [.........4.V.x..]
+  |         06dc: 15 bd 15 e0 16 03 16 26 16 49 16 6c 16 8f 16 b2 [.......&.I.l....]
+  |         06ec: 16 d6 16 fa 17 1d 17 41 17 65 17 89 17 ae 17 d2 [.......A.e......]
+  |         06fc: 17 f7 18 1b 18 40 18 65 18 8a 18 af 18 d5 18 fa [.....@.e........]
+  |         070c: 19 20 19 45 19 6b 19 91 19 b7 19 dd 1a 04 1a 2a [. .E.k.........*]
+  |         071c: 1a 51 1a 77 1a 9e 1a c5 1a ec 1b 14 1b 3b 1b 63 [.Q.w.........;.c]
+  |         072c: 1b 8a 1b b2 1b da 1c 02 1c 2a 1c 52 1c 7b 1c a3 [.........*.R.{..]
+  |         073c: 1c cc 1c f5 1d 1e 1d 47 1d 70 1d 99 1d c3 1d ec [.......G.p......]
+  |         074c: 1e 16 1e 40 1e 6a 1e 94 1e be 1e e9 1f 13 1f 3e [...@.j.........>]
+  |         075c: 1f 69 1f 94 1f bf 1f ea 20 15 20 41 20 6c 20 98 [.i...... . A l .]
+  |         076c: 20 c4 20 f0 21 1c 21 48 21 75 21 a1 21 ce 21 fb [ . .!.!H!u!.!.!.]
+  |         077c: 22 27 22 55 22 82 22 af 22 dd 23 0a 23 38 23 66 ["'"U".".".#.#8#f]
+  |         078c: 23 94 23 c2 23 f0 24 1f 24 4d 24 7c 24 ab 24 da [#.#.#.$.$M$|$.$.]
+  |         079c: 25 09 25 38 25 68 25 97 25 c7 25 f7 26 27 26 57 [%.%8%h%.%.%.&'&W]
+  |         07ac: 26 87 26 b7 26 e8 27 18 27 49 27 7a 27 ab 27 dc [&.&.&.'.'I'z'.'.]
+  |         07bc: 28 0d 28 3f 28 71 28 a2 28 d4 29 06 29 38 29 6b [(.(?(q(.(.).)8)k]
+  |         07cc: 29 9d 29 d0 2a 02 2a 35 2a 68 2a 9b 2a cf 2b 02 [).).*.*5*h*.*.+.]
+  |         07dc: 2b 36 2b 69 2b 9d 2b d1 2c 05 2c 39 2c 6e 2c a2 [+6+i+.+.,.,9,n,.]
+  |         07ec: 2c d7 2d 0c 2d 41 2d 76 2d ab 2d e1 2e 16 2e 4c [,.-.-A-v-.-....L]
+  |         07fc: 2e 82 2e b7 2e ee 2f 24 2f 5a 2f 91 2f c7 2f fe [....../$/Z/././.]
+  |         080c: 30 35 30 6c 30 a4 30 db 31 12 31 4a 31 82 31 ba [050l0.0.1.1J1.1.]
+  |         081c: 31 f2 32 2a 32 63 32 9b 32 d4 33 0d 33 46 33 7f [1.2*2c2.2.3.3F3.]
+  |         082c: 33 b8 33 f1 34 2b 34 65 34 9e 34 d8 35 13 35 4d [3.3.4+4e4.4.5.5M]
+  |         083c: 35 87 35 c2 35 fd 36 37 36 72 36 ae 36 e9 37 24 [5.5.5.676r6.6.7$]
+  |         084c: 37 60 37 9c 37 d7 38 14 38 50 38 8c 38 c8 39 05 [7`7.7.8.8P8.8.9.]
+  |         085c: 39 42 39 7f 39 bc 39 f9 3a 36 3a 74 3a b2 3a ef [9B9.9.9.:6:t:.:.]
+  |         086c: 3b 2d 3b 6b 3b aa 3b e8 3c 27 3c 65 3c a4 3c e3 [;-;k;.;.<'<e<.<.]
+  |         087c: 3d 22 3d 61 3d a1 3d e0 3e 20 3e 60 3e a0 3e e0 [="=a=.=.> >`>.>.]
+  |         088c: 3f 21 3f 61 3f a2 3f e2 40 23 40 64 40 a6 40 e7 [?!?a?.?.@#@d@.@.]
+  |         089c: 41 29 41 6a 41 ac 41 ee 42 30 42 72 42 b5 42 f7 [A)AjA.A.B0BrB.B.]
+  |         08ac: 43 3a 43 7d 43 c0 44 03 44 47 44 8a 44 ce 45 12 [C:C}C.D.DGD.D.E.]
+  |         08bc: 45 55 45 9a 45 de 46 22 46 67 46 ab 46 f0 47 35 [EUE.E.F"FgF.F.G5]
+  |         08cc: 47 7b 47 c0 48 05 48 4b 48 91 48 d7 49 1d 49 63 [G{G.H.HKH.H.I.Ic]
+  |         08dc: 49 a9 49 f0 4a 37 4a 7d 4a c4 4b 0c 4b 53 4b 9a [I.I.J7J}J.K.KSK.]
+  |         08ec: 4b e2 4c 2a 4c 72 4c ba 4d 02 4d 4a 4d 93 4d dc [K.L*LrL.M.MJM.M.]
+  |         08fc: 4e 25 4e 6e 4e b7 4f 00 4f 49 4f 93 4f dd 50 27 [N%NnN.O.OIO.O.P']
+  |         090c: 50 71 50 bb 51 06 51 50 51 9b 51 e6 52 31 52 7c [PqP.Q.QPQ.Q.R1R|]
+  |         091c: 52 c7 53 13 53 5f 53 aa 53 f6 54 42 54 8f 54 db [R.S.S_S.S.TBT.T.]
+  |         092c: 55 28 55 75 55 c2 56 0f 56 5c 56 a9 56 f7 57 44 [U(UuU.V.V\V.V.WD]
+  |         093c: 57 92 57 e0 58 2f 58 7d 58 cb 59 1a 59 69 59 b8 [W.W.X/X}X.Y.YiY.]
+  |         094c: 5a 07 5a 56 5a a6 5a f5 5b 45 5b 95 5b e5 5c 35 [Z.ZVZ.Z.[E[.[.\5]
+  |         095c: 5c 86 5c d6 5d 27 5d 78 5d c9 5e 1a 5e 6c 5e bd [\.\.]']x].^.^l^.]
+  |         096c: 5f 0f 5f 61 5f b3 60 05 60 57 60 aa 60 fc 61 4f [_._a_.`.`W`.`.aO]
+  |         097c: 61 a2 61 f5 62 49 62 9c 62 f0 63 43 63 97 63 eb [a.a.bIb.b.cCc.c.]
+  |         098c: 64 40 64 94 64 e9 65 3d 65 92 65 e7 66 3d 66 92 [d@d.d.e=e.e.f=f.]
+  |         099c: 66 e8 67 3d 67 93 67 e9 68 3f 68 96 68 ec 69 43 [f.g=g.g.h?h.h.iC]
+  |         09ac: 69 9a 69 f1 6a 48 6a 9f 6a f7 6b 4f 6b a7 6b ff [i.i.jHj.j.kOk.k.]
+  |         09bc: 6c 57 6c af 6d 08 6d 60 6d b9 6e 12 6e 6b 6e c4 [lWl.m.m`m.n.nkn.]
+  |         09cc: 6f 1e 6f 78 6f d1 70 2b 70 86 70 e0 71 3a 71 95 [o.oxo.p+p.p.q:q.]
+  |         09dc: 71 f0 72 4b 72 a6 73 01 73 5d 73 b8 74 14 74 70 [q.rKr.s.s]s.t.tp]
+  |         09ec: 74 cc 75 28 75 85 75 e1 76 3e 76 9b 76 f8 77 56 [t.u(u.u.v>v.v.wV]
+  |         09fc: 77 b3 78 11 78 6e 78 cc 79 2a 79 89 79 e7 7a 46 [w.x.xnx.y*y.y.zF]
+  |         0a0c: 7a a5 7b 04 7b 63 7b c2 7c 21 7c 81 7c e1 7d 41 [z.{.{c{.|!|.|.}A]
+  |         0a1c: 7d a1 7e 01 7e 62 7e c2 7f 23 7f 84 7f e5 80 47 [}.~.~b~..#.....G]
+  |         0a2c: 80 a8 81 0a 81 6b 81 cd 82 30 82 92 82 f4 83 57 [.....k...0.....W]
+  |         0a3c: 83 ba 84 1d 84 80 84 e3 85 47 85 ab 86 0e 86 72 [.........G.....r]
+  |         0a4c: 86 d7 87 3b 87 9f 88 04 88 69 88 ce 89 33 89 99 [...;.....i...3..]
+  |         0a5c: 89 fe 8a 64 8a ca 8b 30 8b 96 8b fc 8c 63 8c ca [...d...0.....c..]
+  |         0a6c: 8d 31 8d 98 8d ff 8e 66 8e ce 8f 36 8f 9e 90 06 [.1.....f...6....]
+  |         0a7c: 90 6e 90 d6 91 3f 91 a8 92 11 92 7a 92 e3 93 4d [.n...?.....z...M]
+  |         0a8c: 93 b6 94 20 94 8a 94 f4 95 5f 95 c9 96 34 96 9f [... ....._...4..]
+  |         0a9c: 97 0a 97 75 97 e0 98 4c 98 b8 99 24 99 90 99 fc [...u...L...$....]
+  |         0aac: 9a 68 9a d5 9b 42 9b af 9c 1c 9c 89 9c f7 9d 64 [.h...B.........d]
+  |         0abc: 9d d2 9e 40 9e ae 9f 1d 9f 8b 9f fa a0 69 a0 d8 [...@.........i..]
+  |         0acc: a1 47 a1 b6 a2 26 a2 96 a3 06 a3 76 a3 e6 a4 56 [.G...&.....v...V]
+  |         0adc: a4 c7 a5 38 a5 a9 a6 1a a6 8b a6 fd a7 6e a7 e0 [...8.........n..]
+  |         0aec: a8 52 a8 c4 a9 37 a9 a9 aa 1c aa 8f ab 02 ab 75 [.R...7.........u]
+  |         0afc: ab e9 ac 5c ac d0 ad 44 ad b8 ae 2d ae a1 af 16 [...\...D...-....]
+  |         0b0c: af 8b b0 00 b0 75 b0 ea b1 60 b1 d6 b2 4b b2 c2 [.....u...`...K..]
+  |         0b1c: b3 38 b3 ae b4 25 b4 9c b5 13 b5 8a b6 01 b6 79 [.8...%.........y]
+  |         0b2c: b6 f0 b7 68 b7 e0 b8 59 b8 d1 b9 4a b9 c2 ba 3b [...h...Y...J...;]
+  |         0b3c: ba b5 bb 2e bb a7 bc 21 bc 9b bd 15 bd 8f be 0a [.......!........]
+  |         0b4c: be 84 be ff bf 7a bf f5 c0 70 c0 ec c1 67 c1 e3 [.....z...p...g..]
+  |         0b5c: c2 5f c2 db c3 58 c3 d4 c4 51 c4 ce c5 4b c5 c8 [._...X...Q...K..]
+  |         0b6c: c6 46 c6 c3 c7 41 c7 bf c8 3d c8 bc c9 3a c9 b9 [.F...A...=...:..]
+  |         0b7c: ca 38 ca b7 cb 36 cb b6 cc 35 cc b5 cd 35 cd b5 [.8...6...5...5..]
+  |         0b8c: ce 36 ce b6 cf 37 cf b8 d0 39 d0 ba d1 3c d1 be [.6...7...9...<..]
+  |         0b9c: d2 3f d2 c1 d3 44 d3 c6 d4 49 d4 cb d5 4e d5 d1 [.?...D...I...N..]
+  |         0bac: d6 55 d6 d8 d7 5c d7 e0 d8 64 d8 e8 d9 6c d9 f1 [.U...\...d...l..]
+  |         0bbc: da 76 da fb db 80 dc 05 dc 8a dd 10 dd 96 de 1c [.v..............]
+  |         0bcc: de a2 df 29 df af e0 36 e0 bd e1 44 e1 cc e2 53 [...)...6...D...S]
+  |         0bdc: e2 db e3 63 e3 eb e4 73 e4 fc e5 84 e6 0d e6 96 [...c...s........]
+  |         0bec: e7 1f e7 a9 e8 32 e8 bc e9 46 e9 d0 ea 5b ea e5 [.....2...F...[..]
+  |         0bfc: eb 70 eb fb ec 86 ed 11 ed 9c ee 28 ee b4 ef 40 [.p.........(...@]
+  |         0c0c: ef cc f0 58 f0 e5 f1 72 f1 ff f2 8c f3 19 f3 a7 [...X...r........]
+  |         0c1c: f4 34 f4 c2 f5 50 f5 de f6 6d f6 fb f7 8a f8 19 [.4...P...m......]
+  |         [snip 28 bytes]
+JPEG APP14 (12 bytes):
+      5f42: 41 64 6f 62 65 00 64 c0 00 00 00 01             [Adobe.d.....]
+  + [BinaryData directory, 7 bytes, Big-endian]
+  | DCTEncodeVersion = 100
+  | - Tag 0x0000 (2 bytes, int16u[1]):
+  |     5f47: 00 64                                           [.d]
+  | APP14Flags0 = 49152
+  | - Tag 0x0001 (2 bytes, int16u[1]):
+  |     5f49: c0 00                                           [..]
+  | APP14Flags1 = 0
+  | - Tag 0x0002 (2 bytes, int16u[1]):
+  |     5f4b: 00 00                                           [..]
+  | ColorTransform = 1
+  | - Tag 0x0003 (1 bytes, int8u[1]):
+  |     5f4d: 01                                              [.]
+JPEG DQT (65 bytes):
+      5f52: 00 03 01 01 01 01 01 03 01 01 01 03 03 03 03 04 [................]
+      5f62: 05 04 04 03 03 04 07 05 05 04 05 08 07 09 08 08 [................]
+      5f72: 07 07 07 08 0a 0c 0b 09 09 0c 0a 08 08 0b 0e 0b [................]
+      5f82: 0c 0d 0e 0e 0e 0e 09 0b 10 10 0f 0e 10 0d 0e 0e [................]
+      5f92: 0e                                              [.]
+JPEG DQT (65 bytes):
+      5f97: 01 03 03 03 04 03 04 07 04 04 07 0e 09 08 09 0e [................]
+      5fa7: 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e [................]
+      5fb7: 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e [................]
+      5fc7: 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e [................]
+      5fd7: 0e                                              [.]
+JPEG SOF0 (15 bytes):
+      5fdc: 08 0b 5a 0f 28 03 00 11 00 01 11 01 02 11 01    [..Z.(..........]
+  ImageWidth = 3880
+  ImageHeight = 2906
+  EncodingProcess = 0
+  BitsPerSample = 8
+  ColorComponents = 3
+  YCbCrSubSampling = 1 1
+JPEG DHT (26 bytes):
+      5fef: 00 00 02 03 01 01 01 01 00 00 00 00 00 00 00 00 [................]
+      5fff: 00 03 04 01 02 05 06 00 07 08                   [..........]
+JPEG DHT (96 bytes):
+      600d: 10 00 01 02 04 04 03 05 05 05 04 07 07 02 00 01 [................]
+      601d: 1d 02 01 03 04 05 11 12 00 13 21 22 06 31 32 14 [..........!".12.]
+      602d: 23 41 42 51 07 15 52 61 71 33 62 72 81 91 24 82 [#ABQ..Raq3br..$.]
+      603d: a1 b1 08 16 43 92 c1 d1 f0 25 34 53 a2 b2 e1 f1 [....C....%4S....]
+      604d: 63 c2 d2 17 e2 26 35 44 73 83 f2 09 18 54 93 a3 [c....&5Ds....T..]
+      605d: b3 27 36 45 64 74 19 37 84 c3 d3 46 65 94 a4 e3 [.'6Edt.7...Fe...]
+JPEG DHT (25 bytes):
+      6071: 01 00 03 01 01 01 01 01 00 00 00 00 00 00 00 00 [................]
+      6081: 00 00 01 02 03 04 05 06 07                      [.........]
+JPEG DHT (60 bytes):
+      608e: 11 00 02 02 02 02 01 03 04 00 04 07 01 00 00 00 [................]
+      609e: 0f 00 01 02 11 03 21 12 31 41 04 51 61 13 22 71 [......!.1A.Qa."q]
+      60ae: f0 05 32 81 b1 14 91 a1 c1 d1 e1 f1 23 42 33 15 [..2.........#B3.]
+      60be: 52 06 24 72 b2 43 62 82 c2 34 a2 f2             [R.$r.Cb..4..]
+JPEG SOS
+JPEG EOI

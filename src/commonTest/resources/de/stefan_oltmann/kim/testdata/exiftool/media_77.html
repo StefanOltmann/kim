@@ -1,0 +1,2553 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+ "http://www.w3.org/TR/1998/REC-html40-19980424/loose.dtd">
+<html>
+<head>
+<title>
+HTML Dump (C:/Users/micro/IdeaProjects/kim/src/commonTest/resources/de/stefan_oltmann/kim/testdata/full/media_77.heic)</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+<!--
+/* character style ID's */
+.D { color: #000000 } /* default color */
+.V { color: #ff0000 } /* duplicate block 1 */
+.W { color: #004400 } /* normal block 1 */
+.X { color: #ff4488 } /* duplicate block 2 */
+.Y { color: #448844 } /* normal block 2 */
+.U { color: #cc8844 } /* unused data block */
+.H { color: #0000ff } /* highlighted tag name */
+.F { color: #aa00dd } /* actual offset differs */
+.M { text-decoration: underline } /* maker notes data */
+.tt { /* tooltip text */
+    visibility: hidden;
+    position: absolute;
+    white-space: nowrap;
+    top: 0;
+    left: 0;
+    font-family: Verdana, sans-serif;
+    font-size: .7em;
+    padding: 2px 4px;
+    border: 1px solid gray;
+    z-index: 3;
+}
+.tb { /* tooltip background */
+    visibility: hidden;
+    position: absolute;
+    background: #ffffdd;
+    zoom: 1;
+    -moz-opacity: 0.8;
+    -khtml-opacity: 0.8;
+    -ms-filter: 'progid:DXImageTransform.Microsoft.Alpha(Opacity=80)';
+    filter: alpha(opacity=80);
+    opacity: 0.8;
+    z-index: 2;
+}
+/* table styles */
+table.dump {
+  border-top: 1px solid gray;
+  border-bottom: 1px solid gray;
+}
+table.dump td { padding: .2em .3em }
+td.c2 {
+  border-left: 1px solid gray;
+  border-right: 1px solid gray;
+}
+pre   { margin: 0 }
+table { font-size: .9em }
+body  { color: black; background: white }
+-->
+</style>
+<script language="JavaScript" type="text/JavaScript">
+<!-- Begin
+// tooltip positioning constants
+var TMAR = 4;   // top/left margins
+var BMAR = 16;  // bottom/right margins (scrollbars may overhang inner dimensions)
+var XOFF = 10;  // x offset from cursor
+var YOFF = 40;  // y offset
+var YMIN = 10;  // minimum y offset
+var YTOP = 20;  // y offset when above cursor
+// common variables
+var safari1 = navigator.userAgent.indexOf("Safari/312.6") >= 0;
+var ie6 = navigator.userAgent.toLowerCase().indexOf('msie 6') >= 0;
+var mspan = new Array;
+var clicked = 0;
+var hlist, tt, tb, firstOutEvt, lastInEvt;
+
+function GetElementsByClass(classname, tagname) {
+  var found = new Array();
+  var list = document.getElementsByTagName(tagname);
+  var len = list.length;
+  for (var i=0, j=0; i<len; ++i) {
+    var classes = list[i].className.split(' ');
+    for (var k=0; k<classes.length; ++k) {
+      if (classes[k] == classname) {
+        found[j++] = list[i];
+        break;
+      }
+    }
+  }
+  return found;
+}
+
+// click mouse
+function doClick(e)
+{
+  if (!clicked) {
+    firstOutEvt = lastInEvt = undefined;
+    high(e, 2);
+    if (hlist) clicked = 1;
+  } else {
+    clicked = 0;
+    if (firstOutEvt) high(firstOutEvt, 0);
+    if (lastInEvt) high(lastInEvt, 1);
+  }
+}
+
+// move tooltip
+function move(e)
+{
+  if (!tt) return;
+  if (ie6 && (tt.style.top  == '' || tt.style.top  == 0) &&
+             (tt.style.left == '' || tt.style.left == 0))
+  {
+    tt.style.width  = tt.offsetWidth  + 'px';
+    tt.style.height = tt.offsetHeight + 'px';
+  }
+  var w, h;
+  // browser inconsistencies make getting window size more complex than it should be,
+  // and even then we don't know if it is smaller due to scrollbar width
+  if (typeof(window.innerWidth) == 'number') {
+    w = window.innerWidth;
+    h = window.innerHeight;
+  } else if (document.documentElement && document.documentElement.clientWidth) {
+    w = document.documentElement.clientWidth;
+    h = document.documentElement.clientHeight;
+  } else {
+    w = document.body.clientWidth;
+    h = document.body.clientHeight;
+  }
+  var x = e.clientX + XOFF;
+  var y = e.clientY + YOFF;
+  if (safari1) { // patch for people still using OS X 10.3.9
+    x -= document.body.scrollLeft + document.documentElement.scrollLeft;
+    y -= document.body.scrollTop  + document.documentElement.scrollTop;
+  }
+  var mx = w - BMAR - tt.offsetWidth;
+  var my = h - BMAR - tt.offsetHeight;
+  if (y > my + YOFF - YMIN) y = e.clientY - YTOP - tt.offsetHeight;
+  if (x > mx) x = mx;
+  if (y > my) y = my;
+  if (x < TMAR) x = TMAR;
+  if (y < TMAR) y = TMAR;
+  x += document.body.scrollLeft + document.documentElement.scrollLeft;
+  y += document.body.scrollTop  + document.documentElement.scrollTop;
+  tb.style.width  = tt.offsetWidth  + 'px';
+  tb.style.height = tt.offsetHeight + 'px';
+  tt.style.top  = tb.style.top  = y + 'px';
+  tt.style.left = tb.style.left = x + 'px';
+  tt.style.visibility = tb.style.visibility = 'visible';
+}
+
+// highlight/unhighlight text
+function high(e,on) {
+  if (on) {
+    lastInEvt = e;
+  } else {
+    if (!firstOutEvt) firstOutEvt = e;
+  }
+  if (clicked) return;
+  var targ;
+  if (e.target) targ = e.target;
+  else if (e.srcElement) targ = e.srcElement;
+  if (targ.nodeType == 3) targ = targ.parentNode; // defeat Safari bug
+  if (!targ.name) targ = targ.parentNode; // go up another level if necessary
+  if (targ.name && document.getElementsByName) {
+    // un-highlight current objects
+    if (hlist) {
+      for (var i=0; i<hlist.length; ++i) {
+        for (var j=0; j<hlist[i].length; ++j) {
+          hlist[i][j].style.background = 'transparent';
+        }
+      }
+      hlist = null;
+    }
+    if (tt) {
+      // hide old tooltip
+      tt.style.visibility = tb.style.visibility = 'hidden';
+      tt = null;
+    }
+    if (on) {
+      if (targ.name.substring(0,1) == 't') {
+        // show our tooltip (ID is different than name to avoid confusing IE)
+        tt = document.getElementById('p' + targ.name.substring(1));
+        if (tt) {
+          tb = document.getElementById('tb');
+          move(e);
+        }
+      }
+      // highlight anchor elements with the same name
+      hlist = new Array;
+      hlist.push(document.getElementsByName(targ.name));
+      // is this an IFD pointer?
+      var pos = targ.className.indexOf('Offset_');
+      if (pos > 0) {
+        // add elements from this IFD to our highlight list
+        hlist.push(document.getElementsByClassName(targ.className.substr(pos+7)));
+      }
+      // use class name to highlight span elements if necessary
+      for (var i=0; i<mspan.length; ++i) {
+        if (mspan[i] != targ.name) continue;
+        // add these span elements to our highlight list
+        hlist.push(GetElementsByClass(targ.name, 'span'));
+        break;
+      }
+      for (var i=0; i<hlist.length; ++i) {
+        for (var j=0; j<hlist[i].length; ++j) {
+          hlist[i][j].style.background = on == 2 ? '#ffbbbb' : '#ffcc99';
+        }
+      }
+    }
+  }
+}
+
+// End --->
+</script></head>
+<body><noscript><b class=V>--&gt;
+Enable JavaScript for active highlighting and information tool tips!
+</b></noscript>
+<table class=dump cellspacing=0 cellpadding=2>
+<tr><td valign='top'><pre> 0000
+ 0010
+ 0020
+ 0030
+ 0040
+ 0050
+ 0060
+ 0070
+ 0080
+ 0090
+ 00a0
+ 00b0
+ 00c0
+ 00d0
+ 00e0
+ 00f0
+ 0100
+ 0110
+ 0120
+ 0130
+ 0140
+ 0150
+ 0160
+ 0170
+ 0180
+ 0190
+ 01a0
+ 01b0
+ 01c0
+ 01d0
+ 01e0
+ 01f0
+ 0200
+ 0210
+ 0220
+ 0230
+ 0240
+ 0250
+ 0260
+ 0270
+ 0280
+ 0290
+ 02a0
+ 02b0
+ 02c0
+ 02d0
+ 02e0
+ 02f0
+ 0300
+ 0310
+ 0320
+ 0330
+ 0340
+ 0350
+ 0360
+ 0370
+ 0380
+ 0390
+ 03a0
+ 03b0
+ 03c0
+ 03d0
+ 03e0
+ 03f0
+ 0400
+ 0410
+ 0420
+ 0430
+ 0440
+ 0450
+ 0460
+ 0470
+ 0480
+ 0490
+ 04a0
+ 04b0
+ 04c0
+ 04d0
+ 04e0
+ 04f0
+ 0500
+ 0510
+ 0520
+ 0530
+ 0540
+ 0550
+ 0560
+ 0570
+ 0580
+ 0590
+ 05a0
+ 05b0
+ 05c0
+ 05d0
+ 05e0
+ 05f0
+ 0600
+ 0610
+ 0620
+ 0630
+ 0640
+ 0650
+ 0660
+ 0670
+ 0680
+ 0690
+ 06a0
+ 06b0
+ 06c0
+ 06d0
+ 06e0
+ 06f0
+ 0700
+ 0710
+ 0720
+ 0730
+ 0740
+ 0750
+ 0760
+ 0770
+ 0780
+ 0790
+ 07a0
+ 07b0
+ 07c0
+ 07d0
+ 07e0
+ 07f0
+  ...
+10f040
+10f050
+10f060
+10f070
+10f080
+10f090
+10f0a0
+10f0b0
+10f0c0
+10f0d0
+10f0e0
+10f0f0
+10f100
+10f110
+10f120
+10f130
+10f140
+10f150
+10f160
+10f170
+10f180
+10f190
+10f1a0
+10f1b0
+10f1c0
+10f1d0
+10f1e0
+10f1f0
+10f200
+10f210
+10f220
+10f230
+10f240
+10f250
+10f260
+10f270
+10f280
+10f290
+10f2a0
+10f2b0
+10f2c0
+10f2d0
+10f2e0
+10f2f0
+10f300
+10f310
+10f320
+10f330
+10f340
+10f350
+10f360
+10f370
+10f380
+10f390
+10f3a0
+10f3b0
+10f3c0
+10f3d0
+10f3e0
+10f3f0
+10f400
+10f410
+10f420
+10f430
+10f440
+10f450
+10f460
+10f470
+10f480
+10f490
+10f4a0
+10f4b0
+10f4c0
+10f4d0
+10f4e0
+10f4f0
+10f500
+10f510
+10f520
+10f530
+10f540
+10f550
+10f560
+10f570
+10f580
+10f590
+10f5a0
+10f5b0
+10f5c0
+10f5d0
+10f5e0
+10f5f0
+10f600
+10f610
+10f620
+10f630
+10f640
+10f650
+10f660
+10f670
+10f680
+10f690
+10f6a0
+10f6b0
+10f6c0
+10f6d0
+10f6e0
+10f6f0
+10f700
+10f710
+10f720
+10f730
+10f740
+10f750
+10f760
+10f770
+10f780
+10f790
+10f7a0
+10f7b0
+10f7c0
+10f7d0
+10f7e0
+10f7f0
+10f800
+10f810
+10f820
+10f830
+10f840
+10f849
+10f855
+10f861
+10f86d
+10f879
+10f885
+10f891
+10f89d
+10f8a9
+10f8b5
+10f8c1
+10f8cd
+10f8d9
+10f8e0
+10f8f0
+10f900
+10f910
+10f920
+10f923
+10f92f
+10f93b
+10f947
+10f953
+10f95f
+10f96b
+10f977
+10f983
+10f98f
+10f99b
+10f9a7
+10f9b3
+10f9bf
+10f9cb
+10f9d7
+10f9e3
+10f9ef
+10f9fb
+10fa07
+10fa13
+10fa1f
+10fa2b
+10fa37
+10fa43
+10fa4f
+10fa5b
+10fa67
+10fa73
+10fa7f
+10fa80
+10fa90
+10faa0
+10fab0
+10fac0
+10fad0
+10fae0
+10faf0
+10fb00
+10fb10
+10fb20
+10fb30
+10fb40
+10fb50
+10fb60
+10fb70
+10fb80
+10fb90
+10fba0
+10fbb0
+10fbc0
+10fbd0
+10fbe0
+10fbf0
+10fc00
+10fc10
+10fc20
+10fc30
+10fc40
+10fc50
+10fc60
+10fc70
+10fc80
+10fc90
+10fca0
+10fcb0
+10fcc0
+10fcd0
+10fce0
+10fcf0
+10fd00
+10fd10
+10fd20
+10fd30
+10fd40
+10fd50
+10fd60
+10fd70
+10fd80
+10fd90
+10fda0
+10fdb0
+10fdc0
+10fdd0
+10fde0
+10fdf0
+10fe00
+10fe10
+10fe20
+10fe30
+10fe40
+10fe50
+10fe60
+10fe70
+10fe80
+10fe90
+10fea0
+10feb0
+10fec0
+10fed0
+10fee0
+10fef0
+10ff00
+10ff10
+10ff20
+10ff30
+10ff40
+10ff50
+10ff60
+10ff70
+10ff80
+10ff90
+10ffa0
+10ffb0
+10ffc0
+10ffd0
+10ffe0
+10fff0
+110000
+110010
+110020
+110030
+110040
+110050
+110060
+110070
+110080
+110090
+1100a0
+1100b0
+1100c0
+1100d0
+1100e0
+1100f0
+110100
+110110
+110120
+110130
+110140
+110150
+110160
+110170
+110180
+110190
+1101a0
+1101b0
+1101c0
+1101d0
+1101e0
+1101f0
+110200
+110210
+110220
+110230
+110240
+110250
+110260
+110270
+110280
+110290
+1102a0
+1102b0
+1102c0
+1102d0
+1102e0
+1102f0
+  ...
+116750
+116760
+116770
+116780
+116790
+1167a0
+1167b0
+1167c0
+1167d0
+1167e0
+1167f0
+116800
+116810
+116820
+116830
+116840
+116850
+116860
+116870
+116880
+116890
+1168a0
+1168b0
+1168c0
+1168d0
+1168e0
+1168f0
+116900
+116910
+116920
+116930
+116940
+116950
+116960
+116970
+116980
+116990
+1169a0
+1169b0
+1169c0
+1169d0
+1169e0
+1169f0
+116a00
+116a10
+116a20
+116a30
+116a40
+116a50
+116a60
+116a70
+116a80
+116a90
+116aa0
+116ab0
+116ac0
+116ad0
+116ae0
+116af0
+116b00
+116b10
+116b20
+116b30
+116b40
+116b50
+116b60
+116b70
+116b80
+116b90
+116ba0
+116bb0
+116bc0
+116bd0
+116be0
+116bf0
+116c00
+116c10
+116c20
+116c30
+116c40
+116c50
+116c60
+116c70
+116c80
+116c90
+116ca0
+116cb0
+116cc0
+116cd0
+116ce0
+116cf0
+116d00
+116d10
+116d20
+116d30
+116d40
+116d50
+116d60
+116d70
+116d80
+116d90
+116da0
+116db0
+116dc0
+116dd0
+116de0
+116df0
+116e00
+116e10
+116e20
+116e30
+116e40
+116e50
+116e60
+116e70
+116e80
+116e90
+116ea0
+116eb0
+116ec0
+116ed0
+116ee0
+116ef0
+116f00
+116f10
+116f20
+116f30
+116f40
+</pre></td><td valign="top"><pre onmouseover="high(event,1)" onmouseout="high(event,0)" onmousemove="move(event)" onmousedown="doClick(event)"><a name=t0 class=U>00 00 00 18 66 74 79 70  68 65 69 63 00 00 00 00
+6d 69 66 31 68 65 69 63  00 10 fa f7 6d 64 61 74
+00 00 00 18 40 01 0c 01  ff ff 01 60 00 00 03 00
+00 03 00 00 03 00 00 03  00 99 2c 09 00 00 00 23
+42 01 01 01 60 00 00 03  00 00 03 00 00 03 00 00
+03 00 99 a0 04 02 00 80  5a 2d 2b b2 5b 9b 82 83
+03 00 40 00 00 00 08 44  01 c0 61 55 81 98 c8 00
+00 35 a4 28 01 ae e0 2d  3c d5 62 10 2e 86 52 87
+b4 6c 1f ff 31 bd 94 19  8e 61 80 43 e3 08 90 88
+08 93 c3 07 64 d8 e1 08  57 24 29 74 e6 58 26 77
+46 ab 6e e9 35 c0 fe 8f  95 7f 39 5a ee 50 59 a8
+75 72 89 55 38 ae 59 e7  02 10 02 0f f2 ba 00 55
+86 46 42 4a de 20 ba 9f  4c 1e eb ac 29 f4 7c 1a
+d6 e5 ff ec 12 1a 33 29  7d bc b4 eb 98 7e dd 49
+90 4c 80 4c 26 64 22 6f  ea 11 ae 58 fa a2 5f a0
+c2 84 e2 e6 b5 0b 87 1f  89 96 0b 56 8c 7c 7a 4b
+7a db 58 0c 33 df 8a 07  62 17 f1 3d e7 c3 61 13
+04 5d c6 8f 1e 72 16 ec  25 d6 3c 6f b5 fd de e7
+08 89 ce 08 1a bd d0 a1  2f 9e 61 fc f4 89 5e dc
+70 1f 94 26 c7 70 34 eb  e3 91 ac c5 24 fb 6b 2a
+9c 3c cc b2 54 4c 0d 30  23 99 c2 ce cf 1a 92 53
+b7 ea a7 e6 08 3f 35 05  d8 99 50 72 d8 c3 4e a2
+92 31 2e f5 dc 13 ab 31  a8 83 c8 c0 b3 e9 73 59
+c9 c7 cd d9 5e e8 7f b7  8f d2 38 f0 a2 23 47 74
+be 7c d1 65 27 e3 0b 16  4d 2a db 53 e9 38 b3 fe
+8c 97 e1 c3 88 6c a4 48  09 54 96 d0 56 7b e2 0b
+69 58 86 91 34 64 fc c9  87 d2 56 52 2f 6d 3d b0
+55 d4 40 64 34 53 70 e7  7c c0 f5 44 74 9f cc 76
+d4 da 80 b8 df da 04 b2  81 44 9e 61 8d 86 7f 47
+a7 54 9d 93 f5 f0 f8 83  bf 20 ab f5 c2 79 1e 90
+c0 1e a7 d6 27 34 cb 39  fc fb df 70 74 d0 55 23
+ab b4 51 c0 68 5e bd 4c  48 dd 3c 87 e6 c8 0f 74
+52 4c 82 65 eb e5 f4 c8  a7 32 22 51 a6 4b a5 07
+06 bf 26 26 35 a5 ff a9  f8 d3 6f 26 4b ae c1 5d
+2d 87 39 4b 47 a0 6e 9e  a8 7d 4a 84 cc 3d f8 97
+a7 08 b7 60 dc 30 f3 a5  70 16 68 96 b0 80 7f 7c
+f7 6d fa f2 8b 48 ce 14  e3 d1 71 3b 99 d1 47 64
+a8 a1 72 23 5f a9 f5 cc  9d 8b d7 18 77 ab d3 aa
+81 b3 d6 3f cf ee 3f f9  65 64 00 44 3e 4b 75 33
+59 0f ff 1d 08 08 b9 a8  90 6e cb 6a db f0 b1 b7
+56 14 e7 44 ac ae 3e 1f  5c 5e e0 88 b2 c2 78 c1
+2f 27 13 a9 ea 50 37 61  4a 0a 39 c3 e8 d9 30 75
+9f 0b 07 38 d6 e8 3d cd  95 67 07 25 88 f0 62 e4
+ee 00 d9 f1 ca 89 fa 02  f7 52 a7 78 ae d7 51 9b
+29 d8 08 a8 91 6e 69 b0  1e 4d 4c 31 34 f5 56 5d
+9a 61 9a 62 77 8f 2a a7  da 3e e7 93 65 fb 68 d0
+85 31 6a 5c 6e f0 d1 65  19 f9 40 78 fa 39 e4 23
+e1 17 b3 7d b4 13 4e 12  ce ab 93 a0 05 98 39 54
+e7 38 04 41 5a f3 01 c9  12 1a a2 90 2d be 05 0b
+46 b2 3c 56 01 b5 26 b1  dd b6 78 ad f6 53 71 c3
+bb c0 be 83 11 56 40 c7  66 21 70 e6 cb 6b 4f bf
+80 54 f5 21 13 ee ed 09  ec 07 a8 33 ea 14 24 33
+cf 37 bb 0a af c9 0f d2  e4 93 7d a9 8f 7f 55 26
+5f 9d 04 06 ab 6a 39 6a  c7 14 ff 51 0e c5 d7 4e
+34 76 5d b5 00 c0 4b a7  a8 1c ce 7f 0b 9f 5d 99
+97 14 2b c9 b0 83 a5 cd  21 41 41 79 04 29 3a 64
+3d 6f 58 80 68 b2 e7 b3  9e f1 28 e8 aa 0d 76 69
+21 3d 75 c3 1c c0 70 5b  3d 69 e5 ed 29 59 d1 b5
+e1 90 d5 7a 3e 70 96 54  bf 6e 0d 8d ea c3 64 7b
+7d 7d 06 8d 1d 8b 3f 4a  8a d6 c7 54 f1 c2 ef df
+6c 60 ff 38 eb ed 52 0b  fb fd 92 31 2e 2b dd 73
+f0 61 52 50 5f 0c 2d 62  58 32 25 1c ad 57 d9 9a
+d9 8f fe 92 53 99 74 02  aa 94 0f ed f3 05 3b ac
+42 fc 67 ce 71 44 d5 59  13 a4 12 0d 3e db f6 c0
+2c 05 01 49 27 18 f5 c8  45 c4 05 77 f4 5e 81 e7
+c0 dc 4c 9c ea e9 0e f9  4b cb f6 58 e4 ae c2 c3
+cd d8 30 6d 83 c2 27 ee  a3 bc 15 21 12 b1 cc 83
+fc 1e 9a 4f 4a f4 81 68  04 43 97 e2 c7 2e 04 c2
+ec 49 1e 62 c6 e5 91 0c  00 b5 6c dd 92 03 4b 91
+ba 85 22 43 26 bd a4 4f  6a b8 d8 f0 cd 1c ff f2
+ce f3 fa 7d 49 8a 00 39  a0 9c c9 f3 3b 56 87 35
+39 06 8d 9b a8 5f df 27  84 cd 0f 75 06 26 35 0b
+f0 a5 f2 20 84 a0 98 e6  2d 4e d4 d1 29 d7 02 35
+77 7e 9c ae eb 47 75 1d  25 f4 ac 9d 02 f4 25 8e
+e4 d6 32 cf 0f 67 69 df  ec 99 f0 30 cd f0 5f ba
+b3 e8 9a 6b f3 b4 c3 6f  11 46 b3 c1 08 64 39 49
+06 9a f8 08 6c 08 10 80  79 69 35 7e d0 76 9e 1e
+7e 47 73 be 44 d9 bc fe  5a c2 73 39 0e c1 8a 0a
+a8 ed 49 9c 20 53 03 ca  33 ed ed b4 66 b6 1b 3b
+79 93 58 57 2c 45 95 29  ee fb 4f 33 0b e2 8b 61
+76 af d3 34 dd 4a 6a 36  3d 0d 6d 51 86 e3 6e 18
+d8 4c 02 64 b9 23 6f 86  7f 0d 78 a1 e5 36 86 53
+ce 94 43 58 71 56 0a f2  7a 1a 30 2d 58 01 9b 02
+86 05 11 a7 82 01 65 e8  80 fe 74 67 28 5c 9d bb
+4d 6f bd 5d a4 83 7c 6c  0d 6f c8 7b cf 31 a9 46
+a8 61 78 97 1c 25 8e be  84 90 cf fb 2a e3 56 90
+c7 70 d9 e5 23 fe ee 7a  87 fd d5 ac fd 9b 7e 38
+6c 8f 87 f9 69 16 75 ac  88 5a ec 94 d9 a7 90 d6
+56 58 87 42 92 5e b1 3d  7d 48 64 7d 00 ef c7 ff
+dc db c0 26 d3 7d 40 07  68 0b 75 5c b5 15 32 e4
+cf a8 71 f1 1a bc 29 b4  3d 55 00 a1 43 63 5a c5
+18 36 3f 2b b2 f2 d0 6d  e0 07 67 b9 3c 91 ee 05
+8e 65 c0 a4 fa d9 fa dd  36 d8 3d 72 f6 0f 88 58
+2b ad 2b 30 98 a3 42 29  e7 3c 5b 59 c4 71 81 48
+4f 28 4b b9 36 64 fb 6e  ec 37 72 3c 08 18 6f 38
+5f 68 98 cf 78 a3 4c 98  21 96 89 fa da aa 70 13
+a9 9d ed 1c 1e 90 69 df  3c 23 53 fb 86 4d cb 06
+94 d6 00 45 68 19 59 d9  d9 77 6a 01 ab 60 2e 30
+0f 49 b9 88 b8 dd 59 65  88 30 0e f2 15 00 2c 1a
+b3 16 42 4c 88 18 39 70  ad 78 9f a8 2d 46 b3 d9
+c8 85 b5 a7 3d 5b 1b ba  f9 ab de 6d 43 bc 01 b8
+0e 17 a8 82 24 97 32 e7  14 4f 45 ff 79 fd fc 00
+a8 55 d8 9f 17 a1 09 77  e3 c0 4e 9a d4 2a ab 78
+2a 3f 94 4c 6c cd ff 8f  e3 6c 53 c9 74 13 cd 11
+66 50 dc ea ce 98 5b 29  d6 e4 01 80 0c 61 7a 78
+31 6b 37 98 be 19 ae ae  99 ba e6 d0 6e b8 08 62
+95 25 03 ea fe 79 37 73  d0 c2 aa 12 a0 8f 1f 7a
+0d 61 1e d9 42 c2 bd a8  1e ba ec 2a 71 5e c6 5a
+24 1d e2 14 4c 77 49 9c  06 bb 9a 81 5a f2 70 ad
+1b 9e 8b 84 27 a7 c8 0a  0d 70 cd cc 23 70 a7 06
+51 81 27 88 22 89 4d 8c  af f3 8e f0 6c 0b 5b 1b
+ca db 7d a1 0f ba f0 93  b7 20 1d 69 a2 2f a0 80
+68 1e e8 ae 0d d6 89 ee  71 3d ea 12 31 c0 4b 29
+00 ae 45 4c a6 40 f8 30  d8 a3 03 80 5b 48 96 00
+41 4f 10 62 77 41 f7 ed  60 bc 54 53 06 6f cc 41
+a4 e8 9c 0a 90 0b ef 1a  2f 87 4f c3 47 5c 15 9f
+4c b3 ec a5 10 04 27 ae  db 92 1d 05 8a 3e 18 de
+8b ab d3 c0 88 b0 e1 22  12 e6 b2 c8 93 4c 6a 04
+e7 43 1e b0 70 e2 23 8b  3b 46 44 5d 86 4f 80 43
+91 9c 6d 30 24 e9 d8 b3  ad 6b 19 6e 75 ee 96 70
+ca f6 e4 0c 43 c8 58 d7  12 5e 1c 9a 5d 50 13 70
+46 fb 68 d7 2f 00 d8 eb  86 e4 a8 87 2c ff 6f 0d
+f4 75 e9 4d 5d ed f6 5a  1a 95 41 fc 44 8f c7 3b
+ea c2 43 cd 57 f1 e3 25  61 e4 d5 27 ff 31 a2 2f
+2b 9b 67 40 38 70 3c 1e  a5 07 9e 88 1d a0 81 f6
+e8 6a c7 5d d0 b1 3a a8  be 99 c1 61 b3 fa 4d bd
+ba 7a 70 ac 7a 2b 7d 7a  5a 55 c0 ed 05 1c 8a d9
+8d c0 cc 45 aa d5 85 36  f7 87 3a 39 ae 34 d0 f2
+               [snip 69252 lines]               
+99 f0 b0 51 d1 4d 46 1a  6e 28 f7 2b 5c 50 b3 30
+df 25 83 22 47 34 f2 3a  25 89 fc ac aa f5 ce 68
+4e 35 74 b5 a5 d3 0e a1  62 48 dc 98 f9 a4 d4 a8
+c8 9c 44 b8 5e 0a 90 13  94 33 a8 b5 20 b6 4b 90
+f8 97 1b cd f0 f2 c7 e2  97 fd d7 64 c7 f9 27 4c
+b8 e1 25 c6 f9 48 63 5d  a7 37 f2 31 5d 77 35 b2
+08 e0 01 8a e2 94 2e c6  8f e8 da 78 69 7b 0f 07
+6a ba 6b bf c2 d6 88 a9  e4 84 bd 82 fe 7d 4e b9
+ca b5 3b 18 0d 8f 4b b2  2f 9d 40 a9 ff ed 47 2a
+b0 be fd 81 84 f4 b1 14  a2 f8 d8 7b 9b e6 64 fb
+49 87 fa bf c2 6a bb 03  0d ed 12 ee c5 a6 60 bf
+4c 6d 5c eb 7e dd fb 06  a0 3e a7 dc e1 01 55 55
+4c 5d c2 8d 33 b2 60 78  e4 3f bf 09 03 bb 8e bb
+10 fd 88 2b 05 72 12 e3  8a 0c 11 b8 6e c2 84 86
+23 28 41 17 bf ab ea d7  a8 21 9b a1 ef 78 99 48
+86 5d 3c 80 05 29 e1 60  31 64 3e c7 f7 10 f2 5d
+32 f7 e9 a6 91 17 32 17  64 de d8 b1 b2 34 35 d7
+37 a0 0b dc 47 b5 12 67  db ca 2e 42 f0 40 21 1b
+ed 47 f1 b2 01 4b 9e bf  06 31 5e f5 c6 07 d7 0d
+f5 12 cf 40 33 6d ca d2  46 51 b9 c2 04 ff 49 3c
+5c 3f 4a e3 59 27 0d c3  3c 32 4c 71 11 f0 d0 19
+cd c6 ab 6e 29 0e a3 85  2a 66 39 86 ef b8 ee 73
+91 a2 b2 70 21 36 4a bc  37 ef eb 1d 13 86 b5 db
+87 28 1e d3 1e 43 9e 64  ab 57 f4 99 4e 66 df 1f
+6e 5f 9d e6 8a 30 2a 3a  b6 65 e1 ca dc ec cd d6
+31 0f a7 e2 70 78 d3 2f  96 d4 05 a4 91 be 46 9c
+9e 8e a2 48 36 48 97 13  5e a6 bf b9 04 70 72 81
+b2 f6 80 96 fd 75 84 41  6b c1 63 6c 9b f2 1d 9f
+ef 28 6b 12 40 f2 60 4d  5b 2c c1 63 50 61 bc f6
+d4 af f0 a7 4f fe 1f 49  75 91 eb 08 9a 1d cb c4
+45 41 61 6d fc c0 8b 10  22 e9 64 ea 1e bf c8 56
+f6 5d e6 99 55 db da ce  9c 7a 70 94 26 1e 72 50
+09 24 31 17 be c7 21 cb  7b 8d cd 27 e8 19 a2 2e
+12 f5 5b d2 2f e7 5b 1a  36 a0 5a 4d 41 e6 76 9f
+52 f0 49 a0 22 b3 79 c1  e5 69 f0 3a 1e 64 e8 bc
+01 a7 a6 b2 6a be 46 b1  c9 cc 79 d4 ef e0 28 63
+b2 e2 18 72 b1 a3 fa af  6d e3 ad 01 dd b7 ed cd
+43 dc 3b 2a ac 7c 03 83  84 c0 ed 78 7e 54 1a 73
+2d 37 e7 ed 4f 53 4f ba  71 13 d4 c2 4e 08 66 43
+98 62 cb 3f fb 5d 54 0b  2e fd db b9 8d ed 51 99
+ba 2e 17 23 3b 33 36 8c  1c 0c 5a 38 48 31 26 87
+d5 8a f1 95 cc df 2d 17  6b ae 3f c8 a1 60 3c 42
+64 37 ec 90 c4 ad 46 56  2a 6c e5 df f2 90 a0 da
+9b e0 56 2e 38 c7 da 0c  96 95 a2 93 41 43 30 dd
+e9 f9 25 86 2b 26 5f 1c  aa e5 e2 af 53 62 d5 e4
+62 cc e1 4d 54 ac cf 76  6c 65 a4 a8 ff f9 b2 34
+0b 61 1c 95 9d 1d 09 99  d0 4e 75 9c 03 cb 26 f9
+89 95 b7 a1 16 2b 6e 48  20 51 2d 6e 06 60 ca 8f
+ae 62 07 a5 9d e9 50 b3  51 45 12 44 39 4d 16 9a
+23 ea 5b 43 41 3e 74 ff  99 5a 25 ba 64 d6 c2 e0
+ee 53 c4 ce 9f e3 90 59  9e be 80 ec 2f 61 82 dc
+5a 60 d4 e3 90 81 84 63  05 d0 d1 78 96 a9 9b e4
+95 c1 8a bf b7 93 a0 69  28 08 12 ad 63 49 1a 79
+40 bc 55 eb ed 10 80 6d  fd 79 b0 95 97 62 ec 53
+45 6a b5 97 19 9a bb d9  5c fb d2 85 82 85 14 e4
+c2 87 45 b2 4b c9 f2 64  c0 0f 59 43 86 d0 5a 45
+64 1f 4a 09 d3 d2 91 5d  76 f7 08 13 6a 21 03 59
+31 d4 d7 0d d3 b6 81 c8  8f 88 01 21 7a b0 78 92
+ee 01 fa 2e 2d 71 7b 7f  42 a7 14 8e 36 fa b9 24
+42 3f c9 8a 92 8e 99 3e  f1 83 88 c0 2a f4 fe fd
+b3 82 cf 31 e2 6d d8 b7  ff ac c8 f9 e6 72 c3 e2
+2a 60 ff 82 99 31 f6 2c  7e 56 10 02 42 c7 7a 5f
+9a bf 8f b3 9d 56 d5 31  b0 41 f1 97 aa 1f c7 2f
+0d 24 e5 9a ee 2e 83 ae  74 3e 94 ab f4 46 1e 0c
+9a 61 5b 92 fc 4a 6b cb  ff c7 6c 82 c3 b0 f1 63
+b9 87 3d d1 b8 3a b2 04  56 6d 21 8a 14 bd e8 0a
+32 81 8c 3f e4 a6 9f 66  b5 5f 26 44 71 49 ea ef
+29 3f cb cd 77 61 75 a5  d6 32 74 b6 62 37 13 96
+5a f5 4c a6 f6 6a c0 56  fd c0 1d 8e 5b bf 7d 90
+c3 41 94 91 92 e0 70 c9  16 00 60 27 59 c1 c1 ba
+78 d6 08 0e 0c 18 77 dc  c5 51 95 59 da 43 0a d8
+32 68 65 01 5b c2 48 41  2b d2 cd 94 c6 f5 d8 16
+17 e0 0e 09 d4 47 29 b7  71 ed 92 20 f9 11 27 fe
+66 1a 11 19 e7 6d b9 4d  7b af 45 b3 d5 56 05 2f
+da 6a 3d a7 73 46 c1 a9  23 bd dc 45 d2 fe 86 a4
+0b d7 03 5c 58 39 cb 7e  09 aa fc 8a 56 9a 0d ad
+cf 02 63 48 aa 4f d4 f0  61 42 30 fa 43 7c 28 2c
+0c aa 4b 63 91 43 1b ef  45 be 46 e5 f3 1a d6 e0
+a5 f0 50 70 3b 61 30 6b  33 51 ee 8c 3d 22 07 75
+e1 fd 4e 71 fa 81 2b 2f  eb c7 f0 39 32 eb 63 1c
+25 43 1c 23 f0 95 2e 02  42 a3 12 10 19 7e 31 e7
+ba f5 8c ea 86 42 6f 5c  14 68 00 68 e5 f3 8e 96
+12 a9 ec 39 d2 d8 b1 47  f9 e5 bf 22 06 05 b2 9d
+de 54 9d e2 fa 8b a2 e6  ee 0d fc 91 75 7a 81 07
+42 6b 27 6a bc d8 46 5e  84 3d be e6 f5 c6 09 0f
+08 3b 7f c9 f2 79 8d 4b  36 1d dc 1a 63 0e fc db
+82 1e bd 8f 16 e6 79 3c  34 6f 4f 9f a8 3e 68 7f
+ec 6e 35 5b af ec 04 c8  dd 2c f6 92 0a 83 7c 62
+1c 30 92 51 a7 4e ea 65  5b 3c 93 53 ef ad 59 27
+30 e5 74 b5 64 d5 a8 f0  0b 53 20 05 6b dc 55 93
+d4 c3 65 c4 d8 1f 70 18  4f 33 4e 72 96 4e f8 20
+a5 90 af 82 91 32 b9 26  79 c5 0b f1 e6 7b b6 45
+e3 d6 6b f1 38 5b 49 a6  17 42 53 61 57 83 27 3f
+3b 17 fc c2 d5 cf 67 3c  1b d9 f3 0c 1e 95 cd 29
+d4 9d 29 fc 39 a5 bd df  19 2b ed 4c b7 13 d8 95
+44 78 43 5f 81 9a 2b 32  33 0b 80 8c 9d 86 05 c8
+e2 c0 65 43 b7 b8 60 e9  57 81 df 7c 0f 75 b7 1a
+04 19 e3 cf fe d6 40 81  4a ab 1d ea 5b 40 44 30
+b8 04 da 9b 3f 88 76 5b  c1 4b 9c b4 c9 24 25 1a
+80 f2 8f 49 56 5b 6b 84  1f 1c 0d 65 d4 a8 44 09
+f0 a5 d8 8b 5a 88 df 4f  3b 3a 71 bb 53 ff 5a 3f
+6c 11 30 21 47 d9 07 dc  75 f9 ef c4 c0 8a 08 00
+53 49 a4 9f 08 72 3a 5a  dc af 74 c1 25 20 ef 1f
+98 bc 9d ed 3e 80 43 ea  76 8c 65 54 77 6d 1d fd
+23 58 ce 92 4b 12 b0 72  f2 9a db 62 c6 d1 13 02
+4a 34 8f 35 0f cb 7a 70  5a 21 6f f4 95 57 71 b0
+98 20 19 dc 84 c9 10 bc  45 a8 98 00 d3 28 35 d8
+7f 01 27 61 46 9c 86 ce  c1 85 fd 2d 74 54 ab 21
+3a 8b d7 a1 3b 3b 86 11  3f 07 ae 49 0f 82 ca dc
+fa 7d 0a 8e d5 d8 0f 0f  f1 26 66 13 1d 8b 20 0f
+49 8a 79 bf dc df ab 18  30 eb e8 21 26 ee 08 a2
+5c 96 5f 73 e6 74 00 13  be 66 58 97 0c 58 5d 9c
+25 19 01 72 a1 f6 1e 92  2b 5a 39 7f 49 26 77 f5
+e3 a0 d0 42 82 4e bc 8c  d4 5b 77 cd ca 4a 48 a6
+01 05 09 57 4c 92 4b e9  a8 7e df fe 9d 32 7b ff
+7e b1 90 24 c6 bc 42 1b  08 c4 74 31 d2 32 ba 66
+cc 2e 46 13 4a af 35 8b  e1 a5 a3 f7 25 40 71 da
+78 e2 6c 59 db da 3e a1  cf bc 81 e3 56 01 88 65
+ec a1 f1 be 57 45 5b df  ee 4a e4 41 3d 5c c4 32
+28 81 a6 48 5f 4f f3 61  4b 3b 51 3d 62 92 66 ee
+32 dd 71 1d 55 06 1a ae  64 32 1f 00 92 7b 02 6a
+ed be ab e2 fb 07 d4 90  2a 65 ce 73 a9 10 cd d4
+0f 82 b7 0b 06 74 ce 05  2e 03 e5 3b 6f bc 61 37
+7e e5 67 85 ca c9 a4 3c  46 71 36 76 fa f3 45 cb
+c1 d5 b3 0e 9d 40 5d 69  15 37 54 4b 6f c1 35 68
+35 d9 39 64 1d 49 d4 c9  13 31 ed 4d cb 6a c1 e9
+17 ff f3 ba 0e f2 c3 82  cf 8a dc df b6 47 72 33
+8b be ba 27 e0</a> <a name=t1 class=W>00 00 00  06</a> <a name=t2 class=Y>45 78 69 66 00 00</a> <a name=t3 class=W>49
+49 2a 00 08 00 00 00</a> <a name=t4 class=Y>0c  00</a>
+<a name=t5 class=W>00 01 04 00 01 00 00 00  a0 0f 00 00</a>
+<a name=t6 class=Y>01 01 04 00 01 00 00 00  b8 0b 00 00</a>
+<a name=t7 class=W>0f 01 02 00 08 00 00 00  9e 00 00 00</a>
+<a name=t8 class=Y>10 01 02 00 09 00 00 00  a6 00 00 00</a>
+<a name=t9 class=W>12 01 03 00 01 00 00 00  06 00 00 00</a>
+<a name=t10 class=Y>1a 01 05 00 01 00 00 00  d2 00 00 00</a>
+<a name=t11 class=W>1b 01 05 00 01 00 00 00  da 00 00 00</a>
+<a name=t12 class=Y>28 01 03 00 01 00 00 00  02 00 00 00</a>
+<a name=t13 class=W>31 01 02 00 0e 00 00 00  b0 00 00 00</a>
+<a name=t14 class=Y>32 01 02 00 14 00 00 00  be 00 00 00</a>
+<a name=t15 class=W>13 02 03 00 01 00 00 00  01 00 00 00</a>
+<a name=t16 class='Y Offset_o0'>69 87 04 00 01 00 00 00  e2 00 00 00</a>
+                            <a name=t17 class=W>00 00 00 00</a> <a name=t7 class=Y>73 61 6d
+73 75 6e 67 00</a> <a name=t8 class=W>53 4d 2d  47 39 39 38 42 00</a> <a name=t18 class=U>00</a> <a name=t13 class=Y>47
+39 39 38 42 58 58 53 39  45 57 49 31 00</a> <a name=t14 class=W>32 30 32
+33 3a 31 30 3a 30 37 20  31 36 3a 34 36 3a 30 35
+00</a> <a name=t10 class=Y>48 00 00 00 01 00 00  00</a> <a name=t11 class=W>48 00 00 00 01 00 00
+00</a> <a name=t19 class='Y o0'>1d 00</a>
+<a name=t20 class='W o0'>9a 82 05 00 01 00 00 00  84 02 00 00</a>
+<a name=t21 class='Y o0'>9d 82 05 00 01 00 00 00  7c 02 00 00</a>
+<a name=t22 class='W o0'>22 88 03 00 01 00 00 00  02 00 00 00</a>
+<a name=t23 class='Y o0'>27 88 03 00 01 00 00 00  80 02 00 00</a>
+<a name=t24 class='W o0'>00 90 07 00 04 00 00 00  30 32 32 30</a>
+<a name=t25 class='Y o0'>03 90 02 00 14 00 00 00  44 02 00 00</a>
+<a name=t26 class='W o0'>04 90 02 00 14 00 00 00  58 02 00 00</a>
+<a name=t27 class='Y o0'>10 90 02 00 07 00 00 00  6c 02 00 00</a>
+<a name=t28 class='W o0'>11 90 02 00 07 00 00 00  74 02 00 00</a>
+<a name=t29 class='Y o0'>01 92 05 00 01 00 00 00  8c 02 00 00</a>
+<a name=t30 class='W o0'>02 92 05 00 01 00 00 00  94 02 00 00</a>
+<a name=t31 class='Y o0'>03 92 0a 00 01 00 00 00  9c 02 00 00</a>
+<a name=t32 class='W o0'>04 92 0a 00 01 00 00 00  a4 02 00 00</a>
+<a name=t33 class='Y o0'>05 92 05 00 01 00 00 00  ac 02 00 00</a>
+<a name=t34 class='W o0'>07 92 03 00 01 00 00 00  02 00 00 00</a>
+<a name=t35 class='Y o0'>09 92 03 00 01 00 00 00  00 00 00 00</a>
+<a name=t36 class='W o0'>0a 92 05 00 01 00 00 00  bc 02 00 00</a>
+<a name=t37 class='Y o0'>90 92 02 00 04 00 00 00  38 37 31 00</a>
+<a name=t38 class='W o0'>91 92 02 00 04 00 00 00  38 37 31 00</a>
+<a name=t39 class='Y o0'>92 92 02 00 04 00 00 00  38 37 31 00</a>
+<a name=t40 class='W o0'>01 a0 03 00 01 00 00 00  01 00 00 00</a>
+<a name=t41 class='Y o0'>02 a0 04 00 01 00 00 00  a0 0f 00 00</a>
+<a name=t42 class='W o0'>03 a0 04 00 01 00 00 00  b8 0b 00 00</a>
+<a name=t43 class='Y o0'>02 a4 03 00 01 00 00 00  00 00 00 00</a>
+<a name=t44 class='W o0'>03 a4 03 00 01 00 00 00  00 00 00 00</a>
+<a name=t45 class='Y o0'>04 a4 05 00 01 00 00 00  b4 02 00 00</a>
+<a name=t46 class='W o0'>05 a4 03 00 01 00 00 00  18 00 00 00</a>
+<a name=t47 class='Y o0'>06 a4 03 00 01 00 00 00  00 00 00 00</a>
+<a name=t48 class='W o0'>20 a4 02 00 0c 00 00 00  c4 02 00 00</a>
+                                              <a name=t49 class='Y o0'>00
+00 00 00</a> <a name=t25 class=W>32 30 32 33 3a  31 30 3a 30 37 20 31 36
+3a 34 36 3a 30 35 00</a> <a name=t26 class=Y>32  30 32 33 3a 31 30 3a 30
+37 20 31 36 3a 34 36 3a  30 35 00</a> <a name=t27 class=W>2b 30 32 3a 30
+30 00</a> <a name=t50 class=U>00</a> <a name=t28 class=Y>2b 30 32 3a 30  30 00</a> <a name=t51 class=U>00</a> <a name=t21 class=W>b4 00 00 00 64
+00 00 00</a> <a name=t20 class=Y>01 00 00 00 3c  00 00 00</a> <a name=t29 class=W>01 00 00 00 3c
+00 00 00</a> <a name=t30 class=Y>a9 00 00 00 64  00 00 00</a> <a name=t31 class=W>07 00 00 00 64
+00 00 00</a> <a name=t32 class=Y>00 00 00 00 64  00 00 00</a> <a name=t33 class=W>a9 00 00 00 64
+00 00 00</a> <a name=t45 class=Y>2c 01 00 00 64  00 00 00</a> <a name=t36 class=W>9e 02 00 00 64
+00 00 00</a> <a name=t48 class=Y>58 41 38 58 4c  4e 46 30 30 53 4d 00</a> <a name=t52 class=U>00
+00 0a a7 6d 65 74 61 00  00 00 00 00 00 00 22 68
+64 6c 72 00 00 00 00 00  00 00 00 70 69 63 74 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 04
+3d 69 69 6e 66 00 00 00  00 00 33 00 00 00 15 69
+6e 66 65 02 00 00 01 00  01 00 00 68 76 63 31 00
+00 00 00 15 69 6e 66 65  02 00 00 01 00 02 00 00
+68 76 63 31 00 00 00 00  15 69 6e 66 65 02 00 00
+01 00 03 00 00 68 76 63  31 00 00 00 00 15 69 6e
+66 65 02 00 00 01 00 04  00 00 68 76 63 31 00 00
+00 00 15 69 6e 66 65 02  00 00 01 00 05 00 00 68
+76 63 31 00 00 00 00 15  69 6e 66 65 02 00 00 01
+00 06 00 00 68 76 63 31  00 00 00 00 15 69 6e 66
+65 02 00 00 01 00 07 00  00 68 76 63 31 00 00 00
+00 15 69 6e 66 65 02 00  00 01 00 08 00 00 68 76
+63 31 00 00 00 00 15 69  6e 66 65 02 00 00 01 00
+09 00 00 68 76 63 31 00  00 00 00 15 69 6e 66 65
+02 00 00 01 00 0a 00 00  68 76 63 31 00 00 00 00
+15 69 6e 66 65 02 00 00  01 00 0b 00 00 68 76 63
+31 00 00 00 00 15 69 6e  66 65 02 00 00 01 00 0c
+00 00 68 76 63 31 00 00  00 00 15 69 6e 66 65 02
+00 00 01 00 0d 00 00 68  76 63 31 00 00 00 00 15
+69 6e 66 65 02 00 00 01  00 0e 00 00 68 76 63 31
+00 00 00 00 15 69 6e 66  65 02 00 00 01 00 0f 00
+00 68 76 63 31 00 00 00  00 15 69 6e 66 65 02 00
+00 01 00 10 00 00 68 76  63 31 00 00 00 00 15 69
+6e 66 65 02 00 00 01 00  11 00 00 68 76 63 31 00
+00 00 00 15 69 6e 66 65  02 00 00 01 00 12 00 00
+68 76 63 31 00 00 00 00  15 69 6e 66 65 02 00 00
+01 00 13 00 00 68 76 63  31 00 00 00 00 15 69 6e
+66 65 02 00 00 01 00 14  00 00 68 76 63 31 00 00
+00 00 15 69 6e 66 65 02  00 00 01 00 15 00 00 68
+76 63 31 00 00 00 00 15  69 6e 66 65 02 00 00 01
+00 16 00 00 68 76 63 31  00 00 00 00 15 69 6e 66
+65 02 00 00 01 00 17 00  00 68 76 63 31 00 00 00
+00 15 69 6e 66 65 02 00  00 01 00 18 00 00 68 76
+63 31 00 00 00 00 15 69  6e 66 65 02 00 00 01 00
+19 00 00 68 76 63 31 00  00 00 00 15 69 6e 66 65
+02 00 00 01 00 1a 00 00  68 76 63 31 00 00 00 00
+15 69 6e 66 65 02 00 00  01 00 1b 00 00 68 76 63
+31 00 00 00 00 15 69 6e  66 65 02 00 00 01 00 1c
+00 00 68 76 63 31 00 00  00 00 15 69 6e 66 65 02
+00 00 01 00 1d 00 00 68  76 63 31 00 00 00 00 15
+69 6e 66 65 02 00 00 01  00 1e 00 00 68 76 63 31
+00 00 00 00 15 69 6e 66  65 02 00 00 01 00 1f 00
+00 68 76 63 31 00 00 00  00 15 69 6e 66 65 02 00
+00 01 00 20 00 00 68 76  63 31 00 00 00 00 15 69
+6e 66 65 02 00 00 01 00  21 00 00 68 76 63 31 00
+00 00 00 15 69 6e 66 65  02 00 00 01 00 22 00 00
+68 76 63 31 00 00 00 00  15 69 6e 66 65 02 00 00
+01 00 23 00 00 68 76 63  31 00 00 00 00 15 69 6e
+66 65 02 00 00 01 00 24  00 00 68 76 63 31 00 00
+00 00 15 69 6e 66 65 02  00 00 01 00 25 00 00 68
+76 63 31 00 00 00 00 15  69 6e 66 65 02 00 00 01
+00 26 00 00 68 76 63 31  00 00 00 00 15 69 6e 66
+65 02 00 00 01 00 27 00  00 68 76 63 31 00 00 00
+00 15 69 6e 66 65 02 00  00 01 00 28 00 00 68 76
+63 31 00 00 00 00 15 69  6e 66 65 02 00 00 01 00
+29 00 00 68 76 63 31 00  00 00 00 15 69 6e 66 65
+02 00 00 01 00 2a 00 00  68 76 63 31 00 00 00 00
+15 69 6e 66 65 02 00 00  01 00 2b 00 00 68 76 63
+31 00 00 00 00 15 69 6e  66 65 02 00 00 01 00 2c
+00 00 68 76 63 31 00 00  00 00 15 69 6e 66 65 02
+00 00 01 00 2d 00 00 68  76 63 31 00 00 00 00 15
+69 6e 66 65 02 00 00 01  00 2e 00 00 68 76 63 31
+00 00 00 00 15 69 6e 66  65 02 00 00 01 00 2f 00
+00 68 76 63 31 00 00 00  00 15 69 6e 66 65 02 00
+00 01 00 30 00 00 68 76  63 31 00 00 00 00 15 69
+6e 66 65 02 00 00 00 00  31 00 00 67 72 69 64 00
+00 00 00 15 69 6e 66 65  02 00 00 00 00 32 00 00
+68 76 63 31 00 00 00 00  15 69 6e 66 65 02 00 00
+01 00 33 00 00 45 78 69  66 00 00 00 00 0e 70 69
+74 6d 00 00 00 00 00 31  00 00 02 4a 69 70 72 70
+00 00 01 37 69 70 63 6f  00 00 00 71 68 76 63 43
+01 01 60 00 00 00 00 00  00 00 00 00 99 f0 00 fc
+fd f8 f8 00 00 03 03 20  00 01 00 18 40 01 0c 01
+ff ff 01 60 00 00 03 00  00 03 00 00 03 00 00 03
+00 99 2c 09 21 00 01 00  23 42 01 01 01 60 00 00
+03 00 00 03 00 00 03 00  00 03 00 99 a0 04 02 00
+80 5a 2d 2b b2 5b 9b 82  83 03 00 40 22 00 01 00
+08 44 01 c0 61 55 81 98  c8 00 00 00 14 69 73 70
+65 00 00 00 00 00 00 02  00 00 00 02 00 00 00 00
+14 69 73 70 65 00 00 00  00 00 00 0f a0 00 00 0b
+b8 00 00 00 09 69 72 6f  74 03 00 00 00 70 68 76
+63 43 01 01 60 00 00 00  00 00 00 00 00 00 99 f0
+00 fc fd f8 f8 00 00 03  03 20 00 01 00 18 40 01
+0c 01 ff ff 01 60 00 00  03 00 00 03 00 00 03 00
+00 03 00 99 2c 09 21 00  01 00 22 42 01 01 01 60
+00 00 03 00 00 03 00 00  03 00 00 03 00 99 a0 04
+02 01 81 68 b4 ae c9 6e  6e 0a 0c 0c 01 22 00 01
+00 08 44 01 c0 62 d6 06  63 20 00 00 00 14 69 73
+70 65 00 00 00 00 00 00  02 00 00 00 01 80 00 00
+00 09 69 72 6f 74 03 00  00 01 0b 69 70 6d 61 00
+00 00 00 00 00 00 32 00  01 02 81 82 00 02 02 81
+82 00 03 02 81 82 00 04  02 81 82 00 05 02 81 82
+00 06 02 81 82 00 07 02  81 82 00 08 02 81 82 00
+09 02 81 82 00 0a 02 81  82 00 0b 02 81 82 00 0c
+02 81 82 00 0d 02 81 82  00 0e 02 81 82 00 0f 02
+81 82 00 10 02 81 82 00  11 02 81 82 00 12 02 81
+82 00 13 02 81 82 00 14  02 81 82 00 15 02 81 82
+00 16 02 81 82 00 17 02  81 82 00 18 02 81 82 00
+19 02 81 82 00 1a 02 81  82 00 1b 02 81 82 00 1c
+02 81 82 00 1d 02 81 82  00 1e 02 81 82 00 1f 02
+81 82 00 20 02 81 82 00  21 02 81 82 00 22 02 81
+82 00 23 02 81 82 00 24  02 81 82 00 25 02 81 82
+00 26 02 81 82 00 27 02  81 82 00 28 02 81 82 00
+29 02 81 82 00 2a 02 81  82 00 2b 02 81 82 00 2c
+02 81 82 00 2d 02 81 82  00 2e 02 81 82 00 2f 02
+81 82 00 30 02 81 82 00  31 02 83 84 00 32 03 85
+86 87 00 00 03 40 69 6c  6f 63 01 00 00 00 44 00
+00 33 00 01 00 00 00 00  00 01 00 00 00 20 00 00
+35 f7 00 02 00 00 00 00  00 01 00 00 36 17 00 00
+34 13 00 03 00 00 00 00  00 01 00 00 6a 2a 00 00
+32 97 00 04 00 00 00 00  00 01 00 00 9c c1 00 00
+34 ed 00 05 00 00 00 00  00 01 00 00 d1 ae 00 00
+31 61 00 06 00 00 00 00  00 01 00 01 03 0f 00 00
+33 59 00 07 00 00 00 00  00 01 00 01 36 68 00 00
+32 8d 00 08 00 00 00 00  00 01 00 01 68 f5 00 00
+2d 08 00 09 00 00 00 00  00 01 00 01 95 fd 00 00
+56 e8 00 0a 00 00 00 00  00 01 00 01 ec e5 00 00
+5c f3 00 0b 00 00 00 00  00 01 00 02 49 d8 00 00
+52 eb 00 0c 00 00 00 00  00 01 00 02 9c c3 00 00
+55 cf 00 0d 00 00 00 00  00 01 00 02 f2 92 00 00
+56 f1 00 0e 00 00 00 00  00 01 00 03 49 83 00 00
+57 f9 00 0f 00 00 00 00  00 01 00 03 a1 7c 00 00
+58 80 00 10 00 00 00 00  00 01 00 03 f9 fc 00 00
+3c b2 00 11 00 00 00 00  00 01 00 04 36 ae 00 00
+61 b2 00 12 00 00 00 00  00 01 00 04 98 60 00 00
+               [snip 1605 lines]                
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 53  53 48 44 52 00 1f 00 24
+49 02 00 00 00 00 00 00  00 00 00 00 00 00 00 b6
+01 00 00 00 00 00 00 19  01 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 3d 02 00 00 00  00 00 00 00 00 00 00 5b
+00 5b 00 5c 00 b8 00 b8  00 b7 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+fe 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 4c  6f 54 4d 28 14 41 01 fc
+0b 33 01 79 00 02 00 00  00 8d 00 14 07 9d 20 00
+03 00 08 06 00 05 00 9a  03 9a 01 33 07 02 00 00
+04 00 04 00 04 00 04 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 11 01 03 00 96 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 01 00 00 00 23  00 0f 00 05 00 00 00 00
+00 80 bf 3c 00 32 00 05  00 00 00 cd cc 8c 3f a0
+00 28 00 05 00 00 00 00  00 80 3f 00 00 00 00 00
+00 00 00 01 00 00 00 d2  00 1e 00 04 00 00 00 00
+00 80 3f 5f 00 19 00 06  00 00 00 66 66 86 3f d7
+00 28 00 05 00 00 00 00  00 80 3f 00 00 00 00 00
+00 00 00 01 00 00 00 d2  00 1e 00 04 00 00 00 00
+00 00 00 46 00 28 00 06  00 00 00 9a 99 59 3f 5a
+00 32 00 05 00 00 00 00  00 80 3f 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 32 30 30 36 30  35 20 64 68 68 64 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 b4 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 ef be ad de 00  00 00 97 73 65 66 64 00
+00 01 0a 0e 00 00 00 49  6d 61 67 65 5f 55 54 43
+5f 44 61 74 61 31 36 39  36 36 38 39 39 36 35 39
+30 34 00 00 a1 0a 08 00  00 00 4d 43 43 5f 44 61
+74 61 32 36 32 00 00 61  0c 18 00 00 00 43 61 6d
+65 72 61 5f 43 61 70 74  75 72 65 5f 4d 6f 64 65
+5f 49 6e 66 6f 31 53 45  46 48 6b 00 00 00 03 00
+00 00 00 00 01 0a 57 00  00 00 23 00 00 00 00 00
+a1 0a 34 00 00 00 13 00  00 00 00 00 61 0c 21 00
+00 00 21 00 00 00 30 00  00 00 53 45 46 54</a>
+</pre></td><td class=c2 valign="top"><pre onmouseover="high(event,1)" onmouseout="high(event,0)" onmousemove="move(event)" onmousedown="doClick(event)"><a name=t0 class=U>....ftypheic....
+mif1heic....mdat
+....@......`....
+..........,....#
+B...`...........
+........Z-+.[...
+..@....D..aU....
+.5.(...-&lt;.b...R.
+.l..1....a.C....
+....d...W$)t.X&amp;w
+F.n.5.....9Z.PY.
+ur.U8.Y........U
+.FBJ. ..L...).|.
+......3)}....~.I
+.L.L&amp;d"o...X.._.
+...........V.|zK
+z.X.3...b..=..a.
+.]...r..%.&lt;o....
+......../.a...^.
+p..&amp;.p4.....$.k*
+.&lt;..TL.0#......S
+.....?5...Pr..N.
+.1.....1......sY
+....^.....8..#Gt
+.|.e'...M*.S.8..
+.....l.H.T..V{..
+iX..4d....VR/m=.
+U.@d4Sp.|..Dt..v
+.........D.a...G
+.T....... ...y..
+....'4.9...pt.U#
+..Q.h^.LH.&lt;....t
+RL.e.....2"Q.K..
+..&amp;&amp;5.....o&amp;K..]
+-.9KG.n..}J..=..
+...`.0..p.h....|
+.m...H....q;..Gd
+..r#_.......w...
+...?..?.ed.D&gt;Ku3
+Y........n.j....
+V..D..&gt;.\^....x.
+/'...P7aJ.9...0u
+...8..=..g.%..b.
+.........R.x..Q.
+)....ni..ML14.V]
+.a.bw.*..&gt;..e.h.
+.1j\n..e..@x.9.#
+...}..N.......9T
+.8.AZ.......-...
+F.&lt;V..&amp;...x..Sq.
+.....V@.f!p..kO.
+.T.!.......3..$3
+.7........}...U&amp;
+_....j9j...Q...N
+4v]...K.......].
+..+.....!AAy.):d
+=oX.h.....(...vi
+!=u...p[=i..)Y..
+...z&gt;p.T.n....d{
+}}....?J...T....
+l`.8..R....1.+.s
+.aRP_.-bX2%..W..
+....S.t.......;.
+B.g.qD.Y....&gt;...
+,..I'...E..w.^..
+..L.....K..X....
+..0m..'....!....
+...OJ..h.C......
+.I.b......l...K.
+.."C&amp;..Oj.......
+...}I..9....;V.5
+9...._.'...u.&amp;5.
+... ....-N..)..5
+w~...Gu.%.....%.
+..2..gi....0.._.
+...k...o.F...d9I
+....l...yi5~.v..
+~Gs.D...Z.s9....
+..I. S..3...f..;
+y.XW,E.)..O3...a
+v..4.Jj6=.mQ..n.
+.L.d.#o...x..6.S
+..CXqV..z.0-X...
+......e...tg(\..
+Mo.]..|l.o.{.1.F
+.ax..%......*.V.
+.p..#..z......~8
+l...i.u..Z......
+VX.B.^.=}Hd}....
+...&amp;.}@.h.u\..2.
+..q...).=U..CcZ.
+.6?+...m..g.&lt;...
+.e......6.=r...X
++.+0..B).&lt;[Y.q.H
+O(K.6d.n.7r&lt;..o8
+_h..x.L.!.....p.
+......i.&lt;#S..M..
+...Eh.Y..wj..`.0
+.I....Ye.0....,.
+..BL..9p.x..-F..
+....=[.....mC...
+....$.2..OE.y...
+.U.....w..N..*.x
+*?.Ll....lS.t...
+fP....[).....azx
+1k7.........n..b
+.%...y7s.......z
+.a..B......*q^.Z
+$...LwI.....Z.p.
+....'....p..#p..
+Q.'.".M.....l.[.
+..}...... .i./..
+h.......q=..1.K)
+..EL.@.0....[H..
+AO.bwA..`.TS.o.A
+......../.O.G\..
+L.....'......&gt;..
+.......".....Lj.
+.C..p.#.;FD].O.C
+..m0$....k.nu..p
+....C.X..^..]P.p
+F.h./.......,.o.
+.u.M]..Z..A.D..;
+..C.W..%a..'.1./
++.g@8p&lt;.........
+.j.]..:....a..M.
+.zp.z+}zZU......
+...E...6..:9.4..
+     [snip]     
+...Q.MF.n(.+\P.0
+.%."G4.:%......h
+N5t.....bH......
+..D.^....3.. .K.
+...........d..'L
+..%..Hc].7.1]w5.
+...........xi{..
+j.k..........}N.
+..;...K./.@...G*
+...........{..d.
+I....j........`.
+Lm\.~....&gt;....UU
+L]..3.`x.?......
+...+.r......n...
+#(A......!...x.H
+.]&lt;..).`1d&gt;....]
+2.....2.d....45.
+7...G..g...B.@!.
+.G...K...1^.....
+...@3m..FQ....I&lt;
+\?J.Y'..&lt;2Lq....
+...n)...*f9....s
+...p!6J.7.......
+.(...C.d.W..Nf..
+n_...0*:.e......
+1...px./......F.
+...H6H..^....pr.
+.....u.Ak.cl....
+.(k.@.`M[,.cPa..
+....O..Iu.......
+EAam....".d....V
+.]..U....zp.&amp;.rP
+.$1...!.{..'....
+..[./.[.6.ZMA.v.
+R.I.".y..i.:.d..
+....j.F...y...(c
+...r....m.......
+C.;*.|.....x~T.s
+-7..OSO.q...N.fC
+.b.?.]T.......Q.
+...#;36...Z8H1&amp;.
+......-.k.?..`&lt;B
+d7....FV*l......
+..V.8.......AC0.
+..%.+&amp;_.....Sb..
+b..MT..vle.....4
+.a.......Nu...&amp;.
+.....+nH Q-n.`..
+.b....P.QE.D9M..
+#.[CA&gt;t..Z%.d...
+.S.....Y..../a..
+Z`.....c...x....
+.......i(...cI.y
+@.U....m.y...b.S
+Ej......\.......
+..E.K..d..YC..ZE
+d.J....]v...j!.Y
+1..........!z.x.
+....-q{.B...6..$
+B?.....&gt;....*...
+...1.m.......r..
+*`...1.,~V..B.z_
+.....V.1.A...../
+.$......t&gt;...F..
+.a[..Jk...l....c
+..=..:..Vm!.....
+2..?...f._&amp;DqI..
+)?..wau..2t.b7..
+Z.L..j.V....[.}.
+.A....p...`'Y...
+x.....w..Q.Y.C..
+2he.[.HA+.......
+.....G).q.. ..'.
+f....m.M{.E..V./
+.j=.sF..#..E....
+...\X9.~....V...
+..cH.O..aB0.C|(,
+..Kc.C..E.F.....
+..Pp;a0k3Q..=".u
+..Nq..+/...92.c.
+%C.#....B....~1.
+.....Bo\.h.h....
+...9...G..."....
+.T..........uz..
+Bk'j..F^.=......
+.;...y.K6...c...
+......y&lt;4oO..&gt;h.
+.n5[.....,....|b
+.0.Q.N.e[&lt;.S..Y'
+0.t.d....S .k.U.
+..e...p.O3Nr.N. 
+.....2.&amp;y....{.E
+..k.8[I..BSaW.'?
+;.....g&lt;.......)
+..).9....+.L....
+DxC_..+23.......
+..eC..`.W..|.u..
+......@.J...[@D0
+....?.v[.K...$%.
+...IV[k....e..D.
+....Z..O;:q.S.Z?
+l.0!G...u.......
+SI...r:Z..t.% ..
+....&gt;.C.v.eTwm..
+#X..K..r...b....
+J4.5..zpZ!o..Wq.
+. ......E....(5.
+..'aF......-tT.!
+:...;;..?..I....
+.}.......&amp;f... .
+I.y.....0..!&amp;...
+\._s.t...fX..X].
+%..r....+Z9.I&amp;w.
+...B.N...[w..JH.
+...WL.K..~...2{.
+~..$..B...t1.2.f
+..F.J.5.....%@q.
+x.lY..&gt;.....V..e
+....WE[..J.A=\.2
+(..H_O.aK;Q=b.f.
+2.q.U...d2...{.j
+........*e.s....
+.....t.....;o.a7
+~.g....&lt;Fq6v..E.
+.....@]i.7TKo.5h
+5.9d.I...1.M.j..
+.............Gr3
+...'.</a><a name=t1 class=W>....</a><a name=t2 class=Y>Exif..</a><a name=t3 class=W>I
+I*.....</a><a name=t4 class=Y>..</a>
+<a name=t5 class=W>............</a>
+<a name=t6 class=Y>............</a>
+<a name=t7 class=W>............</a>
+<a name=t8 class=Y>............</a>
+<a name=t9 class=W>............</a>
+<a name=t10 class=Y>............</a>
+<a name=t11 class=W>............</a>
+<a name=t12 class=Y>(...........</a>
+<a name=t13 class=W>1...........</a>
+<a name=t14 class=Y>2...........</a>
+<a name=t15 class=W>............</a>
+<a name=t16 class='Y Offset_o0'>i...........</a>
+         <a name=t17 class=W>....</a><a name=t7 class=Y>sam
+sung.</a><a name=t8 class=W>SM-G998B.</a><a name=t18 class=U>.</a><a name=t13 class=Y>G
+998BXXS9EWI1.</a><a name=t14 class=W>202
+3:10:07 16:46:05
+.</a><a name=t10 class=Y>H.......</a><a name=t11 class=W>H......
+.</a><a name=t19 class='Y o0'>..</a>
+<a name=t20 class='W o0'>............</a>
+<a name=t21 class='Y o0'>........|...</a>
+<a name=t22 class='W o0'>"...........</a>
+<a name=t23 class='Y o0'>'...........</a>
+<a name=t24 class='W o0'>........0220</a>
+<a name=t25 class='Y o0'>........D...</a>
+<a name=t26 class='W o0'>........X...</a>
+<a name=t27 class='Y o0'>........l...</a>
+<a name=t28 class='W o0'>........t...</a>
+<a name=t29 class='Y o0'>............</a>
+<a name=t30 class='W o0'>............</a>
+<a name=t31 class='Y o0'>............</a>
+<a name=t32 class='W o0'>............</a>
+<a name=t33 class='Y o0'>............</a>
+<a name=t34 class='W o0'>............</a>
+<a name=t35 class='Y o0'>............</a>
+<a name=t36 class='W o0'>............</a>
+<a name=t37 class='Y o0'>........871.</a>
+<a name=t38 class='W o0'>........871.</a>
+<a name=t39 class='Y o0'>........871.</a>
+<a name=t40 class='W o0'>............</a>
+<a name=t41 class='Y o0'>............</a>
+<a name=t42 class='W o0'>............</a>
+<a name=t43 class='Y o0'>............</a>
+<a name=t44 class='W o0'>............</a>
+<a name=t45 class='Y o0'>............</a>
+<a name=t46 class='W o0'>............</a>
+<a name=t47 class='Y o0'>............</a>
+<a name=t48 class='W o0'> ...........</a>
+               <a name=t49 class='Y o0'>.
+...</a><a name=t25 class=W>2023:10:07 16
+:46:05.</a><a name=t26 class=Y>2023:10:0
+7 16:46:05.</a><a name=t27 class=W>+02:0
+0.</a><a name=t50 class=U>.</a><a name=t28 class=Y>+02:00.</a><a name=t51 class=U>.</a><a name=t21 class=W>....d
+...</a><a name=t20 class=Y>....&lt;...</a><a name=t29 class=W>....&lt;
+...</a><a name=t30 class=Y>....d...</a><a name=t31 class=W>....d
+...</a><a name=t32 class=Y>....d...</a><a name=t33 class=W>....d
+...</a><a name=t45 class=Y>,...d...</a><a name=t36 class=W>....d
+...</a><a name=t48 class=Y>XA8XLNF00SM.</a><a name=t52 class=U>.
+...meta......."h
+dlr........pict.
+................
+=iinf.....3....i
+nfe........hvc1.
+....infe........
+hvc1.....infe...
+.....hvc1.....in
+fe........hvc1..
+...infe........h
+vc1.....infe....
+....hvc1.....inf
+e........hvc1...
+..infe........hv
+c1.....infe.....
+...hvc1.....infe
+........hvc1....
+.infe........hvc
+1.....infe......
+..hvc1.....infe.
+.......hvc1.....
+infe........hvc1
+.....infe.......
+.hvc1.....infe..
+......hvc1.....i
+nfe........hvc1.
+....infe........
+hvc1.....infe...
+.....hvc1.....in
+fe........hvc1..
+...infe........h
+vc1.....infe....
+....hvc1.....inf
+e........hvc1...
+..infe........hv
+c1.....infe.....
+...hvc1.....infe
+........hvc1....
+.infe........hvc
+1.....infe......
+..hvc1.....infe.
+.......hvc1.....
+infe........hvc1
+.....infe.......
+.hvc1.....infe..
+... ..hvc1.....i
+nfe.....!..hvc1.
+....infe....."..
+hvc1.....infe...
+..#..hvc1.....in
+fe.....$..hvc1..
+...infe.....%..h
+vc1.....infe....
+.&amp;..hvc1.....inf
+e.....'..hvc1...
+..infe.....(..hv
+c1.....infe.....
+)..hvc1.....infe
+.....*..hvc1....
+.infe.....+..hvc
+1.....infe.....,
+..hvc1.....infe.
+....-..hvc1.....
+infe........hvc1
+.....infe...../.
+.hvc1.....infe..
+...0..hvc1.....i
+nfe.....1..grid.
+....infe.....2..
+hvc1.....infe...
+..3..Exif.....pi
+tm.....1...Jiprp
+...7ipco...qhvcC
+..`.............
+....... ....@...
+...`............
+..,.!...#B...`..
+................
+.Z-+.[.....@"...
+.D..aU.......isp
+e...............
+.ispe...........
+.....irot....phv
+cC..`...........
+......... ....@.
+.....`..........
+....,.!..."B...`
+................
+...h...nn...."..
+..D..b..c ....is
+pe..............
+..irot.....ipma.
+......2.........
+................
+................
+................
+................
+................
+................
+................
+................
+................
+... ....!...."..
+..#....$....%...
+.&amp;....'....(....
+)....*....+....,
+....-........./.
+...0....1....2..
+.....@iloc....D.
+.3........... ..
+5...........6...
+4...........j*..
+2...............
+4...............
+1a..............
+3Y..........6h..
+2...........h...
+-...............
+V...............
+\...........I...
+R...............
+U...............
+V...........I...
+W............|..
+X...............
+&lt;...........6...
+a............`..
+     [snip]     
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+.......SSHDR...$
+I...............
+................
+................
+...=...........[
+.[.\............
+................
+................
+................
+.......LoTM(.A..
+.3.y.......... .
+...........3....
+................
+................
+................
+................
+................
+................
+.......#........
+...&lt;.2........?.
+.(........?.....
+................
+..?_.......ff.?.
+.(........?.....
+................
+...F.(.......Y?Z
+.2........?.....
+................
+................
+................
+...200605 dhhd..
+................
+................
+................
+................
+................
+................
+................
+................
+................
+...........sefd.
+.......Image_UTC
+_Data16966899659
+04........MCC_Da
+ta262..a.....Cam
+era_Capture_Mode
+_Info1SEFHk.....
+......W...#.....
+..4.........a.!.
+..!...0...SEFT</a>
+</pre></td><td valign="top"><pre onmouseover="high(event,1)" onmouseout="high(event,0)" onmousemove="move(event)" onmousedown="doClick(event)"><a name=t0 class=U>[unused 1112117 bytes]</a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a name=t1 class=W>Exif header length</a> <a name=t2 class=Y>Exif header</a>
+<a name=t3 class=W>TIFF header</a> <a name=t4 class=Y>IFD0 entries</a>
+<a name=t5 class=W>IFD0-00 ImageWidth</a>
+<a name=t6 class=Y>IFD0-01 ImageHeight</a>
+<a name=t7 class=W>IFD0-02 <span class=H>Make</span></a>
+<a name=t8 class=Y>IFD0-03 <span class=H>Model</span></a>
+<a name=t9 class=W>IFD0-04 Orientation</a>
+<a name=t10 class=Y>IFD0-05 <span class=H>XResolution</span></a>
+<a name=t11 class=W>IFD0-06 <span class=H>YResolution</span></a>
+<a name=t12 class=Y>IFD0-07 ResolutionUnit</a>
+<a name=t13 class=W>IFD0-08 <span class=H>Software</span></a>
+<a name=t14 class=Y>IFD0-09 <span class=H>ModifyDate</span></a>
+<a name=t15 class=W>IFD0-10 YCbCrPositioning</a>
+<a name=t16 class='Y Offset_o0'>IFD0-11 ExifOffset</a>
+<a name=t17 class=W>Next IFD</a>
+<a name=t7 class=Y>Make value</a> <a name=t8 class=W>Model value</a> <a name=t18 class=U>[pad byte]</a>
+<a name=t13 class=Y>Software value</a>
+<a name=t14 class=W>ModifyDate value</a>
+<a name=t10 class=Y>XResolution value</a>
+<a name=t11 class=W>YResolution value</a> <a name=t19 class='Y o0'>ExifIFD entries</a>
+<a name=t20 class='W o0'>ExifIFD-00 <span class=H>ExposureTime</span></a>
+<a name=t21 class='Y o0'>ExifIFD-01 <span class=H>FNumber</span></a>
+<a name=t22 class='W o0'>ExifIFD-02 ExposureProgram</a>
+<a name=t23 class='Y o0'>ExifIFD-03 ISO</a>
+<a name=t24 class='W o0'>ExifIFD-04 ExifVersion</a>
+<a name=t25 class='Y o0'>ExifIFD-05 <span class=H>DateTimeOriginal</span></a>
+<a name=t26 class='W o0'>ExifIFD-06 <span class=H>CreateDate</span></a>
+<a name=t27 class='Y o0'>ExifIFD-07 <span class=H>OffsetTime</span></a>
+<a name=t28 class='W o0'>ExifIFD-08 <span class=H>OffsetTimeOriginal</span></a>
+<a name=t29 class='Y o0'>ExifIFD-09 <span class=H>ShutterSpeedValue</span></a>
+<a name=t30 class='W o0'>ExifIFD-10 <span class=H>ApertureValue</span></a>
+<a name=t31 class='Y o0'>ExifIFD-11 <span class=H>BrightnessValue</span></a>
+<a name=t32 class='W o0'>ExifIFD-12 <span class=H>ExposureCompensation</span></a>
+<a name=t33 class='Y o0'>ExifIFD-13 <span class=H>MaxApertureValue</span></a>
+<a name=t34 class='W o0'>ExifIFD-14 MeteringMode</a>
+<a name=t35 class='Y o0'>ExifIFD-15 Flash</a>
+<a name=t36 class='W o0'>ExifIFD-16 <span class=H>FocalLength</span></a>
+<a name=t37 class='Y o0'>ExifIFD-17 SubSecTime</a>
+<a name=t38 class='W o0'>ExifIFD-18 SubSecTimeOriginal</a>
+<a name=t39 class='Y o0'>ExifIFD-19 SubSecTimeDigitized</a>
+<a name=t40 class='W o0'>ExifIFD-20 ColorSpace</a>
+<a name=t41 class='Y o0'>ExifIFD-21 ExifImageWidth</a>
+<a name=t42 class='W o0'>ExifIFD-22 ExifImageHeight</a>
+<a name=t43 class='Y o0'>ExifIFD-23 ExposureMode</a>
+<a name=t44 class='W o0'>ExifIFD-24 WhiteBalance</a>
+<a name=t45 class='Y o0'>ExifIFD-25 <span class=H>DigitalZoomRatio</span></a>
+<a name=t46 class='W o0'>ExifIFD-26 FocalLengthIn35mmFormat</a>
+<a name=t47 class='Y o0'>ExifIFD-27 SceneCaptureType</a>
+<a name=t48 class='W o0'>ExifIFD-28 <span class=H>ImageUniqueID</span></a>
+<a name=t49 class='Y o0'>Next IFD</a>
+<a name=t25 class=W>DateTimeOriginal value</a>
+<a name=t26 class=Y>CreateDate value</a>
+<a name=t27 class=W>OffsetTime value</a>
+<a name=t50 class=U>[pad byte]</a> <a name=t28 class=Y>OffsetTimeOriginal value</a> <a name=t51 class=U>[pad byte]</a>
+<a name=t21 class=W>FNumber value</a> <a name=t20 class=Y>ExposureTime value</a>
+<a name=t29 class=W>ShutterSpeedValue value</a> <a name=t30 class=Y>ApertureValue value</a>
+<a name=t31 class=W>BrightnessValue value</a> <a name=t32 class=Y>ExposureCompensation value</a>
+<a name=t33 class=W>MaxApertureValue value</a> <a name=t45 class=Y>DigitalZoomRatio value</a>
+<a name=t36 class=W>FocalLength value</a> <a name=t48 class=Y>ImageUniqueID value</a>
+<a name=t52 class=U>[unknown data]</a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre></td></tr></table>
+<div id=tb class=tb> </div>
+<div id=p1 class=tt><b>Exif header length</b><br>Value: 6<br>(4 bytes)</div>
+<div id=p2 class=tt><b>Exif header</b><br>(6 bytes)</div>
+<div id=p3 class=tt><b>TIFF header</b><br>Byte order: Little endian<br>Identifier: 0x002a<br>IFD0 offset: 0x0008<br>(8 bytes)</div>
+<div id=p4 class=tt><b>IFD0 entries</b><br>Entry count: 12<br>(2 bytes)</div>
+<div id=p5 class=tt><b>IFD0-00 ImageWidth</b><br>Tag ID: 0x0100<br>Format: int32u[1]<br>Size: 4 bytes<br>Value: 4000</div>
+<div id=p6 class=tt><b>IFD0-01 ImageHeight</b><br>Tag ID: 0x0101<br>Format: int32u[1]<br>Size: 4 bytes<br>Value: 3000</div>
+<div id=p7 class=tt><b>IFD0-02 <span class=H>Make</span></b><br>Tag ID: 0x010f<br>Format: string[8]<br>Size: 8 bytes<br>Value offset: 0x009e<br>File offset:   0x10f8dd<br>Value: samsung</div>
+<div id=p8 class=tt><b>IFD0-03 <span class=H>Model</span></b><br>Tag ID: 0x0110<br>Format: string[9]<br>Size: 9 bytes<br>Value offset: 0x00a6<br>File offset:   0x10f8e5<br>Value: SM-G998B</div>
+<div id=p9 class=tt><b>IFD0-04 Orientation</b><br>Tag ID: 0x0112<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 6</div>
+<div id=p10 class=tt><b>IFD0-05 <span class=H>XResolution</span></b><br>Tag ID: 0x011a<br>Format: rational64u[1]<br>Size: 8 bytes<br>Value offset: 0x00d2<br>File offset:   0x10f911<br>Value: 72 (72/1)</div>
+<div id=p11 class=tt><b>IFD0-06 <span class=H>YResolution</span></b><br>Tag ID: 0x011b<br>Format: rational64u[1]<br>Size: 8 bytes<br>Value offset: 0x00da<br>File offset:   0x10f919<br>Value: 72 (72/1)</div>
+<div id=p12 class=tt><b>IFD0-07 ResolutionUnit</b><br>Tag ID: 0x0128<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 2</div>
+<div id=p13 class=tt><b>IFD0-08 <span class=H>Software</span></b><br>Tag ID: 0x0131<br>Format: string[14]<br>Size: 14 bytes<br>Value offset: 0x00b0<br>File offset:   0x10f8ef<br>Value: G998BXXS9EWI1</div>
+<div id=p14 class=tt><b>IFD0-09 <span class=H>ModifyDate</span></b><br>Tag ID: 0x0132<br>Format: string[20]<br>Size: 20 bytes<br>Value offset: 0x00be<br>File offset:   0x10f8fd<br>Value: 2023:10:07 16:46:05</div>
+<div id=p15 class=tt><b>IFD0-10 YCbCrPositioning</b><br>Tag ID: 0x0213<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 1</div>
+<div id=p16 class=tt><b>IFD0-11 ExifOffset</b><br>Tag ID: 0x8769<br>Format: int32u[1]<br>Size: 4 bytes<br>File offset:   0x10f921<br>Value: 0x00e2</div>
+<div id=p17 class=tt><b>Next IFD</b><br>IFD1 offset: 0x0000<br>(4 bytes)</div>
+<div id=p19 class=tt><b>ExifIFD entries</b><br>Entry count: 29<br>(2 bytes)</div>
+<div id=p20 class=tt><b>ExifIFD-00 <span class=H>ExposureTime</span></b><br>Tag ID: 0x829a<br>Format: rational64u[1]<br>Size: 8 bytes<br>Value offset: 0x0284<br>File offset:   0x10fac3<br>Value: 0.01666666667 (1/60)</div>
+<div id=p21 class=tt><b>ExifIFD-01 <span class=H>FNumber</span></b><br>Tag ID: 0x829d<br>Format: rational64u[1]<br>Size: 8 bytes<br>Value offset: 0x027c<br>File offset:   0x10fabb<br>Value: 1.8 (180/100)</div>
+<div id=p22 class=tt><b>ExifIFD-02 ExposureProgram</b><br>Tag ID: 0x8822<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 2</div>
+<div id=p23 class=tt><b>ExifIFD-03 ISO</b><br>Tag ID: 0x8827<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 640</div>
+<div id=p24 class=tt><b>ExifIFD-04 ExifVersion</b><br>Tag ID: 0x9000<br>Format: undef[4]<br>Size: 4 bytes<br>Value: 0220</div>
+<div id=p25 class=tt><b>ExifIFD-05 <span class=H>DateTimeOriginal</span></b><br>Tag ID: 0x9003<br>Format: string[20]<br>Size: 20 bytes<br>Value offset: 0x0244<br>File offset:   0x10fa83<br>Value: 2023:10:07 16:46:05</div>
+<div id=p26 class=tt><b>ExifIFD-06 <span class=H>CreateDate</span></b><br>Tag ID: 0x9004<br>Format: string[20]<br>Size: 20 bytes<br>Value offset: 0x0258<br>File offset:   0x10fa97<br>Value: 2023:10:07 16:46:05</div>
+<div id=p27 class=tt><b>ExifIFD-07 <span class=H>OffsetTime</span></b><br>Tag ID: 0x9010<br>Format: string[7]<br>Size: 7 bytes<br>Value offset: 0x026c<br>File offset:   0x10faab<br>Value: +02:00</div>
+<div id=p28 class=tt><b>ExifIFD-08 <span class=H>OffsetTimeOriginal</span></b><br>Tag ID: 0x9011<br>Format: string[7]<br>Size: 7 bytes<br>Value offset: 0x0274<br>File offset:   0x10fab3<br>Value: +02:00</div>
+<div id=p29 class=tt><b>ExifIFD-09 <span class=H>ShutterSpeedValue</span></b><br>Tag ID: 0x9201<br>Format: rational64u[1] read as rational64s[1]<br>Size: 8 bytes<br>Value offset: 0x028c<br>File offset:   0x10facb<br>Value: 0.01666666667 (1/60)</div>
+<div id=p30 class=tt><b>ExifIFD-10 <span class=H>ApertureValue</span></b><br>Tag ID: 0x9202<br>Format: rational64u[1]<br>Size: 8 bytes<br>Value offset: 0x0294<br>File offset:   0x10fad3<br>Value: 1.69 (169/100)</div>
+<div id=p31 class=tt><b>ExifIFD-11 <span class=H>BrightnessValue</span></b><br>Tag ID: 0x9203<br>Format: rational64s[1]<br>Size: 8 bytes<br>Value offset: 0x029c<br>File offset:   0x10fadb<br>Value: 0.07 (7/100)</div>
+<div id=p32 class=tt><b>ExifIFD-12 <span class=H>ExposureCompensation</span></b><br>Tag ID: 0x9204<br>Format: rational64s[1]<br>Size: 8 bytes<br>Value offset: 0x02a4<br>File offset:   0x10fae3<br>Value: 0 (0/100)</div>
+<div id=p33 class=tt><b>ExifIFD-13 <span class=H>MaxApertureValue</span></b><br>Tag ID: 0x9205<br>Format: rational64u[1]<br>Size: 8 bytes<br>Value offset: 0x02ac<br>File offset:   0x10faeb<br>Value: 1.69 (169/100)</div>
+<div id=p34 class=tt><b>ExifIFD-14 MeteringMode</b><br>Tag ID: 0x9207<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 2</div>
+<div id=p35 class=tt><b>ExifIFD-15 Flash</b><br>Tag ID: 0x9209<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 0x0</div>
+<div id=p36 class=tt><b>ExifIFD-16 <span class=H>FocalLength</span></b><br>Tag ID: 0x920a<br>Format: rational64u[1]<br>Size: 8 bytes<br>Value offset: 0x02bc<br>File offset:   0x10fafb<br>Value: 6.7 (670/100)</div>
+<div id=p37 class=tt><b>ExifIFD-17 SubSecTime</b><br>Tag ID: 0x9290<br>Format: string[4]<br>Size: 4 bytes<br>Value: 871</div>
+<div id=p38 class=tt><b>ExifIFD-18 SubSecTimeOriginal</b><br>Tag ID: 0x9291<br>Format: string[4]<br>Size: 4 bytes<br>Value: 871</div>
+<div id=p39 class=tt><b>ExifIFD-19 SubSecTimeDigitized</b><br>Tag ID: 0x9292<br>Format: string[4]<br>Size: 4 bytes<br>Value: 871</div>
+<div id=p40 class=tt><b>ExifIFD-20 ColorSpace</b><br>Tag ID: 0xa001<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 0x1</div>
+<div id=p41 class=tt><b>ExifIFD-21 ExifImageWidth</b><br>Tag ID: 0xa002<br>Format: int32u[1]<br>Size: 4 bytes<br>Value: 4000</div>
+<div id=p42 class=tt><b>ExifIFD-22 ExifImageHeight</b><br>Tag ID: 0xa003<br>Format: int32u[1]<br>Size: 4 bytes<br>Value: 3000</div>
+<div id=p43 class=tt><b>ExifIFD-23 ExposureMode</b><br>Tag ID: 0xa402<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 0</div>
+<div id=p44 class=tt><b>ExifIFD-24 WhiteBalance</b><br>Tag ID: 0xa403<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 0</div>
+<div id=p45 class=tt><b>ExifIFD-25 <span class=H>DigitalZoomRatio</span></b><br>Tag ID: 0xa404<br>Format: rational64u[1]<br>Size: 8 bytes<br>Value offset: 0x02b4<br>File offset:   0x10faf3<br>Value: 3 (300/100)</div>
+<div id=p46 class=tt><b>ExifIFD-26 FocalLengthIn35mmFormat</b><br>Tag ID: 0xa405<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 24</div>
+<div id=p47 class=tt><b>ExifIFD-27 SceneCaptureType</b><br>Tag ID: 0xa406<br>Format: int16u[1]<br>Size: 2 bytes<br>Value: 0</div>
+<div id=p48 class=tt><b>ExifIFD-28 <span class=H>ImageUniqueID</span></b><br>Tag ID: 0xa420<br>Format: string[12]<br>Size: 12 bytes<br>Value offset: 0x02c4<br>File offset:   0x10fb03<br>Value: XA8XLNF00SM</div>
+<div id=p49 class=tt><b>Next IFD</b><br>Next IFD offset: 0x0000<br>(4 bytes)</div>
+<div id=p52 class=tt>[unknown data]<br>Size: 29759 bytes</div>
+</body></html>

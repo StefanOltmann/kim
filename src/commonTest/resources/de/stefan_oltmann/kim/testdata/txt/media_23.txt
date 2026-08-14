@@ -15,7 +15,7 @@ Big-endian (Motorola, MM)
 0000000121 0x829d FNumber = 188/100 (1.88)
 0000000133 0x927c MakerNote = [49 bytes]
 0000000145 0x829a ExposureTime = 40/1000 (0.04)
-0000000157 0x9012 Unknown = +01:00
+0000000157 0x9012 OffsetTimeDigitized = +01:00
 0000000169 0x9011 OffsetTimeOriginal = +01:00
 0000000181 0x9010 OffsetTime = +01:00
 0000000193 0x920a FocalLength = 559/100 (5.59)

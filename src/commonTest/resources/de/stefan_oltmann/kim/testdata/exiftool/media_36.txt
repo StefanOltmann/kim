@@ -1,0 +1,568 @@
+  ExifToolVersion = 13.59
+  FileName = media_36.jpg
+  Directory = C:/Users/micro/IdeaProjects/kim/src/commonTest/resources/de/stefan_oltmann/kim/testdata/full
+  FileSize = 1635665
+  FileModifyDate = 1776264330.06233
+  FileAccessDate = 1786601299.62185
+  FileCreateDate = 1776264330.05933
+  FilePermissions = 33206
+  FileType = JPEG
+  FileTypeExtension = JPG
+  MIMEType = image/jpeg
+JPEG APP0 (14 bytes):
+      0006: 4a 46 49 46 00 01 01 01 00 48 00 48 00 00       [JFIF.....H.H..]
+  + [BinaryData directory, 9 bytes, Big-endian]
+  | JFIFVersion = 1 1
+  | - Tag 0x0000 (2 bytes, int8u[2]):
+  |     000b: 01 01                                           [..]
+  | ResolutionUnit = 1
+  | - Tag 0x0002 (1 bytes, int8u[1]):
+  |     000d: 01                                              [.]
+  | XResolution = 72
+  | - Tag 0x0003 (2 bytes, int16u[1]):
+  |     000e: 00 48                                           [.H]
+  | YResolution = 72
+  | - Tag 0x0005 (2 bytes, int16u[1]):
+  |     0010: 00 48                                           [.H]
+  | ThumbnailWidth = 0
+  | - Tag 0x0007 (1 bytes, int8u[1]):
+  |     0012: 00                                              [.]
+  | ThumbnailHeight = 0
+  | - Tag 0x0008 (1 bytes, int8u[1]):
+  |     0013: 00                                              [.]
+JPEG APP1 (1346 bytes):
+      0018: 45 78 69 66 00 00 4d 4d 00 2a 00 00 00 08 00 0a [Exif..MM.*......]
+      0028: 01 0f 00 02 00 00 00 09 00 00 00 86 01 10 00 02 [................]
+      0038: 00 00 00 07 00 00 00 90 01 12 00 03 00 00 00 01 [................]
+      0048: 00 01 00 00 01 1a 00 05 00 00 00 01 00 00 00 98 [................]
+      0058: 01 1b 00 05 00 00 00 01 00 00 00 a0 01 28 00 03 [.............(..]
+      0068: 00 00 00 01 00 02 00 00 01 31 00 02 00 00 00 1e [.........1......]
+      0078: 00 00 00 a8 01 3b 00 02 00 00 01 02 00 00 00 c6 [.....;..........]
+      [snip 1234 bytes]
+  ExifByteOrder = MM
+  + [IFD0 directory with 10 entries, Big-endian]
+  | 0)  Make = FUJIFILM
+  |     - Tag 0x010f (9 bytes, string[9]):
+  |         00a4: 46 55 4a 49 46 49 4c 4d 00                      [FUJIFILM.]
+  | 1)  Model = X-Pro2
+  |     - Tag 0x0110 (7 bytes, string[7]):
+  |         00ae: 58 2d 50 72 6f 32 00                            [X-Pro2.]
+  | 2)  Orientation = 1
+  |     - Tag 0x0112 (2 bytes, int16u[1]):
+  |         0048: 00 01                                           [..]
+  | 3)  XResolution = 72 (72/1)
+  |     - Tag 0x011a (8 bytes, rational64u[1]):
+  |         00b6: 00 00 00 48 00 00 00 01                         [...H....]
+  | 4)  YResolution = 72 (72/1)
+  |     - Tag 0x011b (8 bytes, rational64u[1]):
+  |         00be: 00 00 00 48 00 00 00 01                         [...H....]
+  | 5)  ResolutionUnit = 2
+  |     - Tag 0x0128 (2 bytes, int16u[1]):
+  |         006c: 00 02                                           [..]
+  | 6)  Software = Digital Camera X-Pro2 Ver3.00
+  |     - Tag 0x0131 (30 bytes, string[30]):
+  |         00c6: 44 69 67 69 74 61 6c 20 43 61 6d 65 72 61 20 58 [Digital Camera X]
+  |         00d6: 2d 50 72 6f 32 20 56 65 72 33 2e 30 30 00       [-Pro2 Ver3.00.]
+  | 7)  Artist = "                                                                                                                                                                                                                                                               "
+  |     - Tag 0x013b (258 bytes, string[258]):
+  |         00e4: 22 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 ["               ]
+  |         00f4: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         0104: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         0114: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         0124: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         0134: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         0144: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         0154: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         0164: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         0174: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         0184: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         0194: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         01a4: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         01b4: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         01c4: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         01d4: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         01e4: 22 00                                           [".]
+  | 8)  Copyright =                                                                                                                                                                                                                                                                
+  |     - Tag 0x8298 (256 bytes, string[256] read as undef[256]):
+  |         01e6: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         01f6: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         0206: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         0216: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         0226: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         0236: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         0246: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         0256: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         0266: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         0276: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         0286: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         0296: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         02a6: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         02b6: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         02c6: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |         02d6: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 00 [               .]
+  | 9)  ExifOffset (SubDirectory) -->
+  |     - Tag 0x8769 (4 bytes, int32u[1]):
+  |         009c: 00 00 02 c8                                     [....]
+  | + [ExifIFD directory with 37 entries, Big-endian]
+  | | 0)  ExposureTime = 0.00025 (1/4000)
+  | |     - Tag 0x829a (8 bytes, rational64u[1]):
+  | |         04a8: 00 00 00 01 00 00 0f a0                         [........]
+  | | 1)  FNumber = 2 (2/1)
+  | |     - Tag 0x829d (8 bytes, rational64u[1]):
+  | |         04b0: 00 00 00 02 00 00 00 01                         [........]
+  | | 2)  ExposureProgram = 1
+  | |     - Tag 0x8822 (2 bytes, int16u[1]):
+  | |         0308: 00 01                                           [..]
+  | | 3)  ISO = 200
+  | |     - Tag 0x8827 (2 bytes, int16u[1]):
+  | |         0314: 00 c8                                           [..]
+  | | 4)  SensitivityType = 1
+  | |     - Tag 0x8830 (2 bytes, int16u[1]):
+  | |         0320: 00 01                                           [..]
+  | | 5)  ExifVersion = 0230
+  | |     - Tag 0x9000 (4 bytes, undef[4]):
+  | |         032c: 30 32 33 30                                     [0230]
+  | | 6)  DateTimeOriginal = 2017:06:26 23:18:45
+  | |     - Tag 0x9003 (20 bytes, string[20]):
+  | |         04b8: 32 30 31 37 3a 30 36 3a 32 36 20 32 33 3a 31 38 [2017:06:26 23:18]
+  | |         04c8: 3a 34 35 00                                     [:45.]
+  | | 7)  ComponentsConfiguration = 1 2 3 0
+  | |     - Tag 0x9101 (4 bytes, undef[4] read as int8u[4]):
+  | |         0344: 01 02 03 00                                     [....]
+  | | 8)  CompressedBitsPerPixel = 4 (4/1)
+  | |     - Tag 0x9102 (8 bytes, rational64u[1]):
+  | |         04cc: 00 00 00 04 00 00 00 01                         [........]
+  | | 9)  ShutterSpeedValue = 12 (12/1)
+  | |     - Tag 0x9201 (8 bytes, rational64s[1]):
+  | |         04d4: 00 00 00 0c 00 00 00 01                         [........]
+  | | 10) ApertureValue = 2 (2/1)
+  | |     - Tag 0x9202 (8 bytes, rational64u[1]):
+  | |         04dc: 00 00 00 02 00 00 00 01                         [........]
+  | | 11) BrightnessValue = 8 (8/1)
+  | |     - Tag 0x9203 (8 bytes, rational64s[1]):
+  | |         04e4: 00 00 00 08 00 00 00 01                         [........]
+  | | 12) ExposureCompensation = 0 (0/1)
+  | |     - Tag 0x9204 (8 bytes, rational64s[1]):
+  | |         04ec: 00 00 00 00 00 00 00 01                         [........]
+  | | 13) MaxApertureValue = 2 (2/1)
+  | |     - Tag 0x9205 (8 bytes, rational64u[1]):
+  | |         04f4: 00 00 00 02 00 00 00 01                         [........]
+  | | 14) MeteringMode = 2
+  | |     - Tag 0x9207 (2 bytes, int16u[1]):
+  | |         0398: 00 02                                           [..]
+  | | 15) LightSource = 0
+  | |     - Tag 0x9208 (2 bytes, int16u[1]):
+  | |         03a4: 00 00                                           [..]
+  | | 16) Flash = 0
+  | |     - Tag 0x9209 (2 bytes, int16u[1]):
+  | |         03b0: 00 00                                           [..]
+  | | 17) FocalLength = 90 (90/1)
+  | |     - Tag 0x920a (8 bytes, rational64u[1]):
+  | |         04fc: 00 00 00 5a 00 00 00 01                         [...Z....]
+  | | 18) ColorSpace = 1
+  | |     - Tag 0xa001 (2 bytes, int16u[1]):
+  | |         03c8: 00 01                                           [..]
+  | | 19) ExifImageWidth = 4240
+  | |     - Tag 0xa002 (2 bytes, int16u[1]):
+  | |         03d4: 10 90                                           [..]
+  | | 20) ExifImageHeight = 2384
+  | |     - Tag 0xa003 (2 bytes, int16u[1]):
+  | |         03e0: 09 50                                           [.P]
+  | | 21) FocalPlaneXResolution = 1812 (1812/1)
+  | |     - Tag 0xa20e (8 bytes, rational64u[1]):
+  | |         0504: 00 00 07 14 00 00 00 01                         [........]
+  | | 22) FocalPlaneYResolution = 1812 (1812/1)
+  | |     - Tag 0xa20f (8 bytes, rational64u[1]):
+  | |         050c: 00 00 07 14 00 00 00 01                         [........]
+  | | 23) FocalPlaneResolutionUnit = 3
+  | |     - Tag 0xa210 (2 bytes, int16u[1]):
+  | |         0404: 00 03                                           [..]
+  | | 24) SensingMethod = 2
+  | |     - Tag 0xa217 (2 bytes, int16u[1]):
+  | |         0410: 00 02                                           [..]
+  | | 25) FileSource = 3
+  | |     - Tag 0xa300 (1 bytes, undef[1]):
+  | |         041c: 03                                              [.]
+  | | 26) SceneType = 1
+  | |     - Tag 0xa301 (1 bytes, undef[1]):
+  | |         0428: 01                                              [.]
+  | | 27) ExposureMode = 1
+  | |     - Tag 0xa402 (2 bytes, int16u[1]):
+  | |         0434: 00 01                                           [..]
+  | | 28) WhiteBalance = 0
+  | |     - Tag 0xa403 (2 bytes, int16u[1]):
+  | |         0440: 00 00                                           [..]
+  | | 29) FocalLengthIn35mmFormat = 135
+  | |     - Tag 0xa405 (2 bytes, int16u[1]):
+  | |         044c: 00 87                                           [..]
+  | | 30) SceneCaptureType = 0
+  | |     - Tag 0xa406 (2 bytes, int16u[1]):
+  | |         0458: 00 00                                           [..]
+  | | 31) Sharpness = 0
+  | |     - Tag 0xa40a (2 bytes, int16u[1]):
+  | |         0464: 00 00                                           [..]
+  | | 32) SubjectDistanceRange = 0
+  | |     - Tag 0xa40c (2 bytes, int16u[1]):
+  | |         0470: 00 00                                           [..]
+  | | 33) LensInfo = 90 90 2 2 (9000/100 9000/100 200/100 200/100)
+  | |     - Tag 0xa432 (32 bytes, rational64u[4]):
+  | |         0514: 00 00 23 28 00 00 00 64 00 00 23 28 00 00 00 64 [..#(...d..#(...d]
+  | |         0524: 00 00 00 c8 00 00 00 64 00 00 00 c8 00 00 00 64 [.......d.......d]
+  | | 34) LensMake = FUJIFILM
+  | |     - Tag 0xa433 (9 bytes, string[9]):
+  | |         0534: 46 55 4a 49 46 49 4c 4d 00                      [FUJIFILM.]
+  | | 35) LensModel = XF90mmF2 R LM WR
+  | |     - Tag 0xa434 (17 bytes, string[17]):
+  | |         053e: 58 46 39 30 6d 6d 46 32 20 52 20 4c 4d 20 57 52 [XF90mmF2 R LM WR]
+  | |         054e: 00                                              [.]
+  | | 36) LensSerialNumber = 65B00914
+  | |     - Tag 0xa435 (9 bytes, string[9]):
+  | |         0550: 36 35 42 30 30 39 31 34 00                      [65B00914.]
+JPEG APP1 (4158 bytes):
+      055e: 68 74 74 70 3a 2f 2f 6e 73 2e 61 64 6f 62 65 2e [http://ns.adobe.]
+      056e: 63 6f 6d 2f 78 61 70 2f 31 2e 30 2f 00 3c 3f 78 [com/xap/1.0/.<?x]
+      057e: 70 61 63 6b 65 74 20 62 65 67 69 6e 3d 27 ef bb [packet begin='..]
+      058e: bf 27 20 69 64 3d 27 57 35 4d 30 4d 70 43 65 68 [.' id='W5M0MpCeh]
+      059e: 69 48 7a 72 65 53 7a 4e 54 63 7a 6b 63 39 64 27 [iHzreSzNTczkc9d']
+      05ae: 3f 3e 0a 3c 78 3a 78 6d 70 6d 65 74 61 20 78 6d [?>.<x:xmpmeta xm]
+      05be: 6c 6e 73 3a 78 3d 27 61 64 6f 62 65 3a 6e 73 3a [lns:x='adobe:ns:]
+      [snip 4046 bytes]
+  + [XMP directory, 4129 bytes]
+  | XMPToolkit = Image::ExifTool 12.27
+  | Lens = XF90mmF2 R LM WR
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/aux:Lens'
+  | LensInfo = 9000/100 9000/100 200/100 200/100
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/aux:LensInfo'
+  | Creator =                                                                                                                                                                                                                                                                
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:creator/rdf:Seq/rdf:li 10'
+  | Rights =                                                                                                                                                                                                                                                                
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/dc:rights/rdf:Alt/rdf:li 10'
+  | DateCreated = 2017-06-26T23:18:45
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/photoshop:DateCreated'
+  | CreateDate = 2017:06:26 23:18:45
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmp:CreateDate'
+  | CreatorTool = Digital Camera X-Pro2 Ver3.00
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmp:CreatorTool'
+  | ModifyDate = 2017:06:26 23:18:45
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmp:ModifyDate'
+  | Rating = 0
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmp:Rating'
+JPEG APP13 (622 bytes):
+      15a0: 50 68 6f 74 6f 73 68 6f 70 20 33 2e 30 00 38 42 [Photoshop 3.0.8B]
+      15b0: 49 4d 03 ed 00 00 00 00 00 10 00 48 00 00 00 01 [IM.........H....]
+      15c0: 00 02 00 48 00 00 00 01 00 02 38 42 49 4d 03 f2 [...H......8BIM..]
+      15d0: 00 00 00 00 00 0a 00 00 ff ff ff ff ff ff 00 00 [................]
+      15e0: 38 42 49 4d 04 04 00 00 00 00 01 34 1c 01 5a 00 [8BIM.......4..Z.]
+      15f0: 03 1b 25 47 1c 01 00 00 02 00 04 1c 02 00 00 02 [..%G............]
+      1600: 00 04 1c 02 37 00 08 32 30 31 37 30 36 32 36 1c [....7..20170626.]
+      [snip 510 bytes]
+  + [Photoshop directory, 608 bytes]
+  | ResolutionInfo (SubDirectory) -->
+  | - Tag 0x03ed (16 bytes):
+  |     15ba: 00 48 00 00 00 01 00 02 00 48 00 00 00 01 00 02 [.H.......H......]
+  | + [BinaryData directory, 16 bytes, Big-endian]
+  | | XResolution = 4718592
+  | | - Tag 0x0000 (4 bytes, int32u[1]):
+  | |     15ba: 00 48 00 00                                     [.H..]
+  | | DisplayedUnitsX = 1
+  | | - Tag 0x0002 (2 bytes, int16u[1]):
+  | |     15be: 00 01                                           [..]
+  | | YResolution = 4718592
+  | | - Tag 0x0004 (4 bytes, int32u[1]):
+  | |     15c2: 00 48 00 00                                     [.H..]
+  | | DisplayedUnitsY = 1
+  | | - Tag 0x0006 (2 bytes, int16u[1]):
+  | |     15c6: 00 01                                           [..]
+  | BackgroundColor = ......
+  | - Tag 0x03f2 (10 bytes):
+  |     15d6: 00 00 ff ff ff ff ff ff 00 00                   [..........]
+  | IPTCData (SubDirectory) -->
+  | - Tag 0x0404 (308 bytes):
+  |     15ec: 1c 01 5a 00 03 1b 25 47 1c 01 00 00 02 00 04 1c [..Z...%G........]
+  |     15fc: 02 00 00 02 00 04 1c 02 37 00 08 32 30 31 37 30 [........7..20170]
+  |     160c: 36 32 36 1c 02 3c 00 06 32 33 31 38 34 35 1c 02 [626..<..231845..]
+  |     161c: 50 00 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [P.              ]
+  |     162c: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |     163c: 20 20 20 1c 02 74 00 80 20 20 20 20 20 20 20 20 [   ..t..        ]
+  |     164c: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |     165c: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |     166c: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |     167c: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |     168c: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |     169c: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |     16ac: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  |     16bc: 20 20 20 20 20 20 20 20 1c 02 78 00 2c 73 65 6c [        ..x.,sel]
+  |     16cc: 65 63 74 69 76 65 20 66 6f 63 75 73 20 70 68 6f [ective focus pho]
+  |     16dc: 74 6f 20 6f 66 20 70 69 6e 6b 20 70 65 74 61 6c [to of pink petal]
+  |     16ec: 65 64 20 66 6c 6f 77 65 72 1c 02 19 00 07 62 6c [ed flower.....bl]
+  |     16fc: 6f 73 73 6f 6d 1c 02 19 00 05 66 6c 6f 72 61 1c [ossom.....flora.]
+  |     170c: 02 19 00 06 64 61 68 6c 69 61 1c 02 19 00 05 70 [....dahlia.....p]
+  |     171c: 6c 61 6e 74                                     [lant]
+  | + [IPTC directory, 308 bytes]
+  | | CurrentIPTCDigest = ........4=...).V
+  | | -- IPTCEnvelope record --
+  | | CodedCharacterSet = .%G
+  | | - Tag 0x005a, IPTCEnvelope record (3 bytes, string[0,32]):
+  | |     15f1: 1b 25 47                                        [.%G]
+  | | EnvelopeRecordVersion = 4
+  | | - Tag 0x0000, IPTCEnvelope record (2 bytes, int16u):
+  | |     15f9: 00 04                                           [..]
+  | | -- IPTCApplication record --
+  | | ApplicationRecordVersion = 4
+  | | - Tag 0x0000, IPTCApplication record (2 bytes, int16u):
+  | |     1600: 00 04                                           [..]
+  | | DateCreated = 20170626
+  | | - Tag 0x0037, IPTCApplication record (8 bytes, digits[8]):
+  | |     1607: 32 30 31 37 30 36 32 36                         [20170626]
+  | | TimeCreated = 231845
+  | | - Tag 0x003c, IPTCApplication record (6 bytes, string[11]):
+  | |     1614: 32 33 31 38 34 35                               [231845]
+  | | By-line =                                 
+  | | - Tag 0x0050, IPTCApplication record (32 bytes, string[0,32]):
+  | |     161f: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  | |     162f: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  | | CopyrightNotice =                                                                                                                                 
+  | | - Tag 0x0074, IPTCApplication record (128 bytes, string[0,128]):
+  | |     1644: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  | |     1654: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  | |     1664: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  | |     1674: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  | |     1684: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  | |     1694: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  | |     16a4: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  | |     16b4: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 [                ]
+  | | Caption-Abstract = selective focus photo of pink petaled flower
+  | | - Tag 0x0078, IPTCApplication record (44 bytes, string[0,2000]):
+  | |     16c9: 73 65 6c 65 63 74 69 76 65 20 66 6f 63 75 73 20 [selective focus ]
+  | |     16d9: 70 68 6f 74 6f 20 6f 66 20 70 69 6e 6b 20 70 65 [photo of pink pe]
+  | |     16e9: 74 61 6c 65 64 20 66 6c 6f 77 65 72             [taled flower]
+  | | Keywords = blossom
+  | | - Tag 0x0019, IPTCApplication record (7 bytes, string[0,64]):
+  | |     16fa: 62 6c 6f 73 73 6f 6d                            [blossom]
+  | | Keywords = flora
+  | | - Tag 0x0019, IPTCApplication record (5 bytes, string[0,64]):
+  | |     1706: 66 6c 6f 72 61                                  [flora]
+  | | Keywords = dahlia
+  | | - Tag 0x0019, IPTCApplication record (6 bytes, string[0,64]):
+  | |     1710: 64 61 68 6c 69 61                               [dahlia]
+  | | Keywords = plant
+  | | - Tag 0x0019, IPTCApplication record (5 bytes, string[0,64]):
+  | |     171b: 70 6c 61 6e 74                                  [plant]
+  | JPEG_Quality (SubDirectory) -->
+  | - Tag 0x0406 (7 bytes):
+  |     172c: 00 08 00 00 00 03 01                            [.......]
+  | + [BinaryData directory, 7 bytes, Big-endian]
+  | | PhotoshopQuality = 8
+  | | - Tag 0x0000 (2 bytes, int16s[1]):
+  | |     172c: 00 08                                           [..]
+  | | PhotoshopFormat = 0
+  | | - Tag 0x0001 (2 bytes, int16s[1]):
+  | |     172e: 00 00                                           [..]
+  | GridGuidesInfo = ..@.@
+  | - Tag 0x0408 (16 bytes):
+  |     1740: 00 00 00 01 00 00 02 40 00 00 02 40 00 00 00 00 [.......@...@....]
+  | GlobalAngle = x
+  | - Tag 0x040d (4 bytes):
+  |     175c: 00 00 00 78                                     [...x]
+  | IDsBaseValue = 1
+  | - Tag 0x0414 (4 bytes, int32u[1]):
+  |     176c: 00 00 00 01                                     [....]
+  | GlobalAltitude = .
+  | - Tag 0x0419 (4 bytes):
+  |     177c: 00 00 00 1e                                     [....]
+  | VersionInfo (SubDirectory) -->
+  | - Tag 0x0421 (77 bytes):
+  |     178c: 00 00 00 01 01 00 00 00 0f 00 41 00 64 00 6f 00 [..........A.d.o.]
+  |     179c: 62 00 65 00 20 00 50 00 68 00 6f 00 74 00 6f 00 [b.e. .P.h.o.t.o.]
+  |     17ac: 73 00 68 00 6f 00 70 00 00 00 0f 00 41 00 64 00 [s.h.o.p.....A.d.]
+  |     17bc: 6f 00 62 00 65 00 20 00 50 00 68 00 6f 00 74 00 [o.b.e. .P.h.o.t.]
+  |     17cc: 6f 00 73 00 68 00 6f 00 70 00 00 00 01          [o.s.h.o.p....]
+  | + [BinaryData directory, 77 bytes, Big-endian]
+  | | HasRealMergedData = 1
+  | | - Tag 0x0004 (1 bytes, int8u[1]):
+  | |     1790: 01                                              [.]
+  | | WriterName = Adobe Photoshop
+  | | - Tag 0x0005 (30 bytes, ustr32[30]):
+  | |     1795: 00 41 00 64 00 6f 00 62 00 65 00 20 00 50 00 68 [.A.d.o.b.e. .P.h]
+  | |     17a5: 00 6f 00 74 00 6f 00 73 00 68 00 6f 00 70       [.o.t.o.s.h.o.p]
+  | | ReaderName = Adobe Photoshop
+  | | - Tag 0x0009 (30 bytes, ustr32[30]):
+  | |     17b7: 00 41 00 64 00 6f 00 62 00 65 00 20 00 50 00 68 [.A.d.o.b.e. .P.h]
+  | |     17c7: 00 6f 00 74 00 6f 00 73 00 68 00 6f 00 70       [.o.t.o.s.h.o.p]
+  | IPTCDigest = 0.r.k.....}..4uu
+  | - Tag 0x0425 (16 bytes):
+  |     17e6: 30 7f 72 cc 6b ef 16 de 9f 9e 7d 94 d3 34 75 75 [0.r.k.....}..4uu]
+  | PixelInfo (SubDirectory) -->
+  | - Tag 0x0428 (12 bytes):
+  |     1802: 00 00 00 02 3f f0 00 00 00 00 00 00             [....?.......]
+  | + [BinaryData directory, 12 bytes, Big-endian]
+  | | PixelAspectRatio = 1
+  | | - Tag 0x0004 (8 bytes, double[1]):
+  | |     1806: 3f f0 00 00 00 00 00 00                         [?.......]
+  | Warning = IPTCDigest is not current. XMP may be out of sync
+JPEG APP2 (610 bytes):
+      1812: 49 43 43 5f 50 52 4f 46 49 4c 45 00 01 01 00 00 [ICC_PROFILE.....]
+      1822: 02 54 6c 63 6d 73 04 30 00 00 6d 6e 74 72 52 47 [.Tlcms.0..mntrRG]
+      1832: 42 20 58 59 5a 20 07 e1 00 0a 00 06 00 0b 00 27 [B XYZ .........']
+      1842: 00 18 61 63 73 70 41 50 50 4c 00 00 00 00 00 00 [..acspAPPL......]
+      1852: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+      1862: 00 00 00 00 f6 d6 00 01 00 00 00 00 d3 2d 6c 63 [.............-lc]
+      1872: 6d 73 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [ms..............]
+      [snip 498 bytes]
+ICC_Profile chunk 1 of 1
+  + [ICC_Profile directory with 11 entries, 596 bytes]
+  | ProfileHeader (SubDirectory) -->
+  | + [BinaryData directory, 128 bytes, Big-endian]
+  | | ProfileCMMType = lcms
+  | | - Tag 0x0004 (4 bytes, string[4]):
+  | |     0004: 6c 63 6d 73                                     [lcms]
+  | | ProfileVersion = 1072
+  | | - Tag 0x0008 (2 bytes, int16s[1]):
+  | |     0008: 04 30                                           [.0]
+  | | ProfileClass = mntr
+  | | - Tag 0x000c (4 bytes, string[4]):
+  | |     000c: 6d 6e 74 72                                     [mntr]
+  | | ColorSpaceData = RGB 
+  | | - Tag 0x0010 (4 bytes, string[4]):
+  | |     0010: 52 47 42 20                                     [RGB ]
+  | | ProfileConnectionSpace = XYZ 
+  | | - Tag 0x0014 (4 bytes, string[4]):
+  | |     0014: 58 59 5a 20                                     [XYZ ]
+  | | ProfileDateTime = 2017 10 6 11 39 24
+  | | - Tag 0x0018 (12 bytes, int16u[6]):
+  | |     0018: 07 e1 00 0a 00 06 00 0b 00 27 00 18             [.........'..]
+  | | ProfileFileSignature = acsp
+  | | - Tag 0x0024 (4 bytes, string[4]):
+  | |     0024: 61 63 73 70                                     [acsp]
+  | | PrimaryPlatform = APPL
+  | | - Tag 0x0028 (4 bytes, string[4]):
+  | |     0028: 41 50 50 4c                                     [APPL]
+  | | CMMFlags = 0
+  | | - Tag 0x002c (4 bytes, int32u[1]):
+  | |     002c: 00 00 00 00                                     [....]
+  | | DeviceManufacturer = 
+  | | - Tag 0x0030 (4 bytes, string[4]):
+  | |     0030: 00 00 00 00                                     [....]
+  | | DeviceModel = 
+  | | - Tag 0x0034 (4 bytes, string[4]):
+  | |     0034: 00 00 00 00                                     [....]
+  | | DeviceAttributes = 0 0
+  | | - Tag 0x0038 (8 bytes, int32u[2]):
+  | |     0038: 00 00 00 00 00 00 00 00                         [........]
+  | | RenderingIntent = 0
+  | | - Tag 0x0040 (4 bytes, int32u[1]):
+  | |     0040: 00 00 00 00                                     [....]
+  | | ConnectionSpaceIlluminant = 0.9642 1 0.82491
+  | | - Tag 0x0044 (12 bytes, fixed32s[3]):
+  | |     0044: 00 00 f6 d6 00 01 00 00 00 00 d3 2d             [...........-]
+  | | ProfileCreator = lcms
+  | | - Tag 0x0050 (4 bytes, string[4]):
+  | |     0050: 6c 63 6d 73                                     [lcms]
+  | | ProfileID = 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  | | - Tag 0x0054 (16 bytes, int8u[16]):
+  | |     0054: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  | 0)  ProfileDescription = sRGB IEC61966-2.1
+  |     - Tag 'desc' (34 bytes, type 'mluc'):
+  |         0124: 00 73 00 52 00 47 00 42 00 20 00 49 00 45 00 43 [.s.R.G.B. .I.E.C]
+  |         0134: 00 36 00 31 00 39 00 36 00 36 00 2d 00 32 00 2e [.6.1.9.6.6.-.2..]
+  |         0144: 00 31                                           [.1]
+  | 1)  ProfileCopyright = No copyright, use freely
+  |     - Tag 'cprt' (48 bytes, type 'mluc'):
+  |         0164: 00 4e 00 6f 00 20 00 63 00 6f 00 70 00 79 00 72 [.N.o. .c.o.p.y.r]
+  |         0174: 00 69 00 67 00 68 00 74 00 2c 00 20 00 75 00 73 [.i.g.h.t.,. .u.s]
+  |         0184: 00 65 00 20 00 66 00 72 00 65 00 65 00 6c 00 79 [.e. .f.r.e.e.l.y]
+  | 2)  MediaWhitePoint = 0.9642 1 0.82491
+  |     - Tag 'wtpt' (20 bytes, type 'XYZ '):
+  |         0194: 58 59 5a 20 00 00 00 00 00 00 f6 d6 00 01 00 00 [XYZ ............]
+  |         01a4: 00 00 d3 2d                                     [...-]
+  | 3)  ChromaticAdaptation = 1.04788 0.02292 -0.05022 0.02959 0.99048 -0.01707 -0.00925 0.01508 0.75168
+  |     - Tag 'chad' (44 bytes, type 'sf32'):
+  |         01a8: 73 66 33 32 00 00 00 00 00 01 0c 42 00 00 05 de [sf32.......B....]
+  |         01b8: ff ff f3 25 00 00 07 93 00 00 fd 90 ff ff fb a1 [...%............]
+  |         01c8: ff ff fd a2 00 00 03 dc 00 00 c0 6e             [...........n]
+  | 4)  RedMatrixColumn = 0.43604 0.22249 0.01392
+  |     - Tag 'rXYZ' (20 bytes, type 'XYZ '):
+  |         01d4: 58 59 5a 20 00 00 00 00 00 00 6f a0 00 00 38 f5 [XYZ ......o...8.]
+  |         01e4: 00 00 03 90                                     [....]
+  | 5)  BlueMatrixColumn = 0.14305 0.06061 0.71391
+  |     - Tag 'bXYZ' (20 bytes, type 'XYZ '):
+  |         01e8: 58 59 5a 20 00 00 00 00 00 00 24 9f 00 00 0f 84 [XYZ ......$.....]
+  |         01f8: 00 00 b6 c3                                     [....]
+  | 6)  GreenMatrixColumn = 0.38512 0.7169 0.09706
+  |     - Tag 'gXYZ' (20 bytes, type 'XYZ '):
+  |         01fc: 58 59 5a 20 00 00 00 00 00 00 62 97 00 00 b7 87 [XYZ ......b.....]
+  |         020c: 00 00 18 d9                                     [....]
+  | 7)  RedTRC = para..ff...Y...[
+  |     - Tag 'rTRC' (32 bytes, type 'para'):
+  |         0210: 70 61 72 61 00 00 00 00 00 03 00 00 00 02 66 66 [para..........ff]
+  |         0220: 00 00 f2 a7 00 00 0d 59 00 00 13 d0 00 00 0a 5b [.......Y.......[]
+  | 8)  GreenTRC = para..ff...Y...[
+  |     - Tag 'gTRC' (32 bytes, type 'para'):
+  |         0210: 70 61 72 61 00 00 00 00 00 03 00 00 00 02 66 66 [para..........ff]
+  |         0220: 00 00 f2 a7 00 00 0d 59 00 00 13 d0 00 00 0a 5b [.......Y.......[]
+  | 9)  BlueTRC = para..ff...Y...[
+  |     - Tag 'bTRC' (32 bytes, type 'para'):
+  |         0210: 70 61 72 61 00 00 00 00 00 03 00 00 00 02 66 66 [para..........ff]
+  |         0220: 00 00 f2 a7 00 00 0d 59 00 00 13 d0 00 00 0a 5b [.......Y.......[]
+  | 10) Chromaticity (SubDirectory) -->
+  |     - Tag 'chrm' (36 bytes, type 'chrm'):
+  |         0230: 63 68 72 6d 00 00 00 00 00 03 00 00 00 00 a3 d7 [chrm............]
+  |         0240: 00 00 54 7b 00 00 4c cd 00 00 99 9a 00 00 26 66 [..T{..L.......&f]
+  |         0250: 00 00 0f 5c                                     [...\]
+  | + [BinaryData directory, 36 bytes, Big-endian]
+  | | ChromaticityChannels = 3
+  | | - Tag 0x0008 (2 bytes, int16u[1]):
+  | |     1a58: 00 03                                           [..]
+  | | ChromaticityColorant = 0
+  | | - Tag 0x000a (2 bytes, int16u[1]):
+  | |     1a5a: 00 00                                           [..]
+  | | ChromaticityChannel1 = 0.64 0.33
+  | | - Tag 0x000c (8 bytes, fixed32u[2]):
+  | |     1a5c: 00 00 a3 d7 00 00 54 7b                         [......T{]
+  | | ChromaticityChannel2 = 0.3 0.60001
+  | | - Tag 0x0014 (8 bytes, fixed32u[2]):
+  | |     1a64: 00 00 4c cd 00 00 99 9a                         [..L.....]
+  | | ChromaticityChannel3 = 0.14999 0.06
+  | | - Tag 0x001c (8 bytes, fixed32u[2]):
+  | |     1a6c: 00 00 26 66 00 00 0f 5c                         [..&f...\]
+JPEG DQT (65 bytes):
+      1a78: 00 01 01 01 01 01 01 01 01 01 01 01 01 01 01 03 [................]
+      1a88: 04 03 03 03 03 03 05 04 04 03 04 06 06 07 06 06 [................]
+      1a98: 06 06 06 07 08 09 08 07 07 09 07 06 06 08 0b 08 [................]
+      1aa8: 09 0a 0a 0b 0b 0b 07 08 0b 0c 0b 0a 0c 09 0a 0b [................]
+      1ab8: 0a                                              [.]
+JPEG DQT (65 bytes):
+      1abd: 01 01 01 01 03 03 03 05 03 03 05 0a 07 06 07 0a [................]
+      1acd: 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a [................]
+      1add: 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a [................]
+      1aed: 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a [................]
+      1afd: 0a                                              [.]
+JPEG SOF0 (15 bytes):
+      1b02: 08 09 50 10 90 03 01 11 00 02 11 01 03 11 01    [..P............]
+  ImageWidth = 4240
+  ImageHeight = 2384
+  EncodingProcess = 0
+  BitsPerSample = 8
+  ColorComponents = 3
+  YCbCrSubSampling = 1 1
+JPEG DHT (28 bytes):
+      1b15: 00 00 02 02 03 01 01 01 01 00 00 00 00 00 00 00 [................]
+      1b25: 00 02 03 01 04 00 05 06 07 08 09 0a             [............]
+JPEG DHT (87 bytes):
+      1b35: 10 00 01 03 01 04 06 06 07 04 08 05 02 04 04 00 [................]
+      1b45: 0f 02 00 03 12 22 01 04 13 32 05 11 21 41 42 52 [....."...2..!ABR]
+      1b55: 06 23 31 51 61 62 07 14 33 71 72 81 91 43 82 a1 [.#1Qab..3qr..C..]
+      1b65: b1 08 53 92 a2 b2 c1 d1 f0 15 24 63 e1 f1 73 c2 [..S.......$c..s.]
+      1b75: 09 16 34 83 25 93 a3 d2 e2 17 44 b3 f2 54 c3 18 [..4.%.....D..T..]
+      1b85: 35 26 45 27 36 74 64                            [5&E'6td]
+JPEG DHT (27 bytes):
+      1b90: 01 00 03 01 01 01 01 01 01 01 00 00 00 00 00 00 [................]
+      1ba0: 00 00 01 02 03 04 05 06 07 08 09                [...........]
+JPEG DHT (65 bytes):
+      1baf: 11 00 02 02 01 02 05 02 04 06 02 02 02 01 02 00 [................]
+      1bbf: 0f 00 01 02 11 21 03 31 04 12 41 51 f0 05 61 71 [.....!.1..AQ..aq]
+      1bcf: 81 91 a1 06 22 b1 c1 d1 e1 13 f1 07 32 14 42 15 [....".......2.B.]
+      1bdf: 52 08 16 23 33 62 24 72 34 17 18 25 82 92 b2 c2 [R..#3b$r4..%....]
+      1bef: d2                                              [.]
+JPEG SOS
+JPEG EOI
