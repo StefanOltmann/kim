@@ -63,4 +63,36 @@ class ExifDateUtilTest {
             convertExifDateToIso8601Date("0000:00:00 00:00:00")
         }
     }
+
+    /**
+     * Regression test: garbage input like non-digit years must fail
+     * here instead of producing an invalid ISO string that only fails
+     * later during LocalDateTime.parse.
+     */
+    @Test
+    fun testConvertExifDateRejectsNonDigitYear() {
+
+        assertFailsWith<IllegalArgumentException> {
+            convertExifDateToIso8601Date("aaaa:bb:cc dd:ee:ff")
+        }
+
+        assertFailsWith<IllegalArgumentException> {
+            convertExifDateToIso8601Date("202X:05:12 18:04:00")
+        }
+    }
+
+    /**
+     * Regression test: some vendors truncate the date to
+     * "yyyy:MM:dd HH:mm" (16 chars), dropping the seconds. Without
+     * normalizing this to ":00", a later sub-second append produces
+     * "HH:mm.0", which is invalid ISO and silently loses the taken date.
+     */
+    @Test
+    fun testConvertExifDateWithoutSeconds() {
+
+        assertEquals(
+            "2023-05-12T18:04:00",
+            convertExifDateToIso8601Date("2023:05:12 18:04")
+        )
+    }
 }

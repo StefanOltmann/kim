@@ -174,6 +174,11 @@ public data class BoxType(
         public val JXLP: BoxType = of("jxlp".encodeToByteArray())
 
         /**
+         * JPEG XL complete codestream box.
+         */
+        public val JXLC: BoxType = of("jxlc".encodeToByteArray())
+
+        /**
          * CR3 specific: Canon Metadata Tiff (CMT) for Exif IFD0.
          */
         public val CMT1: BoxType = of("CMT1".encodeToByteArray())

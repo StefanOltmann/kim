@@ -24,7 +24,6 @@ import de.stefan_oltmann.kim.format.bmff.Extent
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.read2BytesAsInt
 import de.stefan_oltmann.kim.input.read4BytesAsInt
-import de.stefan_oltmann.kim.input.read8BytesAsLong
 import de.stefan_oltmann.kim.input.readByteAsInt
 import de.stefan_oltmann.kim.input.readBytes
 import de.stefan_oltmann.kim.input.readXBytesAtInt
@@ -117,16 +116,28 @@ public class ItemLocationBox(
             else
                 error("Unknown version $version")
 
-            if (version in 1..2)
-                byteReader.skipBytes("constructionMethod", 2)
+            /*
+             * 0 means the offsets are absolute file positions, 1 means
+             * they are relative to the idat box payload.
+             */
+            val constructionMethod: Int = if (version in 1..2)
+                byteReader.read2BytesAsInt("constructionMethod", BMFF_BYTE_ORDER)
+            else
+                0
 
             byteReader.skipBytes("dataReferenceIndex", 2)
 
-            val baseOffset: Long = when (baseOffsetSize) {
-                4 -> byteReader.read4BytesAsInt("baseOffset", BMFF_BYTE_ORDER).toLong()
-                8 -> byteReader.read8BytesAsLong("baseOffset", BMFF_BYTE_ORDER)
-                else -> 0
-            }
+            /*
+             * The spec allows field sizes of zero - the value is absent -
+             * and 1, 2, 4 or 8 bytes. Sizes 1 and 2 occur in real files;
+             * treating them as zero silently mislocated every extent of
+             * the item.
+             */
+            val baseOffset: Long =
+                if (baseOffsetSize == 0)
+                    0
+                else
+                    byteReader.readXBytesAtInt("baseOffset", baseOffsetSize, BMFF_BYTE_ORDER)
 
             val extentCount = byteReader.read2BytesAsInt("extentCount", BMFF_BYTE_ORDER)
 
@@ -137,15 +148,23 @@ public class ItemLocationBox(
                 else
                     null
 
-                val extentOffset = byteReader.readXBytesAtInt("extentOffset", offsetSize, BMFF_BYTE_ORDER)
-                val extentLength = byteReader.readXBytesAtInt("extentLength", lengthSize, BMFF_BYTE_ORDER)
+                /*
+                 * The spec allows a field size of zero, which means the
+                 * value is absent and contributes nothing.
+                 */
+                val extentOffset: Long =
+                    if (offsetSize == 0) 0 else byteReader.readXBytesAtInt("extentOffset", offsetSize, BMFF_BYTE_ORDER)
+
+                val extentLength: Long =
+                    if (lengthSize == 0) 0 else byteReader.readXBytesAtInt("extentLength", lengthSize, BMFF_BYTE_ORDER)
 
                 extents.add(
                     Extent(
                         itemId = itemId,
                         index = extentIndex,
                         offset = extentOffset + baseOffset,
-                        length = extentLength
+                        length = extentLength,
+                        constructionMethod = constructionMethod
                     )
                 )
             }

@@ -22,9 +22,6 @@ import de.stefan_oltmann.kim.common.toSingleNumberHexes
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
-import de.stefan_oltmann.kim.format.jpeg.JpegMetadataExtractor.MARKER_END_OF_IMAGE
-import de.stefan_oltmann.kim.format.jpeg.JpegMetadataExtractor.SEGMENT_IDENTIFIER
-import de.stefan_oltmann.kim.format.jpeg.JpegMetadataExtractor.SEGMENT_START_OF_SCAN
 import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.TIFF_ENTRY_LENGTH
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.TIFF_ENTRY_MAX_VALUE_LENGTH
@@ -41,11 +38,7 @@ import de.stefan_oltmann.kim.input.skipBytes
  */
 public object JpegOrientationOffsetFinder {
 
-    private const val APP1_MARKER = 0xE1.toByte()
-
-    @OptIn(ExperimentalStdlibApi::class)
     @Throws(ImageReadException::class)
-    @Suppress("ComplexMethod")
     public fun findOrientationOffset(
         byteReader: ByteReader
     ): Long? = tryWithImageReadException {
@@ -59,34 +52,16 @@ public object JpegOrientationOffsetFinder {
 
         var positionCounter: Long = MediaFormatMagicNumbers.jpeg.size.toLong()
 
+        val scanner = JpegMarkerScanner(byteReader)
+
         @Suppress("LoopWithTooManyJumpStatements")
         do {
 
-            var segmentIdentifier = byteReader.readByte() ?: break
-            var segmentType = byteReader.readByte() ?: break
+            val scan = scanner.nextMarker(zeroIsFillByte = true) ?: break
 
-            positionCounter += 2
+            positionCounter += scan.consumedBytes.size
 
-            /*
-             * Find the segment marker. Markers are zero or more 0xFF bytes, followed by
-             * a 0xFF and then a byte not equal to 0x00 or 0xFF.
-             */
-            while (
-                segmentIdentifier != SEGMENT_IDENTIFIER ||
-                segmentType == SEGMENT_IDENTIFIER ||
-                segmentType.toInt() == 0
-            ) {
-
-                segmentIdentifier = segmentType
-
-                val nextSegmentType = byteReader.readByte() ?: break
-
-                positionCounter++
-
-                segmentType = nextSegmentType
-            }
-
-            if (segmentType == SEGMENT_START_OF_SCAN || segmentType == MARKER_END_OF_IMAGE)
+            if (scan.marker == JpegConstants.SOS_MARKER || scan.marker == JpegConstants.EOI_MARKER)
                 break
 
             /* If we don't have anough bytes for the segment count we are done reading. */
@@ -106,7 +81,7 @@ public object JpegOrientationOffsetFinder {
                 throw ImageReadException("Illegal JPEG segment length: $segmentLength")
 
             /* We are only looking for the EXIF segment. */
-            if (segmentType != APP1_MARKER) {
+            if (scan.marker != JpegConstants.JPEG_APP1_MARKER) {
 
                 byteReader.skipBytes("skip segment", segmentLength)
 

@@ -61,7 +61,14 @@ public class DefaultRandomAccessByteReader(
         if (currentPosition >= contentLength)
             return byteArrayOf()
 
-        val endIndex = currentPosition + count.coerceAtMost(contentLength.toInt())
+        /*
+         * Computed in Long space, so a content length beyond the signed
+         * Int range cannot wrap the coercion into a negative value that
+         * would crash copyOfRange below. Mirrors readBytes(offset, length).
+         */
+        val clampedCount = minOf(count.toLong(), contentLength).toInt()
+
+        val endIndex = currentPosition + clampedCount
 
         if (endIndex > bufferPosition)
             readToIndex(endIndex)
@@ -75,8 +82,14 @@ public class DefaultRandomAccessByteReader(
 
     override fun moveTo(position: Int) {
 
-        require(position <= contentLength - 1) {
-            "Can't skip after max length: $position > ${contentLength - 1}"
+        /*
+         * Positioning exactly at the content end is allowed - like in
+         * ByteArrayByteReader - so reads from there return short or
+         * empty arrays instead of failing. This also keeps moveTo(0)
+         * working for empty content.
+         */
+        require(position in 0..contentLength) {
+            "Can't move to $position in content of $contentLength bytes."
         }
 
         this.currentPosition = position
@@ -84,7 +97,23 @@ public class DefaultRandomAccessByteReader(
 
     override fun readBytes(offset: Int, length: Int): ByteArray {
 
-        val endIndex = offset + length
+        /*
+         * Hostile files can resolve offsets or sizes beyond the signed
+         * Int range, which must fail cleanly instead of crashing inside
+         * copyOfRange with a wrapped-around index.
+         */
+        require(offset >= 0) { "Offset must not be negative: $offset" }
+
+        require(length > 0) { "Length must be positive: $length" }
+
+        if (offset.toLong() >= contentLength)
+            return byteArrayOf()
+
+        /*
+         * Computed in Long space, so a hostile size cannot overflow the
+         * addition back into a small or negative end index.
+         */
+        val endIndex = minOf(offset.toLong() + length, contentLength).toInt()
 
         if (endIndex > bufferPosition)
             readToIndex(endIndex)

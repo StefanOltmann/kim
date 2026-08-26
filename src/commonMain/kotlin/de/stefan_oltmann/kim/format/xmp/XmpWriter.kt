@@ -16,12 +16,13 @@
  */
 package de.stefan_oltmann.kim.format.xmp
 
-import de.stefan_oltmann.kim.Kim.underUnitTesting
+import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.GpsUtil
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.MetadataUpdate
+import de.stefan_oltmann.xmp.XMPConst
 import de.stefan_oltmann.xmp.XMPException
 import de.stefan_oltmann.xmp.XMPLocation
 import de.stefan_oltmann.xmp.XMPMeta
@@ -59,10 +60,7 @@ public object XmpWriter {
 
                 if (update.takenDate != null) {
 
-                    val timeZone = if (underUnitTesting)
-                        TimeZone.of("GMT+02:00")
-                    else
-                        TimeZone.currentSystemDefault()
+                    val timeZone = Kim.defaultTimeZone ?: TimeZone.currentSystemDefault()
 
                     val isoDate = Instant
                         .fromEpochMilliseconds(update.takenDate)
@@ -208,6 +206,8 @@ public object XmpWriter {
         for (update in updates)
             xmpMeta.applyUpdate(update)
 
+        deleteStaleExtendedXmpReference(xmpMeta)
+
         return xmpMeta.serializeToString(writePackageWrapper)
     }
 
@@ -225,7 +225,20 @@ public object XmpWriter {
 
         xmpMeta.applyUpdate(update)
 
+        deleteStaleExtendedXmpReference(xmpMeta)
+
         return xmpMeta.serializeToString(writePackageWrapper)
+    }
+
+    /**
+     * Removes a stale "xmpNote:HasExtendedXMP" reference that was read from
+     * the file. Kim regenerates the reference automatically when oversized
+     * XMP is written, exactly like ExifTool, which deletes the tag because
+     * "we create it as needed". A stale reference would point at extension
+     * segments that no longer exist after a rewrite.
+     */
+    private fun deleteStaleExtendedXmpReference(xmpMeta: XMPMeta) {
+        xmpMeta.deleteProperty(XMPConst.NS_XMP_NOTE, "HasExtendedXMP")
     }
 
     /**

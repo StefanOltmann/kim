@@ -30,7 +30,8 @@ public class MovieBox(
     offset: Long,
     size: Long,
     largeSize: Long?,
-    payload: ByteArray
+    payload: ByteArray,
+    depth: Int = 0
 ) : Box(BoxType.MOOV, offset, size, largeSize, payload), BoxContainer {
 
     override val boxes: List<Box>
@@ -44,7 +45,8 @@ public class MovieBox(
             stopAfterMetadataRead = false,
             positionOffset = 0,
             offsetShift = offset + 8,
-            parentBoxType = type
+            parentBoxType = type,
+            depth = depth
         )
     }
 

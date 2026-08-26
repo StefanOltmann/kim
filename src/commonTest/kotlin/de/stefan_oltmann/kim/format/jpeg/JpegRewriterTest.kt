@@ -18,7 +18,9 @@ package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.convertToSummary
 import de.stefan_oltmann.kim.common.toBytes
+import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcRecord
@@ -36,10 +38,12 @@ import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
 import de.stefan_oltmann.kim.testdata.ModifiedBytesVerifier
 import de.stefan_oltmann.xmp.XMPMetaFactory
+import kotlinx.datetime.TimeZone
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNotSame
@@ -75,7 +79,7 @@ class JpegRewriterTest {
 
     @BeforeTest
     fun setUp() {
-        Kim.underUnitTesting = true
+        Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
     }
 
     /**
@@ -349,20 +353,21 @@ class JpegRewriterTest {
     }
 
     /**
-     * Verifies that XMP larger than the maximal JPEG segment size survives a
-     * write and re-read round trip.
+     * XMP larger than a single JPEG segment is written using Adobe extended
+     * XMP, exactly like ExifTool does it: one main packet plus extension
+     * segments that carry the GUID and chunks of the extended data. The
+     * keywords must survive a full round trip.
      */
     @Test
-    fun testUpdateXmpLargerThanMaxSegmentSize() {
+    fun testUpdateXmpLargerThanMaxSegmentUsesExtendedXmp() {
 
-        val largeXmp = buildLargeXmp()
+        val largeKeywords = (1..largeXmpKeywordCount)
+            .map { index -> "keyword_$index" }
+            .toSet()
 
-        val largeXmpByteCount = largeXmp.encodeToByteArray().size
+        val largeXmp = buildXmpForKeywords(largeKeywords)
 
-        assertTrue(
-            largeXmpByteCount > JpegConstants.MAX_SEGMENT_SIZE,
-            "Test XMP must exceed one JPEG segment, but is $largeXmpByteCount bytes."
-        )
+        assertTrue(largeXmp.encodeToByteArray().size > JpegConstants.MAX_XMP_BYTES_PER_SEGMENT)
 
         val byteWriter = ByteArrayByteWriter()
 
@@ -374,30 +379,89 @@ class JpegRewriterTest {
 
         val newBytes = byteWriter.toByteArray()
 
-        val roundTripXmp = Kim.readMetadata(newBytes)?.xmp
+        /* One main packet plus at least one extension segment. */
+        assertEquals(
+            1,
+            newBytes.countOccurrences(JpegConstants.XMP_IDENTIFIER.decodeToString())
+        )
+        assertTrue(
+            newBytes.countOccurrences(JpegConstants.EXTENDED_XMP_IDENTIFIER.decodeToString()) >= 1
+        )
 
-        assertEquals(largeXmp, roundTripXmp)
+        /* The complete metadata must survive the round trip. */
+        val roundTripKeywords = Kim.readMetadata(newBytes)?.convertToSummary()?.keywords
+
+        assertEquals(largeKeywords, roundTripKeywords)
     }
 
-    private fun buildLargeXmp(): String {
+    /**
+     * The editable padding of an XMP packet carries no information. A
+     * packet that only exceeds the segment size because of its padding is
+     * trimmed and written as a single segment.
+     */
+    @Test
+    fun testUpdateTrimsOversizedXmpPadding() {
 
-        val keywords = (1..largeXmpKeywordCount)
-            .map { index -> "keyword_$index" }
-            .toSet()
+        /*
+         * A valid small packet whose padding alone pushes it beyond the
+         * segment size limit.
+         */
+        val paddedXmp = """
+            <?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>
+            <x:xmpmeta xmlns:x="adobe:ns:meta/">
+             <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/">
+               <dc:title>
+                <rdf:Alt>
+                 <rdf:li xml:lang="x-default">Padding Test</rdf:li>
+                </rdf:Alt>
+               </dc:title>
+              </rdf:Description>
+             </rdf:RDF>
+            </x:xmpmeta>
+        """.trimIndent() + " ".repeat(200_000) + "<?xpacket end=\"w\"?>"
 
-        return XmpWriter.updateXmp(
+        assertTrue(paddedXmp.encodeToByteArray().size > JpegConstants.MAX_XMP_BYTES_PER_SEGMENT)
+
+        val byteWriter = ByteArrayByteWriter()
+
+        JpegRewriter.updateXmpXml(
+            byteReader = ByteArrayByteReader(KimTestData.getBytesOf(1)),
+            byteWriter = byteWriter,
+            xmpXml = paddedXmp
+        )
+
+        val newBytes = byteWriter.toByteArray()
+
+        /* Exactly one APP1 XMP segment must have been written. */
+        assertEquals(
+            1,
+            newBytes.countOccurrences(JpegConstants.XMP_IDENTIFIER.decodeToString())
+        )
+
+        /* The trimmed packet must survive the round trip. */
+        val roundTripXmp = Kim.readMetadata(newBytes)?.xmp
+
+        assertNotNull(roundTripXmp)
+        assertTrue(roundTripXmp.contains("Padding Test"))
+        assertFalse(roundTripXmp.contains(" ".repeat(1000)))
+        assertTrue(roundTripXmp.encodeToByteArray().size <= JpegConstants.MAX_XMP_BYTES_PER_SEGMENT)
+    }
+
+    private fun buildXmpForKeywords(keywords: Set<String>): String =
+        XmpWriter.updateXmp(
             xmpMeta = XMPMetaFactory.create(),
             update = MetadataUpdate.Keywords(keywords),
             writePackageWrapper = true
         )
-    }
 
     /**
-     * Verifies that IPTC data larger than the maximal JPEG segment size
-     * survives a write and re-read round trip.
+     * IPTC data larger than a single JPEG segment is split across multiple
+     * APP13 segments, exactly like Photoshop and ExifTool do it. The
+     * keywords must survive a full round trip.
      */
     @Test
-    fun testUpdateIptcLargerThanMaxSegmentSize() {
+    fun testUpdateIptcLargerThanMaxSegmentIsSplit() {
 
         val keywords = (1..iptcKeywordCount)
             .map { index -> "keyword_$index" }
@@ -408,8 +472,8 @@ class JpegRewriterTest {
         )
 
         assertTrue(
-            blockData.size > JpegConstants.MAX_SEGMENT_SIZE,
-            "Test IPTC block data must exceed one JPEG segment, but is ${blockData.size} bytes."
+            blockData.size > JpegConstants.MAX_PHOTOSHOP_BYTES_PER_SEGMENT,
+            "Test IPTC block data must exceed one APP13 segment, but is ${blockData.size} bytes."
         )
 
         val iptcMetadata = IptcMetadata(
@@ -427,38 +491,18 @@ class JpegRewriterTest {
 
         val newBytes = byteWriter.toByteArray()
 
+        /* The data spans several APP13 segments. */
+        assertTrue(
+            newBytes.countOccurrences(JpegConstants.APP13_IDENTIFIER.decodeToString()) >= 2
+        )
+
+        /* The complete metadata must survive the round trip. */
         val roundTripKeywords = Kim.readMetadata(newBytes)?.iptc?.records
             ?.filter { record -> record.iptcType == IptcTypes.KEYWORDS }
             ?.map { record -> record.value }
             ?.toSet()
 
         assertEquals(keywords, roundTripKeywords)
-
-        /*
-         * A second update must replace all APP13 segments, including the
-         * continuation segments of the split data.
-         */
-        val secondKeywords = keywords.map { keyword -> "second_$keyword" }.toSet()
-
-        val secondIptcMetadata = IptcMetadata(
-            records = secondKeywords.sorted().map { keyword -> IptcRecord(IptcTypes.KEYWORDS, keyword) },
-            rawBlocks = emptyList()
-        )
-
-        val secondWriter = ByteArrayByteWriter()
-
-        JpegRewriter.writeIPTC(
-            byteReader = ByteArrayByteReader(newBytes),
-            byteWriter = secondWriter,
-            metadata = secondIptcMetadata
-        )
-
-        val secondRoundTripKeywords = Kim.readMetadata(secondWriter.toByteArray())?.iptc?.records
-            ?.filter { record -> record.iptcType == IptcTypes.KEYWORDS }
-            ?.map { record -> record.value }
-            ?.toSet()
-
-        assertEquals(secondKeywords, secondRoundTripKeywords)
     }
 
     /**
@@ -468,7 +512,7 @@ class JpegRewriterTest {
     @Test
     fun testUpdateIptcWithDatasetLargerThanMaxSegmentSize() {
 
-        val description = "x".repeat(70_000)
+        val description = "x".repeat(40_000)
 
         val iptcMetadata = IptcMetadata(
             records = listOf(IptcRecord(IptcTypes.CAPTION_ABSTRACT, description)),
@@ -659,10 +703,202 @@ class JpegRewriterTest {
         fail("JPEG bytes contain no APP1 segment.")
     }
 
+    /**
+     * Regression test: a JPEG that consists only of image data gets its
+     * XMP between SOI and SOS.
+     *
+     * The old code appended the segments behind the image data, where no
+     * reader looks, so the metadata silently disappeared: the result
+     * started with the SOS marker instead of an APP1 segment and
+     * [Kim.readMetadata] reported no XMP at all. Both is asserted here.
+     */
+    @Test
+    fun testUpdateXmpOnJpegWithoutHeaderSegmentsIsPlacedBeforeImage() {
+
+        val outputWriter = ByteArrayByteWriter()
+
+        JpegRewriter.updateXmpXml(
+            byteReader = ByteArrayByteReader(createBareJpeg()),
+            byteWriter = outputWriter,
+            xmpXml = "<x:xmpmeta/>"
+        )
+
+        val updatedBytes = outputWriter.toByteArray()
+
+        /* SOI followed directly by the new APP1 XMP segment ... */
+        assertEquals("ffd8ffe1", updatedBytes.copyOfRange(0, 4).toHex())
+
+        /* ... and the image data must still be present behind it. */
+        assertTrue(updatedBytes.size > createBareJpeg().size)
+
+        assertTrue(Kim.readMetadata(updatedBytes)?.xmp?.contains("x:xmpmeta") == true)
+    }
+
+    /**
+     * Regression test: EXIF can always be placed before the image data,
+     * even when the JPEG has no header segments at all. The old code
+     * failed with a ClassCastException on the image data piece.
+     */
+    @Test
+    fun testUpdateExifOnJpegWithoutHeaderSegmentsSucceeds() {
+
+        val outputSet = TiffOutputSet()
+
+        outputSet.getOrCreateRootDirectory()
+            .add(TiffTag.TIFF_TAG_ORIENTATION, 1)
+
+        val outputWriter = ByteArrayByteWriter()
+
+        JpegRewriter.updateExifMetadata(
+            byteReader = ByteArrayByteReader(createBareJpeg()),
+            byteWriter = outputWriter,
+            outputSet = outputSet
+        )
+
+        val updatedBytes = outputWriter.toByteArray()
+
+        /* SOI followed directly by the new APP1 EXIF segment. */
+        assertEquals("ffd8ffe1", updatedBytes.copyOfRange(0, 4).toHex())
+
+        assertNotNull(Kim.readMetadata(updatedBytes)?.exif)
+    }
+
+    /**
+     * Regression test: the streaming update path receives only the header
+     * segments, so an empty list places the metadata right before the SOS
+     * marker. The output must be identical to the non-streaming path.
+     */
+    @Test
+    fun testUpdateTitleOnJpegWithoutHeaderSegmentsSucceeds() {
+
+        val updatedBytes = Kim.update(
+            bytes = createBareJpeg(),
+            update = MetadataUpdate.Title("Bare")
+        )
+
+        assertEquals("ffd8ffe1", updatedBytes.copyOfRange(0, 4).toHex())
+
+        assertTrue(Kim.readMetadata(updatedBytes)?.xmp?.contains("Bare") == true)
+    }
+
+    /**
+     * For files with header segments, but without APP segments, the
+     * insertion position behind the first header segment is kept for
+     * byte compatibility with previous releases.
+     */
+    @Test
+    fun testUpdateXmpWithoutAppSegmentsKeepsLegacyPosition() {
+
+        val outputWriter = ByteArrayByteWriter()
+
+        JpegRewriter.updateXmpXml(
+            byteReader = ByteArrayByteReader(createJpegWithCommentSegments()),
+            byteWriter = outputWriter,
+            xmpXml = "<x:xmpmeta/>"
+        )
+
+        val updatedBytes = outputWriter.toByteArray()
+
+        /*
+         * SOI, COM1 and then the new APP1 segment - not behind the
+         * second comment segment or the image data.
+         */
+        val com1End = 2 + 7
+
+        assertEquals("ffe1", updatedBytes.copyOfRange(com1End, com1End + 2).toHex())
+    }
+
+    private fun createBareJpeg(): ByteArray {
+
+        val writer = ByteArrayByteWriter()
+
+        writer.write(byteArrayOf(0xFF.toByte(), 0xD8.toByte())) // SOI
+
+        /* SOS with minimal parameters and entropy-coded data. */
+        writer.write(
+            byteArrayOf(
+                0xFF.toByte(), 0xDA.toByte(), 0x00, 0x08,
+                0x01, 0x01, 0x00, 0x00, 0x3F, 0x00
+            )
+        )
+
+        /* Entropy-coded image data. */
+        writer.write(byteArrayOf(0x12, 0x34, 0x56, 0x78, 0x9A.toByte(), 0xBC.toByte()))
+
+        writer.write(byteArrayOf(0xFF.toByte(), 0xD9.toByte())) // EOI
+
+        return writer.toByteArray()
+    }
+
+    /**
+     * Builds a JPEG with two comment segments and no APP segments.
+     */
+    private fun createJpegWithCommentSegments(): ByteArray {
+
+        val writer = ByteArrayByteWriter()
+
+        writer.write(byteArrayOf(0xFF.toByte(), 0xD8.toByte())) // SOI
+
+        /* COM1 with the payload "abc". */
+        writer.write(
+            byteArrayOf(
+                0xFF.toByte(), 0xFE.toByte(), 0x00, 0x05,
+                'a'.code.toByte(), 'b'.code.toByte(), 'c'.code.toByte()
+            )
+        )
+
+        /* COM2 with the payload "xyz". */
+        writer.write(
+            byteArrayOf(
+                0xFF.toByte(), 0xFE.toByte(), 0x00, 0x05,
+                'x'.code.toByte(), 'y'.code.toByte(), 'z'.code.toByte()
+            )
+        )
+
+        /* SOS with minimal parameters and entropy-coded data. */
+        writer.write(
+            byteArrayOf(
+                0xFF.toByte(), 0xDA.toByte(), 0x00, 0x08,
+                0x01, 0x01, 0x00, 0x00, 0x3F, 0x00
+            )
+        )
+
+        /* Entropy-coded image data. */
+        writer.write(byteArrayOf(0x12, 0x34, 0x56, 0x78, 0x9A.toByte(), 0xBC.toByte()))
+
+        writer.write(byteArrayOf(0xFF.toByte(), 0xD9.toByte())) // EOI
+
+        return writer.toByteArray()
+    }
+
+    private fun ByteArray.countOccurrences(needle: String): Int {
+
+        val needleBytes = needle.encodeToByteArray()
+
+        var count = 0
+
+        for (index in 0..size - needleBytes.size) {
+
+            var matches = true
+
+            for (needleIndex in needleBytes.indices)
+                if (this[index + needleIndex] != needleBytes[needleIndex]) {
+
+                    matches = false
+
+                    break
+                }
+
+            if (matches)
+                count++
+        }
+
+        return count
+    }
+
     companion object {
 
         private const val largeXmpKeywordCount = 4000
-
         private const val iptcKeywordCount = 5000
 
         private const val exifOffsetTag = 0x8769

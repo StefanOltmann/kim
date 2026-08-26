@@ -276,7 +276,7 @@ public object GifImageParser : ImageParser {
         byteReader: ByteReader,
         chunkTypeFilter: List<GifChunkType>?
     ): GifChunk? =
-        when (byteReader.readByte("extension label")) {
+        when (val extensionLabel = byteReader.readByte("extension label")) {
 
             GifConstants.GRAPHICS_CONTROL_EXTENSION_LABEL -> {
 
@@ -338,7 +338,35 @@ public object GifImageParser : ImageParser {
                     null
             }
 
-            else -> null
+            /*
+             * Unknown labels are kept as an opaque block, so their content
+             * is never destroyed by a rewrite. The complete sub-block chain
+             * must be consumed in any case, otherwise the stream position
+             * desyncs and payload bytes are later misinterpreted as
+             * top-level blocks - which can silently corrupt rewritten
+             * files.
+             */
+            else -> {
+
+                val subChunks = byteReader.parseGifSubChunksUntilEmpty("unknown extension")
+
+                if (chunkTypeFilter?.contains(GifChunkType.UNKNOWN_EXTENSION) != false) {
+
+                    val bytes = mutableListOf<Byte>()
+
+                    bytes.add(GifConstants.EXTENSION_INTRODUCER)
+                    bytes.add(extensionLabel)
+
+                    for (subChunk in subChunks)
+                        bytes.addAll(subChunk.toList())
+
+                    bytes.add(GifConstants.BLOCK_TERMINATOR)
+
+                    GifChunk(GifChunkType.UNKNOWN_EXTENSION, bytes.toByteArray())
+                } else {
+                    null
+                }
+            }
         }
 
     internal fun ByteReader.parseGifSubChunksUntilEmpty(

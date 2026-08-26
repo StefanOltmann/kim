@@ -28,8 +28,6 @@ public abstract class BinaryByteWriter(
 
     public abstract fun write2Bytes(value: Int)
 
-    // abstract fun write3Bytes(value: Int)
-
     public abstract fun write4Bytes(value: Int)
 
     public companion object {

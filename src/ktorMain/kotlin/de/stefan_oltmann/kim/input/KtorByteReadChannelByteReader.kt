@@ -46,6 +46,15 @@ public class KtorByteReadChannelByteReader(
             }
             bufferLimit = buffer.size
             bufferOffset = 0
+
+            /*
+             * A zero-byte refill means the channel delivered no data even
+             * though it was not flagged closed before the read (premature
+             * server close or a race). Treat that as end-of-data instead of
+             * indexing an empty buffer.
+             */
+            if (bufferLimit == 0)
+                return null
         }
 
         return buffer[bufferOffset++]
@@ -69,6 +78,15 @@ public class KtorByteReadChannelByteReader(
                 }
                 bufferLimit = buffer.size
                 bufferOffset = 0
+
+                /*
+                 * A zero-byte refill means the channel delivered no data
+                 * despite not being flagged closed before the read (premature
+                 * server close or a race). Treat that as end-of-data instead
+                 * of looping forever on an empty buffer.
+                 */
+                if (bufferLimit == 0)
+                    break
             }
 
             val bytesToCopy = minOf(remaining, bufferLimit - bufferOffset)

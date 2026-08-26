@@ -24,6 +24,14 @@ package de.stefan_oltmann.kim.format.tiff.makernote.nikon
 @Suppress("MagicNumber", "MaxLineLength")
 internal object NikonDecryptor {
 
+    private const val D50_KEY: Int = 0x22
+
+    private const val DEFAULT_KEY: Int = 0x60
+
+    private val NUMERIC_SERIAL_REGEX = Regex("""\d+""")
+
+    private val D50_MODEL_REGEX = Regex("""\bD50$""")
+
     private val xlat: Array<IntArray> = arrayOf(
         intArrayOf(
             0xc1, 0xbf, 0x6d, 0x0d, 0x59, 0xc5, 0x13, 0x9d, 0x83, 0x61, 0x6b, 0x4f, 0xc7, 0x7f, 0x3d, 0x3d,
@@ -64,20 +72,35 @@ internal object NikonDecryptor {
     )
 
     /**
-     * Derives the serial key from the serial number of the camera.
+     * Derives the serial key from the serial number of the camera,
+     * exactly like ExifTool's SerialKey function.
+     *
+     * The serial number itself is used as key only when it is entirely
+     * numeric. Trimming a non-numeric suffix would silently derive a
+     * wrong key for alphanumeric serials. Cameras without a usable
+     * numeric serial use fixed keys: the D50 uses 0x22, all other models
+     * use 0x60.
      */
-    internal fun serialKey(serialNumber: String?): Int? {
+    internal fun serialKey(serialNumber: String?, model: String?): Int? {
 
         if (serialNumber == null)
             return null
 
-        val digits = serialNumber.trimEnd { !it.isDigit() }
+        /* The serial is used as key only when it is entirely numeric. */
+        val numericSerial =
+            if (NUMERIC_SERIAL_REGEX.matches(serialNumber))
+                serialNumber.toIntOrNull()
+            else
+                null
 
-        if (digits.all { it.isDigit() })
-            return digits.toIntOrNull()
+        if (numericSerial != null)
+            return numericSerial
 
-        /* The D50 uses a fixed key, all other models use 0x60. */
-        return 0x60
+        /* A model that ends with D50 - like ExifTool's "\bD50$" match. */
+        if (model != null && D50_MODEL_REGEX.containsMatchIn(model))
+            return D50_KEY
+
+        return DEFAULT_KEY
     }
 
     /**

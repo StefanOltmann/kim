@@ -115,11 +115,10 @@ class Latin1EncodingTest {
             actual = longTestString.encodeToLatin1Bytes()
         )
 
-        // Fails on Apple systems with MalformedInputException
-//        assertContentEquals(
-//            expected = nonLatin1TestStringLatin1Bytes,
-//            actual = nonLatin1TestString.encodeToLatin1Bytes()
-//        )
+        assertContentEquals(
+            expected = nonLatin1TestStringLatin1Bytes,
+            actual = nonLatin1TestString.encodeToLatin1Bytes()
+        )
     }
 
     @Test

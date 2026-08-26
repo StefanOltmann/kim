@@ -58,7 +58,7 @@ public class ByteArrayByteReader(
 
     override fun moveTo(position: Int) {
 
-        require(position <= contentLength) {
+        require(position in 0..contentLength) {
             "Can't move to $position in content of $contentLength bytes."
         }
 

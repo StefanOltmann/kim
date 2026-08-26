@@ -30,7 +30,8 @@ public class MediaBox(
     offset: Long,
     size: Long,
     largeSize: Long?,
-    payload: ByteArray
+    payload: ByteArray,
+    depth: Int = 0
 ) : Box(BoxType.MDIA, offset, size, largeSize, payload), BoxContainer {
 
     override val boxes: List<Box>
@@ -44,7 +45,8 @@ public class MediaBox(
             stopAfterMetadataRead = false,
             positionOffset = 0,
             offsetShift = offset + 8,
-            parentBoxType = type
+            parentBoxType = type,
+            depth = depth
         )
     }
 

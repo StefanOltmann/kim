@@ -79,6 +79,17 @@ internal object PngUpdater : MetadataUpdater {
                 iptcBytes = null,
                 xmp = updatedXmp
             )
+
+            /*
+             * Behind the image data only stale duplicates of the rewritten
+             * metadata are removed. Comments and tIME chunks are user data
+             * unrelated to the change and must survive an update.
+             */
+            StaleChunkFilter { chunkType, keyword ->
+                (exifBytes != null &&
+                    (chunkType == PngChunkType.EXIF || keyword == PngConstants.EXIF_KEYWORD)) ||
+                    (updatedXmp != null && keyword == PngConstants.XMP_KEYWORD)
+            }
         }
     }
 
@@ -105,6 +116,8 @@ internal object PngUpdater : MetadataUpdater {
                 chunks = chunksWithoutMetadata,
                 byteWriter = outputWriter
             )
+
+            StaleChunkFilter.ALL_METADATA
         }
     }
 

@@ -25,8 +25,10 @@ import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.LocationShown
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
+import kotlinx.datetime.TimeZone
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -71,7 +73,17 @@ abstract class AbstractUpdaterTest(
 
     @BeforeTest
     fun setUp() {
-        Kim.underUnitTesting = true
+        Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
+    }
+
+    @AfterTest
+    fun tearDown() {
+
+        /*
+         * Reset the override, so it cannot leak into test classes that
+         * exercise the platform default time zone.
+         */
+        Kim.defaultTimeZone = null
     }
 
     @Test

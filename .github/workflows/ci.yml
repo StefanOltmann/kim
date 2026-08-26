@@ -36,19 +36,19 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
             ~/.gradle/native
-          key: ${{ runner.os }}-gradle-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties', 'build.gradle.kts') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties', 'build.gradle.kts', 'gradle/libs.versions.toml') }}
           restore-keys: ${{ runner.os }}-gradle-
       - name: Kotlin Native Cache
         uses: actions/cache@v4
         with:
           path: ~/.konan
-          key: ${{ runner.os }}-konan-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties', 'build.gradle.kts') }}
+          key: ${{ runner.os }}-konan-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties', 'build.gradle.kts', 'gradle/libs.versions.toml') }}
           restore-keys: ${{ runner.os }}-konan-
       - name: Android Cache
         uses: actions/cache@v4
         with:
           path: ~/.android
-          key: ${{ runner.os }}-android-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties', 'build.gradle.kts') }}
+          key: ${{ runner.os }}-android-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties', 'build.gradle.kts', 'gradle/libs.versions.toml') }}
           restore-keys: ${{ runner.os }}-android-
       - name: Build & Test
         env:
@@ -144,6 +144,6 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.OSSRH_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
-          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SINGING_SECRET_KEY_RING_FILE_CONTENTS }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_SECRET_KEY_RING_FILE_CONTENTS }}
 
     

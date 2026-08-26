@@ -23,15 +23,23 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class MediaMetadataTest {
 
     /**
      * Regression test based on a fixed small set of test files.
+     *
+     * Compares the metadata output of every test file against its committed
+     * golden dump, so parser regressions across all formats are caught.
+     * Mismatching outputs are written to "build/regenerated_txt" to ease
+     * updating the goldens after an intentional change.
      */
     @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testToString() {
+
+        val mismatchedIndexes = mutableListOf<Int>()
 
         for (index in 1..KimTestData.TEST_MEDIA_COUNT) {
 
@@ -53,9 +61,9 @@ class MediaMetadataTest {
 
             val expectedToString = KimTestData.getToStringText(index)
 
-            val equals = expectedToString.contentEquals(actualToString)
+            if (!expectedToString.contentEquals(actualToString)) {
 
-            if (!equals) {
+                mismatchedIndexes.add(index)
 
                 SystemFileSystem.createDirectories(Path("build/regenerated_txt"))
 
@@ -63,6 +71,13 @@ class MediaMetadataTest {
                     .writeBytes(actualToString)
             }
         }
+
+        assertTrue(
+            mismatchedIndexes.isEmpty(),
+            "Metadata output does not match the golden files for media " +
+                mismatchedIndexes.joinToString(prefix = "[", postfix = "]") +
+                ". The regenerated dumps were written to build/regenerated_txt."
+        )
     }
 
     private companion object {

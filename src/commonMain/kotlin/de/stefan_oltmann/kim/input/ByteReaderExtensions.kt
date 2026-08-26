@@ -187,13 +187,63 @@ internal fun ByteReader.copyRemainingTo(byteWriter: ByteWriter) {
     }
 }
 
-internal fun ByteReader.skipBytes(fieldName: String, count: Int) {
-
-    /* Nothing to do. */
-    if (count == 0)
-        return
+/**
+ * Transfers exactly the given number of bytes from the reader to the
+ * writer, or discards them when the writer is NULL, so container chunks
+ * can be skipped while the stream stays in sync.
+ *
+ * Unlike [copyRemainingTo] this works with a known byte count, which
+ * allows filtering individual chunks of a container format.
+ *
+ * A negative count or a stream that ends before all bytes are transferred
+ * means the source file is corrupt and throws [ImageReadException], so a
+ * rewrite can never emit a silently truncated copy of the image data.
+ */
+internal fun ByteReader.transferExactly(
+    byteWriter: ByteWriter?,
+    count: Long
+) {
 
     if (count < 0)
+        throw ImageReadException("Can't transfer a negative byte count: $count")
+
+    var remaining = count
+
+    while (remaining > 0) {
+
+        val chunk = readBytes(minOf(remaining, DEFAULT_BUFFER_SIZE.toLong()).toInt())
+
+        /*
+         * The stream must not end before all requested bytes were read,
+         * otherwise the output would be truncated without notice.
+         */
+        if (chunk.isEmpty())
+            throw ImageReadException(
+                "Stream ended after ${count - remaining} of $count bytes."
+            )
+
+        byteWriter?.write(chunk)
+
+        remaining -= chunk.size
+    }
+}
+
+internal fun ByteReader.skipBytes(fieldName: String, count: Int) =
+    skipBytes(fieldName, count.toLong())
+
+/**
+ * Skips the given number of bytes in bounded chunks.
+ *
+ * The count is a Long, so streams larger than the signed Int range can be
+ * skipped without wrapping around into a negative or wrong count.
+ */
+internal fun ByteReader.skipBytes(fieldName: String, count: Long) {
+
+    /* Nothing to do. */
+    if (count == 0L)
+        return
+
+    if (count < 0L)
         throw ImageReadException("Couldn't read $fieldName, invalid length: $count")
 
     var remaining = count
@@ -204,7 +254,7 @@ internal fun ByteReader.skipBytes(fieldName: String, count: Int) {
      */
     while (remaining > 0) {
 
-        val skippedByteCount = readBytes(minOf(remaining, DEFAULT_BUFFER_SIZE)).size
+        val skippedByteCount = readBytes(minOf(remaining, DEFAULT_BUFFER_SIZE.toLong()).toInt()).size
 
         if (skippedByteCount == 0) {
 

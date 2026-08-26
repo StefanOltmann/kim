@@ -197,8 +197,12 @@ internal object NikonMakerNoteHandler : MakerNoteHandler() {
      * and an IFD offset relative to that header.
      */
     internal fun read(
+        /** Positioned at the start of the MakerNote. */
         byteReader: RandomAccessByteReader,
+        /** Offset of the MakerNote relative to the embedded TIFF header. */
         makerNoteValueOffset: Int,
+        /** The camera model, needed for the decryption key. */
+        model: String?,
         addDirectory: (TiffDirectory) -> Unit
     ) {
 
@@ -250,7 +254,8 @@ internal object NikonMakerNoteHandler : MakerNoteHandler() {
             )
 
             val serialKey = NikonDecryptor.serialKey(
-                directory.findField(NikonTag.SERIAL_NUMBER)?.valueDescription
+                serialNumber = directory.findField(NikonTag.SERIAL_NUMBER)?.valueDescription,
+                model = model
             )
 
             val countKey = directory.findField(NikonTag.SHUTTER_COUNT)?.toInt()

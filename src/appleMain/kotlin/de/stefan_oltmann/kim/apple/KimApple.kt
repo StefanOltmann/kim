@@ -63,12 +63,24 @@ public fun Kim.readMetadata(path: String): MediaMetadata? =
 @OptIn(ExperimentalForeignApi::class)
 private fun convertDataToByteArray(data: NSData): ByteArray {
 
-    return ByteArray(data.length.toInt()).apply {
+    val length = data.length
+
+    if (length == 0UL)
+        return ByteArray(0)
+
+    if (length > Int.MAX_VALUE.toULong())
+        throw ImageReadException("NSData length $length exceeds Int.MAX_VALUE")
+
+    val src = checkNotNull(data.bytes) {
+        "NSData bytes is null for length $length"
+    }
+
+    return ByteArray(length.toInt()).apply {
         usePinned {
             memcpy(
                 __dst = it.addressOf(0),
-                __src = data.bytes,
-                __n = data.length
+                __src = src,
+                __n = length
             )
         }
     }

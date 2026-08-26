@@ -23,11 +23,16 @@ import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.time.ExperimentalTime
 
 class XmpWriterEdgeCasesTest {
 
@@ -35,8 +40,13 @@ class XmpWriterEdgeCasesTest {
 
     @BeforeTest
     fun setUp() {
-        Kim.underUnitTesting = true
+        Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
         xmpMeta = XMPMetaFactory.create()
+    }
+
+    @AfterTest
+    fun tearDown() {
+        Kim.defaultTimeZone = null
     }
 
     private fun apply(update: MetadataUpdate) {
@@ -133,17 +143,33 @@ class XmpWriterEdgeCasesTest {
         assertNull(xmpMeta.getPropertyBoolean(XMP_NS_XMP, "Flagged"))
     }
 
+    @OptIn(ExperimentalTime::class)
     @Test
     fun testUpdateWithSystemTimeZone() {
 
-        Kim.underUnitTesting = false
+        Kim.defaultTimeZone = null
 
         try {
             apply(MetadataUpdate.TakenDate(0L))
 
-            assertNotNull(xmpMeta.getProperty(XMP_NS_EXIF, "DateTimeOriginal"))
+            /*
+             * Epoch 0 must map to 1970-01-01T00:00 in whatever the
+             * platform time zone is, so the expected string is computed
+             * from that very zone and asserted exactly.
+             */
+            val expected = Instant.fromEpochMilliseconds(0)
+                .toLocalDateTime(TimeZone.currentSystemDefault())
+                .toString()
+
+            val actual: String? = xmpMeta
+                .getPropertyString(XMP_NS_EXIF, "DateTimeOriginal")
+
+            assertEquals(
+                expected,
+                actual
+            )
         } finally {
-            Kim.underUnitTesting = true
+            Kim.defaultTimeZone = null
         }
     }
 

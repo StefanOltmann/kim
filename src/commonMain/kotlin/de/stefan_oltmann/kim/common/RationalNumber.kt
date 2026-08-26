@@ -92,6 +92,14 @@ public class RationalNumber {
         this.unsignedType = unsignedType
     }
 
+    /**
+     * Returns the value of this rational as a double.
+     *
+     * Following IEEE 754, a divisor of zero yields NaN for a zero
+     * numerator and positive or negative infinity otherwise, since the
+     * TIFF format allows such corrupt values in files. Callers that
+     * cannot handle these results must check for finiteness first.
+     */
     public fun doubleValue(): Double = numerator.toDouble() / divisor.toDouble()
 
     /**
@@ -181,6 +189,18 @@ public class RationalNumber {
         private const val INT_PRECISION_TOLERANCE = 1E-8
         private const val MAX_ITERATIONS = 100
 
+        /**
+         * Creates a reduced rational number from the given numerator and
+         * divisor.
+         *
+         * Values outside the signed Int range are clamped and then halved
+         * toward ±1 until they fit, which loses precision for extreme
+         * inputs but guarantees a representable result. A zero divisor
+         * always fails.
+         *
+         * @throws IllegalStateException when the divisor is zero (after
+         *         normalization).
+         */
         public fun create(numerator: Long, divisor: Long): RationalNumber {
 
             val normalizedFraction = normalizeFraction(numerator, divisor)
@@ -188,6 +208,7 @@ public class RationalNumber {
             val gcd = greatestCommonDivisor(normalizedFraction.first, normalizedFraction.second)
 
             val reducedNumerator = normalizedFraction.first / gcd
+
             val reducedDivisor = normalizedFraction.second / gcd
 
             return RationalNumber(reducedNumerator.toInt(), reducedDivisor.toInt())
@@ -243,8 +264,17 @@ public class RationalNumber {
 
         /**
          * Calculate rational number using successive approximations.
+         *
+         * @throws IllegalArgumentException when the value is NaN or
+         *         infinite, because these are not representable as a
+         *         rational number.
          */
         public fun valueOf(value: Double): RationalNumber {
+
+            if (value.isNaN() || value.isInfinite())
+                throw IllegalArgumentException(
+                    "Cannot convert non-finite value to rational: $value"
+                )
 
             if (value >= Int.MAX_VALUE)
                 return RationalNumber(Int.MAX_VALUE, 1)

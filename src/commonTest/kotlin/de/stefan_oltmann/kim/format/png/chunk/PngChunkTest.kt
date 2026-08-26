@@ -16,6 +16,7 @@
 package de.stefan_oltmann.kim.format.png.chunk
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.MAX_DECOMPRESSED_BYTE_COUNT
 import de.stefan_oltmann.kim.common.compress
 import de.stefan_oltmann.kim.format.png.PngChunkType
 import kotlin.test.Test
@@ -182,6 +183,60 @@ class PngChunkTest {
         /* Unexpected compression method. */
         assertFailsWith<ImageReadException> {
             PngChunkZtxt("Keyword\u0000\u0001".encodeToByteArray(), 0)
+        }
+    }
+
+    /**
+     * Regression test: a chunk that ends directly behind the keyword
+     * terminator must be rejected with an [ImageReadException] instead
+     * of a raw IndexOutOfBoundsException.
+     */
+    @Test
+    fun testZtxtChunkRejectsMissingCompressionMethod() {
+
+        assertFailsWith<ImageReadException> {
+            PngChunkZtxt("Keyword\u0000".encodeToByteArray(), 0)
+        }
+    }
+
+    /**
+     * Decompression of untrusted chunks must abort once the output
+     * exceeds the limit, so hostile input cannot exhaust the memory.
+     */
+    @Test
+    fun testZtxtChunkRejectsDecompressionBomb() {
+
+        val text = "A".repeat(MAX_DECOMPRESSED_BYTE_COUNT + 1)
+
+        val bytes = "Comment\u0000\u0000".encodeToByteArray() + compress(text)
+
+        assertFailsWith<ImageReadException> {
+            PngChunkZtxt(bytes, 0)
+        }
+    }
+
+    /**
+     * Regression test: a chunk that ends directly behind the keyword
+     * terminator must be rejected with an [ImageReadException] instead
+     * of a raw IndexOutOfBoundsException.
+     */
+    @Test
+    fun testItxtChunkRejectsMissingCompressionFields() {
+
+        assertFailsWith<ImageReadException> {
+            PngChunkItxt("Keyword\u0000".encodeToByteArray(), 0)
+        }
+    }
+
+    /**
+     * A chunk that ends behind the compression fields, but has no
+     * terminated language tag, must also fail cleanly.
+     */
+    @Test
+    fun testItxtChunkRejectsUnterminatedLanguageTag() {
+
+        assertFailsWith<ImageReadException> {
+            PngChunkItxt("Keyword\u0000\u0000\u0000".encodeToByteArray(), 0)
         }
     }
 }

@@ -250,20 +250,32 @@ public object KimValueFormatter {
 
     public fun formatIso(iso: Int): String = "ISO $iso"
 
-    @Suppress("MagicNumber")
-    public fun formatExposureTime(seconds: Double): String {
+    /**
+     * Formats an exposure time for display.
+     *
+     * Returns NULL for non-positive input, because corrupt EXIF tags can
+     * carry zero or negative seconds and formatting those would produce
+     * nonsensical output like "1/2147483647 s".
+     */
+    public fun formatExposureTime(seconds: Double): String? {
 
-        if (seconds < 1.0)
-            return "1/" + (0.5 + 1 / seconds).toInt() + " s"
+        if (seconds <= 0.0)
+            return null
 
-        val roundedSeconds = seconds.toInt()
+        @Suppress("MagicNumber")
+        return if (seconds < 1.0) {
+            "1/" + (0.5 + 1 / seconds).toInt() + " s"
+        } else {
 
-        val fractionSeconds = seconds - roundedSeconds
+            val roundedSeconds = seconds.toInt()
 
-        if (fractionSeconds > 0.0001)
-            return "$roundedSeconds'' 1/" + (0.5 + 1 / fractionSeconds).toInt() + " s"
+            val fractionSeconds = seconds - roundedSeconds
 
-        return "$roundedSeconds'' s"
+            if (fractionSeconds > 0.0001)
+                "$roundedSeconds'' 1/" + (0.5 + 1 / fractionSeconds).toInt() + " s"
+            else
+                "$roundedSeconds'' s"
+        }
     }
 
     public fun formatFNumber(fNumber: Double): String {

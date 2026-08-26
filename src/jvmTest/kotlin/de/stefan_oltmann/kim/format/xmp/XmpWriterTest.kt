@@ -23,6 +23,7 @@ import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.testdata.KimTestData
 import de.stefan_oltmann.xmp.XMPMetaFactory
+import kotlinx.datetime.TimeZone
 import kotlinx.io.files.Path
 import kotlin.test.Test
 import kotlin.test.fail
@@ -46,7 +47,7 @@ class XmpWriterTest {
     )
 
     fun setUp() {
-        Kim.underUnitTesting = true
+        Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
     }
 
     @Test

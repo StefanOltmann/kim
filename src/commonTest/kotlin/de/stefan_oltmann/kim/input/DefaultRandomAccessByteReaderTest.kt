@@ -17,6 +17,7 @@ package de.stefan_oltmann.kim.input
 
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -83,6 +84,34 @@ class DefaultRandomAccessByteReaderTest {
     }
 
     /**
+     * Hostile files can resolve offsets beyond the signed Int range.
+     * Such reads must fail cleanly instead of crashing inside
+     * copyOfRange with a wrapped-around index.
+     */
+    @Test
+    fun testRandomAccessReadRejectsNegativeOffset() {
+
+        val reader = DefaultRandomAccessByteReader(ByteArrayByteReader(bytes))
+
+        assertFailsWith<IllegalArgumentException> {
+            reader.readBytes(-1, 4)
+        }
+    }
+
+    /**
+     * A hostile length that overflows the offset addition must not wrap
+     * the end index back into the valid range and crash inside
+     * copyOfRange. Reads behind the content stay empty.
+     */
+    @Test
+    fun testRandomAccessReadWithOverflowingOffsetSumIsShort() {
+
+        val reader = DefaultRandomAccessByteReader(ByteArrayByteReader(bytes))
+
+        assertContentEquals(byteArrayOf(), reader.readBytes(Int.MAX_VALUE - 4, 100))
+    }
+
+    /**
      * The preview extraction pattern: move to an offset and read forward.
      */
     @Test
@@ -98,6 +127,70 @@ class DefaultRandomAccessByteReaderTest {
         assertContentEquals(byteArrayOf(3, 4, 5), reader.readBytes(2, 3))
 
         assertTrue(reader.contentLength == bytes.size.toLong())
+    }
+
+    /**
+     * Regression test: moving to the content end must be allowed - like
+     * in ByteArrayByteReader - so reads from there return empty arrays
+     * instead of failing. This also keeps moveTo(0) working for empty
+     * content.
+     */
+    @Test
+    fun testMoveToContentEnd() {
+
+        val reader = DefaultRandomAccessByteReader(ByteArrayByteReader(bytes))
+
+        reader.moveTo(bytes.size)
+
+        assertNull(reader.readByte())
+        assertContentEquals(byteArrayOf(), reader.readBytes(4))
+    }
+
+    @Test
+    fun testMoveToZeroOnEmptyContent() {
+
+        val reader = DefaultRandomAccessByteReader(ByteArrayByteReader(byteArrayOf()))
+
+        /* Must not fail for empty content. */
+        reader.moveTo(0)
+
+        assertNull(reader.readByte())
+    }
+
+    @Test
+    fun testMoveToRejectsNegativePosition() {
+
+        val reader = DefaultRandomAccessByteReader(ByteArrayByteReader(bytes))
+
+        assertFailsWith<IllegalArgumentException> {
+            reader.moveTo(-1)
+        }
+    }
+
+    /**
+     * Regression test: a content length beyond the signed Int range
+     * (e.g. a 3 GiB TIFF) previously wrapped [DefaultRandomAccessByteReader.readBytes]'s
+     * coercion into a negative value, crashing inside copyOfRange.
+     * The Long-space clamp must return a normal short read instead.
+     */
+    @Test
+    fun testSequentialReadWithHugeContentLengthDoesNotCrash() {
+
+        val hugeLengthReader = object : ByteReader {
+            override val contentLength: Long = Int.MAX_VALUE + 1024L
+
+            override fun readByte(): Byte? = null
+
+            override fun readBytes(count: Int): ByteArray = byteArrayOf()
+
+            override fun close() { /* Does nothing. */
+            }
+        }
+
+        val reader = DefaultRandomAccessByteReader(hugeLengthReader)
+
+        /* Must return an empty array instead of crashing. */
+        assertContentEquals(byteArrayOf(), reader.readBytes(10))
     }
 
     /**

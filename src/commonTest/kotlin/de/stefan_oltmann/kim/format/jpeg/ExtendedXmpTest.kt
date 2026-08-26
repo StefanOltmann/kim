@@ -1,0 +1,335 @@
+/*
+ * Copyright 2026 Stefan Oltmann
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package de.stefan_oltmann.kim.format.jpeg
+
+import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.Md5
+import de.stefan_oltmann.kim.common.convertHexStringToByteArray
+import de.stefan_oltmann.kim.format.jpeg.xmp.ExtendedXmpWriter
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
+
+class ExtendedXmpTest {
+
+    /**
+     * Extended XMP data referenced by the main packet must be merged back
+     * in on read, so the properties of both packets are visible.
+     */
+    @Test
+    fun testReadMetadataMergesExtendedXmp() {
+
+        val extendedXml =
+            MINIMAL_HEADER +
+                "<rdf:Description rdf:about=\"\" " +
+                "xmlns:custom=\"http://example.com/custom/\">" +
+                "<custom:Extra>EXTENDED_VALUE</custom:Extra>" +
+                "</rdf:Description>" +
+                MINIMAL_FOOTER
+
+        val guid = digestAsGuid(extendedXml)
+
+        val jpegBytes = createJpegWithExtendedXmp(
+            mainPacket = buildMainPacket(guid),
+            extensionPayloads = listOf(buildExtensionPayload(guid, extendedXml))
+        )
+
+        val xmp = Kim.readMetadata(jpegBytes)?.xmp
+
+        assertNotNull(xmp)
+        assertFalse(!xmp.contains("Main Title"))
+        assertFalse(!xmp.contains("EXTENDED_VALUE"))
+    }
+
+    /**
+     * A main packet that references extended data without the matching
+     * segments existing must fail loudly instead of silently dropping the
+     * referenced properties - a rewrite would destroy them otherwise.
+     */
+    @Test
+    fun testReadMetadataRejectsMissingExtendedXmp() {
+
+        val jpegBytes = createJpegWithExtendedXmp(
+            mainPacket = buildMainPacket(GUID),
+            extensionPayloads = emptyList()
+        )
+
+        assertFailsWith<ImageReadException> {
+            Kim.readMetadata(jpegBytes)
+        }
+    }
+
+    /**
+     * Extension segments with a foreign GUID belong to another packet and
+     * do not satisfy the reference of the main packet.
+     */
+    @Test
+    fun testReadMetadataRejectsForeignGuidExtensions() {
+
+        val foreignGuid = "1234567890ABCDEF1234567890ABCDEF"
+
+        val extendedXml =
+            MINIMAL_HEADER +
+                "<rdf:Description rdf:about=\"\" " +
+                "xmlns:custom=\"http://example.com/custom/\">" +
+                "<custom:Extra>EXTENDED_VALUE</custom:Extra>" +
+                "</rdf:Description>" +
+                MINIMAL_FOOTER
+
+        val jpegBytes = createJpegWithExtendedXmp(
+            mainPacket = buildMainPacket(GUID),
+            extensionPayloads = listOf(buildExtensionPayload(foreignGuid, extendedXml))
+        )
+
+        assertFailsWith<ImageReadException> {
+            Kim.readMetadata(jpegBytes)
+        }
+    }
+
+    /**
+     * Tampered extended data must be rejected via its MD5 checksum instead
+     * of being merged silently.
+     */
+    @Test
+    fun testReadMetadataRejectsCorruptExtendedXmp() {
+
+        val extendedXml =
+            MINIMAL_HEADER +
+                "<rdf:Description rdf:about=\"\" " +
+                "xmlns:custom=\"http://example.com/custom/\">" +
+                "<custom:Extra>EXTENDED_VALUE</custom:Extra>" +
+                "</rdf:Description>" +
+                MINIMAL_FOOTER
+
+        val tamperedXml = extendedXml.replace("EXTENDED_VALUE", "TAMPERED__VALUE")
+
+        val jpegBytes = createJpegWithExtendedXmp(
+            mainPacket = buildMainPacket(digestAsGuid(extendedXml)),
+            extensionPayloads = listOf(
+                buildExtensionPayload(digestAsGuid(extendedXml), tamperedXml)
+            )
+        )
+
+        assertFailsWith<ImageReadException> {
+            Kim.readMetadata(jpegBytes)
+        }
+    }
+
+    /**
+     * A single XMP schema that exceeds one full segment cannot stay in the
+     * main packet. It is moved to the extended data completely, which has
+     * unlimited size, and the main packet keeps only the GUID reference.
+     */
+    @Test
+    fun testPartitionMovesSingleHugeSchemaToExtendedData() {
+
+        val hugeValue = "x".repeat(JpegConstants.MAX_XMP_BYTES_PER_SEGMENT + 100)
+
+        val hugeXmp =
+            """<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>""" +
+                """<x:xmpmeta xmlns:x="adobe:ns:meta/">""" +
+                """<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">""" +
+                """<rdf:Description rdf:about="" xmlns:custom="http://example.com/custom/">""" +
+                "<custom:Big>$hugeValue</custom:Big>" +
+                "</rdf:Description>" +
+                "</rdf:RDF></x:xmpmeta>" +
+                """<?xpacket end="w"?>"""
+
+        val partitioned = ExtendedXmpWriter.partition(hugeXmp)
+
+        /* The main packet fits into a single segment and carries only the reference. */
+        assertTrue(partitioned.mainPacketXml.encodeToByteArray().size <= JpegConstants.MAX_XMP_BYTES_PER_SEGMENT)
+        assertTrue(partitioned.mainPacketXml.contains("HasExtendedXMP"))
+        assertFalse(partitioned.mainPacketXml.contains(hugeValue))
+
+        /* The extension segments reassemble to the complete extended data. */
+        assertFalse(partitioned.extensionSegmentPayloads.isEmpty())
+
+        val reassembled = ByteArrayByteWriter()
+
+        for (payload in partitioned.extensionSegmentPayloads)
+            reassembled.write(payload.copyOfRange(EXTENDED_XMP_HEADER_BYTES, payload.size))
+
+        val extendedBytes = reassembled.toByteArray()
+
+        assertTrue(extendedBytes.decodeToString().contains(hugeValue))
+
+        assertEquals(
+            digestAsGuid(extendedBytes.decodeToString()),
+            extractGuidFromMainPacket(partitioned.mainPacketXml)
+        )
+    }
+
+    /**
+     * deleteMetadata removes standard and extended XMP segments alike.
+     */
+    @Test
+    fun testDeleteMetadataRemovesExtendedXmpSegments() {
+
+        val extendedXml =
+            MINIMAL_HEADER +
+                "<rdf:Description rdf:about=\"\" " +
+                "xmlns:custom=\"http://example.com/custom/\">" +
+                "<custom:Extra>EXTENDED_VALUE</custom:Extra>" +
+                "</rdf:Description>" +
+                MINIMAL_FOOTER
+
+        val guid = digestAsGuid(extendedXml)
+
+        val jpegBytes = createJpegWithExtendedXmp(
+            mainPacket = buildMainPacket(guid),
+            extensionPayloads = listOf(buildExtensionPayload(guid, extendedXml))
+        )
+
+        val cleanedBytes = Kim.deleteMetadata(jpegBytes)
+
+        assertFalse(cleanedBytes.decodeToString().contains("Main Title"))
+        assertFalse(cleanedBytes.decodeToString().contains("HasExtendedXMP"))
+    }
+
+    /*
+     * ------------------------------------------------------------------
+     * Fixture helpers
+     * ------------------------------------------------------------------
+     */
+
+    private fun buildMainPacket(guid: String): String {
+
+        /*
+         * Uses the shorthand attribute form of the extended XMP reference,
+         * so both serialization forms are covered by the tests.
+         */
+        return """
+            <?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>
+            <x:xmpmeta xmlns:x="adobe:ns:meta/">
+             <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/">
+               <dc:title><rdf:Alt><rdf:li xml:lang="x-default">Main Title</rdf:li></rdf:Alt></dc:title>
+              </rdf:Description>
+              <rdf:Description rdf:about=""
+               xmlns:xmpNote="http://ns.adobe.com/xmp/note/"
+               xmpNote:HasExtendedXMP="$guid"/>
+             </rdf:RDF>
+            </x:xmpmeta>
+            <?xpacket end="w"?>
+        """.trimIndent()
+    }
+
+    /**
+     * Builds an extended XMP APP1 segment payload:
+     * identifier, GUID, total length, chunk.
+     */
+    private fun buildExtensionPayload(guid: String, extendedXml: String): ByteArray {
+
+        val extendedBytes = extendedXml.encodeToByteArray()
+
+        val writer = ByteArrayByteWriter()
+
+        writer.write(convertHexStringToByteArray(EXTENDED_XMP_IDENTIFIER_HEX))
+        writer.write(guid.encodeToByteArray())
+        writer.write(
+            byteArrayOf(
+                (extendedBytes.size ushr 24).toByte(),
+                (extendedBytes.size ushr 16).toByte(),
+                (extendedBytes.size ushr 8).toByte(),
+                extendedBytes.size.toByte()
+            )
+        )
+        writer.write(extendedBytes)
+
+        return writer.toByteArray()
+    }
+
+    /**
+     * Builds a minimal JPEG with SOI, one standard XMP segment, the given
+     * extension segments, and a minimal scan.
+     */
+    private fun createJpegWithExtendedXmp(
+        mainPacket: String,
+        extensionPayloads: List<ByteArray>
+    ): ByteArray {
+
+        val bytes = ByteArrayByteWriter()
+
+        bytes.write(byteArrayOf(0xFF.toByte(), 0xD8.toByte())) /* SOI */
+
+        val xmpPayload =
+            convertHexStringToByteArray(XMP_IDENTIFIER_HEX) + mainPacket.encodeToByteArray()
+
+        writeSegment(bytes, 0xE1, xmpPayload)
+
+        for (payload in extensionPayloads)
+            writeSegment(bytes, 0xE1, payload)
+
+        /* SOS with minimal scan data. */
+        bytes.write(byteArrayOf(0xFF.toByte(), 0xDA.toByte(), 0, 8, 1, 1, 0, 0, 63.toByte(), 0))
+        bytes.write(byteArrayOf(0x11, 0x22, 0x33, 0x44))
+        bytes.write(byteArrayOf(0xFF.toByte(), 0xD9.toByte())) /* EOI */
+
+        return bytes.toByteArray()
+    }
+
+    private fun writeSegment(writer: ByteArrayByteWriter, marker: Int, payload: ByteArray) {
+
+        writer.write(byteArrayOf(0xFF.toByte(), marker.toByte()))
+
+        val length = payload.size + 2
+
+        writer.write(byteArrayOf((length ushr 8).toByte(), length.toByte()))
+        writer.write(payload)
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    private fun digestAsGuid(text: String): String =
+        Md5.digest(text.encodeToByteArray()).toHexString(HexFormat.UpperCase)
+
+    private fun extractGuidFromMainPacket(mainPacketXml: String): String {
+
+        val openTag = "<xmpNote:HasExtendedXMP>"
+        val closeTag = "</xmpNote:HasExtendedXMP>"
+
+        val start = mainPacketXml.indexOf(openTag) + openTag.length
+        val end = mainPacketXml.indexOf(closeTag)
+
+        return mainPacketXml.substring(start, end)
+    }
+
+    companion object {
+
+        /** Identifier (35) + GUID (32) + total length (4). */
+        private const val EXTENDED_XMP_HEADER_BYTES: Int = 71
+
+        private const val GUID: String = "00112233445566778899AABBCCDDEEFF"
+
+        /* "http://ns.adobe.com/xap/1.0/\0" */
+        private const val XMP_IDENTIFIER_HEX: String =
+            "687474703A2F2F6E732E61646F62652E636F6D2F7861702F312E302F00"
+
+        /* "http://ns.adobe.com/xmp/extension/\0" */
+        private const val EXTENDED_XMP_IDENTIFIER_HEX: String =
+            "687474703A2F2F6E732E61646F62652E636F6D2F786D702F657874656E73696F6E2F00"
+
+        private const val MINIMAL_HEADER: String =
+            """<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">"""
+
+        private const val MINIMAL_FOOTER: String = "</rdf:RDF></x:xmpmeta>"
+    }
+}

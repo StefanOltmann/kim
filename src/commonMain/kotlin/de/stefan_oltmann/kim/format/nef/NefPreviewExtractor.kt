@@ -37,21 +37,21 @@ public object NefPreviewExtractor : TiffPreviewExtractor {
 
         val ifd1 = tiffContents.directories.find {
             it.type == TiffConstants.TIFF_DIRECTORY_TYPE_IFD1
-        } ?: return null
+        } ?: return@extractPreviewImage null
 
-        val previewImageStart =
-            ifd1.getFieldValue(TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT) ?: return null
+        val previewImageStart = ifd1.getFieldValue(TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT)
+            ?: return@extractPreviewImage null
 
-        val previewLength =
-            ifd1.getFieldValue(TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT_LENGTH) ?: return null
+        val previewLength = ifd1.getFieldValue(TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT_LENGTH)
+            ?: return@extractPreviewImage null
 
         if (previewLength == 0)
-            return null
+            return@extractPreviewImage null
 
-        randomAccessByteReader.moveTo(previewImageStart)
-
-        val previewBytes = randomAccessByteReader.readBytes(previewLength)
-
-        return@tryWithImageReadException previewBytes
+        return@tryWithImageReadException TiffPreviewExtractor.readValidatedPreviewBytes(
+            randomAccessByteReader = randomAccessByteReader,
+            start = previewImageStart,
+            length = previewLength
+        )
     }
 }

@@ -137,10 +137,7 @@ public class TiffOutputSet(
 
                 if (update.takenDate != null) {
 
-                    val timeZone = if (Kim.underUnitTesting)
-                        TimeZone.of("GMT+02:00")
-                    else
-                        TimeZone.currentSystemDefault()
+                    val timeZone = Kim.defaultTimeZone ?: TimeZone.currentSystemDefault()
 
                     val exifDateString = Instant
                         .fromEpochMilliseconds(update.takenDate)

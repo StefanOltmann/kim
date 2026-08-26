@@ -26,14 +26,13 @@ import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPiece
-import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceImageData
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegmentExif
+import de.stefan_oltmann.kim.format.jpeg.xmp.ExtendedXmpWriter
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.copyRemainingTo
-import de.stefan_oltmann.kim.input.readRemainingBytes
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
 import kotlin.jvm.JvmStatic
@@ -43,46 +42,45 @@ import kotlin.jvm.JvmStatic
  */
 public object JpegRewriter {
 
-    private fun readSegments(byteReader: ByteReader): List<JFIFPiece> {
+    /*
+     * The processing instruction that terminates an XMP packet. The
+     * whitespace between the packet content and this marker is editable
+     * padding that carries no information.
+     */
+    private const val XMP_PACKET_END_MARKER = "<?xpacket end="
 
-        val (segments, sosMarkerBytes) = JpegUtils.readSegments(byteReader)
-
-        /*
-         * A truncated file can end before the SOS marker. Writing just the
-         * header would silently destroy the image data, so the rewrite is
-         * rejected instead.
-         */
-        if (sosMarkerBytes == null)
-            throw ImageWriteException("JPEG file is truncated or invalid: no SOS marker found.")
-
-        return segments + JFIFPieceImageData(sosMarkerBytes, byteReader.readRemainingBytes())
-    }
-
+    /**
+     * Inserts the new segments at a place where readers look for
+     * metadata: behind the last APP segment if one exists, otherwise in
+     * front of the image data - never behind it.
+     *
+     * For files with existing header segments the position behind the
+     * first header segment is kept for byte compatibility with previous
+     * releases. A file that consists only of image data gets its
+     * metadata directly between SOI and SOS, which is a valid and
+     * readable location, so a rewrite never fails for a lack of
+     * existing APP segments.
+     */
     private fun insertAfterLastAppSegments(
         segments: List<JFIFPiece>,
         newSegments: List<JFIFPiece>
     ): List<JFIFPiece> {
 
-        val lastAppIndex = segments.indices.lastOrNull { index ->
-            val segment = segments[index]
-            segment is JFIFPieceSegment && segment.isAppSegment()
-        } ?: -1
-
-        val mergedSegments = segments.toMutableList()
-
-        if (lastAppIndex == -1) {
-
-            if (segments.isEmpty())
-                throw ImageWriteException("JPEG file has no APP segments.")
-
-            mergedSegments.addAll(1, newSegments)
-
-        } else {
-
-            mergedSegments.addAll(lastAppIndex + 1, newSegments)
+        val lastAppIndex = segments.indexOfLast { piece ->
+            piece is JFIFPieceSegment && piece.isAppSegment()
         }
 
-        return mergedSegments
+        if (lastAppIndex != -1)
+            return segments.toMutableList().apply { addAll(lastAppIndex + 1, newSegments) }
+
+        /*
+         * Without an APP segment the new segments go in front of the image
+         * data, or to the very front when the list holds only header
+         * segments (the streaming path). Both produce the same output.
+         */
+        val insertIndex = if (segments.isEmpty()) 0 else 1
+
+        return segments.toMutableList().apply { addAll(insertIndex, newSegments) }
     }
 
     @JvmStatic
@@ -92,12 +90,17 @@ public object JpegRewriter {
         outputSet: TiffOutputSet
     ) {
 
-        val segments = readSegments(byteReader)
-
-        writeSegments(
-            byteWriter = byteWriter,
-            segments = replaceExifSegments(segments, createExifSegmentBytes(outputSet))
-        )
+        /*
+         * Streaming keeps memory bounded: the image data behind the SOS
+         * marker is transferred in bounded chunks instead of being
+         * buffered as a whole.
+         */
+        updateMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
+            writeSegments(
+                byteWriter = outputWriter,
+                segments = replaceExifSegments(segments, createExifSegmentBytes(outputSet))
+            )
+        }
     }
 
     /**
@@ -129,7 +132,10 @@ public object JpegRewriter {
             return oldSegmentsWithoutExif
 
         if (newBytes.size > JpegConstants.MAX_PAYLOAD_BYTES_PER_SEGMENT)
-            throw ImageWriteException("APP1 Segment is too long: " + newBytes.size)
+            throw ImageWriteException(
+                "EXIF data is too large for a single APP1 segment: ${newBytes.size} " +
+                    "bytes (maximum ${JpegConstants.MAX_PAYLOAD_BYTES_PER_SEGMENT})."
+            )
 
         val markerBytes = JpegConstants.JPEG_APP1_MARKER.toShort().toBytes(JPEG_BYTE_ORDER)
 
@@ -140,15 +146,19 @@ public object JpegRewriter {
 
         var index = 0
 
-        val firstSegment = newSegments[index] as JFIFPieceSegment
-
         /*
          * The JFIF APP0 segment must remain the first segment after SOI, so
          * the EXIF segment is inserted behind it. Without a JFIF segment the
-         * EXIF segment becomes the first segment of the file.
+         * EXIF segment becomes the first segment of the file. Only real
+         * segments are inspected here, so a file without any header segment
+         * does not fail below.
          */
-        if (firstSegment.marker == JpegConstants.JFIF_MARKER)
-            index = 1
+        val jfifIndex = newSegments.indexOfFirst { piece ->
+            piece is JFIFPieceSegment && piece.marker == JpegConstants.JFIF_MARKER
+        }
+
+        if (jfifIndex != -1)
+            index = jfifIndex + 1
 
         val exifSegment = JFIFPieceSegmentExif(JpegConstants.JPEG_APP1_MARKER, markerBytes, markerLengthBytes, newBytes)
 
@@ -190,15 +200,21 @@ public object JpegRewriter {
     @JvmStatic
     public fun writeIPTC(byteReader: ByteReader, byteWriter: ByteWriter, metadata: IptcMetadata) {
 
-        val segments = readSegments(byteReader)
+        /*
+         * Streaming keeps memory bounded: the image data behind the SOS
+         * marker is transferred in bounded chunks instead of being
+         * buffered as a whole.
+         */
+        updateMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
 
-        writeSegments(
-            byteWriter = byteWriter,
-            segments = insertAfterLastAppSegments(
-                segments.filterNot { piece -> piece is JFIFPieceSegment && piece.isIptcSegment() },
-                createIptcSegments(metadata)
+            writeSegments(
+                byteWriter = outputWriter,
+                segments = insertAfterLastAppSegments(
+                    segments.filterNot { piece -> piece is JFIFPieceSegment && piece.isIptcSegment() },
+                    createIptcSegments(metadata)
+                )
             )
-        )
+        }
     }
 
     /**
@@ -221,26 +237,41 @@ public object JpegRewriter {
     }
 
     /**
-     * Splits the given Photoshop data across multiple APP13 segments.
+     * Returns the APP13 segments for the given Photoshop data.
      *
-     * A JPEG segment has a maximum size of around 65 KB. Every segment starts
-     * with the Photoshop identifier, so readers can concatenate the payloads
-     * of consecutive segments.
+     * Data larger than a single segment is split across consecutive APP13
+     * segments, exactly like Photoshop and ExifTool do it: every segment
+     * repeats the "Photoshop 3.0" identifier and the continuation segments
+     * continue mid resource block. This multi-segment layout is handled by
+     * all established readers; ExifTool documents it as
+     * "APP13 - Photoshop IRB (multi-segment, includes IPTC)".
      */
     private fun createApp13Segments(photoshopData: ByteArray): List<JFIFPieceSegment> {
 
-        return photoshopData
-            .asList()
-            .chunked(JpegConstants.MAX_PHOTOSHOP_BYTES_PER_SEGMENT)
-            .map { chunk ->
+        val segments = mutableListOf<JFIFPieceSegment>()
 
-                val segmentWriter = ByteArrayByteWriter()
+        var offset = 0
 
-                segmentWriter.write(JpegConstants.APP13_IDENTIFIER)
-                segmentWriter.write(chunk.toByteArray())
+        do {
 
+            val chunkEnd = minOf(
+                offset + JpegConstants.MAX_PHOTOSHOP_BYTES_PER_SEGMENT,
+                photoshopData.size
+            )
+
+            val segmentWriter = ByteArrayByteWriter()
+
+            segmentWriter.write(JpegConstants.APP13_IDENTIFIER)
+            segmentWriter.write(photoshopData.copyOfRange(offset, chunkEnd))
+
+            segments.add(
                 JFIFPieceSegment(JpegConstants.JPEG_APP13_MARKER, segmentWriter.toByteArray())
-            }
+            )
+
+            offset = chunkEnd
+        } while (offset < photoshopData.size)
+
+        return segments
     }
 
     @JvmStatic
@@ -250,17 +281,23 @@ public object JpegRewriter {
         xmpXml: String
     ) {
 
-        val segments = readSegments(byteReader)
+        /*
+         * Streaming keeps memory bounded: the image data behind the SOS
+         * marker is transferred in bounded chunks instead of being
+         * buffered as a whole.
+         */
+        updateMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
 
-        writeSegments(
-            byteWriter = byteWriter,
-            segments = insertAfterLastAppSegments(
-                segments.filterNot { segment ->
-                    segment is JFIFPieceSegment && segment.isXmpSegment()
-                },
-                createXmpSegments(xmpXml)
+            writeSegments(
+                byteWriter = outputWriter,
+                segments = insertAfterLastAppSegments(
+                    segments.filterNot { segment ->
+                        segment is JFIFPieceSegment && segment.isXmpSegment()
+                    },
+                    createXmpSegments(xmpXml)
+                )
             )
-        )
+        }
     }
 
     /**
@@ -336,27 +373,68 @@ public object JpegRewriter {
         return updatedSegments
     }
 
+    /**
+     * Returns the APP1 segments for the given XMP packet.
+     *
+     * The editable padding of the packet is removed when the packet does
+     * not fit into a single segment, because large padding can push an
+     * otherwise small packet beyond the segment size.
+     *
+     * Oversized packets are written using Adobe extended XMP, exactly like
+     * ExifTool does it: the main packet keeps as many whole rdf:Description
+     * blocks as fit and references the rest through "xmpNote:HasExtendedXMP",
+     * followed by extension segments carrying the GUID and chunks of the
+     * extended data. This scheme is part of the Adobe XMP specification and
+     * is read by ExifTool, Photoshop and Lightroom. Naive byte splitting of
+     * the packet would produce truncated XML that third-party readers reject.
+     */
     private fun createXmpSegments(xmpXml: String): List<JFIFPieceSegment> {
 
-        val xmpBytes = xmpXml.encodeToByteArray()
+        var xmpBytes = xmpXml.encodeToByteArray()
 
-        /*
-         * A JPEG segment has a maximum size of around 65 KB.
-         * Split larger XMP data across multiple APP1 segments.
-         */
-        return xmpBytes
-            .asList()
-            .chunked(JpegConstants.MAX_XMP_BYTES_PER_SEGMENT)
-            .map { chunk ->
+        if (xmpBytes.size > JpegConstants.MAX_XMP_BYTES_PER_SEGMENT)
+            xmpBytes = removeXmpPadding(xmpXml).encodeToByteArray()
 
-                val segmentWriter = ByteArrayByteWriter()
+        val partitioned =
+            ExtendedXmpWriter.partition(xmpBytes.decodeToString())
 
-                segmentWriter.write(JpegConstants.XMP_IDENTIFIER)
-                segmentWriter.write(chunk.toByteArray())
+        val segments = mutableListOf(
+            createStandardXmpSegment(partitioned.mainPacketXml.encodeToByteArray())
+        )
 
-                val segmentBytes = segmentWriter.toByteArray()
+        for (payload in partitioned.extensionSegmentPayloads)
+            segments.add(JFIFPieceSegment(JpegConstants.JPEG_APP1_MARKER, payload))
 
-                JFIFPieceSegment(JpegConstants.JPEG_APP1_MARKER, segmentBytes)
-            }
+        return segments
+    }
+
+    private fun createStandardXmpSegment(xmpBytes: ByteArray): JFIFPieceSegment {
+
+        val segmentWriter = ByteArrayByteWriter()
+
+        segmentWriter.write(JpegConstants.XMP_IDENTIFIER)
+        segmentWriter.write(xmpBytes)
+
+        return JFIFPieceSegment(JpegConstants.JPEG_APP1_MARKER, segmentWriter.toByteArray())
+    }
+
+    /**
+     * Removes the whitespace padding between the XMP content and the packet
+     * terminator processing instruction. Padding exists so tools can edit a
+     * packet in place; it carries no information.
+     */
+    private fun removeXmpPadding(xmpXml: String): String {
+
+        val endIndex = xmpXml.indexOf(XMP_PACKET_END_MARKER)
+
+        if (endIndex == -1)
+            return xmpXml
+
+        var contentEnd = endIndex
+
+        while (contentEnd > 0 && xmpXml[contentEnd - 1].isWhitespace())
+            contentEnd--
+
+        return xmpXml.substring(0, contentEnd) + xmpXml.substring(endIndex)
     }
 }

@@ -33,6 +33,12 @@ internal object AppleMakerNoteHandler : MakerNoteHandler() {
     private const val APPLE_MAKER_NOTE_SIGNATURE = "Apple iOS\u0000\u0000\u0001"
 
     /**
+     * A RunTime property list contains a handful of entries; anything
+     * beyond this bound is treated as malformed instead of being walked.
+     */
+    private const val MAX_PLIST_OBJECTS: Int = 1000
+
+    /**
      * Reads the MakerNote of an Apple camera.
      *
      * Apple MakerNotes start with a signature, a byte order marker
@@ -80,6 +86,11 @@ internal object AppleMakerNoteHandler : MakerNoteHandler() {
      *
      * The data is a binary property list with the time the application
      * ran, its flags, the time scale and the epoch.
+     *
+     * The plist header fields of a corrupted blob are attacker-controlled,
+     * so every index is bounds-checked before access. Any violation degrades
+     * to an opaque block: the RunTime directory is simply not added instead
+     * of throwing, so one broken tag cannot make the whole photo unreadable.
      */
     private fun readRunTime(
         directory: TiffDirectory,
@@ -94,6 +105,17 @@ internal object AppleMakerNoteHandler : MakerNoteHandler() {
         if (blob.size < 40)
             return
 
+        val blobSize = blob.size.toLong()
+
+        /* Bounds-checked byte access; NULL marks the blob as malformed. */
+        fun byteAt(index: Long): Int? {
+
+            if (index < 0 || index >= blobSize)
+                return null
+
+            return 0xFF and blob[index.toInt()].toInt()
+        }
+
         /* The trailer at the end of a binary property list. */
         val offsetSize = 0xFF and blob[blob.size - 26].toInt()
         val objectRefSize = 0xFF and blob[blob.size - 25].toInt()
@@ -101,59 +123,75 @@ internal object AppleMakerNoteHandler : MakerNoteHandler() {
         val topObject = blob.toInt64(blob.size - 16)
         val offsetTableOffset = blob.toInt64(blob.size - 8)
 
-        if (numObjects <= 0 || numObjects > 1000 || offsetTableOffset >= blob.size)
+        if (numObjects <= 0 || numObjects > MAX_PLIST_OBJECTS)
             return
 
-        fun readObjectRef(offset: Long): Long {
+        if (offsetTableOffset < 0 || offsetTableOffset >= blobSize)
+            return
+
+        fun readObjectRef(offset: Long): Long? {
 
             var value = 0L
 
-            for (index in 0 until objectRefSize)
-                value = (value shl 8) or (0xFFL and blob[(offset + index).toInt()].toLong())
+            for (index in 0 until objectRefSize) {
+
+                val byte = byteAt(offset + index) ?: return null
+
+                value = (value shl 8) or byte.toLong()
+            }
 
             return value
         }
 
-        fun readOffset(index: Long): Long {
+        fun readOffsetTableEntry(objectIndex: Long): Long? {
 
             var value = 0L
 
-            for (i in 0 until offsetSize)
-                value = (value shl 8) or
-                    (0xFFL and blob[(offsetTableOffset + index * offsetSize + i).toInt()].toLong())
+            for (byteIndex in 0 until offsetSize) {
+
+                val byte = byteAt(offsetTableOffset + objectIndex * offsetSize + byteIndex)
+                    ?: return null
+
+                value = (value shl 8) or byte.toLong()
+            }
 
             return value
         }
 
-        fun readInt(objectOffset: Long, byteCount: Int): ByteArray {
+        fun readInt(objectOffset: Long, byteCount: Int): ByteArray? {
 
             val bytes = ByteArray(8)
 
-            for (index in 0 until byteCount)
-                bytes[8 - byteCount + index] = blob[(objectOffset + 1 + index).toInt()]
+            for (index in 0 until byteCount) {
+
+                val byte = byteAt(objectOffset + 1 + index) ?: return null
+
+                bytes[8 - byteCount + index] = byte.toByte()
+            }
 
             return bytes
         }
 
-        val topOffset = readOffset(topObject)
+        val topOffset = readOffsetTableEntry(topObject) ?: return
 
-        if (topOffset >= blob.size)
+        /* The top object must lie inside the blob. */
+        if (topOffset < 0 || topOffset >= blobSize)
             return
 
         /* The top object must be a dictionary. */
-        val marker = 0xFF and blob[topOffset.toInt()].toInt()
+        val marker = byteAt(topOffset) ?: return
 
         if (marker and 0xF0 != 0xD0)
             return
 
         var count = marker and 0x0F
 
-        var pos = topOffset + 1
+        var pos = topOffset + 1L
 
         if (count == 0x0F) {
 
             /* The extended count is stored as an integer object. */
-            count = 0xFF and blob[pos.toInt()].toInt()
+            count = byteAt(pos) ?: return
 
             pos++
         }
@@ -162,30 +200,38 @@ internal object AppleMakerNoteHandler : MakerNoteHandler() {
 
         for (index in 0 until count) {
 
-            val keyRef = readObjectRef(pos)
-            val valueRef = readObjectRef(pos + objectRefSize)
+            val keyRef = readObjectRef(pos) ?: return
+            val valueRef = readObjectRef(pos + objectRefSize) ?: return
 
-            pos += objectRefSize * 2
+            pos += objectRefSize * 2L
 
-            val keyOffset = readOffset(keyRef)
-            val valueOffset = readOffset(valueRef)
+            val keyOffset = readOffsetTableEntry(keyRef) ?: return
+            val valueOffset = readOffsetTableEntry(valueRef) ?: return
 
-            val keyMarker = 0xFF and blob[keyOffset.toInt()].toInt()
+            fun isValidObjectOffset(offset: Long): Boolean =
+                offset >= 0 && offset < blobSize
+
+            if (!isValidObjectOffset(keyOffset) || !isValidObjectOffset(valueOffset))
+                return
+
+            val keyMarker = byteAt(keyOffset) ?: return
             val keyLength = keyMarker and 0x0F
 
-            val key = blob.copyOfRange(
-                (keyOffset + 1).toInt(),
-                (keyOffset + 1 + keyLength).toInt()
-            ).decodeToString()
+            val keyEnd = keyOffset + 1 + keyLength
 
-            val valueMarker = 0xFF and blob[valueOffset.toInt()].toInt()
+            if (keyEnd > blobSize)
+                return
+
+            val key = blob.copyOfRange(keyOffset.toInt() + 1, keyEnd.toInt()).decodeToString()
+
+            val valueMarker = byteAt(valueOffset) ?: return
 
             if (valueMarker and 0xF0 != 0x10)
                 continue
 
             val byteCount = valueMarker and 0x0F
 
-            val valueBytes = readInt(valueOffset, byteCount)
+            val valueBytes = readInt(valueOffset, byteCount) ?: return
 
             val absoluteOffset = getAbsoluteValueOffset(field)
 

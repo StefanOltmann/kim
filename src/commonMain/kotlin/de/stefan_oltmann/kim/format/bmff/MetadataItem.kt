@@ -1,6 +1,5 @@
 /*
- * Copyright 2025 Ashampoo GmbH & Co. KG
- * Copyright 2007-2023 The Apache Software Foundation
+ * Copyright 2026 Stefan Oltmann
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.stefan_oltmann.kim.format.jpeg.jfif
+package de.stefan_oltmann.kim.format.bmff
 
-import de.stefan_oltmann.kim.output.ByteWriter
+import de.stefan_oltmann.kim.common.MetadataOffset
+import de.stefan_oltmann.kim.common.MetadataType
 
-internal class JFIFPieceImageData(
-    private val markerBytes: ByteArray,
-    private val imageData: ByteArray
-) : JFIFPiece {
-
-    override fun write(byteWriter: ByteWriter) {
-        byteWriter.write(markerBytes)
-        byteWriter.write(imageData)
-    }
-}
+/**
+ * The extents of a single metadata item of an ISOBMFF meta box.
+ *
+ * An item may be fragmented into several extents, so its bytes must be
+ * read extent by extent and concatenated before the stream can be
+ * parsed as one.
+ */
+public data class MetadataItem(
+    val type: MetadataType,
+    val extents: List<MetadataOffset>
+)

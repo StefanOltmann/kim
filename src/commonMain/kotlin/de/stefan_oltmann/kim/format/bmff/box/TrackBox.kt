@@ -32,7 +32,8 @@ public class TrackBox(
     offset: Long,
     size: Long,
     largeSize: Long?,
-    payload: ByteArray
+    payload: ByteArray,
+    depth: Int = 0
 ) : Box(BoxType.TRAK, offset, size, largeSize, payload), BoxContainer {
 
     override val boxes: List<Box>
@@ -49,7 +50,8 @@ public class TrackBox(
             stopAfterMetadataRead = false,
             positionOffset = 0,
             offsetShift = offset + 8,
-            parentBoxType = type
+            parentBoxType = type,
+            depth = depth
         )
 
         if (boxes.size < 2)

@@ -10,7 +10,6 @@ import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
 import de.stefan_oltmann.kim.input.DefaultRandomAccessByteReader
 import de.stefan_oltmann.kim.input.JvmInputStreamByteReader
 import de.stefan_oltmann.kim.input.KotlinIoSourceByteReader
-import de.stefan_oltmann.kim.input.use
 import de.stefan_oltmann.kim.jvm.readMetadata
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter

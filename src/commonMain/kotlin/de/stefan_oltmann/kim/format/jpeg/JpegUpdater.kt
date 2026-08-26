@@ -202,6 +202,11 @@ internal object JpegUpdater : MetadataUpdater {
 
         val headerBytes = headerByteWriter.toByteArray()
 
+        /*
+         * Attention: A corrupt EXIF segment deliberately fails the update
+         * instead of falling back to the full rewrite. The rewrite would
+         * silently drop all unreadable EXIF data, which must never happen.
+         */
         val orientationOffset = JpegOrientationOffsetFinder
             .findOrientationOffset(ByteArrayByteReader(headerBytes))
             ?: return false

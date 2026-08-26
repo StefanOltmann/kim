@@ -36,19 +36,19 @@ public object Cr2PreviewExtractor : TiffPreviewExtractor {
 
         val ifd0 = tiffContents.directories.first()
 
-        val previewImageStart =
-            ifd0.getFieldValue(ExifTag.EXIF_TAG_PREVIEW_IMAGE_START_IFD0) ?: return null
+        val previewImageStart = ifd0.getFieldValue(ExifTag.EXIF_TAG_PREVIEW_IMAGE_START_IFD0)
+            ?: return@extractPreviewImage null
 
-        val previewLength =
-            ifd0.getFieldValue(ExifTag.EXIF_TAG_PREVIEW_IMAGE_LENGTH_IFD0) ?: return null
+        val previewLength = ifd0.getFieldValue(ExifTag.EXIF_TAG_PREVIEW_IMAGE_LENGTH_IFD0)
+            ?: return@extractPreviewImage null
 
         if (previewLength == 0)
-            return null
+            return@extractPreviewImage null
 
-        randomAccessByteReader.moveTo(previewImageStart)
-
-        val previewBytes = randomAccessByteReader.readBytes(previewLength)
-
-        return@tryWithImageReadException previewBytes
+        return@tryWithImageReadException TiffPreviewExtractor.readValidatedPreviewBytes(
+            randomAccessByteReader = randomAccessByteReader,
+            start = previewImageStart,
+            length = previewLength
+        )
     }
 }

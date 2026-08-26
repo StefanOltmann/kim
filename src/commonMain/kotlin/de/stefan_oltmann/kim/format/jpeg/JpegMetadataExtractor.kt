@@ -23,16 +23,14 @@ import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataExtractor
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EOI_MARKER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOS_MARKER
 import de.stefan_oltmann.kim.input.ByteReader
 
 /**
  * Extracts the metadata bytes of JPEG files.
  */
 public object JpegMetadataExtractor : MetadataExtractor {
-
-    internal const val SEGMENT_IDENTIFIER = 0xFF.toByte()
-    internal const val SEGMENT_START_OF_SCAN = 0xDA.toByte()
-    internal const val MARKER_END_OF_IMAGE = 0xD9.toByte()
 
     private const val ADDITIONAL_BYTE_COUNT_AFTER_HEADER: Int = 12
 
@@ -74,35 +72,26 @@ public object JpegMetadataExtractor : MetadataExtractor {
         bytes: MutableList<Byte>
     ) {
 
+        val scanner = JpegMarkerScanner(byteReader)
+
+        /*
+         * Counted in Long space, so streams larger than the signed Int
+         * range cannot wrap the counter and silently disable the
+         * truncation checks below.
+         */
+        var readBytesCount = 0L
+
         @Suppress("LoopWithTooManyJumpStatements")
         do {
 
-            var segmentIdentifier = byteReader.readByte() ?: break
-            var segmentType = byteReader.readByte() ?: break
+            val scan = scanner.nextMarker(zeroIsFillByte = true) ?: break
 
-            bytes.add(segmentIdentifier)
-            bytes.add(segmentType)
+            for (consumedByte in scan.consumedBytes)
+                bytes.add(consumedByte)
 
-            /*
-             * Find the segment marker. Markers are zero or more 0xFF bytes, followed by
-             * a 0xFF and then a byte not equal to 0x00 or 0xFF.
-             */
-            while (
-                segmentIdentifier != SEGMENT_IDENTIFIER ||
-                segmentType == SEGMENT_IDENTIFIER ||
-                segmentType.toInt() == 0
-            ) {
+            readBytesCount += scan.consumedBytes.size
 
-                segmentIdentifier = segmentType
-
-                val nextSegmentType = byteReader.readByte() ?: break
-
-                bytes.add(nextSegmentType)
-
-                segmentType = nextSegmentType
-            }
-
-            if (segmentType == SEGMENT_START_OF_SCAN || segmentType == MARKER_END_OF_IMAGE)
+            if (scan.marker == SOS_MARKER || scan.marker == EOI_MARKER)
                 break
 
             val segmentLengthFirstByte = byteReader.readByte() ?: break
@@ -111,6 +100,8 @@ public object JpegMetadataExtractor : MetadataExtractor {
             bytes.add(segmentLengthFirstByte)
             bytes.add(segmentLengthSecondByte)
 
+            readBytesCount += 2
+
             /* Next 2-bytes are <segment-size>: [high-byte] [low-byte] */
             var segmentLength: Int = byteArrayOf(segmentLengthFirstByte, segmentLengthSecondByte)
                 .toUInt16(ByteOrder.BIG_ENDIAN)
@@ -118,7 +109,7 @@ public object JpegMetadataExtractor : MetadataExtractor {
             /* Segment length includes size bytes, so subtract two */
             segmentLength -= 2
 
-            val remainingByteCount = byteReader.contentLength - bytes.size
+            val remainingByteCount = byteReader.contentLength - readBytesCount
 
             /* Reject invalid segment lengths */
             if (segmentLength <= 0 || segmentLength > remainingByteCount)

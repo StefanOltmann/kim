@@ -19,6 +19,12 @@ package de.stefan_oltmann.kim.input
  * Prepends the given list of [Byte]s and continues to
  * read from [ByteReader] after that. Can be used to
  * prepend the magic number again.
+ *
+ * Attention: [contentLength] reports the delegate's total size, which
+ * already matches the logical length of this reader, because the
+ * prepended bytes were read from the same delegate before. It must not
+ * be increased by [prependedBytes], or bounds checks would over-report
+ * the available bytes by exactly that count.
  */
 internal class PrePendingByteReader(
     private val delegate: ByteReader,

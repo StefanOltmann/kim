@@ -68,7 +68,7 @@ internal open class MakerNoteHandler {
             byteOrder = byteOrder,
             directoryOffset = directoryOffset,
             directoryType = directoryType,
-            visitedOffsets = mutableListOf<Int>(),
+            visitedOffsets = hashSetOf(),
             readTiffImageBytes = false,
             addDirectory = addDirectory,
             valueOffsetBase = valueOffsetBase,
@@ -267,21 +267,21 @@ internal open class MakerNoteHandler {
 
         for (nestedPointer in nestedBlobPointers) {
 
-            val field = parentDirectory.entries.find { it.tag == nestedPointer.tagId }
-
-            val nestedBlobBytes = field?.valueBytes
-                ?: parentBlobBytes.copyOfRange(
-                    nestedPointer.tagId,
-                    parentBlobBytes.size
-                )
-
-            val nestedBlobLength = field?.count?.times(field.fieldType.size)
-                ?: nestedBlobBytes.size
-
-            if (nestedBlobLength <= 0)
-                continue
-
             try {
+
+                val field = parentDirectory.entries.find { it.tag == nestedPointer.tagId }
+
+                val nestedBlobBytes = field?.valueBytes
+                    ?: parentBlobBytes.copyOfRange(
+                        nestedPointer.tagId,
+                        parentBlobBytes.size
+                    )
+
+                val nestedBlobLength = field?.count?.times(field.fieldType.size)
+                    ?: nestedBlobBytes.size
+
+                if (nestedBlobLength <= 0)
+                    continue
 
                 readMakerNoteBlobSubDirectory(
                     blobBytes = nestedBlobBytes,
@@ -304,7 +304,9 @@ internal open class MakerNoteHandler {
                  *
                  * Like ExifTool, the MakerNote is kept as an opaque
                  * binary block in this case, and the rewrite preserves
-                 * it byte for byte.
+                 * it byte for byte. The lookup and copy of the blob bytes
+                 * run inside this per-pointer try as well, so one hostile
+                 * pointer cannot abort the remaining pointers of the blob.
                  */
             }
         }

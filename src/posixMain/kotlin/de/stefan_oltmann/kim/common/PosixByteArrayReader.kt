@@ -38,29 +38,50 @@ internal fun readFileAsByteArray(filePath: String): ByteArray? = memScoped {
 
     if (file == null) {
         perror("Failed to open file: $filePath")
-        return null
+        return@readFileAsByteArray null
     }
 
-    /* Move the cursor to the end of the file. */
-    fseek(file, 0, SEEK_END)
-    val fileSize = ftell(file)
-    rewind(file)
+    try {
 
-    val buffer = ByteArray(fileSize.toInt())
+        /* Move the cursor to the end of the file to determine its size. */
+        if (fseek(file, 0, SEEK_END) != 0) {
+            perror("Failed to seek to the end of file: $filePath")
+            return null
+        }
 
-    val bytesReadCount: ULong = fread(
-        buffer.refTo(0),
-        1.toULong(), // Number of items
-        fileSize.toULong(), // Size to read
-        file
-    )
+        val fileSize = ftell(file)
 
-    fclose(file)
+        /*
+         * ftell reports failures as -1 (for example unseekable streams),
+         * and files larger than the array index range cannot be read into
+         * a single array anyway.
+         */
+        if (fileSize < 0L || fileSize > Int.MAX_VALUE.toLong()) {
+            perror("File is unseekable or too large: $filePath ($fileSize bytes)")
+            return@readFileAsByteArray null
+        }
 
-    if (bytesReadCount != fileSize.toULong()) {
-        perror("Did not read file completely: $bytesReadCount != $fileSize")
-        return null
+        rewind(file)
+
+        val byteCount = fileSize.toInt()
+
+        val buffer = ByteArray(byteCount)
+
+        val bytesReadCount: ULong = fread(
+            buffer.refTo(0),
+            1.toULong(), // Number of items
+            fileSize.toULong(), // Size to read
+            file
+        )
+
+        if (bytesReadCount != fileSize.toULong()) {
+            perror("Did not read file completely: $bytesReadCount != $fileSize")
+            return@readFileAsByteArray null
+        }
+
+        return@readFileAsByteArray buffer
+
+    } finally {
+        fclose(file)
     }
-
-    return buffer
 }

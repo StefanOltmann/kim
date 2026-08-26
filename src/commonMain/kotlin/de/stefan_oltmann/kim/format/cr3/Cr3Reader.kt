@@ -43,7 +43,21 @@ internal object Cr3Reader {
 
     fun createMetadata(allBoxes: List<Box>): MediaMetadata {
 
-        val subBoxes = findMetadaSubBoxes(allBoxes)
+        /*
+         * A truncated CR3 - for example from an interrupted recording -
+         * can end before its moov box or metadata UUID boxes are written.
+         * Whatever metadata remains readable is still returned instead of
+         * failing the whole file.
+         */
+        val subBoxes = try {
+            findMetadataSubBoxes(allBoxes)
+        } catch (_: ImageReadException) {
+            emptyList()
+        }
+
+        val xmpFromUuidBox = allBoxes.filterIsInstance<UuidBox>().find {
+            it.uuidAsHex == CR3_XMP_UUID
+        }?.data?.decodeToString()
 
         val idf0: TiffContents? = readTiffContents(
             boxes = subBoxes,
@@ -58,8 +72,8 @@ internal object Cr3Reader {
                 imageSize = null,
                 exif = null,
                 exifBytes = null,
-                iptc = null, // not existent in CR3
-                xmp = null // not existent in CR3
+                iptc = null, /* Not existent in CR3. */
+                xmp = xmpFromUuidBox
             )
         }
 
@@ -105,12 +119,8 @@ internal object Cr3Reader {
             directories = listOfNotNull(idf0Directory, exifIfdDirectory, gpsIfdDirectory),
             makerNoteDirectory = makerNoteDirectory,
             makerNoteSubDirectories = makerNoteSubDirectories,
-            geoTiffDirectory = null // not present in CR3
+            geoTiffDirectory = null /* Not present in CR3. */
         )
-
-        val xmpBox = allBoxes.filterIsInstance<UuidBox>().find {
-            it.uuidAsHex == CR3_XMP_UUID
-        }
 
         val imageWidth = idf0.findTiffField(TiffTag.TIFF_TAG_IMAGE_WIDTH)?.toInt()
         val imageHeight = idf0.findTiffField(TiffTag.TIFF_TAG_IMAGE_HEIGHT)?.toInt()
@@ -127,9 +137,9 @@ internal object Cr3Reader {
             mediaFormat = MediaFormat.CR3,
             imageSize = imageSize,
             exif = tiffContents,
-            exifBytes = null, // TODO Generate bytes?
-            iptc = null, // not covered by ISO BMFF
-            xmp = xmpBox?.data?.decodeToString()
+            exifBytes = null, /* TODO Generate bytes? */
+            iptc = null, /* Not covered by ISO BMFF. */
+            xmp = xmpFromUuidBox
         )
     }
 
@@ -150,7 +160,7 @@ internal object Cr3Reader {
         return tiffContents
     }
 
-    fun findMetadaSubBoxes(allBoxes: List<Box>): List<Box> {
+    fun findMetadataSubBoxes(allBoxes: List<Box>): List<Box> {
 
         val moovBox = allBoxes.filterIsInstance<MovieBox>().firstOrNull()
             ?: throw ImageReadException("Illegal CR3: No 'moov' box found.")

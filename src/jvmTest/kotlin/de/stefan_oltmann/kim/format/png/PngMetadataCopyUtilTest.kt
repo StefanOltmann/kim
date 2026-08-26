@@ -22,14 +22,27 @@ import de.stefan_oltmann.kim.common.exists
 import de.stefan_oltmann.kim.common.readBytes
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
 import org.junit.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
 class PngMetadataCopyUtilTest {
 
-    fun getFullImageDiskPath(index: Int): String =
-        Resource("src/commonTest/resources/de/stefan_oltmann/kim/testdata/full/${KimTestData.getFileName(index)}").path
+    fun getFullImageDiskPath(index: Int): String {
+
+        val bytes = KimTestData.getBytesOf(index)
+
+        val tmp = java.io.File.createTempFile("kim-test-$index-", ".tmp")
+
+        tmp.writeBytes(bytes)
+
+        tmp.deleteOnExit()
+
+        return tmp.absolutePath
+    }
 
     @Test
     fun testCopy() {
@@ -50,8 +63,7 @@ class PngMetadataCopyUtilTest {
         )
 
         val expectedBytes =
-            Path("src/commonTest/resources/de/stefan_oltmann/kim/copy_test.png")
-                .readBytes()
+            Resource("de/stefan_oltmann/kim/copy_test.png").readBytes()
 
         val actualBytes = destination.readBytes()
 
@@ -69,8 +81,7 @@ class PngMetadataCopyUtilTest {
         val destinationBytes = Path(getFullImageDiskPath(51)).readBytes()
 
         val expectedBytes =
-            Path("src/commonTest/resources/de/stefan_oltmann/kim/copy_test.png")
-                .readBytes()
+            Resource("de/stefan_oltmann/kim/copy_test.png").readBytes()
 
         val actualBytes = PngMetadataCopyUtil.copy(
             source = sourceBytes,
@@ -81,5 +92,75 @@ class PngMetadataCopyUtilTest {
 
         if (!equals)
             fail("copy_test.png has not the expected bytes!")
+    }
+
+    /**
+     * Regression test: a bare relative destination has no parent path.
+     * The old string concatenation built a literal "null/out.png.tmp"
+     * path and failed.
+     */
+    @Test
+    fun testTempFilePathForBareRelativeDestination() {
+
+        val tempFilePath = PngMetadataCopyUtil.tempFilePathFor(
+            Path("out.png")
+        )
+
+        assertEquals("out.png.tmp", tempFilePath.name)
+
+        assertNull(tempFilePath.parent)
+    }
+
+    /**
+     * A destination inside a directory keeps that directory for its
+     * temporary file.
+     */
+    @Test
+    fun testTempFilePathForNestedDestination() {
+
+        val tempFilePath = PngMetadataCopyUtil.tempFilePathFor(
+            Path("build/sub/dir/out.png")
+        )
+
+        assertEquals("out.png.tmp", tempFilePath.name)
+
+        assertTrue(
+            tempFilePath.toString().replace('\\', '/').endsWith("sub/dir/out.png.tmp")
+        )
+    }
+
+    /**
+     * Regression test: if the copy fails while writing the temporary
+     * file, no temporary file may leak into the destination directory.
+     */
+    @Test
+    fun testFailedCopyDoesNotLeakTempFile() {
+
+        val source = Path(getFullImageDiskPath(52))
+
+        /* The destination directory does not exist, so writing fails. */
+        val destination =
+            Path("build/missing-dir-${System.nanoTime()}/copy_test.png")
+
+        try {
+
+            PngMetadataCopyUtil.copy(
+                source = source,
+                destination = destination
+            )
+
+            fail("Expected the copy to fail.")
+
+        } catch (_: Exception) {
+            /* Expected - the destination directory cannot be created. */
+        }
+
+        val leakedTempFiles = SystemFileSystem.list(Path("build"))
+            .filter { it.name.endsWith(".tmp") }
+
+        assertTrue(
+            leakedTempFiles.isEmpty(),
+            "Leaked temporary files: $leakedTempFiles"
+        )
     }
 }

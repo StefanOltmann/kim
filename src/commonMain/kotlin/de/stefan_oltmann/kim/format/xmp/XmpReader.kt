@@ -15,7 +15,7 @@
  */
 package de.stefan_oltmann.kim.format.xmp
 
-import de.stefan_oltmann.kim.Kim.underUnitTesting
+import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.GpsUtil
 import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.GpsCoordinates
@@ -58,10 +58,7 @@ public object XmpReader {
 
         val takenDateIsoString = xmpMeta.getDateTimeOriginal()
 
-        val timeZone = if (underUnitTesting)
-            TimeZone.of("GMT+02:00")
-        else
-            TimeZone.currentSystemDefault()
+        val timeZone = Kim.defaultTimeZone ?: TimeZone.currentSystemDefault()
 
         val takenDateIsoStringWithoutTimezone =
             takenDateIsoString?.replace(ISO8601_TIMEZONE_REGEX, "")
@@ -84,8 +81,12 @@ public object XmpReader {
         val latitude = GpsUtil.dmsToDecimal(xmpMeta.getGpsLatitude())
         val longitude = GpsUtil.dmsToDecimal(xmpMeta.getGpsLongitude())
 
+        /*
+         * Corrupt XMP can carry coordinates far outside the valid range,
+         * so the result is validated like the write path requires.
+         */
         val gpsCoordinates = if (latitude != null && longitude != null)
-            GpsCoordinates(latitude, longitude)
+            GpsCoordinates(latitude, longitude).takeIf(GpsCoordinates::isValid)
         else
             null
 

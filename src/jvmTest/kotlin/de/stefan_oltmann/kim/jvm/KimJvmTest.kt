@@ -20,8 +20,10 @@ import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.testdata.KimTestData
+import kotlinx.datetime.TimeZone
 import java.io.File
 import java.nio.file.Files
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -39,7 +41,12 @@ class KimJvmTest {
 
     @BeforeTest
     fun setUp() {
-        Kim.underUnitTesting = true
+        Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
+    }
+
+    @AfterTest
+    fun tearDown() {
+        Kim.defaultTimeZone = null
     }
 
     @Test
@@ -57,7 +64,7 @@ class KimJvmTest {
     @Test
     fun testReadMetadataFromPathString() {
 
-        val diskPath = Resource("src/commonTest/resources/de/stefan_oltmann/kim/testdata/full/media_1.jpg").path
+        val diskPath = createTempFileFromResource("de/stefan_oltmann/kim/testdata/full/media_1.jpg")
 
         val metadata = KimJvm.readMetadata(diskPath)
 
@@ -68,7 +75,7 @@ class KimJvmTest {
     @Test
     fun testReadMetadataFromFile() {
 
-        val diskPath = Resource("src/commonTest/resources/de/stefan_oltmann/kim/testdata/full/media_1.jpg").path
+        val diskPath = createTempFileFromResource("de/stefan_oltmann/kim/testdata/full/media_1.jpg")
 
         val metadata = KimJvm.readMetadata(File(diskPath))
 
@@ -114,10 +121,23 @@ class KimJvmTest {
 
         assertNotNull(metadata)
 
-        val diskPath = Resource("src/commonTest/resources/de/stefan_oltmann/kim/testdata/full/media_1.jpg").path
+        val diskPath = createTempFileFromResource("de/stefan_oltmann/kim/testdata/full/media_1.jpg")
 
         assertNotNull(Kim.readMetadata(diskPath))
         assertNotNull(Kim.readMetadata(File(diskPath)))
         assertNotNull(Kim.readMetadata(java.nio.file.Path.of(diskPath)))
+    }
+
+    private fun createTempFileFromResource(resourcePath: String): String {
+
+        val bytes = Resource(resourcePath).readBytes()
+
+        val tmp = Files.createTempFile("kim-test-", ".jpg").toFile()
+
+        tmp.writeBytes(bytes)
+
+        tmp.deleteOnExit()
+
+        return tmp.absolutePath
     }
 }

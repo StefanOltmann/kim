@@ -52,6 +52,13 @@ public class PngChunkZtxt(
 
         index++
 
+        /*
+         * A chunk that ends directly behind the keyword terminator has
+         * no compression method and must be rejected cleanly.
+         */
+        if (index >= bytes.size)
+            throw ImageReadException("PNG zTXt chunk is too short for the compression method.")
+
         val compressionMethod = bytes[index++].toInt()
 
         if (compressionMethod != PngConstants.COMPRESSION_DEFLATE_INFLATE)

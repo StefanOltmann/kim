@@ -46,6 +46,13 @@ public interface MetadataUpdater {
         byteWriter: ByteWriter
     )
 
+    /**
+     * Replaces the embedded thumbnail of the file with the given JPEG bytes.
+     *
+     * Attention: The thumbnail is embedded into the EXIF data, which must
+     * fit into a single JPEG APP1 segment of about 65 KB. Thumbnails that
+     * exceed this limit are rejected with an [ImageWriteException].
+     */
     @Throws(ImageWriteException::class)
     public fun updateThumbnail(
         bytes: ByteArray,

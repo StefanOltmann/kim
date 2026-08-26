@@ -17,9 +17,9 @@
 package de.stefan_oltmann.kim.format.bmff
 
 import de.stefan_oltmann.kim.common.ImageReadException
-import de.stefan_oltmann.kim.common.MetadataOffset
 import de.stefan_oltmann.kim.common.MetadataType
 import de.stefan_oltmann.kim.format.ImageParser
+import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.TIFF_HEADER_OFFSET_BYTE_COUNT
@@ -33,10 +33,13 @@ import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
+import de.stefan_oltmann.kim.input.PrePendingByteReader
 import de.stefan_oltmann.kim.input.read4BytesAsInt
 import de.stefan_oltmann.kim.input.readBytes
 import de.stefan_oltmann.kim.input.readRemainingBytes
 import de.stefan_oltmann.kim.input.skipBytes
+import de.stefan_oltmann.kim.model.MediaFormat
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 
 /**
  * Reads containers that follow the ISO base media file format
@@ -51,10 +54,24 @@ public object BaseMediaFileFormatImageParser : ImageParser {
 
         val copyByteReader = CopyByteReader(byteReader)
 
+        /*
+         * A naked JPEG XL codestream starts with this signature and
+         * consists of raw code stream data without any ISOBMFF boxes, so
+         * it cannot carry metadata. It is detected as JXL and answered
+         * with empty metadata instead of failing box parsing.
+         */
+        val firstTwoBytes = copyByteReader.readBytes(2)
+
+        if (firstTwoBytes.contentEquals(MediaFormatMagicNumbers.jxlCodeStream.toByteArray()))
+            return MediaMetadata.createEmpty(mediaFormat = MediaFormat.JXL)
+
+        val copyPendingByteReader =
+            PrePendingByteReader(copyByteReader, firstTwoBytes.toList())
+
         var position: Long = 0
 
         val allBoxes = BoxReader.readBoxes(
-            byteReader = copyByteReader,
+            byteReader = copyPendingByteReader,
             stopAfterMetadataRead = true,
             positionOffset = 0,
             offsetShift = 0,
@@ -86,13 +103,13 @@ public object BaseMediaFileFormatImageParser : ImageParser {
 
         val uuidBoxes = BoxContainer.findAllBoxesRecursive(allBoxes).filterIsInstance<UuidBox>()
 
-        val metadataOffsets = metaBox.findMetadataOffsets()
+        val metadataItems = metaBox.findMetadataItems()
 
         /* Return empty object if no metadata is found. */
-        if (metadataOffsets.isEmpty() && uuidBoxes.none { it.isXmp })
+        if (metadataItems.isEmpty() && uuidBoxes.none { it.isXmp })
             return MediaMetadata.createEmpty(mediaFormat = null)
 
-        val minOffset = metadataOffsets.firstOrNull()?.offset
+        val minOffset = metadataItems.firstOrNull()?.extents?.firstOrNull()?.offset
 
         /*
          * In case of Samsung Galaxy HEIC files the mdat Box comes
@@ -134,33 +151,50 @@ public object BaseMediaFileFormatImageParser : ImageParser {
         var xmp: String? = null
 
         @Suppress("LoopWithTooManyJumpStatements")
-        for (offset in metadataOffsets) {
+        for (item in metadataItems) {
+
+            val firstExtent = item.extents.first()
 
             /*
              * Ignore illegal offsets.
-             * endPosition is checked for negative values to also catch value overflows.
+             *
+             * Every extent is validated against the content bounds.
+             * Checking only the last extent would let a hostile file hide
+             * an oversized extent between two legal ones, which would then
+             * abort the read of all remaining items further below, even
+             * though only this single item is broken. Items that start
+             * before the current position would make the reader jump
+             * backwards and desync it, so they are skipped as well.
+             * endPosition is checked for negative values to also catch
+             * value overflows.
              */
-            if (offset.endPosition < 0 || offset.endPosition > byteReader.contentLength)
+            val hasIllegalExtent = item.extents.any { extent ->
+                extent.endPosition < 0 || extent.endPosition > byteReader.contentLength
+            }
+
+            if (hasIllegalExtent || firstExtent.offset < position)
                 continue
 
-            when (offset.type) {
+            val lastExtent = item.extents.last()
+
+            when (item.type) {
 
                 MetadataType.EXIF -> {
 
-                    exifBytes = readExifBytes(byteReaderToUse, position, offset)
+                    exifBytes = readExifBytes(byteReaderToUse, position, item)
 
                     /* Parse EXIF in place to fail fast if reading went wrong. */
                     exif = TiffReader.read(exifBytes)
 
-                    position = offset.endPosition
+                    position = lastExtent.endPosition
                 }
 
                 MetadataType.IPTC ->
                     continue // Unsupported
 
                 MetadataType.XMP -> {
-                    xmp = readXmpString(byteReaderToUse, position, offset)
-                    position = offset.endPosition
+                    xmp = readXmpString(byteReaderToUse, position, item)
+                    position = lastExtent.endPosition
                 }
             }
         }
@@ -180,19 +214,28 @@ public object BaseMediaFileFormatImageParser : ImageParser {
         )
     }
 
+    /**
+     * Reads the EXIF stream of one item, concatenating all of its extents.
+     *
+     * The first extent starts with a 4-byte TIFF header offset field,
+     * followed by the EXIF header and the TIFF data. Later extents are
+     * pure continuations of that data.
+     */
     private fun readExifBytes(
         byteReader: ByteReader,
         position: Long,
-        offset: MetadataOffset
+        item: MetadataItem
     ): ByteArray {
 
-        val bytesToSkip = offset.offset - position
+        val firstExtent = item.extents.first()
+
+        val bytesToSkip = firstExtent.offset - position
 
         check(bytesToSkip >= 0) {
-            "Position must be before extent offset: position=$position offset=$offset"
+            "Position must be before extent offset: position=$position extent=$firstExtent"
         }
 
-        byteReader.skipBytes("offset to EXIF extent", bytesToSkip.toInt())
+        byteReader.skipBytes("offset to EXIF extent", bytesToSkip)
 
         val tiffHeaderOffset =
             byteReader.read4BytesAsInt("tiffHeaderOffset", BMFF_BYTE_ORDER)
@@ -200,28 +243,83 @@ public object BaseMediaFileFormatImageParser : ImageParser {
         /* Usualy there are 6 bytes skipped, which are the EXIF header. ("Exif.."). */
         byteReader.skipBytes("offset to TIFF header", tiffHeaderOffset)
 
-        val exifBytesLength =
-            offset.length.toInt() - TIFF_HEADER_OFFSET_BYTE_COUNT - tiffHeaderOffset
+        val exifBytesWriter = ByteArrayByteWriter()
 
-        return byteReader.readBytes("EXIF extent data", exifBytesLength)
+        var currentPosition =
+            firstExtent.offset + TIFF_HEADER_OFFSET_BYTE_COUNT + tiffHeaderOffset
+
+        for ((index, extent) in item.extents.withIndex()) {
+
+            /*
+             * Extents of an item do not need to be adjacent, so gaps
+             * between them are skipped without being interpreted.
+             */
+            val gapToSkip = extent.offset - currentPosition
+
+            if (gapToSkip > 0)
+                byteReader.skipBytes("gap between extents", gapToSkip)
+
+            /*
+             * A single extent larger than the signed Int range cannot be
+             * read into one array - fail with a clear error instead of
+             * silently truncating the length.
+             */
+            if (extent.length > Int.MAX_VALUE)
+                throw ImageReadException(
+                    "EXIF extent is too large: ${extent.length} bytes."
+                )
+
+            val length = if (index == 0)
+                extent.length.toInt() - TIFF_HEADER_OFFSET_BYTE_COUNT - tiffHeaderOffset
+            else
+                extent.length.toInt()
+
+            if (length < 0)
+                throw ImageReadException("Invalid EXIF extent length: $length")
+
+            exifBytesWriter.write(byteReader.readBytes("EXIF extent data", length))
+
+            currentPosition = extent.offset + extent.length
+        }
+
+        return exifBytesWriter.toByteArray()
     }
 
+    /**
+     * Reads the XMP string of one item, concatenating all of its extents.
+     */
     private fun readXmpString(
         byteReader: ByteReader,
         position: Long,
-        offset: MetadataOffset
+        item: MetadataItem
     ): String {
 
-        val bytesToSkip = offset.offset - position
+        val xmpBytesWriter = ByteArrayByteWriter()
 
-        check(bytesToSkip >= 0) {
-            "Position must be before extent offset: position=$position offset=$offset"
+        var currentPosition = position
+
+        for (extent in item.extents) {
+
+            val gapToSkip = extent.offset - currentPosition
+
+            if (gapToSkip > 0)
+                byteReader.skipBytes("gap between extents", gapToSkip)
+
+            /*
+             * A single extent larger than the signed Int range cannot be
+             * read into one array - fail with a clear error instead of
+             * silently truncating the length.
+             */
+            if (extent.length > Int.MAX_VALUE)
+                throw ImageReadException(
+                    "XMP extent is too large: ${extent.length} bytes."
+                )
+
+            xmpBytesWriter.write(byteReader.readBytes("MIME extent data", extent.length.toInt()))
+
+            currentPosition = extent.offset + extent.length
         }
 
-        byteReader.skipBytes("offset to MIME extent", bytesToSkip.toInt())
-
-        val mimeBytes = byteReader.readBytes("MIME extent data", offset.length.toInt())
-
-        return mimeBytes.decodeToString()
+        return xmpBytesWriter.toByteArray().decodeToString()
     }
 }

@@ -17,6 +17,7 @@
  */
 package de.stefan_oltmann.kim.format.png
 
+import de.stefan_oltmann.kim.common.HEX_RADIX
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.common.tryWithImageReadException
@@ -26,6 +27,9 @@ import de.stefan_oltmann.kim.format.jpeg.JpegConstants
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
 import de.stefan_oltmann.kim.format.png.PngConstants.PNG_BYTE_ORDER
+import de.stefan_oltmann.kim.format.png.PngCrc.continuePartialCrc
+import de.stefan_oltmann.kim.format.png.PngCrc.finishPartialCrc
+import de.stefan_oltmann.kim.format.png.PngCrc.startPartialCrc
 import de.stefan_oltmann.kim.format.png.chunk.PngChunk
 import de.stefan_oltmann.kim.format.png.chunk.PngChunkExif
 import de.stefan_oltmann.kim.format.png.chunk.PngChunkIhdr
@@ -289,6 +293,12 @@ public object PngImageParser : ImageParser {
 
                 requireNotNull(bytes)
 
+                /*
+                 * Chunks that are not kept are not verified, because they
+                 * are neither interpreted nor rewritten by Kim.
+                 */
+                verifyChunkCrc(chunkType, bytes, crc)
+
                 chunks.add(createChunk(chunkType, bytes, crc))
             }
 
@@ -339,6 +349,8 @@ public object PngImageParser : ImageParser {
 
             val crc = byteReader.read4BytesAsInt("crc", PNG_BYTE_ORDER)
 
+            verifyChunkCrc(chunkType, bytes, crc)
+
             chunks.add(createChunk(chunkType, bytes, crc))
 
             if (PngChunkType.IEND == chunkType)
@@ -346,6 +358,33 @@ public object PngImageParser : ImageParser {
         }
 
         return chunks
+    }
+
+    /**
+     * Verifies that the stored CRC of the chunk matches the computed one.
+     *
+     * Attention: A CRC mismatch deliberately fails the read instead of
+     * being ignored. Ignoring it would let a rewrite emit the corrupted
+     * chunk with a fresh, valid CRC, which would hide the corruption from
+     * all further tools.
+     */
+    private fun verifyChunkCrc(
+        chunkType: PngChunkType,
+        bytes: ByteArray,
+        storedCrc: Int
+    ) {
+
+        @Suppress("MagicNumber")
+        val computedCrc = finishPartialCrc(
+            continuePartialCrc(startPartialCrc(chunkType.bytes), bytes)
+        ).toInt()
+
+        if (computedCrc != storedCrc)
+            throw ImageReadException(
+                "CRC mismatch in $chunkType chunk: " +
+                    "stored 0x${storedCrc.toUInt().toString(HEX_RADIX)}, " +
+                    "computed 0x${computedCrc.toUInt().toString(HEX_RADIX)}."
+            )
     }
 
     private fun createChunk(chunkType: PngChunkType, bytes: ByteArray, crc: Int): PngChunk =

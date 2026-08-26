@@ -27,9 +27,11 @@ import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldType
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeAscii
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeRational
+import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.output.BufferByteWriter
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
@@ -293,6 +295,48 @@ class TiffEdgeCasesTest {
         assertFailsWith<ImageReadException> {
             GPSInfo.createFrom(gpsDirectory)
         }
+    }
+
+    /**
+     * Regression test: hostile files can store the coordinate tags with a
+     * non-rational type. That must degrade to unknown GPS instead of
+     * throwing a ClassCastException from the unchecked cast.
+     */
+    @Test
+    fun testGpsInfoIgnoresNonRationalCoordinates() {
+
+        val byteOrder = ByteOrder.LITTLE_ENDIAN
+
+        fun field(tag: TagInfo, fieldType: FieldType<out Any>, count: Int, bytes: ByteArray) =
+            TiffField(
+                offset = 0,
+                tag = tag.tag,
+                directoryType = TiffConstants.TIFF_DIRECTORY_GPS,
+                fieldType = fieldType,
+                count = count,
+                localValue = null,
+                valueOffset = 0,
+                valueBytes = bytes,
+                byteOrder = byteOrder,
+                sortHint = 0
+            )
+
+        val gpsDirectory = TiffDirectory(
+            type = TiffConstants.TIFF_DIRECTORY_GPS,
+            entries = listOf(
+                field(GpsTag.GPS_TAG_GPS_LATITUDE_REF, FieldTypeAscii, 2, "N\u0000".encodeToByteArray()),
+                field(GpsTag.GPS_TAG_GPS_LONGITUDE_REF, FieldTypeAscii, 2, "E\u0000".encodeToByteArray()),
+
+                /* LONG instead of RATIONAL - the corruption case. */
+                field(GpsTag.GPS_TAG_GPS_LATITUDE, FieldTypeLong, 3, intArrayOf(1, 2, 3).toBytes(byteOrder)),
+                field(GpsTag.GPS_TAG_GPS_LONGITUDE, FieldTypeLong, 3, intArrayOf(4, 5, 6).toBytes(byteOrder))
+            ),
+            offset = 0,
+            nextDirectoryOffset = 0,
+            byteOrder = byteOrder
+        )
+
+        assertEquals(null, GPSInfo.createFrom(gpsDirectory))
     }
 
     private fun createGpsDirectory(

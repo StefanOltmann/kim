@@ -27,8 +27,8 @@ import de.stefan_oltmann.kim.format.bmff.box.Box
 import de.stefan_oltmann.kim.format.jxl.box.CompressedBox
 import de.stefan_oltmann.kim.format.jxl.box.JxlParticalCodestreamBox
 import de.stefan_oltmann.kim.input.ByteReader
-import de.stefan_oltmann.kim.input.DEFAULT_BUFFER_SIZE
 import de.stefan_oltmann.kim.input.copyRemainingTo
+import de.stefan_oltmann.kim.input.transferExactly
 import de.stefan_oltmann.kim.output.ByteWriter
 import de.stefan_oltmann.kim.output.writeInt
 import de.stefan_oltmann.kim.output.writeLong
@@ -88,10 +88,15 @@ public object JxlWriter {
         val cutBox = boxes.lastOrNull()
 
         /*
-         * The cut box is the second JXLP box with an empty payload, because
-         * its content is streamed here.
+         * The cut box is either the second JXLP box with an empty payload
+         * or a JXLC box, because its content is streamed here.
          */
-        if (cutBox?.type == BoxType.JXLP && cutBox.payload.isEmpty()) {
+        val isCutBox =
+            cutBox != null &&
+                (cutBox.type == BoxType.JXLP || cutBox.type == BoxType.JXLC) &&
+                cutBox.payload.isEmpty()
+
+        if (isCutBox) {
 
             /* NULL means the cut box extends to the end of the stream. */
             val remainingPayloadLength: Long? = when (cutBox.size) {
@@ -109,7 +114,7 @@ public object JxlWriter {
 
             } else {
 
-                transferExactly(byteReader, byteWriter, remainingPayloadLength)
+                byteReader.transferExactly(byteWriter, remainingPayloadLength)
 
                 copyBoxesSkippingMetadata(byteReader, byteWriter)
             }
@@ -121,35 +126,13 @@ public object JxlWriter {
     }
 
     /**
-     * Transfers exactly the given number of bytes from the reader to the
-     * writer, or to nowhere when the writer is NULL.
-     */
-    private fun transferExactly(
-        byteReader: ByteReader,
-        byteWriter: ByteWriter?,
-        count: Long
-    ) {
-
-        var remaining = count
-
-        while (remaining > 0) {
-
-            val chunk = byteReader.readBytes(minOf(remaining, DEFAULT_BUFFER_SIZE.toLong()).toInt())
-
-            /* The stream ends earlier than expected. */
-            if (chunk.isEmpty())
-                return
-
-            byteWriter?.write(chunk)
-
-            remaining -= chunk.size
-        }
-    }
-
-    /**
      * Streams the remaining boxes to the given writer, dropping Exif and
      * xml boxes, so stale metadata behind the codestream cannot survive an
      * update or a metadata deletion.
+     *
+     * Only these recognized metadata types are dropped, because the
+     * caller asked for their replacement or removal. All other boxes,
+     * including unknown ones, stream through untouched.
      */
     private fun copyBoxesSkippingMetadata(
         byteReader: ByteReader,
@@ -209,13 +192,57 @@ public object JxlWriter {
                     for (index in largeSizeBytes.indices)
                         largeSize = largeSize shl 8 or (largeSizeBytes[index].toLong() and 0xFF)
 
+                    /*
+                     * A largesize below both headers cannot hold any
+                     * payload and is rejected through the negative
+                     * payload length check below.
+                     */
                     largeSize - 2 * BMFFConstants.BOX_HEADER_LENGTH
                 }
 
                 else -> size - BMFFConstants.BOX_HEADER_LENGTH
             }
 
-            val isMetadataBox = boxType == BoxType.EXIF || boxType == BoxType.XML
+            /*
+             * A size below the header length cannot hold any payload.
+             * Such malformed boxes behind the codestream would otherwise
+             * desync the raw copy of the remaining file, so they are
+             * rejected here instead of being treated as zero-length.
+             */
+            if (payloadLength != null && payloadLength < 0)
+                throw ImageReadException(
+                    "Box $boxType declares a size smaller than its header."
+                )
+
+            /*
+             * A brob box stores its actual content type in its first
+             * payload bytes, so they are inspected to decide whether the
+             * box carries metadata. The bytes are consumed from the reader
+             * in every branch, so the payload lengths below must account
+             * for them.
+             */
+            val brobTypeBytes: ByteArray? =
+                if (boxType == BoxType.BROB)
+                    byteReader.readBytes(BMFFConstants.TYPE_LENGTH)
+                else
+                    null
+
+            /* A truncated brob box at the end of the stream. */
+            if (brobTypeBytes != null && brobTypeBytes.size < BMFFConstants.TYPE_LENGTH) {
+
+                byteWriter.write(header)
+                byteWriter.write(extraHeader)
+                byteWriter.write(brobTypeBytes)
+
+                return
+            }
+
+            val wrappedType: BoxType? = brobTypeBytes?.let { BoxType.of(it) }
+
+            val isMetadataBox = boxType == BoxType.EXIF ||
+                boxType == BoxType.XML ||
+                wrappedType == BoxType.EXIF ||
+                wrappedType == BoxType.XML
 
             if (isMetadataBox) {
 
@@ -223,15 +250,29 @@ public object JxlWriter {
                 if (payloadLength == null)
                     return
 
-                /* The box header is already consumed, so only the payload is skipped. */
-                transferExactly(byteReader, byteWriter = null, payloadLength)
+                /*
+                 * The box header and the brob type field are already
+                 * consumed, so only the remaining payload is skipped.
+                 */
+                val consumedLength = brobTypeBytes?.size ?: 0
+
+                byteReader.transferExactly(
+                    byteWriter = null,
+                    count = payloadLength - consumedLength
+                )
 
             } else {
 
                 byteWriter.write(header)
                 byteWriter.write(extraHeader)
 
-                if (payloadLength == null) {
+                if (brobTypeBytes != null)
+                    byteWriter.write(brobTypeBytes)
+
+                /* The brob type field is part of the payload, but was read separately above. */
+                val remainingPayloadLength = payloadLength?.minus(brobTypeBytes?.size ?: 0)
+
+                if (remainingPayloadLength == null) {
 
                     byteReader.copyRemainingTo(byteWriter)
 
@@ -239,7 +280,7 @@ public object JxlWriter {
 
                 } else {
 
-                    transferExactly(byteReader, byteWriter, payloadLength)
+                    byteReader.transferExactly(byteWriter, remainingPayloadLength)
                 }
             }
         }
@@ -292,7 +333,29 @@ public object JxlWriter {
         val jxlpHeaderBox =
             modifiedBoxes.filterIsInstance<JxlParticalCodestreamBox>().firstOrNull { it.isHeader }
 
-        for (box in modifiedBoxes) {
+        var metadataAnchorIndex =
+            if (jxlpHeaderBox != null)
+                modifiedBoxes.indexOf(jxlpHeaderBox)
+            else
+                modifiedBoxes.indexOfFirst { it.type == BoxType.FTYP }
+
+        val hasMetadata = exifBytes != null || xmp != null
+
+        /*
+         * A file without any anchor box must not silently lose the freshly
+         * written metadata, so it falls back to inserting behind the first
+         * box. Without any box at all there is nothing to attach the
+         * metadata to, so the update fails instead of dropping it.
+         */
+        if (hasMetadata && metadataAnchorIndex < 0) {
+
+            if (modifiedBoxes.isEmpty())
+                throw ImageWriteException("No box found to attach the metadata to.")
+
+            metadataAnchorIndex = 0
+        }
+
+        for ((index, box) in modifiedBoxes.withIndex()) {
 
             /*
              * The size field is a 32-bit integer, so larger boxes must be
@@ -317,9 +380,7 @@ public object JxlWriter {
 
             byteWriter.write(box.payload)
 
-            val shouldInsertMetadata =
-                jxlpHeaderBox != null && box == jxlpHeaderBox ||
-                    jxlpHeaderBox == null && box.type == BoxType.FTYP
+            val shouldInsertMetadata = hasMetadata && index == metadataAnchorIndex
 
             if (shouldInsertMetadata) {
 

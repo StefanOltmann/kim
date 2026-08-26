@@ -17,14 +17,13 @@
 package de.stefan_oltmann.kim.format.jxl.box
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.toInt
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.TIFF_HEADER_OFFSET_BYTE_COUNT
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.bmff.box.Box
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffReader
-import de.stefan_oltmann.kim.input.ByteArrayByteReader
-import de.stefan_oltmann.kim.input.read4BytesAsInt
 
 /**
  * JPEG XL Exif box.
@@ -37,41 +36,53 @@ public class ExifBox(
 ) : Box(BoxType.EXIF, offset, size, largeSize, payload) {
 
     /**
-     * The offset of the first TIFF header byte within the Exif data.
+     * The raw offset of the first TIFF header byte within the Exif data,
+     * or -1 when the payload is too short to carry it.
+     *
+     * No validation happens here on purpose: a hostile or corrupt offset
+     * must not prevent construction of the box, or a single broken Exif
+     * box would make the whole JXL file unreadable and undeletable.
      */
-    public val tiffHeaderOffset: Int
+    public val tiffHeaderOffset: Int by lazy {
+        if (payload.size < TIFF_HEADER_OFFSET_BYTE_COUNT)
+            -1
+        else
+            payload.toInt(0, BMFF_BYTE_ORDER)
+    }
 
     /**
-     * The Exif data as a TIFF file.
+     * The Exif data as a TIFF file, without the offset field and any
+     * prefix bytes before the TIFF header.
      *
-     * The offset field and any prefix bytes before the TIFF header
-     * are not part of the TIFF data.
+     * Empty when the offset is invalid.
      */
-    public val exifBytes: ByteArray
+    public val exifBytes: ByteArray by lazy {
 
-    /* Directly parse here to ensure it's valid. */
-    public val tiffContents: TiffContents
+        val isValid =
+            tiffHeaderOffset >= 0 &&
+                tiffHeaderOffset.toLong() + TIFF_HEADER_OFFSET_BYTE_COUNT <= payload.size.toLong()
 
-    init {
-
-        val byteReader = ByteArrayByteReader(payload)
-
-        tiffHeaderOffset = byteReader.read4BytesAsInt("tiff header offset", BMFF_BYTE_ORDER)
-
-        if (
-            tiffHeaderOffset < 0 ||
-            tiffHeaderOffset.toLong() + TIFF_HEADER_OFFSET_BYTE_COUNT > payload.size.toLong()
-        )
-            throw ImageReadException(
-                "Invalid Exif box: TIFF header offset $tiffHeaderOffset exceeds the box size."
+        if (!isValid)
+            ByteArray(0)
+        else
+            payload.copyOfRange(
+                fromIndex = TIFF_HEADER_OFFSET_BYTE_COUNT + tiffHeaderOffset,
+                toIndex = payload.size
             )
+    }
 
-        exifBytes = payload.copyOfRange(
-            fromIndex = TIFF_HEADER_OFFSET_BYTE_COUNT + tiffHeaderOffset,
-            toIndex = payload.size
-        )
-
-        /* Directly parse here to ensure it's valid. */
-        tiffContents = TiffReader.read(exifBytes)
+    /**
+     * The parsed Exif data, or NULL when it cannot be parsed as TIFF.
+     *
+     * Parsing is deferred and failure-tolerant for the same reason: one
+     * corrupt box must not take down the whole file, which would also
+     * make it impossible to delete the broken metadata.
+     */
+    public val tiffContents: TiffContents? by lazy {
+        try {
+            TiffReader.read(exifBytes)
+        } catch (_: ImageReadException) {
+            null
+        }
     }
 }

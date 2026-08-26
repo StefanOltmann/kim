@@ -85,4 +85,43 @@ class IptcParserTest {
             actual = actualIptc.records
         )
     }
+
+    /**
+     * Regression test: the CodedCharacterSet record may be padded with
+     * spaces. The padding must not prevent the UTF-8 escape sequence
+     * detection, or umlauts would be decoded as Latin-1 mojibake.
+     */
+    @Test
+    fun testParseIptcDetectsUtf8WithPaddedCodedCharacterSet() {
+
+        /*
+         * CodedCharacterSet (1:90) with a space-padded "ESC % G" value,
+         * followed by a Keywords (2:25) record with UTF-8 umlauts.
+         */
+        val blockData = convertHexStringToByteArray(
+            "1c015a000420" + "1b2547" +
+                "1c02190011c38475c39f6572737420736368c3b66e21"
+        )
+
+        val iptcBlock = IptcBlock(
+            blockType = IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DATA,
+            blockNameBytes = IptcParser.EMPTY_BYTE_ARRAY,
+            blockData = blockData
+        )
+
+        val iptcBytes = IptcWriter.writeIptcBlocks(
+            blocks = listOf(iptcBlock),
+            includeApp13Identifier = false
+        )
+
+        val actualIptc = IptcParser.parseIptc(
+            bytes = iptcBytes,
+            startsWithApp13Header = false
+        )
+
+        assertEquals(
+            expected = listOf(IptcRecord(IptcTypes.KEYWORDS, TEST_KEYWORD)),
+            actual = actualIptc.records
+        )
+    }
 }

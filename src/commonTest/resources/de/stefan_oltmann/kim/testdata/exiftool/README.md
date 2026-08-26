@@ -27,3 +27,9 @@ minimal note in the dump ("No EXIF or TIFF information found in image").
 
 To regenerate the dumps, run the commands above for every test file in
 `testdata/full` (all formats, excluding the `.txt` companion files).
+
+## Attribution
+
+The dumps were generated with [ExifTool](https://exiftool.org) by Phil
+Harvey. Their use as reference test data is documented in the project's
+`NOTICE.txt`.

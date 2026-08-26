@@ -28,7 +28,7 @@ public fun main(args: Array<String>) {
 
     val filePath = args.first()
 
-    println("--- Ashampoo Kim ---")
+    println("--- Kim ---")
 
     println("File path   : $filePath")
 
@@ -54,7 +54,7 @@ public fun main(args: Array<String>) {
      * Show what the parsing result looks like
      */
 
-    println("--- Ashampoo Photo Organizer Metadata ---")
+    println("--- Metadata Summary ---")
 
     val summary = metadata.convertToSummary()
 

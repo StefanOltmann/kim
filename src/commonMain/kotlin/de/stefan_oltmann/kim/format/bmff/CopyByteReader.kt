@@ -20,7 +20,7 @@ import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 
 internal class CopyByteReader(
     val byteReader: ByteReader
-) : ByteReader {
+) : ByteReader, SelfRetainingByteReader {
 
     private val byteWriter = ByteArrayByteWriter()
 

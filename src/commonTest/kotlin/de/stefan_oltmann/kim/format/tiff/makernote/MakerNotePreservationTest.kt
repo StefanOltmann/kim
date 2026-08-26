@@ -22,6 +22,7 @@ import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.testdata.KimTestData
+import kotlinx.datetime.TimeZone
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -43,7 +44,7 @@ class MakerNotePreservationTest {
 
     @BeforeTest
     fun setUp() {
-        Kim.underUnitTesting = true
+        Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
     }
 
     /**
@@ -225,6 +226,37 @@ class MakerNotePreservationTest {
         return TiffDirectory.findTiffField(contents.directories, ExifTag.EXIF_TAG_MAKER_NOTE)
     }
 
+    /**
+     * Regression test: the indices in [unrewritableIndices] must stay
+     * unrewritable. If the underlying files become parseable, this test
+     * fails and forces re-inclusion into [testMakerNoteSurvivesUpdateByteIdentically].
+     */
+    @Test
+    fun testUnrewritableIndicesAreStillUnrewritable() {
+
+        for (index in unrewritableIndices) {
+
+            val bytes = KimTestData.getBytesOf(index)
+
+            var threw = false
+
+            try {
+                Kim.update(
+                    bytes = bytes,
+                    update = MetadataUpdate.TakenDate(TEST_TAKEN_DATE_MILLIS)
+                )
+            } catch (_: Exception) {
+                threw = true
+            }
+
+            assertTrue(
+                threw,
+                "media_$index was marked unrewritable but Kim.update succeeded. " +
+                    "Remove $index from unrewritableIndices."
+            )
+        }
+    }
+
     private companion object {
 
         /* The JPEG files with update support and the PNG files. */
@@ -235,7 +267,13 @@ class MakerNotePreservationTest {
                 KimTestData.PNG_GIMP_TEST_IMAGE_INDEX
             )
 
-        /* Files skipped by the rewrite tests for known reasons. */
+        /*
+         * Files that contain invalid segment lengths (44, 45, 47) and are
+         * rejected by the rewriter. Keep this set in sync with
+         * KotlinIoPathSourceTest.rejectedJpegIds and KimUpdateSmallFileTest.
+         * If a file becomes parseable, remove it here so the MakerNote
+         * preservation check covers it.
+         */
         val unrewritableIndices: Set<Int> = setOf(44, 45, 47)
 
         const val TEST_TAKEN_DATE_MILLIS: Long = 1_575_302_400_000

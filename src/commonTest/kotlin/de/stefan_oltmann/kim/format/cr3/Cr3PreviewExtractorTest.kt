@@ -16,10 +16,13 @@
 package de.stefan_oltmann.kim.format.cr3
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.format.bmff.BaseMediaFileFormatImageParser
 import de.stefan_oltmann.kim.format.bmff.box.MovieBox
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -260,6 +263,147 @@ class Cr3PreviewExtractorTest {
         )
     }
 
+    /**
+     * Regression test: a CO64 offset that points before the mdat data
+     * must yield NULL instead of an exception from a negative slice.
+     */
+    @Test
+    fun testExtractFullSizePreviewRejectsOffsetBeforeMdat() {
+
+        val bytes = buildCr3File(
+            mdatPayload = byteArrayOf(0, 0, 0, 0) +
+                byteArrayOf(0xFF.toByte(), 0xD8.toByte()) + "jpegdata".encodeToByteArray(),
+            jpegLength = 10,
+            co64Offset = { it - 6 } /* Points into the mdat header. */
+        )
+
+        assertNull(
+            Cr3PreviewExtractor.extractFullSizePreviewImage(
+                ByteArrayByteReader(bytes)
+            )
+        )
+    }
+
+    /**
+     * Regression test: a CO64 offset beyond the file must yield NULL.
+     * The old Int truncation could wrap such deltas back into the
+     * payload and return arbitrary bytes as a "preview".
+     */
+    @Test
+    fun testExtractFullSizePreviewRejectsOffsetBeyondFile() {
+
+        val bytes = buildCr3File(
+            mdatPayload = byteArrayOf(0xFF.toByte(), 0xD8.toByte()) + "jpeg".encodeToByteArray(),
+            jpegLength = 12,
+            co64Offset = { it + 1000 }
+        )
+
+        assertNull(
+            Cr3PreviewExtractor.extractFullSizePreviewImage(
+                ByteArrayByteReader(bytes)
+            )
+        )
+    }
+
+    /**
+     * Data at a valid offset that is not a JPEG is not a preview and
+     * must not be handed to the caller as one.
+     */
+    @Test
+    fun testExtractFullSizePreviewRejectsNonJpegContent() {
+
+        val bytes = buildCr3File(
+            mdatPayload = "notajpeg".encodeToByteArray(),
+            jpegLength = 8,
+            co64Offset = { it }
+        )
+
+        assertNull(
+            Cr3PreviewExtractor.extractFullSizePreviewImage(
+                ByteArrayByteReader(bytes)
+            )
+        )
+    }
+
+    /**
+     * A preview whose declared JPEG size exceeds the available UUID box
+     * bytes is truncated and must be rejected instead of returning the
+     * short array.
+     */
+    @Test
+    fun testExtractSmallPreviewRejectsTruncatedJpeg() {
+
+        val payload =
+            byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0) +
+                byteArrayOf(0, 0, 0, 0) +
+                "PRVW".encodeToByteArray() +
+                ByteArray(12) +
+                byteArrayOf(0, 0, 10, 0) /* Declares 2560 bytes ... */
+
+        /* ... but only two bytes of actual data follow. */
+        val truncatedJpeg = byteArrayOf(0xFF.toByte(), 0xD8.toByte())
+
+        val uuidBox = box(
+            "uuid",
+            uuidBytes(Cr3Reader.CR3_PREVIEW_UUID) + payload + truncatedJpeg
+        )
+
+        assertNull(
+            Cr3PreviewExtractor.extractSmallPreviewImage(
+                ByteArrayByteReader(uuidBox)
+            )
+        )
+    }
+
+    /**
+     * Builds a CR3-like file: ftyp + moov(trak > mdia > minf > stbl with
+     * stsz & co64) + mdat.
+     *
+     * The CO64 offset depends on the mdat position, which depends on the
+     * file layout, so the builder receives the resolved mdat data offset
+     * in a second pass (the box sizes do not depend on it).
+     */
+    private fun buildCr3File(
+        mdatPayload: ByteArray,
+        jpegLength: Int,
+        co64Offset: (mdatDataOffset: Long) -> Long
+    ): ByteArray {
+
+        val tkhd = tkhdBox()
+
+        val ftypBox = box(
+            "ftyp",
+            "crx ".encodeToByteArray() + byteArrayOf(0, 0, 0, 0) + "fTyp".encodeToByteArray()
+        )
+
+        val minfPayload = stszAndCo64(jpegLength, 0L)
+
+        val trakBox =
+            box("trak", tkhd + box("mdia", box("minf", box("stbl", minfPayload))))
+
+        val moovBox = box("moov", trakBox)
+
+        /* First pass determines the layout with a placeholder offset. */
+        val prefix = ftypBox + moovBox
+
+        val mdatDataOffset = prefix.size + 8L
+
+        /* Second pass with the real offset. */
+        val realMinfPayload = stszAndCo64(jpegLength, co64Offset(mdatDataOffset))
+
+        val realTrakBox =
+            box("trak", tkhd + box("mdia", box("minf", box("stbl", realMinfPayload))))
+
+        val realMoovBox = box("moov", realTrakBox)
+
+        val mdatBox = box("mdat", mdatPayload)
+
+        return ftypBox + realMoovBox + mdatBox
+    }
+
+    private fun stszAndCo64(jpegLength: Int, co64Offset: Long): ByteArray =
+        stszBox(jpegLength) + co64Box(co64Offset)
+
     @Test
     fun testExtractSmallPreviewWithoutUuidBoxReturnsNull() {
 
@@ -338,7 +482,7 @@ class Cr3PreviewExtractorTest {
     fun testCr3ReaderFindMetadataSubBoxesRejectsMissingMovieBox() {
 
         assertFailsWith<ImageReadException> {
-            Cr3Reader.findMetadaSubBoxes(emptyList())
+            Cr3Reader.findMetadataSubBoxes(emptyList())
         }
     }
 
@@ -353,7 +497,116 @@ class Cr3PreviewExtractorTest {
         )
 
         assertFailsWith<ImageReadException> {
-            Cr3Reader.findMetadaSubBoxes(listOf(movieBox))
+            Cr3Reader.findMetadataSubBoxes(listOf(movieBox))
         }
+    }
+
+    /**
+     * Regression test: a truncated CR3 that ends before its moov box is
+     * written must still yield the metadata that survived - for example
+     * XMP in a top-level UUID box - instead of failing the whole file.
+     */
+    @Test
+    fun testTruncatedCr3YieldsSurvivingXmp() {
+
+        val ftypBox = box(
+            "ftyp",
+            "crx ".encodeToByteArray() + byteArrayOf(0, 0, 0, 0)
+        )
+
+        val xmpData = "<xmp/>".encodeToByteArray()
+
+        val xmpUuidBox = box(
+            "uuid",
+            uuidBytes(Cr3Reader.CR3_XMP_UUID) + xmpData
+        )
+
+        val bytes = ftypBox + xmpUuidBox
+
+        val metadata = BaseMediaFileFormatImageParser.parseMetadata(
+            ByteArrayByteReader(bytes)
+        )
+
+        assertEquals(MediaFormat.CR3, metadata.mediaFormat)
+
+        assertNull(metadata.exif)
+
+        /* The XMP UUID box survived the truncation and must be read. */
+        assertEquals("<xmp/>", metadata.xmp)
+    }
+
+    /**
+     * A moov box without the EXIF metadata UUID box degrades to empty
+     * EXIF while XMP in a top-level UUID box is still returned.
+     */
+    @Test
+    fun testMoovWithoutExifUuidYieldsSurvivingXmp() {
+
+        val ftypBox = box(
+            "ftyp",
+            "crx ".encodeToByteArray() + byteArrayOf(0, 0, 0, 0)
+        )
+
+        val moovBox = box("moov", byteArrayOf())
+
+        val xmpData = "<xmp/>".encodeToByteArray()
+
+        val xmpUuidBox = box(
+            "uuid",
+            uuidBytes(Cr3Reader.CR3_XMP_UUID) + xmpData
+        )
+
+        val bytes = ftypBox + moovBox + xmpUuidBox
+
+        val metadata = BaseMediaFileFormatImageParser.parseMetadata(
+            ByteArrayByteReader(bytes)
+        )
+
+        assertEquals(MediaFormat.CR3, metadata.mediaFormat)
+
+        assertNull(metadata.exif)
+
+        assertEquals("<xmp/>", metadata.xmp)
+    }
+
+    /**
+     * Regression test: an interrupted recording cuts the file INSIDE the
+     * moov box, whose header still declares the full size. The boxes
+     * parsed so far - here the surviving XMP UUID - must be returned
+     * instead of aborting the whole read.
+     */
+    @Test
+    fun testTruncatedMoovYieldsSurvivingXmp() {
+
+        val ftypBox = box(
+            "ftyp",
+            "crx ".encodeToByteArray() + byteArrayOf(0, 0, 0, 0)
+        )
+
+        val xmpUuidBox = box(
+            "uuid",
+            uuidBytes(Cr3Reader.CR3_XMP_UUID) + "<xmp/>".encodeToByteArray()
+        )
+
+        /*
+         * The moov header declares 4096 bytes of payload, but only a few
+         * bytes follow before the file ends.
+         */
+        val truncatedMoovHeader =
+            byteArrayOf(0, 0x10, 0, 0) + "moov".encodeToByteArray() +
+                byteArrayOf(1, 2, 3, 4, 5, 6)
+
+        val bytes = ftypBox + xmpUuidBox + truncatedMoovHeader
+
+        val metadata = BaseMediaFileFormatImageParser.parseMetadata(
+            ByteArrayByteReader(bytes)
+        )
+
+        assertEquals(MediaFormat.CR3, metadata.mediaFormat)
+
+        assertNull(metadata.exif)
+
+        /* The XMP UUID box before the cut moov must be read. */
+        assertEquals("<xmp/>", metadata.xmp)
     }
 }

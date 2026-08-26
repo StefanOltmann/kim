@@ -16,6 +16,7 @@
 package de.stefan_oltmann.kim.common
 
 import java.io.ByteArrayOutputStream
+import java.util.zip.DataFormatException
 import java.util.zip.Deflater
 import java.util.zip.Inflater
 
@@ -45,28 +46,70 @@ internal actual fun compress(input: String): ByteArray {
     return outputStream.toByteArray()
 }
 
-internal actual fun decompress(byteArray: ByteArray): String {
+internal actual fun decompress(
+    byteArray: ByteArray,
+    maxOutputByteCount: Int
+): String {
 
     val inflater = Inflater()
-    val outputStream = ByteArrayOutputStream()
 
-    return outputStream.use {
+    try {
+
+        val outputStream = ByteArrayOutputStream()
 
         val buffer = ByteArray(ZLIB_BUFFER_SIZE)
 
         inflater.setInput(byteArray)
 
-        var count = -1
+        while (true) {
 
-        while (count != 0) {
+            val count = inflater.inflate(buffer)
 
-            count = inflater.inflate(buffer)
+            if (count > 0) {
 
-            outputStream.write(buffer, 0, count)
+                /*
+                 * Abort before the untrusted data grows the output beyond
+                 * the limit, so it can never be allocated completely.
+                 */
+                if (outputStream.size() + count > maxOutputByteCount)
+                    throw ImageReadException(
+                        "Decompressed data exceeds $maxOutputByteCount bytes."
+                    )
+
+                outputStream.write(buffer, 0, count)
+                continue
+            }
+
+            /* The inflater made no progress, so one of these must apply. */
+            if (inflater.finished())
+                break
+
+            if (inflater.needsInput()) {
+
+                /*
+                 * The data ended without a final block. Returning the
+                 * partial output would silently lose data.
+                 */
+                throw ImageReadException("Unexpected end of compressed data.")
+            }
+
+            if (inflater.needsDictionary())
+                throw ImageReadException("Compressed data requires a preset dictionary.")
+
+            throw ImageReadException("The inflater could not make progress.")
         }
 
-        inflater.end()
+        /*
+         * Decode explicitly as UTF-8, matching all other platforms. The
+         * platform default charset differs between systems (for example
+         * windows-1252 on Windows JDKs below 18) and would corrupt
+         * multi-byte characters depending on the machine.
+         */
+        return outputStream.toByteArray().decodeToString()
 
-        String(outputStream.toByteArray())
+    } catch (ex: DataFormatException) {
+        throw ImageReadException("Failed to decompress the data.", ex)
+    } finally {
+        inflater.end()
     }
 }

@@ -57,7 +57,7 @@ public data class TiffContents(
 
             /*
              * Certain cameras write some directories more than once.
-             * Ignore this bug and just tage the first occurence.
+             * Ignore this bug and just take the first occurrence.
              */
             if (result.findDirectory(directory.type) != null)
                 continue

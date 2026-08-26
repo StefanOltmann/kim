@@ -17,7 +17,9 @@ package de.stefan_oltmann.kim.common
 
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.model.MediaFormat
+import kotlinx.datetime.TimeZone
 import kotlinx.io.Buffer
+import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
@@ -37,7 +39,7 @@ class KotlinIoExtensionsTest {
 
     @BeforeTest
     fun setUp() {
-        Kim.underUnitTesting = true
+        Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
     }
 
     private fun tempDir(): Path {
@@ -111,6 +113,35 @@ class KotlinIoExtensionsTest {
 
         de.stefan_oltmann.kim.input.KotlinIoSourceByteReader.read(path) { byteReader ->
             val metadata = Kim.readMetadata(checkNotNull(byteReader))
+            result = metadata?.mediaFormat
+        }
+
+        assertEquals(MediaFormat.JPEG, result)
+    }
+
+    /**
+     * Regression test: a declared content length beyond the signed Int
+     * range wrapped the remaining byte count around into a negative
+     * number, which made the very first read throw. The remaining count
+     * must be tracked in Long space instead.
+     */
+    @OptIn(ExperimentalStdlibApi::class)
+    @Test
+    fun testKotlinIoSourceByteReaderWithHugeDeclaredLength() {
+
+        val path = tempDir() / "media.jpg"
+
+        val bytes = de.stefan_oltmann.kim.testdata.KimTestData.getBytesOf(1)
+
+        path.writeBytes(bytes)
+
+        var result: MediaFormat? = null
+
+        de.stefan_oltmann.kim.input.KotlinIoSourceByteReader(
+            source = SystemFileSystem.source(path).buffered(),
+            contentLength = Int.MAX_VALUE + 1L
+        ).use { reader ->
+            val metadata = Kim.readMetadata(checkNotNull(reader))
             result = metadata?.mediaFormat
         }
 
