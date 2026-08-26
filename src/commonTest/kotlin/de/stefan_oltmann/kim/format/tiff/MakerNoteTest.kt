@@ -18,7 +18,6 @@ package de.stefan_oltmann.kim.format.tiff
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.RationalNumbers
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
-import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.makernote.apple.AppleTag
 import de.stefan_oltmann.kim.format.tiff.makernote.canon.CanonTag
@@ -36,9 +35,7 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 /**
  * Tests for MakerNote parsing, with the expected values verified

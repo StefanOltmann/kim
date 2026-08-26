@@ -46,6 +46,14 @@ class RationalNumberTest {
         assertEquals(0.5, RationalNumber(1, 2).doubleValue())
         assertEquals(-0.25, RationalNumber(-1, 4).doubleValue())
         assertEquals(0.0, RationalNumber(0, 7).doubleValue())
+
+        /*
+         * The IEEE 754 contract for zero divisors: callers must check
+         * for finiteness before using the result.
+         */
+        assertTrue(RationalNumber(1, 0).doubleValue().isInfinite())
+        assertTrue(RationalNumber(-1, 0).doubleValue().isInfinite())
+        assertTrue(RationalNumber(0, 0).doubleValue().isNaN())
     }
 
     @Test
@@ -147,6 +155,27 @@ class RationalNumberTest {
             kotlin.math.abs(pi.doubleValue() - 3.141592653589793) < 1E-6,
             "Expected a close approximation of pi, but was ${pi.doubleValue()}"
         )
+    }
+
+    /**
+     * Regression test: NaN and infinity are not representable as rational
+     * numbers and must fail with a clear exception instead of producing
+     * bogus results like 1/-1.
+     */
+    @Test
+    fun testValueOfRejectsNonFiniteValues() {
+
+        assertFailsWith<IllegalArgumentException> {
+            RationalNumber.valueOf(Double.NaN)
+        }
+
+        assertFailsWith<IllegalArgumentException> {
+            RationalNumber.valueOf(Double.POSITIVE_INFINITY)
+        }
+
+        assertFailsWith<IllegalArgumentException> {
+            RationalNumber.valueOf(Double.NEGATIVE_INFINITY)
+        }
     }
 
     @Test

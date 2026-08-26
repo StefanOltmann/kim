@@ -102,6 +102,40 @@ public object JpegConstants {
     public val MAX_XMP_BYTES_PER_SEGMENT: Int =
         MAX_PAYLOAD_BYTES_PER_SEGMENT - XMP_IDENTIFIER.size
 
+    /*
+     * Identifier of Adobe extended XMP segments ("http://ns.adobe.com/xmp/extension/"
+     * + NUL). Oversized XMP is written as a normal packet plus one or more of
+     * these segments, exactly like ExifTool and the Adobe SDK do it.
+     */
+    public val EXTENDED_XMP_IDENTIFIER: ByteArray =
+        "http://ns.adobe.com/xmp/extension/\u0000".encodeToByteArray()
+
+    /** The GUID of an extended XMP packet is a 32-character hexadecimal string. */
+    public const val EXTENDED_XMP_GUID_LENGTH: Int = 32
+
+    /**
+     * Every extended XMP segment repeats the full size of the extended XMP
+     * data as a 4-byte big-endian value behind the identifier and GUID.
+     */
+    public const val EXTENDED_XMP_TOTAL_LENGTH_BYTES: Int = 4
+
+    /**
+     * Max extended XMP data bytes per APP1 segment. The identifier, the GUID
+     * and the total length field count into the segment payload.
+     */
+    public val MAX_EXTENDED_XMP_BYTES_PER_SEGMENT: Int =
+        MAX_PAYLOAD_BYTES_PER_SEGMENT - EXTENDED_XMP_IDENTIFIER.size -
+            EXTENDED_XMP_GUID_LENGTH - EXTENDED_XMP_TOTAL_LENGTH_BYTES
+
+    /**
+     * Namespace URI of the xmpNote schema, which carries the
+     * HasExtendedXMP reference between the main packet and its extensions.
+     */
+    public const val XMP_NOTE_NAMESPACE: String = "http://ns.adobe.com/xmp/note/"
+
+    /** Name of the property that links a main packet to its extended data. */
+    public const val HAS_EXTENDED_XMP_PROPERTY: String = "HasExtendedXMP"
+
     public val SOI: ByteArray = byteArrayOf(0xFF.toByte(), 0xD8.toByte())
     public val EOI: ByteArray = byteArrayOf(0xFF.toByte(), 0xD9.toByte())
 
@@ -165,14 +199,6 @@ public object JpegConstants {
         SOF0_MARKER, SOF1_MARKER, SOF2_MARKER, SOF3_MARKER, SOF5_MARKER,
         SOF6_MARKER, SOF7_MARKER, SOF9_MARKER, SOF10_MARKER, SOF11_MARKER,
         SOF13_MARKER, SOF14_MARKER, SOF15_MARKER
-    )
-
-    public val SOFN_MARKER_BYTES: List<Byte> = listOf(
-        0xC0.toByte(), 0xC1.toByte(), 0xC2.toByte(),
-        0xC3.toByte(), 0xC5.toByte(), 0xC6.toByte(),
-        0xC7.toByte(), 0xC9.toByte(), 0xCA.toByte(),
-        0xCB.toByte(), 0xCD.toByte(), 0xCE.toByte(),
-        0xCF.toByte()
     )
 
     public val APP13_IDENTIFIER: ByteArray = byteArrayOf(

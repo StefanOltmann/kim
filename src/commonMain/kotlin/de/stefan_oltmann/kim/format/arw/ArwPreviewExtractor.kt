@@ -36,19 +36,19 @@ public object ArwPreviewExtractor : TiffPreviewExtractor {
 
         val ifd0 = tiffContents.directories.first()
 
-        val previewImageStart =
-            ifd0.getFieldValue(TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT) ?: return null
+        val previewImageStart = ifd0.getFieldValue(TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT)
+            ?: return@extractPreviewImage null
 
-        val previewLength =
-            ifd0.getFieldValue(TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT_LENGTH) ?: return null
+        val previewLength = ifd0.getFieldValue(TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT_LENGTH)
+            ?: return@extractPreviewImage null
 
         if (previewLength == 0)
-            return null
+            return@extractPreviewImage null
 
-        randomAccessByteReader.moveTo(previewImageStart)
-
-        val previewBytes = randomAccessByteReader.readBytes(previewLength)
-
-        return@tryWithImageReadException previewBytes
+        return@tryWithImageReadException TiffPreviewExtractor.readValidatedPreviewBytes(
+            randomAccessByteReader = randomAccessByteReader,
+            start = previewImageStart,
+            length = previewLength
+        )
     }
 }

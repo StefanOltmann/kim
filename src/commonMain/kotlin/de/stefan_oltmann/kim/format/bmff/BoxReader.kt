@@ -44,11 +44,21 @@ import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.read4BytesAsInt
 import de.stefan_oltmann.kim.input.read8BytesAsLong
 import de.stefan_oltmann.kim.input.readBytes
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 
 /**
  * Reads ISOBMFF boxes.
  */
 public object BoxReader {
+
+    /*
+     * Real files nest container boxes only a few levels deep
+     * (moov > trak > mdia > meta), so this limit only rejects hostile input.
+     */
+    private const val MAX_BOX_DEPTH: Int = 16
+
+    /** Chunk size for reading possibly-truncated box payloads. */
+    private const val READ_CHUNK_SIZE: Long = 64 * 1024
 
     /**
      * @param byteReader The reader as source for the bytes
@@ -66,6 +76,8 @@ public object BoxReader {
      * @param parentBoxType can be used to specify the type of the parent box - used when traversing
      * through sub boxes. This can change the logic for parsing boxes as "meta" boxes within a sub
      * box need to be treated differently to "meta" boxes at the top level.
+     * @param depth The nesting level of this box within its containers, used to bound the
+     * recursion for hostile files that nest container boxes arbitrarily.
      */
     @Suppress("NestedBlockDepth")
     public fun readBoxes(
@@ -75,8 +87,12 @@ public object BoxReader {
         positionOffset: Long = 0,
         offsetShift: Long = 0,
         updatePosition: ((Long) -> Unit)? = null,
-        parentBoxType: BoxType? = null
+        parentBoxType: BoxType? = null,
+        depth: Int = 0
     ): List<Box> {
+
+        if (depth >= MAX_BOX_DEPTH)
+            throw ImageReadException("Boxes are nested too deeply: $depth levels.")
 
         var haveSeenJxlHeaderBox = false
 
@@ -157,6 +173,19 @@ public object BoxReader {
                 break
             }
 
+            /*
+             * A JXLC box carries the complete codestream. Like a following
+             * JXLP box it is pure image data for an update: it is cut here
+             * with an empty payload, so its content is streamed by the
+             * caller instead of buffering the whole codestream in memory.
+             */
+            if (stopBeforeImageData && type == BoxType.JXLC) {
+
+                boxes.add(Box(type, offset, size, largeSize, ByteArray(0)))
+
+                break
+            }
+
             val nextBoxOffset = offset + actualLength
 
             @Suppress("MagicNumber")
@@ -175,7 +204,49 @@ public object BoxReader {
                     "Box $type is too large: $remainingBytesToReadInThisBox bytes."
                 )
 
-            val bytes = byteReader.readBytes("data", remainingBytesToReadInThisBox.toInt())
+            /*
+             * Attention: When the reader retains every consumed byte (the
+             * metadata path wraps the stream in a CopyByteReader, because
+             * meta boxes after the mdat box need already-read regions for
+             * their extent re-reads), a large mdat payload must not ALSO
+             * be kept inside its box object - that would hold the whole
+             * image data twice. Nothing reads the box payload in that
+             * mode, so it is dropped immediately.
+             */
+            var payloadTruncated = false
+
+            val bytes: ByteArray = when {
+
+                type == BoxType.MDAT &&
+                    stopAfterMetadataRead &&
+                    byteReader is SelfRetainingByteReader -> {
+
+                    val retained = readPayloadUpToEof(
+                        byteReader,
+                        remainingBytesToReadInThisBox.toInt()
+                    )
+
+                    payloadTruncated = retained.size < remainingBytesToReadInThisBox
+
+                    /* The reader itself retains the bytes. */
+                    ByteArray(0)
+                }
+
+                stopAfterMetadataRead -> {
+
+                    val payload = readPayloadUpToEof(
+                        byteReader,
+                        remainingBytesToReadInThisBox.toInt()
+                    )
+
+                    payloadTruncated = payload.size < remainingBytesToReadInThisBox
+
+                    payload
+                }
+
+                else ->
+                    byteReader.readBytes("data", remainingBytesToReadInThisBox.toInt())
+            }
 
             position += remainingBytesToReadInThisBox
 
@@ -185,23 +256,23 @@ public object BoxReader {
                 /* Generic EIC/ISO 14496-12 boxes. */
                 BoxType.FTYP -> FileTypeBox(globalOffset, size, largeSize, bytes)
                 BoxType.META -> if (parentBoxType == null) {
-                    MetaBoxTopLevel(globalOffset, size, largeSize, bytes)
+                    MetaBoxTopLevel(globalOffset, size, largeSize, bytes, depth + 1)
                 } else {
-                    MetaBox(globalOffset, size, largeSize, bytes)
+                    MetaBox(globalOffset, size, largeSize, bytes, depth + 1)
                 }
 
                 BoxType.HDLR -> HandlerReferenceBox(globalOffset, size, largeSize, bytes)
-                BoxType.IINF -> ItemInformationBox(globalOffset, size, largeSize, bytes)
+                BoxType.IINF -> ItemInformationBox(globalOffset, size, largeSize, bytes, depth + 1)
                 BoxType.INFE -> ItemInfoEntryBox(globalOffset, size, largeSize, bytes)
                 BoxType.ILOC -> ItemLocationBox(globalOffset, size, largeSize, bytes)
                 BoxType.PITM -> PrimaryItemBox(globalOffset, size, largeSize, bytes)
                 BoxType.MDAT -> MediaDataBox(globalOffset, size, largeSize, bytes)
-                BoxType.MOOV -> MovieBox(globalOffset, size, largeSize, bytes)
-                BoxType.TRAK -> TrackBox(globalOffset, size, largeSize, bytes)
+                BoxType.MOOV -> MovieBox(globalOffset, size, largeSize, bytes, depth + 1)
+                BoxType.TRAK -> TrackBox(globalOffset, size, largeSize, bytes, depth + 1)
                 BoxType.TKHD -> TrackHeaderBox(globalOffset, size, largeSize, bytes)
-                BoxType.MDIA -> MediaBox(globalOffset, size, largeSize, bytes)
+                BoxType.MDIA -> MediaBox(globalOffset, size, largeSize, bytes, depth + 1)
                 BoxType.UUID -> UuidBox(globalOffset, size, largeSize, bytes)
-                BoxType.UDTA -> UserDataBox(globalOffset, size, largeSize, bytes)
+                BoxType.UDTA -> UserDataBox(globalOffset, size, largeSize, bytes, depth + 1)
                 /* JXL boxes */
                 BoxType.EXIF -> ExifBox(globalOffset, size, largeSize, bytes)
                 BoxType.XML -> XmlBox(globalOffset, size, largeSize, bytes)
@@ -212,6 +283,16 @@ public object BoxReader {
             }
 
             boxes.add(box)
+
+            /*
+             * An interrupted recording cuts the file inside a box payload
+             * while the header still declares the full size. In the
+             * read-metadata path the boxes parsed so far are returned and
+             * reading ends here - there cannot be any further boxes after
+             * a truncation.
+             */
+            if (payloadTruncated)
+                break
 
             if (type == BoxType.JXLP)
                 haveSeenJxlpBox = true
@@ -265,5 +346,34 @@ public object BoxReader {
         updatePosition?.let { it(position) }
 
         return boxes
+    }
+
+    /**
+     * Reads exactly [count] bytes, or everything up to the end of the
+     * stream. A result shorter than [count] means the stream ended inside
+     * the box payload - an interrupted recording.
+     *
+     * Only used in the read-metadata path; write paths read via
+     * [ByteReader.readBytes] and fail loudly on truncation.
+     */
+    private fun readPayloadUpToEof(byteReader: ByteReader, count: Int): ByteArray {
+
+        val writer = ByteArrayByteWriter()
+
+        var remaining = count.toLong()
+
+        while (remaining > 0) {
+
+            val chunk = byteReader.readBytes(minOf(remaining, READ_CHUNK_SIZE).toInt())
+
+            if (chunk.isEmpty())
+                break
+
+            writer.write(chunk)
+
+            remaining -= chunk.size
+        }
+
+        return writer.toByteArray()
     }
 }

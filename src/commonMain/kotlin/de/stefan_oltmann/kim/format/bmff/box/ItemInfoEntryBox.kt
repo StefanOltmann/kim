@@ -58,17 +58,21 @@ public class ItemInfoEntryBox(
         version = byteReader.readByteAsInt()
 
         /*
-         * We need more sample files for testing.
-         * Everything I found so far was always version 2.
-         * We don't want to write parser logic that we can't actually verify.
+         * Version 2 uses a 16-bit item ID; version 3 widened it to 32 bits
+         * (ISO/IEC 14496-12, item info entry). Version 3 must not be
+         * rejected, or valid modern files would lose all item metadata.
          */
-        check(version == 2) {
+        check(version == SUPPORTED_MIN_VERSION || version == SUPPORTED_MAX_VERSION) {
             "Unsupported INFE version: $version"
         }
 
         flags = byteReader.readBytes("flags", FLAGS_LENGTH)
 
-        itemId = byteReader.read2BytesAsInt("itemId", BMFF_BYTE_ORDER)
+        itemId =
+            if (version == SUPPORTED_MIN_VERSION)
+                byteReader.read2BytesAsInt("itemId", BMFF_BYTE_ORDER)
+            else
+                byteReader.read4BytesAsInt("itemId", BMFF_BYTE_ORDER)
 
         itemProtectionIndex =
             byteReader.read2BytesAsInt("itemProtectionIndex", BMFF_BYTE_ORDER)
@@ -87,4 +91,13 @@ public class ItemInfoEntryBox(
             "itemProtectionIndex=$itemProtectionIndex " +
             "itemType=${itemType.toFourCCTypeString()} " +
             "itemName=$itemName"
+
+    private companion object {
+
+        /* Version 2 uses a 16-bit item ID and introduced the 32-bit item type field. */
+        const val SUPPORTED_MIN_VERSION: Int = 2
+
+        /* Version 3 widened the item ID to 32 bits. */
+        const val SUPPORTED_MAX_VERSION: Int = 3
+    }
 }

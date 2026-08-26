@@ -17,6 +17,7 @@
 package de.stefan_oltmann.kim.format
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.input.RandomAccessByteReader
 
@@ -31,4 +32,39 @@ public fun interface TiffPreviewExtractor {
         randomAccessByteReader: RandomAccessByteReader
     ): ByteArray?
 
+    public companion object {
+
+        /**
+         * Reads the claimed preview bytes and validates them.
+         *
+         * Some files carry random garbage in the preview tags, so like
+         * [de.stefan_oltmann.kim.format.tiff.TiffReader] for thumbnails,
+         * out-of-bounds ranges and data without the JPEG signature are
+         * rejected with NULL instead of returning unusable bytes.
+         */
+        internal fun readValidatedPreviewBytes(
+            randomAccessByteReader: RandomAccessByteReader,
+            start: Int,
+            length: Int
+        ): ByteArray? {
+
+            /*
+             * Long math, so hostile offsets cannot overflow the Int range.
+             */
+            val startIndex = start.toLong()
+            val endIndex = startIndex + length.toLong()
+
+            if (startIndex < 0 || length <= 0 || endIndex > randomAccessByteReader.contentLength)
+                return null
+
+            randomAccessByteReader.moveTo(startIndex.toInt())
+
+            val previewBytes = randomAccessByteReader.readBytes(length)
+
+            if (!previewBytes.startsWith(MediaFormatMagicNumbers.jpeg))
+                return null
+
+            return previewBytes
+        }
+    }
 }

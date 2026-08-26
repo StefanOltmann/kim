@@ -75,4 +75,22 @@ class KtorByteReadChannelByteReaderTest {
             actual = reader.readRemainingBytes().toList()
         )
     }
+
+    /**
+     * Regression test: a channel that closes with no data must be treated as
+     * end-of-data. readByte returns null instead of indexing an empty buffer,
+     * and readBytes returns an empty array instead of looping forever.
+     */
+    @Test
+    fun testEmptyChannelIsTreatedAsEndOfData() {
+
+        val reader = KtorByteReadChannelByteReader(
+            channel = ByteReadChannel(ByteArray(0)),
+            contentLength = 0
+        )
+
+        assertNull(reader.readByte())
+        assertEquals(0, reader.readBytes(100).size)
+        assertNull(reader.readByte())
+    }
 }

@@ -405,4 +405,13 @@ kover {
         }
     }
 }
+
+/*
+ * The coverage bound above only takes effect when koverVerify runs, which no
+ * lifecycle task does by default. Hooking it into "check" enforces the bound
+ * for every "build", locally and in CI.
+ */
+tasks.named("check") {
+    dependsOn(tasks.named("koverVerify"))
+}
 // endregion

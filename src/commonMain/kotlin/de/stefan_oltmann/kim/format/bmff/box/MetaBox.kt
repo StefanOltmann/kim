@@ -18,6 +18,7 @@
  */
 package de.stefan_oltmann.kim.format.bmff.box
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.FLAGS_LENGTH
 import de.stefan_oltmann.kim.format.bmff.BoxReader
@@ -35,7 +36,8 @@ public open class MetaBox(
     offset: Long,
     size: Long,
     largeSize: Long?,
-    payload: ByteArray
+    payload: ByteArray,
+    depth: Int = 0
 ) : Box(BoxType.META, offset, size, largeSize, payload), BoxContainer {
 
     public val version: Int
@@ -59,11 +61,14 @@ public open class MetaBox(
             byteReader = byteReader,
             stopAfterMetadataRead = false,
             positionOffset = 4,
-            offsetShift = offset + 8
+            offsetShift = offset + 8,
+            parentBoxType = type,
+            depth = depth
         )
 
         /* Find & set mandatory box */
-        handlerReferenceBox = boxes.find { it.type == BoxType.HDLR } as HandlerReferenceBox
+        handlerReferenceBox = boxes.filterIsInstance<HandlerReferenceBox>().firstOrNull()
+            ?: throw ImageReadException("Illegal ISOBMFF: meta has no hdlr box.")
     }
 
     override fun toString(): String =

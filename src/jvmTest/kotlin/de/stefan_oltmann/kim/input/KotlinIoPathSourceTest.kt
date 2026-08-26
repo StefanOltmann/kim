@@ -16,7 +16,6 @@
  */
 package de.stefan_oltmann.kim.input
 
-import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.kotlinx.readMetadata
@@ -31,8 +30,18 @@ import kotlin.test.assertTrue
  */
 class KotlinIoPathSourceTest {
 
-    fun getFullImageDiskPath(index: Int): String =
-        Resource("src/commonTest/resources/de/stefan_oltmann/kim/testdata/full/${KimTestData.getFileName(index)}").path
+    fun getFullImageDiskPath(index: Int): String {
+
+        val bytes = KimTestData.getBytesOf(index)
+
+        val tmp = java.io.File.createTempFile("kim-test-$index-", ".tmp")
+
+        tmp.writeBytes(bytes)
+
+        tmp.deleteOnExit()
+
+        return tmp.absolutePath
+    }
 
     /**
      * Test to check that KotlinIoSourceByteReader works correctly.

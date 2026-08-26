@@ -24,12 +24,6 @@ internal class BigEndianBinaryByteWriter(byteWriter: ByteWriter) : BinaryByteWri
         write(0xFF and value)
     }
 
-//    override fun write3Bytes(value: Int) {
-//        write(0xFF and (value shr 16))
-//        write(0xFF and (value shr 8))
-//        write(0xFF and value)
-//    }
-
     override fun write4Bytes(value: Int) {
         write(0xFF and (value shr 24))
         write(0xFF and (value shr 16))

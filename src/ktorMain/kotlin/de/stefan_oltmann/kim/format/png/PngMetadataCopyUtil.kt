@@ -82,20 +82,50 @@ public object PngMetadataCopyUtil {
             )
         }
 
-        val tempFilePath = Path("${destination.parent}/${destination.name}.tmp")
+        val tempFilePath = tempFilePathFor(destination)
 
-        KotlinIoSinkByteWriter.write(tempFilePath) { byteWriter ->
+        try {
 
-            PngWriter.writeImage(
-                chunks = newChunks,
-                byteWriter = byteWriter
+            KotlinIoSinkByteWriter.write(tempFilePath) { byteWriter ->
+
+                PngWriter.writeImage(
+                    chunks = newChunks,
+                    byteWriter = byteWriter
+                )
+            }
+
+            SystemFileSystem.atomicMove(
+                tempFilePath,
+                destination
             )
-        }
 
-        SystemFileSystem.atomicMove(
-            tempFilePath,
-            destination
-        )
+        } catch (ex: Throwable) {
+
+            /*
+             * The atomic move did not happen, so the temporary file would
+             * leak into the destination directory forever.
+             */
+            if (SystemFileSystem.exists(tempFilePath))
+                SystemFileSystem.delete(tempFilePath)
+
+            throw ex
+        }
+    }
+
+    /**
+     * Builds the path of the temporary file for the given destination.
+     *
+     * The parent may be NULL for bare relative destinations - building
+     * the string naively produced a literal "null/..." directory name.
+     */
+    internal fun tempFilePathFor(destination: Path): Path {
+
+        val fileName = "${destination.name}.tmp"
+
+        return if (destination.parent != null)
+            Path("${destination.parent}/${fileName}")
+        else
+            Path(fileName)
     }
 
     /**

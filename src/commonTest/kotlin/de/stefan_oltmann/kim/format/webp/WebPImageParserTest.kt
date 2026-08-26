@@ -129,6 +129,75 @@ class WebPImageParserTest {
         (value shr 24).toByte()
     )
 
+    /**
+     * Regression test: large image chunks that carry no metadata must be
+     * skipped instead of being buffered, when only metadata is needed.
+     */
+    @Test
+    fun testReadChunksSkipsLargeImageChunksInExtendedFile() {
+
+        val vp8xPayload = WebPChunkVP8X.createBytes(
+            hasIcc = false,
+            hasAlpha = false,
+            hasExif = true,
+            hasXmp = false,
+            hasAnimation = false,
+            imageSize = ImageSize(100, 100)
+        )
+
+        val vp8xChunk = "VP8X".encodeToByteArray() +
+            intToBytesLE(vp8xPayload.size) +
+            vp8xPayload
+
+        /* A large image bitstream. */
+        val vp8Payload = ByteArray(200_000)
+
+        vp8Payload[0] = 0x10
+        vp8Payload[3] = 0x9D.toByte()
+        vp8Payload[4] = 0x01
+        vp8Payload[5] = 0x2A
+        vp8Payload[6] = 0x64
+        vp8Payload[8] = 0x64
+
+        val vp8Chunk = "VP8 ".encodeToByteArray() +
+            intToBytesLE(vp8Payload.size) +
+            vp8Payload
+
+        /* A minimal valid TIFF. */
+        val exifPayload = convertHexStringToByteArray(
+            "49492a0008000000" + "0100" + "01000100010000002a000000" + "00000000"
+        )
+
+        val exifChunk = "EXIF".encodeToByteArray() +
+            intToBytesLE(exifPayload.size) +
+            exifPayload
+
+        val file = "RIFF".encodeToByteArray() +
+            intToBytesLE(vp8xChunk.size + vp8Chunk.size + exifChunk.size + "WEBP".length) +
+            "WEBP".encodeToByteArray() +
+            vp8xChunk +
+            vp8Chunk +
+            exifChunk
+
+        val chunks = WebPImageParser.readChunks(
+            byteReader = ByteArrayByteReader(file),
+            stopAfterMetadataRead = true
+        )
+
+        /* The metadata chunk must be found behind the image chunk. */
+        assertEquals(WebPChunkType.EXIF, chunks.last().type)
+
+        /*
+         * The image bitstream must not be buffered: every returned chunk
+         * carries only its small size header or metadata, never the
+         * 200 KB payload.
+         */
+        assertTrue(
+            chunks.all { it.bytes.size < 1000 },
+            "Chunk payloads too large: ${chunks.map { it.type to it.bytes.size }}"
+        )
+    }
+
     private class CountingByteReader(
         private val delegate: ByteReader
     ) : ByteReader {

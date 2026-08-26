@@ -21,6 +21,7 @@ import de.stefan_oltmann.kim.ktor.readMetadata
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.testdata.KimTestData
 import io.ktor.utils.io.ByteReadChannel
+import kotlinx.datetime.TimeZone
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -37,7 +38,7 @@ class KimKtorHostTest {
 
     @BeforeTest
     fun setUp() {
-        Kim.underUnitTesting = true
+        Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
     }
 
     @Test

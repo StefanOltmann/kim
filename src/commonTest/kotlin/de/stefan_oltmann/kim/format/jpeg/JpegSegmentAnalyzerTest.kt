@@ -21,10 +21,12 @@ import de.stefan_oltmann.kim.common.writeBytes
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.markerDescription
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlinx.io.files.Path
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlin.test.fail
 
 /**
@@ -108,7 +110,7 @@ class JpegSegmentAnalyzerTest {
 
         /* Integrity check to prevent persistance of wrong results. */
         assertEquals(
-            expected = bytes.size - missingEoiBytes(bytes),
+            expected = (bytes.size - missingEoiBytes(bytes)).toLong(),
             actual = segmentInfos.sumOf { it.length },
             message = "Sum of lengths should match bytes size."
         )
@@ -117,8 +119,8 @@ class JpegSegmentAnalyzerTest {
         for ((offset, marker, _) in segmentInfos) {
 
             val markerAtOffset = byteArrayOf(
-                bytes[offset],
-                bytes[offset + 1]
+                bytes[offset.toInt()],
+                bytes[offset.toInt() + 1]
             ).toUInt16(JPEG_BYTE_ORDER)
 
             assertEquals(
@@ -203,6 +205,100 @@ class JpegSegmentAnalyzerTest {
         )
 
         return if (lastBytes.contentEquals(JpegConstants.EOI)) 0 else JpegConstants.EOI.size
+    }
+
+    /**
+     * Regression test: a file larger than the signed Int range must
+     * produce correct Long-based segment lengths. The old code truncated
+     * the SOS length to a negative Int and failed the whole scan.
+     */
+    @Test
+    fun testFindSegmentInfosBeyondIntRange() {
+
+        val headerBytes = byteArrayOf(
+            0xFF.toByte(), 0xD8.toByte(),                          // SOI
+            0xFF.toByte(), 0xE1.toByte(), 0x00, 0x04, 0x00, 0x00,  // APP1, empty payload
+            0xFF.toByte(), 0xDA.toByte(), 0x00, 0x02               // SOS
+        )
+
+        /* Just beyond the signed Int range - no real allocation needed. */
+        val contentLength = Int.MAX_VALUE + 100L
+
+        val segmentInfos = JpegSegmentAnalyzer.findSegmentInfos(
+            HugeVirtualJpegReader(headerBytes, contentLength)
+        )
+
+        val sosInfo = segmentInfos.first { it.marker == 0xFFDA }
+
+        val expectedSosLength = contentLength - headerBytes.size + 2
+
+        assertTrue(sosInfo.length > Int.MAX_VALUE, "SOS length was truncated: ${sosInfo.length}")
+
+        assertEquals(expectedSosLength, sosInfo.length)
+
+        val eoiInfo = segmentInfos.last()
+
+        assertEquals(0xFFD9, eoiInfo.marker)
+
+        assertEquals(contentLength - 2, eoiInfo.offset)
+    }
+
+    /**
+     * A virtual reader that reports a huge content length and serves its
+     * header bytes at the start, zero bytes in between and the JPEG EOI
+     * marker at the end - without allocating the whole data.
+     */
+    private class HugeVirtualJpegReader(
+        private val headerBytes: ByteArray,
+        private val virtualContentLength: Long
+    ) : ByteReader {
+
+        private var position: Long = 0
+
+        override val contentLength: Long =
+            virtualContentLength
+
+        override fun readByte(): Byte? {
+
+            if (position >= virtualContentLength)
+                return null
+
+            return byteAt(position++).also { }
+        }
+
+        override fun readBytes(count: Int): ByteArray {
+
+            val result = ByteArray(
+                minOf(count.toLong(), virtualContentLength - position).toInt().coerceAtLeast(0)
+            )
+
+            for (index in result.indices)
+                result[index] = byteAt(position + index)
+
+            position += result.size
+
+            return result
+        }
+
+        override fun close() {
+            /* Nothing to close. */
+        }
+
+        private fun byteAt(position: Long): Byte {
+
+            if (position < headerBytes.size)
+                return headerBytes[position.toInt()]
+
+            if (position >= virtualContentLength - 2)
+                return EOI_BYTES[(position - (virtualContentLength - 2)).toInt()]
+
+            return 0
+        }
+
+        private companion object {
+
+            val EOI_BYTES: ByteArray = byteArrayOf(0xFF.toByte(), 0xD9.toByte())
+        }
     }
 
     private companion object {

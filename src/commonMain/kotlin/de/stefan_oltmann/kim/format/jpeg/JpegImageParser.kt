@@ -18,6 +18,7 @@
 package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.Md5
 import de.stefan_oltmann.kim.common.getRemainingBytes
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toInt
@@ -53,6 +54,16 @@ public object JpegImageParser : ImageParser {
 
     private const val XMP_META_CLOSE = "</x:xmpmeta>"
 
+    private val attributeFormRegex = Regex(
+        """xmpNote:HasExtendedXMP\s*=\s*["']([0-9A-Fa-f]{32})["']"""
+    )
+
+    private val elementFormRegex = Regex(
+        """<xmpNote:HasExtendedXMP>\s*([0-9A-Fa-f]{32})\s*</xmpNote:HasExtendedXMP>"""
+    )
+
+    private const val RDF_CLOSE_TAG = "</rdf:RDF>"
+
     public fun getImageSize(byteReader: ByteReader): ImageSize? {
 
         val magicNumberBytes = byteReader.readBytes(MediaFormatMagicNumbers.jpeg.size).toList()
@@ -61,39 +72,23 @@ public object JpegImageParser : ImageParser {
         if (magicNumberBytes != MediaFormatMagicNumbers.jpeg)
             return null
 
-        var readBytesCount = magicNumberBytes.size
+        /*
+         * Counted in Long space, so streams larger than the signed Int
+         * range cannot wrap the counter and silently disable the
+         * truncation checks below.
+         */
+        var readBytesCount = magicNumberBytes.size.toLong()
+
+        val scanner = JpegMarkerScanner(byteReader)
 
         @Suppress("LoopWithTooManyJumpStatements")
         do {
 
-            var segmentIdentifier = byteReader.readByte() ?: break
-            var segmentType = byteReader.readByte() ?: break
+            val scan = scanner.nextMarker(zeroIsFillByte = true) ?: break
 
-            readBytesCount += 2
+            readBytesCount += scan.consumedBytes.size
 
-            /*
-             * Find the segment marker. Markers are zero or more 0xFF bytes, followed by
-             * a 0xFF and then a byte not equal to 0x00 or 0xFF.
-             */
-            while (
-                segmentIdentifier != JpegMetadataExtractor.SEGMENT_IDENTIFIER ||
-                segmentType == JpegMetadataExtractor.SEGMENT_IDENTIFIER ||
-                segmentType.toInt() == 0
-            ) {
-
-                segmentIdentifier = segmentType
-
-                val nextSegmentType = byteReader.readByte() ?: break
-
-                readBytesCount += 1
-
-                segmentType = nextSegmentType
-            }
-
-            if (
-                segmentType == JpegMetadataExtractor.SEGMENT_START_OF_SCAN ||
-                segmentType == JpegMetadataExtractor.MARKER_END_OF_IMAGE
-            )
+            if (scan.marker == JpegConstants.SOS_MARKER || scan.marker == JpegConstants.EOI_MARKER)
                 break
 
             /* If we don't have anough bytes for the segment count we are done reading. */
@@ -113,11 +108,11 @@ public object JpegImageParser : ImageParser {
                 throw ImageReadException("Illegal JPEG segment length: $segmentLength")
 
             /* We are only looking for a SOF segment. */
-            if (!JpegConstants.SOFN_MARKER_BYTES.contains(segmentType)) {
+            if (!JpegConstants.SOFN_MARKERS.contains(scan.marker)) {
 
                 byteReader.skipBytes("skip segment", segmentLength)
 
-                readBytesCount += segmentLength
+                readBytesCount += segmentLength.toLong()
 
                 continue
             }
@@ -213,6 +208,13 @@ public object JpegImageParser : ImageParser {
         return ImageSize(firstSegment.width, firstSegment.height)
     }
 
+    /*
+     * Attention: A corrupt EXIF segment deliberately fails the whole
+     * pipeline. Degrading to NULL here would make a subsequent rewrite
+     * silently drop all EXIF data of the file, while other tools may
+     * still be able to read or repair it. This is a different level than
+     * skipping a single invalid GPS value.
+     */
     private fun getExif(bytes: ByteArray): TiffContents? {
 
         val exifByteReader = ByteArrayByteReader(bytes)
@@ -248,6 +250,10 @@ public object JpegImageParser : ImageParser {
             .filterIsInstance<AppnSegment>()
             .filter { segment -> JpegXmpParser.isXmpJpegSegment(segment.segmentBytes) }
 
+        val extendedSegments = segments
+            .filterIsInstance<AppnSegment>()
+            .filter { segment -> JpegXmpParser.isExtendedXmpJpegSegment(segment.segmentBytes) }
+
         if (xmpSegments.isEmpty())
             return null
 
@@ -259,6 +265,11 @@ public object JpegImageParser : ImageParser {
          * This seems to be an error, because it's the same content, but only formatted.
          * We do here what ExifTool does on "exiftool -xmp -b photo.jpg > photo.xmp"
          * and take the first complete packet by ignoring the rest.
+         *
+         * Attention: Invalid XMP segments deliberately fail the whole
+         * pipeline instead of degrading to NULL. Degrading would make a
+         * subsequent rewrite silently drop all XMP data of the file,
+         * while other tools may still be able to read or repair it.
          */
         val xmp = StringBuilder()
 
@@ -271,7 +282,142 @@ public object JpegImageParser : ImageParser {
                 break
         }
 
-        return xmp.toString().ifBlank { null }
+        if (xmp.isBlank())
+            return null
+
+        return mergeExtendedXmp(xmp.toString(), extendedSegments)
+    }
+
+    /**
+     * Merges Adobe extended XMP data into the main packet, exactly like
+     * ExifTool does by default: the main packet carries an
+     * "xmpNote:HasExtendedXMP" property with the GUID of the extended data,
+     * and only extension segments whose GUID matches are reassembled.
+     *
+     * The reassembled data is verified against its MD5 digest, because a
+     * mismatch would mean silent metadata loss on a subsequent rewrite -
+     * and Kim must never destroy or misrepresent metadata.
+     */
+    @OptIn(ExperimentalStdlibApi::class)
+    private fun mergeExtendedXmp(
+        mainPacket: String,
+        extendedSegments: List<AppnSegment>
+    ): String {
+
+        val guid = findHasExtendedXmpGuid(mainPacket) ?: return mainPacket
+
+        if (extendedSegments.isEmpty())
+            throw ImageReadException(
+                "The XMP packet references extended data (GUID $guid), " +
+                    "but no extended XMP segments exist."
+            )
+
+        val fragments = extendedSegments.map { segment ->
+            JpegXmpParser.parseExtendedXmpJpegSegment(segment.segmentBytes)
+        }
+
+        /* Segments of foreign GUIDs belong to another packet and are ignored. */
+        val matchingFragments = fragments.filter { fragment ->
+            fragment.guid.equals(guid, ignoreCase = true)
+        }
+
+        if (matchingFragments.isEmpty())
+            throw ImageReadException(
+                "The XMP packet references extended data (GUID $guid), " +
+                    "but no extended XMP segments with this GUID exist."
+            )
+
+        val declaredLength = matchingFragments.first().totalLength
+
+        val mismatchedLength = matchingFragments.firstOrNull { fragment ->
+            fragment.totalLength != declaredLength
+        }
+
+        if (mismatchedLength != null)
+            throw ImageReadException(
+                "Inconsistent extended XMP total length: ${mismatchedLength.totalLength} " +
+                    "(expected $declaredLength)."
+            )
+
+        val extendedData = ByteArrayByteWriter()
+
+        for (fragment in matchingFragments)
+            extendedData.write(fragment.data)
+
+        val extendedBytes = extendedData.toByteArray()
+
+        if (extendedBytes.size != declaredLength)
+            throw ImageReadException(
+                "Incomplete extended XMP: got ${extendedBytes.size} of $declaredLength bytes."
+            )
+
+        val actualDigest = Md5.digest(extendedBytes).toHexString(HexFormat.UpperCase)
+
+        if (!actualDigest.equals(guid, ignoreCase = true))
+            throw ImageReadException(
+                "The MD5 checksum of the extended XMP data does not match the GUID " +
+                    "$guid declared by the main packet."
+            )
+
+        return injectExtendedDescriptions(mainPacket, extendedBytes.decodeToString(), guid)
+    }
+
+    /**
+     * Extracts the value of the "xmpNote:HasExtendedXMP" property from the
+     * raw packet text. Both serialization forms that writers emit are
+     * recognized: the shorthand attribute form and the element form.
+     */
+    private fun findHasExtendedXmpGuid(packet: String): String? {
+
+        attributeFormRegex.find(packet)?.let { return it.groupValues[1] }
+
+        return elementFormRegex.find(packet)?.groupValues?.get(1)
+    }
+
+    /**
+     * Inserts the rdf:Description elements of the extended data into the
+     * main packet, so both parse as one metadata tree afterwards.
+     */
+    private fun injectExtendedDescriptions(
+        mainPacket: String,
+        extendedXml: String,
+        guid: String
+    ): String {
+
+        val innerStart = locateTagEnd(extendedXml, "<rdf:RDF")
+        val innerEnd = extendedXml.indexOf(RDF_CLOSE_TAG, innerStart)
+
+        if (innerStart == -1 || innerEnd == -1)
+            throw ImageReadException(
+                "The extended XMP data referenced by GUID $guid has no RDF content."
+            )
+
+        val descriptions = extendedXml.substring(innerStart, innerEnd)
+
+        val insertionPoint = mainPacket.lastIndexOf(RDF_CLOSE_TAG)
+
+        if (insertionPoint == -1)
+            throw ImageReadException(
+                "The main XMP packet referencing extended data (GUID $guid) has no RDF content."
+            )
+
+        return mainPacket.substring(0, insertionPoint) + descriptions +
+            mainPacket.substring(insertionPoint)
+    }
+
+    /**
+     * Returns the index behind the '>' of the given tag's first occurrence.
+     */
+    private fun locateTagEnd(xml: String, tagName: String): Int {
+
+        val tagStart = xml.indexOf(tagName)
+
+        if (tagStart == -1)
+            return -1
+
+        val tagEnd = xml.indexOf('>', tagStart)
+
+        return if (tagEnd == -1) -1 else tagEnd + 1
     }
 
     private fun getIptc(segments: List<Segment>): IptcMetadata? {
@@ -322,18 +468,20 @@ public object JpegImageParser : ImageParser {
     /**
      * Parses the given concatenated Photoshop data.
      *
-     * Returns null if the data cannot be parsed.
+     * Returns NULL only when there is no data at all.
+     *
+     * Attention: A corrupt Photoshop stream deliberately fails the whole
+     * pipeline instead of degrading to NULL. Degrading would make a
+     * subsequent rewrite silently drop all IPTC data of the file, while
+     * other tools may still be able to read or repair it. This is a
+     * different level than skipping a single invalid record.
      */
     private fun parsePhotoshopData(iptcBytes: ByteArray): IptcMetadata? {
 
         if (iptcBytes.isEmpty())
             return null
 
-        return try {
-            IptcParser.parseIptc(iptcBytes, startsWithApp13Header = false)
-        } catch (_: ImageReadException) {
-            null
-        }
+        return IptcParser.parseIptc(iptcBytes, startsWithApp13Header = false)
     }
 
     /**

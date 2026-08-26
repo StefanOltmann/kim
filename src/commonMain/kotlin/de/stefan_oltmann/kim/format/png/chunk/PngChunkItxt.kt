@@ -57,6 +57,13 @@ public class PngChunkItxt(
 
         var index = terminatorIndex + 1
 
+        /*
+         * A chunk that ends directly behind the keyword terminator has
+         * no compression fields and must be rejected cleanly.
+         */
+        if (index + COMPRESSION_FIELDS_LENGTH > bytes.size)
+            throw ImageReadException("PNG iTXt chunk is too short for the compression fields.")
+
         val compressionFlag = bytes[index++].toInt()
 
         if (compressionFlag != 0 && compressionFlag != 1)
@@ -115,4 +122,10 @@ public class PngChunkItxt(
      */
     override fun getText(): String =
         text
+
+    private companion object {
+
+        /* The compression flag and the compression method. */
+        const val COMPRESSION_FIELDS_LENGTH: Int = 2
+    }
 }

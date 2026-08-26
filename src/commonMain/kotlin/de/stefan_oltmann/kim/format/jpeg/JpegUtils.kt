@@ -27,9 +27,6 @@ import de.stefan_oltmann.kim.input.readBytes
 
 internal object JpegUtils {
 
-    /* JPEG markers are 0xFF fill bytes */
-    private const val FILL_BYTE = 0xFF
-
     /**
      * Reads the header segments of a JPEG file up to the image data.
      *
@@ -45,39 +42,35 @@ internal object JpegUtils {
 
         val segments = mutableListOf<JFIFPieceSegment>()
 
+        val scanner = JpegMarkerScanner(byteReader)
+
         byteReader.readAndVerifyBytes("JPEG SOI (0xFFD8)", JpegConstants.SOI)
 
-        var readBytesCount = JpegConstants.SOI.size
+        /*
+         * Counted in Long space, so streams larger than the signed Int
+         * range cannot wrap the counter and silently disable the
+         * truncation checks below.
+         */
+        var readBytesCount = JpegConstants.SOI.size.toLong()
 
         while (true) {
 
-            val markerBytes = ByteArray(2)
-
             /*
-             * Find next marker bytes.
-             *
-             * If there are no more bytes left we end.
+             * The rewriter's legacy tolerance: a 0x00 behind the 0xFF is
+             * treated as a marker byte, so corrupt files fail loudly on
+             * the length checks instead of being scanned over.
              */
-            do {
+            val scan = scanner.nextMarker(zeroIsFillByte = false)
+                ?: return segments to null
 
-                markerBytes[0] = markerBytes[1]
-                markerBytes[1] = byteReader.readByte() ?: return segments to null
-
-                readBytesCount++
-
-            } while (
-                FILL_BYTE and markerBytes[0].toInt() != FILL_BYTE ||
-                FILL_BYTE and markerBytes[1].toInt() == FILL_BYTE
-            )
-
-            val marker = markerBytes.toUInt16(JPEG_BYTE_ORDER)
+            readBytesCount += scan.consumedBytes.size
 
             /* The EOI marker means the file has no image data. */
-            if (marker == JpegConstants.EOI_MARKER)
+            if (scan.marker == JpegConstants.EOI_MARKER)
                 return segments to null
 
-            if (marker == JpegConstants.SOS_MARKER)
-                return segments to markerBytes
+            if (scan.marker == JpegConstants.SOS_MARKER)
+                return segments to scan.markerBytes
 
             /* If we don't have enough bytes for the segment count we are done reading. */
             if (byteReader.contentLength - readBytesCount < 2)
@@ -85,7 +78,7 @@ internal object JpegUtils {
 
             val segmentLengthBytes = byteReader.readBytes("segmentLengthBytes", 2)
 
-            readBytesCount += 2
+            readBytesCount += 2L
 
             val segmentLength = segmentLengthBytes.toUInt16(JPEG_BYTE_ORDER)
 
@@ -103,10 +96,17 @@ internal object JpegUtils {
 
             val segmentData = byteReader.readBytes("segmentData", segmentContentLength)
 
-            readBytesCount += segmentContentLength
+            readBytesCount += segmentContentLength.toLong()
 
-            if (keepMarker(marker))
-                segments.add(JFIFPieceSegment(marker, markerBytes, segmentLengthBytes, segmentData))
+            if (keepMarker(scan.marker))
+                segments.add(
+                    JFIFPieceSegment(
+                        scan.marker,
+                        scan.markerBytes,
+                        segmentLengthBytes,
+                        segmentData
+                    )
+                )
         }
     }
 }

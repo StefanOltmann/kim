@@ -50,9 +50,30 @@ class MediaFormatTest {
         assertTrue(MediaFormat.NEF.hasPreview())
         assertTrue(MediaFormat.ARW.hasPreview())
         assertTrue(MediaFormat.RW2.hasPreview())
+        assertTrue(MediaFormat.ORF.hasPreview())
+        assertTrue(MediaFormat.DNG.hasPreview())
 
         assertFalse(MediaFormat.JPEG.hasPreview())
+        assertFalse(MediaFormat.PNG.hasPreview())
         assertFalse(MediaFormat.HEIC.hasPreview())
+        assertFalse(MediaFormat.AVIF.hasPreview())
+        assertFalse(MediaFormat.JXL.hasPreview())
+    }
+
+    @Test
+    fun testHasPreviewForAllFormats() {
+
+        /* Every format is either a preview-capable RAW or not. */
+        for (format in MediaFormat.entries) {
+
+            val isRawWithPreview = format in setOf(
+                MediaFormat.CR2, MediaFormat.CR3, MediaFormat.RAF,
+                MediaFormat.NEF, MediaFormat.ARW, MediaFormat.RW2,
+                MediaFormat.ORF, MediaFormat.DNG
+            )
+
+            assertEquals(isRawWithPreview, format.hasPreview(), "${format.name} hasPreview() mismatch.")
+        }
     }
 
     @Test
@@ -182,6 +203,19 @@ class MediaFormatTest {
 
         assertEquals(MediaFormat.MP4, MediaFormat.detect(mp41Header))
         assertEquals(MediaFormat.MP4, MediaFormat.detect(iso2Header))
+    }
+
+    /**
+     * The naked JXL codestream signature must be detected as JXL just
+     * like the ISOBMFF container variant.
+     */
+    @Test
+    fun testDetectJxlNakedCodestream() {
+
+        val header = byteArrayOf(0xFF.toByte(), 0x0A.toByte()) +
+            ByteArray(16)
+
+        assertEquals(MediaFormat.JXL, MediaFormat.detect(header))
     }
 
     @Test

@@ -15,6 +15,23 @@
  */
 package de.stefan_oltmann.kim.common
 
+/*
+ * Compressed chunks of untrusted files must not expand to gigabytes of
+ * memory during metadata parsing (zlib allows expansion ratios beyond
+ * 1000:1), so every platform aborts decompression once the output
+ * exceeds this limit.
+ */
+internal const val MAX_DECOMPRESSED_BYTE_COUNT: Int = 8 * 1024 * 1024
+
 internal expect fun compress(input: String): ByteArray
 
-internal expect fun decompress(byteArray: ByteArray): String
+/**
+ * Decompresses the given zlib data.
+ *
+ * Aborts with an [ImageReadException] when the output exceeds
+ * [maxOutputByteCount], so hostile input cannot exhaust the memory.
+ */
+internal expect fun decompress(
+    byteArray: ByteArray,
+    maxOutputByteCount: Int = MAX_DECOMPRESSED_BYTE_COUNT
+): String

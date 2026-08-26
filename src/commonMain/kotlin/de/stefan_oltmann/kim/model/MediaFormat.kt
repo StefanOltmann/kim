@@ -69,7 +69,8 @@ public enum class MediaFormat(
      * Use Kim.extractPreviewImage() API for this.
      */
     public fun hasPreview(): Boolean =
-        this == CR2 || this == CR3 || this == RAF || this == NEF || this == ARW || this == RW2 // || this == ORF
+        this == CR2 || this == CR3 || this == RAF || this == NEF ||
+            this == ARW || this == RW2 || this == ORF || this == DNG
 
     public companion object {
 
@@ -203,6 +204,9 @@ public enum class MediaFormat(
 
                 /* Check JXL ISOBMFF */
                 bytes.startsWith(MediaFormatMagicNumbers.jxl) -> JXL
+
+                /* JXL naked codestream (without ISOBMFF container) */
+                bytes.startsWith(MediaFormatMagicNumbers.jxlCodeStream) -> JXL
 
                 /* Check HEIC variants */
                 bytes.startsWithNullable(MediaFormatMagicNumbers.heic) -> HEIC

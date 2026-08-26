@@ -1,6 +1,6 @@
 # Kim - Kotlin Image Metadata
 
-[![Kotlin](https://img.shields.io/badge/kotlin-2.4.10-blue.svg?logo=kotlin)](httpw://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.4.10-blue.svg?logo=kotlin)](https://kotlinlang.org)
 ![JVM](https://img.shields.io/badge/-JVM-gray.svg?style=flat)
 ![Android](https://img.shields.io/badge/-Android-gray.svg?style=flat)
 ![iOS](https://img.shields.io/badge/-iOS-gray.svg?style=flat)
@@ -280,6 +280,10 @@ Java projects.
 ## Limitations
 
 * Does not read the image size and orientation for HEIC, AVIF & JPEG XL.
+* JPEG: Metadata that does not fit into a single segment (~64 KB) is written interoperably,
+  following ExifTool as the reference implementation:
+  oversized XMP uses Adobe Extended XMP (main packet plus GUID-referenced extension segments),
+  oversized IPTC is split across multiple APP13 segments exactly like Photoshop does.
 * Updates buffer the file content in memory for WebP files and for JPEG XL files with a single
   codestream box (`jxlc`). JPEG, PNG, GIF and JPEG XL files with split codestream boxes (`jxlp`) are
   streamed in bounded chunks.

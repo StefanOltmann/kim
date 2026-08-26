@@ -316,6 +316,12 @@ public object IptcParser {
             /*
              * If there is still data in this block, before the next image resource block (8BIM),
              * then we must consume these bytes to leave a pointer ready to read the next block.
+             *
+             * These block types are skipped because the Photoshop
+             * specification classifies them as non-IPTC resources (like
+             * resolution or print flag information). They are never part
+             * of the IPTC metadata this parser is responsible for, and
+             * they remain untouched in the raw block bytes.
              */
             val skipSuccessful = skipToQuad(JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_INT)
 
@@ -331,16 +337,13 @@ public object IptcParser {
     private fun isUtf8(codedCharset: ByteArray): Boolean {
 
         /*
-         * check if encoding is a escape sequence
-         * normalize encoding byte sequence
+         * The record value may be padded with spaces, so they are
+         * stripped before comparing against the escape sequence.
          */
-        val codedCharsetNormalized = ByteArray(codedCharset.size)
+        val significantBytes = codedCharset
+            .filter { it != ' '.code.toByte() }
+            .toByteArray()
 
-        var index = 0
-        for (element in codedCharset)
-            if (element != ' '.code.toByte())
-                codedCharsetNormalized[index++] = element
-
-        return UTF8_CHARACTER_ESCAPE_SEQUENCE.contentEquals(codedCharsetNormalized)
+        return UTF8_CHARACTER_ESCAPE_SEQUENCE.contentEquals(significantBytes)
     }
 }

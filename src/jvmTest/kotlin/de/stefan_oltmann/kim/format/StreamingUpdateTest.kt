@@ -22,6 +22,7 @@ import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
+import kotlinx.datetime.TimeZone
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -38,7 +39,7 @@ class StreamingUpdateTest {
 
     @BeforeTest
     fun setUp() {
-        Kim.underUnitTesting = true
+        Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
     }
 
     @Test

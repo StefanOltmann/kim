@@ -228,29 +228,44 @@ public class TiffField(
         throw ImageReadException("Can't format value of tag $tagFormatted as int: $value")
     }
 
-    public fun toInt(): Int = when (value) {
-        is ByteArray -> value.first().toInt()
-        is ShortArray -> value.first().toIntByFieldType()
-        is IntArray -> value.first()
-        else -> (value as Number).toInt()
+    /**
+     * Returns the first value as Int, or NULL when the field has no values
+     * (count == 0) or a type that cannot be converted.
+     *
+     * Hostile files can legally carry zero-count fields, so callers skip
+     * the NULL case instead of failing the whole parse.
+     */
+    public fun toInt(): Int? = when (value) {
+        is ByteArray -> value.firstOrNull()?.toInt()
+        is ShortArray -> value.firstOrNull()?.toIntByFieldType()
+        is IntArray -> value.firstOrNull()
+        else -> (value as? Number)?.toInt()
     }
 
-    public fun toShort(): Short = when (value) {
-        is ByteArray -> value.first().toShort()
-        is ShortArray -> value.first()
-        is IntArray -> value.first().toShort()
-        else -> (value as Number).toShort()
+    /**
+     * Returns the first value as Short, or NULL when the field has no
+     * values (count == 0) or a type that cannot be converted.
+     */
+    public fun toShort(): Short? = when (value) {
+        is ByteArray -> value.firstOrNull()?.toShort()
+        is ShortArray -> value.firstOrNull()
+        is IntArray -> value.firstOrNull()?.toShort()
+        else -> (value as? Number)?.toShort()
     }
 
-    public fun toDouble(): Double = when (value) {
-        is RationalNumbers -> value.values.first().doubleValue()
+    /**
+     * Returns the first value as Double, or NULL when the field has no
+     * values (count == 0) or a type that cannot be converted.
+     */
+    public fun toDouble(): Double? = when (value) {
+        is RationalNumbers -> value.values.firstOrNull()?.doubleValue()
         is RationalNumber -> value.doubleValue()
-        is ByteArray -> value.first().toDouble()
-        is ShortArray -> value.first().toIntByFieldType().toDouble()
-        is IntArray -> value.first().toDouble()
-        is FloatArray -> value.first().toDouble()
-        is DoubleArray -> value.first()
-        else -> (value as Number).toDouble()
+        is ByteArray -> value.firstOrNull()?.toDouble()
+        is ShortArray -> value.firstOrNull()?.toIntByFieldType()?.toDouble()
+        is IntArray -> value.firstOrNull()?.toDouble()
+        is FloatArray -> value.firstOrNull()?.toDouble()
+        is DoubleArray -> value.firstOrNull()
+        else -> (value as? Number)?.toDouble()
     }
 
     /**

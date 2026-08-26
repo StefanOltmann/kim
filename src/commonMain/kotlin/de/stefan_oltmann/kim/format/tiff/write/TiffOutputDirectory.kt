@@ -451,6 +451,8 @@ public class TiffOutputDirectory(
 
         var thumbnailOffsetField: TiffOutputField? = null
 
+        val thumbnailBytes = this.thumbnailBytes
+
         if (thumbnailBytes != null) {
 
             thumbnailOffsetField = TiffOutputField(
@@ -462,7 +464,7 @@ public class TiffOutputDirectory(
             add(thumbnailOffsetField)
 
             val lengthValue = FieldTypeLong.writeData(
-                thumbnailBytes!!.size,
+                thumbnailBytes.size,
                 tiffOffsetItems.byteOrder
             )
 
@@ -475,6 +477,8 @@ public class TiffOutputDirectory(
         }
 
         var stripOffsetField: TiffOutputField? = null
+
+        val tiffImageBytes = this.tiffImageBytes
 
         if (tiffImageBytes != null) {
 
@@ -491,7 +495,7 @@ public class TiffOutputDirectory(
             add(stripOffsetField)
 
             val lengthValue = FieldTypeLong.writeData(
-                tiffImageBytes!!.size,
+                tiffImageBytes.size,
                 tiffOffsetItems.byteOrder
             )
 
@@ -528,7 +532,11 @@ public class TiffOutputDirectory(
             if (field.isLocalValue)
                 continue
 
-            val item = field.separateValue!!
+            /*
+             * Fields with a separate value always have one once they are
+             * written, so a missing value is an internal error.
+             */
+            val item = checkNotNull(field.separateValue)
 
             result.add(item)
         }
@@ -537,24 +545,28 @@ public class TiffOutputDirectory(
 
             val item: TiffOutputItem = TiffOutputValue(
                 "thumbnailImageDataElement",
-                thumbnailBytes!!
+                thumbnailBytes
             )
 
             result.add(item)
 
-            tiffOffsetItems.addOffsetItem(TiffOffsetItem(item, thumbnailOffsetField!!))
+            tiffOffsetItems.addOffsetItem(
+                TiffOffsetItem(item, checkNotNull(thumbnailOffsetField))
+            )
         }
 
         if (tiffImageBytes != null) {
 
             val item: TiffOutputItem = TiffOutputValue(
                 "tiffImageDataElement",
-                tiffImageBytes!!
+                tiffImageBytes
             )
 
             result.add(item)
 
-            tiffOffsetItems.addOffsetItem(TiffOffsetItem(item, stripOffsetField!!))
+            tiffOffsetItems.addOffsetItem(
+                TiffOffsetItem(item, checkNotNull(stripOffsetField))
+            )
         }
 
         return result

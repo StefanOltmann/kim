@@ -31,8 +31,13 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeAscii
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeRational
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeShort
+import de.stefan_oltmann.kim.format.tiff.makernote.nikon.NikonTag
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.model.TiffOrientation
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -43,7 +48,12 @@ class MetadataSummaryConverterEdgeCasesTest {
 
     @BeforeTest
     fun setUp() {
-        Kim.underUnitTesting = true
+        Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
+    }
+
+    @AfterTest
+    fun tearDown() {
+        Kim.defaultTimeZone = null
     }
 
     private fun field(
@@ -230,6 +240,40 @@ class MetadataSummaryConverterEdgeCasesTest {
         )
 
         assertNotNull(metadata.convertToSummary().takenDate)
+    }
+
+    /**
+     * SubSecTime is a digit string whose length encodes the fraction, so
+     * "05" must yield 50 ms. Converting it through a number would strip
+     * the leading zero and report 500 ms instead.
+     */
+    @Test
+    fun testTakenDateSubSecondKeepsLeadingZeros() {
+
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.JPEG,
+            imageSize = null,
+            exif = tiffContents(
+                field(
+                    ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL,
+                    "2020:08:30 18:43:00\u0000".encodeToByteArray()
+                ),
+                field(
+                    ExifTag.EXIF_TAG_SUB_SEC_TIME_ORIGINAL,
+                    "05\u0000".encodeToByteArray()
+                )
+            ),
+            exifBytes = null,
+            iptc = null,
+            xmp = null
+        )
+
+        val expectedTakenDate = LocalDateTime
+            .parse("2020-08-30T18:43:00.05")
+            .toInstant(TimeZone.of("GMT+02:00"))
+            .toEpochMilliseconds()
+
+        assertEquals(expectedTakenDate, metadata.convertToSummary().takenDate)
     }
 
     @Test
@@ -514,7 +558,7 @@ class MetadataSummaryConverterEdgeCasesTest {
     @Test
     fun testTakenDateWithSystemTimeZone() {
 
-        Kim.underUnitTesting = false
+        Kim.defaultTimeZone = null
 
         try {
 
@@ -532,10 +576,85 @@ class MetadataSummaryConverterEdgeCasesTest {
                 xmp = null
             )
 
-            assertNotNull(metadata.convertToSummary().takenDate)
+            /*
+             * The local EXIF date must map to the epoch milliseconds of
+             * the very same wall clock time in the platform time zone,
+             * so the expected value is computed from that zone and
+             * asserted exactly.
+             */
+            val expectedTakenDate = LocalDateTime.parse("2020-08-30T18:43:00")
+                .toInstant(TimeZone.currentSystemDefault())
+                .toEpochMilliseconds()
+
+            assertEquals(
+                expected = expectedTakenDate,
+                actual = metadata.convertToSummary().takenDate
+            )
 
         } finally {
-            Kim.underUnitTesting = true
+            Kim.defaultTimeZone = null
         }
     }
+
+    /**
+     * Regression test: a Nikon Lens tag with zero divisors must not put
+     * NaN or infinity into the lens model string.
+     */
+    @Test
+    fun testNikonLensModelWithZeroDivisorsIsIgnored() {
+
+        val makerNoteDirectory = TiffDirectory(
+            type = TiffConstants.TIFF_MAKER_NOTE_NIKON,
+            entries = listOf(
+                TiffField(
+                    offset = 0,
+                    tag = NikonTag.LENS.tag,
+                    directoryType = TiffConstants.TIFF_MAKER_NOTE_NIKON,
+                    fieldType = FieldTypeRational,
+                    count = 4,
+                    localValue = null,
+                    valueOffset = 0,
+                    valueBytes = ByteArray(32),
+                    byteOrder = ByteOrder.LITTLE_ENDIAN,
+                    sortHint = 0
+                )
+            ),
+            offset = 8,
+            nextDirectoryOffset = 0,
+            byteOrder = ByteOrder.LITTLE_ENDIAN
+        )
+
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.NEF,
+            imageSize = null,
+            exif = tiffContentsWithMakerNote(makerNoteDirectory),
+            exifBytes = null,
+            iptc = null,
+            xmp = null
+        )
+
+        assertNull(metadata.convertToSummary().lensModel)
+    }
+
+    private fun tiffContentsWithMakerNote(makerNoteDirectory: TiffDirectory): TiffContents =
+
+        TiffContents(
+            header = TiffHeader(
+                byteOrder = ByteOrder.LITTLE_ENDIAN,
+                tiffVersion = 42,
+                offsetToFirstIFD = 8
+            ),
+            directories = listOf(
+                TiffDirectory(
+                    type = TiffConstants.TIFF_DIRECTORY_TYPE_IFD0,
+                    entries = emptyList(),
+                    offset = 8,
+                    nextDirectoryOffset = 0,
+                    byteOrder = ByteOrder.LITTLE_ENDIAN
+                )
+            ),
+            makerNoteDirectory = makerNoteDirectory,
+            makerNoteSubDirectories = emptyList(),
+            geoTiffDirectory = null
+        )
 }

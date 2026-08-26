@@ -36,7 +36,8 @@ public class ItemInformationBox(
     offset: Long,
     size: Long,
     largeSize: Long?,
-    payload: ByteArray
+    payload: ByteArray,
+    depth: Int = 0
 ) : Box(BoxType.IINF, offset, size, largeSize, payload), BoxContainer {
 
     public val version: Int
@@ -72,16 +73,27 @@ public class ItemInformationBox(
             stopAfterMetadataRead = false,
             positionOffset = 4L + if (version == 0) 2 else 4,
             offsetShift = offset + 8,
-            parentBoxType = type
+            parentBoxType = type,
+            depth = depth
         )
 
         val map = mutableMapOf<Int, ItemInfoEntryBox>()
 
         for (box in boxes) {
 
-            box as ItemInfoEntryBox
+            /*
+             * The iinf payload may contain other box types in the future
+             * (ISO 14496-12 keeps the entry format open), so unknown
+             * entries are skipped in this lookup index instead of crashing.
+             *
+             * Attention: This is a lookup index only. The unknown entries
+             * stay in [boxes] and the raw payload is preserved byte for
+             * byte, so rewrites cannot lose them. See "Never destroy
+             * metadata" in the [Kim] documentation.
+             */
+            val entry = box as? ItemInfoEntryBox ?: continue
 
-            map[box.itemId] = box
+            map[entry.itemId] = entry
         }
 
         this.map = map

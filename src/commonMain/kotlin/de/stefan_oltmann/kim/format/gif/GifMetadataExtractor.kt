@@ -176,6 +176,23 @@ public object GifMetadataExtractor : MetadataExtractor {
 
                 outputBytes.add(0x00)
             }
+
+            /*
+             * Unknown labels are copied verbatim, so their data is neither
+             * destroyed nor left unconsumed - an unread chain would desync
+             * the stream and misinterpret following blocks.
+             */
+            else -> {
+
+                outputBytes.addAll(listOf(GifConstants.EXTENSION_INTRODUCER, extensionLabelByte))
+
+                val subChunks = byteReader.parseGifSubChunksUntilEmpty("unknown extension")
+
+                for (subChunk in subChunks)
+                    outputBytes.addAll(subChunk.toList())
+
+                outputBytes.add(0x00)
+            }
         }
     }
 }

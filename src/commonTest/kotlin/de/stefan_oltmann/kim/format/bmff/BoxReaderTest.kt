@@ -22,6 +22,10 @@ import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.bmff.box.BoxContainer
 import de.stefan_oltmann.kim.format.bmff.box.ItemInfoEntryBox
 import de.stefan_oltmann.kim.format.bmff.box.ItemInformationBox
+import de.stefan_oltmann.kim.format.bmff.box.MediaDataBox
+import de.stefan_oltmann.kim.format.bmff.box.MetaBox
+import de.stefan_oltmann.kim.format.bmff.box.MetaBoxTopLevel
+import de.stefan_oltmann.kim.format.bmff.box.MovieBox
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.write2BytesAsInt
@@ -30,6 +34,8 @@ import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 
 class BoxReaderTest {
 
@@ -167,6 +173,96 @@ class BoxReaderTest {
     }
 
     /**
+     * Regression test: during metadata reads the mdat payload must not be
+     * duplicated into the box object when the underlying reader already
+     * retains the consumed bytes itself - otherwise whole image data ends
+     * up in memory several times on meta-after-mdat layouts.
+     */
+    @Test
+    fun testMdatPayloadIsNotDuplicatedOnRetainingReaders() {
+
+        val mdatPayload = ByteArray(64)
+
+        val box = ByteArrayByteWriter()
+
+        box.writeInt(mdatPayload.size + 8, BMFF_BYTE_ORDER)
+        box.write(BoxType.MDAT.bytes)
+        box.write(mdatPayload)
+
+        val copyReader = CopyByteReader(ByteArrayByteReader(box.toByteArray()))
+
+        val boxes = BoxReader.readBoxes(
+            byteReader = copyReader,
+            stopAfterMetadataRead = true
+        )
+
+        /* The reader itself retained everything... */
+        assertEquals(box.toByteArray().size.toLong() + 0, copyReader.getBytes().size.toLong())
+
+        /* ... while the box object carries no duplicate of the payload. */
+        val mdatBox = boxes.filterIsInstance<MediaDataBox>().firstOrNull()
+
+        assertNotNull(mdatBox)
+        assertEquals(0, mdatBox.payload.size)
+
+        /* The offset stays intact for extent-based re-reads. */
+        assertEquals(0L, mdatBox.offset)
+    }
+
+    /**
+     * Regression test: container boxes nested beyond the depth limit must
+     * be rejected with a clear error instead of overflowing the call stack.
+     */
+    @Test
+    fun testDeeplyNestedContainerBoxesAreRejected() {
+
+        var bytes = ByteArray(0)
+
+        repeat(DEPTH_LIMIT_TEST_LEVELS) {
+            bytes = createBox(BoxType.MOOV, bytes)
+        }
+
+        assertFailsWith<ImageReadException> {
+            BoxReader.readBoxes(
+                byteReader = ByteArrayByteReader(bytes),
+                stopAfterMetadataRead = false
+            )
+        }
+    }
+
+    /**
+     * Regression test: a meta box below the top level must be parsed as a
+     * plain container, not as another top-level meta box. Both the meta
+     * inside the moov box and the one inside that meta are plain ones.
+     */
+    @Test
+    fun testNestedMetaBoxesArePlainContainers() {
+
+        val innerMeta = createBox(BoxType.META, VERSION_AND_FLAGS + createHdlrBox())
+
+        val outerMeta =
+            createBox(BoxType.META, VERSION_AND_FLAGS + createHdlrBox() + innerMeta)
+
+        val bytes = createBox(BoxType.MOOV, outerMeta)
+
+        val boxes = BoxReader.readBoxes(
+            byteReader = ByteArrayByteReader(bytes),
+            stopAfterMetadataRead = false
+        )
+
+        val movieBox = boxes.filterIsInstance<MovieBox>().single()
+
+        val outerMetaBox = movieBox.boxes.filterIsInstance<MetaBox>().single()
+
+        assertFalse(outerMetaBox is MetaBoxTopLevel)
+
+        /* The meta inside the meta exercises the nested parse path. */
+        val innerMetaBox = outerMetaBox.boxes.filterIsInstance<MetaBox>().single()
+
+        assertFalse(innerMetaBox is MetaBoxTopLevel)
+    }
+
+    /**
      * Builds a standalone iinf box of the given version containing one
      * version-2 infe entry with item type "mime".
      */
@@ -207,5 +303,46 @@ class BoxReaderTest {
         box.write(payloadBytes)
 
         return box.toByteArray()
+    }
+
+    /**
+     * Builds a hdlr box with an empty name and the "pict" handler type,
+     * the mandatory child of a meta box.
+     */
+    private fun createHdlrBox(): ByteArray {
+
+        val payload = ByteArrayByteWriter()
+
+        payload.write(VERSION_AND_FLAGS) /* version & flags */
+        payload.write(byteArrayOf(0, 0, 0, 0)) /* pre-defined */
+        payload.write("pict".encodeToByteArray()) /* handler type */
+        payload.write(ByteArray(12)) /* reserved */
+        payload.write(0) /* empty name terminator */
+
+        return createBox(BoxType.HDLR, payload.toByteArray())
+    }
+
+    private fun createBox(type: BoxType, payload: ByteArray): ByteArray {
+
+        val box = ByteArrayByteWriter()
+
+        box.writeInt(payload.size + 8, BMFF_BYTE_ORDER)
+        box.write(type.bytes)
+        box.write(payload)
+
+        return box.toByteArray()
+    }
+
+    private companion object {
+
+        const val VERSION_AND_FLAGS_SIZE: Int = 4
+
+        val VERSION_AND_FLAGS: ByteArray = ByteArray(VERSION_AND_FLAGS_SIZE)
+
+        /*
+         * One more than the parsing depth limit, so the rejection
+         * is guaranteed to be reached.
+         */
+        const val DEPTH_LIMIT_TEST_LEVELS: Int = 20
     }
 }

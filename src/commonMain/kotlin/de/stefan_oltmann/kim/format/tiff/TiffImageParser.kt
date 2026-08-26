@@ -81,12 +81,15 @@ public object TiffImageParser : ImageParser {
             ?.getFieldValue(TiffTag.TIFF_TAG_JPG_FROM_RAW, false)
             ?: return tiffContents
 
-        val exifBytes = extractExifBytesFromJpeg(jpegBytes)
+        val exifBytes = extractExifBytesFromJpegForMakerNote(jpegBytes)
             ?: return tiffContents
 
         val previewTiffContents = try {
+
             TiffReader.read(exifBytes)
+
         } catch (_: Exception) {
+
             /*
              * Skip the unreadable embedded JPEG.
              *
@@ -106,31 +109,58 @@ public object TiffImageParser : ImageParser {
     }
 
     /**
-     * Extracts the payload of the first APP1 EXIF segment of the
-     * given JPEG bytes.
+     * Extracts the payload of the first APP1 EXIF segment of the given JPEG bytes.
+     *
+     * Like the TIFF read below, a JPEG that cannot be scanned is skipped
+     * instead of rejecting the file, so RAW files with a truncated or
+     * otherwise malformed preview remain readable.
      */
-    private fun extractExifBytesFromJpeg(jpegBytes: ByteArray): ByteArray? {
+    private fun extractExifBytesFromJpegForMakerNote(jpegBytes: ByteArray): ByteArray? {
 
-        val segments = JpegSegmentAnalyzer.findSegmentInfos(
-            ByteArrayByteReader(jpegBytes)
-        )
+        val segments = try {
+
+            JpegSegmentAnalyzer.findSegmentInfos(
+                ByteArrayByteReader(jpegBytes)
+            )
+
+        } catch (_: Exception) {
+
+            /*
+             * Skip the unreadable embedded JPEG.
+             *
+             * Like ExifTool, the MakerNote is kept as an opaque
+             * binary block in this case.
+             */
+            return null
+        }
 
         val exifSegment = segments.firstOrNull { info ->
 
             if (info.marker != JpegConstants.JPEG_APP1_MARKER)
                 return@firstOrNull false
 
+            /*
+             * Long arithmetic, so offsets of huge files cannot overflow
+             * the bounds check.
+             */
             if (info.offset + info.length > jpegBytes.size)
                 return@firstOrNull false
 
-            val segmentBytes = jpegBytes.copyOfRange(info.offset + 4, info.offset + info.length)
+            val segmentBytes = jpegBytes.copyOfRange(
+                info.offset.toInt() + 4,
+                info.offset.toInt() + info.length.toInt()
+            )
 
             segmentBytes.startsWith(JpegConstants.EXIF_IDENTIFIER_CODE)
+
         } ?: return null
 
-        val payloadStart = exifSegment.offset + 4 + JpegConstants.EXIF_IDENTIFIER_CODE.size
+        val payloadStart = exifSegment.offset.toInt() + 4 + JpegConstants.EXIF_IDENTIFIER_CODE.size
 
-        return jpegBytes.copyOfRange(payloadStart, exifSegment.offset + exifSegment.length)
+        return jpegBytes.copyOfRange(
+            payloadStart,
+            exifSegment.offset.toInt() + exifSegment.length.toInt()
+        )
     }
 
     private fun getImageSize(tiffContents: TiffContents): ImageSize? {
@@ -195,7 +225,11 @@ public object TiffImageParser : ImageParser {
         if (widthField == null || heightField == null)
             return null
 
-        return ImageSize(widthField.toInt(), heightField.toInt())
+        /* Zero-count fields convert to NULL and mean the size is unknown. */
+        val width = widthField.toInt() ?: return null
+        val height = heightField.toInt() ?: return null
+
+        return ImageSize(width, height)
     }
 
     private fun getXmpXml(tiffContents: TiffContents): String? {

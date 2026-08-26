@@ -41,6 +41,10 @@ public open class ImageWriteException(message: String? = null, cause: Throwable?
 /**
  * We need to ensure that every Exception that can occur is wrapped
  * into an ImageReadException, because on Kotlin/Native this is the expected exception type.
+ *
+ * Fatal VM errors like [OutOfMemoryError] or [StackOverflowError] are
+ * deliberately not wrapped: masking them as ordinary parse failures
+ * would hide broken virtual machine state from the caller.
  */
 internal inline fun <R> tryWithImageReadException(block: () -> R): R =
     try {
@@ -48,13 +52,16 @@ internal inline fun <R> tryWithImageReadException(block: () -> R): R =
     } catch (ex: ImageReadException) {
         /* Don't wrap another ImageReadException. */
         throw ex
-    } catch (ex: Throwable) {
+    } catch (ex: Exception) {
         throw ImageReadException("Failed to read image.", ex)
     }
 
 /**
  * We need to ensure that everything is wrapped into an ImageWriteException,
  * because on Kotlin/Native this is the expected exception type.
+ *
+ * Fatal VM errors are deliberately not wrapped. See
+ * [tryWithImageReadException].
  */
 internal inline fun <R> tryWithImageWriteException(block: () -> R): R =
     try {
@@ -62,6 +69,6 @@ internal inline fun <R> tryWithImageWriteException(block: () -> R): R =
     } catch (ex: ImageWriteException) {
         /* Don't wrap another ImageWriteException. */
         throw ex
-    } catch (ex: Throwable) {
+    } catch (ex: Exception) {
         throw ImageWriteException("Failed to write image.", ex)
     }

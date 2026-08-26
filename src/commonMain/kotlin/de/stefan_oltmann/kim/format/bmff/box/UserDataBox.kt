@@ -28,7 +28,8 @@ public class UserDataBox(
     offset: Long,
     size: Long,
     largeSize: Long?,
-    payload: ByteArray
+    payload: ByteArray,
+    depth: Int = 0
 ) : Box(BoxType.UDTA, offset, size, largeSize, payload), BoxContainer {
 
     override val boxes: List<Box>
@@ -41,7 +42,9 @@ public class UserDataBox(
             byteReader = byteReader,
             stopAfterMetadataRead = false,
             positionOffset = 0,
-            offsetShift = offset + 8
+            offsetShift = offset + 8,
+            parentBoxType = type,
+            depth = depth
         )
     }
 }

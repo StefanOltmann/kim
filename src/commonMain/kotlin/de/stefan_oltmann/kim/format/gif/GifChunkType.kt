@@ -31,5 +31,11 @@ public enum class GifChunkType {
     PLAIN_TEXT_EXTENSION,
     APPLICATION_EXTENSION,
     COMMENT_EXTENSION,
+
+    /**
+     * An extension block with a label this parser does not know. It is
+     * kept as an opaque block, so rewrites never destroy its content.
+     */
+    UNKNOWN_EXTENSION,
     TERMINATOR
 }

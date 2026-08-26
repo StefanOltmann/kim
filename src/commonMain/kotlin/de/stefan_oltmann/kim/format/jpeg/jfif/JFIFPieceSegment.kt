@@ -63,11 +63,17 @@ internal open class JFIFPieceSegment(
         return IptcParser.isPhotoshopApp13Segment(segmentBytes)
     }
 
+    /**
+     * Matches standard XMP packets and Adobe extended XMP segments alike,
+     * so a rewrite replaces or removes both instead of leaving stale
+     * extensions behind.
+     */
     fun isXmpSegment(): Boolean {
 
         if (marker != JpegConstants.JPEG_APP1_MARKER)
             return false
 
-        return segmentBytes.startsWith(JpegConstants.XMP_IDENTIFIER)
+        return segmentBytes.startsWith(JpegConstants.XMP_IDENTIFIER) ||
+            segmentBytes.startsWith(JpegConstants.EXTENDED_XMP_IDENTIFIER)
     }
 }

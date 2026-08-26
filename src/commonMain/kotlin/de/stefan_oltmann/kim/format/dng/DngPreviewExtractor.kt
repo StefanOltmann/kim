@@ -40,25 +40,25 @@ public object DngPreviewExtractor : TiffPreviewExtractor {
 
         /* Ensure that the file is a DNG by checking the required tag. */
         if (ifd0.getFieldValue(TiffTag.TIFF_TAG_DNG_VERSION, false) == null)
-            return null
+            return@extractPreviewImage null
 
-        val ifd2 = tiffContents.directories.find {
-            it.type == TiffConstants.TIFF_DIRECTORY_TYPE_IFD2
-        } ?: return null
+        val ifd2 =
+            tiffContents.directories.find { it.type == TiffConstants.TIFF_DIRECTORY_TYPE_IFD2 }
+                ?: return@extractPreviewImage null
 
-        val previewImageStart =
-            ifd2.getFieldValue(ExifTag.EXIF_TAG_PREVIEW_IMAGE_START_SUB_IFD1) ?: return null
+        val previewImageStart = ifd2.getFieldValue(ExifTag.EXIF_TAG_PREVIEW_IMAGE_START_SUB_IFD1)
+            ?: return@extractPreviewImage null
 
-        val previewLength =
-            ifd2.getFieldValue(ExifTag.EXIF_TAG_PREVIEW_IMAGE_LENGTH_SUB_IFD1) ?: return null
+        val previewLength = ifd2.getFieldValue(ExifTag.EXIF_TAG_PREVIEW_IMAGE_LENGTH_SUB_IFD1)
+            ?: return@extractPreviewImage null
 
         if (previewLength == 0)
             return null
 
-        randomAccessByteReader.moveTo(previewImageStart)
-
-        val previewBytes = randomAccessByteReader.readBytes(previewLength)
-
-        return@tryWithImageReadException previewBytes
+        return@tryWithImageReadException TiffPreviewExtractor.readValidatedPreviewBytes(
+            randomAccessByteReader = randomAccessByteReader,
+            start = previewImageStart,
+            length = previewLength
+        )
     }
 }

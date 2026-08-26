@@ -68,6 +68,18 @@ public object WebPWriter {
         if (xmp != null)
             modifiedChunks.removeAll { it.type == WebPChunkType.XMP }
 
+        /*
+         * The metadata flags are derived from the chunks that will
+         * actually be written - not from the old header flags, which can
+         * be stale when a file claims EXIF or XMP without carrying the
+         * corresponding chunk.
+         */
+        val hasExifChunk = exifBytes != null ||
+            modifiedChunks.any { it.type == WebPChunkType.EXIF }
+
+        val hasXmpChunk = xmp != null ||
+            modifiedChunks.any { it.type == WebPChunkType.XMP }
+
         val headerChunk = modifiedChunks.first()
 
         /**
@@ -83,8 +95,8 @@ public object WebPWriter {
                 bytes = WebPChunkVP8X.createBytes(
                     hasIcc = headerChunk.hasIcc,
                     hasAlpha = headerChunk.hasAlpha,
-                    hasExif = exifBytes != null || headerChunk.hasExif,
-                    hasXmp = xmp != null || headerChunk.hasXmp,
+                    hasExif = hasExifChunk,
+                    hasXmp = hasXmpChunk,
                     hasAnimation = headerChunk.hasAnimation,
                     imageSize = headerChunk.imageSize
                 )

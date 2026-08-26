@@ -24,15 +24,17 @@ import de.stefan_oltmann.kim.model.MetadataSummary
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.testdata.KimTestData
 import de.stefan_oltmann.xmp.XMPRegionArea
+import kotlinx.datetime.TimeZone
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class XmpReaderTest {
 
     @BeforeTest
     fun setUp() {
-        Kim.underUnitTesting = true
+        Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
     }
 
     @Test
@@ -210,5 +212,29 @@ class XmpReaderTest {
             expected = 1_683_907_440_000,
             actual = summary.takenDate
         )
+    }
+
+    /**
+     * Regression test: corrupt XMP with coordinates far outside the
+     * valid range must not flow into the summary. The write path rejects
+     * such coordinates, so the read path must do the same.
+     */
+    @Test
+    fun testReadInvalidGpsCoordinatesYieldsNull() {
+
+        val xmp = """
+            <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
+            <x:xmpmeta xmlns:x="adobe:ns:meta/">
+              <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+                <rdf:Description rdf:about=""
+                    xmlns:exif="http://ns.adobe.com/exif/1.0/"
+                    exif:GPSLatitude="400,999N"
+                    exif:GPSLongitude="8,14.3990930E"/>
+              </rdf:RDF>
+            </x:xmpmeta>
+            <?xpacket end="w"?>
+        """.trimIndent()
+
+        assertNull(XmpReader.readMetadata(xmp).gpsCoordinates)
     }
 }

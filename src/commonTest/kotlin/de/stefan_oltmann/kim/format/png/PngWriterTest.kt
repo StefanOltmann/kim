@@ -30,6 +30,7 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
 import de.stefan_oltmann.kim.testdata.ModifiedBytesVerifier
+import kotlinx.datetime.TimeZone
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -56,7 +57,7 @@ class PngWriterTest {
 
     @BeforeTest
     fun setUp() {
-        Kim.underUnitTesting = true
+        Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
     }
 
     /**

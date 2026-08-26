@@ -18,6 +18,8 @@ package de.stefan_oltmann.kim.format.jxl
 
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.toHex
+import de.stefan_oltmann.kim.format.bmff.BMFFConstants
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.bmff.box.Box
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
@@ -27,6 +29,7 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
 import de.stefan_oltmann.kim.testdata.ModifiedBytesVerifier
+import kotlinx.datetime.TimeZone
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -34,6 +37,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class JxlWriterTest {
 
@@ -54,7 +58,7 @@ class JxlWriterTest {
 
     @BeforeTest
     fun setUp() {
-        Kim.underUnitTesting = true
+        Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
     }
 
     /**
@@ -80,6 +84,57 @@ class JxlWriterTest {
                 ),
                 byteWriter = byteWriter,
                 exifBytes = null,
+                xmp = null
+            )
+        }
+    }
+
+    /**
+     * Regression test: a file without a JXLP header box and without an
+     * FTYP box has no insertion anchor. The metadata must still be written
+     * (behind the first box) instead of being silently dropped, while the
+     * old metadata was already removed.
+     */
+    @Test
+    fun testWriteImageInsertsMetadataWithoutAnchorBox() {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        JxlWriter.writeImage(
+            boxes = listOf(
+                Box(
+                    type = BoxType.JXLC,
+                    offset = 0,
+                    size = (BMFFConstants.BOX_HEADER_LENGTH + 4).toLong(),
+                    largeSize = null,
+                    payload = byteArrayOf(1, 2, 3, 4)
+                )
+            ),
+            byteWriter = byteWriter,
+            exifBytes = byteArrayOf(1, 2, 3),
+            xmp = "<xmp/>"
+        )
+
+        val outputHex = byteWriter.toByteArray().toHex()
+
+        /* Both new metadata boxes must be present in the output. */
+        assertTrue(outputHex.contains(BoxType.EXIF.bytes.toHex()))
+        assertTrue(outputHex.contains("<xmp/>".encodeToByteArray().toHex()))
+    }
+
+    /**
+     * Without any box at all there is nothing to attach the metadata to.
+     * The update must fail loudly instead of writing a metadata-only file
+     * without image data or dropping the metadata silently.
+     */
+    @Test
+    fun testWriteImageRejectsMetadataWithoutAnyBox() {
+
+        assertFailsWith<ImageWriteException> {
+            JxlWriter.writeImage(
+                boxes = emptyList(),
+                byteWriter = ByteArrayByteWriter(),
+                exifBytes = byteArrayOf(1),
                 xmp = null
             )
         }

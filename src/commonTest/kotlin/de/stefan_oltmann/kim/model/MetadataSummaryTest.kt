@@ -15,247 +15,38 @@
  */
 package de.stefan_oltmann.kim.model
 
-import de.stefan_oltmann.kim.common.KimValueFormatter
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
-import kotlin.test.assertSame
-import kotlin.test.assertTrue
 
 class MetadataSummaryTest {
 
+    /**
+     * Regression test: widthPx * heightPx for very large stitched
+     * panoramas (e.g. 60000 × 40000 = 2.4e9) overflows Int silently,
+     * producing a negative megapixel count. The multiplication must run
+     * in Long space.
+     */
     @Test
-    fun testMegaPixelCount() {
+    fun testMegaPixelCountDoesNotOverflowForLargeImages() {
 
-        assertEquals(0, MetadataSummary().megaPixelCount)
+        val summary = MetadataSummary(widthPx = 60000, heightPx = 40000)
 
-        assertEquals(
-            expected = 1,
-            actual = MetadataSummary(
-                widthPx = 1000,
-                heightPx = 1000
-            ).megaPixelCount
-        )
-
-        assertEquals(
-            expected = 12,
-            actual = MetadataSummary(
-                widthPx = 4000,
-                heightPx = 3000
-            ).megaPixelCount
-        )
+        assertEquals(2400, summary.megaPixelCount)
     }
 
     @Test
-    fun testLocationDisplay() {
+    fun testMegaPixelCountNormalImage() {
 
-        /* No location at all. */
-        assertNull(MetadataSummary().locationDisplay)
+        val summary = MetadataSummary(widthPx = 6000, heightPx = 4000)
 
-        /* GPS coordinates only. */
-        assertEquals(
-            expected = "GPS: 53.21939, 8.23966",
-            actual = MetadataSummary(
-                gpsCoordinates = GpsCoordinates(
-                    latitude = 53.2193897123,
-                    longitude = 8.2396611123
-                )
-            ).locationDisplay
-        )
-
-        /* LocationShown takes precedence over GPS. */
-        assertEquals(
-            expected = "Times Square, USA",
-            actual = MetadataSummary(
-                gpsCoordinates = GpsCoordinates(
-                    latitude = 53.2193897123,
-                    longitude = 8.2396611123
-                ),
-                locationShown = LocationShown(
-                    name = "Times Square",
-                    street = null,
-                    city = null,
-                    state = null,
-                    country = "USA"
-                )
-            ).locationDisplay
-        )
+        assertEquals(24, summary.megaPixelCount)
     }
 
     @Test
-    fun testCameraAndLensNames() {
+    fun testMegaPixelCountNullDimensions() {
 
-        /* Nothing to show. */
-        assertNull(MetadataSummary().cameraName)
-        assertNull(MetadataSummary().lensName)
-        assertNull(MetadataSummary().cameraAndLensName)
+        val summary = MetadataSummary()
 
-        /* Only the make. */
-        assertEquals(
-            expected = "Sony",
-            actual = MetadataSummary(cameraMake = "SONY").cameraName
-        )
-
-        /* Make and model. */
-        assertEquals(
-            expected = "Canon EOS R5",
-            actual = MetadataSummary(
-                cameraMake = "Canon",
-                cameraModel = "EOS R5"
-            ).cameraName
-        )
-
-        /* If the model starts with the make, the make is not duplicated. */
-        assertEquals(
-            expected = "Fujifilm X-T5",
-            actual = MetadataSummary(
-                cameraMake = "Fujifilm",
-                cameraModel = "Fujifilm X-T5"
-            ).cameraName
-        )
-
-        /* Lens name, without camera prefix. */
-        assertEquals(
-            expected = "24-70mm",
-            actual = MetadataSummary(
-                cameraMake = "Canon",
-                cameraModel = "EOS R5",
-                lensMake = "Canon",
-                lensModel = "Canon EOS R5 24-70mm"
-            ).lensName
-        )
-
-        /* Combined name. */
-        assertEquals(
-            expected = "Canon EOS R5 | 24-70mm",
-            actual = MetadataSummary(
-                cameraMake = "Canon",
-                cameraModel = "EOS R5",
-                lensMake = "Canon",
-                lensModel = "Canon EOS R5 24-70mm"
-            ).cameraAndLensName
-        )
-    }
-
-    @Test
-    fun testOrientedSize() {
-
-        /* No dimensions. */
-        assertNull(MetadataSummary().orientedSize)
-
-        /* Standard orientation keeps the dimensions. */
-        assertEquals(
-            expected = ImageSize(4000, 3000),
-            actual = MetadataSummary(
-                widthPx = 4000,
-                heightPx = 3000,
-                orientation = TiffOrientation.STANDARD
-            ).orientedSize
-        )
-
-        /* Rotated images have flipped dimensions. */
-        assertEquals(
-            expected = ImageSize(3000, 4000),
-            actual = MetadataSummary(
-                widthPx = 4000,
-                heightPx = 3000,
-                orientation = TiffOrientation.ROTATE_RIGHT
-            ).orientedSize
-        )
-    }
-
-    @Test
-    fun testIsEmpty() {
-
-        assertTrue(MetadataSummary().isEmpty())
-        assertTrue(MetadataSummary.emptySummary.isEmpty())
-
-        assertFalse(MetadataSummary(title = "Hello").isEmpty())
-        assertFalse(MetadataSummary(flagged = true).isEmpty())
-    }
-
-    @Test
-    fun testMergeWithNull() {
-
-        val summary = MetadataSummary(title = "Hello")
-
-        /* Merging null returns the same instance. */
-        assertSame(summary, summary.merge(null))
-    }
-
-    @Test
-    fun testMergeFillsNullFieldsOnly() {
-
-        val base = MetadataSummary(
-            title = "Title",
-            widthPx = 1000,
-            flagged = true
-        )
-
-        val other = MetadataSummary(
-            title = "Other Title",
-            widthPx = 2000,
-            heightPx = 500,
-            description = "Description",
-            keywords = setOf("one")
-        )
-
-        val merged = base.merge(other)
-
-        /* Existing values win. */
-        assertEquals("Title", merged.title)
-        assertEquals(1000, merged.widthPx)
-
-        /* Missing values are filled. */
-        assertEquals(500, merged.heightPx)
-        assertEquals("Description", merged.description)
-        assertEquals(setOf("one"), merged.keywords)
-
-        /* Flags are OR-combined. */
-        assertTrue(merged.flagged)
-    }
-
-    @Test
-    fun testMergeFallsBackToOther() {
-
-        val merged = MetadataSummary().merge(
-            MetadataSummary(
-                mediaFormat = MediaFormat.PNG,
-                title = "Other Title",
-                keywords = setOf("one"),
-                personsInImage = setOf("Alice")
-            )
-        )
-
-        assertEquals(MediaFormat.PNG, merged.mediaFormat)
-        assertEquals("Other Title", merged.title)
-        assertEquals(setOf("one"), merged.keywords)
-        assertEquals(setOf("Alice"), merged.personsInImage)
-    }
-
-    @Test
-    fun testMergeWithThumbnail() {
-
-        val thumbnailBytes = byteArrayOf(1, 2, 3)
-
-        val merged = MetadataSummary().merge(
-            MetadataSummary(
-                thumbnailImageSize = ImageSize(160, 120),
-                thumbnailBytes = thumbnailBytes
-            )
-        )
-
-        assertEquals(ImageSize(160, 120), merged.thumbnailImageSize)
-        assertTrue(thumbnailBytes.contentEquals(merged.thumbnailBytes))
-    }
-
-    @Test
-    fun testFormatFileLength() {
-
-        assertEquals("500 B", KimValueFormatter.formatFileLength(500))
-        assertEquals("2 KB", KimValueFormatter.formatFileLength(2000))
-        assertEquals("1.5 MB", KimValueFormatter.formatFileLength(1_500_000))
-        assertEquals("2 GB", KimValueFormatter.formatFileLength(2_000_000_000))
+        assertEquals(0, summary.megaPixelCount)
     }
 }

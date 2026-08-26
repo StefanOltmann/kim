@@ -16,7 +16,7 @@
  */
 package de.stefan_oltmann.kim.common
 
-import de.stefan_oltmann.kim.Kim.underUnitTesting
+import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.jpeg.JpegImageParser
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcTypes
@@ -43,6 +43,9 @@ import kotlin.jvm.JvmStatic
 import kotlin.time.ExperimentalTime
 
 private const val NIKON_LENS_VALUE_COUNT: Int = 4
+
+/* ISO local date time supports at most 9 fractional second digits. */
+private const val MAX_SUB_SECOND_DIGITS: Int = 9
 
 /**
  * Converts a MediaMetadata into a MetadataSummary.
@@ -200,10 +203,21 @@ public object MetadataSummaryConverter {
 
             val takenDate = extractTakenDateAsIsoString(metadata) ?: return null
 
+            /*
+             * SubSecTime is a digit string whose length encodes the
+             * fraction: "09" means 0.09 seconds. Converting it through a
+             * number would strip the leading zeros and shift the taken
+             * date by up to 900 ms, so the raw value is appended after
+             * validating it.
+             */
             val takenDateSubSecond = metadata
                 .findStringValue(ExifTag.EXIF_TAG_SUB_SEC_TIME_ORIGINAL)
-                ?.toIntOrNull()
-                ?: 0
+                ?.takeIf { subSecond ->
+                    subSecond.isNotEmpty() &&
+                        subSecond.length <= MAX_SUB_SECOND_DIGITS &&
+                        subSecond.all(Char::isDigit)
+                }
+                ?: "0"
 
             /*
              * If the date string itself contains a sub second like "2020-08-30T18:43:00.500"
@@ -214,10 +228,7 @@ public object MetadataSummaryConverter {
             else
                 takenDate
 
-            val timeZone = if (underUnitTesting)
-                TimeZone.of("GMT+02:00")
-            else
-                TimeZone.currentSystemDefault()
+            val timeZone = Kim.defaultTimeZone ?: TimeZone.currentSystemDefault()
 
             return LocalDateTime
                 .parse(takenDatePlusSubSecond)
@@ -252,10 +263,14 @@ public object MetadataSummaryConverter {
             if (latitude == null || longitude == null)
                 return null
 
+            /*
+             * Corrupt files can contain zero divisors, which yield NaN or
+             * infinity instead of a usable coordinate.
+             */
             return GpsCoordinates(
                 latitude = latitude,
                 longitude = longitude
-            )
+            ).takeIf(GpsCoordinates::isValid)
 
         } catch (_: Exception) {
             /*
@@ -377,6 +392,13 @@ public object MetadataSummaryConverter {
         val maxFocalLength = rationals[1].doubleValue()
         val minAperture = rationals[2].doubleValue()
         val maxAperture = rationals[3].doubleValue()
+
+        /*
+         * Corrupt files can contain zero divisors, which yield NaN or
+         * infinity instead of a usable value.
+         */
+        if (listOf(minFocalLength, maxFocalLength, minAperture, maxAperture).any { !it.isFinite() })
+            return null
 
         val focalLengths = if (minFocalLength == maxFocalLength)
             formatLensValue(minFocalLength) + "mm"

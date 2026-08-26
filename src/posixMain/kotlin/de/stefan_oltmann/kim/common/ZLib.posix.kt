@@ -15,6 +15,7 @@
  */
 package de.stefan_oltmann.kim.common
 
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.UnsafeNumber
@@ -48,55 +49,91 @@ internal actual fun compress(input: String): ByteArray {
         /* Create a zlib stream structure */
         val stream = alloc<z_stream>()
 
-        /* Initialize the zlib stream */
-        deflateInit(stream.ptr, Z_DEFAULT_COMPRESSION)
-
         val inputBuffer = input.encodeToByteArray()
 
-        val inputBufferLength = inputBuffer.size
-        val outputBufferLength = deflateBound(stream.ptr, inputBufferLength.convert())
+        /* Initialize the zlib stream and check the return code. */
+        val initResult = deflateInit(stream.ptr, Z_DEFAULT_COMPRESSION)
 
-        val outputBuffer = ByteArray(outputBufferLength.toInt())
+        if (initResult != Z_OK)
+            throw ImageReadException("deflateInit failed: $initResult")
 
-        /* Set the input buffer and its length */
-        stream.next_in = inputBuffer.refTo(0).getPointer(this) as CPointer<uByteVar>
-        stream.avail_in = inputBufferLength.toUInt()
+        try {
 
-        /* Set the output buffer and its length */
-        stream.next_out = outputBuffer.refTo(0).getPointer(this) as CPointer<uByteVar>
-        stream.avail_out = outputBufferLength.convert()
+            val inputBufferLength = inputBuffer.size
+            val outputBufferLength = deflateBound(stream.ptr, inputBufferLength.convert())
 
-        /* Compress the data */
-        deflate(stream.ptr, Z_FINISH)
+            val outputBuffer = ByteArray(outputBufferLength.toInt())
 
-        /* Get the compressed data length */
-        val compressedDataLength = outputBufferLength - stream.avail_out
+            /* Set the input buffer and its length. */
+            if (inputBuffer.isNotEmpty())
+                stream.next_in = inputBuffer.refTo(0).getPointer(this) as CPointer<uByteVar>
+            else
+                stream.next_in = null
 
-        /* Clean up the zlib stream */
-        deflateEnd(stream.ptr)
+            stream.avail_in = inputBufferLength.toUInt()
 
-        /* Return the compressed data as a ByteArray */
-        return outputBuffer.copyOf(compressedDataLength.toInt())
+            /* Set the output buffer and its length. */
+            if (outputBuffer.isNotEmpty())
+                stream.next_out = outputBuffer.refTo(0).getPointer(this) as CPointer<uByteVar>
+            else
+                stream.next_out = null
+
+            stream.avail_out = outputBufferLength.convert()
+
+            /* Compress the data and check the return code. */
+            val deflateResult = deflate(stream.ptr, Z_FINISH)
+
+            if (deflateResult != Z_OK && deflateResult != Z_STREAM_END)
+                throw ImageReadException("deflate failed: $deflateResult")
+
+            /* Get the compressed data length. */
+            val compressedDataLength = outputBufferLength - stream.avail_out
+
+            /* Return the compressed data as a ByteArray. */
+            return outputBuffer.copyOf(compressedDataLength.toInt())
+
+        } finally {
+            /* Clean up the zlib stream. */
+            deflateEnd(stream.ptr)
+        }
     }
 }
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun decompress(byteArray: ByteArray): String {
+internal actual fun decompress(
+    byteArray: ByteArray,
+    maxOutputByteCount: Int
+): String {
+
+    /* An empty stream cannot be valid zlib data. */
+    if (byteArray.isEmpty())
+        throw ImageReadException("Unexpected end of compressed data.")
 
     memScoped {
 
         /* Create a zlib stream structure */
         val stream = alloc<z_stream>()
 
-        /* Initialize the zlib stream */
+        /* Initialize the zlib stream and check the return code. */
+        val inflateInitResult = inflateInit(stream.ptr)
+
+        if (inflateInitResult != Z_OK)
+            throw ImageReadException("inflateInit failed: $inflateInitResult")
+
+        /* Set the input buffer and its length. */
         stream.next_in = byteArray.refTo(0).getPointer(this) as CPointer<uByteVar>
         stream.avail_in = byteArray.size.toUInt()
 
-        /* Specify the decompression mode */
-        inflateInit(stream.ptr)
-
         val outputBuffer = ByteArray(OUTPUT_BUFFER_LENGTH)
-        var decompressedData = ""
+
+        /*
+         * The raw blocks are collected first and decoded as a whole at the
+         * end, because a multi-byte UTF-8 sequence that is split across two
+         * blocks would be corrupted by a per-block decode.
+         */
+        val byteWriter = ByteArrayByteWriter()
+
+        var totalBytesWritten = 0L
 
         try {
             while (true) {
@@ -108,27 +145,30 @@ internal actual fun decompress(byteArray: ByteArray): String {
                 /* Decompress the data */
                 val result = inflate(stream.ptr, Z_NO_FLUSH)
 
-                when (result) {
+                if (result != Z_OK && result != Z_STREAM_END) {
 
-                    Z_STREAM_END -> {
-                        /* The end of the compressed data was reached */
-                        val bytesWritten = OUTPUT_BUFFER_LENGTH - stream.avail_out.toInt()
-                        decompressedData += outputBuffer.decodeToString(0, bytesWritten)
-                        break
-                    }
-
-                    Z_OK -> {
-                        /* More decompressed data is available */
-                        val bytesWritten = OUTPUT_BUFFER_LENGTH - stream.avail_out.toInt()
-                        decompressedData += outputBuffer.decodeToString(0, bytesWritten)
-                    }
-
-                    else -> {
-                        /* An error occurred during decompression */
-                        inflateEnd(stream.ptr)
-                        throw ImageReadException("Decompression error: $result")
-                    }
+                    /* An error occurred during decompression */
+                    throw ImageReadException("Decompression error: $result")
                 }
+
+                val bytesWritten = OUTPUT_BUFFER_LENGTH - stream.avail_out.toInt()
+
+                /*
+                 * Abort before the untrusted data grows the output beyond
+                 * the limit, so it can never be allocated completely.
+                 */
+                totalBytesWritten += bytesWritten
+
+                if (totalBytesWritten > maxOutputByteCount)
+                    throw ImageReadException(
+                        "Decompressed data exceeds $maxOutputByteCount bytes."
+                    )
+
+                byteWriter.write(outputBuffer.copyOf(bytesWritten))
+
+                /* The end of the compressed data was reached */
+                if (result == Z_STREAM_END)
+                    break
             }
 
         } finally {
@@ -136,6 +176,6 @@ internal actual fun decompress(byteArray: ByteArray): String {
             inflateEnd(stream.ptr)
         }
 
-        return decompressedData
+        return@decompress byteWriter.toByteArray().decodeToString()
     }
 }

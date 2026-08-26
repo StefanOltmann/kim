@@ -70,6 +70,12 @@ public object TiffReader {
         ExifTag.EXIF_TAG_SUB_IFDS_OFFSET
     )
 
+    /*
+     * Real files nest directories at most a few levels deep (IFD0,
+     * ExifIFD, InteropIFD), so this limit only rejects hostile input.
+     */
+    private const val MAX_SUB_DIRECTORY_DEPTH: Int = 16
+
     /**
      * A sub-directory of a MakerNote that is stored as a binary blob.
      *
@@ -125,7 +131,7 @@ public object TiffReader {
             byteOrder = tiffHeader.byteOrder,
             directoryOffset = tiffHeader.offsetToFirstIFD,
             directoryType = directoryType,
-            visitedOffsets = mutableListOf(),
+            visitedOffsets = hashSetOf(),
             readTiffImageBytes = readTiffImageBytes,
             addDirectory = {
                 directories.add(it)
@@ -182,83 +188,146 @@ public object TiffReader {
         byteOrder: ByteOrder,
         directoryOffset: Int,
         directoryType: Int,
-        visitedOffsets: MutableList<Int>,
+        visitedOffsets: MutableSet<Int>,
         readTiffImageBytes: Boolean,
         addDirectory: (TiffDirectory) -> Unit,
         valueOffsetBase: Int = 0,
-        followNextDirectory: Boolean = true
+        followNextDirectory: Boolean = true,
+        depth: Int = 0
     ): Boolean {
 
         /* We don't want to visit a directory twice. */
-        if (visitedOffsets.contains(directoryOffset))
+        if (directoryOffset in visitedOffsets)
             return false
 
         visitedOffsets.add(directoryOffset)
 
-        byteReader.reset()
-
         /*
-         * Sometimes TIFF offsets are greater than the file itself.
-         * We ignore such corruptions.
+         * Hostile files can nest sub-directories arbitrarily by chaining
+         * offset fields across directories. The depth limit keeps the
+         * recursion bounded.
          */
-        if (directoryOffset >= byteReader.contentLength)
-            return true
-
-        byteReader.skipBytes("Directory offset", directoryOffset)
-
-        val fields = try {
-
-            val entryCount = byteReader.read2BytesAsInt("entrycount", byteOrder)
-
-            readTiffFields(
-                byteReader = byteReader,
-                fieldsOffset = directoryOffset + 2,
-                entryCount = entryCount,
-                byteOrder = byteOrder,
-                directoryType = directoryType,
-                valueOffsetBase = valueOffsetBase
+        if (depth >= MAX_SUB_DIRECTORY_DEPTH)
+            throw ImageReadException(
+                "Too many nested TIFF directories at offset $directoryOffset."
             )
 
-        } catch (ex: Exception) {
+        var currentOffset = directoryOffset
+        var currentType = directoryType
+
+        while (true) {
+
+            byteReader.reset()
 
             /*
-             * Check if it's just the thumbnail directory and if so, ignore this error.
-             * Thumbnails are not essential and can be re-created anytime.
+             * Sometimes TIFF offsets are greater than the file itself.
+             * We ignore such corruptions.
              */
-
-            val isThumbnailDirectory = directoryType == TiffConstants.TIFF_DIRECTORY_TYPE_IFD1
-
-            if (isThumbnailDirectory)
+            if (currentOffset >= byteReader.contentLength)
                 return true
 
-            throw ex
+            byteReader.skipBytes("Directory offset", currentOffset)
+
+            val fields = try {
+
+                val entryCount = byteReader.read2BytesAsInt("entrycount", byteOrder)
+
+                readTiffFields(
+                    byteReader = byteReader,
+                    fieldsOffset = currentOffset + 2,
+                    entryCount = entryCount,
+                    byteOrder = byteOrder,
+                    directoryType = currentType,
+                    valueOffsetBase = valueOffsetBase
+                )
+
+            } catch (ex: Exception) {
+
+                /*
+                 * Check if it's just the thumbnail directory and if so, ignore this error.
+                 * Thumbnails are not essential and can be re-created anytime.
+                 */
+
+                val isThumbnailDirectory = currentType == TiffConstants.TIFF_DIRECTORY_TYPE_IFD1
+
+                if (isThumbnailDirectory)
+                    return true
+
+                throw ex
+            }
+
+            val nextDirectoryOffset =
+                byteReader.read4BytesAsInt("Next directory offset", byteOrder)
+
+            val directory = TiffDirectory(
+                type = currentType,
+                entries = fields,
+                offset = currentOffset,
+                nextDirectoryOffset = nextDirectoryOffset,
+                byteOrder = byteOrder
+            )
+
+            /*
+             * Only the image directories (positive types) contain thumbnail data.
+             * MakerNote directories use tag IDs that collide with the standard
+             * JPEG thumbnail tags, so they must not be interpreted as thumbnails.
+             */
+            if (currentType >= 0 && directory.hasJpegImageData())
+                directory.thumbnailBytes = readThumbnailBytes(byteReader, directory)
+
+            if (readTiffImageBytes && directory.hasStripImageData())
+                directory.tiffImageBytes = readTiffImageBytes(byteReader, directory)
+
+            addDirectory(directory)
+
+            readOffsetDirectories(
+                byteReader = byteReader,
+                byteOrder = byteOrder,
+                directory = directory,
+                fields = fields,
+                visitedOffsets = visitedOffsets,
+                readTiffImageBytes = readTiffImageBytes,
+                addDirectory = addDirectory,
+                depth = depth
+            )
+
+            /*
+             * The next directory in the chain is followed iteratively, so a
+             * long chain of directories cannot overflow the call stack.
+             */
+            if (!followNextDirectory || nextDirectoryOffset <= 0)
+                return true
+
+            /* We don't want to visit a directory twice. */
+            if (nextDirectoryOffset in visitedOffsets)
+                return true
+
+            currentOffset = nextDirectoryOffset
+            currentType += 1
         }
+    }
 
-        val nextDirectoryOffset =
-            byteReader.read4BytesAsInt("Next directory offset", byteOrder)
+    /**
+     * Reads the sub-directories that the offset fields of the given
+     * directory point to.
+     *
+     * If an offset field is broken, the field is removed from [fields],
+     * because the file would otherwise not be updatable. The ExifIFD is
+     * the exception: it carries the MakerNote, so removing it would drop
+     * the MakerNote on rewrite and such files are rejected, matching
+     * ExifTool's fatal error for an unreadable MakerNote field.
+     */
+    private fun readOffsetDirectories(
+        byteReader: RandomAccessByteReader,
+        byteOrder: ByteOrder,
+        directory: TiffDirectory,
+        fields: MutableList<TiffField>,
+        visitedOffsets: MutableSet<Int>,
+        readTiffImageBytes: Boolean,
+        addDirectory: (TiffDirectory) -> Unit,
+        depth: Int
+    ) {
 
-        val directory = TiffDirectory(
-            type = directoryType,
-            entries = fields,
-            offset = directoryOffset,
-            nextDirectoryOffset = nextDirectoryOffset,
-            byteOrder = byteOrder
-        )
-
-        /*
-         * Only the image directories (positive types) contain thumbnail data.
-         * MakerNote directories use tag IDs that collide with the standard
-         * JPEG thumbnail tags, so they must not be interpreted as thumbnails.
-         */
-        if (directoryType >= 0 && directory.hasJpegImageData())
-            directory.thumbnailBytes = readThumbnailBytes(byteReader, directory)
-
-        if (readTiffImageBytes && directory.hasStripImageData())
-            directory.tiffImageBytes = readTiffImageBytes(byteReader, directory)
-
-        addDirectory(directory)
-
-        /* Read offset directories */
         for (offsetField in offsetFields) {
 
             val field = directory.findField(offsetField) ?: continue
@@ -266,7 +335,14 @@ public object TiffReader {
             val subDirOffsets: IntArray = try {
 
                 when (offsetField) {
-                    is TagInfoLong -> intArrayOf(directory.getFieldValue(offsetField)!!)
+                    is TagInfoLong -> {
+
+                        val value = directory.getFieldValue(offsetField)
+                            ?: throw ImageReadException("Missing value for ${offsetField.name}")
+
+                        intArrayOf(value)
+                    }
+
                     is TagInfoLongs -> directory.getFieldValue(offsetField)
                     else -> error("Unknown offset type: $offsetField")
                 }
@@ -279,6 +355,11 @@ public object TiffReader {
                  *
                  * We need to remove the field pointing to wrong
                  * data or else we won't be able to update the file.
+                 *
+                 * This only ever happens for data that is certainly
+                 * unreadable (the value cannot even be parsed), never
+                 * for data that might be valid. See "Never destroy
+                 * metadata" in the [Kim] documentation.
                  */
 
                 fields.remove(field)
@@ -297,7 +378,17 @@ public object TiffReader {
                         directoryType = getSubDirectoryType(offsetField, index),
                         visitedOffsets = visitedOffsets,
                         readTiffImageBytes = readTiffImageBytes,
-                        addDirectory = addDirectory
+                        addDirectory = addDirectory,
+                        /*
+                         * The next-IFD pointer must only be followed in the
+                         * root chain, where it steps IFD0 -> IFD1 -> ... .
+                         * In sub-directories it must be zero per spec, and
+                         * following it would escalate the directory type
+                         * (+1), so a chained GPS IFD was mis-tagged as an
+                         * Exif IFD.
+                         */
+                        followNextDirectory = false,
+                        depth = depth + 1
                     )
 
                 } catch (ex: ImageReadException) {
@@ -327,19 +418,6 @@ public object TiffReader {
                 }
             }
         }
-
-        if (followNextDirectory && nextDirectoryOffset > 0)
-            readDirectory(
-                byteReader = byteReader,
-                byteOrder = byteOrder,
-                directoryOffset = directory.nextDirectoryOffset,
-                directoryType = directoryType + 1,
-                visitedOffsets = visitedOffsets,
-                readTiffImageBytes = readTiffImageBytes,
-                addDirectory = addDirectory
-            )
-
-        return true
     }
 
     /**
@@ -445,44 +523,51 @@ public object TiffReader {
                 continue
             }
 
-            val valueLength: Int = count * fieldType.size
-
             /*
              * Skip corrupt counts and length overflows.
              *
              * A count of 0x80000000 or larger is read as a negative number,
-             * and a huge count can overflow the multiplication. Both would
-             * result in a negative value length, which the local-value branch
-             * cannot handle.
+             * and a huge count can overflow the multiplication. The product
+             * is therefore computed in Long space, because an Int overflow
+             * can also wrap around to a small positive value that would
+             * smuggle a bogus length through the check below.
              *
              * Except for fields that a rewrite cannot afford to lose.
              */
-            if (count < 0 || valueLength < 0) {
+            val totalLength = count.toLong() * fieldType.size
+
+            if (count < 0 || totalLength > Int.MAX_VALUE) {
                 rejectUnreadableMakerNote(tag)
                 continue
             }
 
+            val valueLength: Int = totalLength.toInt()
+
             val isLocalValue: Boolean =
                 valueLength <= TiffConstants.TIFF_ENTRY_MAX_VALUE_LENGTH
 
+            /*
+             * Ignore corrupt offsets.
+             *
+             * Offsets come from unsigned LONGs, so they can resolve beyond
+             * the signed Int range, and the end position can wrap around.
+             * Both checks therefore run in Long space.
+             */
+            val resolvedOffset = valueOffsetBase.toLong() + valueOrOffset.toLong()
+
+            val endPos = resolvedOffset + valueLength
+
             val valueBytes: ByteArray = if (!isLocalValue) {
 
-                val endPos = valueOffsetBase + valueOrOffset + valueLength
-
                 /*
-                 * Ignore corrupt offsets.
-                 *
-                 * Note that the endPos may become negative if one value is too large for an int.
-                 * That's why we need to check both offset and endPos for negativity.
-                 *
                  * Except for fields that a rewrite cannot afford to lose.
                  */
-                if (valueOrOffset < 0 || endPos < 0 || endPos > byteReader.contentLength) {
+                if (resolvedOffset < 0 || endPos < 0 || endPos > byteReader.contentLength) {
                     rejectUnreadableMakerNote(tag)
                     continue
                 }
 
-                byteReader.readBytes(valueOffsetBase + valueOrOffset, valueLength)
+                byteReader.readBytes(resolvedOffset.toInt(), valueLength)
 
             } else {
 
@@ -497,7 +582,7 @@ public object TiffReader {
                     fieldType = fieldType,
                     count = count,
                     localValue = if (isLocalValue) valueOrOffset else null,
-                    valueOffset = if (!isLocalValue) valueOffsetBase + valueOrOffset else null,
+                    valueOffset = if (!isLocalValue) resolvedOffset.toInt() else null,
                     valueBytes = valueBytes,
                     byteOrder = byteOrder,
                     sortHint = entryIndex
@@ -520,13 +605,22 @@ public object TiffReader {
 
         val element = directory.getJpegImageDataElement() ?: return null
 
+        /*
+         * The offset comes from an unsigned LONG and can resolve beyond
+         * the signed Int range in hostile files, so it is skipped instead
+         * of crashing the reader.
+         */
+        if (element.offset < 0)
+            return null
+
         val offset = element.offset
         var length = element.length
 
         /*
          * If the length is not correct (going beyond the file size) we need to adjust it.
+         * Computed in Long space, so a hostile length cannot wrap around.
          */
-        if (offset + length > byteReader.contentLength)
+        if (offset.toLong() + length > byteReader.contentLength)
             length = (byteReader.contentLength - offset).toInt()
 
         /*
@@ -569,13 +663,22 @@ public object TiffReader {
 
         for (element in elements) {
 
+            /*
+             * The offset comes from an unsigned LONG and can resolve beyond
+             * the signed Int range in hostile files, so the strip is skipped
+             * instead of crashing the reader.
+             */
+            if (element.offset < 0)
+                return null
+
             val offset = element.offset
             var length = element.length
 
             /*
              * If the length is not correct (going beyond the file size) we need to adjust it.
+             * Computed in Long space, so a hostile length cannot wrap around.
              */
-            if (offset + length > byteReader.contentLength)
+            if (offset.toLong() + length > byteReader.contentLength)
                 length = (byteReader.contentLength - offset).toInt()
 
             /*
@@ -667,35 +770,50 @@ public object TiffReader {
         if (make == null)
             return
 
-        when {
-            make == "Canon" ->
-                CanonMakerNoteHandler.read(
-                    byteReader, makerNoteValueOffset, makerNoteLength, byteOrder, model, addDirectory
-                )
+        /*
+         * Like ExifTool, a MakerNote that cannot be parsed completely stays
+         * an opaque binary block instead of rejecting the file: whatever
+         * was parsed is kept and parse errors end the interpretation. See
+         * the documentation of MakerNoteHandler for the policy.
+         */
+        try {
 
-            make.trim().lowercase().startsWith("nikon") ->
-                NikonMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+            when {
+                make == "Canon" ->
+                    CanonMakerNoteHandler.read(
+                        byteReader, makerNoteValueOffset, makerNoteLength, byteOrder, model, addDirectory
+                    )
 
-            make.contains("FUJIFILM", ignoreCase = true) ->
-                FujiFilmMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+                make.trim().lowercase().startsWith("nikon") ->
+                    NikonMakerNoteHandler.read(byteReader, makerNoteValueOffset, model, addDirectory)
 
-            make.contains("Apple", ignoreCase = true) ->
-                AppleMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+                make.contains("FUJIFILM", ignoreCase = true) ->
+                    FujiFilmMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
 
-            make.contains("PENTAX", ignoreCase = true) || make.contains("SAMSUNG", ignoreCase = true) ->
-                PentaxMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+                make.contains("Apple", ignoreCase = true) ->
+                    AppleMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
 
-            make.contains("RICOH", ignoreCase = true) ->
-                RicohMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+                make.contains("PENTAX", ignoreCase = true) || make.contains("SAMSUNG", ignoreCase = true) ->
+                    PentaxMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
 
-            make.contains("OLYMPUS", ignoreCase = true) ->
-                OlympusMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+                make.contains("RICOH", ignoreCase = true) ->
+                    RicohMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
 
-            make.contains("Panasonic", ignoreCase = true) ->
-                PanasonicMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+                make.contains("OLYMPUS", ignoreCase = true) ->
+                    OlympusMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
 
-            make.startsWith("SONY", ignoreCase = true) ->
-                SonyMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+                make.contains("Panasonic", ignoreCase = true) ->
+                    PanasonicMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+
+                make.startsWith("SONY", ignoreCase = true) ->
+                    SonyMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+            }
+        } catch (_: Exception) {
+
+            /*
+             * Interpretation failures are non-fatal here, because the
+             * MakerNote field itself was already read successfully.
+             */
         }
     }
 

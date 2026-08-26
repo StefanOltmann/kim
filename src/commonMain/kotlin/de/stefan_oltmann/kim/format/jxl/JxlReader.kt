@@ -15,6 +15,7 @@
  */
 package de.stefan_oltmann.kim.format.jxl
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.bmff.box.Box
 import de.stefan_oltmann.kim.format.jxl.box.ExifBox
@@ -27,6 +28,22 @@ internal object JxlReader {
 
         val exifBox = allBoxes.filterIsInstance<ExifBox>().firstOrNull()
         val xmlBox = allBoxes.filterIsInstance<XmlBox>().firstOrNull()
+
+        /*
+         * An Exif box whose TIFF content cannot be parsed must fail the
+         * read loudly: the app will offer editing after a successful read,
+         * and an update replaces the Exif box with freshly generated
+         * bytes - silently destroying the unparseable content. This
+         * mirrors the JPEG behavior for corrupt EXIF segments.
+         *
+         * deleteMetadata is unaffected: it strips boxes by type and does
+         * not go through this method, so the broken metadata can always
+         * be removed.
+         */
+        if (exifBox != null && exifBox.tiffContents == null)
+            throw ImageReadException(
+                "The file contains an Exif box whose content cannot be parsed as TIFF."
+            )
 
         return MediaMetadata(
             mediaFormat = MediaFormat.JXL,

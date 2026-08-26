@@ -23,6 +23,7 @@ import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
 import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BoxType
+import de.stefan_oltmann.kim.format.jxl.box.CompressedBox
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
@@ -31,7 +32,6 @@ import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
-import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
 
 internal object JxlUpdater : MetadataUpdater {
@@ -47,12 +47,20 @@ internal object JxlUpdater : MetadataUpdater {
 
             val metadata = JxlReader.createMetadata(boxes)
 
-            val xmpMeta: XMPMeta = if (metadata.xmp != null)
-                XMPMetaFactory.parseFromString(metadata.xmp)
-            else
-                XMPMetaFactory.create()
-
-            val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
+            /*
+             * Only rewrite the xml box when the updates actually changed
+             * the XMP content. A parse → apply → serialize round-trip on
+             * unchanged data produces identical output (the serializer is
+             * deterministic), so a string comparison is sufficient.
+             */
+            val updatedXmp: String? = metadata.xmp?.let { original ->
+                val xmpMeta = XMPMetaFactory.parseFromString(original)
+                val updated = XmpWriter.updateXmp(xmpMeta, updates, true)
+                if (updated == original) null else updated
+            } ?: run {
+                val xmpMeta = XMPMetaFactory.create()
+                XmpWriter.updateXmp(xmpMeta, updates, true)
+            }
 
             val outputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
 
@@ -88,9 +96,19 @@ internal object JxlUpdater : MetadataUpdater {
             /*
              * Remove the EXIF and XMP boxes. JPEG XL has no ICC box that
              * would affect how the image is displayed.
+             *
+             * Compressed boxes are dropped when their wrapped type
+             * identifies them as Exif or XMP. Their content cannot be
+             * rewritten without brotli support, but leaving them behind
+             * would silently keep data the user asked to delete.
              */
             val boxesWithoutMetadata = boxes.filterNot { box ->
-                box.type == BoxType.EXIF || box.type == BoxType.XML
+                box.type == BoxType.EXIF ||
+                    box.type == BoxType.XML ||
+                    box is CompressedBox && (
+                    box.actualType == BoxType.EXIF ||
+                        box.actualType == BoxType.XML
+                    )
             }
 
             JxlWriter.writeImage(

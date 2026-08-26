@@ -17,15 +17,21 @@
  */
 package de.stefan_oltmann.kim.format.png
 
+import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.toHex
+import de.stefan_oltmann.kim.common.toInt
 import de.stefan_oltmann.kim.format.png.PngConstants.PNG_BYTE_ORDER
 import de.stefan_oltmann.kim.format.png.PngCrc.continuePartialCrc
 import de.stefan_oltmann.kim.format.png.PngCrc.finishPartialCrc
 import de.stefan_oltmann.kim.format.png.PngCrc.startPartialCrc
 import de.stefan_oltmann.kim.format.png.chunk.PngChunk
+import de.stefan_oltmann.kim.format.png.chunk.PngChunkItxt
+import de.stefan_oltmann.kim.format.png.chunk.PngChunkText
+import de.stefan_oltmann.kim.format.png.chunk.PngChunkZtxt
 import de.stefan_oltmann.kim.format.png.chunk.PngTextChunk
 import de.stefan_oltmann.kim.input.ByteReader
-import de.stefan_oltmann.kim.input.copyRemainingTo
+import de.stefan_oltmann.kim.input.transferExactly
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
 import de.stefan_oltmann.kim.output.writeInt
@@ -34,6 +40,11 @@ import de.stefan_oltmann.kim.output.writeInt
  * Writes PNG files.
  */
 public object PngWriter {
+
+    /* A chunk header consists of the 4-byte data length and the 4-byte type. */
+    private const val CHUNK_HEADER_LENGTH: Int = 2 * PngConstants.TPYE_LENGTH
+
+    private const val CRC_LENGTH: Long = 4L
 
     public fun writeImage(
         byteReader: ByteReader,
@@ -107,26 +118,139 @@ public object PngWriter {
      *
      * The updateComputer receives the chunks before the first IDAT chunk and
      * the output writer, and must write the complete header (signature and
-     * all chunks) to it. The image data behind the first IDAT chunk is then
-     * streamed in bounded chunks, so the whole file never has to be buffered
-     * in memory.
+     * all chunks) to it. It returns which trailing chunks count as stale
+     * duplicates of what it rewrote. The image data behind the first IDAT
+     * chunk is then streamed in bounded chunks, so the whole file never has
+     * to be buffered in memory.
      */
     internal fun writeImageStreaming(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
-        updateComputer: (List<PngChunk>, ByteWriter) -> Unit
+        updateComputer: (List<PngChunk>, ByteWriter) -> StaleChunkFilter
     ) {
 
         val pendingImageDataHeader = ByteArrayByteWriter()
 
         val chunks = PngImageParser.readChunksUntilImageData(byteReader, pendingImageDataHeader)
 
-        updateComputer(chunks, byteWriter)
+        val imageDataHeader = pendingImageDataHeader.toByteArray()
 
-        byteWriter.write(pendingImageDataHeader.toByteArray())
+        /*
+         * A metadata-only or truncated file has no image data to stream.
+         * Rejecting here keeps the output empty, instead of failing with
+         * an opaque error after the update computer already wrote the
+         * rewritten header.
+         */
+        if (imageDataHeader.isEmpty())
+            throw ImageWriteException("PNG file has no image data.")
 
-        byteReader.copyRemainingTo(byteWriter)
+        /*
+         * The reader sits inside the open IDAT chunk behind its header, so
+         * its remaining data and CRC belong to the streamed image data.
+         */
+        val imageDataLength =
+            imageDataHeader.toInt(0, PNG_BYTE_ORDER) + CRC_LENGTH
+
+        val staleFilter = updateComputer(chunks, byteWriter)
+
+        byteWriter.write(imageDataHeader)
+
+        byteReader.transferExactly(byteWriter, imageDataLength)
+
+        /*
+         * From here on every chunk boundary is intact, so stale metadata
+         * chunks can be dropped while streaming the tail.
+         */
+        copyChunksSkippingMetadata(byteReader, byteWriter, staleFilter)
     }
+
+    /**
+     * Streams the remaining chunks to the given writer, dropping exactly
+     * those that [staleFilter] identifies as stale duplicates of rewritten
+     * metadata. All other chunks - including unknown ones and text chunks
+     * unrelated to the change - stream through untouched.
+     *
+     * Attention: A candidate chunk whose content cannot be parsed is
+     * preserved, because Kim must never destroy data it does not
+     * understand.
+     */
+    private fun copyChunksSkippingMetadata(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter,
+        staleFilter: StaleChunkFilter
+    ) {
+
+        while (true) {
+
+            val header = byteReader.readBytes(CHUNK_HEADER_LENGTH)
+
+            /* A truncated chunk header at the end of the stream. */
+            if (header.size < CHUNK_HEADER_LENGTH) {
+
+                byteWriter.write(header)
+
+                return
+            }
+
+            val dataLength = header.toInt(0, PNG_BYTE_ORDER)
+
+            if (dataLength < 0)
+                throw ImageReadException("Invalid PNG chunk length: $dataLength")
+
+            val chunkType = PngChunkType.of(
+                header.copyOfRange(PngConstants.TPYE_LENGTH, CHUNK_HEADER_LENGTH)
+            )
+
+            if (StaleChunkFilter.isMetadataChunkType(chunkType)) {
+
+                /*
+                 * Buffered once, so the filter can inspect the content of
+                 * text chunks. transferExactly fails loudly on truncation,
+                 * like the pure streaming variant did.
+                 */
+                val payloadWriter = ByteArrayByteWriter()
+
+                byteReader.transferExactly(payloadWriter, dataLength.toLong())
+
+                val crcWriter = ByteArrayByteWriter()
+
+                byteReader.transferExactly(crcWriter, CRC_LENGTH)
+
+                val isStale = try {
+                    staleFilter.isStale(chunkType, keywordOf(chunkType, payloadWriter.toByteArray()))
+                } catch (_: ImageReadException) {
+                    false
+                }
+
+                if (!isStale) {
+
+                    byteWriter.write(header)
+                    byteWriter.write(payloadWriter.toByteArray())
+                    byteWriter.write(crcWriter.toByteArray())
+                }
+
+            } else {
+
+                val totalLength = dataLength + CRC_LENGTH
+
+                byteWriter.write(header)
+
+                byteReader.transferExactly(byteWriter, totalLength)
+            }
+        }
+    }
+
+    /**
+     * Returns the keyword of a text chunk payload, or NULL for chunk types
+     * without a keyword.
+     */
+    private fun keywordOf(chunkType: PngChunkType, data: ByteArray): String? =
+        when (chunkType) {
+            PngChunkType.TEXT -> PngChunkText(chunkType, data, 0).getKeyword()
+            PngChunkType.ZTXT -> PngChunkZtxt(data, 0).getKeyword()
+            PngChunkType.ITXT -> PngChunkItxt(data, 0).getKeyword()
+            else -> null
+        }
 
     public fun writeImage(
         chunks: List<PngChunk>,

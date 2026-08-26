@@ -16,12 +16,18 @@
  */
 package de.stefan_oltmann.kim.format.jxl.box
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.bmff.box.Box
 
 /**
  * JPEG XL brob box for brotli compressed Exif or XMP.
+ *
+ * Attention: A payload shorter than the 4-byte type field throws
+ * [ImageReadException]. This is intentional: the brob may wrap Exif
+ * or XMP metadata that an update would drop, so failing the read
+ * informs the app upfront that editing is unsafe.
  */
 public class CompressedBox(
     offset: Long,
@@ -31,5 +37,11 @@ public class CompressedBox(
 ) : Box(BoxType.BROB, offset, size, largeSize, payload) {
 
     public val actualType: BoxType =
-        BoxType.of(payload.take(BMFFConstants.TYPE_LENGTH).toByteArray())
+        if (payload.size < BMFFConstants.TYPE_LENGTH)
+            throw ImageReadException(
+                "Truncated brob box: payload is ${payload.size} bytes, " +
+                    "expected at least ${BMFFConstants.TYPE_LENGTH}."
+            )
+        else
+            BoxType.of(payload.take(BMFFConstants.TYPE_LENGTH).toByteArray())
 }

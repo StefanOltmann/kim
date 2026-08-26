@@ -19,6 +19,8 @@ import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
+import de.stefan_oltmann.kim.testdata.KimTestData
+import kotlinx.datetime.TimeZone
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
@@ -28,7 +30,7 @@ class KimUpdateSmallFileTest {
 
     @BeforeTest
     fun setUp() {
-        Kim.underUnitTesting = true
+        Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
     }
 
     /**
@@ -142,5 +144,100 @@ class KimUpdateSmallFileTest {
         assertFailsWith<ImageWriteException> {
             Kim.deleteMetadata(eoiBeforeSosJpeg)
         }
+    }
+
+    /**
+     * A PNG truncated inside its first IDAT chunk must be rejected, because
+     * streaming the image data would otherwise end early and the output
+     * would declare more IDAT bytes than were written.
+     */
+    @Test
+    fun testUpdateTruncatedPngIsRejected() {
+
+        val pngBytes = KimTestData.getBytesOf(KimTestData.PNG_TEST_IMAGE_INDEX)
+
+        /* The first IDAT payload spans bytes 18604 to 26795. */
+        val truncatedPng = pngBytes.copyOfRange(0, PNG_TRUNCATION_OFFSET)
+
+        assertTrue(truncatedPng.size < pngBytes.size)
+
+        assertFailsWith<ImageWriteException> {
+            Kim.update(
+                bytes = truncatedPng,
+                updates = setOf(MetadataUpdate.Title("test"))
+            )
+        }
+    }
+
+    /**
+     * A PNG truncated inside its first IDAT chunk must be rejected by the
+     * deleteMetadata API as well.
+     */
+    @Test
+    fun testDeleteMetadataTruncatedPngIsRejected() {
+
+        val pngBytes = KimTestData.getBytesOf(KimTestData.PNG_TEST_IMAGE_INDEX)
+
+        /* The first IDAT payload spans bytes 18604 to 26795. */
+        val truncatedPng = pngBytes.copyOfRange(0, PNG_TRUNCATION_OFFSET)
+
+        assertFailsWith<ImageWriteException> {
+            Kim.deleteMetadata(truncatedPng)
+        }
+    }
+
+    /**
+     * A GIF whose image data sub-block chain ends early must be rejected,
+     * because the output would silently lose the rest of the image data.
+     */
+    @Test
+    fun testUpdateGifWithTruncatedImageDataIsRejected() {
+
+        val truncatedGif = convertHexStringToByteArray(
+            "474946383961" + // GIF89a
+                "01000100000000" + // Logical screen descriptor, no global color table
+                "2c" + // Image separator
+                "00000000" + "0100" + "0100" + "00" + // Image descriptor, no local color table
+                "02" + // LZW minimum code size
+                "02" + "44" // Sub-block announcing 2 data bytes, but only 1 follows
+        )
+
+        assertFailsWith<ImageWriteException> {
+            Kim.update(
+                bytes = truncatedGif,
+                updates = setOf(MetadataUpdate.Title("test"))
+            )
+        }
+    }
+
+    /**
+     * A GIF that ends without its trailer byte must be rejected by the
+     * deleteMetadata API as well.
+     */
+    @Test
+    fun testDeleteMetadataGifWithoutTrailerIsRejected() {
+
+        val gifWithoutTrailer = convertHexStringToByteArray(
+            "474946383961" + // GIF89a
+                "01000100000000" + // Logical screen descriptor, no global color table
+                "2c" + // Image separator
+                "00000000" + "0100" + "0100" + "00" + // Image descriptor, no local color table
+                "02" + // LZW minimum code size
+                "02" + "4401" + // Complete image data sub-block
+                "00" // Block terminator, but no GIF trailer (0x3B)
+        )
+
+        assertFailsWith<ImageWriteException> {
+            Kim.deleteMetadata(gifWithoutTrailer)
+        }
+    }
+
+    private companion object {
+
+        /*
+         * media_51.png has its first IDAT payload between the offsets
+         * 18604 and 26795, so cutting at this offset lands inside it.
+         */
+        private const val PNG_TRUNCATION_OFFSET: Int = 20000
     }
 }

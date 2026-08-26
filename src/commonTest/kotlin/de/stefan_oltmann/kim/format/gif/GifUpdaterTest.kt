@@ -27,6 +27,9 @@ import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class GifUpdaterTest : AbstractUpdaterTest(
     format = "gif",
@@ -132,5 +135,157 @@ class GifUpdaterTest : AbstractUpdaterTest(
         byteWriter.write(byteArrayOf(GifConstants.GIF_TERMINATOR))
 
         return byteWriter.toByteArray()
+    }
+
+    /**
+     * Comment extensions behind the first frame must be removed by
+     * deleteMetadata, or deleted comments would remain in the file.
+     */
+    @Test
+    fun testDeleteMetadataRemovesTrailingCommentExtension() {
+
+        val deletedBytes = Kim.deleteMetadata(createGif89aWithTrailingCommentExtension())
+
+        assertFalse(deletedBytes.decodeToString().contains(STALE_COMMENT))
+    }
+
+    /**
+     * A comment extension behind the first frame must not survive an
+     * update either, otherwise the file ends up with stale duplicates.
+     */
+    @Test
+    fun testUpdateStripsTrailingCommentExtension() {
+
+        val updatedBytes = Kim.update(
+            bytes = createGif89aWithTrailingCommentExtension(),
+            update = MetadataUpdate.Title("New title")
+        )
+
+        assertFalse(updatedBytes.decodeToString().contains(STALE_COMMENT))
+
+        /* The new XMP metadata and the image must be present. */
+        assertTrue(updatedBytes.decodeToString().contains("<x:xmpmeta"))
+    }
+
+    /**
+     * Builds a GIF89a file with a single 1x1 image and a comment extension
+     * behind it, a legal position that animated files use between frames.
+     */
+    private fun createGif89aWithTrailingCommentExtension(): ByteArray {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        byteWriter.write("GIF89a".encodeToByteArray())
+        byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0)) /* Logical screen descriptor, no color table */
+        byteWriter.write(byteArrayOf(GifConstants.IMAGE_SEPARATOR))
+        byteWriter.write(byteArrayOf(0, 0, 0, 0, 1, 0, 1, 0, 0)) /* 1x1 image descriptor, no color table */
+        byteWriter.write(byteArrayOf(2)) /* LZW minimum code size */
+        byteWriter.write(byteArrayOf(2, 2, 0x44, 0)) /* Image data sub-chunks */
+
+        val commentBytes = STALE_COMMENT.encodeToByteArray()
+
+        byteWriter.write(
+            byteArrayOf(
+                GifConstants.EXTENSION_INTRODUCER,
+                GifConstants.COMMENT_EXTENSION_LABEL,
+                commentBytes.size.toByte()
+            ) + commentBytes + byteArrayOf(GifConstants.BLOCK_TERMINATOR)
+        )
+
+        byteWriter.write(byteArrayOf(GifConstants.GIF_TERMINATOR))
+
+        return byteWriter.toByteArray()
+    }
+
+    /**
+     * An extension block with a label this library does not know must
+     * survive an update byte-exact. Historically the parser skipped only
+     * introducer and label, so the stream desynced and a 0x2C inside such
+     * a chain was misread as the image separator, corrupting rewritten
+     * files.
+     */
+    @Test
+    fun testUpdatePreservesUnknownExtensionBeforeFirstFrame() {
+
+        val updatedBytes = Kim.update(
+            bytes = createGif89aWithUnknownExtension(),
+            update = MetadataUpdate.Title("New title")
+        )
+
+        assertTrue(updatedBytes.containsBytes(UNKNOWN_EXTENSION_BYTES))
+
+        /* The image data behind the extension must parse at its true position. */
+        val metadata = Kim.readMetadata(updatedBytes)!!
+
+        assertEquals(ImageSize(1, 1), metadata.imageSize)
+        assertNotNull(metadata.xmp)
+    }
+
+    /**
+     * deleteMetadata keeps everything except XMP and comments, so the
+     * unknown extension must survive here as well.
+     */
+    @Test
+    fun testDeleteMetadataPreservesUnknownExtensionBeforeFirstFrame() {
+
+        val deletedBytes = Kim.deleteMetadata(createGif89aWithUnknownExtension())
+
+        assertTrue(deletedBytes.containsBytes(UNKNOWN_EXTENSION_BYTES))
+
+        val metadata = Kim.readMetadata(deletedBytes)!!
+
+        assertEquals(ImageSize(1, 1), metadata.imageSize)
+        assertEquals(null, metadata.xmp)
+    }
+
+    /**
+     * Builds a GIF89a file with an extension of an unknown private label
+     * before the first 1x1 frame. The payload deliberately contains the
+     * image separator byte, which exposed the stream desync.
+     */
+    private fun createGif89aWithUnknownExtension(): ByteArray {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        byteWriter.write("GIF89a".encodeToByteArray())
+        byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0)) /* Logical screen descriptor, no color table */
+        byteWriter.write(UNKNOWN_EXTENSION_BYTES)
+
+        byteWriter.write(byteArrayOf(GifConstants.IMAGE_SEPARATOR))
+        byteWriter.write(byteArrayOf(0, 0, 0, 0, 1, 0, 1, 0, 0)) /* 1x1 image descriptor, no color table */
+        byteWriter.write(byteArrayOf(2)) /* LZW minimum code size */
+        byteWriter.write(byteArrayOf(2, 2, 0x44, 0)) /* Image data sub-chunks */
+        byteWriter.write(byteArrayOf(GifConstants.GIF_TERMINATOR))
+
+        return byteWriter.toByteArray()
+    }
+
+    /**
+     * Returns whether the array contains the given byte sequence.
+     */
+    private fun ByteArray.containsBytes(needle: ByteArray): Boolean =
+        (0..size - needle.size).any { index ->
+            copyOfRange(index, index + needle.size).contentEquals(needle)
+        }
+
+    private companion object {
+
+        const val STALE_COMMENT: String = "stale comment"
+
+        /*
+         * Extension introducer, unknown private label 0x99, one sub-block
+         * of four bytes containing the image separator, block terminator.
+         */
+        val UNKNOWN_EXTENSION_BYTES: ByteArray =
+            byteArrayOf(
+                GifConstants.EXTENSION_INTRODUCER,
+                0x99.toByte(),
+                4,
+                GifConstants.IMAGE_SEPARATOR,
+                0x41,
+                0x42,
+                0x43,
+                GifConstants.BLOCK_TERMINATOR
+            )
     }
 }

@@ -18,12 +18,16 @@ package de.stefan_oltmann.kim.format.jpeg
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.jpeg.JpegSegmentAnalyzer.JpegSegmentInfo
 import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputField
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.model.MediaFormat
+import de.stefan_oltmann.kim.model.MetadataUpdate
+import de.stefan_oltmann.kim.model.TiffOrientation
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -89,6 +93,126 @@ class JpegAndReaderEdgeCasesTest {
         assertFailsWith<ImageReadException> {
             JpegSegmentAnalyzer.findSegmentInfos(
                 ByteArrayByteReader(bytes)
+            )
+        }
+    }
+
+    /*
+     * The streaming facade reads the detection header first and prepends it
+     * again through PrePendingByteReader. The contentLength of that reader
+     * must keep matching the logical stream length (header + rest), so a
+     * segment that ends within the last header-sized bytes of the file must
+     * not be falsely rejected as truncated.
+     */
+    @Test
+    fun testReadMetadataWithLastSegmentNearEndOfFile() {
+
+        val bytes = convertHexStringToByteArray(
+            "ffd8" + // SOI
+                "ffe00010" + "4a46494600010100000100010000" + // APP0 JFIF
+                "ffe10016" + "457869660000" + // APP1 EXIF with empty IFD
+                "49492a00" + "08000000" + "0000" + "00000000" + // Minimal valid TIFF
+                "ffda0008" + "010100003f00" + // SOS
+                "1122" + "ffd9" // Tiny scan data and EOI
+        )
+
+        /* The APP1 segment ends 14 bytes before EOF. */
+        val metadata = Kim.readMetadata(ByteArrayByteReader(bytes))
+
+        assertEquals(MediaFormat.JPEG, metadata?.mediaFormat)
+    }
+
+    /*
+     * Attention: A corrupt EXIF segment must fail the read loudly instead
+     * of degrading to NULL. Degrading would let a subsequent rewrite
+     * silently drop all EXIF data of the file, while other tools may
+     * still be able to read or repair it. This is a different level than
+     * skipping a single invalid GPS value.
+     */
+    @Test
+    fun testReadMetadataRejectsCorruptExif() {
+
+        val bytes = convertHexStringToByteArray(
+            "ffd8" + // SOI
+                "ffe00010" + "4a46494600010100000100010000" + // APP0 JFIF
+                "ffe10012" + "457869660000" + // APP1 EXIF with broken IFD offset
+                "49492a00" + "ffffff00" + "0000" + // TIFF header, IFD offset outside the payload
+                "ffda0008" + "010100003f00" + // SOS
+                "11223344" + "ffd9" // Scan data and EOI
+        )
+
+        assertFailsWith<ImageReadException> {
+            Kim.readMetadata(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /*
+     * An update of a file with a corrupt EXIF segment must fail closed as
+     * well. The full-rewrite fallback would silently drop the unreadable
+     * EXIF data of the original file.
+     */
+    @Test
+    fun testUpdateRejectsCorruptExifInsteadOfDroppingIt() {
+
+        val bytes = convertHexStringToByteArray(
+            "ffd8" + // SOI
+                "ffe00010" + "4a46494600010100000100010000" + // APP0 JFIF
+                "ffe10012" + "457869660000" + // APP1 EXIF with broken IFD offset
+                "49492a00" + "ffffff00" + "0000" + // TIFF header, IFD offset outside the payload
+                "ffda0008" + "010100003f00" + // SOS
+                "11223344" + "ffd9" // Scan data and EOI
+        )
+
+        assertFailsWith<ImageWriteException> {
+            Kim.update(
+                bytes = bytes,
+                update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_LEFT)
+            )
+        }
+    }
+
+    /*
+     * A corrupt IPTC stream must fail the read loudly instead of degrading
+     * to NULL, for the same reason as corrupt EXIF: degrading would let a
+     * subsequent rewrite silently drop all IPTC data of the file.
+     */
+    @Test
+    fun testReadMetadataRejectsCorruptIptc() {
+
+        val bytes = convertHexStringToByteArray(
+            "ffd8" + // SOI
+                "ffe00010" + "4a46494600010100000100010000" + // APP0 JFIF
+                "ffed001c" + "50686f746f73686f7020332e3000" + // APP13 "Photoshop 3.0\0"
+                "3842494d" + "0404" + "0000" + "10000000" + // 8BIM block with size beyond the data
+                "ffda0008" + "010100003f00" + // SOS
+                "11223344" + "ffd9" // Scan data and EOI
+        )
+
+        assertFailsWith<ImageReadException> {
+            Kim.readMetadata(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /*
+     * The write path must fail closed for corrupt IPTC as well, so the
+     * unreadable data of the original file is never dropped silently.
+     */
+    @Test
+    fun testUpdateRejectsCorruptIptcInsteadOfDroppingIt() {
+
+        val bytes = convertHexStringToByteArray(
+            "ffd8" + // SOI
+                "ffe00010" + "4a46494600010100000100010000" + // APP0 JFIF
+                "ffed001c" + "50686f746f73686f7020332e3000" + // APP13 "Photoshop 3.0\0"
+                "3842494d" + "0404" + "0000" + "10000000" + // 8BIM block with size beyond the data
+                "ffda0008" + "010100003f00" + // SOS
+                "11223344" + "ffd9" // Scan data and EOI
+        )
+
+        assertFailsWith<ImageWriteException> {
+            Kim.update(
+                bytes = bytes,
+                update = MetadataUpdate.Title("test")
             )
         }
     }

@@ -46,6 +46,15 @@ import kotlin.jvm.JvmStatic
 public object WebPImageParser : ImageParser {
 
     /*
+     * The highest byte index any ImageSizeAware chunk parses is 9,
+     * so this prefix is sufficient to determine the image size.
+     */
+    private const val SIZE_HEADER_BYTES: Int = 16
+
+    /* The "RIFF" signature plus the 4-byte size field. */
+    private const val RIFF_PREFIX_LENGTH: Int = TPYE_LENGTH + CHUNK_SIZE_LENGTH
+
+    /*
      * https://developers.google.com/speed/webp/docs/riff_container
      */
     override fun parseMetadata(byteReader: ByteReader): MediaMetadata =
@@ -89,6 +98,15 @@ public object WebPImageParser : ImageParser {
             )
         }
 
+    /**
+     * Reads the chunks of a WebP file.
+     *
+     * When [stopAfterMetadataRead] is set, only what metadata reading
+     * needs is buffered: the size headers of the image chunks and the
+     * metadata chunks themselves. The image bitstream of large chunks is
+     * skipped in bounded chunks and such chunks are not part of the
+     * result, so large images are never fully buffered.
+     */
     public fun readChunks(
         byteReader: ByteReader,
         stopAfterMetadataRead: Boolean = false
@@ -96,26 +114,38 @@ public object WebPImageParser : ImageParser {
 
         byteReader.readAndVerifyBytes("RIFF signature", RIFF_SIGNATURE)
 
-        val length = byteReader.read4BytesAsInt("length", WEBP_BYTE_ORDER)
+        /*
+         * The RIFF size field is skipped, because many encoders write a
+         * wrong value. An understated one hides metadata chunks appended
+         * behind the declared end, which would silently be lost on a
+         * rewrite, and an overstated one (up to 0xFFFFFFFF) runs into EOF
+         * errors. Chunk iteration therefore runs to the actual end of the
+         * content instead of trusting the declared size.
+         */
+        byteReader.skipBytes("RIFF size", CHUNK_SIZE_LENGTH)
 
         byteReader.readAndVerifyBytes("WEBP signature", WEBP_SIGNATURE)
 
+        val bytesToRead =
+            (byteReader.contentLength - RIFF_PREFIX_LENGTH - WEBP_SIGNATURE.size)
+                .coerceAtLeast(0L)
+
         return readChunksInternal(
             byteReader = byteReader,
-            bytesToRead = length - WEBP_SIGNATURE.size,
+            bytesToRead = bytesToRead,
             stopAfterMetadataRead = stopAfterMetadataRead
         )
     }
 
     private fun readChunksInternal(
         byteReader: ByteReader,
-        bytesToRead: Int,
+        bytesToRead: Long,
         stopAfterMetadataRead: Boolean
     ): List<WebPChunk> {
 
         val chunks = mutableListOf<WebPChunk>()
 
-        var bytesReadCount = 0
+        var bytesReadCount = 0L
 
         @Suppress("LoopWithTooManyJumpStatements")
         while (bytesReadCount < bytesToRead) {
@@ -129,10 +159,30 @@ public object WebPImageParser : ImageParser {
             if (chunkSize < 0)
                 throw ImageReadException("Invalid WebP chunk length: $chunkSize")
 
-            val bytes: ByteArray = byteReader.readBytes(
-                "chunk data",
-                chunkSize
-            )
+            /*
+             * For metadata reads only the metadata chunks themselves and
+             * the size headers of the image chunks are needed. Everything
+             * else is pure image data and skipped in bounded chunks.
+             */
+            val keepFullPayload =
+                !stopAfterMetadataRead ||
+                    chunkType == WebPChunkType.EXIF ||
+                    chunkType == WebPChunkType.XMP
+
+            val bytes: ByteArray = if (keepFullPayload) {
+
+                byteReader.readBytes("chunk data", chunkSize)
+
+            } else {
+
+                val prefixLength = minOf(chunkSize, SIZE_HEADER_BYTES)
+
+                val prefix = byteReader.readBytes("chunk header", prefixLength)
+
+                byteReader.skipBytes("image data", chunkSize - prefixLength)
+
+                prefix
+            }
 
             /*
              * If chunk size is odd, a single padding byte (which MUST be 0
@@ -145,6 +195,16 @@ public object WebPImageParser : ImageParser {
 
             bytesReadCount += TPYE_LENGTH + CHUNK_SIZE_LENGTH + chunkSize + if (hasPadding) 1 else 0
 
+            /*
+             * Skipped image chunks are not part of the result, because
+             * they carry no information for metadata parsing.
+             */
+            val isImageChunk =
+                !keepFullPayload &&
+                    chunkType != WebPChunkType.VP8 &&
+                    chunkType != WebPChunkType.VP8L &&
+                    chunkType != WebPChunkType.VP8X
+
             val chunk = when (chunkType) {
                 WebPChunkType.VP8 -> WebPChunkVP8(bytes)
                 WebPChunkType.VP8L -> WebPChunkVP8L(bytes)
@@ -154,7 +214,8 @@ public object WebPImageParser : ImageParser {
                 else -> WebPChunk(chunkType, bytes)
             }
 
-            chunks.add(chunk)
+            if (!isImageChunk)
+                chunks.add(chunk)
 
             /*
              * After reading the header we can decide if we need to

@@ -19,10 +19,14 @@ package de.stefan_oltmann.kim.format.bmff
 
 /**
  * The location of an item inside a media file.
+ *
+ * A [constructionMethod] of 1 means the [offset] is relative to the
+ * `idat` box instead of the start of the file.
  */
 public data class Extent(
     val itemId: Int,
     val index: Long?,
     val offset: Long,
-    val length: Long
+    val length: Long,
+    val constructionMethod: Int = 0
 )

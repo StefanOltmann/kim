@@ -17,15 +17,13 @@
 package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.common.ImageReadException
-import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EOI_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOI_MARKER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOS_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.markerDescription
-import de.stefan_oltmann.kim.format.jpeg.JpegMetadataExtractor.SEGMENT_IDENTIFIER
-import de.stefan_oltmann.kim.format.jpeg.JpegMetadataExtractor.SEGMENT_START_OF_SCAN
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.read2BytesAsInt
 import de.stefan_oltmann.kim.input.skipBytes
@@ -60,50 +58,32 @@ public object JpegSegmentAnalyzer {
             )
         )
 
-        var positionCounter: Int = MediaFormatMagicNumbers.jpeg.size
+        var positionCounter: Long = MediaFormatMagicNumbers.jpeg.size.toLong()
+
+        val scanner = JpegMarkerScanner(byteReader)
 
         @Suppress("LoopWithTooManyJumpStatements")
         do {
 
-            var segmentIdentifier = byteReader.readByte() ?: break
-            var segmentType = byteReader.readByte() ?: break
+            val scan = scanner.nextMarker(zeroIsFillByte = true) ?: break
 
-            positionCounter += 2
+            positionCounter += scan.consumedBytes.size
 
-            /*
-             * Find the segment marker. Markers are zero or more 0xFF bytes, followed by
-             * a 0xFF and then a byte not equal to 0x00 or 0xFF.
-             */
-            while (
-                segmentIdentifier != SEGMENT_IDENTIFIER ||
-                segmentType == SEGMENT_IDENTIFIER ||
-                segmentType.toInt() == 0
-            ) {
-
-                segmentIdentifier = segmentType
-
-                val nextSegmentType = byteReader.readByte() ?: break
-
-                positionCounter++
-
-                segmentType = nextSegmentType
-            }
-
-            if (segmentType == SEGMENT_START_OF_SCAN) {
+            if (scan.marker == SOS_MARKER) {
 
                 val remainingBytesCount = byteReader.contentLength - positionCounter
 
                 segmentInfos.add(
                     JpegSegmentInfo(
                         offset = positionCounter - 2,
-                        marker = byteArrayOf(segmentIdentifier, segmentType).toUInt16(JPEG_BYTE_ORDER),
-                        length = remainingBytesCount.toInt()
+                        marker = scan.marker,
+                        length = remainingBytesCount
                     )
                 )
 
-                byteReader.skipBytes("image bytes", (remainingBytesCount - 2).toInt())
+                byteReader.skipBytes("image bytes", remainingBytesCount - 2)
 
-                positionCounter += remainingBytesCount.toInt()
+                positionCounter += remainingBytesCount
 
                 val eoiMarker = byteReader.read2BytesAsInt("EOI", JPEG_BYTE_ORDER)
 
@@ -130,8 +110,8 @@ public object JpegSegmentAnalyzer {
             segmentInfos.add(
                 JpegSegmentInfo(
                     offset = positionCounter - 2,
-                    marker = byteArrayOf(segmentIdentifier, segmentType).toUInt16(JPEG_BYTE_ORDER),
-                    length = remainingSegmentLength + 4
+                    marker = scan.marker,
+                    length = remainingSegmentLength + 4L
                 )
             )
 
@@ -151,11 +131,14 @@ public object JpegSegmentAnalyzer {
 
     /**
      * The location and size of a JPEG segment.
+     *
+     * The values are Longs, so files larger than the signed Int range are
+     * represented correctly.
      */
     public data class JpegSegmentInfo(
-        val offset: Int,
+        val offset: Long,
         val marker: Int,
-        val length: Int
+        val length: Long
     ) {
 
         override fun toString(): String =

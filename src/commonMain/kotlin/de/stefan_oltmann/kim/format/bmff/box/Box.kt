@@ -42,7 +42,10 @@ public open class Box(
     public val actualLength: Long =
         when (size) {
             0L -> BOX_HEADER_LENGTH.toLong() + payload.size
-            1L -> largeSize!!
+
+            /* A size of 1 means the real size is stored in largesize. */
+            1L -> checkNotNull(largeSize) { "Box $type has size 1, but no largesize." }
+
             else -> size
         }
 

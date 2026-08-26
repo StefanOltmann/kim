@@ -18,11 +18,14 @@ package de.stefan_oltmann.kim.format.cr3
 
 import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
-import de.stefan_oltmann.kim.common.slice
+import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.tryWithImageReadException
+import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
+import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
+import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BOX_HEADER_LENGTH
+import de.stefan_oltmann.kim.format.bmff.BMFFConstants.TYPE_LENGTH
 import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BoxType
-import de.stefan_oltmann.kim.format.bmff.box.MediaDataBox
 import de.stefan_oltmann.kim.format.bmff.box.MovieBox
 import de.stefan_oltmann.kim.format.bmff.box.TrackBox
 import de.stefan_oltmann.kim.format.bmff.box.UuidBox
@@ -57,6 +60,14 @@ public object Cr3PreviewExtractor {
     /* Skip not interesting bytes */
     private const val PRVW_HEADER_BYTES = 12
 
+    /*
+     * Everything consumed before the JPEG bytes start: unknown bytes,
+     * size, marker, header and the JPEG size field itself.
+     */
+    private const val PRVW_BYTES_BEFORE_JPEG =
+        PRVW_UNKNOWN_BYTES + PRVW_SIZE_BYTES +
+            4 /* marker */ + PRVW_HEADER_BYTES + 4 /* JPEG size field */
+
     @Throws(ImageReadException::class)
     @JvmStatic
     public fun extractPreviewImage(
@@ -67,6 +78,12 @@ public object Cr3PreviewExtractor {
     /**
      * Extracts an preview image at full resolution.
      *
+     * The mdat payload is never buffered: the movie box is parsed first
+     * (Canon CR3 places it before the mdat), the absolute preview window
+     * is computed from stsz/co64, and exactly those bytes are captured
+     * while the mdat is streamed past in bounded chunks. Memory stays
+     * flat no matter how large the video data of the CR3 is.
+     *
      * See https://github.com/lclevy/canon_cr3/blob/master/readme.md
      */
     @Throws(ImageReadException::class)
@@ -75,21 +92,140 @@ public object Cr3PreviewExtractor {
         byteReader: ByteReader
     ): ByteArray? = tryWithImageReadException {
 
-        val allBoxes = BoxReader.readBoxes(
-            byteReader = byteReader,
-            stopAfterMetadataRead = false
-        )
+        var movieBox: MovieBox? = null
 
-        val movieBox = allBoxes.filterIsInstance<MovieBox>().firstOrNull()
-            ?: return@tryWithImageReadException null
+        var previewBytes: ByteArray? = null
+
+        var position = 0L
+
+        while (previewBytes == null) {
+
+            val available = byteReader.contentLength - position
+
+            /* Enough bytes for a box header must remain. */
+            if (available < BOX_HEADER_LENGTH)
+                break
+
+            val boxOffset = position
+
+            var headerLength = BOX_HEADER_LENGTH.toLong()
+
+            var largeSize: Long? = null
+
+            var size = byteReader.read4BytesAsInt("length", BMFF_BYTE_ORDER).toLong()
+
+            val typeBytes = byteReader.readBytes("type", TYPE_LENGTH)
+
+            val type = BoxType.of(typeBytes)
+
+            position += headerLength
+
+            when (size) {
+
+                0L -> size = available // The last box extends to the end of the file.
+
+                1L -> {
+                    size = byteReader.read8BytesAsLong("largesize", BMFF_BYTE_ORDER)
+                    largeSize = size
+
+                    /* The 64-bit largesize field extends the box header. */
+                    val LARGE_SIZE_FIELD_LENGTH = 8L
+
+                    headerLength += LARGE_SIZE_FIELD_LENGTH
+                    position += LARGE_SIZE_FIELD_LENGTH
+                }
+            }
+
+            if (size <= 0 || size > available)
+                throw ImageReadException("Box $type has an invalid size: $size.")
+
+            val dataSize = (size - headerLength).toInt()
+
+            when (type) {
+
+                BoxType.MOOV -> {
+
+                    /*
+                     * The movie box is small metadata, so buffering it is
+                     * fine - unlike the mdat that follows it.
+                     */
+                    val payload = byteReader.readBytes("moov", dataSize)
+
+                    movieBox = MovieBox(boxOffset, size, largeSize, payload, depth = 1)
+                }
+
+                BoxType.MDAT -> {
+
+                    /*
+                     * The window is known once the movie box was parsed,
+                     * which Canon CR3 guarantees happens before the mdat.
+                     */
+                    val window = movieBox?.let(::computePreviewWindow)
+
+                    if (window == null) {
+
+                        byteReader.skipBytes("mdat data", dataSize.toLong())
+
+                    } else {
+
+                        val (windowOffset, windowLength) = window
+
+                        val dataStart = boxOffset + headerLength
+
+                        val relativeOffset = windowOffset - dataStart
+
+                        /*
+                         * Hostile or corrupt files can declare offsets that
+                         * reach beyond this mdat; such windows are not
+                         * captured here. The arithmetic runs in Long space,
+                         * so huge deltas cannot wrap into the valid range.
+                         */
+                        if (relativeOffset >= 0 &&
+                            relativeOffset + windowLength <= dataSize
+                        ) {
+
+                            byteReader.skipBytes("", relativeOffset)
+
+                            previewBytes = byteReader.readBytes("preview jpeg", windowLength)
+
+                            byteReader.skipBytes(
+                                "mdat tail",
+                                (dataSize - relativeOffset - windowLength).toLong()
+                            )
+                        } else {
+
+                            byteReader.skipBytes("mdat data", dataSize.toLong())
+                        }
+                    }
+                }
+
+                else -> byteReader.skipBytes("box data", dataSize.toLong())
+            }
+
+            position = boxOffset + size
+        }
+
+        /* Only real JPEGs are previews - like in the other extractors. */
+        val preview = previewBytes?.takeIf { it.startsWith(MediaFormatMagicNumbers.jpeg) }
+
+        return@tryWithImageReadException preview
+    }
+
+    /**
+     * Computes the absolute offset and the length of the full-size preview
+     * JPEG from the sample size and chunk offset boxes of the movie box.
+     *
+     * Returns NULL when the structure is missing one of them.
+     */
+    private fun computePreviewWindow(movieBox: MovieBox): Pair<Long, Int>? {
 
         val firstTrack = movieBox.boxes.filterIsInstance<TrackBox>().firstOrNull()
-            ?: return@tryWithImageReadException null
+            ?: return null
 
         val mediaBox = firstTrack.mediaBox
 
         val mediaInformationContainer = mediaBox.boxes.find { it.type == BoxType.MINF }
-            ?: return@tryWithImageReadException null
+            ?: return null
 
         val minfBoxes = BoxReader.readBoxes(
             byteReader = ByteArrayByteReader(mediaInformationContainer.payload),
@@ -97,7 +233,7 @@ public object Cr3PreviewExtractor {
         )
 
         val sampleTableBox = minfBoxes.find { it.type == BoxType.STBL }
-            ?: return@tryWithImageReadException null
+            ?: return null
 
         val stblBoxes = BoxReader.readBoxes(
             byteReader = ByteArrayByteReader(sampleTableBox.payload),
@@ -105,10 +241,10 @@ public object Cr3PreviewExtractor {
         )
 
         val sampleSizesBox = stblBoxes.find { it.type == BoxType.STSZ }
-            ?: return@tryWithImageReadException null
+            ?: return null
 
         val chunkOffsetBox = stblBoxes.find { it.type == BoxType.CO64 }
-            ?: return@tryWithImageReadException null
+            ?: return null
 
         val stszReader = ByteArrayByteReader(sampleSizesBox.payload)
 
@@ -120,17 +256,17 @@ public object Cr3PreviewExtractor {
 
         co64Reader.skipBytes("", CO64_SKIP_BYTES)
 
+        /*
+         * co64 offsets are absolute positions in the file, so the preview
+         * bytes can be read directly during the mdat stream - no need to
+         * hold the mdat itself in memory.
+         */
         val offset = co64Reader.read8BytesAsLong("offset", ByteOrder.BIG_ENDIAN)
 
-        val mdatBox = allBoxes.filterIsInstance<MediaDataBox>().firstOrNull()
-            ?: return@tryWithImageReadException null
+        if (offset < 0 || length <= 0)
+            return null
 
-        val offsetInMdatPayload = (offset - mdatBox.offset - 16).toInt()
-
-        return@tryWithImageReadException mdatBox.payload.slice(
-            startIndex = offsetInMdatPayload,
-            count = length
-        )
+        return offset to length
     }
 
     /**
@@ -171,7 +307,20 @@ public object Cr3PreviewExtractor {
 
         val jpegSize = payloadReader.read4BytesAsInt("jpegSize", ByteOrder.BIG_ENDIAN)
 
-        val jpegBytes = payloadReader.readBytes(jpegSize)
+        /*
+         * A JPEG size beyond the available bytes means the preview is
+         * truncated. The raw read would silently return a short array.
+         */
+        if (jpegSize <= 0 ||
+            jpegSize > previewUuidBox.data.size - PRVW_BYTES_BEFORE_JPEG
+        )
+            return@tryWithImageReadException null
+
+        val jpegBytes = payloadReader.readBytes("jpegBytes", jpegSize)
+
+        /* Only real JPEGs are previews - like in the other extractors. */
+        if (!jpegBytes.startsWith(MediaFormatMagicNumbers.jpeg))
+            return@tryWithImageReadException null
 
         return@tryWithImageReadException jpegBytes
     }

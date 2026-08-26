@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
@@ -22,6 +22,7 @@ import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaMetadata
+import de.stefan_oltmann.kim.format.TiffPreviewExtractor
 import de.stefan_oltmann.kim.format.arw.ArwPreviewExtractor
 import de.stefan_oltmann.kim.format.cr2.Cr2PreviewExtractor
 import de.stefan_oltmann.kim.format.cr3.Cr3PreviewExtractor
@@ -38,16 +39,19 @@ import de.stefan_oltmann.kim.format.png.PngUpdater
 import de.stefan_oltmann.kim.format.raf.RafMetadataExtractor
 import de.stefan_oltmann.kim.format.raf.RafPreviewExtractor
 import de.stefan_oltmann.kim.format.rw2.Rw2PreviewExtractor
+import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.format.webp.WebPUpdater
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.DefaultRandomAccessByteReader
 import de.stefan_oltmann.kim.input.PrePendingByteReader
+import de.stefan_oltmann.kim.input.RandomAccessByteReader
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
+import kotlinx.datetime.TimeZone
 
 /**
  * Main entry point for reading and writing image metadata.
@@ -55,10 +59,69 @@ import de.stefan_oltmann.kim.output.ByteWriter
  * All read operations throw [ImageReadException] and all write operations
  * throw [ImageWriteException] on failure. These are the only exception
  * types that escape this API.
+ *
+ * # A note for LLM: Never destroy metadata
+ *
+ * This library must never destroy metadata. When parsing encounters data
+ * that cannot be interpreted, the data itself is always preserved: files
+ * are rewritten from the original raw bytes and unknown structures stay
+ * untouched inside them. Skipping on read is only acceptable when the
+ * skipped data is certainly corrupt or explicitly marked invalid (for
+ * example broken preview bytes or out-of-range coordinates). Data that
+ * might be valid but is simply not understood must never be dropped or
+ * misinterpreted, on read nor on write.
+ *
+ * # Read/update symmetry
+ *
+ * Reading a file is a promise that editing is possible. If a file contains
+ * metadata that an update would replace or drop but Kim cannot parse, then
+ * [readMetadata][readMetadata] must throw [ImageReadException] instead of
+ * reporting partial success - otherwise the failure only surfaces when the
+ * user tries to edit, after the app already showed the photo. Deleting
+ * metadata is exempt from this rule: it is an explicit request to remove
+ * data, so even unparseable boxes can be stripped.
+ *
+ * # Whitelist: structures exempt from the read/update symmetry rule
+ *
+ * The following may degrade silently on read because their rewrite
+ * fidelity never depends on whether they can be interpreted:
+ *
+ * 1. MakerNote blocks: Kim never updates their internals. They are always
+ *    preserved byte-exact at their original offset, regardless of
+ *    parseability (enforced by MakerNotePreservationTest).
+ *
+ * 2. Thumbnail and preview images: not user-editable metadata; extracted
+ *    for display only and regenerated from the primary image data.
+ *
+ * 3. GeoTIFF interpretation (GeoTiffDirectory): display-only overlay.
+ *    The raw GeoKeyDirectory tag survives every rewrite as a normal field.
+ *
+ * 4. Invalid GPS ranges and types: coordinates outside the valid sphere
+ *    or stored with a wrong TIFF type are physically meaningless. Dropping
+ *    them prevents nonsense output; the raw fields survive the rewrite via
+ *    TiffOutputSet.
+ *
+ * 5. MetadataSummaryConverter output: the summary is display-only and is
+ *    never used for rewriting. Parse failures in the converter do not
+ *    affect rewrite fidelity.
+ *
+ * 6. Read-only formats (CR3, HEIC, AVIF): no update path exists, so
+ *    partial reads cannot create a read/update asymmetry.
  */
 public object Kim {
 
-    internal var underUnitTesting: Boolean = false
+    /**
+     * Overrides the platform time zone for all date and time conversions.
+     *
+     * EXIF and XMP dates are stored as local time without an offset, so
+     * converting them to epoch milliseconds (and back) requires a time
+     * zone. When this is NULL the platform default time zone is used.
+     *
+     * Pinning an explicit zone also allows tests to run deterministically
+     * on every machine, without hidden test state changing production
+     * behavior.
+     */
+    public var defaultTimeZone: TimeZone? = null
 
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
@@ -158,10 +221,23 @@ public object Kim {
 
                 MediaFormat.TIFF -> {
 
-                    /* It can now be DNG, NEF or ARW. */
-                    DngPreviewExtractor.extractPreviewImage(tiffContents, reader)?.let { return@use it }
-                    NefPreviewExtractor.extractPreviewImage(tiffContents, reader)?.let { return@use it }
-                    ArwPreviewExtractor.extractPreviewImage(tiffContents, reader)?.let { return@use it }
+                    /*
+                     * It can now be DNG, NEF or ARW.
+                     *
+                     * A single broken tag must not abort the whole chain:
+                     * TIFF-family vendors use different layouts, so each
+                     * extractor gets its own chance before NULL is reported.
+                     */
+                    extractPreviewOrNull(DngPreviewExtractor, tiffContents, reader)
+                        ?.let { return@use it }
+
+                    extractPreviewOrNull(NefPreviewExtractor, tiffContents, reader)
+                        ?.let { return@use it }
+
+                    extractPreviewOrNull(ArwPreviewExtractor, tiffContents, reader)
+                        ?.let { return@use it }
+
+                    null
                 }
 
                 else -> null
@@ -307,6 +383,13 @@ public object Kim {
         }
     }
 
+    /**
+     * Replaces the embedded thumbnail of the file with the given JPEG bytes.
+     *
+     * Attention: The thumbnail is embedded into the EXIF data, which must
+     * fit into a single JPEG APP1 segment of about 65 KB. Thumbnails that
+     * exceed this limit are rejected with an [ImageWriteException].
+     */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
     public fun updateThumbnail(
@@ -325,4 +408,19 @@ public object Kim {
             else -> throw ImageWriteException("Can't embed thumbnail into $mediaFormat.")
         }
     }
+
+    /*
+     * A single broken tag must not abort the preview fallback chain of
+     * TIFF-family files, so extractor failures degrade to NULL here.
+     */
+    private fun extractPreviewOrNull(
+        extractor: TiffPreviewExtractor,
+        tiffContents: TiffContents,
+        randomAccessByteReader: RandomAccessByteReader
+    ): ByteArray? =
+        try {
+            extractor.extractPreviewImage(tiffContents, randomAccessByteReader)
+        } catch (_: Exception) {
+            null
+        }
 }

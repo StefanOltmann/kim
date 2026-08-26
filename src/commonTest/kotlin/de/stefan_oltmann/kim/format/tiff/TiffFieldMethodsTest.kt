@@ -310,6 +310,26 @@ class TiffFieldMethodsTest {
         )
     }
 
+    /**
+     * Regression test: a zero-count field parses to an empty value array.
+     * The conversions must return NULL instead of throwing, so a single
+     * broken tag skips one field instead of failing the whole parse - the
+     * previous implementation threw NoSuchElementException via first().
+     */
+    @Test
+    fun testZeroCountFieldConvertsToNull() {
+
+        val longField = field(0x0100, FieldTypeLong, byteArrayOf(), count = 0)
+
+        assertEquals(null, longField.toInt())
+        assertEquals(null, longField.toShort())
+        assertEquals(null, longField.toDouble())
+
+        val rationalField = field(0x0100, FieldTypeRational, byteArrayOf(), count = 0)
+
+        assertEquals(null, rationalField.toDouble())
+    }
+
     @Test
     fun testToDouble() {
 

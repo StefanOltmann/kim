@@ -16,7 +16,6 @@
 package de.stefan_oltmann.kim.format.jxl
 
 import de.stefan_oltmann.kim.Kim
-import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.jxl.box.ExifBox
 import de.stefan_oltmann.kim.model.MetadataUpdate
@@ -24,7 +23,6 @@ import de.stefan_oltmann.kim.model.TiffOrientation
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 
 /**
@@ -83,30 +81,39 @@ class ExifBoxTest {
         assertNotNull(box.tiffContents)
     }
 
+    /**
+     * Regression test: an invalid offset must degrade instead of throwing.
+     * A throwing constructor made JXL files with a corrupt Exif box both
+     * unreadable and undeletable.
+     */
     @Test
-    fun testExifBoxRejectsInvalidOffset() {
+    fun testExifBoxWithInvalidOffsetDegrades() {
 
         val tiff = minimalTiffBytes()
 
         /* The offset points beyond the box payload. */
-        assertFailsWith<ImageReadException> {
-            ExifBox(
-                offset = 0,
-                size = (tiff.size + 12).toLong(),
-                largeSize = null,
-                payload = byteArrayOf(0, 0, 0, 200.toByte()) + tiff
-            )
-        }
+        val beyondPayload = ExifBox(
+            offset = 0,
+            size = (tiff.size + 12).toLong(),
+            largeSize = null,
+            payload = byteArrayOf(0, 0, 0, 200.toByte()) + tiff
+        )
+
+        assertEquals(200, beyondPayload.tiffHeaderOffset)
+        assertContentEquals(byteArrayOf(), beyondPayload.exifBytes)
+        assertEquals(null, beyondPayload.tiffContents)
 
         /* The offset is unsigned, values above Int.MAX_VALUE are invalid. */
-        assertFailsWith<ImageReadException> {
-            ExifBox(
-                offset = 0,
-                size = (tiff.size + 12).toLong(),
-                largeSize = null,
-                payload = byteArrayOf(0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte()) + tiff
-            )
-        }
+        val negativeOffset = ExifBox(
+            offset = 0,
+            size = (tiff.size + 12).toLong(),
+            largeSize = null,
+            payload = byteArrayOf(0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte()) + tiff
+        )
+
+        assertEquals(-1, negativeOffset.tiffHeaderOffset)
+        assertContentEquals(byteArrayOf(), negativeOffset.exifBytes)
+        assertEquals(null, negativeOffset.tiffContents)
     }
 
     /**

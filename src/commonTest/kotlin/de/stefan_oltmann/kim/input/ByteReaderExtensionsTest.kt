@@ -17,6 +17,7 @@ package de.stefan_oltmann.kim.input
 
 import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -235,6 +236,46 @@ class ByteReaderExtensionsTest {
 
         assertTrue(reader.skipToQuad(1))
         assertEquals(0x02, reader.readByteAsInt())
+    }
+
+    @Test
+    fun testTransferExactly() {
+
+        val reader = readerOf(0x01, 0x02, 0x03)
+
+        val writer = ByteArrayByteWriter()
+
+        reader.transferExactly(writer, 2)
+
+        reader.transferExactly(null, 1)
+
+        assertContentEquals(
+            expected = byteArrayOf(0x01, 0x02),
+            actual = writer.toByteArray()
+        )
+
+        /* Everything was consumed. */
+        assertEquals(-1, reader.readByteAsInt())
+    }
+
+    /*
+     * An early end of stream must fail loudly, otherwise a rewrite would
+     * emit a silently truncated copy of the image data.
+     */
+    @Test
+    fun testTransferExactlyRejectsEarlyEndOfStream() {
+
+        assertFailsWith<ImageReadException> {
+            readerOf(0x01).transferExactly(ByteArrayByteWriter(), 2)
+        }
+    }
+
+    @Test
+    fun testTransferExactlyRejectsNegativeCount() {
+
+        assertFailsWith<ImageReadException> {
+            readerOf(0x01).transferExactly(null, -1)
+        }
     }
 
     /**

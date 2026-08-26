@@ -19,6 +19,7 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.bmff.Extent
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -187,9 +188,88 @@ class BmffBoxesTest {
         assertTrue(box.toString().startsWith("iloc offsetSize=4"))
     }
 
+    /**
+     * Regression test: the spec allows an extent field size of zero,
+     * which means the value is absent. Such files must parse instead of
+     * failing with "Illegal byteCount specified: 0".
+     */
+    @Test
+    fun testItemLocationBoxWithAbsentExtentFields() {
+
+        /*
+         * version 0, offset size 0, length size 4: the item has no
+         * offset and a length of zero.
+         */
+        val payload = byteArrayOf(
+            0, 0, 0, 0,
+            0x04,
+            0x00,
+            0, 1,
+            0, 1,
+            0, 0,
+            0, 1,
+            0, 0, 0, 50
+        )
+
+        val box = ItemLocationBox(
+            offset = 0,
+            size = payload.size.toLong() + 8,
+            largeSize = null,
+            payload = payload
+        )
+
+        assertEquals(0, box.offsetSize)
+        assertEquals(4, box.lengthSize)
+
+        assertEquals(
+            expected = listOf(Extent(itemId = 1, index = null, offset = 0, length = 50)),
+            actual = box.extents
+        )
+    }
+
+    /**
+     * Regression test: the spec allows base offset field sizes of 1, 2, 4
+     * and 8 bytes. Size 2 previously fell into a silent zero case that
+     * also desynchronized the stream.
+     */
+    @Test
+    fun testItemLocationBoxWithTwoByteBaseOffset() {
+
+        /*
+         * version 0, offset size 4, length size 4,
+         * base offset size 2, one item with one extent.
+         */
+        val payload = byteArrayOf(
+            0, 0, 0, 0,
+            0x44,
+            0x20,
+            0, 1,
+            0, 1,
+            0, 0,
+            0x10, 0x00,
+            0, 1,
+            0, 0, 0, 100.toByte(),
+            0, 0, 0, 50
+        )
+
+        val box = ItemLocationBox(
+            offset = 0,
+            size = payload.size.toLong() + 8,
+            largeSize = null,
+            payload = payload
+        )
+
+        assertEquals(2, box.baseOffsetSize)
+
+        val extent = box.extents.single()
+
+        /* The 2-byte base offset (4096) must be added to the extent. */
+        assertEquals(4196L, extent.offset)
+        assertEquals(50L, extent.length)
+    }
+
     @Test
     fun testItemLocationBoxVersion2WithEightByteOffsets() {
-
         /*
          * version 2, index size 8, base offset size 8, 8-byte
          * item id and offset/length values.
@@ -200,7 +280,7 @@ class BmffBoxesTest {
             0x88.toByte(),
             0, 0, 0, 1,
             0, 0, 0, 1,
-            0, 1,
+            0, 0,
             0, 0,
             0, 0, 0, 0, 0, 0, 0, 42,
             0, 1,
@@ -228,6 +308,107 @@ class BmffBoxesTest {
         assertEquals(7, extent.index)
         assertEquals(42 + 9, extent.offset)
         assertEquals(5, extent.length)
+        assertEquals(0, extent.constructionMethod)
+    }
+
+    /**
+     * A construction method of 1 marks the extent offsets as relative to
+     * the idat box instead of the file start. The value must be parsed
+     * so consumers can skip such extents instead of misreading them.
+     */
+    @Test
+    fun testItemLocationBoxParsesConstructionMethod() {
+
+        /* version 1, absolute offsets (construction method 0). */
+        val absolutePayload = byteArrayOf(
+            1, 0, 0, 0,
+            0x44,
+            0x00,
+            0, 1,
+            0, 1,
+            0, 0,
+            0, 0,
+            0, 1,
+            0, 0, 0, 200.toByte(),
+            0, 0, 0, 50
+        )
+
+        val absoluteBox = ItemLocationBox(
+            offset = 0,
+            size = absolutePayload.size.toLong() + 8,
+            largeSize = null,
+            payload = absolutePayload
+        )
+
+        assertEquals(0, absoluteBox.extents.single().constructionMethod)
+
+        /* version 1, idat-relative offsets (construction method 1). */
+        val idatRelativePayload = byteArrayOf(
+            1, 0, 0, 0,
+            0x44,
+            0x00,
+            0, 1,
+            0, 1,
+            0, 1,
+            0, 0,
+            0, 1,
+            0, 0, 0, 200.toByte(),
+            0, 0, 0, 50
+        )
+
+        val idatRelativeBox = ItemLocationBox(
+            offset = 0,
+            size = idatRelativePayload.size.toLong() + 8,
+            largeSize = null,
+            payload = idatRelativePayload
+        )
+
+        assertEquals(1, idatRelativeBox.extents.single().constructionMethod)
+    }
+
+    /**
+     * Extents with an idat-relative construction method cannot be
+     * resolved without idat support. They must be skipped instead of
+     * reading image data as metadata.
+     */
+    @Test
+    fun testMetaBoxTopLevelSkipsIdatRelativeExtents() {
+
+        val hdlrBox = createHdlrBox()
+        val pitmBox = createPitmBox(itemId = 1)
+        val iinfBox = createIinfBoxWithExifEntry(itemId = 1)
+
+        /*
+         * One EXIF item whose only extent uses construction method 1.
+         */
+        val ilocPayload = byteArrayOf(
+            1, 0, 0, 0,
+            0x44,
+            0x00,
+            0, 1,
+            0, 1,
+            0, 1,
+            0, 0,
+            0, 1,
+            0, 0, 0, 200.toByte(),
+            0, 0, 0, 50
+        )
+
+        val ilocBox = createBox(BoxType.ILOC, ilocPayload)
+
+        val metaPayload =
+            byteArrayOf(0, 0, 0, 0) + hdlrBox + pitmBox + iinfBox + ilocBox
+
+        val metaBox = MetaBoxTopLevel(
+            offset = 0,
+            size = metaPayload.size.toLong() + 8,
+            largeSize = null,
+            payload = metaPayload
+        )
+
+        assertTrue(metaBox.itemLocationBox.extents.single().constructionMethod == 1)
+
+        assertTrue(metaBox.findMetadataOffsets().isEmpty())
     }
 
     @Test
@@ -274,6 +455,38 @@ class BmffBoxesTest {
         assertEquals("ItemName", box.itemName)
 
         assertTrue(box.toString().startsWith("infe version=2"))
+    }
+
+    /**
+     * Regression test: infe version 3 (added by newer ISO 14496-12
+     * editions) widened the item ID to 32 bits and must be parsed with
+     * the correct field widths instead of rejecting the whole item
+     * information or shifting every following field.
+     */
+    @Test
+    fun testItemInfoEntryBoxVersion3() {
+
+        val payload = byteArrayOf(
+            3, 0, 0, 0,
+            0, 0, 0, 1,
+            0, 0,
+            0x6D, 0x69, 0x66, 0x31
+        ) + "ItemName\u0000".encodeToByteArray()
+
+        val box = ItemInfoEntryBox(
+            offset = 0,
+            size = payload.size.toLong() + 8,
+            largeSize = null,
+            payload = payload
+        )
+
+        assertEquals(3, box.version)
+        assertEquals(1, box.itemId)
+        assertEquals(0, box.itemProtectionIndex)
+        assertEquals(0x6D696631, box.itemType)
+        assertEquals("ItemName", box.itemName)
+
+        assertTrue(box.toString().startsWith("infe version=3"))
     }
 
     @Test
@@ -476,5 +689,136 @@ class BmffBoxesTest {
                 payload = byteArrayOf(0, 0, 0, 0)
             )
         }
+    }
+
+    /**
+     * Regression test: a top-level meta box without the mandatory pitm,
+     * iinf or iloc boxes must fail with a descriptive error instead of
+     * an opaque null cast exception.
+     */
+    @Test
+    fun testMetaBoxTopLevelRejectsMissingMandatoryBoxes() {
+
+        val metaPayload = byteArrayOf(0, 0, 0, 0) + createHdlrBox()
+
+        assertFailsWith<ImageReadException> {
+            MetaBoxTopLevel(
+                offset = 0,
+                size = metaPayload.size.toLong() + 8,
+                largeSize = null,
+                payload = metaPayload
+            )
+        }
+    }
+
+    /**
+     * Regression test: a meta box without its mandatory hdlr box must
+     * fail with a descriptive error instead of an opaque cast exception.
+     */
+    @Test
+    fun testMetaBoxRejectsMissingHandlerReference() {
+
+        assertFailsWith<ImageReadException> {
+            MetaBox(
+                offset = 0,
+                size = 12,
+                largeSize = null,
+                payload = byteArrayOf(0, 0, 0, 0)
+            )
+        }
+    }
+
+    /**
+     * Regression test guarding the "never destroy metadata" contract:
+     *
+     * 1. Unknown entry box types inside iinf are skipped in the item
+     *    lookup index, but stay in the parsed [ItemInformationBox.boxes].
+     * 2. The raw payload is preserved byte for byte, so a rewrite - which
+     *    serializes the stored payloads, not the parsed tree - cannot
+     *    lose the unknown entries.
+     */
+    @Test
+    fun testItemInformationBoxKeepsUnknownEntriesAndPayload() {
+
+        val infePayload = byteArrayOf(
+            2, 0, 0, 0,
+            0, 1,
+            0, 0,
+            0x6D, 0x69, 0x66, 0x31
+        ) + "\u0000".encodeToByteArray()
+
+        val unknownPayload = byteArrayOf(1, 2, 3, 4)
+
+        val payload = byteArrayOf(
+            0, 0, 0, 0,
+            0, 2
+        ) +
+            createBox(BoxType.INFE, infePayload) +
+            createBox(BoxType.of("unk ".encodeToByteArray()), unknownPayload)
+
+        val box = ItemInformationBox(
+            offset = 0,
+            size = payload.size.toLong() + 8,
+            largeSize = null,
+            payload = payload
+        )
+
+        /* The known entry is indexed for metadata lookups. */
+        assertEquals(1, box.map.size)
+        assertEquals(1, box.map.getValue(1).itemId)
+
+        /* The unknown entry is kept as a generic box. */
+        assertEquals(2, box.boxes.size)
+        assertEquals(BoxType.of("unk ".encodeToByteArray()), box.boxes.last().type)
+
+        /* The raw payload is untouched, so rewrites preserve everything. */
+        assertContentEquals(payload, box.payload)
+    }
+
+    private fun createBox(type: BoxType, payload: ByteArray): ByteArray {
+
+        val box = byteArrayOf(
+            0, 0, 0, (payload.size + 8).toByte()
+        ) + type.bytes + payload
+
+        return box
+    }
+
+    private fun createHdlrBox(): ByteArray {
+
+        val hdlrPayload = byteArrayOf(
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            'p'.code.toByte(), 'i'.code.toByte(), 'c'.code.toByte(), 't'.code.toByte(),
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        ) + "Main Image\u0000".encodeToByteArray()
+
+        return createBox(BoxType.HDLR, hdlrPayload)
+    }
+
+    private fun createPitmBox(itemId: Int): ByteArray =
+
+        createBox(
+            BoxType.PITM,
+            byteArrayOf(0, 0, 0, 0, 0, itemId.toByte())
+        )
+
+    /**
+     * Builds an iinf box (version 0) with one infe entry of the given
+     * item id and the "Exif" item type.
+     */
+    private fun createIinfBoxWithExifEntry(itemId: Int): ByteArray {
+
+        val infePayload = byteArrayOf(
+            2, 0, 0, 0,
+            0, itemId.toByte(),
+            0, 0,
+            'E'.code.toByte(), 'x'.code.toByte(), 'i'.code.toByte(), 'f'.code.toByte()
+        ) + "\u0000".encodeToByteArray()
+
+        return createBox(
+            BoxType.IINF,
+            byteArrayOf(0, 0, 0, 0, 0, 1) + createBox(BoxType.INFE, infePayload)
+        )
     }
 }

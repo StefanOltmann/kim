@@ -69,11 +69,21 @@ internal data class GPSInfo(
 
         fun createFrom(gpsDirectory: TiffDirectory): GPSInfo? {
 
-            val latitudeRef = gpsDirectory.findField(GpsTag.GPS_TAG_GPS_LATITUDE_REF)?.toStringValue()
-                ?: return null
+            /*
+             * Hostile files can store any tag with any type, so every field
+             * is type-checked instead of cast. A mismatch degrades to
+             * unknown GPS, like a missing field.
+             */
+            val latitudeRefField = gpsDirectory.findField(GpsTag.GPS_TAG_GPS_LATITUDE_REF)
 
-            val longitudeRef = gpsDirectory.findField(GpsTag.GPS_TAG_GPS_LONGITUDE_REF)?.toStringValue()
-                ?: return null
+            val longitudeRefField = gpsDirectory.findField(GpsTag.GPS_TAG_GPS_LONGITUDE_REF)
+
+            if (latitudeRefField?.value !is String || longitudeRefField?.value !is String)
+                return null
+
+            val latitudeRef = latitudeRefField.toStringValue()
+
+            val longitudeRef = longitudeRefField.toStringValue()
 
             /*
              * The popular Android App "Aves Gallery" nullifies all GPS fields on export.
@@ -87,9 +97,11 @@ internal data class GPSInfo(
             val longitudeField = gpsDirectory.findField(GpsTag.GPS_TAG_GPS_LONGITUDE)
                 ?: return null
 
-            // all of these values are strings.
-            val latitude = latitudeField.value as RationalNumbers
-            val longitude = longitudeField.value as RationalNumbers
+            val latitude = latitudeField.value as? RationalNumbers
+                ?: return null
+
+            val longitude = longitudeField.value as? RationalNumbers
+                ?: return null
 
             if (latitude.values.size != GPS_DMS_COMPONENT_COUNT ||
                 longitude.values.size != GPS_DMS_COMPONENT_COUNT

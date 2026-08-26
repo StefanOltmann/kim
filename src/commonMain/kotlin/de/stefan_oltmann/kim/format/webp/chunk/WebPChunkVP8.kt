@@ -72,8 +72,8 @@ public class WebPChunkVP8(
          *
          * Start code byte 0 0x9d Start code byte 1 0x01 Start code byte 2 0x2a
          *
-         * 16 bits : (2 bits Horizontal Scale << 14) | Width (14 bits)
-         * 16 bits : (2 bits Vertical Scale << 14) | Height (14 bits)
+         * 16 bits : (2 bits Horizontal Scale << 14) | Width
+         * 16 bits : (2 bits Vertical Scale << 14) | Height
          */
         val b3: Int = bytes[3].toInt() and 0xFF
         val b4: Int = bytes[4].toInt() and 0xFF
@@ -86,14 +86,36 @@ public class WebPChunkVP8(
         if (b3 != 0x9D || b4 != 0x01 || b5 != 0x2A)
             throw ImageReadException("Invalid VP8 chunk: invalid signature")
 
-        imageSize = ImageSize(
-            width = b6 + (b7 and 63 shl 8),
-            height = b8 + (b9 and 63 shl 8)
-        )
+        val widthCode = b6 + (b7 and 63 shl 8)
 
+        val heightCode = b8 + (b9 and 63 shl 8)
+
+        /*
+         * The 2-bit scale factors define how the frame is scaled for
+         * display: 0 -> x1, 1 -> x5/4, 2 -> x4/5, 3 -> x1/2 (RFC 6386
+         * section 9.2). The reported image size is the displayed size.
+         */
         horizontalScale = b7 shr 6
+
         verticalScale = b9 shr 6
+
+        imageSize = ImageSize(
+            width = applyVp8DisplayScale(widthCode, horizontalScale),
+            height = applyVp8DisplayScale(heightCode, verticalScale)
+        )
     }
+
+    /**
+     * Applies the VP8 display scale factor of the given code to a decoded
+     * dimension (RFC 6386 section 9.2).
+     */
+    private fun applyVp8DisplayScale(dimension: Int, scaleCode: Int): Int =
+        when (scaleCode) {
+            1 -> dimension * 5 / 4
+            2 -> dimension * 4 / 5
+            3 -> dimension / 2
+            else -> dimension
+        }
 
     override fun toString(): String =
         super.toString() +

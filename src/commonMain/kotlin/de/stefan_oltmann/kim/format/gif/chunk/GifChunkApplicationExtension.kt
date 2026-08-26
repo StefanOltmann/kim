@@ -18,6 +18,7 @@
 package de.stefan_oltmann.kim.format.gif.chunk
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.format.gif.GifChunkType
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.readByte
@@ -50,7 +51,11 @@ public class GifChunkApplicationExtension(
 
         val firstSubChunkByteReader = ByteArrayByteReader(subChunks.first())
 
-        val firstSubChunkSize = firstSubChunkByteReader.readByte("first sub chunk size").toInt()
+        /*
+         * The size is an unsigned byte, so legal sub chunk sizes of 128
+         * to 255 must not become negative through sign extension.
+         */
+        val firstSubChunkSize = firstSubChunkByteReader.readByte("first sub chunk size").toUInt8()
 
         if (firstSubChunkSize < APPLICATION_IDENTIFIER_LENGTH)
             throw ImageReadException(

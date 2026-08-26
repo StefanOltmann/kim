@@ -16,6 +16,9 @@
  */
 package de.stefan_oltmann.kim.format.rw2
 
+import de.stefan_oltmann.kim.common.startsWith
+import de.stefan_oltmann.kim.common.tryWithImageReadException
+import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.TiffPreviewExtractor
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
@@ -29,10 +32,20 @@ public object Rw2PreviewExtractor : TiffPreviewExtractor {
     override fun extractPreviewImage(
         tiffContents: TiffContents,
         randomAccessByteReader: RandomAccessByteReader
-    ): ByteArray? {
+    ): ByteArray? = tryWithImageReadException {
 
         val ifd0 = tiffContents.directories.first()
 
-        return ifd0.getFieldValue(TiffTag.TIFF_TAG_JPG_FROM_RAW, false)
+        /*
+         * Some files carry random garbage here, so only data with the
+         * JPEG signature is returned.
+         */
+        val previewBytes = ifd0.getFieldValue(TiffTag.TIFF_TAG_JPG_FROM_RAW, false)
+            ?: return@extractPreviewImage null
+
+        return@extractPreviewImage if (previewBytes.startsWith(MediaFormatMagicNumbers.jpeg))
+            previewBytes
+        else
+            null
     }
 }

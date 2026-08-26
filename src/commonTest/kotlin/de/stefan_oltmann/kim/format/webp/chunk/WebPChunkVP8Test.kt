@@ -25,7 +25,7 @@ class WebPChunkVP8Test {
 
     /**
      * Creates a VP8 chunk payload: 10 bytes header with a valid key frame
-     * start code and the given width, height and scales.
+     * start code and the given dimensions and scales.
      */
     @Suppress("MagicNumber")
     private fun createVp8Bytes(
@@ -48,8 +48,12 @@ class WebPChunkVP8Test {
         )
     }
 
+    /**
+     * The scale factors scale the display size per RFC 6386 section 9.2:
+     * 100 x 50 becomes 125 x 40.
+     */
     @Test
-    fun testParse() {
+    fun testParseAppliesScaleFactors() {
 
         val chunk = WebPChunkVP8(
             createVp8Bytes(
@@ -60,16 +64,31 @@ class WebPChunkVP8Test {
             )
         )
 
-        assertEquals(ImageSize(100, 50), chunk.imageSize)
+        assertEquals(ImageSize(125, 40), chunk.imageSize)
         assertEquals(0, chunk.versionNumber)
         assertEquals(1, chunk.horizontalScale)
         assertEquals(2, chunk.verticalScale)
 
         assertEquals(
-            expected = "WebPChunk 'VP8 ' (10 bytes) versionNumber=0 imageSize=100 x 50 " +
+            expected = "WebPChunk 'VP8 ' (10 bytes) versionNumber=0 imageSize=125 x 40 " +
                 "horizontalScale=1 verticalScale=2",
             actual = chunk.toString()
         )
+    }
+
+    /**
+     * Without scale factors the stored dimension is reported as-is.
+     */
+    @Test
+    fun testParseWithoutScaling() {
+
+        val chunk = WebPChunkVP8(
+            createVp8Bytes(width = 100, height = 50)
+        )
+
+        assertEquals(ImageSize(100, 50), chunk.imageSize)
+        assertEquals(0, chunk.horizontalScale)
+        assertEquals(0, chunk.verticalScale)
     }
 
     @Test

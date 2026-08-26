@@ -28,6 +28,8 @@ import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.input.AndroidInputStreamByteReader
 import de.stefan_oltmann.kim.input.ByteReader
+import de.stefan_oltmann.kim.input.readRemainingBytes
+import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteWriter
 import de.stefan_oltmann.kim.output.OutputStreamByteWriter
 import java.io.File
@@ -162,6 +164,247 @@ public object KimAndroid {
         )
     }
 
+    /**
+     * Updates the image at the given URI with a single change.
+     *
+     * The image data is read into memory first and only written back
+     * after all updates were applied successfully, so a parsing failure
+     * cannot destroy the original photo. This requires the image data to
+     * fit into memory.
+     *
+     * Attention: A failure while writing the new content (for example a
+     * full disk) can still leave a truncated file, because
+     * [ContentResolver.openOutputStream] truncates the target on open
+     * and does not support atomic replacement.
+     */
+    @JvmStatic
+    @Throws(ImageWriteException::class)
+    public fun update(
+        contentResolver: ContentResolver,
+        uri: String,
+        update: MetadataUpdate
+    ): Unit = update(contentResolver, uri, setOf(update))
+
+    /**
+     * Updates the image at the given URI with all desired changes at once.
+     *
+     * The image data is read into memory first and only written back
+     * after all updates were applied successfully, so a parsing failure
+     * cannot destroy the original photo. This requires the image data to
+     * fit into memory.
+     *
+     * Attention: A failure while writing the new content (for example a
+     * full disk) can still leave a truncated file, because
+     * [ContentResolver.openOutputStream] truncates the target on open
+     * and does not support atomic replacement.
+     */
+    @JvmStatic
+    @Throws(ImageWriteException::class)
+    public fun update(
+        contentResolver: ContentResolver,
+        uri: String,
+        updates: Set<MetadataUpdate>
+    ): Unit = update(contentResolver, Uri.parse(uri), updates)
+
+    @JvmStatic
+    @Throws(ImageWriteException::class)
+    public fun update(
+        contentResolver: ContentResolver,
+        uri: Uri,
+        updates: Set<MetadataUpdate>
+    ): Unit = tryWithImageWriteException {
+
+        /*
+         * The original is not touched until the complete new content has
+         * been computed in memory, so parsing or conversion failures can
+         * never destroy it.
+         */
+        val updatedBytes =
+            Kim.update(bytes = readBytes(contentResolver, uri), updates = updates)
+
+        writeBytes(contentResolver, uri, updatedBytes)
+    }
+
+    /**
+     * Removes all metadata of the image at the given URI, keeping the ICC
+     * profile chunks that affect how the image is displayed.
+     *
+     * The image data is read into memory first and only written back
+     * after the removal was prepared successfully, so a parsing failure
+     * cannot destroy the original photo. This requires the image data to
+     * fit into memory.
+     *
+     * Attention: A failure while writing the new content (for example a
+     * full disk) can still leave a truncated file, because
+     * [ContentResolver.openOutputStream] truncates the target on open
+     * and does not support atomic replacement.
+     */
+    @JvmStatic
+    @Throws(ImageWriteException::class)
+    public fun deleteMetadata(
+        contentResolver: ContentResolver,
+        uri: String
+    ): Unit = deleteMetadata(contentResolver, Uri.parse(uri))
+
+    @JvmStatic
+    @Throws(ImageWriteException::class)
+    public fun deleteMetadata(
+        contentResolver: ContentResolver,
+        uri: Uri
+    ): Unit = tryWithImageWriteException {
+
+        /*
+         * The original is not touched until the complete new content has
+         * been computed in memory, so parsing failures can never destroy
+         * it.
+         */
+        val cleanedBytes =
+            Kim.deleteMetadata(bytes = readBytes(contentResolver, uri))
+
+        writeBytes(contentResolver, uri, cleanedBytes)
+    }
+
+    /**
+     * Updates the image file with a single change.
+     *
+     * The new content is written to a temporary file next to the target
+     * and moved onto it after the update was applied successfully, so a
+     * parsing failure cannot destroy the original photo.
+     *
+     * This requires the image data to fit into memory.
+     */
+    @JvmStatic
+    @Throws(ImageWriteException::class)
+    public fun update(
+        file: File,
+        update: MetadataUpdate
+    ): Unit = update(file, setOf(update))
+
+    /**
+     * Updates the image file with all desired changes at once.
+     *
+     * The new content is written to a temporary file next to the target
+     * and moved onto it after the update was applied successfully, so a
+     * parsing failure cannot destroy the original photo.
+     *
+     * This requires the image data to fit into memory.
+     */
+    @JvmStatic
+    @Throws(ImageWriteException::class)
+    public fun update(
+        file: File,
+        updates: Set<MetadataUpdate>
+    ): Unit = tryWithImageWriteException {
+
+        /*
+         * The original is not touched until the complete new content has
+         * been computed in memory and placed into the temporary file, so
+         * failures can never destroy it.
+         */
+        val updatedBytes = Kim.update(bytes = file.readBytes(), updates = updates)
+
+        atomicReplace(file, updatedBytes)
+    }
+
+    /**
+     * Removes all metadata of the image file, keeping the ICC profile
+     * chunks that affect how the image is displayed.
+     *
+     * The new content is written to a temporary file next to the target
+     * and moved onto it after the removal was prepared successfully, so a
+     * parsing failure cannot destroy the original photo.
+     *
+     * This requires the image data to fit into memory.
+     */
+    @JvmStatic
+    @Throws(ImageWriteException::class)
+    public fun deleteMetadata(file: File): Unit = tryWithImageWriteException {
+
+        val cleanedBytes = Kim.deleteMetadata(bytes = file.readBytes())
+
+        atomicReplace(file, cleanedBytes)
+    }
+
+    /**
+     * Replaces the content of the target file with the given bytes by
+     * writing them to a temporary sibling first and moving that onto the
+     * target afterwards. The original stays intact when anything fails.
+     *
+     * Attention: This uses java.io deliberately. java.nio.file.Files is
+     * only available from API 26, but this library supports API 21.
+     */
+    private fun atomicReplace(target: File, bytes: ByteArray) {
+
+        val parentDirectory =
+            target.parentFile ?: throw ImageWriteException("Target has no parent directory: $target")
+
+        val tempFile = File.createTempFile(target.name, ".tmp", parentDirectory)
+
+        try {
+
+            tempFile.writeBytes(bytes)
+
+            /*
+             * On Linux rename(2), which backs File.renameTo on Android,
+             * replaces an existing target atomically. The delete fallback
+             * covers file systems where the rename cannot overwrite.
+             */
+            if (!tempFile.renameTo(target)) {
+
+                target.delete()
+
+                if (!tempFile.renameTo(target))
+                    throw ImageWriteException("Could not replace $target with the new content.")
+            }
+
+        } finally {
+            tempFile.delete()
+        }
+    }
+
+    /**
+     * Reads the complete image behind the URI into memory.
+     */
+    private fun readBytes(
+        contentResolver: ContentResolver,
+        uri: Uri
+    ): ByteArray =
+        tryWithImageReadException {
+            createByteReader(contentResolver, uri).use { reader ->
+                reader.readRemainingBytes()
+            }
+        }
+
+    /**
+     * Replaces the content behind the URI with the given bytes.
+     */
+    private fun writeBytes(
+        contentResolver: ContentResolver,
+        uri: Uri,
+        bytes: ByteArray
+    ): Unit = tryWithImageWriteException {
+
+        val outputStream = contentResolver.openOutputStream(uri)
+            ?: throw ImageWriteException("Unable to open output stream for URI $uri")
+
+        outputStream.use {
+            it.write(bytes)
+            it.flush()
+        }
+    }
+
+    /**
+     * Opens a writer for the given URI that [Kim.update] can stream into.
+     *
+     * Attention: Opening the underlying stream already truncates the
+     * target. If the subsequent update fails midway (for example because
+     * the source image is truncated), the original photo is left
+     * truncated as well. Prefer [update] or [deleteMetadata], which
+     * compute the new content first, unless streaming very large files
+     * is worth that risk.
+     *
+     * The caller is responsible for closing the returned writer.
+     */
     @Throws(ImageWriteException::class)
     public fun createByteWriter(
         contentResolver: ContentResolver,
@@ -172,6 +415,14 @@ public object KimAndroid {
             uri = Uri.parse(uriString)
         )
 
+    /**
+     * Opens a writer for the given URI that [Kim.update] can stream into.
+     *
+     * Attention: See the warning in the sibling overload above; opening
+     * the stream truncates the target before any byte was written.
+     *
+     * The caller is responsible for closing the returned writer.
+     */
     @Throws(ImageWriteException::class)
     public fun createByteWriter(
         contentResolver: ContentResolver,

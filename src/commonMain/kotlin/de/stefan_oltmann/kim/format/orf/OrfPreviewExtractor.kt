@@ -41,25 +41,37 @@ public object OrfPreviewExtractor : TiffPreviewExtractor {
 
         val cameraSettingsDirectory = tiffContents.findMakerNoteSubDirectory(
             TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_CAMERA_SETTINGS
-        ) ?: return null
+        ) ?: return@extractPreviewImage null
 
         if (cameraSettingsDirectory.findField(OlympusCameraSettingsTag.PREVIEW_IMAGE_VALID)?.toInt() != 1)
-            return null
+            return@extractPreviewImage null
 
-        val makerNoteStart =
-            tiffContents.findTiffField(ExifTag.EXIF_TAG_MAKER_NOTE)?.valueOffset ?: return null
+        val makerNoteStart = tiffContents.findTiffField(ExifTag.EXIF_TAG_MAKER_NOTE)?.valueOffset
+            ?: return@extractPreviewImage null
 
-        val previewImageStart =
-            cameraSettingsDirectory.findField(OlympusCameraSettingsTag.PREVIEW_IMAGE_START)?.toInt() ?: return null
+        val previewImageStart = cameraSettingsDirectory.findField(OlympusCameraSettingsTag.PREVIEW_IMAGE_START)?.toInt()
+            ?: return@extractPreviewImage null
 
         val previewImageLength =
-            cameraSettingsDirectory.findField(OlympusCameraSettingsTag.PREVIEW_IMAGE_LENGTH)?.toInt() ?: return null
+            cameraSettingsDirectory.findField(OlympusCameraSettingsTag.PREVIEW_IMAGE_LENGTH)
+                ?.toInt()
+                ?: return@extractPreviewImage null
 
         if (previewImageLength == 0)
-            return null
+            return@extractPreviewImage null
 
-        randomAccessByteReader.moveTo(makerNoteStart + previewImageStart)
+        /*
+         * Long math, so the MakerNote relative offset cannot overflow.
+         */
+        val absoluteStart = makerNoteStart.toLong() + previewImageStart.toLong()
 
-        return@tryWithImageReadException randomAccessByteReader.readBytes(previewImageLength)
+        if (absoluteStart > Int.MAX_VALUE)
+            return@extractPreviewImage null
+
+        return@tryWithImageReadException TiffPreviewExtractor.readValidatedPreviewBytes(
+            randomAccessByteReader = randomAccessByteReader,
+            start = absoluteStart.toInt(),
+            length = previewImageLength
+        )
     }
 }

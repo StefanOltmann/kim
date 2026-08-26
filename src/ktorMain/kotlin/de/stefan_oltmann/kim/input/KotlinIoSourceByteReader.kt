@@ -22,7 +22,6 @@ import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
-import kotlin.math.min
 
 /**
  * A ByteReader that reads from a kotlinx.io Source.
@@ -32,14 +31,17 @@ public class KotlinIoSourceByteReader(
     override val contentLength: Long
 ) : ByteReader {
 
-    private var position = 0
+    private var position: Long = 0
 
     /*
      * Attention: `Source.remaining` returns 0 for unbuffered or streaming sources,
      * so we need this to be specified.
+     *
+     * Computed in Long space, because declared sizes beyond the signed Int
+     * range would wrap around into a negative count otherwise.
      */
-    private val remainingByteCount: Int
-        get() = (contentLength - position).toInt()
+    private val remainingByteCount: Long
+        get() = (contentLength - position).coerceAtLeast(0L)
 
     override fun readByte(): Byte? {
 
@@ -53,7 +55,9 @@ public class KotlinIoSourceByteReader(
 
     override fun readBytes(count: Int): ByteArray {
 
-        val bytes = source.readByteArray(min(count, remainingByteCount))
+        require(count >= 0) { "Count must not be negative: $count" }
+
+        val bytes = source.readByteArray(minOf(count.toLong(), remainingByteCount).toInt())
 
         position += bytes.size
 

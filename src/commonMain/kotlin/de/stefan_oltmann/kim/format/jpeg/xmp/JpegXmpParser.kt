@@ -26,6 +26,13 @@ internal object JpegXmpParser {
     fun isXmpJpegSegment(segmentData: ByteArray): Boolean =
         segmentData.startsWith(JpegConstants.XMP_IDENTIFIER)
 
+    /**
+     * Returns whether the segment carries a chunk of Adobe extended XMP
+     * data instead of a complete packet.
+     */
+    fun isExtendedXmpJpegSegment(segmentData: ByteArray): Boolean =
+        segmentData.startsWith(JpegConstants.EXTENDED_XMP_IDENTIFIER)
+
     fun parseXmpJpegSegment(segmentData: ByteArray): String {
 
         if (!isXmpJpegSegment(segmentData))
@@ -38,5 +45,48 @@ internal object JpegXmpParser {
             startIndex = index,
             count = segmentData.size - index
         ).decodeToString()
+    }
+
+    /**
+     * Parses one extended XMP segment into its GUID, the total size of the
+     * complete extended data and this segment's chunk of it.
+     *
+     * The layout is specified by Adobe and matches what ExifTool writes:
+     * identifier, 32-character hexadecimal GUID, 4-byte big-endian total
+     * length, then the raw chunk bytes.
+     */
+    fun parseExtendedXmpJpegSegment(segmentData: ByteArray): ExtendedXmpFragment {
+
+        if (!isExtendedXmpJpegSegment(segmentData))
+            throw ImageReadException("Invalid JPEG extended XMP segment.")
+
+        val headerSize = JpegConstants.EXTENDED_XMP_IDENTIFIER.size +
+            JpegConstants.EXTENDED_XMP_GUID_LENGTH +
+            JpegConstants.EXTENDED_XMP_TOTAL_LENGTH_BYTES
+
+        if (segmentData.size < headerSize)
+            throw ImageReadException("Truncated JPEG extended XMP segment.")
+
+        var index = JpegConstants.EXTENDED_XMP_IDENTIFIER.size
+
+        val guidEnd = index + JpegConstants.EXTENDED_XMP_GUID_LENGTH
+
+        val guid = segmentData.decodeToString(index, guidEnd)
+
+        index = guidEnd
+
+        val totalLength = (segmentData[index].toInt() and 0xFF) shl 24 or
+            ((segmentData[index + 1].toInt() and 0xFF) shl 16) or
+            ((segmentData[index + 2].toInt() and 0xFF) shl 8) or
+            (segmentData[index + 3].toInt() and 0xFF)
+
+        index += JpegConstants.EXTENDED_XMP_TOTAL_LENGTH_BYTES
+
+        val data = segmentData.slice(
+            startIndex = index,
+            count = segmentData.size - index
+        )
+
+        return ExtendedXmpFragment(guid, totalLength, data)
     }
 }

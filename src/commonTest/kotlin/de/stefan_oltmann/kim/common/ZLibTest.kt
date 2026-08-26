@@ -18,8 +18,8 @@ package de.stefan_oltmann.kim.common
 
 import com.goncalossilva.resources.Resource
 import kotlin.test.Test
-import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class ZLibTest {
 
@@ -109,14 +109,37 @@ class ZLibTest {
             0x53.toByte(), 0x28.toByte(), 0x01.toByte(), 0x32.toByte(), 0x33.toByte(), 0x12.toByte(),
             0x4b.toByte(), 0xf4.toByte(), 0x00.toByte(), 0x40.toByte(), 0x11.toByte(), 0x06.toByte(),
             0x5d.toByte()
+        ),
+        /*
+         * Multi-byte UTF-8 characters. Decoding the decompressed bytes with
+         * a non-UTF-8 platform charset (for example windows-1252) would
+         * turn this into mojibake, so this golden pins UTF-8 decoding.
+         */
+        "Grüße aus Köln" to byteArrayOf(
+            0x78.toByte(), 0x9c.toByte(), 0x73.toByte(), 0x2f.toByte(), 0x3a.toByte(), 0xbc.toByte(),
+            0xe7.toByte(), 0xf0.toByte(), 0xfc.toByte(), 0x54.toByte(), 0x85.toByte(), 0xc4.toByte(),
+            0xd2.toByte(), 0x62.toByte(), 0x05.toByte(), 0xef.toByte(), 0xc3.toByte(), 0xdb.toByte(),
+            0x72.toByte(), 0xf2.toByte(), 0x00.toByte(), 0x4b.toByte(), 0x70.toByte(), 0x08.toByte(),
+            0x27.toByte()
         )
     )
 
+    /**
+     * Exact deflate bytes are intentionally NOT asserted here: they are
+     * an implementation detail of the platform zlib version and change
+     * without any behavioral difference. Correctness is covered by
+     * [testDecompress] (against real-world golden bytes) and the
+     * roundtrip below.
+     */
     @Test
-    fun testCompress() {
+    fun testCompressRoundtrip() {
 
         for (entry in zlibTestData)
-            assertContentEquals(entry.value, compress(entry.key))
+            assertEquals(
+                expected = entry.key,
+                actual = decompress(compress(entry.key)),
+                message = "Roundtrip failed."
+            )
     }
 
     @Test
@@ -139,6 +162,91 @@ class ZLibTest {
             expected = testString,
             actual = decompressed,
             message = "Test string differs."
+        )
+    }
+
+    /**
+     * The 6-byte period of the umlauts does not divide evenly into the
+     * 4096-byte blocks some platform implementations use internally, so
+     * multi-byte UTF-8 sequences are split at block boundaries and must
+     * still survive a roundtrip.
+     */
+    @Test
+    fun testRoundtripWithMultibyteCharactersAcrossBlockBoundaries() {
+
+        val testString = "\u00E4\u00F6\u00FC".repeat(2048)
+
+        val decompressed = decompress(compress(testString))
+
+        assertEquals(
+            expected = testString,
+            actual = decompressed,
+            message = "Multi-byte sequences were corrupted."
+        )
+    }
+
+    /**
+     * Data that ends without a final block must be rejected instead of
+     * silently returning the partial output.
+     */
+    @Test
+    fun testDecompressRejectsTruncatedData() {
+
+        val compressed = compress("Hello compressed payload that is long enough.")
+
+        /* Cutting the stream in half removes the final block. */
+        val truncated = compressed.copyOfRange(0, compressed.size / 2)
+
+        assertFailsWith<ImageReadException> {
+            decompress(truncated)
+        }
+    }
+
+    /**
+     * Corrupt data must surface as an [ImageReadException] on every
+     * platform instead of a platform specific error type.
+     */
+    @Test
+    fun testDecompressRejectsCorruptHeader() {
+
+        val compressed = compress("Hello compressed payload that is long enough.")
+
+        /* The zlib header is broken, which every inflater rejects. */
+        val corrupted = compressed.copyOf()
+
+        corrupted[0] = 0x00
+
+        assertFailsWith<ImageReadException> {
+            decompress(corrupted)
+        }
+    }
+
+    /**
+     * Decompression must abort once the output exceeds the limit instead
+     * of allocating unbounded memory for hostile input.
+     */
+    @Test
+    fun testDecompressRejectsOutputBeyondTheLimit() {
+
+        val compressed = compress("A".repeat(100_000))
+
+        assertFailsWith<ImageReadException> {
+            decompress(compressed, maxOutputByteCount = 1024)
+        }
+    }
+
+    /**
+     * Output below the limit must be decompressed completely, so the limit
+     * does not corrupt legitimate payloads.
+     */
+    @Test
+    fun testDecompressAllowsOutputBelowTheLimit() {
+
+        val text = "A".repeat(1000)
+
+        assertEquals(
+            expected = text,
+            actual = decompress(compress(text), maxOutputByteCount = 4096)
         )
     }
 

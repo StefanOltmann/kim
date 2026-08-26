@@ -329,4 +329,114 @@ class GifImageParserFullTest {
 
         assertEquals(ImageSize(10, 20), descriptor.imageSize)
     }
+
+    /**
+     * An extension with an unknown private label must be kept as an
+     * opaque block with its complete sub-block chain, so the stream
+     * position stays correct for all following chunks.
+     */
+    @Test
+    fun testUnknownExtensionLabelIsKeptAndConsumedCompletely() {
+
+        val chunks = GifImageParser.readChunks(
+            byteReader = ByteArrayByteReader(createGif89aWithUnknownExtension()),
+            chunkTypeFilter = null
+        )
+
+        val unknownExtension = chunks.firstOrNull { it.type == GifChunkType.UNKNOWN_EXTENSION }
+
+        assertNotNull(unknownExtension)
+        assertTrue(unknownExtension.bytes.contentEquals(UNKNOWN_EXTENSION_BYTES))
+
+        /* The chain was fully consumed - the image parses at its true offset. */
+        assertEquals(1, chunks.count { it.type == GifChunkType.IMAGE_DESCRIPTOR })
+
+        val metadata = GifImageParser.parseMetadata(
+            ByteArrayByteReader(createGif89aWithUnknownExtension())
+        )
+
+        assertEquals(ImageSize(1, 1), metadata.imageSize)
+        assertNotNull(metadata.xmp)
+    }
+
+    /**
+     * extractMetadataBytes copies unknown extensions verbatim into the
+     * output, so their data is never destroyed.
+     */
+    @Test
+    fun testExtractMetadataBytesKeepsUnknownExtension() {
+
+        val extracted = GifMetadataExtractor.extractMetadataBytes(
+            ByteArrayByteReader(createGif89aWithUnknownExtension())
+        )
+
+        assertTrue(extracted.toList().containsSubList(UNKNOWN_EXTENSION_BYTES.toList()))
+    }
+
+    /**
+     * Builds a GIF89a file with an extension of an unknown private label
+     * before the first 1x1 frame. The payload deliberately contains the
+     * image separator byte, which exposed the stream desync.
+     */
+    private fun createGif89aWithUnknownExtension(): ByteArray {
+
+        val bytes = mutableListOf<Byte>()
+
+        /* Header */
+        bytes.addAll("GIF89a".encodeToByteArray().toList())
+
+        /* Logical screen descriptor: 1x1, no color table */
+        bytes.addAll(byteArrayOf(1, 0, 1, 0, 0, 0, 0).toList())
+
+        bytes.addAll(UNKNOWN_EXTENSION_BYTES.toList())
+
+        /* Application extension with XMP data */
+        val xmp = """<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF/></x:xmpmeta>"""
+        val xmpBytes = xmp.encodeToByteArray()
+
+        bytes.addAll(byteArrayOf(0x21, 0xFF.toByte(), 11).toList())
+        bytes.addAll("XMP DataXMP".encodeToByteArray().toList())
+        bytes.add(xmpBytes.size.toByte())
+        bytes.addAll(xmpBytes.toList())
+        bytes.add(0)
+
+        /* Image separator and descriptor: 1x1 image at 0,0 */
+        bytes.add(0x2C)
+        bytes.addAll(byteArrayOf(0, 0, 0, 0, 1, 0, 1, 0, 0).toList())
+
+        /* Image data: LZW minimum code size 2, one sub chunk, terminator */
+        bytes.addAll(byteArrayOf(2, 1, 5, 0).toList())
+
+        /* Terminator */
+        bytes.add(0x3B)
+
+        return bytes.toByteArray()
+    }
+
+    private companion object {
+
+        /*
+         * Extension introducer, unknown private label 0x99, one sub-block
+         * of four bytes containing the image separator, block terminator.
+         */
+        val UNKNOWN_EXTENSION_BYTES: ByteArray =
+            byteArrayOf(
+                0x21,
+                0x99.toByte(),
+                4,
+                0x2C,
+                0x41,
+                0x42,
+                0x43,
+                0
+            )
+    }
 }
+
+/**
+ * Returns whether the list contains the given element sequence.
+ */
+private fun List<Byte>.containsSubList(needle: List<Byte>): Boolean =
+    (0..size - needle.size).any { index ->
+        subList(index, index + needle.size) == needle
+    }

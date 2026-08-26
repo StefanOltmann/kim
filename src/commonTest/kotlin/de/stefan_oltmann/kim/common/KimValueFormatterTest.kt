@@ -191,6 +191,16 @@ class KimValueFormatterTest {
     fun testFormatExposureTime() {
 
         assertEquals(
+            null,
+            KimValueFormatter.formatExposureTime(0.0)
+        )
+
+        assertEquals(
+            null,
+            KimValueFormatter.formatExposureTime(-0.5)
+        )
+
+        assertEquals(
             "1/8000 s",
             KimValueFormatter.formatExposureTime(0.000125)
         )

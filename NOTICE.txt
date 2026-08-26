@@ -28,6 +28,16 @@ Logic for reading ISOBMFF containers was derived from 'metadata-extractor'
 developed by Drew Noakes (https://github.com/drewnoakes/metadata-extractor).
 Copyright 2002-2023 Drew Noakes and contributors
 
+XMP metadata handling is provided by the dependency
+'XMP Core for Kotlin Multiplatform' (de.stefan-oltmann:xmpcore),
+a Kotlin Multiplatform port of Adobe's XMP SDK.
+The Adobe XMP SDK is copyrighted by Adobe and distributed under the BSD license.
+
+zlib compression for the JS/WASM targets is provided by the
+pako library (https://nodeca.github.io/pako/).
+pako is developed by Andrey Tupitsin and Vitaly Puzrin and distributed
+under the MIT license (Copyright 2014-2017 Vitaly Puzrin and Andrey Tupitsin).
+
 -----------------------------------------------------------------------
 
 This product includes images from Unsplash provided under
@@ -40,3 +50,9 @@ https://github.com/drewnoakes/metadata-extractor-images
 under the note "You are free to use these media files however you wish".
 
 The sample image media_77.heic was contributed by Miroslav Sobotka.
+
+The text and HTML dumps in testdata/exiftool were generated with
+ExifTool (https://exiftool.org) by Phil Harvey and are used as
+reference data for the unit tests. Per ExifTool's FAQ these dumps
+contain only metadata of the supplied test files; ExifTool itself
+is not distributed with this product.

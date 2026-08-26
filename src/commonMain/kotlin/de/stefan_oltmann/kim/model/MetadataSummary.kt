@@ -72,7 +72,7 @@ public data class MetadataSummary(
         get() = if (widthPx == null || heightPx == null)
             0
         else
-            (widthPx * heightPx).div(KimValueFormatter.MEGA_PIXEL_COUNT)
+            (widthPx.toLong() * heightPx).div(KimValueFormatter.MEGA_PIXEL_COUNT.toLong()).toInt()
 
     val locationDisplay: String?
         get() = locationShown?.displayString
