@@ -39,7 +39,7 @@ Kim is a Kotlin Multiplatform library for reading and writing image metadata.
 ## Installation
 
 ```
-implementation("de.stefan-oltmann:kim:<version>")
+implementation("de.stefan-oltmann:kim:<VERSION>")
 ```
 
 For the targets `wasmJs` & `js` you also need to specify this:
