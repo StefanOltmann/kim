@@ -265,7 +265,7 @@ class BaseMediaFileFormatImageParserTest {
 
             for (extent in item.extents) {
                 writer.writeInt(extent.offset.toInt(), BMFF_BYTE_ORDER)
-                writer.writeInt(extent.length.toInt(), BMFF_BYTE_ORDER)
+                writer.writeInt(extent.length, BMFF_BYTE_ORDER)
             }
         }
 

@@ -210,8 +210,8 @@ public object JpegRewriter {
             writeSegments(
                 byteWriter = outputWriter,
                 segments = insertAfterLastAppSegments(
-                    segments.filterNot { piece -> piece is JFIFPieceSegment && piece.isIptcSegment() },
-                    createIptcSegments(metadata)
+                    segments = segments.filterNot { piece -> piece.isIptcSegment() },
+                    newSegments = createIptcSegments(metadata)
                 )
             )
         }
@@ -232,7 +232,7 @@ public object JpegRewriter {
         val mergedBlocks = metadata.nonIptcBlocks + newBlock
 
         return createApp13Segments(
-            IptcWriter.writeIptcBlocks(mergedBlocks, includeApp13Identifier = false)
+            photoshopData = IptcWriter.writeIptcBlocks(mergedBlocks, includeApp13Identifier = false)
         )
     }
 
@@ -291,10 +291,8 @@ public object JpegRewriter {
             writeSegments(
                 byteWriter = outputWriter,
                 segments = insertAfterLastAppSegments(
-                    segments.filterNot { segment ->
-                        segment is JFIFPieceSegment && segment.isXmpSegment()
-                    },
-                    createXmpSegments(xmpXml)
+                    segments = segments.filterNot { segment -> segment.isXmpSegment() },
+                    newSegments = createXmpSegments(xmpXml)
                 )
             )
         }
