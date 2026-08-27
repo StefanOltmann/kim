@@ -26,6 +26,7 @@ internal actual fun compress(input: String): ByteArray =
 internal actual fun decompress(byteArray: ByteArray, maxOutputByteCount: Int): String =
     Pako.inflate(byteArray.toUint8Array(), toStringOptions)
 
+@OptIn(ExperimentalWasmJsInterop::class)
 private val toStringOptions: JsAny = js("({to: 'string'})")
 
 private fun Uint8Array.toByteArray(): ByteArray =
