@@ -119,7 +119,7 @@ internal object NikonDecryptor {
         for (shift in 0..3)
             key = key xor ((count shr (shift * 8)) and 0xff)
 
-        var ci0 = xlat[0][serialKey and 0xff]
+        val ci0 = xlat[0][serialKey and 0xff]
         var cj = xlat[1][key]
         var ck = 0x60
 

@@ -109,7 +109,7 @@ internal object BrokenMakerNoteTiff {
         imageData.copyInto(bytes, pos)
         pos += imageData.size
         bytes[pos++] = 0xff.toByte() // EOI
-        bytes[pos++] = 0xd9.toByte()
+        bytes[pos] = 0xd9.toByte()
 
         return bytes
     }

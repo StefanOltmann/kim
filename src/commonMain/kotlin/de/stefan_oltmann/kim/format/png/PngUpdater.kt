@@ -88,7 +88,7 @@ internal object PngUpdater : MetadataUpdater {
             StaleChunkFilter { chunkType, keyword ->
                 (exifBytes != null &&
                     (chunkType == PngChunkType.EXIF || keyword == PngConstants.EXIF_KEYWORD)) ||
-                    (updatedXmp != null && keyword == PngConstants.XMP_KEYWORD)
+                    (keyword == PngConstants.XMP_KEYWORD)
             }
         }
     }

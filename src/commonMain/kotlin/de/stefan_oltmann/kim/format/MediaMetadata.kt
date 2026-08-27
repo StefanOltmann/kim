@@ -38,11 +38,11 @@ public class MediaMetadata internal constructor(
 
     public fun findStringValue(tagInfo: TagInfo): String? {
 
-        val strings = findTiffField(tagInfo)?.value as? List<String>
+        val strings = findTiffField(tagInfo)?.value as? List<*>
 
         /* Looks like Canon and Fuji OOC JPEGs have lens make in an array.  */
         if (!strings.isNullOrEmpty())
-            return strings.first()
+            return strings.first() as? String
 
         return findTiffField(tagInfo)?.value as? String
     }

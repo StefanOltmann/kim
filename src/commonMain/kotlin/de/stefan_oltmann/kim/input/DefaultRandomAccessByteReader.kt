@@ -124,7 +124,7 @@ public class DefaultRandomAccessByteReader(
         return buffer.copyOfRange(offset, minOf(endIndex, bufferPosition))
     }
 
-    override fun close(): Unit {
+    override fun close() {
 
         /* Free the buffered file prefix as soon as possible. */
         buffer = ByteArray(0)

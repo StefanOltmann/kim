@@ -218,7 +218,7 @@ public object IptcParser {
 
             val blockNameLength = byteReader.readByte("block name length").toInt()
 
-            var blockNameBytes: ByteArray
+            val blockNameBytes: ByteArray
 
             if (blockNameLength == 0) {
 

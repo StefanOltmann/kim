@@ -118,8 +118,6 @@ public object Cr3PreviewExtractor {
 
             val type = BoxType.of(typeBytes)
 
-            position += headerLength
-
             when (size) {
 
                 0L -> size = available // The last box extends to the end of the file.
@@ -132,11 +130,10 @@ public object Cr3PreviewExtractor {
                     val LARGE_SIZE_FIELD_LENGTH = 8L
 
                     headerLength += LARGE_SIZE_FIELD_LENGTH
-                    position += LARGE_SIZE_FIELD_LENGTH
                 }
             }
 
-            if (size <= 0 || size > available)
+            if (size !in 1..available)
                 throw ImageReadException("Box $type has an invalid size: $size.")
 
             val dataSize = (size - headerLength).toInt()
@@ -190,8 +187,9 @@ public object Cr3PreviewExtractor {
 
                             byteReader.skipBytes(
                                 "mdat tail",
-                                (dataSize - relativeOffset - windowLength).toLong()
+                                (dataSize - relativeOffset - windowLength)
                             )
+
                         } else {
 
                             byteReader.skipBytes("mdat data", dataSize.toLong())

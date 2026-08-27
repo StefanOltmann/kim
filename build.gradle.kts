@@ -57,11 +57,19 @@ detekt {
     config.setFrom("detekt.yml")
     allRules = true
     parallel = true
+    ignoreFailures = false
 }
 
 kotlin {
 
     explicitApi()
+
+    /* Make the code safer */
+    compilerOptions {
+        progressiveMode = true
+        extraWarnings = true
+        allWarningsAsErrors = true
+    }
 
     android {
 

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +19,7 @@ package de.stefan_oltmann.kim.common
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.UnsafeNumber
+import kotlinx.cinterop.convert
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.refTo
 import platform.posix.FILE
@@ -63,7 +65,7 @@ internal fun readFileAsByteArray(filePath: String): ByteArray? = memScoped {
 
         rewind(file)
 
-        val byteCount = fileSize.toInt()
+        val byteCount = fileSize.convert<Int>()
 
         val buffer = ByteArray(byteCount)
 

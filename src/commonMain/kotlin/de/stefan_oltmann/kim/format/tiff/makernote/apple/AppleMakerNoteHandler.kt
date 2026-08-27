@@ -222,8 +222,6 @@ internal object AppleMakerNoteHandler : MakerNoteHandler() {
             if (keyEnd > blobSize)
                 return
 
-            val key = blob.copyOfRange(keyOffset.toInt() + 1, keyEnd.toInt()).decodeToString()
-
             val valueMarker = byteAt(valueOffset) ?: return
 
             if (valueMarker and 0xF0 != 0x10)

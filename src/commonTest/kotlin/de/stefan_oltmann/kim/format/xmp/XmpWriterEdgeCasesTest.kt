@@ -23,7 +23,6 @@ import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.test.AfterTest
@@ -157,7 +156,7 @@ class XmpWriterEdgeCasesTest {
              * platform time zone is, so the expected string is computed
              * from that very zone and asserted exactly.
              */
-            val expected = Instant.fromEpochMilliseconds(0)
+            val expected = kotlin.time.Instant.fromEpochMilliseconds(0)
                 .toLocalDateTime(TimeZone.currentSystemDefault())
                 .toString()
 
