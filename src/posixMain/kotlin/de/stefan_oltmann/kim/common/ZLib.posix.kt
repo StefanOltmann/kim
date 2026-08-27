@@ -1,4 +1,5 @@
 /*
+ * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +17,6 @@
 package de.stefan_oltmann.kim.common
 
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
-import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.UnsafeNumber
 import kotlinx.cinterop.alloc
@@ -24,6 +24,7 @@ import kotlinx.cinterop.convert
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.refTo
+import kotlinx.cinterop.reinterpret
 import platform.zlib.Z_DEFAULT_COMPRESSION
 import platform.zlib.Z_FINISH
 import platform.zlib.Z_NO_FLUSH
@@ -36,7 +37,6 @@ import platform.zlib.deflateInit
 import platform.zlib.inflate
 import platform.zlib.inflateEnd
 import platform.zlib.inflateInit
-import platform.zlib.uByteVar
 import platform.zlib.z_stream
 
 private const val OUTPUT_BUFFER_LENGTH = 4096
@@ -66,7 +66,7 @@ internal actual fun compress(input: String): ByteArray {
 
             /* Set the input buffer and its length. */
             if (inputBuffer.isNotEmpty())
-                stream.next_in = inputBuffer.refTo(0).getPointer(this) as CPointer<uByteVar>
+                stream.next_in = inputBuffer.refTo(0).getPointer(this).reinterpret()
             else
                 stream.next_in = null
 
@@ -74,7 +74,7 @@ internal actual fun compress(input: String): ByteArray {
 
             /* Set the output buffer and its length. */
             if (outputBuffer.isNotEmpty())
-                stream.next_out = outputBuffer.refTo(0).getPointer(this) as CPointer<uByteVar>
+                stream.next_out = outputBuffer.refTo(0).getPointer(this).reinterpret()
             else
                 stream.next_out = null
 
@@ -90,7 +90,7 @@ internal actual fun compress(input: String): ByteArray {
             val compressedDataLength = outputBufferLength - stream.avail_out
 
             /* Return the compressed data as a ByteArray. */
-            return outputBuffer.copyOf(compressedDataLength.toInt())
+            return@compress outputBuffer.copyOf(compressedDataLength.toInt())
 
         } finally {
             /* Clean up the zlib stream. */
@@ -121,7 +121,7 @@ internal actual fun decompress(
             throw ImageReadException("inflateInit failed: $inflateInitResult")
 
         /* Set the input buffer and its length. */
-        stream.next_in = byteArray.refTo(0).getPointer(this) as CPointer<uByteVar>
+        stream.next_in = byteArray.refTo(0).getPointer(this).reinterpret()
         stream.avail_in = byteArray.size.toUInt()
 
         val outputBuffer = ByteArray(OUTPUT_BUFFER_LENGTH)
@@ -139,7 +139,7 @@ internal actual fun decompress(
             while (true) {
 
                 /* Set the output buffer and its length */
-                stream.next_out = outputBuffer.refTo(0).getPointer(this) as CPointer<uByteVar>
+                stream.next_out = outputBuffer.refTo(0).getPointer(this).reinterpret()
                 stream.avail_out = OUTPUT_BUFFER_LENGTH.toUInt()
 
                 /* Decompress the data */
