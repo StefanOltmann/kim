@@ -60,6 +60,19 @@ detekt {
     ignoreFailures = false
 }
 
+/*
+ * Run Kover & Detekt as part of the checks.
+ *
+ * "allTests" should be already included, but I like to make it explicit.
+ */
+tasks.named("check") {
+    dependsOn(
+        tasks.named("allTests"),
+        tasks.named("koverVerify"),
+        tasks.named("detekt")
+    )
+}
+
 kotlin {
 
     explicitApi()
