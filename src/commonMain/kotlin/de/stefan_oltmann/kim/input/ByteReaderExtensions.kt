@@ -275,6 +275,25 @@ internal fun ByteReader.skipToQuad(quad: Int): Boolean =
 
 internal fun ByteReader.skipToBytes(needle: ByteArray): Boolean {
 
+    if (needle.isEmpty())
+        return true
+
+    /* Build KMP failure table for self-overlapping needles. */
+    val failure = IntArray(needle.size)
+
+    for (index in 1 until needle.size) {
+
+        var fallback = failure[index - 1]
+
+        while (fallback > 0 && needle[index].toUInt8() != needle[fallback].toUInt8())
+            fallback = failure[fallback - 1]
+
+        if (needle[index].toUInt8() == needle[fallback].toUInt8())
+            fallback++
+
+        failure[index] = fallback
+    }
+
     var position = 0
 
     while (true) {
@@ -284,17 +303,15 @@ internal fun ByteReader.skipToBytes(needle: ByteArray): Boolean {
         if (byte == -1)
             break
 
-        if (needle[position].toInt() == byte) {
+        while (position > 0 && needle[position].toUInt8() != byte)
+            position = failure[position - 1]
+
+        if (needle[position].toUInt8() == byte) {
 
             position++
 
-            if (position == needle.size) {
+            if (position == needle.size)
                 return true
-            }
-
-        } else {
-
-            position = 0
         }
     }
 

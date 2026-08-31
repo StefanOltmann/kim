@@ -239,6 +239,47 @@ class ByteReaderExtensionsTest {
     }
 
     @Test
+    fun testSkipToBytesFindsSelfOverlappingPattern() {
+
+        /* Needle FF D8 occurs at offset 1 in FF FF D8 - naive reset misses it. */
+        assertTrue(
+            readerOf(0xFF, 0xFF, 0xD8).skipToBytes(
+                byteArrayOf(0xFF.toByte(), 0xD8.toByte())
+            )
+        )
+
+        /* Needle 01 01 02 occurs at offset 1 in 01 01 01 02. */
+        assertTrue(
+            readerOf(0x01, 0x01, 0x01, 0x02).skipToBytes(
+                byteArrayOf(0x01, 0x01, 0x02)
+            )
+        )
+
+        /* Overlapping prefix-suffix: AB AB occurs at offset 1 in AB AB AB. */
+        assertTrue(
+            readerOf(0xAB, 0xAB, 0xAB).skipToBytes(
+                byteArrayOf(0xAB.toByte(), 0xAB.toByte(), 0xAB.toByte())
+            )
+        )
+    }
+
+    @Test
+    fun testSkipToBytesFindsNeedleAtEofBoundaryWithOverlap() {
+
+        val reader = readerOf(0x01, 0x02, 0x01, 0x02, 0x01, 0x03)
+
+        /* Needle 01 02 01 03 has prefix 01 that is also suffix of false start. */
+        assertTrue(
+            reader.skipToBytes(
+                byteArrayOf(0x01, 0x02, 0x01, 0x03)
+            )
+        )
+
+        /* Must be at EOF after consuming the needle. */
+        assertEquals(-1, reader.readByteAsInt())
+    }
+
+    @Test
     fun testTransferExactly() {
 
         val reader = readerOf(0x01, 0x02, 0x03)
