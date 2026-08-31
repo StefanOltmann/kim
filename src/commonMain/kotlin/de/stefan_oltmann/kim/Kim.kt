@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright 2026 Stefan Oltmann
  * Copyright 2025 Ashampoo GmbH & Co. KG
  *

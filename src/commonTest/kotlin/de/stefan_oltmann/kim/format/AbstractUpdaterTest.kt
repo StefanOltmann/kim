@@ -482,6 +482,8 @@ abstract class AbstractUpdaterTest(
 
     private fun compare(fileName: String, actualBytes: ByteArray) {
 
+        val updateDir = Path("build/updates_$format")
+
         val resource = Resource("$resourcePath/$fileName")
 
         /*
@@ -489,7 +491,9 @@ abstract class AbstractUpdaterTest(
          */
         if (!resource.exists()) {
 
-            Path("build/$fileName")
+            SystemFileSystem.createDirectories(updateDir)
+
+            Path(updateDir, fileName)
                 .writeBytes(actualBytes)
 
             fail("Reference image $fileName does not exist.")
@@ -498,8 +502,6 @@ abstract class AbstractUpdaterTest(
         val expectedBytes = resource.readBytes()
 
         if (!expectedBytes.contentEquals(actualBytes)) {
-
-            val updateDir = Path("build/updates_$format")
 
             SystemFileSystem.createDirectories(updateDir)
 
@@ -525,7 +527,9 @@ abstract class AbstractUpdaterTest(
          */
         if (!expectedResource.exists()) {
 
-            Path("build/$fileName.txt")
+            SystemFileSystem.createDirectories(updateDir)
+
+            Path(updateDir, "$fileName.txt")
                 .writeBytes(actualStringRepresentation.encodeToByteArray())
 
             fail("Reference text dump $fileName.txt does not exist.")
@@ -533,7 +537,9 @@ abstract class AbstractUpdaterTest(
 
         if (actualStringRepresentation != expectedResource.readText()) {
 
-            Path("build/$fileName.txt")
+            SystemFileSystem.createDirectories(updateDir)
+
+            Path(updateDir, "$fileName.txt")
                 .writeBytes(actualStringRepresentation.encodeToByteArray())
 
             fail("Photo $fileName does not match the expected string representation.")
