@@ -62,7 +62,7 @@ public enum class MediaFormat(
      * If true, KIM can embedd metadata into this kind of file.
      */
     public fun isMetadataEmbeddable(): Boolean =
-        this == JPEG || this == PNG || this == WEBP || this == JXL
+        this == JPEG || this == GIF || this == PNG || this == WEBP || this == JXL
 
     /**
      * If true, this kind of file usually contains a preview image that we can extract.

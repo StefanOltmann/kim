@@ -30,11 +30,11 @@ class MediaFormatTest {
     fun testIsMetadataEmbeddable() {
 
         assertTrue(MediaFormat.JPEG.isMetadataEmbeddable())
+        assertTrue(MediaFormat.GIF.isMetadataEmbeddable())
         assertTrue(MediaFormat.PNG.isMetadataEmbeddable())
         assertTrue(MediaFormat.WEBP.isMetadataEmbeddable())
         assertTrue(MediaFormat.JXL.isMetadataEmbeddable())
 
-        assertFalse(MediaFormat.GIF.isMetadataEmbeddable())
         assertFalse(MediaFormat.TIFF.isMetadataEmbeddable())
         assertFalse(MediaFormat.CR3.isMetadataEmbeddable())
         assertFalse(MediaFormat.MP4.isMetadataEmbeddable())
