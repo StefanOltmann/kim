@@ -22,6 +22,7 @@ import de.stefan_oltmann.kim.common.HEX_RADIX
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.RationalNumber
 import de.stefan_oltmann.kim.common.RationalNumbers
+import de.stefan_oltmann.kim.common.toInvariantString
 import de.stefan_oltmann.kim.common.toSingleNumberHexes
 import de.stefan_oltmann.kim.format.tiff.TiffTags.getTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldType
@@ -137,10 +138,21 @@ public class TiffField(
             if (value is DoubleArray) {
 
                 if (value.size == 1)
-                    return@lazy value.first().toString()
+                    return@lazy value.first().toInvariantString()
 
+                /*
+                 * Rendered per element instead of contentToString, because
+                 * the platform double renderings differ (see
+                 * [toInvariantString]) and text dumps must be
+                 * byte-identical on every platform.
+                 */
                 if (value.size <= MAX_ARRAY_LENGTH_DISPLAY_SIZE)
-                    return@lazy value.contentToString()
+                    return@lazy value.joinToString(
+                        separator = ", ",
+                        prefix = "[",
+                        postfix = "]",
+                        transform = Double::toInvariantString
+                    )
 
                 return@lazy "[${value.size} doubles]"
             }
@@ -148,10 +160,15 @@ public class TiffField(
             if (value is FloatArray) {
 
                 if (value.size == 1)
-                    return@lazy value.first().toString()
+                    return@lazy value.first().toInvariantString()
 
                 if (value.size <= MAX_ARRAY_LENGTH_DISPLAY_SIZE)
-                    return@lazy value.contentToString()
+                    return@lazy value.joinToString(
+                        separator = ", ",
+                        prefix = "[",
+                        postfix = "]",
+                        transform = Float::toInvariantString
+                    )
 
                 return@lazy "[${value.size} floats]"
             }

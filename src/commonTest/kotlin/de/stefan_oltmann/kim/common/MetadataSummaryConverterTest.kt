@@ -92,16 +92,24 @@ class MetadataSummaryConverterTest {
             val name = entry.key
             val metadata = entry.value
 
+            /*
+             * The double columns are rendered platform-independently, so
+             * the golden CSV stays valid on JS and WASM, where whole
+             * numbers would otherwise lose their ".0".
+             */
             stringBuilder.appendLine(
                 "$name;${metadata.mediaFormat};${metadata.widthPx};${metadata.heightPx};" +
                     "${metadata.orientation};${metadata.takenDate};" +
-                    "${metadata.gpsCoordinates?.latitude};${metadata.gpsCoordinates?.longitude};" +
+                    "${metadata.gpsCoordinates?.latitude?.toInvariantString()};" +
+                    "${metadata.gpsCoordinates?.longitude?.toInvariantString()};" +
                     "${metadata.locationShown?.name};${metadata.locationShown?.street};" +
                     "${metadata.locationShown?.city};${metadata.locationShown?.state};" +
                     "${metadata.locationShown?.country};" +
                     "${metadata.cameraMake};${metadata.cameraModel};${metadata.lensMake};" +
-                    "${metadata.lensModel};${metadata.iso};${metadata.exposureTime};" +
-                    "${metadata.fNumber};${metadata.focalLength};" +
+                    "${metadata.lensModel};${metadata.iso};" +
+                    "${metadata.exposureTime?.toInvariantString()};" +
+                    "${metadata.fNumber?.toInvariantString()};" +
+                    "${metadata.focalLength?.toInvariantString()};" +
                     "${metadata.title};${metadata.description};" +
                     "${metadata.flagged};${metadata.rating?.value};" +
                     "${metadata.keywords};${metadata.personsInImage};" +

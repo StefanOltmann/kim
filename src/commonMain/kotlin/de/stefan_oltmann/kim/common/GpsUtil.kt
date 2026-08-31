@@ -137,7 +137,12 @@ public object GpsUtil {
         /* Clamp the result within the valid range for this coordinate. */
         degrees = minOf(degrees, maxDegrees)
 
-        return "$degrees,$minutes$direction"
+        /*
+         * The minutes are rendered platform-independently, because the
+         * string is written into files - Kotlin/JS would drop the ".0"
+         * of whole minutes and produce different bytes than the JVM.
+         */
+        return "$degrees,${minutes.toInvariantString()}$direction"
     }
 
     private fun Double.roundTo(numFractionDigits: Int): Double {

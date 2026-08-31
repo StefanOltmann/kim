@@ -72,8 +72,15 @@ class TiffFieldTypesAndTagInfoTest {
             actual = FieldTypeSByte.writeData(byteArrayOf(1, 2), ByteOrder.BIG_ENDIAN)
         )
 
+        /*
+         * Attention: A non-numeric value is used as the wrong type here,
+         * because Kotlin/JS erases numeric types at runtime - every number
+         * in byte range answers "is Byte" with true on that platform, so
+         * the rejection of numeric values cannot be part of a
+         * cross-platform contract.
+         */
         assertFailsWith<ImageWriteException> {
-            FieldTypeSByte.writeData(5, ByteOrder.BIG_ENDIAN)
+            FieldTypeSByte.writeData("wrong", ByteOrder.BIG_ENDIAN)
         }
     }
 
@@ -144,8 +151,9 @@ class TiffFieldTypesAndTagInfoTest {
             actual = FieldTypeSShort.writeData(1000.toShort(), ByteOrder.BIG_ENDIAN)
         )
 
+        /* See testFieldTypeSByte for why a non-numeric value is used. */
         assertFailsWith<ImageWriteException> {
-            FieldTypeSShort.writeData(5, ByteOrder.BIG_ENDIAN)
+            FieldTypeSShort.writeData("wrong", ByteOrder.BIG_ENDIAN)
         }
     }
 
