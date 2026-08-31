@@ -127,8 +127,10 @@ private fun candidateRoundTrips(
 /**
  * Maximum number of significant digits a float can require to be
  * uniquely identified.
+ *
+ * Newer JDKs use 9, JVM 17 uses 8.
  */
-private const val FLOAT_MAX_SIGNIFICANT_DIGITS: Int = 9
+private const val FLOAT_MAX_SIGNIFICANT_DIGITS: Int = 8
 
 /**
  * The smallest positive normal float value, 2^-126. Everything below is
