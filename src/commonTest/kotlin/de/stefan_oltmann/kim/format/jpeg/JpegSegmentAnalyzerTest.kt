@@ -136,9 +136,11 @@ class JpegSegmentAnalyzerTest {
     /**
      * Formats the given segment infos as a text dump.
      */
-    private fun format(segmentInfos: List<JpegSegmentAnalyzer.JpegSegmentInfo>): String =
-        segmentInfos
-            .joinToString("\n", transform = ::formatSegmentInfo)
+    private fun format(segmentInfos: List<JpegSegmentAnalyzer.JpegSegmentInfo>): String = buildString {
+
+        for (segmentInfo in segmentInfos)
+            appendLine(formatSegmentInfo(segmentInfo))
+    }
 
     /**
      * Formats one segment line with the byte range and the marker description.
