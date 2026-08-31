@@ -132,9 +132,31 @@ class ExifToolDumpComparisonTest {
                     "kim type=${makerNoteDirectory?.type ?: -1}"
             )
 
-            if (dumpDirectory == null || makerNoteDirectory == null)
+            if (dumpDirectory == null)
                 continue
 
+            /*
+             * An empty dump section means ExifTool itself could not
+             * parse the MakerNote and only printed a warning, so kim
+             * may keep it as an opaque block without a directory.
+             */
+            val dumpHasComparableValues =
+                dumpDirectory.fields.isNotEmpty() || dumpDirectory.subDirectories.isNotEmpty()
+
+            /*
+             * ExifTool compared actual MakerNote values, so a NULL kim
+             * directory here means production parsing failed and must
+             * not be silently skipped.
+             */
+            if (dumpHasComparableValues && makerNoteDirectory == null) {
+                failures.add(
+                    "media_$index: Kim failed to parse MakerNote that ExifTool parsed"
+                )
+                continue
+            }
+
+            if (makerNoteDirectory == null)
+                continue
 
             comparedFieldCount += compareDirectories(
                 mediaIndex = index,
