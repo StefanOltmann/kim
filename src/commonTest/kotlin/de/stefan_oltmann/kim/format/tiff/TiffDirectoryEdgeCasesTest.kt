@@ -26,6 +26,7 @@ import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeShort
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.model.ImageSize
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -215,5 +216,33 @@ class TiffDirectoryEdgeCasesTest {
 
         assertEquals("<x:xmpmeta>XMP</x:xmpmeta>", metadata.xmp)
         assertTrue(metadata.imageSize != null)
+    }
+
+    @Test
+    fun testTiffImageParserPicksLargestDirectoryWithoutOverflow() {
+
+        /*
+         * The root directory area overflows Int when computed as
+         * width * height, so it must still win the comparison.
+         */
+        val outputSet = TiffOutputSet()
+
+        val rootDirectory = outputSet.getOrCreateRootDirectory()
+        rootDirectory.add(TiffTag.TIFF_TAG_IMAGE_WIDTH, 50_000)
+        rootDirectory.add(TiffTag.TIFF_TAG_IMAGE_HEIGHT, 50_000)
+
+        val thumbnailDirectory = outputSet.getOrCreateThumbnailDirectory()
+        thumbnailDirectory.add(TiffTag.TIFF_TAG_IMAGE_WIDTH, 1_000)
+        thumbnailDirectory.add(TiffTag.TIFF_TAG_IMAGE_HEIGHT, 1_000)
+
+        val byteWriter = ByteArrayByteWriter()
+
+        TiffWriter(ByteOrder.BIG_ENDIAN).write(byteWriter, outputSet)
+
+        val metadata = TiffImageParser.parseMetadata(
+            ByteArrayByteReader(byteWriter.toByteArray())
+        )
+
+        assertEquals(ImageSize(50_000, 50_000), metadata.imageSize)
     }
 }
