@@ -272,8 +272,32 @@ class JpegSegmentAnalyzerTest {
                 minOf(count.toLong(), virtualContentLength - position).toInt().coerceAtLeast(0)
             )
 
-            for (index in result.indices)
-                result[index] = byteAt(position + index)
+            /*
+             * The middle region of the virtual file is all zeros, which
+             * the ByteArray already provides. Only the windows reaching
+             * into the header or the EOI marker need real bytes. Filling
+             * the zeros per byte would grind through billions of loop
+             * iterations for the huge virtual content - fast on the JVM
+             * JIT, but beyond any test timeout on JS and WASM.
+             */
+            if (position < headerBytes.size) {
+
+                val headerOverlap =
+                    minOf(headerBytes.size.toLong() - position, result.size.toLong()).toInt()
+
+                for (index in 0 until headerOverlap)
+                    result[index] = headerBytes[position.toInt() + index]
+            }
+
+            val eoiStart = virtualContentLength - EOI_BYTES.size
+
+            if (position + result.size > eoiStart) {
+
+                val eoiOverlap = (position + result.size - eoiStart).toInt()
+
+                for (index in 0 until eoiOverlap)
+                    result[result.size - eoiOverlap + index] = EOI_BYTES[index]
+            }
 
             position += result.size
 

@@ -24,11 +24,39 @@ internal actual fun compress(input: String): ByteArray =
     Pako.deflate(input).toByteArray()
 
 @OptIn(ExperimentalWasmJsInterop::class)
-internal actual fun decompress(byteArray: ByteArray, maxOutputByteCount: Int): String =
-    Pako.inflate(byteArray.toUint8Array(), toStringOptions)
+internal actual fun decompress(
+    byteArray: ByteArray,
+    maxOutputByteCount: Int
+): String =
+    try {
 
-@OptIn(ExperimentalWasmJsInterop::class)
-private val toStringOptions: JsAny = js("({to: 'string'})")
+        /* Without options pako returns the raw bytes instead of a string. */
+        val rawBytes = Pako.inflate(byteArray.toUint8Array())
+
+        /*
+         * Abort before hostile data is decoded further, so it can never
+         * grow the output beyond the limit.
+         */
+        if (rawBytes.length > maxOutputByteCount)
+            throw ImageReadException(
+                "Decompressed data exceeds $maxOutputByteCount bytes."
+            )
+
+        rawBytes.toByteArray().decodeToString()
+
+    } catch (ex: ImageReadException) {
+
+        throw ex
+
+    } catch (ex: Throwable) {
+
+        /*
+         * Attention: Foreign JS throwables are not Exception subclasses,
+         * so pako's errors must be caught as Throwable to uphold the
+         * contract that only ImageException types escape this module.
+         */
+        throw ImageReadException("Failed to decompress the data.", ex)
+    }
 
 private fun Uint8Array.toByteArray(): ByteArray =
     ByteArray(length) { this[it] }
@@ -46,5 +74,5 @@ private fun ByteArray.toUint8Array(): Uint8Array {
 @JsModule("pako")
 private external object Pako {
     fun deflate(data: String): Uint8Array
-    fun inflate(data: Uint8Array, options: JsAny): String
+    fun inflate(data: Uint8Array): Uint8Array
 }

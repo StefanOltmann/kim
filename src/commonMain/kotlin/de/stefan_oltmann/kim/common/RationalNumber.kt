@@ -146,8 +146,14 @@ public class RationalNumber {
         if (divisor == 0L)
             return "Invalid rational ($numerator/$divisor)"
 
-        /* Display a rounded number to avoid different results on different platforms. */
-        return "$numerator/$divisor (${doubleValue().roundTo(TO_STRING_DOUBLE_ROUND_FRACTION_DIGITS)})"
+        /*
+         * Display a rounded number to avoid different results on different
+         * platforms. The rendering itself is platform-invariant, because
+         * Kotlin/JS would drop the ".0" of whole numbers.
+         */
+        val roundedValue = doubleValue().roundTo(TO_STRING_DOUBLE_ROUND_FRACTION_DIGITS)
+
+        return "$numerator/$divisor (${roundedValue.toInvariantString()})"
     }
 
     private fun Double.roundTo(numFractionDigits: Int): Double {
