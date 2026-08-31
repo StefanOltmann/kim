@@ -77,9 +77,12 @@ import kotlinx.datetime.TimeZone
  * metadata that an update would replace or drop but Kim cannot parse, then
  * [readMetadata][readMetadata] must throw [ImageReadException] instead of
  * reporting partial success - otherwise the failure only surfaces when the
- * user tries to edit, after the app already showed the photo. Deleting
- * metadata is exempt from this rule: it is an explicit request to remove
- * data, so even unparseable boxes can be stripped.
+ * user tries to edit, after the app already showed the photo.
+ *
+ * Kim only ever modifies files it can properly read. Both [update] and
+ * [deleteMetadata] require a readable file and will fail if the file or
+ * its existing metadata cannot be parsed. Corrupt or invalid files are
+ * never touched in any way.
  *
  * # Whitelist: structures exempt from the read/update symmetry rule
  *
@@ -340,6 +343,10 @@ public object Kim {
     /**
      * Removes all metadata of the file, keeping the ICC chunks that affect
      * how the image is displayed.
+     *
+     * The file must be readable; if the file or its metadata is corrupt
+     * or cannot be parsed, the operation fails and the file is left
+     * untouched.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -358,6 +365,10 @@ public object Kim {
     /**
      * Removes all metadata of the file, keeping the ICC chunks that affect
      * how the image is displayed.
+     *
+     * The file must be readable; if the file or its metadata is corrupt
+     * or cannot be parsed, the operation fails and the file is left
+     * untouched.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)

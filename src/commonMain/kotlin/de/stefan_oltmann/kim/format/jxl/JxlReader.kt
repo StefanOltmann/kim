@@ -36,10 +36,6 @@ internal object JxlReader {
          * and an update replaces the Exif box with freshly generated
          * bytes - silently destroying the unparseable content. This
          * mirrors the JPEG behavior for corrupt EXIF segments.
-         *
-         * deleteMetadata is unaffected: it strips boxes by type and does
-         * not go through this method, so the broken metadata can always
-         * be removed.
          */
         if (exifBox != null && exifBox.tiffContents == null)
             throw ImageReadException(
