@@ -9,11 +9,10 @@ import de.stefan_oltmann.kim.output.ByteArrayByteWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
 
         File testFile = new File("testphoto.jpg");
 
@@ -21,10 +20,8 @@ public class Main {
 
         System.out.println(imageMetadata);
 
-        try (FileInputStream inputStream = new FileInputStream(testFile)) {
-
-            ByteReader byteReader =
-                new JvmInputStreamByteReader(inputStream, testFile.length());
+        try (ByteReader byteReader =
+            new JvmInputStreamByteReader(new FileInputStream(testFile), testFile.length())) {
 
             ByteArrayByteWriter byteWriter = new ByteArrayByteWriter();
 

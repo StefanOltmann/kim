@@ -56,6 +56,14 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew build check assembleXCFramework --parallel
+      - name: Build Kotlin JVM sample
+        run: |
+          chmod +x ./examples/kim-kotlin-jvm-sample/gradlew
+          ./examples/kim-kotlin-jvm-sample/gradlew -p examples/kim-kotlin-jvm-sample build
+      - name: Build Java sample
+        run: |
+          chmod +x ./examples/kim-java-sample/gradlew
+          ./examples/kim-java-sample/gradlew -p examples/kim-java-sample build
       - name: Set RELEASE_VERSION variable
         run: |
           echo "RELEASE_VERSION=$(cat build/version.txt)" >> $GITHUB_ENV
