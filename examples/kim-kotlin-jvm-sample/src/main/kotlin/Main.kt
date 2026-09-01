@@ -75,13 +75,16 @@ fun updateTakenDateLowLevelApi() {
     exifDirectory.removeField(ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL)
     exifDirectory.add(ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL, "2222:02:02 13:37:42")
 
-    OutputStreamByteWriter(outputFile.outputStream()).use { outputStreamByteWriter ->
+    JvmInputStreamByteReader(inputFile.inputStream(), inputFile.length()).use { byteReader ->
 
-        JpegRewriter.updateExifMetadata(
-            byteReader = JvmInputStreamByteReader(inputFile.inputStream(), inputFile.length()),
-            byteWriter = outputStreamByteWriter,
-            outputSet = outputSet
-        )
+        OutputStreamByteWriter(outputFile.outputStream()).use { outputStreamByteWriter ->
+
+            JpegRewriter.updateExifMetadata(
+                byteReader = byteReader,
+                byteWriter = outputStreamByteWriter,
+                outputSet = outputSet
+            )
+        }
     }
 }
 
@@ -111,13 +114,16 @@ fun setGeoTiffToJpeg() {
         shortArrayOf(1, 0, 2, 3, 1024, 0, 1, 2, 2048, 0, 1, 4326, 1025, 0, 1, 2)
     )
 
-    OutputStreamByteWriter(outputFile.outputStream()).use { outputStreamByteWriter ->
+    JvmInputStreamByteReader(inputFile.inputStream(), inputFile.length()).use { byteReader ->
 
-        JpegRewriter.updateExifMetadata(
-            byteReader = JvmInputStreamByteReader(inputFile.inputStream(), inputFile.length()),
-            byteWriter = outputStreamByteWriter,
-            outputSet = outputSet
-        )
+        OutputStreamByteWriter(outputFile.outputStream()).use { outputStreamByteWriter ->
+
+            JpegRewriter.updateExifMetadata(
+                byteReader = byteReader,
+                byteWriter = outputStreamByteWriter,
+                outputSet = outputSet
+            )
+        }
     }
 }
 

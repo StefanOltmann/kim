@@ -49,7 +49,7 @@ public object RafMetadataExtractor : MetadataExtractor {
             MediaFormatMagicNumbers.raf.toByteArray()
         )
 
-        byteReader.skipBytes("86 header bytes", REMAINING_HEADER_BYTE_COUNT)
+        byteReader.skipBytes("68 header bytes", REMAINING_HEADER_BYTE_COUNT)
 
         val offset = byteReader.read4BytesAsInt("JPEG offset", ByteOrder.BIG_ENDIAN)
 

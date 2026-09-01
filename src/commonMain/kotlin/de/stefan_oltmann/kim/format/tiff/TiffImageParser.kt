@@ -214,7 +214,10 @@ public object TiffImageParser : ImageParser {
         for (directory in tiffContents.directories)
             getImageSize(directory)?.let { imageSizes.add(it) }
 
-        return imageSizes.maxByOrNull { it.width * it.height }
+        /*
+         * Long arithmetic, so areas of huge images cannot overflow Int.
+         */
+        return imageSizes.maxByOrNull { it.width.toLong() * it.height }
     }
 
     private fun getImageSize(directory: TiffDirectory): ImageSize? {

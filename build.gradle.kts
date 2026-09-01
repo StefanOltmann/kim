@@ -182,7 +182,7 @@ kotlin {
         dependencies {
 
             /* Date handling */
-            implementation(libs.kotlinx.datetime)
+            api(libs.kotlinx.datetime)
 
             /* XMP handling */
             api(libs.xmpcore)
@@ -240,16 +240,21 @@ kotlin {
             /*
              * Ktor extensions
              *
-             * Not available in commonMain due to missing WASM support.
+             * "api" because ByteReadChannel appears in the public
+             * signatures of KimKtor. Not available in commonMain due
+             * to missing WASM support.
              */
-            implementation(libs.ktor.io)
+            api(libs.ktor.io)
 
             /*
              * Multiplatform file access
              *
-             * Not available in commonMain due to missing JS browser support.
+             * "api" because kotlinx.io.files.Path / Source appear in
+             * the public signatures of KimKotlinx and the byte reader
+             * API. Not available in commonMain due to missing JS
+             * browser support.
              */
-            implementation(libs.kotlinx.io.core)
+            api(libs.kotlinx.io.core)
         }
     }
 

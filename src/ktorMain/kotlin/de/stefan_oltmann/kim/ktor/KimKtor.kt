@@ -35,6 +35,14 @@ public object KimKtor {
     public fun readMetadata(source: Source, contentLength: Long): MediaMetadata? =
         Kim.readMetadata(KotlinIoSourceByteReader(source, contentLength))
 
+    /**
+     * Attention: The [ByteReadChannel] is read through a blocking
+     * bridge, so this must not be called from the dispatcher or thread
+     * that serves the channel (for example a Ktor server handler
+     * reading the request channel) - that deadlocks. See
+     * [KtorByteReadChannelByteReader] for details and the supported
+     * usage.
+     */
     @JvmStatic
     @Throws(ImageReadException::class)
     public fun readMetadata(byteReadChannel: ByteReadChannel, contentLength: Long): MediaMetadata? =
@@ -45,6 +53,13 @@ public object KimKtor {
 public fun Kim.readMetadata(source: Source, contentLength: Long): MediaMetadata? =
     KimKtor.readMetadata(source, contentLength)
 
+/**
+ * Attention: The [ByteReadChannel] is read through a blocking bridge,
+ * so this must not be called from the dispatcher or thread that serves
+ * the channel (for example a Ktor server handler reading the request
+ * channel) - that deadlocks. See [KtorByteReadChannelByteReader] for
+ * details and the supported usage.
+ */
 @Throws(ImageReadException::class)
 public fun Kim.readMetadata(byteReadChannel: ByteReadChannel, contentLength: Long): MediaMetadata? =
     KimKtor.readMetadata(byteReadChannel, contentLength)

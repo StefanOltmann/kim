@@ -23,7 +23,22 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.io.readByteArray
 
 /**
- * This class allows streaming data from a cloud service and read only the headers.
+ * This class allows streaming data from a cloud service and read only
+ * the headers.
+ *
+ * The synchronous [ByteReader] methods bridge to the suspending
+ * [ByteReadChannel] through [runBlocking], so every buffer refill
+ * blocks the calling thread until the channel delivers the next chunk.
+ *
+ * Attention: Never read from the dispatcher or thread that produces
+ * the channel data - for example a Ktor server handler reading
+ * `call.request.receiveChannel()`. `runBlocking` parks that thread
+ * while the channel still needs it to run its read continuation,
+ * which deadlocks the call. Invoke the reader from another dispatcher
+ * or a background thread instead.
+ *
+ * Attention: Instances are not thread-safe. The buffer state is
+ * unsynchronized by design and must be confined to a single thread.
  */
 public class KtorByteReadChannelByteReader(
     private val channel: ByteReadChannel,

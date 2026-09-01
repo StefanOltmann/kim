@@ -222,12 +222,8 @@ public object PngImageParser : ImageParser {
 
         val text = chunks
             .filterIsInstance<PngChunkItxt>()
-            .filter { it.getKeyword() == PngConstants.XMP_KEYWORD }
-            .firstOrNull()
+            .firstOrNull { it.getKeyword() == PngConstants.XMP_KEYWORD }
             ?.getText()
-
-        if (text.isNullOrBlank())
-            return text
 
         return text
     }
@@ -236,12 +232,8 @@ public object PngImageParser : ImageParser {
 
         val text = chunks
             .filterIsInstance<PngTextChunk>()
-            .filter { it.getKeyword() == keyword }
-            .firstOrNull()
+            .firstOrNull { it.getKeyword() == keyword }
             ?.getText()
-
-        if (text.isNullOrBlank())
-            return text
 
         return text
     }

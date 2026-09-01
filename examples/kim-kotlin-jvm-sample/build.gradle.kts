@@ -10,5 +10,6 @@ repositories {
 }
 
 dependencies {
-    implementation("de.stefan-oltmann:kim:0.32.0")
+    implementation("de.stefan-oltmann:kim:0.38.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.9.1")
 }
