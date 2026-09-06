@@ -224,7 +224,8 @@ public object IptcParser {
             val blockType = byteReader.readNextNonIgnoredBlockType()
                 ?: break
 
-            val blockNameLength = byteReader.readByte("block name length").toInt()
+            /* The block name is a Pascal string, so its length byte is unsigned. */
+            val blockNameLength = byteReader.readByte("block name length").toUInt8()
 
             val blockNameBytes: ByteArray
 

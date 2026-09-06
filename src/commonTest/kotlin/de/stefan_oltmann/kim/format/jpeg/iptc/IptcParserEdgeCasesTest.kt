@@ -256,6 +256,39 @@ class IptcParserEdgeCasesTest {
     }
 
     /**
+     * The block name is a Pascal string whose length byte is unsigned per
+     * the Photoshop IRB spec. A length above 127 must be read as the
+     * unsigned value, or the whole block - and everything after it - is
+     * silently dropped.
+     */
+    @Test
+    fun testParsePhotoshopBlockWithLongName() {
+
+        val nameBytes = ByteArray(200) { it.toByte() }
+
+        val captionBytes = captionRecord("One")
+
+        val block = byteArrayOf(
+            0x38, 0x42, 0x49, 0x4D,
+            0x04, 0x04,
+            200.toByte()
+        ) + nameBytes +
+            byteArrayOf(0) +
+            byteArrayOf(0, 0, 0, captionBytes.size.toByte()) +
+            captionBytes
+
+        val metadata = IptcParser.parseIptc(
+            bytes = block,
+            startsWithApp13Header = false
+        )
+
+        assertEquals(
+            expected = listOf("One"),
+            actual = metadata.records.map { it.value }
+        )
+    }
+
+    /**
      * An odd-sized block without its trailing padding byte must be
      * kept and the parse must stop gracefully.
      */
