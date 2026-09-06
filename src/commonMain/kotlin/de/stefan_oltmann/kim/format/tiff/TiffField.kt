@@ -77,7 +77,18 @@ public class TiffField(
     public val tagInfo: TagInfo? = tagInfoOverride ?: getTag(directoryType, tag)
 
     public val value: Any = if (tagInfo is TagInfoGpsText)
-        tagInfo.getValue(this)
+
+        /*
+         * A single hostile GPS text field (e.g. a UserComment with a LONG
+         * type) must not fail the whole directory. Like every other
+         * per-entry corruption it is skipped by falling back to the
+         * generic type decode.
+         */
+        try {
+            tagInfo.getValue(this)
+        } catch (_: ImageReadException) {
+            fieldType.getValue(this.valueBytes, this.byteOrder)
+        }
     else
         fieldType.getValue(this.valueBytes, this.byteOrder)
 

@@ -262,25 +262,30 @@ class TiffFieldTypesAndTagInfoTest {
         assertEquals("GPS", tagInfo.getValue(field))
     }
 
+    /**
+     * A GPS text tag with a non-byte type no longer fails the field
+     * construction, which would reject the whole file. The value falls
+     * back to the generic type decode instead.
+     */
     @Test
-    fun testTagInfoGpsTextDecodeRejectsOtherTypes() {
+    fun testTagInfoGpsTextDecodeFallsBackToGenericType() {
 
         val tagInfo = GpsTagGpsProcessingMethod
 
-        assertFailsWith<ImageReadException> {
-            TiffField(
-                offset = 0,
-                tag = tagInfo.tag,
-                directoryType = TiffConstants.TIFF_DIRECTORY_GPS,
-                fieldType = de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong,
-                count = 1,
-                localValue = null,
-                valueOffset = 0,
-                valueBytes = byteArrayOf(0, 0, 0, 1),
-                byteOrder = ByteOrder.BIG_ENDIAN,
-                sortHint = 0
-            )
-        }
+        val field = TiffField(
+            offset = 0,
+            tag = tagInfo.tag,
+            directoryType = TiffConstants.TIFF_DIRECTORY_GPS,
+            fieldType = de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong,
+            count = 1,
+            localValue = null,
+            valueOffset = 0,
+            valueBytes = byteArrayOf(0, 0, 0, 1),
+            byteOrder = ByteOrder.BIG_ENDIAN,
+            sortHint = 0
+        )
+
+        assertEquals(listOf(1), (field.value as IntArray).toList())
     }
 
     @Test

@@ -22,6 +22,7 @@ import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.common.toBytes
 import de.stefan_oltmann.kim.common.toHex
+import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
@@ -143,6 +144,35 @@ class TiffReaderTest {
         assertFailsWith<ImageReadException> {
             TiffReader.read(ByteArrayByteReader(bytes))
         }
+    }
+
+    /**
+     * A single GPS text tag (like UserComment) with a non-byte type is
+     * hostile per-entry corruption and must be skipped like every other
+     * corrupt field instead of failing the whole directory.
+     */
+    @Test
+    fun testReadSkipsHostileGpsTextTag() {
+
+        val bytes = convertHexStringToByteArray(
+            "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
+                "0100" + // 1 entry
+                "69870400010000001a000000" + // ExifIFDOffset (0x8769), LONG, EXIF IFD at offset 26
+                "00000000" + // No next directory
+                "0100" + // EXIF IFD: 1 entry
+                "869204000100000041414141" + // UserComment (0x9286), LONG, count 1, "AAAA"
+                "00000000" // No next directory
+        )
+
+        val tiffContents = TiffReader.read(ByteArrayByteReader(bytes))
+
+        val exifDirectory = tiffContents.directories
+            .first { it.type == TiffConstants.TIFF_DIRECTORY_EXIF }
+
+        val userComment = exifDirectory.findField(ExifTag.EXIF_TAG_USER_COMMENT)
+
+        /* The hostile field must not yield GPS text. */
+        assertEquals(null, userComment?.let { it.value as? String })
     }
 
     /**
