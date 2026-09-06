@@ -430,7 +430,8 @@ public object MetadataSummaryConverter {
         if (value == value.toLong().toDouble())
             return value.toLong().toString()
 
-        return value.toString()
+        /* Invariant formatting, because platform Double renderings diverge. */
+        return value.toInvariantString()
     }
 }
 
