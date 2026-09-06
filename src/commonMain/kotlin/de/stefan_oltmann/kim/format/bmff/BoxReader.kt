@@ -149,8 +149,10 @@ public object BoxReader {
                     largeSize
                 }
 
-                /* Keep the length we already read. */
-                else -> size
+                /* Keep the length we already read. ISOBMFF sizes are
+                 * unsigned, so the high bit encodes boxes of 2 GiB and
+                 * above instead of a negative value. */
+                else -> size and 0xFFFFFFFFL
             }
 
             /*

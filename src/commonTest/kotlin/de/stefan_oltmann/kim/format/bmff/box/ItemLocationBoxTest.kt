@@ -17,6 +17,7 @@ package de.stefan_oltmann.kim.format.bmff.box
 
 import de.stefan_oltmann.kim.common.ImageReadException
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class ItemLocationBoxTest {
@@ -47,5 +48,38 @@ class ItemLocationBoxTest {
                 payload = payload
             )
         }
+    }
+
+    /**
+     * ISOBMFF 32-bit extent offsets are unsigned. A spec-legal offset
+     * with the high bit set (2 GiB and above) must not sign-extend into
+     * a negative offset that silently skips the metadata item.
+     */
+    @Test
+    fun testExtentOffsetAboveTwoGigIsReadUnsigned() {
+
+        /* version 2, 4-byte offsets/lengths, one item with one extent
+           at offset 0x90000000. */
+        val payload = byteArrayOf(
+            2, 0, 0, 0,
+            0x44,
+            0x00,
+            0, 0, 0, 1,
+            0, 0, 0, 1,
+            0, 0,
+            0, 0,
+            0, 1,
+            0x90.toByte(), 0, 0, 0,
+            0, 0, 0, 16
+        )
+
+        val box = ItemLocationBox(
+            offset = 0,
+            size = payload.size.toLong() + 8,
+            largeSize = null,
+            payload = payload
+        )
+
+        assertEquals(0x90000000L, box.extents.single().offset)
     }
 }
