@@ -90,22 +90,30 @@ public object JpegOrientationOffsetFinder {
                 continue
             }
 
+            /*
+             * Read only what the segment actually holds. A short non-EXIF
+             * APP1 must be skipped without a desynced read past its end,
+             * which would fail the whole orientation update.
+             */
+            val identifierLength =
+                minOf(segmentLength, JpegConstants.EXIF_IDENTIFIER_CODE.size)
+
             val exifIdentifierBytes = byteReader.readBytes(
                 "EXIF identifier",
-                JpegConstants.EXIF_IDENTIFIER_CODE.size
+                identifierLength
             )
 
-            positionCounter += JpegConstants.EXIF_IDENTIFIER_CODE.size
+            positionCounter += identifierLength
 
             /* Skip the APP1 XMP segment. */
             if (!exifIdentifierBytes.contentEquals(JpegConstants.EXIF_IDENTIFIER_CODE)) {
 
                 byteReader.skipBytes(
                     "skip segment",
-                    segmentLength - JpegConstants.EXIF_IDENTIFIER_CODE.size
+                    segmentLength - identifierLength
                 )
 
-                positionCounter += segmentLength - JpegConstants.EXIF_IDENTIFIER_CODE.size
+                positionCounter += segmentLength - identifierLength
 
                 continue
             }

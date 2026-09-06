@@ -228,6 +228,68 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
     }
 
     /**
+     * A short non-EXIF APP1 segment before the EXIF segment must be
+     * skipped without a desynced read past its end, so the update still
+     * succeeds and applies the orientation.
+     */
+    @Test
+    fun testUpdateToleratesShortNonExifApp1Segment() {
+
+        val shortApp1 = byteArrayOf(
+            0xFF.toByte(), 0xE1.toByte(),
+            0x00, 0x05,
+            0x58, 0x59, 0x5A // "XYZ", no EXIF identifier
+        )
+
+        val jpegBytes = byteArrayOf(0xFF.toByte(), 0xD8.toByte()) +
+            shortApp1 +
+            buildExifSegmentWithOrientation() +
+            minimalScan()
+
+        val newBytes = Kim.update(
+            bytes = jpegBytes,
+            updates = setOf(MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT))
+        )
+
+        assertEquals(
+            expected = TiffOrientation.ROTATE_RIGHT.value.toShort(),
+            actual = Kim.readMetadata(newBytes)?.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)
+        )
+    }
+
+    /**
+     * Builds an APP1 EXIF segment with a single orientation entry.
+     */
+    private fun buildExifSegmentWithOrientation(): ByteArray {
+
+        val payload = byteArrayOf(
+            0x45, 0x78, 0x69, 0x66, 0x00, 0x00, // "Exif\0\0"
+            0x49, 0x49, 0x2A, 0x00, // TIFF: II, version 42
+            0x08, 0x00, 0x00, 0x00, // IFD0 at offset 8
+            0x01, 0x00, // 1 entry
+            0x12, 0x01, // Orientation tag
+            0x03, 0x00, // Type SHORT
+            0x01, 0x00, 0x00, 0x00, // Count 1
+            0x06, 0x00, 0x00, 0x00, // Value 6 (rotate right)
+            0x00, 0x00, 0x00, 0x00 // No next IFD
+        )
+
+        return byteArrayOf(0xFF.toByte(), 0xE1.toByte()) +
+            byteArrayOf(0x00, (payload.size + 2).toByte()) +
+            payload
+    }
+
+    /**
+     * A minimal SOS scan data followed by the EOI marker.
+     */
+    private fun minimalScan(): ByteArray = byteArrayOf(
+        0xFF.toByte(), 0xDA.toByte(), // SOS
+        0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x3F, 0x00,
+        0x11, 0x22, 0x33, 0x44,
+        0xFF.toByte(), 0xD9.toByte() // EOI
+    )
+
+    /**
      * Inserts the given segment bytes after the first header segment that
      * follows the SOI marker.
      */
