@@ -26,6 +26,7 @@ import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeAscii
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoBytes
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoGpsText
@@ -197,25 +198,19 @@ public class TiffDirectory(
 
                 val tagInfo = entry.tagInfo
                 val fieldType = entry.fieldType
-                var value = entry.value
 
                 /*
-                 * Automatic correction: Trim certain values like "Copyright"
-                 * that come with huge amount of empty spaces and wasting space this way.
+                 * Text fields are copied byte exact. Decoding and
+                 * re-encoding is lossy: Latin-1 bytes become mojibake,
+                 * multi-string values are truncated at the first NUL and
+                 * GPS text encoding prefixes are replaced. Values the
+                 * caller did not change must survive a rewrite untouched,
+                 * see "Never destroy metadata" in the [Kim] documentation.
                  */
-                if (value is String && tagsToTrim.contains(tagInfo)) {
-
-                    value = value.replace("\u0000", "").trim()
-
-                    /* Skip fields that only had whitespaces in it. */
-                    if (value.isEmpty())
-                        continue
-                }
-
-                val bytes = if (tagInfo is TagInfoGpsText)
-                    tagInfo.encodeValue(value)
+                val bytes = if (fieldType === FieldTypeAscii || tagInfo is TagInfoGpsText)
+                    entry.valueBytes
                 else
-                    fieldType.writeData(value, byteOrder)
+                    fieldType.writeData(entry.value, byteOrder)
 
                 val count = bytes.size / fieldType.size
 
@@ -268,12 +263,6 @@ public class TiffDirectory(
     }
 
     public companion object {
-
-        private val tagsToTrim = setOf(
-            TiffTag.TIFF_TAG_COPYRIGHT,
-            TiffTag.TIFF_TAG_ARTIST,
-            ExifTag.EXIF_TAG_USER_COMMENT
-        )
 
         @kotlin.jvm.JvmStatic
         public fun description(type: Int): String {

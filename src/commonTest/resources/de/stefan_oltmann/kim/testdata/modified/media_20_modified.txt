@@ -15,7 +15,7 @@ Little-endian (Intel, II)
 0000000106 0x0132 ModifyDate = 2023:05:10 13:37:42
 0000000118 0x0213 YCbCrPositioning = 2
 0000000130 0x8769 ExifOffset = 630
-0000000142 0x8825 GPSInfo = 1092
+0000000142 0x8825 GPSInfo = 1230
 0000000154 0xc4a5 PrintIM = [260 bytes]
 
 ---- Directory ExifIFD @ 630 ----
@@ -34,39 +34,40 @@ Little-endian (Intel, II)
 0000000776 0x9208 LightSource = 0
 0000000788 0x9209 Flash = 25
 0000000800 0x920a FocalLength = 63/10 (6.3)
-0000000812 0xa000 FlashpixVersion = [0x30, 0x31, 0x30, 0x30]
-0000000824 0xa001 ColorSpace = 1
-0000000836 0xa002 ExifImageWidth = 2288
-0000000848 0xa003 ExifImageHeight = 1712
-0000000860 0xa300 FileSource = 3
-0000000872 0xa301 SceneType = 1
-0000000884 0xa401 CustomRendered = 0
-0000000896 0xa402 ExposureMode = 0
-0000000908 0xa403 WhiteBalance = 0
-0000000920 0xa404 DigitalZoomRatio = 0/100 (0.0)
-0000000932 0xa406 SceneCaptureType = 0
-0000000944 0xa407 GainControl = 1
-0000000956 0xa408 Contrast = 0
-0000000968 0xa409 Saturation = 0
-0000000980 0xa40a Sharpness = 0
+0000000812 0x9286 UserComment =                                                                                                                      
+0000000824 0xa000 FlashpixVersion = [0x30, 0x31, 0x30, 0x30]
+0000000836 0xa001 ColorSpace = 1
+0000000848 0xa002 ExifImageWidth = 2288
+0000000860 0xa003 ExifImageHeight = 1712
+0000000872 0xa300 FileSource = 3
+0000000884 0xa301 SceneType = 1
+0000000896 0xa401 CustomRendered = 0
+0000000908 0xa402 ExposureMode = 0
+0000000920 0xa403 WhiteBalance = 0
+0000000932 0xa404 DigitalZoomRatio = 0/100 (0.0)
+0000000944 0xa406 SceneCaptureType = 0
+0000000956 0xa407 GainControl = 1
+0000000968 0xa408 Contrast = 0
+0000000980 0xa409 Saturation = 0
+0000000992 0xa40a Sharpness = 0
 
----- Directory GPS @ 1092 ----
-0000001094 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000001106 0x0001 GPSLatitudeRef = N
-0000001118 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000001130 0x0003 GPSLongitudeRef = E
-0000001142 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 1230 ----
+0000001232 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000001244 0x0001 GPSLatitudeRef = N
+0000001256 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000001268 0x0003 GPSLongitudeRef = E
+0000001280 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory IFD1 @ 1206 ----
-0000001208 0x00fe NewSubfileType = 1
-0000001220 0x0100 ImageWidth = 256
-0000001232 0x0101 ImageHeight = 256
-0000001244 0x0102 BitsPerSample = [8, 8, 8]
-0000001256 0x0103 Compression = 6
-0000001268 0x0106 PhotometricInterpretation = 6
-0000001280 0x0115 SamplesPerPixel = 3
-0000001292 0x0201 JpgFromRawStart = 1326
-0000001304 0x0202 JpgFromRawLength = 5648
+---- Directory IFD1 @ 1344 ----
+0000001346 0x00fe NewSubfileType = 1
+0000001358 0x0100 ImageWidth = 256
+0000001370 0x0101 ImageHeight = 256
+0000001382 0x0102 BitsPerSample = [8, 8, 8]
+0000001394 0x0103 Compression = 6
+0000001406 0x0106 PhotometricInterpretation = 6
+0000001418 0x0115 SamplesPerPixel = 3
+0000001430 0x0201 JpgFromRawStart = 1464
+0000001442 0x0202 JpgFromRawLength = 5648
 
 ---- IPTC ----
 Keywords (25) = 'Umlauts: äöüß'

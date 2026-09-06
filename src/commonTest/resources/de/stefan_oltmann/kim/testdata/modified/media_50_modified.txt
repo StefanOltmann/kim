@@ -12,79 +12,80 @@ Little-endian (Intel, II)
 0000000070 0x0128 ResolutionUnit = 2
 0000000082 0x0131 Software = Digital Camera X-T4 Ver1.72
 0000000094 0x0132 ModifyDate = 2023:05:10 13:37:42
-0000000106 0x013b Artist = Stefan Oltmann
+0000000106 0x013b Artist = Stefan Oltmann                                                                                                                                                                                                                                                 
 0000000118 0x0213 YCbCrPositioning = 2
-0000000130 0x8298 Copyright = Stefan Oltmann
-0000000142 0x8769 ExifOffset = 400
-0000000154 0x8825 GPSInfo = 3486
+0000000130 0x8298 Copyright = Stefan Oltmann                                                                                                                                                                                                                                                 
+0000000142 0x8769 ExifOffset = 1136
+0000000154 0x8825 GPSInfo = 3804
 0000000166 0xc4a5 PrintIM = [106 bytes]
 
----- Directory ExifIFD @ 400 ----
-0000000402 0x829a ExposureTime = 10/400 (0.025)
-0000000414 0x829d FNumber = 400/100 (4.0)
-0000000426 0x8822 ExposureProgram = 3
-0000000438 0x8827 ISO = 400
-0000000450 0x8830 SensitivityType = 1
-0000000462 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x30]
-0000000474 0x9003 DateTimeOriginal = 2023:05:10 13:37:42
-0000000486 0x9004 DateTimeDigitized = 2023:05:10 13:37:42
-0000000498 0x9101 ComponentsConfiguration = [0x01, 0x02, 0x03, 0x00]
-0000000510 0x9102 CompressedBitsPerPixel = 48/10 (4.8)
-0000000522 0x9201 ShutterSpeedValue = 530/100 (5.3)
-0000000534 0x9202 ApertureValue = 400/100 (4.0)
-0000000546 0x9203 BrightnessValue = 315/100 (3.15)
-0000000558 0x9204 ExposureCompensation = 33/100 (0.33)
-0000000570 0x9205 MaxApertureValue = 200/100 (2.0)
-0000000582 0x9207 MeteringMode = 5
-0000000594 0x9208 LightSource = 0
-0000000606 0x9209 Flash = 0
-0000000618 0x920a FocalLength = 3500/100 (35.0)
-0000000630 0x927c MakerNote = [1192 bytes]
-0000000642 0xa000 FlashpixVersion = [0x30, 0x31, 0x30, 0x30]
-0000000654 0xa001 ColorSpace = 1
-0000000666 0xa002 ExifImageWidth = 6240
-0000000678 0xa003 ExifImageHeight = 4160
-0000000690 0xa005 InteropOffset = 3456
-0000000702 0xa20e FocalPlaneXResolution = 2660/1 (2660.0)
-0000000714 0xa20f FocalPlaneYResolution = 2660/1 (2660.0)
-0000000726 0xa210 FocalPlaneResolutionUnit = 3
-0000000738 0xa217 SensingMethod = 2
-0000000750 0xa300 FileSource = 3
-0000000762 0xa301 SceneType = 1
-0000000774 0xa401 CustomRendered = 0
-0000000786 0xa402 ExposureMode = 0
-0000000798 0xa403 WhiteBalance = 0
-0000000810 0xa405 FocalLengthIn35mmFormat = 53
-0000000822 0xa406 SceneCaptureType = 0
-0000000834 0xa40a Sharpness = 2
-0000000846 0xa40c SubjectDistanceRange = 0
-0000000858 0xa431 BodySerialNumber = 0BQ04402
-0000000870 0xa432 LensSpecification = [3500/100 (35.0), 3500/100 (35.0), 200/100 (2.0), 200/100 (2.0)]
-0000000882 0xa433 LensMake = FUJIFILM
-0000000894 0xa434 LensModel = XC35mmF2
-0000000906 0xa435 LensSerialNumber = 0AA16656
+---- Directory ExifIFD @ 1136 ----
+0000001138 0x829a ExposureTime = 10/400 (0.025)
+0000001150 0x829d FNumber = 400/100 (4.0)
+0000001162 0x8822 ExposureProgram = 3
+0000001174 0x8827 ISO = 400
+0000001186 0x8830 SensitivityType = 1
+0000001198 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x30]
+0000001210 0x9003 DateTimeOriginal = 2023:05:10 13:37:42
+0000001222 0x9004 DateTimeDigitized = 2023:05:10 13:37:42
+0000001234 0x9101 ComponentsConfiguration = [0x01, 0x02, 0x03, 0x00]
+0000001246 0x9102 CompressedBitsPerPixel = 48/10 (4.8)
+0000001258 0x9201 ShutterSpeedValue = 530/100 (5.3)
+0000001270 0x9202 ApertureValue = 400/100 (4.0)
+0000001282 0x9203 BrightnessValue = 315/100 (3.15)
+0000001294 0x9204 ExposureCompensation = 33/100 (0.33)
+0000001306 0x9205 MaxApertureValue = 200/100 (2.0)
+0000001318 0x9207 MeteringMode = 5
+0000001330 0x9208 LightSource = 0
+0000001342 0x9209 Flash = 0
+0000001354 0x920a FocalLength = 3500/100 (35.0)
+0000001366 0x927c MakerNote = [1192 bytes]
+0000001378 0x9286 UserComment =                                                                                                                                                                                                                                                         
+0000001390 0xa000 FlashpixVersion = [0x30, 0x31, 0x30, 0x30]
+0000001402 0xa001 ColorSpace = 1
+0000001414 0xa002 ExifImageWidth = 6240
+0000001426 0xa003 ExifImageHeight = 4160
+0000001438 0xa005 InteropOffset = 3774
+0000001450 0xa20e FocalPlaneXResolution = 2660/1 (2660.0)
+0000001462 0xa20f FocalPlaneYResolution = 2660/1 (2660.0)
+0000001474 0xa210 FocalPlaneResolutionUnit = 3
+0000001486 0xa217 SensingMethod = 2
+0000001498 0xa300 FileSource = 3
+0000001510 0xa301 SceneType = 1
+0000001522 0xa401 CustomRendered = 0
+0000001534 0xa402 ExposureMode = 0
+0000001546 0xa403 WhiteBalance = 0
+0000001558 0xa405 FocalLengthIn35mmFormat = 53
+0000001570 0xa406 SceneCaptureType = 0
+0000001582 0xa40a Sharpness = 2
+0000001594 0xa40c SubjectDistanceRange = 0
+0000001606 0xa431 BodySerialNumber = 0BQ04402
+0000001618 0xa432 LensSpecification = [3500/100 (35.0), 3500/100 (35.0), 200/100 (2.0), 200/100 (2.0)]
+0000001630 0xa433 LensMake = FUJIFILM
+0000001642 0xa434 LensModel = XC35mmF2
+0000001654 0xa435 LensSerialNumber = 0AA16656
 
----- Directory InteropIFD @ 3456 ----
-0000003458 0x0001 InteroperabilityIndex = R98
-0000003470 0x0002 InteroperabilityVersion = [0x30, 0x31, 0x30, 0x30]
+---- Directory InteropIFD @ 3774 ----
+0000003776 0x0001 InteroperabilityIndex = R98
+0000003788 0x0002 InteroperabilityVersion = [0x30, 0x31, 0x30, 0x30]
 
----- Directory GPS @ 3486 ----
-0000003488 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000003500 0x0001 GPSLatitudeRef = N
-0000003512 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000003524 0x0003 GPSLongitudeRef = E
-0000003536 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 3804 ----
+0000003806 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000003818 0x0001 GPSLatitudeRef = N
+0000003830 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000003842 0x0003 GPSLongitudeRef = E
+0000003854 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory IFD1 @ 3600 ----
-0000003602 0x0103 Compression = 6
-0000003614 0x0112 Orientation = 1
-0000003626 0x011a XResolution = 72/1 (72.0)
-0000003638 0x011b YResolution = 72/1 (72.0)
-0000003650 0x0128 ResolutionUnit = 2
-0000003662 0x013b Artist = Stefan Oltmann
-0000003674 0x0201 JpgFromRawStart = 3746
-0000003686 0x0202 JpgFromRawLength = 9359
-0000003698 0x0213 YCbCrPositioning = 2
+---- Directory IFD1 @ 3918 ----
+0000003920 0x0103 Compression = 6
+0000003932 0x0112 Orientation = 1
+0000003944 0x011a XResolution = 72/1 (72.0)
+0000003956 0x011b YResolution = 72/1 (72.0)
+0000003968 0x0128 ResolutionUnit = 2
+0000003980 0x013b Artist = Stefan Oltmann                                                                                                                                                                                                                                                 
+0000003992 0x0201 JpgFromRawStart = 4304
+0000004004 0x0202 JpgFromRawLength = 9359
+0000004016 0x0213 YCbCrPositioning = 2
 
 ---- Directory MakerNoteFujiFilm @ 2188 ----
 0000002190 0x0000 Version = [0x30, 0x31, 0x33, 0x30]

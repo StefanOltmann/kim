@@ -12,73 +12,76 @@ Little-endian (Intel, II)
 0000000070 0x011b YResolution = 180/1 (180.0)
 0000000082 0x0128 ResolutionUnit = 2
 0000000094 0x0132 ModifyDate = 2017:11:12 22:26:16
-0000000106 0x0213 YCbCrPositioning = 2
-0000000118 0x8769 ExifOffset = 252
-0000000130 0x8825 GPSInfo = 18612
+0000000106 0x013b Artist = 
+0000000118 0x0213 YCbCrPositioning = 2
+0000000130 0x8298 Copyright = 
+0000000142 0x8769 ExifOffset = 276
+0000000154 0x8825 GPSInfo = 18900
 
----- Directory ExifIFD @ 252 ----
-0000000254 0x829a ExposureTime = 1/4000 (2.5E-4)
-0000000266 0x829d FNumber = 56/10 (5.6)
-0000000278 0x8822 ExposureProgram = 4
-0000000290 0x8827 ISO = 3200
-0000000302 0x8830 SensitivityType = 2
-0000000314 0x8832 RecommendedExposureIndex = 3200
-0000000326 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x30]
-0000000338 0x9003 DateTimeOriginal = 2023:07:12 14:48:45
-0000000350 0x9004 DateTimeDigitized = 2023:07:12 14:48:45
-0000000362 0x9101 ComponentsConfiguration = [0x01, 0x02, 0x03, 0x00]
-0000000374 0x9102 CompressedBitsPerPixel = 3/1 (3.0)
-0000000386 0x9201 ShutterSpeedValue = 383/32 (11.96875)
-0000000398 0x9202 ApertureValue = 159/32 (4.96875)
-0000000410 0x9204 ExposureCompensation = 0/3 (0.0)
-0000000422 0x9207 MeteringMode = 5
-0000000434 0x9209 Flash = 16
-0000000446 0x920a FocalLength = 55/1 (55.0)
-0000000458 0x927c MakerNote = [17582 bytes]
-0000000470 0x9290 SubSecTime =   
-0000000482 0x9291 SubSecTimeOriginal = 76
-0000000494 0x9292 SubSecTimeDigitized = 76
-0000000506 0xa000 FlashpixVersion = [0x30, 0x31, 0x30, 0x30]
-0000000518 0xa001 ColorSpace = 1
-0000000530 0xa002 ExifImageWidth = 2304
-0000000542 0xa003 ExifImageHeight = 1536
-0000000554 0xa005 InteropOffset = 18558
-0000000566 0xa20e FocalPlaneXResolution = 2304000/879 (2621.16041)
-0000000578 0xa20f FocalPlaneYResolution = 1536000/586 (2621.16041)
-0000000590 0xa210 FocalPlaneResolutionUnit = 2
-0000000602 0xa217 SensingMethod = 2
-0000000614 0xa300 FileSource = 3
-0000000626 0xa401 CustomRendered = 0
-0000000638 0xa402 ExposureMode = 0
-0000000650 0xa403 WhiteBalance = 1
-0000000662 0xa404 DigitalZoomRatio = 6000/6000 (1.0)
-0000000674 0xa406 SceneCaptureType = 0
-0000000686 0xa430 CameraOwnerName = 
-0000000698 0xa431 BodySerialNumber = 073043001183
-0000000710 0xa432 LensSpecification = [18/1 (18.0), 55/1 (55.0), 0/1 (0.0), 0/1 (0.0)]
-0000000722 0xa434 LensModel = EF-M18-55mm f/3.5-5.6 IS STM
-0000000734 0xa435 LensSerialNumber = 0000455071
+---- Directory ExifIFD @ 276 ----
+0000000278 0x829a ExposureTime = 1/4000 (2.5E-4)
+0000000290 0x829d FNumber = 56/10 (5.6)
+0000000302 0x8822 ExposureProgram = 4
+0000000314 0x8827 ISO = 3200
+0000000326 0x8830 SensitivityType = 2
+0000000338 0x8832 RecommendedExposureIndex = 3200
+0000000350 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x30]
+0000000362 0x9003 DateTimeOriginal = 2023:07:12 14:48:45
+0000000374 0x9004 DateTimeDigitized = 2023:07:12 14:48:45
+0000000386 0x9101 ComponentsConfiguration = [0x01, 0x02, 0x03, 0x00]
+0000000398 0x9102 CompressedBitsPerPixel = 3/1 (3.0)
+0000000410 0x9201 ShutterSpeedValue = 383/32 (11.96875)
+0000000422 0x9202 ApertureValue = 159/32 (4.96875)
+0000000434 0x9204 ExposureCompensation = 0/3 (0.0)
+0000000446 0x9207 MeteringMode = 5
+0000000458 0x9209 Flash = 16
+0000000470 0x920a FocalLength = 55/1 (55.0)
+0000000482 0x927c MakerNote = [17582 bytes]
+0000000494 0x9286 UserComment = 
+0000000506 0x9290 SubSecTime =   
+0000000518 0x9291 SubSecTimeOriginal = 76
+0000000530 0x9292 SubSecTimeDigitized = 76
+0000000542 0xa000 FlashpixVersion = [0x30, 0x31, 0x30, 0x30]
+0000000554 0xa001 ColorSpace = 1
+0000000566 0xa002 ExifImageWidth = 2304
+0000000578 0xa003 ExifImageHeight = 1536
+0000000590 0xa005 InteropOffset = 18846
+0000000602 0xa20e FocalPlaneXResolution = 2304000/879 (2621.16041)
+0000000614 0xa20f FocalPlaneYResolution = 1536000/586 (2621.16041)
+0000000626 0xa210 FocalPlaneResolutionUnit = 2
+0000000638 0xa217 SensingMethod = 2
+0000000650 0xa300 FileSource = 3
+0000000662 0xa401 CustomRendered = 0
+0000000674 0xa402 ExposureMode = 0
+0000000686 0xa403 WhiteBalance = 1
+0000000698 0xa404 DigitalZoomRatio = 6000/6000 (1.0)
+0000000710 0xa406 SceneCaptureType = 0
+0000000722 0xa430 CameraOwnerName = 
+0000000734 0xa431 BodySerialNumber = 073043001183
+0000000746 0xa432 LensSpecification = [18/1 (18.0), 55/1 (55.0), 0/1 (0.0), 0/1 (0.0)]
+0000000758 0xa434 LensModel = EF-M18-55mm f/3.5-5.6 IS STM
+0000000770 0xa435 LensSerialNumber = 0000455071
 
----- Directory InteropIFD @ 18558 ----
-0000018560 0x0001 InteroperabilityIndex = R98
-0000018572 0x0002 InteroperabilityVersion = [0x30, 0x31, 0x30, 0x30]
-0000018584 0x1001 RelatedImageWidth = 2304
-0000018596 0x1002 RelatedImageHeight = 1536
+---- Directory InteropIFD @ 18846 ----
+0000018848 0x0001 InteroperabilityIndex = R98
+0000018860 0x0002 InteroperabilityVersion = [0x30, 0x31, 0x30, 0x30]
+0000018872 0x1001 RelatedImageWidth = 2304
+0000018884 0x1002 RelatedImageHeight = 1536
 
----- Directory GPS @ 18612 ----
-0000018614 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000018626 0x0001 GPSLatitudeRef = N
-0000018638 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000018650 0x0003 GPSLongitudeRef = E
-0000018662 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 18900 ----
+0000018902 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000018914 0x0001 GPSLatitudeRef = N
+0000018926 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000018938 0x0003 GPSLongitudeRef = E
+0000018950 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory IFD1 @ 18726 ----
-0000018728 0x0103 Compression = 6
-0000018740 0x011a XResolution = 180/1 (180.0)
-0000018752 0x011b YResolution = 180/1 (180.0)
-0000018764 0x0128 ResolutionUnit = 2
-0000018776 0x0201 JpgFromRawStart = 18820
-0000018788 0x0202 JpgFromRawLength = 3209
+---- Directory IFD1 @ 19014 ----
+0000019016 0x0103 Compression = 6
+0000019028 0x011a XResolution = 180/1 (180.0)
+0000019040 0x011b YResolution = 180/1 (180.0)
+0000019052 0x0128 ResolutionUnit = 2
+0000019064 0x0201 JpgFromRawStart = 19108
+0000019076 0x0202 JpgFromRawLength = 3209
 
 ---- Directory MakerNoteCanon @ 864 ----
 0000000866 0x0001 CanonCameraSettings = [50 shorts]
