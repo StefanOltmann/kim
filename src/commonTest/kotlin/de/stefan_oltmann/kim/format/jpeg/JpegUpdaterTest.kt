@@ -214,7 +214,11 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
         /* A COM segment with an empty payload. */
         val emptyCom = byteArrayOf(0xFF.toByte(), 0xFE.toByte(), 0x00, 0x02)
 
-        val bytesWithEmptyCom = insertSegmentAfterJfif(originalBytes, emptyCom)
+        /* The empty segment sits directly before the EXIF segment, so
+           the lossless orientation path walks over it. */
+        val bytesWithEmptyCom = byteArrayOf(0xFF.toByte(), 0xD8.toByte()) +
+            emptyCom +
+            originalBytes.copyOfRange(2, originalBytes.size)
 
         /* Reading must not reject the empty segment. */
         assertNotNull(Kim.readMetadata(bytesWithEmptyCom))
@@ -225,6 +229,18 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
         )
 
         assertTrue(newBytes.containsSegment(emptyCom))
+
+        /*
+         * The lossless orientation patch rebuilds the header through the
+         * orientation offset finder, which must tolerate the empty
+         * segment like every other reader.
+         */
+        val orientedBytes = Kim.update(
+            bytes = bytesWithEmptyCom,
+            updates = setOf(MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT))
+        )
+
+        assertTrue(orientedBytes.containsSegment(emptyCom))
     }
 
     /**

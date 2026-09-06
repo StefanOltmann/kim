@@ -76,8 +76,8 @@ public object JpegOrientationOffsetFinder {
 
             val remainingByteCount = byteReader.contentLength - positionCounter
 
-            /* Reject invalid segment lengths */
-            if (segmentLength <= 0 || segmentLength > remainingByteCount)
+            /* A zero content length is an empty segment, which is spec-legal. */
+            if (segmentLength < 0 || segmentLength > remainingByteCount)
                 throw ImageReadException("Illegal JPEG segment length: $segmentLength")
 
             /* We are only looking for the EXIF segment. */
