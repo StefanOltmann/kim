@@ -17,11 +17,13 @@
 
 package de.stefan_oltmann.kim.format.gif
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.gif.chunk.GifChunkApplicationExtension
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 
 class GifImageParserTest {
@@ -86,5 +88,25 @@ class GifImageParserTest {
         )
 
         assertEquals(xmp, chunk.parseAsXmpOrThrow())
+    }
+
+    /**
+     * A byte that is not a known block introducer must fail the parse
+     * like the streaming write path does. Silently dropping it would
+     * shift all following data and produce a shortened GIF.
+     */
+    @Test
+    fun testReadChunksRejectsUnknownBlockIntroducer() {
+
+        /* Header, logical screen descriptor without color table,
+           one stray byte, then the terminator. */
+        val bytes = "GIF89a".encodeToByteArray() +
+            byteArrayOf(1, 0, 1, 0, 0, 0, 0) +
+            byteArrayOf(0x55.toByte()) +
+            byteArrayOf(GifConstants.GIF_TERMINATOR)
+
+        assertFailsWith<ImageReadException> {
+            GifImageParser.readChunks(ByteArrayByteReader(bytes), null)
+        }
     }
 }
