@@ -25,6 +25,26 @@ import kotlin.test.assertTrue
 class PngMetadataExtractorTest {
 
     @Test
+    fun testIendCrc() {
+
+        val bytes = KimTestData.getBytesOf(KimTestData.PNG_TEST_IMAGE_INDEX)
+
+        val byteReader = ByteArrayByteReader(bytes)
+
+        val metadataBytes = Kim.extractMetadataBytes(byteReader).second
+
+        /* The CRC32 of the chunk type "IEND" is AE 42 60 82. */
+        val expectedCrcBytes = byteArrayOf(0xAE.toByte(), 0x42.toByte(), 0x60.toByte(), 0x82.toByte())
+
+        val actualCrcBytes = metadataBytes.copyOfRange(metadataBytes.size - 4, metadataBytes.size)
+
+        assertTrue(
+            expectedCrcBytes.contentEquals(actualCrcBytes),
+            "IEND chunk must carry CRC AE 42 60 82, but was ${actualCrcBytes.joinToString(" ") { it.toUByte().toString(16) }}"
+        )
+    }
+
+    @Test
     fun testExtractMetadataBytes() {
 
         val indices = setOf(
