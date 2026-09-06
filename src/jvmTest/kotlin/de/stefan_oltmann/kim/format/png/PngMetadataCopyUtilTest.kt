@@ -17,6 +17,8 @@
 package de.stefan_oltmann.kim.format.png
 
 import com.goncalossilva.resources.Resource
+import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.common.copyTo
 import de.stefan_oltmann.kim.common.exists
 import de.stefan_oltmann.kim.common.readBytes
@@ -162,5 +164,34 @@ class PngMetadataCopyUtilTest {
             leakedTempFiles.isEmpty(),
             "Leaked temporary files: $leakedTempFiles"
         )
+    }
+
+    /**
+     * The destination metadata chunks must follow the mandatory IHDR
+     * chunk. A malformed destination without an IHDR must be rejected
+     * instead of receiving the metadata at a spec-invalid position.
+     */
+    @Test
+    fun testCopyRejectsDestinationWithoutIhdr() {
+
+        val source = KimTestData.getHeaderBytesOf(
+            KimTestData.PNG_APPLE_PREVIEW_TEST_IMAGE_INDEX
+        )
+
+        /* PNG signature plus a bare IEND chunk, no IHDR. */
+        val destination = convertHexStringToByteArray(
+            "89504e470d0a1a0a" + "00000000" + "49454e44" + "ae426082"
+        )
+
+        try {
+            PngMetadataCopyUtil.copy(
+                source = source,
+                destination = destination
+            )
+
+            fail("Expected the copy to fail for a destination without IHDR.")
+        } catch (expected: ImageReadException) {
+            /* Expected. */
+        }
     }
 }
