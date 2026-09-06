@@ -16,14 +16,22 @@
 package de.stefan_oltmann.kim.format.tiff.makernote
 
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.format.tiff.TiffDirectory
 import de.stefan_oltmann.kim.format.tiff.TiffField
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
+import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeUndefined
+import de.stefan_oltmann.kim.format.tiff.write.TiffOutputField
+import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
+import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlinx.datetime.TimeZone
 import kotlin.test.BeforeTest
+import kotlin.test.assertFailsWith
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -213,6 +221,40 @@ class MakerNotePreservationTest {
             exif.header.offsetToFirstIFD < originalOffset,
             "IFD0 must be written before the MakerNote."
         )
+    }
+
+    /**
+     * The MakerNote must never move - at all costs. If a write would
+     * relocate it (anchor impossible to honor), the write must fail
+     * loudly instead of producing a file with corrupted vendor offsets.
+     */
+    @Test
+    fun testMakerNoteRelocationFailsTheWrite() {
+
+        val outputSet = TiffOutputSet()
+
+        val rootDirectory = outputSet.getOrCreateRootDirectory()
+
+        rootDirectory.add(TiffTag.TIFF_TAG_MAKE, "Canon")
+
+        val makerNoteField = TiffOutputField(
+            tag = ExifTag.EXIF_TAG_MAKER_NOTE.tag,
+            fieldType = FieldTypeUndefined,
+            count = 8,
+            bytes = byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8)
+        )
+
+        /* An anchor before the TIFF header (8 bytes) can never be
+           honored - the MakerNote would have to move. */
+        makerNoteField.originalOffset = 4
+
+        rootDirectory.add(makerNoteField)
+
+        val byteWriter = ByteArrayByteWriter()
+
+        assertFailsWith<ImageWriteException> {
+            TiffWriter(outputSet.byteOrder).write(byteWriter, outputSet)
+        }
     }
 
     /**
