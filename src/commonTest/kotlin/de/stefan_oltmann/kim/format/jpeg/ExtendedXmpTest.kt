@@ -20,6 +20,7 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.Md5
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.jpeg.xmp.ExtendedXmpWriter
+import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -203,6 +204,54 @@ class ExtendedXmpTest {
 
         assertFalse(cleanedBytes.decodeToString().contains("Main Title"))
         assertFalse(cleanedBytes.decodeToString().contains("HasExtendedXMP"))
+    }
+
+    /**
+     * A packet that fits into a single segment but still carries the
+     * reference of a previous extended-XMP write must have that stale
+     * reference removed. Writing it verbatim produces a file that
+     * references extended data that does not exist, so no subsequent
+     * read of it succeeds.
+     */
+    @Test
+    fun testUpdateXmpXmlRemovesStaleExtendedXmpReference() {
+
+        /* Standard XMP without any extended reference. */
+        val plainPacket = """
+            <?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>
+            <x:xmpmeta xmlns:x="adobe:ns:meta/">
+             <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/">
+               <dc:title><rdf:Alt><rdf:li xml:lang="x-default">Main Title</rdf:li></rdf:Alt></dc:title>
+              </rdf:Description>
+             </rdf:RDF>
+            </x:xmpmeta>
+            <?xpacket end="w"?>
+        """.trimIndent()
+
+        val jpegBytes = createJpegWithExtendedXmp(
+            mainPacket = plainPacket,
+            extensionPayloads = emptyList()
+        )
+
+        /* A packet as a reader round-trips it: it still contains the
+           reference of a previous extended-XMP write. */
+        val packetWithStaleReference = buildMainPacket(GUID)
+
+        val byteWriter = ByteArrayByteWriter()
+
+        JpegRewriter.updateXmpXml(
+            byteReader = ByteArrayByteReader(jpegBytes),
+            byteWriter = byteWriter,
+            xmpXml = packetWithStaleReference
+        )
+
+        val newBytes = byteWriter.toByteArray()
+
+        assertFalse(newBytes.decodeToString().contains(GUID))
+
+        /* The output must remain readable. */
+        assertNotNull(Kim.readMetadata(newBytes))
     }
 
     /*

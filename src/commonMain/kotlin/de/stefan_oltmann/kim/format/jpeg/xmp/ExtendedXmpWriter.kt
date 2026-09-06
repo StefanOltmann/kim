@@ -59,17 +59,31 @@ internal object ExtendedXmpWriter {
 
     private const val MINIMAL_FOOTER = "</rdf:RDF></x:xmpmeta>"
 
+    /* The attribute and element forms of the reference that the read path detects. */
+    private val staleAttributeReferenceRegex = Regex("xmpNote:HasExtendedXMP=\"[^\"]*\"")
+
+    private val staleElementReferenceRegex =
+        Regex("<xmpNote:HasExtendedXMP>\\s*[0-9A-Fa-f]{32}\\s*</xmpNote:HasExtendedXMP>")
+
     /**
      * Splits the given XMP packet. Packets that already fit into a single
      * segment are returned unchanged without extension segments.
      */
     fun partition(xmpXml: String): PartitionedXmp {
 
-        if (xmpXml.encodeToByteArray().size <= JpegConstants.MAX_XMP_BYTES_PER_SEGMENT)
-            return PartitionedXmp(xmpXml, emptyList())
+        /*
+         * A stale reference from a previous write must be removed before the
+         * packet is classified as fitting into one segment: written verbatim
+         * it would point at extension segments that are never emitted, so no
+         * subsequent read of the output could succeed.
+         */
+        val cleanedXml = removeStaleExtendedXmpReference(xmpXml)
 
-        val headerEnd = locateTagEnd(xmpXml, RDF_OPEN_TAG)
-        val footerStart = xmpXml.indexOf(RDF_CLOSE_TAG)
+        if (cleanedXml.encodeToByteArray().size <= JpegConstants.MAX_XMP_BYTES_PER_SEGMENT)
+            return PartitionedXmp(cleanedXml, emptyList())
+
+        val headerEnd = locateTagEnd(cleanedXml, RDF_OPEN_TAG)
+        val footerStart = cleanedXml.indexOf(RDF_CLOSE_TAG)
 
         if (headerEnd == -1 || footerStart == -1 || headerEnd > footerStart)
             throw ImageWriteException(
@@ -77,9 +91,9 @@ internal object ExtendedXmpWriter {
                     "into main and extended data."
             )
 
-        val header = xmpXml.substring(0, headerEnd)
-        val footer = xmpXml.substring(footerStart)
-        val content = xmpXml.substring(headerEnd, footerStart)
+        val header = cleanedXml.substring(0, headerEnd)
+        val footer = cleanedXml.substring(footerStart)
+        val content = cleanedXml.substring(headerEnd, footerStart)
 
         /* Block boundaries are the starts of successive rdf:Description elements.
          * RDF/XML never nests descriptions, so scanning only for starts is safe
@@ -157,6 +171,18 @@ internal object ExtendedXmpWriter {
 
         return if (tagEnd == -1) -1 else tagEnd + 1
     }
+
+    /**
+     * Removes a stale "xmpNote:HasExtendedXMP" reference from the packet.
+     * Kim regenerates the reference whenever extended data is written,
+     * exactly like ExifTool, which deletes the tag because "we create it
+     * as needed". Empty rdf:Description wrappers of a removed attribute
+     * reference are legal RDF and remain in the packet.
+     */
+    private fun removeStaleExtendedXmpReference(xmpXml: String): String =
+        xmpXml
+            .replace(staleAttributeReferenceRegex, "")
+            .replace(staleElementReferenceRegex, "")
 
     /**
      * Splits the content between the rdf:RDF tags into blocks that each start
