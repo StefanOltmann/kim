@@ -228,6 +228,34 @@ class BmffBoxesTest {
     }
 
     /**
+     * A hostile 32-bit item count of 0xFFFFFFFF parses as a negative Int
+     * and would turn repeat() into a silent no-op, reporting an empty
+     * item list for a structurally broken file. Construction must fail
+     * like an unsupported version does.
+     */
+    @Test
+    fun testItemLocationBoxRejectsNegativeItemCount() {
+
+        /* version 2, no flags, 4-byte offsets/lengths, no base offset,
+           itemCount 0xFFFFFFFF and no items. */
+        val payload = byteArrayOf(
+            2, 0, 0, 0,
+            0x44,
+            0x00,
+            0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte()
+        )
+
+        assertFailsWith<ImageReadException> {
+            ItemLocationBox(
+                offset = 0,
+                size = payload.size.toLong() + 8,
+                largeSize = null,
+                payload = payload
+            )
+        }
+    }
+
+    /**
      * Regression test: the spec allows base offset field sizes of 1, 2, 4
      * and 8 bytes. Size 2 previously fell into a silent zero case that
      * also desynchronized the stream.
