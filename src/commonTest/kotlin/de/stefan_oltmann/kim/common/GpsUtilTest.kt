@@ -90,5 +90,13 @@ class GpsUtilTest {
 
         /* Values beyond the boundary are clamped to the valid range. */
         assertEquals("180,0.0E", GpsUtil.decimalLongitudeToDDM(180.9999999))
+
+        /*
+         * The clamp must cover the fractional part too: 90.5 decodes
+         * back to 90.5 unless it is clamped to the pole.
+         */
+        assertEquals("90,0.0N", GpsUtil.decimalLatitudeToDDM(90.5))
+        assertEquals("90,0.0S", GpsUtil.decimalLatitudeToDDM(-90.5))
+        assertEquals("180,0.0E", GpsUtil.decimalLongitudeToDDM(200.0))
     }
 }
