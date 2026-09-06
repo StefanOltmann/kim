@@ -186,14 +186,22 @@ public object WebPImageParser : ImageParser {
 
             /*
              * If chunk size is odd, a single padding byte (which MUST be 0
-             * to conform with RIFF) is added.
+             * to conform with RIFF) is added between chunks. A nonconformant
+             * encoder may omit the pad byte of the final chunk, which then
+             * is the end of the file instead of a parse error.
              */
             val hasPadding = chunkSize % 2 != 0
 
-            if (hasPadding)
+            val paddedEndCount =
+                bytesReadCount + TPYE_LENGTH + CHUNK_SIZE_LENGTH + chunkSize + 1
+
+            val hasFinalPadding = hasPadding && paddedEndCount <= bytesToRead
+
+            if (hasFinalPadding)
                 byteReader.skipBytes("padding byte", 1)
 
-            bytesReadCount += TPYE_LENGTH + CHUNK_SIZE_LENGTH + chunkSize + if (hasPadding) 1 else 0
+            bytesReadCount += TPYE_LENGTH + CHUNK_SIZE_LENGTH + chunkSize +
+                if (hasFinalPadding) 1 else 0
 
             /*
              * Skipped image chunks are not part of the result, because
