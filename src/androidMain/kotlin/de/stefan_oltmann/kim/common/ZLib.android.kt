@@ -35,16 +35,22 @@ internal actual fun compress(input: String): ByteArray {
 
     val buffer = ByteArray(ZLIB_BUFFER_SIZE)
 
-    while (!deflater.finished()) {
+    try {
 
-        val count = deflater.deflate(buffer)
+        while (!deflater.finished()) {
 
-        outputStream.write(buffer, 0, count)
+            val count = deflater.deflate(buffer)
+
+            outputStream.write(buffer, 0, count)
+        }
+
+        return outputStream.toByteArray()
+
+    } finally {
+
+        /* Releases the native zip structure, also when deflating throws. */
+        deflater.end()
     }
-
-    deflater.end()
-
-    return outputStream.toByteArray()
 }
 
 internal actual fun decompress(
