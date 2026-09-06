@@ -243,6 +243,36 @@ class MetadataSummaryConverterEdgeCasesTest {
     }
 
     /**
+     * Vendor-truncated date-only DateTimeOriginal values ("2021:12:06")
+     * are supported by ExifDateUtil and must not be lost in the summary.
+     * They are interpreted as that day at midnight in the configured
+     * time zone.
+     */
+    @Test
+    fun testTakenDateSummaryFromDateOnlyExif() {
+
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.JPEG,
+            imageSize = null,
+            exif = tiffContents(
+                field(
+                    ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL,
+                    "2021:12:06\u0000".encodeToByteArray()
+                )
+            ),
+            exifBytes = null,
+            iptc = null,
+            xmp = null
+        )
+
+        /* 2021-12-06T00:00:00 at GMT+02:00. */
+        assertEquals(
+            expected = 1_638_741_600_000L,
+            actual = metadata.convertToSummary().takenDate
+        )
+    }
+
+    /**
      * SubSecTime is a digit string whose length encodes the fraction, so
      * "05" must yield 50 ms. Converting it through a number would strip
      * the leading zero and report 500 ms instead.

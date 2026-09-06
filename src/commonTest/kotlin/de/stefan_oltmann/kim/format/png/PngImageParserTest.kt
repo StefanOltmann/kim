@@ -17,6 +17,7 @@
 package de.stefan_oltmann.kim.format.png
 
 import de.stefan_oltmann.kim.format.png.chunk.PngChunkItxt
+import de.stefan_oltmann.kim.format.png.chunk.PngChunkText
 import de.stefan_oltmann.kim.format.png.chunk.PngChunkZtxt
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.testdata.KimTestData
@@ -71,5 +72,39 @@ class PngImageParserTest {
         val actualXmp = xmpTxtChunk.text
 
         assertEquals(expectedXmp, actualXmp, "XMP is different.")
+    }
+
+    /**
+     * Text chunks whose "Raw profile type" content is not valid hex are
+     * uninterpretable. They must be ignored like any other uninterpretable
+     * chunk instead of failing the read of the whole file.
+     */
+    @Test
+    fun testParseMetadataIgnoresGarbageRawProfileChunks() {
+
+        val ihdrChunk = PngImageParser.readChunks(
+            ByteArrayByteReader(
+                KimTestData.getHeaderBytesOf(KimTestData.PNG_TEST_IMAGE_INDEX)
+            ),
+            listOf(PngChunkType.IHDR)
+        ).single()
+
+        val garbageExifChunk = PngChunkText(
+            PngChunkType.TEXT,
+            "Raw profile type exif\u000045786966zzffd9".encodeToByteArray(),
+            crc = 0
+        )
+
+        val garbageIptcChunk = PngChunkText(
+            PngChunkType.TEXT,
+            "Raw profile type iptc\u00003842494dzz".encodeToByteArray(),
+            crc = 0
+        )
+
+        val metadata = PngImageParser.parseMetadataFromChunks(
+            listOf(ihdrChunk, garbageExifChunk, garbageIptcChunk)
+        )
+
+        assertNotNull(metadata)
     }
 }

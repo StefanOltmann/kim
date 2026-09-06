@@ -16,10 +16,28 @@
 package de.stefan_oltmann.kim.input
 
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class ByteArrayByteReaderTest {
+
+    /**
+     * Negative counts are rejected uniformly across all ByteReader
+     * implementations instead of producing implementation-specific
+     * empty results or raw range errors.
+     */
+    @Test
+    fun testReadBytesRejectsNegativeCount() {
+
+        val reader = ByteArrayByteReader(byteArrayOf())
+
+        val exception = assertFailsWith<IllegalArgumentException> {
+            reader.readBytes(-1)
+        }
+
+        assertTrue(exception.message?.contains("negative") == true)
+    }
 
     @Test
     fun testMoveToRejectsNegativePosition() {
@@ -51,5 +69,36 @@ class ByteArrayByteReaderTest {
         assertFailsWith<IllegalArgumentException> {
             reader.moveTo(4)
         }
+    }
+
+    /**
+     * A hostile count must not overflow the index computation into a
+     * wrapped-around range that crashes inside copyOfRange. It yields a
+     * short read at the end of the content instead.
+     */
+    @Test
+    fun testReadBytesWithHostileCountReturnsShortRead() {
+
+        val reader = ByteArrayByteReader(byteArrayOf(1, 2, 3, 4))
+
+        reader.moveTo(2)
+
+        assertEquals(2, reader.readBytes(Int.MAX_VALUE).size)
+    }
+
+    /**
+     * An offset plus length that overflows the Int range must not slip a
+     * wrapped negative end index through the bounds check. An offset
+     * beyond the content returns an empty array instead.
+     */
+    @Test
+    fun testReadBytesWithHostileOffsetAndLengthReturnsEmpty() {
+
+        val reader = ByteArrayByteReader(byteArrayOf(1, 2, 3, 4))
+
+        assertEquals(
+            expected = 0,
+            actual = reader.readBytes(offset = Int.MAX_VALUE - 1, length = 10).size
+        )
     }
 }

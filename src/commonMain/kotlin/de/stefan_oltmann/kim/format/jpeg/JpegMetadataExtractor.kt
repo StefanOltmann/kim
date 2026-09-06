@@ -111,8 +111,8 @@ public object JpegMetadataExtractor : MetadataExtractor {
 
             val remainingByteCount = byteReader.contentLength - readBytesCount
 
-            /* Reject invalid segment lengths */
-            if (segmentLength <= 0 || segmentLength > remainingByteCount)
+            /* A zero content length is an empty segment, which is spec-legal. */
+            if (segmentLength < 0 || segmentLength > remainingByteCount)
                 throw ImageReadException("Illegal JPEG segment length: $segmentLength")
 
             val segmentBytes = byteReader.readBytes(segmentLength)

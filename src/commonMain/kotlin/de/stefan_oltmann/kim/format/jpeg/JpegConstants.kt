@@ -120,12 +120,19 @@ public object JpegConstants {
     public const val EXTENDED_XMP_TOTAL_LENGTH_BYTES: Int = 4
 
     /**
-     * Max extended XMP data bytes per APP1 segment. The identifier, the GUID
-     * and the total length field count into the segment payload.
+     * Every extended XMP segment carries the 4-byte big-endian offset of
+     * its chunk inside the complete extended XMP data.
+     */
+    public const val EXTENDED_XMP_OFFSET_BYTES: Int = 4
+
+    /**
+     * Max extended XMP data bytes per APP1 segment. The identifier, the GUID,
+     * the total length field and the offset field count into the segment payload.
      */
     public val MAX_EXTENDED_XMP_BYTES_PER_SEGMENT: Int =
         MAX_PAYLOAD_BYTES_PER_SEGMENT - EXTENDED_XMP_IDENTIFIER.size -
-            EXTENDED_XMP_GUID_LENGTH - EXTENDED_XMP_TOTAL_LENGTH_BYTES
+            EXTENDED_XMP_GUID_LENGTH - EXTENDED_XMP_TOTAL_LENGTH_BYTES -
+            EXTENDED_XMP_OFFSET_BYTES
 
     /**
      * Namespace URI of the xmpNote schema, which carries the

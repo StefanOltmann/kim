@@ -149,8 +149,10 @@ public object BoxReader {
                     largeSize
                 }
 
-                /* Keep the length we already read. */
-                else -> size
+                /* Keep the length we already read. ISOBMFF sizes are
+                 * unsigned, so the high bit encodes boxes of 2 GiB and
+                 * above instead of a negative value. */
+                else -> size and 0xFFFFFFFFL
             }
 
             /*
@@ -160,6 +162,16 @@ public object BoxReader {
              */
             if (actualLength <= 0)
                 throw ImageReadException("Box $type has an invalid size: $size.")
+
+            /*
+             * A box smaller than its own header would rewind the metadata
+             * scan position and re-parse consumed bytes as boxes. The
+             * streaming writer rejects the same input.
+             */
+            if (actualLength < BMFFConstants.BOX_HEADER_LENGTH)
+                throw ImageReadException(
+                    "Box $type declares a size smaller than its header: $size."
+                )
 
             /*
              * The first JXLP box contains the codestream header, so every

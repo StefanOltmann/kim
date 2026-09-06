@@ -23,6 +23,7 @@ import de.stefan_oltmann.kim.common.decodeLatin1BytesToString
 import de.stefan_oltmann.kim.common.slice
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toInt
+import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
@@ -88,7 +89,7 @@ public object IptcParser {
     public fun parseIptc(
         bytes: ByteArray,
         startsWithApp13Header: Boolean = true
-    ): IptcMetadata {
+    ): IptcMetadata = tryWithImageReadException {
 
         val records = mutableListOf<IptcRecord>()
 
@@ -103,7 +104,7 @@ public object IptcParser {
             records.addAll(parseIPTCBlock(block.blockData))
         }
 
-        return IptcMetadata(records, blocks)
+        IptcMetadata(records, blocks)
     }
 
     private fun parseIPTCBlock(bytes: ByteArray): List<IptcRecord> {
@@ -150,6 +151,14 @@ public object IptcParser {
                 index += IptcConstants.IPTC_EXTENDED_RECORD_LENGTH_SIZE
 
                 if (recordSize < 0)
+                    return records
+
+                /*
+                 * The record length is file-controlled. A length larger than
+                 * the remaining data terminates parsing instead of overflowing
+                 * the index on the next loop iteration.
+                 */
+                if (recordSize > bytes.size - index)
                     return records
             }
 
@@ -213,16 +222,34 @@ public object IptcParser {
             if (!byteReader.skipToNextResourceBlock())
                 break
 
-            val blockType = byteReader.readNextNonIgnoredBlockType()
-                ?: break
+            /*
+             * The data can end anywhere, e.g. after a truncated write.
+             * Like the tolerated EOF inside the block data, every header
+             * read ends the parse gracefully and keeps the blocks found
+             * so far.
+             */
+            val blockType = try {
+                byteReader.readNextNonIgnoredBlockType()
+            } catch (_: ImageReadException) {
+                break
+            } ?: break
 
-            val blockNameLength = byteReader.readByte("block name length").toInt()
+            val blockNameLength = try {
+                byteReader.readByte("block name length").toUInt8()
+            } catch (_: ImageReadException) {
+                break
+            }
 
             val blockNameBytes: ByteArray
 
             if (blockNameLength == 0) {
 
-                byteReader.readByte("empty name")
+                try {
+                    byteReader.readByte("empty name")
+                } catch (_: ImageReadException) {
+                    break
+                }
+
                 blockNameBytes = EMPTY_BYTE_ARRAY
 
             } else {
@@ -233,11 +260,21 @@ public object IptcParser {
                     break
                 }
 
-                if (blockNameLength % 2 == 0)
-                    byteReader.readByte("block name padding byte")
+                if (blockNameLength % 2 == 0) {
+
+                    try {
+                        byteReader.readByte("block name padding byte")
+                    } catch (_: ImageReadException) {
+                        break
+                    }
+                }
             }
 
-            val blockSize = byteReader.read4BytesAsInt("block size", APP13_BYTE_ORDER)
+            val blockSize = try {
+                byteReader.read4BytesAsInt("block size", APP13_BYTE_ORDER)
+            } catch (_: ImageReadException) {
+                break
+            }
 
             /*
              * Note: This doesn't catch cases where blocksize is invalid but is still less

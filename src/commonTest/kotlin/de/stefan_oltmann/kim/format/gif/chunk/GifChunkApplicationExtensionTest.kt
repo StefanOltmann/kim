@@ -18,7 +18,7 @@ package de.stefan_oltmann.kim.format.gif.chunk
 import de.stefan_oltmann.kim.common.ImageReadException
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 class GifChunkApplicationExtensionTest {
 
@@ -45,17 +45,19 @@ class GifChunkApplicationExtensionTest {
     }
 
     /**
-     * The application identifier needs 8 bytes, so smaller first sub
-     * chunks must still be rejected.
+     * A first sub-block too short for the 8-byte identifier keeps the
+     * chunk with a NULL identifier instead of failing construction, so
+     * one malformed extension cannot make a whole file unreadable.
      */
     @Test
-    fun testSmallFirstSubChunkSizeIsRejected() {
+    fun testShortFirstSubChunkYieldsNullIdentifier() {
 
-        assertFailsWith<ImageReadException> {
-            GifChunkApplicationExtension(
-                header = byteArrayOf(0x21, 0xFF.toByte()),
-                subChunks = listOf(byteArrayOf(4, 1, 2, 3, 4))
-            )
-        }
+        val chunk = GifChunkApplicationExtension(
+            header = byteArrayOf(0x21, 0xFF.toByte()),
+            subChunks = listOf(byteArrayOf(4, 1, 2, 3, 4))
+        )
+
+        assertNull(chunk.applicationIdentifier)
+        assertNull(chunk.applicationCode)
     }
 }

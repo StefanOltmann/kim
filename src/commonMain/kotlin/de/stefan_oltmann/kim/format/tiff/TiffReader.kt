@@ -76,6 +76,8 @@ public object TiffReader {
      */
     private const val MAX_SUB_DIRECTORY_DEPTH: Int = 16
 
+    private const val BIGTIFF_VERSION: Int = 43
+
     /**
      * A sub-directory of a MakerNote that is stored as a binary blob.
      *
@@ -169,6 +171,15 @@ public object TiffReader {
         val byteOrder = getTiffByteOrder(byteOrder1)
 
         val tiffVersion = byteReader.read2BytesAsInt("TIFF version", byteOrder)
+
+        /*
+         * A BigTIFF (version 43, 20-byte directory entries) misparsed as
+         * classic TIFF would produce a valid-looking file with truncated
+         * metadata on rewrite. Other version signatures like "RO" for ORF
+         * or "U\0" for RW2 use classic 12-byte entries and stay readable.
+         */
+        if (tiffVersion == BIGTIFF_VERSION)
+            throw ImageReadException("BigTIFF is not supported.")
 
         val offsetToFirstIFD =
             byteReader.read4BytesAsInt("Offset to first IFD", byteOrder)
@@ -308,15 +319,14 @@ public object TiffReader {
     }
 
     /**
-     * Reads the sub-directories that the offset fields of the given
-     * directory point to.
-     *
-     * If an offset field is broken, the field is removed from [fields],
-     * because the file would otherwise not be updatable. The ExifIFD is
-     * the exception: it carries the MakerNote, so removing it would drop
-     * the MakerNote on rewrite and such files are rejected, matching
-     * ExifTool's fatal error for an unreadable MakerNote field.
+     * The Exif, GPS and Interop offset fields point to sub-IFDs whose
+     * content is user-visible metadata that must survive updates.
      */
+    private fun isMetadataBearingOffsetField(offsetField: TagInfo): Boolean =
+        offsetField == ExifTag.EXIF_TAG_EXIF_OFFSET ||
+            offsetField == ExifTag.EXIF_TAG_GPSINFO ||
+            offsetField == ExifTag.EXIF_TAG_INTEROP_OFFSET
+
     private fun readOffsetDirectories(
         byteReader: RandomAccessByteReader,
         byteOrder: ByteOrder,
@@ -369,6 +379,20 @@ public object TiffReader {
 
             for ((index, subDirOffset) in subDirOffsets.withIndex()) {
 
+                /*
+                 * An offset at or beyond the end of the file exits
+                 * readDirectory with "success" (the lenient root-chain
+                 * behavior), which would silently drop the pointer and
+                 * its sub-IFD from the rewrite. That must fail loudly
+                 * for the metadata-bearing sub-IFDs.
+                 */
+                if (isMetadataBearingOffsetField(offsetField) &&
+                    subDirOffset.toLong() >= byteReader.contentLength
+                )
+                    throw ImageReadException(
+                        "The ${offsetField.name} offset $subDirOffset points beyond the end of the file."
+                    )
+
                 val subDirectoryRead = try {
 
                     readDirectory(
@@ -394,16 +418,15 @@ public object TiffReader {
                 } catch (ex: ImageReadException) {
 
                     /*
-                     * If the subdirectory is broken we remove the field,
-                     * because the file would otherwise not be updatable.
-                     *
-                     * Except for the ExifIFD, which carries the MakerNote:
-                     * removing it would drop the MakerNote on rewrite, so
-                     * such files are rejected, matching ExifTool's fatal
-                     * error for an unreadable MakerNote field.
+                     * The Exif, GPS and Interop sub-IFDs carry metadata that
+                     * must survive updates. Removing the pointer field of an
+                     * unreadable sub-IFD would make the next update drop its
+                     * data permanently, so these fail the read like ExifTool
+                     * fails an unreadable MakerNote. See "Never destroy
+                     * metadata" in the [Kim] documentation.
                      */
 
-                    if (offsetField == ExifTag.EXIF_TAG_EXIF_OFFSET)
+                    if (isMetadataBearingOffsetField(offsetField))
                         throw ex
 
                     false
@@ -411,8 +434,10 @@ public object TiffReader {
 
                 if (!subDirectoryRead) {
 
-                    if (offsetField == ExifTag.EXIF_TAG_EXIF_OFFSET)
-                        throw ImageReadException("Failed to read the ExifIFD.")
+                    if (isMetadataBearingOffsetField(offsetField))
+                        throw ImageReadException(
+                            "Failed to read the ${offsetField.name} sub-directory."
+                        )
 
                     fields.remove(field)
                 }

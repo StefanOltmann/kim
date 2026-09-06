@@ -19,6 +19,7 @@ package de.stefan_oltmann.kim.format.bmff
 
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.MetadataType
+import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MediaMetadata
@@ -51,7 +52,17 @@ import de.stefan_oltmann.kim.output.ByteArrayByteWriter
  */
 public object BaseMediaFileFormatImageParser : ImageParser {
 
-    override fun parseMetadata(byteReader: ByteReader): MediaMetadata {
+    override fun parseMetadata(byteReader: ByteReader): MediaMetadata =
+        tryWithImageReadException {
+            parseMetadataInternal(byteReader)
+        }
+
+    /**
+     * The actual parsing. Hostile files let internal machinery like the
+     * eager box construction fail with IllegalStateException, so this is
+     * wrapped at the public boundary into the documented ImageReadException.
+     */
+    private fun parseMetadataInternal(byteReader: ByteReader): MediaMetadata {
 
         val copyByteReader = CopyByteReader(byteReader)
 

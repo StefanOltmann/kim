@@ -15,6 +15,7 @@
  */
 package de.stefan_oltmann.kim.format.bmff
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.ITEM_TYPE_MIME
@@ -26,6 +27,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 /**
@@ -33,6 +35,41 @@ import kotlin.test.assertTrue
  * fragmented across the file.
  */
 class BaseMediaFileFormatImageParserTest {
+
+    /**
+     * The public parseMetadata documents only ImageReadException. Hostile
+     * input that makes an eagerly constructed box fail with an
+     * IllegalStateException must be wrapped at this boundary like every
+     * other failure, so direct callers only see ImageException.
+     */
+    @Test
+    fun testParseMetadataWrapsUnsupportedInfeVersion() {
+
+        /* An infe with the unsupported version 0. */
+        val infeV0 = createBox(
+            BoxType.INFE,
+            byteArrayOf(0, 0, 0, 0, 0, 1, 0x6D, 0x69, 0x66, 0x31, 0)
+        )
+
+        val iinf = createBox(
+            BoxType.IINF,
+            byteArrayOf(0, 0, 0, 0) + byteArrayOf(0, 1) + infeV0
+        )
+
+        val meta = createBox(
+            BoxType.META,
+            byteArrayOf(0, 0, 0, 0) + createHdlrBox() + iinf
+        )
+
+        val file = createBox(
+            BoxType.FTYP,
+            "heic\u0000\u0000\u0000\u0000mif1".encodeToByteArray()
+        ) + meta
+
+        assertFailsWith<ImageReadException> {
+            BaseMediaFileFormatImageParser.parseMetadata(ByteArrayByteReader(file))
+        }
+    }
 
     /**
      * Regression test: an EXIF item that is split into two extents must

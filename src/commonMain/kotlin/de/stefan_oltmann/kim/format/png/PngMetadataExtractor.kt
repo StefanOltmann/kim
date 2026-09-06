@@ -51,9 +51,22 @@ public object PngMetadataExtractor : MetadataExtractor {
         0.toByte(), 0.toByte(), 0.toByte(), 0.toByte()
     )
 
-    private val imageEndChunkCrc: List<Byte> = listOf(
-        0xAE.toByte(), 42.toByte(), 60.toByte(), 82.toByte()
-    )
+    /*
+     * CRC of the "IEND" chunk type bytes. Derived from the CRC algorithm itself,
+     * so a hardcoded literal can never diverge from it again.
+     */
+    @Suppress("MagicNumber")
+    private val imageEndChunkCrc: List<Byte> = run {
+
+        val crc = PngCrc.finishPartialCrc(PngCrc.startPartialCrc(PngChunkType.IEND.bytes)).toInt()
+
+        listOf(
+            (crc ushr 24 and 0xFF).toByte(),
+            (crc ushr 16 and 0xFF).toByte(),
+            (crc ushr 8 and 0xFF).toByte(),
+            crc.and(0xFF).toByte()
+        )
+    }
 
     @Throws(ImageReadException::class)
     @Suppress("ComplexMethod", "LoopWithTooManyJumpStatements")

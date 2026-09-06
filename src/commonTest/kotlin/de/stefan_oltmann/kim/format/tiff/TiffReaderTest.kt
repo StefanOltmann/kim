@@ -15,15 +15,19 @@
  */
 package de.stefan_oltmann.kim.format.tiff
 
+import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.common.toBytes
 import de.stefan_oltmann.kim.common.toHex
+import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.DefaultRandomAccessByteReader
+import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.writeInt
 import kotlin.test.Test
@@ -90,6 +94,106 @@ class TiffReaderTest {
 
         /* The hostile offset must not crash the reader nor produce bytes. */
         assertEquals(null, directory.thumbnailBytes)
+    }
+
+    /**
+     * A GPS sub-IFD that cannot be parsed must fail the read like the
+     * Exif sub-IFD does. Silently dropping the pointer field would make
+     * the next update remove the GPS data from the file permanently
+     * (read/update symmetry, see "Never destroy metadata" in the [Kim]
+     * documentation).
+     */
+    @Test
+    fun testReadRejectsTruncatedGpsIfd() {
+
+        val bytes = convertHexStringToByteArray(
+            "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
+                "0100" + // 1 entry
+                "25880400010000001a000000" + // GPSInfo (0x8825), LONG, count 1, GPS IFD at offset 26
+                "00000000" + // No next directory
+                "3200" // GPS IFD entry count 0x0032 (50), no entries follow
+        )
+
+        assertFailsWith<ImageReadException> {
+            TiffReader.read(ByteArrayByteReader(bytes))
+        }
+
+        /* The same file must fail the update instead of dropping the GPS block. */
+        assertFailsWith<ImageWriteException> {
+            Kim.update(
+                bytes = bytes,
+                updates = setOf(MetadataUpdate.TakenDate(0L))
+            )
+        }
+    }
+
+    /**
+     * A GPS pointer that resolves beyond the end of the file must fail
+     * the read like an in-range corrupt GPS IFD does. Treating it as
+     * "successfully read" makes the next rewrite drop the GPS block
+     * silently (read/update symmetry).
+     */
+    @Test
+    fun testReadRejectsGpsIfdOffsetBeyondEof() {
+
+        val bytes = convertHexStringToByteArray(
+            "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
+                "0100" + // 1 entry
+                "2588040001000000" + "00300000" + // GPSInfo, LONG, GPS IFD at offset 12288
+                "00000000" // No next directory
+        )
+
+        assertFailsWith<ImageReadException> {
+            TiffReader.read(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /**
+     * A BigTIFF (version 43, 20-byte directory entries) must be rejected.
+     * Misreading it as classic TIFF would emit a valid-looking file with
+     * truncated metadata on rewrite.
+     */
+    @Test
+    fun testReadRejectsBigTiffHeader() {
+
+        /* Header: II, version 43 (BigTIFF), first IFD at offset 8. */
+        val bytes = convertHexStringToByteArray(
+            "49492b0008000000" +
+                "0000000000000000"
+        )
+
+        assertFailsWith<ImageReadException> {
+            TiffReader.read(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /**
+     * A single GPS text tag (like UserComment) with a non-byte type is
+     * hostile per-entry corruption and must be skipped like every other
+     * corrupt field instead of failing the whole directory.
+     */
+    @Test
+    fun testReadSkipsHostileGpsTextTag() {
+
+        val bytes = convertHexStringToByteArray(
+            "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
+                "0100" + // 1 entry
+                "69870400010000001a000000" + // ExifIFDOffset (0x8769), LONG, EXIF IFD at offset 26
+                "00000000" + // No next directory
+                "0100" + // EXIF IFD: 1 entry
+                "869204000100000041414141" + // UserComment (0x9286), LONG, count 1, "AAAA"
+                "00000000" // No next directory
+        )
+
+        val tiffContents = TiffReader.read(ByteArrayByteReader(bytes))
+
+        val exifDirectory = tiffContents.directories
+            .first { it.type == TiffConstants.TIFF_DIRECTORY_EXIF }
+
+        val userComment = exifDirectory.findField(ExifTag.EXIF_TAG_USER_COMMENT)
+
+        /* The hostile field must not yield GPS text. */
+        assertEquals(null, userComment?.let { it.value as? String })
     }
 
     /**

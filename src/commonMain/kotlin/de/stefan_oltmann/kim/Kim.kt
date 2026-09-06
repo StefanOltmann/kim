@@ -165,6 +165,12 @@ public object Kim {
      * Determines the file type based on file header and returns metadata bytes.
      *
      * Cloud services can not reliably tell the mime type, so we must determine it.
+     *
+     * Attention: Only JPEG, PNG, RAF and GIF provide metadata bytes here.
+     * Every other supported format (CR3, HEIC, AVIF, JXL, WebP, TIFF-based
+     * RAW, ...) yields an empty array, so callers cannot distinguish
+     * "format has no metadata" from "metadata bytes not provided". Use
+     * [readMetadata] for a format independent metadata view.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)

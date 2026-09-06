@@ -18,6 +18,7 @@
 package de.stefan_oltmann.kim.format.gif
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.common.toSingleNumberHexes
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.MetadataExtractor
@@ -93,7 +94,9 @@ public object GifMetadataExtractor : MetadataExtractor {
         /* Read remaining chunks */
         while (true) {
 
-            when (byteReader.readByte("introducer")) {
+            val introducer = byteReader.readByte("introducer")
+
+            when (introducer) {
 
                 GifConstants.IMAGE_SEPARATOR -> modifyImageChunks(byteReader, bytes)
 
@@ -103,6 +106,15 @@ public object GifMetadataExtractor : MetadataExtractor {
                     bytes.add(GifConstants.GIF_TERMINATOR)
                     break
                 }
+
+                /*
+                 * Dropping the byte would shift all following data and
+                 * produce a shortened metadata GIF, so unknown structures
+                 * fail the extraction like the full read does.
+                 */
+                else -> throw ImageReadException(
+                    "Unknown GIF block introducer: ${introducer.toHex()}"
+                )
             }
         }
 

@@ -157,6 +157,10 @@ public object PngImageParser : ImageParser {
         if (!exifText.endsWith("ffd9") || exifText.length % 2 != 0)
             return null
 
+        /* The chunk content is file-controlled and may be garbage. */
+        if (!exifText.isValidHexString())
+            return null
+
         /*
          * Convert it to bytes and drop the header.
          */
@@ -203,6 +207,10 @@ public object PngImageParser : ImageParser {
         if (iptcText.length % 2 != 0)
             return null
 
+        /* The chunk content is file-controlled and may be garbage. */
+        if (!iptcText.isValidHexString())
+            return null
+
         /*
          * Convert it to bytes.
          */
@@ -227,6 +235,13 @@ public object PngImageParser : ImageParser {
 
         return text
     }
+
+    /**
+     * Whether the string consists of hex digits only, so a profile that
+     * is not hex encoded is ignored instead of failing the conversion.
+     */
+    private fun String.isValidHexString(): Boolean =
+        isNotEmpty() && all { it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }
 
     private fun getTextChunkWithKeyword(chunks: List<PngChunk>, keyword: String): String? {
 

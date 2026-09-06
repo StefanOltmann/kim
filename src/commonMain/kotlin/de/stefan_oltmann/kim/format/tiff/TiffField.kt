@@ -28,6 +28,7 @@ import de.stefan_oltmann.kim.format.tiff.TiffTags.getTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldType
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeSShort
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeShort
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeSByte
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoGpsText
 
@@ -76,7 +77,18 @@ public class TiffField(
     public val tagInfo: TagInfo? = tagInfoOverride ?: getTag(directoryType, tag)
 
     public val value: Any = if (tagInfo is TagInfoGpsText)
-        tagInfo.getValue(this)
+
+        /*
+         * A single hostile GPS text field (e.g. a UserComment with a LONG
+         * type) must not fail the whole directory. Like every other
+         * per-entry corruption it is skipped by falling back to the
+         * generic type decode.
+         */
+        try {
+            tagInfo.getValue(this)
+        } catch (_: ImageReadException) {
+            fieldType.getValue(this.valueBytes, this.byteOrder)
+        }
     else
         fieldType.getValue(this.valueBytes, this.byteOrder)
 
@@ -253,7 +265,7 @@ public class TiffField(
      * the NULL case instead of failing the whole parse.
      */
     public fun toInt(): Int? = when (value) {
-        is ByteArray -> value.firstOrNull()?.toInt()
+        is ByteArray -> value.firstOrNull()?.toIntByFieldType()
         is ShortArray -> value.firstOrNull()?.toIntByFieldType()
         is IntArray -> value.firstOrNull()
         else -> (value as? Number)?.toInt()
@@ -297,6 +309,19 @@ public class TiffField(
             toUShort().toInt()
         else
             toInt()
+
+    /**
+     * Interprets this [Byte] according to the field type of this [TiffField].
+     *
+     * The TIFF BYTE type is unsigned, so e.g. a BYTE-typed offset of 0x90
+     * must widen to 0x90 and not to the signed -112. Only the SBYTE type
+     * is signed by definition.
+     */
+    private fun Byte.toIntByFieldType(): Int =
+        if (fieldType === FieldTypeSByte)
+            toInt()
+        else
+            toUByte().toInt()
 
     /*
      * Note that we need to show the local 'tagFormatted', because

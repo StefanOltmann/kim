@@ -157,7 +157,8 @@ public object KimValueFormatter {
         if (roundedSize % 1.0 == 0.0)
             return roundedSize.toInt().toString()
 
-        return roundedSize.toString()
+        /* Invariant formatting, because platform Double renderings diverge. */
+        return roundedSize.toInvariantString()
     }
 
     /**

@@ -35,8 +35,10 @@ import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.LocationShown
 import de.stefan_oltmann.kim.model.MetadataSummary
 import de.stefan_oltmann.kim.model.TiffOrientation
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toInstant
 import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
@@ -219,6 +221,18 @@ public object MetadataSummaryConverter {
                 }
                 ?: "0"
 
+            val timeZone = Kim.defaultTimeZone ?: TimeZone.currentSystemDefault()
+
+            /*
+             * Date-only values ("2021-12-06") have no time part to which a
+             * sub second could be appended. They are interpreted as that day
+             * at midnight, so vendor-truncated dates survive the summary.
+             */
+            if (!takenDate.contains('T'))
+                return LocalDate.parse(takenDate)
+                    .atStartOfDayIn(timeZone)
+                    .toEpochMilliseconds()
+
             /*
              * If the date string itself contains a sub second like "2020-08-30T18:43:00.500"
              * this should be used. We append it, if the string does not have a dot yet.
@@ -227,8 +241,6 @@ public object MetadataSummaryConverter {
                 "$takenDate.$takenDateSubSecond"
             else
                 takenDate
-
-            val timeZone = Kim.defaultTimeZone ?: TimeZone.currentSystemDefault()
 
             return LocalDateTime
                 .parse(takenDatePlusSubSecond)
@@ -418,7 +430,8 @@ public object MetadataSummaryConverter {
         if (value == value.toLong().toDouble())
             return value.toLong().toString()
 
-        return value.toString()
+        /* Invariant formatting, because platform Double renderings diverge. */
+        return value.toInvariantString()
     }
 }
 

@@ -198,6 +198,54 @@ class GifUpdaterTest : AbstractUpdaterTest(
     }
 
     /**
+     * XMP behind the first frame is legal but cannot be merged by the
+     * streaming update, which only sees the chunks before the first
+     * image. Dropping it silently would destroy the metadata, so the
+     * update must fail loudly instead.
+     */
+    @Test
+    fun testUpdateFailsOnXmpBehindFirstFrame() {
+
+        val staleXmp =
+            "<x:xmpmeta xmlns:x=\"adobe:ns:meta/\"><dc:title>Keep me</dc:title></x:xmpmeta>"
+
+        val xmpBytes = staleXmp.encodeToByteArray()
+
+        val byteWriter = ByteArrayByteWriter()
+
+        byteWriter.write("GIF89a".encodeToByteArray())
+        byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0))
+        byteWriter.write(byteArrayOf(GifConstants.IMAGE_SEPARATOR))
+        byteWriter.write(byteArrayOf(0, 0, 0, 0, 1, 0, 1, 0, 0))
+        byteWriter.write(byteArrayOf(2))
+        byteWriter.write(byteArrayOf(2, 2, 0x44, 0))
+
+        /* XMP application extension behind the first frame. */
+        byteWriter.write(byteArrayOf(GifConstants.EXTENSION_INTRODUCER, 0xFF.toByte()))
+        byteWriter.write(11)
+        byteWriter.write("XMP DataXMP".encodeToByteArray())
+
+        var offset = 0
+
+        while (offset < xmpBytes.size) {
+
+            val chunkSize = minOf(255, xmpBytes.size - offset)
+
+            byteWriter.write(chunkSize.toByte())
+            byteWriter.write(xmpBytes.copyOfRange(offset, offset + chunkSize))
+
+            offset += chunkSize
+        }
+
+        byteWriter.write(0)
+        byteWriter.write(byteArrayOf(GifConstants.GIF_TERMINATOR))
+
+        assertFailsWith<ImageWriteException> {
+            Kim.update(bytes = byteWriter.toByteArray(), update = MetadataUpdate.Title("New title"))
+        }
+    }
+
+    /**
      * An extension block with a label this library does not know must
      * survive an update byte-exact. Historically the parser skipped only
      * introducer and label, so the stream desynced and a 0x2C inside such

@@ -27,6 +27,7 @@ import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeDouble
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeFloat
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeRational
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeSByte
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeSShort
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeShort
 import kotlin.test.Test
@@ -328,6 +329,26 @@ class TiffFieldMethodsTest {
         val rationalField = field(0x0100, FieldTypeRational, byteArrayOf(), count = 0)
 
         assertEquals(null, rationalField.toDouble())
+    }
+
+    /**
+     * The TIFF BYTE type is unsigned. A BYTE-typed offset or size of 0x90
+     * must widen to 0x90, not to the signed -112, mirroring the unsigned
+     * widening of the SHORT type.
+     */
+    @Test
+    fun testToIntWidensByteUnsigned() {
+
+        assertEquals(
+            expected = 0x90,
+            actual = field(0x0100, FieldTypeByte, byteArrayOf(0x90.toByte())).toInt()
+        )
+
+        /* The SBYTE type stays signed by definition. */
+        assertEquals(
+            expected = -112,
+            actual = field(0x0100, FieldTypeSByte, byteArrayOf(0x90.toByte())).toInt()
+        )
     }
 
     @Test

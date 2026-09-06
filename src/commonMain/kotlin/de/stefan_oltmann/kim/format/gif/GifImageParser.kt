@@ -18,6 +18,7 @@
 package de.stefan_oltmann.kim.format.gif
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaMetadata
@@ -84,7 +85,16 @@ public object GifImageParser : ImageParser {
                 "Found chunk types: ${chunks.map { it.type }}"
         }
 
-        val imageSize = firstImageDescriptorChunk.imageSize
+        /*
+         * The logical screen canvas is what reference parsers report. The
+         * first frame's descriptor is only a crop of that canvas, so it is
+         * just the fallback for files without a usable screen descriptor.
+         */
+        val imageSize = chunks
+            .filterIsInstance<GifChunkLogicalScreenDescriptor>()
+            .firstOrNull()
+            ?.canvasSize
+            ?: firstImageDescriptorChunk.imageSize
 
         /* Only GIF89A supports XMP metadata */
         val xmp = if (version == GifVersion.GIF89A)
@@ -158,7 +168,9 @@ public object GifImageParser : ImageParser {
         /* Read remaining chunks */
         while (true) {
 
-            when (byteReader.readByte("introducer")) {
+            val introducer = byteReader.readByte("introducer")
+
+            when (introducer) {
 
                 GifConstants.IMAGE_SEPARATOR -> chunks.addAll(readImageChunks(byteReader, chunkTypeFilter))
 
@@ -171,6 +183,15 @@ public object GifImageParser : ImageParser {
 
                     break
                 }
+
+                /*
+                 * Dropping the byte would shift all following data and
+                 * produce a shortened GIF, so unknown structures fail
+                 * the parse like in the streaming write path.
+                 */
+                else -> throw ImageReadException(
+                    "Unknown GIF block introducer: ${introducer.toHex()}"
+                )
             }
         }
 
@@ -216,7 +237,9 @@ public object GifImageParser : ImageParser {
         /* Read extension chunks until the first image starts. */
         while (true) {
 
-            when (byteReader.readByte("introducer")) {
+            val introducer = byteReader.readByte("introducer")
+
+            when (introducer) {
 
                 GifConstants.IMAGE_SEPARATOR -> return chunks to true
 
@@ -231,6 +254,15 @@ public object GifImageParser : ImageParser {
 
                     return chunks to false
                 }
+
+                /*
+                 * Dropping the byte would shift all following data and
+                 * silently corrupt the rewrite, so unknown structures
+                 * fail like in the full chunk read.
+                 */
+                else -> throw ImageReadException(
+                    "Unknown GIF block introducer: ${introducer.toHex()}"
+                )
             }
         }
     }

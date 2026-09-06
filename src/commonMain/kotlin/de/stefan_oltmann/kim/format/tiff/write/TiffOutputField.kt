@@ -59,6 +59,17 @@ public class TiffOutputField(
 
     internal fun writeField(byteWriter: BinaryByteWriter) {
 
+        /*
+         * The writer is the last line of defense against inconsistent
+         * fields: an entry that declares more elements than its bytes
+         * hold would be silently invalid for every consumer.
+         */
+        if (bytes.size != count * fieldType.size)
+            throw ImageWriteException(
+                "Field $tagFormatted declares count $count " +
+                    "(${count * fieldType.size} bytes), but ${bytes.size} bytes were given."
+            )
+
         byteWriter.write2Bytes(tag)
         byteWriter.write2Bytes(fieldType.type)
         byteWriter.write4Bytes(count)

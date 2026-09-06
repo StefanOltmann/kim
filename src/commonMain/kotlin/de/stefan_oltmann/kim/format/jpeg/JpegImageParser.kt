@@ -79,14 +79,16 @@ public object JpegImageParser : ImageParser {
          */
         var readBytesCount = magicNumberBytes.size.toLong()
 
-        val scanner = JpegMarkerScanner(byteReader)
+        /* The consumed bytes are only counted here, so the scanner must not
+         * buffer a potentially unbounded inter-marker gap. */
+        val scanner = JpegMarkerScanner(byteReader, keepConsumedBytes = false)
 
         @Suppress("LoopWithTooManyJumpStatements")
         do {
 
             val scan = scanner.nextMarker(zeroIsFillByte = true) ?: break
 
-            readBytesCount += scan.consumedBytes.size
+            readBytesCount += scan.consumedCount
 
             if (scan.marker == JpegConstants.SOS_MARKER || scan.marker == JpegConstants.EOI_MARKER)
                 break
@@ -103,8 +105,8 @@ public object JpegImageParser : ImageParser {
 
             val remainingByteCount = byteReader.contentLength - readBytesCount
 
-            /* Reject invalid segment lengths */
-            if (segmentLength <= 0 || segmentLength > remainingByteCount)
+            /* A zero content length is an empty segment, which is spec-legal. */
+            if (segmentLength < 0 || segmentLength > remainingByteCount)
                 throw ImageReadException("Illegal JPEG segment length: $segmentLength")
 
             /* We are only looking for a SOF segment. */
@@ -184,7 +186,20 @@ public object JpegImageParser : ImageParser {
         when (marker) {
             JpegConstants.JPEG_APP1_MARKER -> AppnSegment(marker, segmentBytes)
             JpegConstants.JPEG_APP13_MARKER -> App13Segment(marker, segmentBytes)
-            JpegConstants.JFIF_MARKER -> JfifSegment(marker, segmentBytes)
+
+            /*
+             * An APP0 without the JFIF identifier is a spec-legal JFXX
+             * extension or vendor segment. It must be treated as unknown,
+             * so files carrying it stay updatable like they are readable.
+             */
+            JpegConstants.JFIF_MARKER ->
+                if (segmentBytes.startsWith(JpegConstants.JFIF0_SIGNATURE) ||
+                    segmentBytes.startsWith(JpegConstants.JFIF0_SIGNATURE_ALTERNATIVE)
+                )
+                    JfifSegment(marker, segmentBytes)
+                else
+                    UnknownSegment(marker, segmentBytes)
+
             else ->
                 when {
 
@@ -339,9 +354,30 @@ public object JpegImageParser : ImageParser {
                     "(expected $declaredLength)."
             )
 
+        /*
+         * The chunks are placed at their offset inside the complete
+         * extended data. Sort by offset and verify the assembly is
+         * contiguous, so missing or duplicated chunks fail loudly
+         * instead of producing silently shifted data.
+         */
+        val sortedFragments = matchingFragments.sortedBy { it.offset }
+
+        var expectedOffset = 0
+
+        for (fragment in sortedFragments) {
+
+            if (fragment.offset != expectedOffset)
+                throw ImageReadException(
+                    "The extended XMP chunks are not contiguous: " +
+                        "expected offset $expectedOffset, got ${fragment.offset}."
+                )
+
+            expectedOffset += fragment.data.size
+        }
+
         val extendedData = ByteArrayByteWriter()
 
-        for (fragment in matchingFragments)
+        for (fragment in sortedFragments)
             extendedData.write(fragment.data)
 
         val extendedBytes = extendedData.toByteArray()
@@ -442,8 +478,12 @@ public object JpegImageParser : ImageParser {
 
                 val parsed = parsePhotoshopData(photoshopData.toByteArray())
 
-                /* Take the first valid stream. */
-                if (parsed != null)
+                /*
+                 * Take the first stream that actually carries IPTC
+                 * records. A stream without records must not shadow a
+                 * later, real IPTC stream of the same file.
+                 */
+                if (parsed != null && parsed.records.isNotEmpty())
                     return parsed
 
                 photoshopData = ByteArrayByteWriter()

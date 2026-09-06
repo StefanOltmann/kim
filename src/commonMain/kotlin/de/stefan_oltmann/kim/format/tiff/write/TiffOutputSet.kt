@@ -225,8 +225,18 @@ public class TiffOutputSet(
         gpsDirectory.removeField(GpsTag.GPS_TAG_GPS_LONGITUDE)
         gpsDirectory.removeField(GpsTag.GPS_TAG_GPS_LATITUDE)
 
-        if (gpsCoordinates == null)
+        /*
+         * NULL means "remove the location". Every residual GPS field -
+         * altitude, timestamps, satellite data or a free-text processing
+         * method that can name a place - must go as well.
+         */
+        if (gpsCoordinates == null) {
+
+            for (tag in GpsTag.ALL)
+                gpsDirectory.removeField(tag.tag)
+
             return
+        }
 
         /* Add the data back. */
 

@@ -102,12 +102,28 @@ internal fun ByteArray.startsWithNullable(bytes: List<Byte?>): Boolean {
 }
 
 internal fun ByteArray.getRemainingBytes(startIndex: Int): ByteArray {
-    val actualStartIndex = startIndex.coerceIn(indices)
+
+    /*
+     * A start at or beyond the end yields no remaining bytes. Coercing
+     * the index into the range would report a wrong trailing byte and
+     * throw for an empty receiver.
+     */
+    if (startIndex >= size)
+        return byteArrayOf()
+
+    val actualStartIndex = startIndex.coerceAtLeast(0)
+
     return sliceArray(actualStartIndex until size)
 }
 
 internal fun ByteArray.slice(startIndex: Int, count: Int): ByteArray {
-    val endIndex = (startIndex + count).coerceAtMost(size)
+
+    /*
+     * Long arithmetic so a file-controlled count cannot overflow into a
+     * wrapped-around range that would silently hide the wrong bytes.
+     */
+    val endIndex = (startIndex.toLong() + count).coerceAtMost(size.toLong()).toInt()
+
     return sliceArray(startIndex until endIndex)
 }
 

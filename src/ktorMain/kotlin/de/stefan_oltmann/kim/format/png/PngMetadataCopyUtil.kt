@@ -77,7 +77,7 @@ public object PngMetadataCopyUtil {
 
         val newChunks = filteredDestinationChunks.toMutableList().apply {
             addAll(
-                index = 1, // Index 0 is IHDR
+                index = insertionIndexAfterIhdr(),
                 elements = sourceMetadataChunks
             )
         }
@@ -110,6 +110,22 @@ public object PngMetadataCopyUtil {
 
             throw ex
         }
+    }
+
+    /**
+     * Returns the index where the metadata chunks are inserted: right
+     * behind the mandatory IHDR chunk. A destination without an IHDR
+     * would receive the metadata at a spec-invalid position and is
+     * rejected instead.
+     */
+    private fun List<PngChunk>.insertionIndexAfterIhdr(): Int {
+
+        val ihdrIndex = indexOfFirst { it.type == PngChunkType.IHDR }
+
+        if (ihdrIndex == -1)
+            throw ImageReadException("The destination PNG has no IHDR chunk.")
+
+        return ihdrIndex + 1
     }
 
     /**
@@ -156,7 +172,7 @@ public object PngMetadataCopyUtil {
 
         val newChunks = filteredDestinationChunks.toMutableList().apply {
             addAll(
-                index = 1, // Index 0 is IHDR
+                index = insertionIndexAfterIhdr(),
                 elements = sourceMetadataChunks
             )
         }

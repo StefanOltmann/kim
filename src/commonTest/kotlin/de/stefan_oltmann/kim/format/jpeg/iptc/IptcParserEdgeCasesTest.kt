@@ -206,6 +206,30 @@ class IptcParserEdgeCasesTest {
     }
 
     /**
+     * The extended length 0x7FFFFFFF is the largest positive Int. It is
+     * larger than any possible record data and must stop parsing instead
+     * of overflowing the index on the next loop iteration.
+     */
+    @Test
+    fun testParseExtendedRecordLengthOverflows() {
+
+        val recordBytes = byteArrayOf(
+            IptcConstants.IPTC_RECORD_TAG_MARKER.toByte(),
+            IptcConstants.IPTC_APPLICATION_2_RECORD_NUMBER.toByte(),
+            25,
+            0x80.toByte(), 0x00,
+            0x7F.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte()
+        )
+
+        val metadata = IptcParser.parseIptc(
+            bytes = wrapIn8BimBlock(recordBytes),
+            startsWithApp13Header = false
+        )
+
+        assertTrue(metadata.records.isEmpty())
+    }
+
+    /**
      * A block whose data ends right after a record tag marker must
      * not read past the end of the data.
      */
@@ -225,6 +249,55 @@ class IptcParserEdgeCasesTest {
 
         val metadata = IptcParser.parseIptc(
             bytes = block,
+            startsWithApp13Header = false
+        )
+
+        assertTrue(metadata.records.isEmpty())
+    }
+
+    /**
+     * The block name is a Pascal string whose length byte is unsigned per
+     * the Photoshop IRB spec. A length above 127 must be read as the
+     * unsigned value, or the whole block - and everything after it - is
+     * silently dropped.
+     */
+    @Test
+    fun testParsePhotoshopBlockWithLongName() {
+
+        val nameBytes = ByteArray(200) { it.toByte() }
+
+        val captionBytes = captionRecord("One")
+
+        val block = byteArrayOf(
+            0x38, 0x42, 0x49, 0x4D,
+            0x04, 0x04,
+            200.toByte()
+        ) + nameBytes +
+            byteArrayOf(0) +
+            byteArrayOf(0, 0, 0, captionBytes.size.toByte()) +
+            captionBytes
+
+        val metadata = IptcParser.parseIptc(
+            bytes = block,
+            startsWithApp13Header = false
+        )
+
+        assertEquals(
+            expected = listOf("One"),
+            actual = metadata.records.map { it.value }
+        )
+    }
+
+    /**
+     * The data can end right after an 8BIM signature, e.g. after a
+     * truncated write. Like the tolerated EOF inside the block data,
+     * that must stop the parse gracefully instead of failing it.
+     */
+    @Test
+    fun testParseToleratesEofAfterBlockSignature() {
+
+        val metadata = IptcParser.parseIptc(
+            bytes = byteArrayOf(0x38, 0x42, 0x49, 0x4D),
             startsWithApp13Header = false
         )
 
@@ -292,9 +365,12 @@ class IptcParserEdgeCasesTest {
     @Test
     fun testParseRejectsInvalidBlockSize() {
 
+        /* A complete block size field that announces far more data
+           than the block holds. */
         val block = byteArrayOf(
             0x38, 0x42, 0x49, 0x4D,
             0x04, 0x04,
+            0,
             0,
             0, 0, 0x10, 0x00
         )

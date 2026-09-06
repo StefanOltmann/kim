@@ -66,6 +66,25 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
     }
 
     /**
+     * Regression test: trailing bytes of a truncated chunk header after
+     * the IEND chunk mean a corrupt file. The rewrite must reject it
+     * instead of copying the partial header into a valid-looking output.
+     */
+    @Test
+    fun testUpdateRejectsTruncatedTrailingChunkHeader() {
+
+        val corruptBytes = originalBytes +
+            byteArrayOf(0, 0, 0, 0x1A.toByte())
+
+        assertFailsWith<ImageWriteException> {
+            Kim.update(
+                bytes = corruptBytes,
+                updates = setOf(MetadataUpdate.Title("x"))
+            )
+        }
+    }
+
+    /**
      * Regression test: a flipped bit in the stored CRC field itself must be
      * detected just like corrupted chunk data.
      */

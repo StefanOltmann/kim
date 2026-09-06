@@ -15,7 +15,7 @@ Little-endian (Intel, II)
 0000000106 0x0213 YCbCrPositioning = 2
 0000000118 0x8298 Copyright = Stefan Oltmann
 0000000130 0x8769 ExifOffset = 246
-0000000142 0x8825 GPSInfo = 8742
+0000000142 0x8825 GPSInfo = 9060
 
 ---- Directory ExifIFD @ 246 ----
 0000000248 0x829a ExposureTime = 1/60 (0.016667)
@@ -35,45 +35,46 @@ Little-endian (Intel, II)
 0000000416 0x9209 Flash = 16
 0000000428 0x920a FocalLength = 24/1 (24.0)
 0000000440 0x927c MakerNote = [7696 bytes]
-0000000452 0x9290 SubSecTime = 82
-0000000464 0x9291 SubSecTimeOriginal = 82
-0000000476 0x9292 SubSecTimeDigitized = 82
-0000000488 0xa000 FlashpixVersion = [0x30, 0x31, 0x30, 0x30]
-0000000500 0xa001 ColorSpace = 1
-0000000512 0xa002 ExifImageWidth = 5184
-0000000524 0xa003 ExifImageHeight = 3456
-0000000536 0xa005 InteropOffset = 8712
-0000000548 0xa20e FocalPlaneXResolution = 5184000/905 (5728.176796)
-0000000560 0xa20f FocalPlaneYResolution = 3456000/595 (5808.403361)
-0000000572 0xa210 FocalPlaneResolutionUnit = 2
-0000000584 0xa401 CustomRendered = 0
-0000000596 0xa402 ExposureMode = 0
-0000000608 0xa403 WhiteBalance = 0
-0000000620 0xa406 SceneCaptureType = 0
-0000000632 0xa430 CameraOwnerName = Stefan Oltmann
-0000000644 0xa431 BodySerialNumber = 1581036387
-0000000656 0xa432 LensSpecification = [15/1 (15.0), 85/1 (85.0), Invalid rational (0/0), Invalid rational (0/0)]
-0000000668 0xa434 LensModel = EF-S15-85mm f/3.5-5.6 IS USM
-0000000680 0xa435 LensSerialNumber = 0000118484
+0000000452 0x9286 UserComment = 
+0000000464 0x9290 SubSecTime = 82
+0000000476 0x9291 SubSecTimeOriginal = 82
+0000000488 0x9292 SubSecTimeDigitized = 82
+0000000500 0xa000 FlashpixVersion = [0x30, 0x31, 0x30, 0x30]
+0000000512 0xa001 ColorSpace = 1
+0000000524 0xa002 ExifImageWidth = 5184
+0000000536 0xa003 ExifImageHeight = 3456
+0000000548 0xa005 InteropOffset = 9030
+0000000560 0xa20e FocalPlaneXResolution = 5184000/905 (5728.176796)
+0000000572 0xa20f FocalPlaneYResolution = 3456000/595 (5808.403361)
+0000000584 0xa210 FocalPlaneResolutionUnit = 2
+0000000596 0xa401 CustomRendered = 0
+0000000608 0xa402 ExposureMode = 0
+0000000620 0xa403 WhiteBalance = 0
+0000000632 0xa406 SceneCaptureType = 0
+0000000644 0xa430 CameraOwnerName = Stefan Oltmann
+0000000656 0xa431 BodySerialNumber = 1581036387
+0000000668 0xa432 LensSpecification = [15/1 (15.0), 85/1 (85.0), Invalid rational (0/0), Invalid rational (0/0)]
+0000000680 0xa434 LensModel = EF-S15-85mm f/3.5-5.6 IS USM
+0000000692 0xa435 LensSerialNumber = 0000118484
 
----- Directory InteropIFD @ 8712 ----
-0000008714 0x0001 InteroperabilityIndex = R98
-0000008726 0x0002 InteroperabilityVersion = [0x30, 0x31, 0x30, 0x30]
+---- Directory InteropIFD @ 9030 ----
+0000009032 0x0001 InteroperabilityIndex = R98
+0000009044 0x0002 InteroperabilityVersion = [0x30, 0x31, 0x30, 0x30]
 
----- Directory GPS @ 8742 ----
-0000008744 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000008756 0x0001 GPSLatitudeRef = N
-0000008768 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000008780 0x0003 GPSLongitudeRef = E
-0000008792 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 9060 ----
+0000009062 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000009074 0x0001 GPSLatitudeRef = N
+0000009086 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000009098 0x0003 GPSLongitudeRef = E
+0000009110 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
----- Directory IFD1 @ 8856 ----
-0000008858 0x0103 Compression = 6
-0000008870 0x011a XResolution = 72/1 (72.0)
-0000008882 0x011b YResolution = 72/1 (72.0)
-0000008894 0x0128 ResolutionUnit = 2
-0000008906 0x0201 JpgFromRawStart = 8950
-0000008918 0x0202 JpgFromRawLength = 11200
+---- Directory IFD1 @ 9174 ----
+0000009176 0x0103 Compression = 6
+0000009188 0x011a XResolution = 72/1 (72.0)
+0000009200 0x011b YResolution = 72/1 (72.0)
+0000009212 0x0128 ResolutionUnit = 2
+0000009224 0x0201 JpgFromRawStart = 9268
+0000009236 0x0202 JpgFromRawLength = 11200
 
 ---- Directory MakerNoteCanon @ 898 ----
 0000000900 0x0001 CanonCameraSettings = [49 shorts]

@@ -112,7 +112,12 @@ public object GpsUtil {
 
         val direction = if (value >= 0) positiveDirection else negativeDirection
 
-        val absoluteValue = abs(value)
+        /*
+         * Clamp before splitting, so an out-of-range input cannot
+         * produce an out-of-sphere DDM output: "90,30.0N" would decode
+         * back to 90.5, which is outside the valid range.
+         */
+        val absoluteValue = abs(value).coerceIn(0.0, maxDegrees.toDouble())
 
         var degrees = absoluteValue.toInt()
 
@@ -133,9 +138,6 @@ public object GpsUtil {
 
             minutes = minutesRounded
         }
-
-        /* Clamp the result within the valid range for this coordinate. */
-        degrees = minOf(degrees, maxDegrees)
 
         /*
          * The minutes are rendered platform-independently, because the

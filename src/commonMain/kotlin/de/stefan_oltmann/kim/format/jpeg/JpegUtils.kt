@@ -28,6 +28,13 @@ import de.stefan_oltmann.kim.input.readBytes
 internal object JpegUtils {
 
     /**
+     * The buffered header is what a rewrite carries in memory, so a
+     * hostile file of many small segments must not accumulate
+     * unboundedly. Legitimate files stay far below this limit.
+     */
+    private const val MAX_HEADER_SEGMENT_BYTES: Int = 16 * 1024 * 1024
+
+    /**
      * Reads the header segments of a JPEG file up to the image data.
      *
      * Returns the kept segments and the SOS marker bytes, or NULL when the
@@ -42,7 +49,9 @@ internal object JpegUtils {
 
         val segments = mutableListOf<JFIFPieceSegment>()
 
-        val scanner = JpegMarkerScanner(byteReader)
+        /* The consumed bytes are only counted here, so the scanner must not
+         * buffer a potentially unbounded inter-marker gap. */
+        val scanner = JpegMarkerScanner(byteReader, keepConsumedBytes = false)
 
         byteReader.readAndVerifyBytes("JPEG SOI (0xFFD8)", JpegConstants.SOI)
 
@@ -52,6 +61,8 @@ internal object JpegUtils {
          * truncation checks below.
          */
         var readBytesCount = JpegConstants.SOI.size.toLong()
+
+        var headerSegmentBytes = 0
 
         while (true) {
 
@@ -63,7 +74,7 @@ internal object JpegUtils {
             val scan = scanner.nextMarker(zeroIsFillByte = false)
                 ?: return segments to null
 
-            readBytesCount += scan.consumedBytes.size
+            readBytesCount += scan.consumedCount
 
             /* The EOI marker means the file has no image data. */
             if (scan.marker == JpegConstants.EOI_MARKER)
@@ -86,19 +97,23 @@ internal object JpegUtils {
 
             val remainingByteCount = byteReader.contentLength - readBytesCount
 
-            /*
-             * If the segment specifies a zero length or a length that is
-             * longer than the remaining bytes, the file is corrupt and
-             * must be rejected.
-             */
-            if (segmentContentLength <= 0 || segmentContentLength > remainingByteCount)
+            /* A zero content length is an empty segment, which is spec-legal. */
+            if (segmentContentLength < 0 || segmentContentLength > remainingByteCount)
                 throw ImageReadException("Illegal JPEG segment length: $segmentContentLength")
 
             val segmentData = byteReader.readBytes("segmentData", segmentContentLength)
 
             readBytesCount += segmentContentLength.toLong()
 
-            if (keepMarker(scan.marker))
+            if (keepMarker(scan.marker)) {
+
+                headerSegmentBytes += segmentContentLength
+
+                if (headerSegmentBytes > MAX_HEADER_SEGMENT_BYTES)
+                    throw ImageReadException(
+                        "JPEG header exceeds $MAX_HEADER_SEGMENT_BYTES bytes."
+                    )
+
                 segments.add(
                     JFIFPieceSegment(
                         scan.marker,
@@ -107,6 +122,7 @@ internal object JpegUtils {
                         segmentData
                     )
                 )
+            }
         }
     }
 }

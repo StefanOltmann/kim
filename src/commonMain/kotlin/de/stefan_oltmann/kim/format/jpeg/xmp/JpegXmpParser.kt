@@ -50,23 +50,25 @@ internal object JpegXmpParser {
 
     /**
      * Parses one extended XMP segment into its GUID, the total size of the
-     * complete extended data and this segment's chunk of it.
+     * complete extended data, this segment's chunk offset inside that data,
+     * and the chunk itself.
      *
      * The layout is specified by Adobe and matches what ExifTool writes:
      * identifier, 32-character hexadecimal GUID, 4-byte big-endian total
-     * length, then the raw chunk bytes.
+     * length, 4-byte big-endian chunk offset, then the raw chunk bytes.
      */
     fun parseExtendedXmpJpegSegment(segmentData: ByteArray): ExtendedXmpFragment {
 
-        if (!isExtendedXmpJpegSegment(segmentData))
-            throw ImageReadException("Invalid JPEG extended XMP segment.")
-
         val headerSize = JpegConstants.EXTENDED_XMP_IDENTIFIER.size +
             JpegConstants.EXTENDED_XMP_GUID_LENGTH +
-            JpegConstants.EXTENDED_XMP_TOTAL_LENGTH_BYTES
+            JpegConstants.EXTENDED_XMP_TOTAL_LENGTH_BYTES +
+            JpegConstants.EXTENDED_XMP_OFFSET_BYTES
 
         if (segmentData.size < headerSize)
             throw ImageReadException("Truncated JPEG extended XMP segment.")
+
+        if (!isExtendedXmpJpegSegment(segmentData))
+            throw ImageReadException("Invalid JPEG extended XMP segment.")
 
         var index = JpegConstants.EXTENDED_XMP_IDENTIFIER.size
 
@@ -76,18 +78,26 @@ internal object JpegXmpParser {
 
         index = guidEnd
 
-        val totalLength = (segmentData[index].toInt() and 0xFF) shl 24 or
-            ((segmentData[index + 1].toInt() and 0xFF) shl 16) or
-            ((segmentData[index + 2].toInt() and 0xFF) shl 8) or
-            (segmentData[index + 3].toInt() and 0xFF)
+        val totalLength = readUInt32At(segmentData, index)
 
         index += JpegConstants.EXTENDED_XMP_TOTAL_LENGTH_BYTES
+
+        val offset = readUInt32At(segmentData, index)
+
+        index += JpegConstants.EXTENDED_XMP_OFFSET_BYTES
 
         val data = segmentData.slice(
             startIndex = index,
             count = segmentData.size - index
         )
 
-        return ExtendedXmpFragment(guid, totalLength, data)
+        return ExtendedXmpFragment(guid, totalLength, offset, data)
     }
+
+    @Suppress("MagicNumber")
+    private fun readUInt32At(data: ByteArray, index: Int): Int =
+        (data[index].toInt() and 0xFF) shl 24 or
+            ((data[index + 1].toInt() and 0xFF) shl 16) or
+            ((data[index + 2].toInt() and 0xFF) shl 8) or
+            (data[index + 3].toInt() and 0xFF)
 }

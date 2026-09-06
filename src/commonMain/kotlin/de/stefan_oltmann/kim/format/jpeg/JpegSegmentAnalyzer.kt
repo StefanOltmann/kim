@@ -60,14 +60,16 @@ public object JpegSegmentAnalyzer {
 
         var positionCounter: Long = MediaFormatMagicNumbers.jpeg.size.toLong()
 
-        val scanner = JpegMarkerScanner(byteReader)
+        /* The consumed bytes are only counted here, so the scanner must not
+         * buffer a potentially unbounded inter-marker gap. */
+        val scanner = JpegMarkerScanner(byteReader, keepConsumedBytes = false)
 
         @Suppress("LoopWithTooManyJumpStatements")
         do {
 
             val scan = scanner.nextMarker(zeroIsFillByte = true) ?: break
 
-            positionCounter += scan.consumedBytes.size
+            positionCounter += scan.consumedCount
 
             if (scan.marker == SOS_MARKER) {
 
@@ -80,6 +82,13 @@ public object JpegSegmentAnalyzer {
                         length = remainingBytesCount
                     )
                 )
+
+                /*
+                 * A file can end right at the SOS marker, without image
+                 * bytes and without an EOI marker.
+                 */
+                if (remainingBytesCount < 2)
+                    break
 
                 byteReader.skipBytes("image bytes", remainingBytesCount - 2)
 
@@ -117,7 +126,8 @@ public object JpegSegmentAnalyzer {
 
             positionCounter += 2
 
-            if (remainingSegmentLength <= 0)
+            /* A zero content length is an empty segment, which is spec-legal. */
+            if (remainingSegmentLength < 0)
                 throw ImageReadException("Illegal JPEG segment length: $remainingSegmentLength")
 
             byteReader.skipBytes("skip segment", remainingSegmentLength)

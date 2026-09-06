@@ -20,8 +20,15 @@ import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.RationalNumber
 import de.stefan_oltmann.kim.common.RationalNumbers
+import de.stefan_oltmann.kim.format.tiff.TiffContents
+import de.stefan_oltmann.kim.format.tiff.TiffDirectory
+import de.stefan_oltmann.kim.format.tiff.TiffField
+import de.stefan_oltmann.kim.format.tiff.TiffHeader
 import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeAscii
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeUndefined
 import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
@@ -315,6 +322,78 @@ class TiffWriterRoundTripTest {
         assertTrue(byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8).contentEquals(readRootDirectory.tiffImageBytes))
     }
 
+    /**
+     * When the thumbnail bytes could not be captured (the reader rejects
+     * garbage thumbnails), the offset/length pair must not survive the
+     * rewrite as a dangling length without its offset.
+     */
+    @Test
+    fun testRejectedThumbnailDropsDanglingLengthField() {
+
+        val offsetField = TiffField(
+            offset = 0,
+            tag = TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT.tag,
+            directoryType = TiffConstants.TIFF_DIRECTORY_TYPE_IFD1,
+            fieldType = FieldTypeLong,
+            count = 1,
+            localValue = 100,
+            valueOffset = null,
+            valueBytes = byteArrayOf(100, 0, 0, 0),
+            byteOrder = ByteOrder.BIG_ENDIAN,
+            sortHint = 0
+        )
+
+        val lengthField = TiffField(
+            offset = 0,
+            tag = TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT_LENGTH.tag,
+            directoryType = TiffConstants.TIFF_DIRECTORY_TYPE_IFD1,
+            fieldType = FieldTypeLong,
+            count = 1,
+            localValue = 16,
+            valueOffset = null,
+            valueBytes = byteArrayOf(0, 0, 0, 16),
+            byteOrder = ByteOrder.BIG_ENDIAN,
+            sortHint = 1
+        )
+
+        val ifd1 = TiffDirectory(
+            type = TiffConstants.TIFF_DIRECTORY_TYPE_IFD1,
+            entries = listOf(offsetField, lengthField),
+            offset = 8,
+            nextDirectoryOffset = 0,
+            byteOrder = ByteOrder.BIG_ENDIAN
+        )
+
+        val ifd0 = TiffDirectory(
+            type = TiffConstants.TIFF_DIRECTORY_TYPE_IFD0,
+            entries = emptyList(),
+            offset = 8,
+            nextDirectoryOffset = 0,
+            byteOrder = ByteOrder.BIG_ENDIAN
+        )
+
+        val tiffContents = TiffContents(
+            header = TiffHeader(ByteOrder.BIG_ENDIAN, 42, 8),
+            directories = listOf(ifd0, ifd1),
+            makerNoteDirectory = null,
+            makerNoteSubDirectories = emptyList(),
+            geoTiffDirectory = null
+        )
+
+        val outputSet = tiffContents.createOutputSet()
+
+        val byteWriter = ByteArrayByteWriter()
+
+        TiffWriter(outputSet.byteOrder).write(byteWriter, outputSet)
+
+        val readBack = TiffReader.read(byteWriter.toByteArray())
+
+        val writtenIfd1 = readBack.findTiffDirectory(TiffConstants.TIFF_DIRECTORY_TYPE_IFD1)
+
+        /* Both fields must go: a length without its offset is invalid. */
+        assertNull(writtenIfd1?.findField(TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT_LENGTH))
+    }
+
     @Test
     fun testWriteBigEndian() {
 
@@ -374,6 +453,99 @@ class TiffWriterRoundTripTest {
         assertTrue(
             gpsDirectory.offset < thumbnailDirectory.offset,
             "The GPS directory must be written before the thumbnail directory."
+        )
+    }
+
+    /**
+     * Fields whose value the caller did not change must be copied byte
+     * exact on a rewrite. Decoding and re-encoding text fields is lossy:
+     * Latin-1 bytes become mojibake, multi-string values are truncated
+     * at the NUL and GPS text encoding prefixes are replaced.
+     */
+    @Test
+    fun testUnchangedTextFieldsAreCopiedByteExact() {
+
+        /* Artist "Rä" in Latin-1 with terminator. */
+        val artistBytes = byteArrayOf(0x52, 0xE4.toByte(), 0x00)
+
+        /* UserComment with a UNICODE encoding prefix, as cameras write it. */
+        val userCommentBytes =
+            "UNICODE ".encodeToByteArray() + byteArrayOf(0x3E, 0x00, 0x2C, 0x00)
+
+        val artistField = TiffField(
+            offset = 0,
+            tag = TiffTag.TIFF_TAG_ARTIST.tag,
+            directoryType = TiffConstants.TIFF_DIRECTORY_TYPE_IFD0,
+            fieldType = FieldTypeAscii,
+            count = artistBytes.size,
+            localValue = null,
+            valueOffset = 0,
+            valueBytes = artistBytes,
+            byteOrder = ByteOrder.BIG_ENDIAN,
+            sortHint = 0
+        )
+
+        val userCommentField = TiffField(
+            offset = 0,
+            tag = ExifTag.EXIF_TAG_USER_COMMENT.tag,
+            directoryType = TiffConstants.TIFF_DIRECTORY_EXIF,
+            fieldType = FieldTypeUndefined,
+            count = userCommentBytes.size,
+            localValue = null,
+            valueOffset = 0,
+            valueBytes = userCommentBytes,
+            byteOrder = ByteOrder.BIG_ENDIAN,
+            sortHint = 0
+        )
+
+        val ifd0 = TiffDirectory(
+            type = TiffConstants.TIFF_DIRECTORY_TYPE_IFD0,
+            entries = listOf(artistField),
+            offset = 8,
+            nextDirectoryOffset = 0,
+            byteOrder = ByteOrder.BIG_ENDIAN
+        )
+
+        val exifIfd = TiffDirectory(
+            type = TiffConstants.TIFF_DIRECTORY_EXIF,
+            entries = listOf(userCommentField),
+            offset = 100,
+            nextDirectoryOffset = 0,
+            byteOrder = ByteOrder.BIG_ENDIAN
+        )
+
+        val tiffContents = TiffContents(
+            header = TiffHeader(ByteOrder.BIG_ENDIAN, 42, 8),
+            directories = listOf(ifd0, exifIfd),
+            makerNoteDirectory = null,
+            makerNoteSubDirectories = emptyList(),
+            geoTiffDirectory = null
+        )
+
+        val outputSet = tiffContents.createOutputSet()
+
+        val byteWriter = ByteArrayByteWriter()
+
+        TiffWriter(outputSet.byteOrder).write(byteWriter, outputSet)
+
+        val readBack = TiffReader.read(byteWriter.toByteArray())
+
+        assertEquals(
+            expected = artistBytes.toList(),
+            actual = readBack.directories
+                .first()
+                .findField(TiffTag.TIFF_TAG_ARTIST)
+                ?.valueBytes
+                ?.toList()
+        )
+
+        assertEquals(
+            expected = userCommentBytes.toList(),
+            actual = readBack.directories
+                .first { it.type == TiffConstants.TIFF_DIRECTORY_EXIF }
+                .findField(ExifTag.EXIF_TAG_USER_COMMENT)
+                ?.valueBytes
+                ?.toList()
         )
     }
 

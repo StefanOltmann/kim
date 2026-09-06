@@ -18,6 +18,7 @@
 package de.stefan_oltmann.kim.format.tiff.write
 
 import de.stefan_oltmann.kim.common.ByteOrder
+import de.stefan_oltmann.kim.common.HEX_RADIX
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
@@ -92,22 +93,25 @@ public class TiffWriter(
 
             if (outputItem === makerNoteItem) {
 
-                if (makerNotePending) {
+                if (makerNotePending && makerNoteAnchor != null) {
 
                     /*
-                     * Keep the MakerNote at its original offset. Because
-                     * some MakerNotes store absolute offsets inside their
-                     * data, the MakerNote must never move.
+                     * Keep the MakerNote at its original offset at all
+                     * costs. Some MakerNotes store absolute offsets inside
+                     * their data - a moved MakerNote means corrupted
+                     * vendor data. If the original offset can no longer
+                     * be honored, fail the write instead of writing a
+                     * corrupt file.
                      */
-                    if (makerNoteAnchor != null && makerNoteAnchor > offset)
+                    if (makerNoteAnchor > offset) {
                         offset = makerNoteAnchor
-
-                    outputItem.offset = offset
-
-                    offset += outputItem.getItemLength() +
-                        imageDataPaddingLength(outputItem.getItemLength())
-
-                    makerNotePending = false
+                    } else if (offset > makerNoteAnchor) {
+                        throw ImageWriteException(
+                            "The MakerNote would have to move from 0x" +
+                                makerNoteAnchor.toString(HEX_RADIX) + " to 0x" + offset.toString(HEX_RADIX) +
+                                "; rewriting would corrupt vendor-specific offsets."
+                        )
+                    }
                 }
 
                 continue
@@ -127,13 +131,18 @@ public class TiffWriter(
 
             if (overlapsMakerNoteRegion && makerNoteItem != null) {
 
-                val makerNoteStart = maxOf(offset, makerNoteAnchor)
+                if (offset > makerNoteAnchor)
+                    throw ImageWriteException(
+                        "The MakerNote would have to move from 0x" +
+                            makerNoteAnchor.toString(HEX_RADIX) + " to 0x" + offset.toString(HEX_RADIX) +
+                            "; rewriting would corrupt vendor-specific offsets."
+                    )
 
-                makerNoteItem.offset = makerNoteStart
+                makerNoteItem.offset = makerNoteAnchor
 
                 val makerNoteLength = makerNoteItem.getItemLength()
 
-                offset = makerNoteStart + makerNoteLength +
+                offset = makerNoteAnchor + makerNoteLength +
                     imageDataPaddingLength(makerNoteLength)
 
                 makerNotePending = false
@@ -143,6 +152,19 @@ public class TiffWriter(
 
             offset += itemLength + imageDataPaddingLength(itemLength)
         }
+
+        /*
+         * Final safety net: the MakerNote must never move. If a future
+         * change to this calculation ever assigns it a different position,
+         * fail the write instead of emitting a file with corrupted
+         * vendor-specific offsets.
+         */
+        if (makerNoteItem != null && makerNoteAnchor != null &&
+            makerNoteItem.offset != makerNoteAnchor)
+            throw ImageWriteException(
+                "The MakerNote moved from 0x${makerNoteAnchor.toString(HEX_RADIX)} " +
+                    "to 0x${makerNoteItem.offset.toString(HEX_RADIX)}."
+            )
     }
 
     private fun writeInternal(

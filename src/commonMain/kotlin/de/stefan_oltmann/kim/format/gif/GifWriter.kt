@@ -67,6 +67,7 @@ public object GifWriter {
     internal fun writeImageStreaming(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
+        failOnTrailingXmp: Boolean = false,
         updateComputer: (List<GifChunk>, ByteWriter) -> Unit
     ) {
 
@@ -93,7 +94,7 @@ public object GifWriter {
          */
         copyImageData(byteReader, byteWriter)
 
-        copyBlocksSkippingMetadata(byteReader, byteWriter)
+        copyBlocksSkippingMetadata(byteReader, byteWriter, failOnTrailingXmp)
     }
 
     /**
@@ -107,7 +108,8 @@ public object GifWriter {
      */
     private fun copyBlocksSkippingMetadata(
         byteReader: ByteReader,
-        byteWriter: ByteWriter
+        byteWriter: ByteWriter,
+        failOnTrailingXmp: Boolean
     ) {
 
         while (true) {
@@ -136,7 +138,8 @@ public object GifWriter {
                     copyImageData(byteReader, byteWriter)
                 }
 
-                GifConstants.EXTENSION_INTRODUCER -> copyExtensionBlock(byteReader, byteWriter)
+                GifConstants.EXTENSION_INTRODUCER ->
+                    copyExtensionBlock(byteReader, byteWriter, failOnTrailingXmp)
 
                 else -> throw ImageReadException(
                     "Unknown GIF block introducer: ${introducer.toHex()}"
@@ -196,7 +199,8 @@ public object GifWriter {
      */
     private fun copyExtensionBlock(
         byteReader: ByteReader,
-        byteWriter: ByteWriter
+        byteWriter: ByteWriter,
+        failOnTrailingXmp: Boolean
     ) {
 
         val label = byteReader.readByte()
@@ -207,7 +211,7 @@ public object GifWriter {
             GifConstants.COMMENT_EXTENSION_LABEL -> copySubBlocks(byteReader, byteWriter = null)
 
             GifConstants.APPLICATION_EXTENSION_LABEL ->
-                copyApplicationExtensionBlock(byteReader, byteWriter)
+                copyApplicationExtensionBlock(byteReader, byteWriter, failOnTrailingXmp)
 
             else -> {
 
@@ -227,7 +231,8 @@ public object GifWriter {
      */
     private fun copyApplicationExtensionBlock(
         byteReader: ByteReader,
-        byteWriter: ByteWriter
+        byteWriter: ByteWriter,
+        failOnTrailingXmp: Boolean
     ) {
 
         byteWriter.write(GifConstants.EXTENSION_INTRODUCER)
@@ -260,6 +265,19 @@ public object GifWriter {
         val remainingFirstSubBlockLength = (firstSubBlockSize - identifierBytes.size).toLong()
 
         if (isXmpExtension) {
+
+            /*
+             * XMP behind the first frame was never seen by the update
+             * computer (it only receives the chunks before the first
+             * image), so dropping it here would silently destroy the
+             * metadata. An update must fail loudly instead; a deletion
+             * asked for the removal and keeps skipping.
+             */
+            if (failOnTrailingXmp)
+                throw ImageWriteException(
+                    "The file contains an XMP application extension behind the first " +
+                        "frame, which the update cannot merge. The file was not changed."
+                )
 
             byteReader.transferExactly(null, remainingFirstSubBlockLength)
             copySubBlocks(byteReader, byteWriter = null)

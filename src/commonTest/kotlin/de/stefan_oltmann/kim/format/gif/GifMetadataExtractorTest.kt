@@ -18,9 +18,11 @@
 package de.stefan_oltmann.kim.format.gif
 
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class GifMetadataExtractorTest {
@@ -44,4 +46,24 @@ class GifMetadataExtractorTest {
             "Photo $index has not the expected bytes!"
         )
     }
+    /**
+     * A byte that is not a known block introducer must fail the
+     * metadata extraction like the full read does. Silently dropping
+     * it produces a shortened metadata GIF.
+     */
+    @Test
+    fun testExtractMetadataBytesRejectsUnknownBlockIntroducer() {
+
+        /* Header, logical screen descriptor, one stray byte, then the
+           terminator. */
+        val bytes = "GIF89a".encodeToByteArray() +
+            byteArrayOf(1, 0, 1, 0, 0, 0, 0) +
+            byteArrayOf(0x55.toByte()) +
+            byteArrayOf(GifConstants.GIF_TERMINATOR)
+
+        assertFailsWith<ImageReadException> {
+            GifMetadataExtractor.extractMetadataBytes(ByteArrayByteReader(bytes))
+        }
+    }
+
 }

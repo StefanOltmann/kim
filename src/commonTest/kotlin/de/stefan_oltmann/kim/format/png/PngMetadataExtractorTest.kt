@@ -17,12 +17,33 @@
 package de.stefan_oltmann.kim.format.png
 
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.toSingleNumberHexes
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
 class PngMetadataExtractorTest {
+
+    @Test
+    fun testIendCrc() {
+
+        val bytes = KimTestData.getBytesOf(KimTestData.PNG_TEST_IMAGE_INDEX)
+
+        val byteReader = ByteArrayByteReader(bytes)
+
+        val metadataBytes = Kim.extractMetadataBytes(byteReader).second
+
+        /* The CRC32 of the chunk type "IEND" is AE 42 60 82. */
+        val expectedCrcBytes = byteArrayOf(0xAE.toByte(), 0x42.toByte(), 0x60.toByte(), 0x82.toByte())
+
+        val actualCrcBytes = metadataBytes.copyOfRange(metadataBytes.size - 4, metadataBytes.size)
+
+        assertTrue(
+            expectedCrcBytes.contentEquals(actualCrcBytes),
+            "IEND chunk must carry CRC AE 42 60 82, but was ${actualCrcBytes.toSingleNumberHexes()}"
+        )
+    }
 
     @Test
     fun testExtractMetadataBytes() {

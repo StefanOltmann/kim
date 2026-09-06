@@ -77,6 +77,8 @@ public class KtorByteReadChannelByteReader(
     }
 
     override fun readBytes(count: Int): ByteArray {
+        require(count >= 0) { "Count must not be negative: $count" }
+
 
         val result = ByteArray(count)
         var remaining = count

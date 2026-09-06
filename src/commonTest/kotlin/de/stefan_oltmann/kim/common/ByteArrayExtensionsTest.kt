@@ -102,6 +102,23 @@ class ByteArrayExtensionsTest {
         )
     }
 
+    /**
+     * A start index at or beyond the end yields no remaining bytes. The
+     * previous implementation coerced the index into the last element
+     * and reported one wrong trailing byte, and threw on an empty array.
+     */
+    @Test
+    fun testGetRemainingBytesBeyondEndReturnsEmpty() {
+
+        val bytes = byteArrayOf(1, 2)
+
+        assertContentEquals(byteArrayOf(), bytes.getRemainingBytes(2))
+        assertContentEquals(byteArrayOf(), bytes.getRemainingBytes(10))
+
+        /* An empty array must not throw on the empty index range. */
+        assertContentEquals(byteArrayOf(), byteArrayOf().getRemainingBytes(0))
+    }
+
     @Test
     fun testToSingleNumberHexes() {
 

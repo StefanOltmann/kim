@@ -26,5 +26,4 @@ public class WebPChunkXmp(
 ) : WebPChunk(WebPChunkType.XMP, bytes) {
 
     public val xmp: String = bytes.decodeToString()
-
 }

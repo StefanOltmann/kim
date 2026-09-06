@@ -15,6 +15,7 @@
  */
 package de.stefan_oltmann.kim.format.webp
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8X
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
@@ -22,6 +23,7 @@ import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.model.ImageSize
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class WebPImageParserTest {
@@ -128,6 +130,74 @@ class WebPImageParserTest {
         (value shr 16).toByte(),
         (value shr 24).toByte()
     )
+
+    /**
+     * Binary garbage in an XMP chunk fails the update path in
+     * XMPMetaFactory, so it must fail the read as well
+     * (read/update symmetry).
+     */
+    @Test
+    fun testParseMetadataRejectsGarbageXmpChunk() {
+
+        val vp8xPayload = WebPChunkVP8X.createBytes(
+            hasIcc = false,
+            hasAlpha = false,
+            hasExif = false,
+            hasXmp = true,
+            hasAnimation = false,
+            imageSize = ImageSize(100, 100)
+        )
+
+        val vp8xChunk = "VP8X".encodeToByteArray() +
+            intToBytesLE(vp8xPayload.size) +
+            vp8xPayload
+
+        val xmpPayload = "this is not xmp".encodeToByteArray()
+
+        val xmpChunk = "XMP ".encodeToByteArray() +
+            intToBytesLE(xmpPayload.size) +
+            xmpPayload
+
+        val file = "RIFF".encodeToByteArray() +
+            intToBytesLE(vp8xChunk.size + xmpChunk.size + "WEBP".length) +
+            "WEBP".encodeToByteArray() +
+            vp8xChunk +
+            xmpChunk
+
+        assertFailsWith<ImageReadException> {
+            WebPImageParser.parseMetadata(ByteArrayByteReader(file))
+        }
+    }
+
+    /**
+     * The RIFF pad byte is required between chunks, but a nonconformant
+     * encoder may omit the pad byte of the final odd-sized chunk. That
+     * missing byte is the end of the file and must not fail the parse
+     * of an otherwise complete file.
+     */
+    @Test
+    fun testReadChunksToleratesMissingFinalPadByte() {
+
+        /* Odd-sized payload, so the chunk would normally need a pad byte. */
+        val xmpPayload = "<x:xmpmeta/>".encodeToByteArray() + byteArrayOf(0)
+
+        val xmpChunk = "XMP ".encodeToByteArray() +
+            intToBytesLE(xmpPayload.size) +
+            xmpPayload
+
+        /* The final pad byte of the odd-sized chunk is omitted. */
+        val file = "RIFF".encodeToByteArray() +
+            intToBytesLE(xmpChunk.size + "WEBP".length) +
+            "WEBP".encodeToByteArray() +
+            xmpChunk
+
+        val chunks = WebPImageParser.readChunks(
+            byteReader = ByteArrayByteReader(file),
+            stopAfterMetadataRead = true
+        )
+
+        assertEquals(WebPChunkType.XMP, chunks.last().type)
+    }
 
     /**
      * Regression test: large image chunks that carry no metadata must be

@@ -32,6 +32,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
@@ -173,6 +174,203 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
 
         /* The ICC profile affects the display and must be kept. */
         assertTrue(containsIccProfile(newBytes))
+    }
+
+    /**
+     * A spec-legal APP0 segment without the JFIF identifier (JFXX
+     * thumbnail extension or vendor data) must survive an update
+     * byte-identically instead of failing the rewrite, matching the
+     * read path that accepts such files (read/update symmetry).
+     */
+    @Test
+    fun testUpdatePreservesNonJfifApp0Segment() {
+
+        /* "JFXX\0" identifier plus a 10-byte extension payload. */
+        val jfxxSegmentBytes = byteArrayOf(
+            0xFF.toByte(), 0xE0.toByte(),
+            0x00, 0x11,
+            0x4A, 0x46, 0x58, 0x58, 0x00,
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+        )
+
+        val bytesWithJfxx = insertSegmentAfterJfif(originalBytes, jfxxSegmentBytes)
+
+        val newBytes = Kim.update(
+            bytes = bytesWithJfxx,
+            updates = setOf(MetadataUpdate.Title(title))
+        )
+
+        assertTrue(newBytes.containsSegment(jfxxSegmentBytes))
+    }
+
+    /**
+     * An empty segment (length field 2) is spec-legal per ITU-T T.81
+     * B.1.1.4 and must survive reading and rewriting byte-identically
+     * instead of failing the whole file.
+     */
+    @Test
+    fun testUpdatePreservesEmptySegment() {
+
+        /* A COM segment with an empty payload. */
+        val emptyCom = byteArrayOf(0xFF.toByte(), 0xFE.toByte(), 0x00, 0x02)
+
+        /* The empty segment sits directly before the EXIF segment, so
+           the lossless orientation path walks over it. */
+        val bytesWithEmptyCom = byteArrayOf(0xFF.toByte(), 0xD8.toByte()) +
+            emptyCom +
+            originalBytes.copyOfRange(2, originalBytes.size)
+
+        /* Reading must not reject the empty segment. */
+        assertNotNull(Kim.readMetadata(bytesWithEmptyCom))
+
+        val newBytes = Kim.update(
+            bytes = bytesWithEmptyCom,
+            updates = setOf(MetadataUpdate.Title(title))
+        )
+
+        assertTrue(newBytes.containsSegment(emptyCom))
+
+        /*
+         * The lossless orientation patch rebuilds the header through the
+         * orientation offset finder, which must tolerate the empty
+         * segment like every other reader.
+         */
+        val orientedBytes = Kim.update(
+            bytes = bytesWithEmptyCom,
+            updates = setOf(MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT))
+        )
+
+        assertTrue(orientedBytes.containsSegment(emptyCom))
+    }
+
+    /**
+     * The first APP13 stream can carry Photoshop blocks without any IPTC
+     * records. It must not shadow a second, real IPTC stream of the same
+     * file, or the IPTC data would silently disappear.
+     */
+    @Test
+    fun testReadFindsIptcBehindEmptyFirstApp13Stream() {
+
+        /* A Photoshop stream whose only block carries no IPTC records. */
+        val emptyBlock = byteArrayOf(
+            0x38, 0x42, 0x49, 0x4D, // "8BIM"
+            0x03, 0xED.toByte(), // Resolution info, no IPTC records
+            0x00, // Empty name
+            0x00, // Name padding
+            0x00, 0x00, 0x00, 0x04, // Block size 4
+            0x00, 0x00, 0x01, 0x00 // Block data
+        )
+
+        val app13Payload = "Photoshop 3.0 ".encodeToByteArray() + emptyBlock
+
+        val fakeStreamSegment = byteArrayOf(
+            0xFF.toByte(), 0xED.toByte(),
+            0x00, (app13Payload.size + 2).toByte()
+        ) + app13Payload
+
+        val bytesWithFakeStream = insertSegmentAfterJfif(
+            KimTestData.getBytesOf(1),
+            fakeStreamSegment
+        )
+
+        val metadata = assertNotNull(Kim.readMetadata(bytesWithFakeStream))
+
+        /* The IPTC records of the real stream must still be found. */
+        assertTrue(metadata.iptc?.records?.isNotEmpty() == true)
+    }
+
+    /**
+     * A short non-EXIF APP1 segment before the EXIF segment must be
+     * skipped without a desynced read past its end, so the update still
+     * succeeds and applies the orientation.
+     */
+    @Test
+    fun testUpdateToleratesShortNonExifApp1Segment() {
+
+        val shortApp1 = byteArrayOf(
+            0xFF.toByte(), 0xE1.toByte(),
+            0x00, 0x05,
+            0x58, 0x59, 0x5A // "XYZ", no EXIF identifier
+        )
+
+        val jpegBytes = byteArrayOf(0xFF.toByte(), 0xD8.toByte()) +
+            shortApp1 +
+            buildExifSegmentWithOrientation() +
+            minimalScan()
+
+        val newBytes = Kim.update(
+            bytes = jpegBytes,
+            updates = setOf(MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT))
+        )
+
+        assertEquals(
+            expected = TiffOrientation.ROTATE_RIGHT.value.toShort(),
+            actual = Kim.readMetadata(newBytes)?.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)
+        )
+    }
+
+    /**
+     * Builds an APP1 EXIF segment with a single orientation entry.
+     */
+    private fun buildExifSegmentWithOrientation(): ByteArray {
+
+        val payload = byteArrayOf(
+            0x45, 0x78, 0x69, 0x66, 0x00, 0x00, // "Exif\0\0"
+            0x49, 0x49, 0x2A, 0x00, // TIFF: II, version 42
+            0x08, 0x00, 0x00, 0x00, // IFD0 at offset 8
+            0x01, 0x00, // 1 entry
+            0x12, 0x01, // Orientation tag
+            0x03, 0x00, // Type SHORT
+            0x01, 0x00, 0x00, 0x00, // Count 1
+            0x06, 0x00, 0x00, 0x00, // Value 6 (rotate right)
+            0x00, 0x00, 0x00, 0x00 // No next IFD
+        )
+
+        return byteArrayOf(0xFF.toByte(), 0xE1.toByte()) +
+            byteArrayOf(0x00, (payload.size + 2).toByte()) +
+            payload
+    }
+
+    /**
+     * A minimal SOS scan data followed by the EOI marker.
+     */
+    private fun minimalScan(): ByteArray = byteArrayOf(
+        0xFF.toByte(), 0xDA.toByte(), // SOS
+        0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x3F, 0x00,
+        0x11, 0x22, 0x33, 0x44,
+        0xFF.toByte(), 0xD9.toByte() // EOI
+    )
+
+    /**
+     * Inserts the given segment bytes after the first header segment that
+     * follows the SOI marker.
+     */
+    private fun insertSegmentAfterJfif(
+        jpegBytes: ByteArray,
+        segment: ByteArray
+    ): ByteArray {
+
+        /* SOI occupies 2 bytes; the length field of the next segment follows. */
+        val firstSegmentLength = (jpegBytes[SEGMENT_HEADER_BYTES].toInt() and 0xFF) shl 8 or
+            (jpegBytes[SEGMENT_HEADER_BYTES + 1].toInt() and 0xFF)
+
+        val insertIndex = SEGMENT_HEADER_BYTES + firstSegmentLength
+
+        return jpegBytes.copyOfRange(0, insertIndex) +
+            segment +
+            jpegBytes.copyOfRange(insertIndex, jpegBytes.size)
+    }
+
+    /**
+     * Returns whether the given segment bytes appear anywhere in the JPEG bytes.
+     */
+    private fun ByteArray.containsSegment(segment: ByteArray): Boolean {
+
+        for (offset in 0..size - segment.size)
+            if (copyOfRange(offset, offset + segment.size).contentEquals(segment))
+                return true
+
+        return false
     }
 
     /**

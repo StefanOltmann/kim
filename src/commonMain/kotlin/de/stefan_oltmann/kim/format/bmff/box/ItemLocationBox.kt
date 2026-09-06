@@ -17,6 +17,7 @@
  */
 package de.stefan_oltmann.kim.format.bmff.box
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.FLAGS_LENGTH
 import de.stefan_oltmann.kim.format.bmff.BoxType
@@ -104,6 +105,15 @@ public class ItemLocationBox(
             byteReader.read4BytesAsInt("itemCount", BMFF_BYTE_ORDER)
         else
             error("Unknown version $version")
+
+        /*
+         * A hostile 32-bit count reads as a negative Int and would turn
+         * repeat() below into a silent no-op, hiding the corruption behind
+         * an empty item list. Like the version check above, this fails
+         * loudly instead.
+         */
+        if (itemCount < 0)
+            throw ImageReadException("Invalid ILOC item count: ${itemCount.toUInt()}")
 
         val extents = mutableListOf<Extent>()
 

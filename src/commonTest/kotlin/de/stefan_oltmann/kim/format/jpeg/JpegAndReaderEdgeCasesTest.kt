@@ -83,11 +83,15 @@ class JpegAndReaderEdgeCasesTest {
     @Test
     fun testFindSegmentInfosRejectsIllegalLength() {
 
-        /* A segment with a length of 2 bytes. */
+        /*
+         * A segment with a length of 1 byte. A length of exactly 2 is an
+         * empty segment and spec-legal, so only a length below 2 - which
+         * cannot be encoded - is rejected.
+         */
         val bytes = byteArrayOf(
             0xFF.toByte(), 0xD8.toByte(),
             0xFF.toByte(), 0xE0.toByte(),
-            0x00, 0x02
+            0x00, 0x01
         )
 
         assertFailsWith<ImageReadException> {
@@ -218,19 +222,21 @@ class JpegAndReaderEdgeCasesTest {
     }
 
     /**
-     * All JPEG readers must reject zero-length segments.
+     * All JPEG readers must reject segments whose length field is below
+     * the spec minimum of 2, because the value cannot be encoded. An
+     * empty segment with the length exactly 2 is legal and accepted.
      */
     @Test
     fun testReadersRejectIllegalSegmentLength() {
 
         /*
-         * SOI, a valid APP0, a zero-length APP1, SOS and EOI.
-         * At least 16 bytes are required for the format detection.
+         * SOI, a valid APP0, an APP1 with the impossible length 1, SOS
+         * and EOI. At least 16 bytes are required for the detection.
          */
         val bytes = byteArrayOf(
             0xFF.toByte(), 0xD8.toByte(),
             0xFF.toByte(), 0xE0.toByte(), 0x00, 0x04, 0x00, 0x00,
-            0xFF.toByte(), 0xE1.toByte(), 0x00, 0x02,
+            0xFF.toByte(), 0xE1.toByte(), 0x00, 0x01,
             0xFF.toByte(), 0xDA.toByte(),
             0xFF.toByte(), 0xD9.toByte()
         )
@@ -401,5 +407,91 @@ class JpegAndReaderEdgeCasesTest {
 
         /* Setting same-size bytes works. */
         field.setBytes(byteArrayOf(16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1))
+    }
+
+    /**
+     * A file that ends right at the SOS marker has no image bytes and
+     * no EOI. The segment analysis must report the SOS segment instead
+     * of failing with a confusing negative-length error.
+     */
+    @Test
+    fun testFindSegmentInfosToleratesFileEndingAtSos() {
+
+        /* SOI followed directly by SOS. */
+        val bytes = byteArrayOf(
+            0xFF.toByte(), 0xD8.toByte(),
+            0xFF.toByte(), 0xDA.toByte()
+        )
+
+        val segmentInfos = JpegSegmentAnalyzer.findSegmentInfos(
+            ByteArrayByteReader(bytes)
+        )
+
+        assertEquals(JpegConstants.SOS_MARKER, segmentInfos.last().marker)
+    }
+
+    /**
+     * The scanner without kept bytes must still find markers and count
+     * every consumed byte, including fill bytes and the marker itself.
+     */
+    @Test
+    fun testScannerWithoutKeptBytesStillFindsMarkersAndCounts() {
+
+        /* SOI + 5 filler bytes + the APP1 marker. */
+        val bytes = byteArrayOf(
+            0xFF.toByte(), 0xD8.toByte(),
+            0x41, 0x41, 0x41, 0x41, 0x41,
+            0xFF.toByte(), 0xE1.toByte()
+        )
+
+        val scanner = JpegMarkerScanner(ByteArrayByteReader(bytes), keepConsumedBytes = false)
+
+        val soi = scanner.nextMarker(zeroIsFillByte = true)!!
+
+        assertEquals(JpegConstants.SOI_MARKER, soi.marker)
+        assertEquals(2, soi.consumedCount)
+
+        val app1 = scanner.nextMarker(zeroIsFillByte = true)!!
+
+        assertEquals(JpegConstants.JPEG_APP1_MARKER, app1.marker)
+        assertEquals(7, app1.consumedCount)
+        assertEquals(0, app1.consumedBytes.size)
+    }
+
+    /**
+     * A file built from an unbounded number of small header segments
+     * must fail the read instead of buffering an unbounded amount of
+     * segment data during an update.
+     */
+    @Test
+    fun testReadSegmentsRejectsExcessiveHeaderSize() {
+
+        /* A COM segment with a 14-byte payload. The length field includes itself. */
+        val comSegmentContentLength = 14
+
+        val comSegment = byteArrayOf(
+            0xFF.toByte(), COM_MARKER.toByte(), 0, (comSegmentContentLength + 2).toByte()
+        ) + "0123456789ABCD".encodeToByteArray()
+
+        /* Only the payload of each segment counts towards the limit. */
+        val segmentCount = (16 * 1024 * 1024) / comSegmentContentLength + 1
+
+        val headerBytes = ByteArray(segmentCount * comSegment.size)
+
+        for (index in 0 until segmentCount)
+            comSegment.copyInto(headerBytes, index * comSegment.size)
+
+        val file = byteArrayOf(0xFF.toByte(), SOI_MARKER.toByte()) + headerBytes
+
+        assertFailsWith<ImageReadException> {
+            JpegUtils.readSegments(ByteArrayByteReader(file))
+        }
+    }
+
+    private companion object {
+
+        const val SOI_MARKER: Int = 0xD8
+
+        const val COM_MARKER: Int = 0xFE
     }
 }
