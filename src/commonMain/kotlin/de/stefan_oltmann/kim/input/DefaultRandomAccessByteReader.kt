@@ -62,18 +62,38 @@ public class DefaultRandomAccessByteReader(
             return byteArrayOf()
 
         /*
-         * Computed in Long space, so a content length beyond the signed
-         * Int range cannot wrap the coercion into a negative value that
-         * would crash copyOfRange below. Mirrors readBytes(offset, length).
+         * Computed in Long space and capped at the Int range, so a huge
+         * count combined with a content length beyond the signed Int
+         * range cannot wrap the end index into a negative value.
          */
-        val clampedCount = minOf(count.toLong(), contentLength).toInt()
+        val targetIndex = minOf(
+            currentPosition.toLong() + count,
+            contentLength,
+            Int.MAX_VALUE.toLong()
+        )
 
-        val endIndex = currentPosition + clampedCount
+        /*
+         * Grow the buffer in bounded steps, so a declared content length
+         * beyond the actual data cannot drive a huge up-front allocation.
+         */
+        while (bufferPosition < targetIndex) {
 
-        if (endIndex > bufferPosition)
-            readToIndex(endIndex)
+            val stepEnd = minOf(targetIndex, buffer.size.toLong() + BUFFER_EXPANSION).toInt()
 
-        val bytes = buffer.copyOfRange(currentPosition, minOf(endIndex, bufferPosition))
+            readToIndex(stepEnd)
+
+            /* The delegate delivered fewer bytes than declared: end of data. */
+            if (bufferPosition < stepEnd)
+                break
+        }
+
+        /* The position can be past the delivered data after a moveTo. */
+        if (currentPosition >= bufferPosition)
+            return byteArrayOf()
+
+        val endIndex = minOf(targetIndex, bufferPosition.toLong()).toInt()
+
+        val bytes = buffer.copyOfRange(currentPosition, endIndex)
 
         currentPosition += bytes.size
 

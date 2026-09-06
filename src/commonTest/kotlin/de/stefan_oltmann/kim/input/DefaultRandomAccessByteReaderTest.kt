@@ -16,6 +16,7 @@
 package de.stefan_oltmann.kim.input
 
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertContentEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
@@ -191,6 +192,60 @@ class DefaultRandomAccessByteReaderTest {
 
         /* Must return an empty array instead of crashing. */
         assertContentEquals(byteArrayOf(), reader.readBytes(10))
+    }
+
+    /**
+     * A huge count at a high position must not overflow the Int-space
+     * index computation; the read stops at the end of the content.
+     */
+    @Test
+    fun testReadBytesCountDoesNotOverflowAtHighPositions() {
+
+        /* A stream that declares more than the signed Int range but
+           delivers only 10 bytes. */
+        val reader = DefaultRandomAccessByteReader(object : ByteReader {
+
+            override val contentLength: Long = Int.MAX_VALUE + 1024L
+
+            private val data = byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+
+            private var position = 0
+
+            override fun readByte(): Byte? =
+                if (position < data.size) data[position++] else null
+
+            override fun readBytes(count: Int): ByteArray {
+
+                val end = minOf(position + count, data.size)
+
+                val result = data.copyOfRange(position, end)
+
+                position = end
+
+                return result
+            }
+
+            override fun close() {}
+        })
+
+        reader.moveTo(5)
+
+        assertEquals(5, reader.readBytes(Int.MAX_VALUE).size)
+    }
+
+    /**
+     * A stream that delivers fewer bytes than its declared contentLength
+     * must produce short reads instead of a raw range error once the
+     * position is past the delivered data.
+     */
+    @Test
+    fun testReadBytesWithShortDeliveringDelegateReturnsShortRead() {
+
+        val reader = DefaultRandomAccessByteReader(ShortStreamReader(byteArrayOf(1, 2, 3, 4)))
+
+        reader.moveTo(15)
+
+        assertEquals(0, reader.readBytes(5).size)
     }
 
     /**
