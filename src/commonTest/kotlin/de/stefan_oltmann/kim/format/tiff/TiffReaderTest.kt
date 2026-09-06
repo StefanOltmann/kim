@@ -15,8 +15,10 @@
  */
 package de.stefan_oltmann.kim.format.tiff
 
+import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.common.toBytes
 import de.stefan_oltmann.kim.common.toHex
@@ -24,6 +26,7 @@ import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.DefaultRandomAccessByteReader
+import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.writeInt
 import kotlin.test.Test
@@ -90,6 +93,37 @@ class TiffReaderTest {
 
         /* The hostile offset must not crash the reader nor produce bytes. */
         assertEquals(null, directory.thumbnailBytes)
+    }
+
+    /**
+     * A GPS sub-IFD that cannot be parsed must fail the read like the
+     * Exif sub-IFD does. Silently dropping the pointer field would make
+     * the next update remove the GPS data from the file permanently
+     * (read/update symmetry, see "Never destroy metadata" in the [Kim]
+     * documentation).
+     */
+    @Test
+    fun testReadRejectsTruncatedGpsIfd() {
+
+        val bytes = convertHexStringToByteArray(
+            "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
+                "0100" + // 1 entry
+                "25880400010000001a000000" + // GPSInfo (0x8825), LONG, count 1, GPS IFD at offset 26
+                "00000000" + // No next directory
+                "3200" // GPS IFD entry count 0x0032 (50), no entries follow
+        )
+
+        assertFailsWith<ImageReadException> {
+            TiffReader.read(ByteArrayByteReader(bytes))
+        }
+
+        /* The same file must fail the update instead of dropping the GPS block. */
+        assertFailsWith<ImageWriteException> {
+            Kim.update(
+                bytes = bytes,
+                updates = setOf(MetadataUpdate.TakenDate(0L))
+            )
+        }
     }
 
     /**
