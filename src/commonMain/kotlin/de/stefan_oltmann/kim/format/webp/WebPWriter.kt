@@ -154,10 +154,23 @@ public object WebPWriter {
         byteWriter.write(WebPConstants.WEBP_SIGNATURE)
 
         /*
-         * First write all other chunks in the original order.
+         * First write all other chunks in the original order. When EXIF is
+         * written it must precede an existing XMP chunk, so the EXIF chunk
+         * is emitted as soon as an XMP chunk is encountered.
          */
-        for (chunk in modifiedChunks)
+        var exifWritten = false
+
+        for (chunk in modifiedChunks) {
+
+            if (!exifWritten && exifBytes != null && chunk.type == WebPChunkType.XMP) {
+
+                byteWriter.writeWebpChunk(WebPChunkType.EXIF, exifBytes)
+
+                exifWritten = true
+            }
+
             byteWriter.writeWebpChunk(chunk.type, chunk.bytes)
+        }
 
         /*
          * A major design flaw of WebP is that is specifies the metadata chunks to come last.
@@ -170,7 +183,7 @@ public object WebPWriter {
          * See https://developers.google.com/speed/webp/docs/riff_container#extended_file_format
          */
 
-        if (exifBytes != null)
+        if (!exifWritten && exifBytes != null)
             byteWriter.writeWebpChunk(WebPChunkType.EXIF, exifBytes)
 
         if (xmpBytes != null)

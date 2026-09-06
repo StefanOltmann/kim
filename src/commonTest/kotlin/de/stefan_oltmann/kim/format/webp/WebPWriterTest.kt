@@ -154,7 +154,55 @@ class WebPWriterTest {
     }
 
     /**
-     * The VP8X header created for a legacy VP8L file must declare the alpha
+     * The WebP container spec expects EXIF to precede XMP. Writing new
+     * EXIF while the file already carries XMP must insert the EXIF chunk
+     * before the existing XMP chunk instead of appending it behind.
+     */
+    @Test
+    fun testExifIsInsertedBeforeExistingXmp() {
+
+        val bytes = KimTestData.getBytesOf(KimTestData.WEBP_TEST_IMAGE_INDEX)
+
+        val oldMetadata = Kim.readMetadata(bytes)
+
+        val exifBytes = assertNotNull(oldMetadata?.exifBytes)
+
+        val byteWriter = ByteArrayByteWriter()
+
+        /* The XMP parameter stays NULL, so the existing XMP chunk is kept. */
+        WebPWriter.writeImage(
+            byteReader = ByteArrayByteReader(bytes),
+            byteWriter = byteWriter,
+            exifBytes = exifBytes,
+            xmp = null
+        )
+
+        val newBytes = byteWriter.toByteArray()
+
+        val exifIndex = newBytes.indexOfBytes("EXIF".encodeToByteArray())
+
+        val xmpIndex = newBytes.indexOfBytes("XMP ".encodeToByteArray())
+
+        assertTrue(
+            exifIndex in 0 until xmpIndex,
+            "Expected EXIF before XMP, but was EXIF at $exifIndex and XMP at $xmpIndex"
+        )
+    }
+
+    /**
+     * Returns the first index of the needle bytes, or -1.
+     */
+    private fun ByteArray.indexOfBytes(needle: ByteArray): Int {
+
+        for (offset in 0..size - needle.size)
+            if (copyOfRange(offset, offset + needle.size).contentEquals(needle))
+                return offset
+
+        return -1
+    }
+
+    /**
+     * The VP8X header created for a legacy VP8L bitstream must declare the alpha
      * flag that the bitstream carries, or decoders may drop the transparency.
      */
     @Test
