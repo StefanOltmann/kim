@@ -85,7 +85,14 @@ public object GifImageParser : ImageParser {
                 "Found chunk types: ${chunks.map { it.type }}"
         }
 
-        val imageSize = firstImageDescriptorChunk.imageSize
+        /*
+         * The logical screen canvas is what reference parsers report. The
+         * first frame's descriptor is only a crop of that canvas, so it is
+         * just the fallback for files without a usable screen descriptor.
+         */
+        val imageSize = chunks.filterIsInstance<GifChunkLogicalScreenDescriptor>()
+            .firstOrNull()?.canvasSize
+            ?: firstImageDescriptorChunk.imageSize
 
         /* Only GIF89A supports XMP metadata */
         val xmp = if (version == GifVersion.GIF89A)

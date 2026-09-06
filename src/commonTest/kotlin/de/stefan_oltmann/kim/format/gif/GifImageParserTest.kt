@@ -19,7 +19,11 @@ package de.stefan_oltmann.kim.format.gif
 
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.gif.chunk.GifChunkApplicationExtension
+import de.stefan_oltmann.kim.format.gif.chunk.GifChunkHeader
+import de.stefan_oltmann.kim.format.gif.chunk.GifChunkImageDescriptor
+import de.stefan_oltmann.kim.format.gif.chunk.GifChunkLogicalScreenDescriptor
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.model.ImageSize
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -108,5 +112,32 @@ class GifImageParserTest {
         assertFailsWith<ImageReadException> {
             GifImageParser.readChunks(ByteArrayByteReader(bytes), null)
         }
+    }
+
+    /**
+     * The reported image size is the logical screen canvas, like
+     * reference parsers report it. The first frame's descriptor is only
+     * a crop of that canvas and smaller for animated GIFs.
+     */
+    @Test
+    fun testImageSizeReportsLogicalScreenSize() {
+
+        /* Logical screen 1920x1080, first frame cropped to 480x360. */
+        val chunks = listOf(
+            GifChunkHeader("GIF89a".encodeToByteArray()),
+            GifChunkLogicalScreenDescriptor(
+                byteArrayOf(0x80.toByte(), 0x07, 0x38.toByte(), 0x04, 0, 0, 0)
+            ),
+            GifChunkImageDescriptor(
+                byteArrayOf(0x2C.toByte(), 0, 0, 0, 0, 0xE0.toByte(), 0x01, 0x68, 0x01, 0)
+            )
+        )
+
+        val metadata = GifImageParser.parseMetadataFromChunks(chunks)
+
+        assertEquals(
+            expected = ImageSize(1920, 1080),
+            actual = metadata.imageSize
+        )
     }
 }
