@@ -364,6 +364,47 @@ class ExtendedXmpTest {
         }
     }
 
+    /**
+     * A third-party writer may place the stale extended-XMP reference in
+     * the same rdf:Description element as real properties. The surgical
+     * reference removal must preserve those siblings, and the
+     * regeneration must reference the reassembled extended data.
+     */
+    @Test
+    fun testPartitionKeepsSiblingsOfStaleReferenceBlock() {
+
+        val hugeValue = "x".repeat(JpegConstants.MAX_XMP_BYTES_PER_SEGMENT + 100)
+
+        /* One description carries both the stale reference (attribute
+           form) and a real property. */
+        val hugeXmp =
+            """<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>""" +
+                """<x:xmpmeta xmlns:x="adobe:ns:meta/">""" +
+                """<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">""" +
+                """<rdf:Description rdf:about="" xmlns:custom="http://example.com/custom" """ +
+                """xmlns:xmpNote="http://ns.adobe.com/xmp/note/" """ +
+                """xmpNote:HasExtendedXMP="$GUID">""" +
+                "<custom:Big>$hugeValue</custom:Big>" +
+                "<custom:Headline>KEEP</custom:Headline>" +
+                "</rdf:Description>" +
+                "</rdf:RDF></x:xmpmeta>" +
+                """<?xpacket end="w"?>"""
+
+        val partitioned = ExtendedXmpWriter.partition(hugeXmp)
+
+        /* The stale reference is regenerated with a fresh GUID. */
+        assertTrue(partitioned.mainPacketXml.contains("HasExtendedXMP"))
+        assertFalse(partitioned.mainPacketXml.contains(GUID))
+
+        /* The sibling property must survive in the extended data. */
+        val extendedData = ByteArrayByteWriter()
+
+        for (payload in partitioned.extensionSegmentPayloads)
+            extendedData.write(payload.copyOfRange(EXTENDED_XMP_HEADER_BYTES, payload.size))
+
+        assertTrue(extendedData.toByteArray().decodeToString().contains("KEEP"))
+    }
+
     /*
      * ------------------------------------------------------------------
      * Fixture helpers
