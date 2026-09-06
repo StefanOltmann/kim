@@ -24,7 +24,8 @@ import de.stefan_oltmann.kim.input.ByteReader
  * the format.
  */
 internal class JpegMarkerScanner(
-    private val byteReader: ByteReader
+    private val byteReader: ByteReader,
+    private val keepConsumedBytes: Boolean = true
 ) {
 
     /**
@@ -40,25 +41,54 @@ internal class JpegMarkerScanner(
 
         var previous = byteReader.readByte() ?: return null
 
+        var consumedCount = 1
+
         val consumed = mutableListOf(previous)
 
         while (true) {
 
             val current = byteReader.readByte() ?: return null
 
-            consumed.add(current)
+            /*
+             * Callers that only need the count must not accumulate an
+             * unbounded gap of junk bytes (e.g. a truncated file without
+             * any further marker).
+             */
+            if (keepConsumedBytes)
+                consumed.add(current)
+
+            consumedCount++
 
             val isMarker =
                 previous == FILL_BYTE &&
                     current != FILL_BYTE &&
                     !(zeroIsFillByte && current == ZERO_BYTE)
 
-            if (isMarker)
-                return Scan(
-                    marker = (previous.toInt() and 0xFF) shl 8 or (current.toInt() and 0xFF),
-                    markerBytes = byteArrayOf(previous, current),
-                    consumedBytes = consumed.toByteArray()
-                )
+            if (isMarker) {
+
+                val marker = (previous.toInt() and 0xFF) shl 8 or (current.toInt() and 0xFF)
+
+                val markerBytes = byteArrayOf(previous, current)
+
+                return if (keepConsumedBytes) {
+
+                    Scan(
+                        marker = marker,
+                        markerBytes = markerBytes,
+                        consumedBytes = consumed.toByteArray(),
+                        consumedCount = consumed.size
+                    )
+
+                } else {
+
+                    Scan(
+                        marker = marker,
+                        markerBytes = markerBytes,
+                        consumedBytes = ByteArray(0),
+                        consumedCount = consumedCount
+                    )
+                }
+            }
 
             previous = current
         }
@@ -70,7 +100,8 @@ internal class JpegMarkerScanner(
     class Scan(
         val marker: Int,
         val markerBytes: ByteArray,
-        val consumedBytes: ByteArray
+        val consumedBytes: ByteArray,
+        val consumedCount: Int
     )
 
     private companion object {

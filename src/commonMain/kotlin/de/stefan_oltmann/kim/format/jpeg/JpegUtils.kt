@@ -49,7 +49,9 @@ internal object JpegUtils {
 
         val segments = mutableListOf<JFIFPieceSegment>()
 
-        val scanner = JpegMarkerScanner(byteReader)
+        /* The consumed bytes are only counted here, so the scanner must not
+         * buffer a potentially unbounded inter-marker gap. */
+        val scanner = JpegMarkerScanner(byteReader, keepConsumedBytes = false)
 
         byteReader.readAndVerifyBytes("JPEG SOI (0xFFD8)", JpegConstants.SOI)
 
@@ -72,7 +74,7 @@ internal object JpegUtils {
             val scan = scanner.nextMarker(zeroIsFillByte = false)
                 ?: return segments to null
 
-            readBytesCount += scan.consumedBytes.size
+            readBytesCount += scan.consumedCount
 
             /* The EOI marker means the file has no image data. */
             if (scan.marker == JpegConstants.EOI_MARKER)

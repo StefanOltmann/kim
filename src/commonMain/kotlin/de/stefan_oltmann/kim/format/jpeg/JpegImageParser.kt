@@ -79,14 +79,16 @@ public object JpegImageParser : ImageParser {
          */
         var readBytesCount = magicNumberBytes.size.toLong()
 
-        val scanner = JpegMarkerScanner(byteReader)
+        /* The consumed bytes are only counted here, so the scanner must not
+         * buffer a potentially unbounded inter-marker gap. */
+        val scanner = JpegMarkerScanner(byteReader, keepConsumedBytes = false)
 
         @Suppress("LoopWithTooManyJumpStatements")
         do {
 
             val scan = scanner.nextMarker(zeroIsFillByte = true) ?: break
 
-            readBytesCount += scan.consumedBytes.size
+            readBytesCount += scan.consumedCount
 
             if (scan.marker == JpegConstants.SOS_MARKER || scan.marker == JpegConstants.EOI_MARKER)
                 break

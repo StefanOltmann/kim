@@ -431,6 +431,34 @@ class JpegAndReaderEdgeCasesTest {
     }
 
     /**
+     * The scanner without kept bytes must still find markers and count
+     * every consumed byte, including fill bytes and the marker itself.
+     */
+    @Test
+    fun testScannerWithoutKeptBytesStillFindsMarkersAndCounts() {
+
+        /* SOI + 5 filler bytes + the APP1 marker. */
+        val bytes = byteArrayOf(
+            0xFF.toByte(), 0xD8.toByte(),
+            0x41, 0x41, 0x41, 0x41, 0x41,
+            0xFF.toByte(), 0xE1.toByte()
+        )
+
+        val scanner = JpegMarkerScanner(ByteArrayByteReader(bytes), keepConsumedBytes = false)
+
+        val soi = scanner.nextMarker(zeroIsFillByte = true)!!
+
+        assertEquals(JpegConstants.SOI_MARKER, soi.marker)
+        assertEquals(2, soi.consumedCount)
+
+        val app1 = scanner.nextMarker(zeroIsFillByte = true)!!
+
+        assertEquals(JpegConstants.JPEG_APP1_MARKER, app1.marker)
+        assertEquals(7, app1.consumedCount)
+        assertEquals(0, app1.consumedBytes.size)
+    }
+
+    /**
      * A file built from an unbounded number of small header segments
      * must fail the read instead of buffering an unbounded amount of
      * segment data during an update.
