@@ -259,6 +259,7 @@ internal object ExtendedXmpWriter {
             payloadWriter.write(JpegConstants.EXTENDED_XMP_IDENTIFIER)
             payloadWriter.write(guid.encodeToByteArray())
             payloadWriter.write(extendedBytes.size.toBytes(ByteOrder.BIG_ENDIAN))
+            payloadWriter.write(offset.toBytes(ByteOrder.BIG_ENDIAN))
             payloadWriter.write(extendedBytes.copyOfRange(offset, chunkEnd))
 
             payloads.add(payloadWriter.toByteArray())

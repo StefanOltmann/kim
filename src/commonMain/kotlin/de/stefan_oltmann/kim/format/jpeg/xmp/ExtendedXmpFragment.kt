@@ -21,11 +21,13 @@ package de.stefan_oltmann.kim.format.jpeg.xmp
  * Extended XMP segments carry the identifier
  * "http://ns.adobe.com/xmp/extension/", the 32-character hexadecimal GUID of
  * the complete extended packet, its total size as a 4-byte big-endian value,
+ * the 4-byte big-endian offset of this segment's chunk inside the packet,
  * and one chunk of the packet data.
  */
 internal data class ExtendedXmpFragment(
     val guid: String,
     val totalLength: Int,
+    val offset: Int,
     val data: ByteArray
 ) {
 
@@ -33,8 +35,9 @@ internal data class ExtendedXmpFragment(
         other is ExtendedXmpFragment &&
             guid == other.guid &&
             totalLength == other.totalLength &&
+            offset == other.offset &&
             data.contentEquals(other.data)
 
     override fun hashCode(): Int =
-        guid.hashCode() * 31 + totalLength
+        guid.hashCode() * 31 + totalLength * 31 + offset
 }

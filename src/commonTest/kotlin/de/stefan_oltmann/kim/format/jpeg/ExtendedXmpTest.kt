@@ -281,6 +281,89 @@ class ExtendedXmpTest {
         assertNotNull(Kim.readMetadata(newBytes))
     }
 
+    /**
+     * Adobe extended XMP chunks are placed at their 4-byte offset inside
+     * the complete data. Fragments that arrive out of file order must be
+     * assembled by offset, and a gap between chunks must fail loudly
+     * instead of producing silently shifted data.
+     */
+    @Test
+    fun testExtendedXmpAssemblesByChunkOffset() {
+
+        val partOne =
+            "<rdf:Description rdf:about=\"\" xmlns:custom=\"http://example.com/custom\">" +
+                "<custom:Part>ONE</custom:Part></rdf:Description>"
+
+        val partTwo =
+            "<rdf:Description rdf:about=\"\" xmlns:custom2=\"http://example.com/custom2\">" +
+                "<custom2:Part>TWO</custom2:Part></rdf:Description>"
+
+        val extendedXml = MINIMAL_HEADER + partOne + partTwo + MINIMAL_FOOTER
+
+        val extendedBytes = extendedXml.encodeToByteArray()
+
+        val firstChunk = extendedBytes.copyOfRange(0, 100)
+
+        val secondChunk = extendedBytes.copyOfRange(100, extendedBytes.size)
+
+        val guid = digestAsGuid(extendedXml)
+
+        /* The chunks are written in reverse file order. */
+        val jpegBytes = createJpegWithExtendedXmp(
+            mainPacket = buildMainPacket(guid),
+            extensionPayloads = listOf(
+                buildExtensionPayload(
+                    guid,
+                    secondChunk.decodeToString(),
+                    chunkOffset = 100,
+                    totalLength = extendedBytes.size
+                ),
+                buildExtensionPayload(
+                    guid,
+                    firstChunk.decodeToString(),
+                    chunkOffset = 0,
+                    totalLength = extendedBytes.size
+                )
+            )
+        )
+
+        val metadata = assertNotNull(Kim.readMetadata(jpegBytes))
+
+        val xmp = assertNotNull(metadata.xmp)
+
+        assertTrue(xmp.contains("ONE"))
+        assertTrue(xmp.contains("TWO"))
+    }
+
+    /**
+     * A gap between the chunk offsets means the extended data is
+     * incomplete. The read must fail loudly instead of merging shifted
+     * fragments.
+     */
+    @Test
+    fun testReadMetadataRejectsGapBetweenChunkOffsets() {
+
+        val extendedXml = MINIMAL_HEADER +
+            "<rdf:Description rdf:about=\"\" xmlns:custom=\"http://example.com/custom\">" +
+            "<custom:Part>ONE</custom:Part></rdf:Description>" +
+            MINIMAL_FOOTER
+
+        val guid = digestAsGuid(extendedXml)
+
+        val jpegBytes = createJpegWithExtendedXmp(
+            mainPacket = buildMainPacket(guid),
+            /* The chunk claims offset 200 behind a 50-byte first chunk,
+               leaving a gap of 150 bytes. */
+            extensionPayloads = listOf(
+                buildExtensionPayload(guid, extendedXml, chunkOffset = 200)
+            )
+        )
+
+        assertFailsWith<ImageReadException> {
+            Kim.readMetadata(jpegBytes)
+        }
+    }
+
     /*
      * ------------------------------------------------------------------
      * Fixture helpers
@@ -313,9 +396,14 @@ class ExtendedXmpTest {
      * Builds an extended XMP APP1 segment payload:
      * identifier, GUID, total length, chunk.
      */
-    private fun buildExtensionPayload(guid: String, extendedXml: String): ByteArray {
+    private fun buildExtensionPayload(
+        guid: String,
+        chunkData: String,
+        chunkOffset: Int = 0,
+        totalLength: Int = chunkData.encodeToByteArray().size
+    ): ByteArray {
 
-        val extendedBytes = extendedXml.encodeToByteArray()
+        val extendedBytes = chunkData.encodeToByteArray()
 
         val writer = ByteArrayByteWriter()
 
@@ -323,10 +411,18 @@ class ExtendedXmpTest {
         writer.write(guid.encodeToByteArray())
         writer.write(
             byteArrayOf(
-                (extendedBytes.size ushr 24).toByte(),
-                (extendedBytes.size ushr 16).toByte(),
-                (extendedBytes.size ushr 8).toByte(),
-                extendedBytes.size.toByte()
+                (totalLength ushr 24).toByte(),
+                (totalLength ushr 16).toByte(),
+                (totalLength ushr 8).toByte(),
+                totalLength.toByte()
+            )
+        )
+        writer.write(
+            byteArrayOf(
+                (chunkOffset ushr 24).toByte(),
+                (chunkOffset ushr 16).toByte(),
+                (chunkOffset ushr 8).toByte(),
+                chunkOffset.toByte()
             )
         )
         writer.write(extendedBytes)
@@ -390,8 +486,8 @@ class ExtendedXmpTest {
 
     companion object {
 
-        /** Identifier (35) + GUID (32) + total length (4). */
-        private const val EXTENDED_XMP_HEADER_BYTES: Int = 71
+        /** Identifier (35) + GUID (32) + total length (4) + offset (4). */
+        private const val EXTENDED_XMP_HEADER_BYTES: Int = 75
 
         private const val GUID: String = "00112233445566778899AABBCCDDEEFF"
 

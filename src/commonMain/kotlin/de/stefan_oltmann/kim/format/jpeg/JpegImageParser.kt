@@ -354,9 +354,30 @@ public object JpegImageParser : ImageParser {
                     "(expected $declaredLength)."
             )
 
+        /*
+         * The chunks are placed at their offset inside the complete
+         * extended data. Sort by offset and verify the assembly is
+         * contiguous, so missing or duplicated chunks fail loudly
+         * instead of producing silently shifted data.
+         */
+        val sortedFragments = matchingFragments.sortedBy { it.offset }
+
+        var expectedOffset = 0
+
+        for (fragment in sortedFragments) {
+
+            if (fragment.offset != expectedOffset)
+                throw ImageReadException(
+                    "The extended XMP chunks are not contiguous: " +
+                        "expected offset $expectedOffset, got ${fragment.offset}."
+                )
+
+            expectedOffset += fragment.data.size
+        }
+
         val extendedData = ByteArrayByteWriter()
 
-        for (fragment in matchingFragments)
+        for (fragment in sortedFragments)
             extendedData.write(fragment.data)
 
         val extendedBytes = extendedData.toByteArray()
