@@ -15,6 +15,7 @@
  */
 package de.stefan_oltmann.kim.common
 
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -92,5 +93,30 @@ class ExceptionsTest {
         }
 
         assertEquals("original", exception.message)
+    }
+
+    /**
+     * Cancellation must propagate unchanged. Wrapping it into an
+     * ImageException would convert the cancellation of a future suspend
+     * caller into an ordinary parse error.
+     */
+    @Test
+    fun testCancellationExceptionIsNotWrappedOnRead() {
+
+        val exception = assertFailsWith<CancellationException> {
+            tryWithImageReadException { throw CancellationException("cancelled") }
+        }
+
+        assertEquals("cancelled", exception.message)
+    }
+
+    @Test
+    fun testCancellationExceptionIsNotWrappedOnWrite() {
+
+        val exception = assertFailsWith<CancellationException> {
+            tryWithImageWriteException { throw CancellationException("cancelled") }
+        }
+
+        assertEquals("cancelled", exception.message)
     }
 }

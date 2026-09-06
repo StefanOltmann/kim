@@ -16,6 +16,8 @@
  */
 package de.stefan_oltmann.kim.common
 
+import kotlin.coroutines.cancellation.CancellationException
+
 /**
  * Base exception for all image related failures.
  *
@@ -45,12 +47,18 @@ public open class ImageWriteException(message: String? = null, cause: Throwable?
  * Fatal VM errors like [OutOfMemoryError] or [StackOverflowError] are
  * deliberately not wrapped: masking them as ordinary parse failures
  * would hide broken virtual machine state from the caller.
+ *
+ * Cancellation is deliberately not wrapped: converting it into an
+ * ordinary parse error would break structured concurrency for suspend
+ * callers. See the repo-wide cancellation rule.
  */
 internal inline fun <R> tryWithImageReadException(block: () -> R): R =
     try {
         block()
     } catch (ex: ImageReadException) {
         /* Don't wrap another ImageReadException. */
+        throw ex
+    } catch (ex: CancellationException) {
         throw ex
     } catch (ex: Exception) {
         throw ImageReadException("Failed to read image.", ex)
@@ -68,6 +76,8 @@ internal inline fun <R> tryWithImageWriteException(block: () -> R): R =
         block()
     } catch (ex: ImageWriteException) {
         /* Don't wrap another ImageWriteException. */
+        throw ex
+    } catch (ex: CancellationException) {
         throw ex
     } catch (ex: Exception) {
         throw ImageWriteException("Failed to write image.", ex)
