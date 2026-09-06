@@ -346,4 +346,18 @@ class ByteReaderExtensionsTest {
         override fun close() =
             delegate.close()
     }
+    /**
+     * Reading a 1-byte field at the end of the data must fail like the
+     * 2/4/8-byte reads do. The -1 sentinel of readByteAsInt must not
+     * leak into callers as a legitimate value.
+     */
+    @Test
+    fun testReadXBytesAtIntOneByteAtEofThrows() {
+
+        val reader = ByteArrayByteReader(byteArrayOf())
+
+        assertFailsWith<ImageReadException> {
+            reader.readXBytesAtInt("test field", count = 1, byteOrder = ByteOrder.BIG_ENDIAN)
+        }
+    }
 }

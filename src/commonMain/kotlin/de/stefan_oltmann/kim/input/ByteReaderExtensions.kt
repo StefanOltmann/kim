@@ -134,7 +134,14 @@ internal fun ByteReader.read8BytesAsLong(fieldName: String, byteOrder: ByteOrder
 
 internal fun ByteReader.readXBytesAtInt(fieldName: String, count: Int, byteOrder: ByteOrder): Long =
     when (count) {
-        Byte.SIZE_BYTES -> readByteAsInt().toLong()
+
+        /*
+         * The readByteAsInt EOF sentinel must not leak into callers as a
+         * legitimate value, so the 1-byte branch fails like the others.
+         */
+        Byte.SIZE_BYTES ->
+            readByte()?.toUInt8()?.toLong()
+                ?: throw ImageReadException("Couldn't read a byte for $fieldName")
         Short.SIZE_BYTES -> read2BytesAsInt(fieldName, byteOrder).toLong()
         Int.SIZE_BYTES -> read4BytesAsInt(fieldName, byteOrder).toLong()
         Long.SIZE_BYTES -> read8BytesAsLong(fieldName, byteOrder)
