@@ -45,16 +45,27 @@ public class ByteArrayByteReader(
 
     override fun readBytes(count: Int): ByteArray {
 
-        val targetToIndex = currentPosition + count
+        if (currentPosition >= bytes.size)
+            return byteArrayOf()
 
-        val bytes = bytes.copyOfRange(
+        /*
+         * Computed in Long space, so a hostile count cannot overflow the
+         * addition into a wrapped-around range that would crash
+         * copyOfRange. Mirrors DefaultRandomAccessByteReader.
+         */
+        val targetToIndex = minOf(
+            currentPosition.toLong() + count,
+            bytes.size.toLong()
+        ).toInt()
+
+        val result = bytes.copyOfRange(
             fromIndex = currentPosition,
-            toIndex = min(targetToIndex, bytes.size)
+            toIndex = targetToIndex
         )
 
-        currentPosition += bytes.size
+        currentPosition += result.size
 
-        return bytes
+        return result
     }
 
     override fun moveTo(position: Int) {
@@ -71,13 +82,17 @@ public class ByteArrayByteReader(
         require(offset >= 0) { "Offset must be positive: $offset" }
         require(length > 0) { "Length must be positive: $length" }
 
-        val toIndex = offset + length
+        if (offset.toLong() >= contentLength)
+            return byteArrayOf()
 
-        require(offset + length <= contentLength) {
-            "Requested to read to index $toIndex where max index is ${contentLength - 1}"
-        }
+        /*
+         * Computed in Long space, so a hostile size cannot overflow the
+         * addition back into a small or negative end index that would
+         * slip through the bounds check and crash copyOfRange.
+         */
+        val endIndex = minOf(offset.toLong() + length, contentLength).toInt()
 
-        return bytes.copyOfRange(offset, toIndex)
+        return bytes.copyOfRange(offset, endIndex)
     }
 
     override fun close() {
