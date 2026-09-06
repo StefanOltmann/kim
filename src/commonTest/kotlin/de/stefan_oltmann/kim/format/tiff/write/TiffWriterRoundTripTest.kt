@@ -27,6 +27,7 @@ import de.stefan_oltmann.kim.format.tiff.TiffHeader
 import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeAscii
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeUndefined
 import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
@@ -319,6 +320,78 @@ class TiffWriterRoundTripTest {
         assertNotNull(readRootDirectory)
         assertNotNull(readRootDirectory.tiffImageBytes)
         assertTrue(byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8).contentEquals(readRootDirectory.tiffImageBytes))
+    }
+
+    /**
+     * When the thumbnail bytes could not be captured (the reader rejects
+     * garbage thumbnails), the offset/length pair must not survive the
+     * rewrite as a dangling length without its offset.
+     */
+    @Test
+    fun testRejectedThumbnailDropsDanglingLengthField() {
+
+        val offsetField = TiffField(
+            offset = 0,
+            tag = TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT.tag,
+            directoryType = TiffConstants.TIFF_DIRECTORY_TYPE_IFD1,
+            fieldType = FieldTypeLong,
+            count = 1,
+            localValue = 100,
+            valueOffset = null,
+            valueBytes = byteArrayOf(100, 0, 0, 0),
+            byteOrder = ByteOrder.BIG_ENDIAN,
+            sortHint = 0
+        )
+
+        val lengthField = TiffField(
+            offset = 0,
+            tag = TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT_LENGTH.tag,
+            directoryType = TiffConstants.TIFF_DIRECTORY_TYPE_IFD1,
+            fieldType = FieldTypeLong,
+            count = 1,
+            localValue = 16,
+            valueOffset = null,
+            valueBytes = byteArrayOf(0, 0, 0, 16),
+            byteOrder = ByteOrder.BIG_ENDIAN,
+            sortHint = 1
+        )
+
+        val ifd1 = TiffDirectory(
+            type = TiffConstants.TIFF_DIRECTORY_TYPE_IFD1,
+            entries = listOf(offsetField, lengthField),
+            offset = 8,
+            nextDirectoryOffset = 0,
+            byteOrder = ByteOrder.BIG_ENDIAN
+        )
+
+        val ifd0 = TiffDirectory(
+            type = TiffConstants.TIFF_DIRECTORY_TYPE_IFD0,
+            entries = emptyList(),
+            offset = 8,
+            nextDirectoryOffset = 0,
+            byteOrder = ByteOrder.BIG_ENDIAN
+        )
+
+        val tiffContents = TiffContents(
+            header = TiffHeader(ByteOrder.BIG_ENDIAN, 42, 8),
+            directories = listOf(ifd0, ifd1),
+            makerNoteDirectory = null,
+            makerNoteSubDirectories = emptyList(),
+            geoTiffDirectory = null
+        )
+
+        val outputSet = tiffContents.createOutputSet()
+
+        val byteWriter = ByteArrayByteWriter()
+
+        TiffWriter(outputSet.byteOrder).write(byteWriter, outputSet)
+
+        val readBack = TiffReader.read(byteWriter.toByteArray())
+
+        val writtenIfd1 = readBack.findTiffDirectory(TiffConstants.TIFF_DIRECTORY_TYPE_IFD1)
+
+        /* Both fields must go: a length without its offset is invalid. */
+        assertNull(writtenIfd1?.findField(TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT_LENGTH))
     }
 
     @Test

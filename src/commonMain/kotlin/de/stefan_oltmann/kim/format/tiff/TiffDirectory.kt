@@ -196,6 +196,20 @@ public class TiffDirectory(
                 if (entry.tagInfo?.isOffset == true)
                     continue
 
+                /*
+                 * Counterpart fields are only written as complete pairs:
+                 * when the thumbnail or strip bytes could not be captured,
+                 * the length field would remain as a dangling reference
+                 * without its offset in the output.
+                 */
+                if (entry.tag == TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT_LENGTH.tag &&
+                    thumbnailBytes == null
+                )
+                    continue
+
+                if (entry.tag == TiffTag.TIFF_TAG_STRIP_BYTE_COUNTS.tag && tiffImageBytes == null)
+                    continue
+
                 val tagInfo = entry.tagInfo
                 val fieldType = entry.fieldType
 
