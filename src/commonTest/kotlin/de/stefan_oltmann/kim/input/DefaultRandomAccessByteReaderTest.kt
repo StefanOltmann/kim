@@ -238,7 +238,9 @@ class DefaultRandomAccessByteReaderTest {
                 return result
             }
 
-            override fun close() {}
+            override fun close() {
+                /* No resources to close. */
+            }
         })
 
         reader.moveTo(5)

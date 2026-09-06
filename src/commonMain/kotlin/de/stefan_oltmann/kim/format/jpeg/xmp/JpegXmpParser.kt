@@ -94,6 +94,7 @@ internal object JpegXmpParser {
         return ExtendedXmpFragment(guid, totalLength, offset, data)
     }
 
+    @Suppress("MagicNumber")
     private fun readUInt32At(data: ByteArray, index: Int): Int =
         (data[index].toInt() and 0xFF) shl 24 or
             ((data[index + 1].toInt() and 0xFF) shl 16) or

@@ -145,7 +145,7 @@ internal fun ByteReader.readXBytesAtInt(fieldName: String, count: Int, byteOrder
         Short.SIZE_BYTES -> read2BytesAsInt(fieldName, byteOrder).toLong()
         /* ISOBMFF/TIFF 32-bit fields are unsigned: the high bit must not
          * sign-extend into the Long result. */
-        Int.SIZE_BYTES -> read4BytesAsInt(fieldName, byteOrder).toLong() and 0xFFFFFFFFL
+        Int.SIZE_BYTES -> read4BytesAsInt(fieldName, byteOrder).toLong() and UINT32_MASK
         Long.SIZE_BYTES -> read8BytesAsLong(fieldName, byteOrder)
         else -> error("Illegal byteCount specified: $count")
     }
@@ -326,3 +326,7 @@ internal fun ByteReader.skipToBytes(needle: ByteArray): Boolean {
 
     return false
 }
+
+/** Masks a 4-byte value to its unsigned 32-bit range. */
+@Suppress("MagicNumber")
+private const val UINT32_MASK: Long = 0xFFFF_FFFFL

@@ -291,11 +291,11 @@ class ExtendedXmpTest {
     fun testExtendedXmpAssemblesByChunkOffset() {
 
         val partOne =
-            "<rdf:Description rdf:about=\"\" xmlns:custom=\"http://example.com/custom\">" +
+            """<rdf:Description rdf:about="" xmlns:custom="http://example.com/custom">""" +
                 "<custom:Part>ONE</custom:Part></rdf:Description>"
 
         val partTwo =
-            "<rdf:Description rdf:about=\"\" xmlns:custom2=\"http://example.com/custom2\">" +
+            """<rdf:Description rdf:about="" xmlns:custom2="http://example.com/custom2">""" +
                 "<custom2:Part>TWO</custom2:Part></rdf:Description>"
 
         val extendedXml = MINIMAL_HEADER + partOne + partTwo + MINIMAL_FOOTER
