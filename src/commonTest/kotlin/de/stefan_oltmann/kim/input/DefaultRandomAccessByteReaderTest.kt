@@ -158,6 +158,19 @@ class DefaultRandomAccessByteReaderTest {
         assertNull(reader.readByte())
     }
 
+    /** Negative counts are rejected like in the other implementations. */
+    @Test
+    fun testReadBytesRejectsNegativeCount() {
+
+        val reader = DefaultRandomAccessByteReader(ByteArrayByteReader(byteArrayOf(1, 2, 3)))
+
+        val exception = assertFailsWith<IllegalArgumentException> {
+            reader.readBytes(-1)
+        }
+
+        assertTrue(exception.message?.contains("negative") == true)
+    }
+
     @Test
     fun testMoveToRejectsNegativePosition() {
 

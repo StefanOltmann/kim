@@ -22,6 +22,23 @@ import kotlin.test.assertTrue
 
 class ByteArrayByteReaderTest {
 
+    /**
+     * Negative counts are rejected uniformly across all ByteReader
+     * implementations instead of producing implementation-specific
+     * empty results or raw range errors.
+     */
+    @Test
+    fun testReadBytesRejectsNegativeCount() {
+
+        val reader = ByteArrayByteReader(byteArrayOf())
+
+        val exception = assertFailsWith<IllegalArgumentException> {
+            reader.readBytes(-1)
+        }
+
+        assertTrue(exception.message?.contains("negative") == true)
+    }
+
     @Test
     fun testMoveToRejectsNegativePosition() {
 
