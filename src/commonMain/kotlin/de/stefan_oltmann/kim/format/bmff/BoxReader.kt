@@ -162,6 +162,16 @@ public object BoxReader {
                 throw ImageReadException("Box $type has an invalid size: $size.")
 
             /*
+             * A box smaller than its own header would rewind the metadata
+             * scan position and re-parse consumed bytes as boxes. The
+             * streaming writer rejects the same input.
+             */
+            if (actualLength < BMFFConstants.BOX_HEADER_LENGTH)
+                throw ImageReadException(
+                    "Box $type declares a size smaller than its header: $size."
+                )
+
+            /*
              * The first JXLP box contains the codestream header, so every
              * following JXLP box is image data. It is returned with an empty
              * payload, because the caller streams its content.

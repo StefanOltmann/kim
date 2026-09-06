@@ -36,8 +36,60 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class BoxReaderTest {
+
+    /**
+     * A box that declares a size smaller than its own 8-byte header is
+     * corrupt. It must be rejected: the metadata path would otherwise
+     * rewind its position and re-parse consumed header bytes as boxes.
+     */
+    @Test
+    fun testBoxSmallerThanHeaderIsRejected() {
+
+        /* A free box (12 bytes) followed by a pseudo-box that claims
+           a size of 6 bytes. */
+        val bytes = byteArrayOf(
+            0, 0, 0, 12,
+            0x66, 0x72, 0x65, 0x65, // "free"
+            1, 2, 3, 4,
+            0, 0, 0, 6,
+            0x66, 0x72, 0x65, 0x65 // "free"
+        )
+
+        val exception = assertFailsWith<ImageReadException> {
+            BoxReader.readBoxes(
+                byteReader = ByteArrayByteReader(bytes),
+                stopAfterMetadataRead = false
+            )
+        }
+
+        assertTrue(exception.message?.contains("smaller than its header") == true)
+    }
+
+    /**
+     * A box with size 0 extends to the end of the file per ISOBMFF.
+     */
+    @Test
+    fun testSizeZeroBoxExtendsToEndOfFile() {
+
+        val bytes = byteArrayOf(
+            0, 0, 0, 12,
+            0x66, 0x72, 0x65, 0x65, // "free"
+            1, 2, 3, 4,
+            0, 0, 0, 0,
+            0x66, 0x72, 0x65, 0x65, // "free"
+            9, 9, 9, 9
+        )
+
+        val boxes = BoxReader.readBoxes(
+            byteReader = ByteArrayByteReader(bytes),
+            stopAfterMetadataRead = false
+        )
+
+        assertEquals(2, boxes.size)
+    }
 
     @Test
     fun readsBoxesFromHeic() {
