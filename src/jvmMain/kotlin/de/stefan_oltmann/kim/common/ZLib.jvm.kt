@@ -26,7 +26,7 @@ private const val ZLIB_BUFFER_SIZE: Int = 1024
 internal actual fun compress(input: String): ByteArray {
 
     val deflater = Deflater()
-    val inputBytes = input.toByteArray()
+    val inputBytes = input.encodeToByteArray()
 
     deflater.setInput(inputBytes)
     deflater.finish()
