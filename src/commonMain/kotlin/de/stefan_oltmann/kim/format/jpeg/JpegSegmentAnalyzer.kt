@@ -81,6 +81,13 @@ public object JpegSegmentAnalyzer {
                     )
                 )
 
+                /*
+                 * A file can end right at the SOS marker, without image
+                 * bytes and without an EOI marker.
+                 */
+                if (remainingBytesCount < 2)
+                    break
+
                 byteReader.skipBytes("image bytes", remainingBytesCount - 2)
 
                 positionCounter += remainingBytesCount

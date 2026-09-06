@@ -455,8 +455,12 @@ public object JpegImageParser : ImageParser {
 
                 val parsed = parsePhotoshopData(photoshopData.toByteArray())
 
-                /* Take the first valid stream. */
-                if (parsed != null)
+                /*
+                 * Take the first stream that actually carries IPTC
+                 * records. A stream without records must not shadow a
+                 * later, real IPTC stream of the same file.
+                 */
+                if (parsed != null && parsed.records.isNotEmpty())
                     return parsed
 
                 photoshopData = ByteArrayByteWriter()

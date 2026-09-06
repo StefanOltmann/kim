@@ -289,6 +289,22 @@ class IptcParserEdgeCasesTest {
     }
 
     /**
+     * The data can end right after an 8BIM signature, e.g. after a
+     * truncated write. Like the tolerated EOF inside the block data,
+     * that must stop the parse gracefully instead of failing it.
+     */
+    @Test
+    fun testParseToleratesEofAfterBlockSignature() {
+
+        val metadata = IptcParser.parseIptc(
+            bytes = byteArrayOf(0x38, 0x42, 0x49, 0x4D),
+            startsWithApp13Header = false
+        )
+
+        assertTrue(metadata.records.isEmpty())
+    }
+
+    /**
      * An odd-sized block without its trailing padding byte must be
      * kept and the parse must stop gracefully.
      */
@@ -349,9 +365,12 @@ class IptcParserEdgeCasesTest {
     @Test
     fun testParseRejectsInvalidBlockSize() {
 
+        /* A complete block size field that announces far more data
+           than the block holds. */
         val block = byteArrayOf(
             0x38, 0x42, 0x49, 0x4D,
             0x04, 0x04,
+            0,
             0,
             0, 0, 0x10, 0x00
         )

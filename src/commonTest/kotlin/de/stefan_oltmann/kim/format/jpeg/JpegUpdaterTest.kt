@@ -228,6 +228,42 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
     }
 
     /**
+     * The first APP13 stream can carry Photoshop blocks without any IPTC
+     * records. It must not shadow a second, real IPTC stream of the same
+     * file, or the IPTC data would silently disappear.
+     */
+    @Test
+    fun testReadFindsIptcBehindEmptyFirstApp13Stream() {
+
+        /* A Photoshop stream whose only block carries no IPTC records. */
+        val emptyBlock = byteArrayOf(
+            0x38, 0x42, 0x49, 0x4D, // "8BIM"
+            0x03, 0xED.toByte(), // Resolution info, no IPTC records
+            0x00, // Empty name
+            0x00, // Name padding
+            0x00, 0x00, 0x00, 0x04, // Block size 4
+            0x00, 0x00, 0x01, 0x00 // Block data
+        )
+
+        val app13Payload = "Photoshop 3.0 ".encodeToByteArray() + emptyBlock
+
+        val fakeStreamSegment = byteArrayOf(
+            0xFF.toByte(), 0xED.toByte(),
+            0x00, (app13Payload.size + 2).toByte()
+        ) + app13Payload
+
+        val bytesWithFakeStream = insertSegmentAfterJfif(
+            KimTestData.getBytesOf(1),
+            fakeStreamSegment
+        )
+
+        val metadata = assertNotNull(Kim.readMetadata(bytesWithFakeStream))
+
+        /* The IPTC records of the real stream must still be found. */
+        assertTrue(metadata.iptc?.records?.isNotEmpty() == true)
+    }
+
+    /**
      * A short non-EXIF APP1 segment before the EXIF segment must be
      * skipped without a desynced read past its end, so the update still
      * succeeds and applies the orientation.

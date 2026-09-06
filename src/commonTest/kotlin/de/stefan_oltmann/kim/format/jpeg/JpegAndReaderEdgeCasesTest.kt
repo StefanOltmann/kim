@@ -410,6 +410,27 @@ class JpegAndReaderEdgeCasesTest {
     }
 
     /**
+     * A file that ends right at the SOS marker has no image bytes and
+     * no EOI. The segment analysis must report the SOS segment instead
+     * of failing with a confusing negative-length error.
+     */
+    @Test
+    fun testFindSegmentInfosToleratesFileEndingAtSos() {
+
+        /* SOI followed directly by SOS. */
+        val bytes = byteArrayOf(
+            0xFF.toByte(), 0xD8.toByte(),
+            0xFF.toByte(), 0xDA.toByte()
+        )
+
+        val segmentInfos = JpegSegmentAnalyzer.findSegmentInfos(
+            ByteArrayByteReader(bytes)
+        )
+
+        assertEquals(JpegConstants.SOS_MARKER, segmentInfos.last().marker)
+    }
+
+    /**
      * A file built from an unbounded number of small header segments
      * must fail the read instead of buffering an unbounded amount of
      * segment data during an update.

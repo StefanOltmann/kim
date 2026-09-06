@@ -19,6 +19,7 @@ package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.toBytes
+import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcBlock
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcConstants
@@ -90,16 +91,19 @@ public object JpegRewriter {
         outputSet: TiffOutputSet
     ) {
 
+        tryWithImageWriteException {
+
         /*
          * Streaming keeps memory bounded: the image data behind the SOS
          * marker is transferred in bounded chunks instead of being
          * buffered as a whole.
          */
-        updateMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
-            writeSegments(
-                byteWriter = outputWriter,
-                segments = replaceExifSegments(segments, createExifSegmentBytes(outputSet))
-            )
+            updateMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
+                writeSegments(
+                    byteWriter = outputWriter,
+                    segments = replaceExifSegments(segments, createExifSegmentBytes(outputSet))
+                )
+            }
         }
     }
 
@@ -200,20 +204,23 @@ public object JpegRewriter {
     @JvmStatic
     public fun writeIPTC(byteReader: ByteReader, byteWriter: ByteWriter, metadata: IptcMetadata) {
 
+        tryWithImageWriteException {
+
         /*
          * Streaming keeps memory bounded: the image data behind the SOS
          * marker is transferred in bounded chunks instead of being
          * buffered as a whole.
          */
-        updateMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
+            updateMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
 
-            writeSegments(
-                byteWriter = outputWriter,
-                segments = insertAfterLastAppSegments(
-                    segments = segments.filterNot { piece -> piece.isIptcSegment() },
-                    newSegments = createIptcSegments(metadata)
+                writeSegments(
+                    byteWriter = outputWriter,
+                    segments = insertAfterLastAppSegments(
+                        segments = segments.filterNot { piece -> piece.isIptcSegment() },
+                        newSegments = createIptcSegments(metadata)
+                    )
                 )
-            )
+            }
         }
     }
 
@@ -281,20 +288,23 @@ public object JpegRewriter {
         xmpXml: String
     ) {
 
+        tryWithImageWriteException {
+
         /*
          * Streaming keeps memory bounded: the image data behind the SOS
          * marker is transferred in bounded chunks instead of being
          * buffered as a whole.
          */
-        updateMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
+            updateMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
 
-            writeSegments(
-                byteWriter = outputWriter,
-                segments = insertAfterLastAppSegments(
-                    segments = segments.filterNot { segment -> segment.isXmpSegment() },
-                    newSegments = createXmpSegments(xmpXml)
+                writeSegments(
+                    byteWriter = outputWriter,
+                    segments = insertAfterLastAppSegments(
+                        segments = segments.filterNot { segment -> segment.isXmpSegment() },
+                        newSegments = createXmpSegments(xmpXml)
+                    )
                 )
-            )
+            }
         }
     }
 
