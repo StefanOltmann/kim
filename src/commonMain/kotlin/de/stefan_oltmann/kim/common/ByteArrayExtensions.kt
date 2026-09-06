@@ -107,7 +107,13 @@ internal fun ByteArray.getRemainingBytes(startIndex: Int): ByteArray {
 }
 
 internal fun ByteArray.slice(startIndex: Int, count: Int): ByteArray {
-    val endIndex = (startIndex + count).coerceAtMost(size)
+
+    /*
+     * Long arithmetic so a file-controlled count cannot overflow into a
+     * wrapped-around range that would silently hide the wrong bytes.
+     */
+    val endIndex = (startIndex.toLong() + count).coerceAtMost(size.toLong()).toInt()
+
     return sliceArray(startIndex until endIndex)
 }
 

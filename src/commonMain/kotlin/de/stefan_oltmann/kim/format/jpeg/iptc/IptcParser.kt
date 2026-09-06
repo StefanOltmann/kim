@@ -151,6 +151,14 @@ public object IptcParser {
 
                 if (recordSize < 0)
                     return records
+
+                /*
+                 * The record length is file-controlled. A length larger than
+                 * the remaining data terminates parsing instead of overflowing
+                 * the index on the next loop iteration.
+                 */
+                if (recordSize > bytes.size - index)
+                    return records
             }
 
             val recordData = bytes.slice(index, recordSize)

@@ -206,6 +206,30 @@ class IptcParserEdgeCasesTest {
     }
 
     /**
+     * The extended length 0x7FFFFFFF is the largest positive Int. It is
+     * larger than any possible record data and must stop parsing instead
+     * of overflowing the index on the next loop iteration.
+     */
+    @Test
+    fun testParseExtendedRecordLengthOverflows() {
+
+        val recordBytes = byteArrayOf(
+            IptcConstants.IPTC_RECORD_TAG_MARKER.toByte(),
+            IptcConstants.IPTC_APPLICATION_2_RECORD_NUMBER.toByte(),
+            25,
+            0x80.toByte(), 0x00,
+            0x7F.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte()
+        )
+
+        val metadata = IptcParser.parseIptc(
+            bytes = wrapIn8BimBlock(recordBytes),
+            startsWithApp13Header = false
+        )
+
+        assertTrue(metadata.records.isEmpty())
+    }
+
+    /**
      * A block whose data ends right after a record tag marker must
      * not read past the end of the data.
      */
