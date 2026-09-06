@@ -17,6 +17,7 @@ package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.Md5
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.jpeg.xmp.ExtendedXmpWriter
@@ -177,6 +178,32 @@ class ExtendedXmpTest {
             digestAsGuid(extendedBytes.decodeToString()),
             extractGuidFromMainPacket(partitioned.mainPacketXml)
         )
+    }
+
+    /**
+     * An oversized packet whose properties use legal RDF node elements
+     * other than rdf:Description cannot be split into main and extended
+     * data. It must fail the write instead of being written as a nearly
+     * empty packet, which would destroy all XMP properties.
+     */
+    @Test
+    fun testPartitionRejectsUnrecognizedNodeElements() {
+
+        val hugeValue = "x".repeat(JpegConstants.MAX_XMP_BYTES_PER_SEGMENT + 100)
+
+        val hugeXmp =
+            """<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>""" +
+                """<x:xmpmeta xmlns:x="adobe:ns:meta/">""" +
+                """<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">""" +
+                """<photo:Image rdf:about="" xmlns:photo="http://ns.adobe.com/photo/1.0/">""" +
+                "<photo:Big>$hugeValue</photo:Big>" +
+                "</photo:Image>" +
+                "</rdf:RDF></x:xmpmeta>" +
+                """<?xpacket end="w"?>"""
+
+        assertFailsWith<ImageWriteException> {
+            ExtendedXmpWriter.partition(hugeXmp)
+        }
     }
 
     /**

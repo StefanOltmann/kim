@@ -95,6 +95,25 @@ internal object ExtendedXmpWriter {
         val footer = cleanedXml.substring(footerStart)
         val content = cleanedXml.substring(headerEnd, footerStart)
 
+        /*
+         * Content outside the recognized description blocks would be
+         * silently dropped from the extended data. RDF legally allows node
+         * elements other than rdf:Description, so a packet the splitter
+         * cannot fully parse must fail the write instead of losing its
+         * metadata. Whitespace between the blocks is not content.
+         */
+        val firstBlockStart = content.indexOf(DESCRIPTION_OPEN_TAG)
+
+        val hasUnrecognizedContent =
+            (firstBlockStart == -1 && content.isNotBlank()) ||
+                (firstBlockStart > 0 && content.substring(0, firstBlockStart).isNotBlank())
+
+        if (hasUnrecognizedContent)
+            throw ImageWriteException(
+                "The XMP packet uses RDF structures this writer cannot split " +
+                    "into main and extended data."
+            )
+
         /* Block boundaries are the starts of successive rdf:Description elements.
          * RDF/XML never nests descriptions, so scanning only for starts is safe
          * and cannot be confused by markup inside attribute or text values. */
