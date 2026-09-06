@@ -83,11 +83,15 @@ class JpegAndReaderEdgeCasesTest {
     @Test
     fun testFindSegmentInfosRejectsIllegalLength() {
 
-        /* A segment with a length of 2 bytes. */
+        /*
+         * A segment with a length of 1 byte. A length of exactly 2 is an
+         * empty segment and spec-legal, so only a length below 2 - which
+         * cannot be encoded - is rejected.
+         */
         val bytes = byteArrayOf(
             0xFF.toByte(), 0xD8.toByte(),
             0xFF.toByte(), 0xE0.toByte(),
-            0x00, 0x02
+            0x00, 0x01
         )
 
         assertFailsWith<ImageReadException> {
@@ -218,19 +222,21 @@ class JpegAndReaderEdgeCasesTest {
     }
 
     /**
-     * All JPEG readers must reject zero-length segments.
+     * All JPEG readers must reject segments whose length field is below
+     * the spec minimum of 2, because the value cannot be encoded. An
+     * empty segment with the length exactly 2 is legal and accepted.
      */
     @Test
     fun testReadersRejectIllegalSegmentLength() {
 
         /*
-         * SOI, a valid APP0, a zero-length APP1, SOS and EOI.
-         * At least 16 bytes are required for the format detection.
+         * SOI, a valid APP0, an APP1 with the impossible length 1, SOS
+         * and EOI. At least 16 bytes are required for the detection.
          */
         val bytes = byteArrayOf(
             0xFF.toByte(), 0xD8.toByte(),
             0xFF.toByte(), 0xE0.toByte(), 0x00, 0x04, 0x00, 0x00,
-            0xFF.toByte(), 0xE1.toByte(), 0x00, 0x02,
+            0xFF.toByte(), 0xE1.toByte(), 0x00, 0x01,
             0xFF.toByte(), 0xDA.toByte(),
             0xFF.toByte(), 0xD9.toByte()
         )

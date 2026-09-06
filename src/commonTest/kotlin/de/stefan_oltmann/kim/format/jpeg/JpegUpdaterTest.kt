@@ -32,6 +32,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
@@ -200,6 +201,30 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
         )
 
         assertTrue(newBytes.containsSegment(jfxxSegmentBytes))
+    }
+
+    /**
+     * An empty segment (length field 2) is spec-legal per ITU-T T.81
+     * B.1.1.4 and must survive reading and rewriting byte-identically
+     * instead of failing the whole file.
+     */
+    @Test
+    fun testUpdatePreservesEmptySegment() {
+
+        /* A COM segment with an empty payload. */
+        val emptyCom = byteArrayOf(0xFF.toByte(), 0xFE.toByte(), 0x00, 0x02)
+
+        val bytesWithEmptyCom = insertSegmentAfterJfif(originalBytes, emptyCom)
+
+        /* Reading must not reject the empty segment. */
+        assertNotNull(Kim.readMetadata(bytesWithEmptyCom))
+
+        val newBytes = Kim.update(
+            bytes = bytesWithEmptyCom,
+            updates = setOf(MetadataUpdate.Title(title))
+        )
+
+        assertTrue(newBytes.containsSegment(emptyCom))
     }
 
     /**

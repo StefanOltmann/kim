@@ -95,12 +95,8 @@ internal object JpegUtils {
 
             val remainingByteCount = byteReader.contentLength - readBytesCount
 
-            /*
-             * If the segment specifies a zero length or a length that is
-             * longer than the remaining bytes, the file is corrupt and
-             * must be rejected.
-             */
-            if (segmentContentLength <= 0 || segmentContentLength > remainingByteCount)
+            /* A zero content length is an empty segment, which is spec-legal. */
+            if (segmentContentLength < 0 || segmentContentLength > remainingByteCount)
                 throw ImageReadException("Illegal JPEG segment length: $segmentContentLength")
 
             val segmentData = byteReader.readBytes("segmentData", segmentContentLength)
