@@ -127,6 +127,25 @@ class TiffReaderTest {
     }
 
     /**
+     * A BigTIFF (version 43, 20-byte directory entries) must be rejected.
+     * Misreading it as classic TIFF would emit a valid-looking file with
+     * truncated metadata on rewrite.
+     */
+    @Test
+    fun testReadRejectsBigTiffHeader() {
+
+        /* Header: II, version 43 (BigTIFF), first IFD at offset 8. */
+        val bytes = convertHexStringToByteArray(
+            "49492b0008000000" +
+                "0000000000000000"
+        )
+
+        assertFailsWith<ImageReadException> {
+            TiffReader.read(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /**
      * Regression test: strip offsets come from unsigned LONGs and can
      * resolve beyond the signed Int range in hostile files. Reading the
      * image data must degrade to NULL instead of crashing.

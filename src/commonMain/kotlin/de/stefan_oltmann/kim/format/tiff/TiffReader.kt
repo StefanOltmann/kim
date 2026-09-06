@@ -76,6 +76,8 @@ public object TiffReader {
      */
     private const val MAX_SUB_DIRECTORY_DEPTH: Int = 16
 
+    private const val BIGTIFF_VERSION: Int = 43
+
     /**
      * A sub-directory of a MakerNote that is stored as a binary blob.
      *
@@ -169,6 +171,15 @@ public object TiffReader {
         val byteOrder = getTiffByteOrder(byteOrder1)
 
         val tiffVersion = byteReader.read2BytesAsInt("TIFF version", byteOrder)
+
+        /*
+         * A BigTIFF (version 43, 20-byte directory entries) misparsed as
+         * classic TIFF would produce a valid-looking file with truncated
+         * metadata on rewrite. Other version signatures like "RO" for ORF
+         * or "U\0" for RW2 use classic 12-byte entries and stay readable.
+         */
+        if (tiffVersion == BIGTIFF_VERSION)
+            throw ImageReadException("BigTIFF is not supported.")
 
         val offsetToFirstIFD =
             byteReader.read4BytesAsInt("Offset to first IFD", byteOrder)
