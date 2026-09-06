@@ -37,7 +37,16 @@ internal object GifUpdater : MetadataUpdater {
         updates: Set<MetadataUpdate>
     ) = tryWithImageWriteException {
 
-        GifWriter.writeImageStreaming(byteReader, byteWriter) { chunks, outputWriter ->
+        /*
+         * XMP behind the first frame cannot be merged into the new packet
+         * by the streaming design, so an update fails loudly instead of
+         * silently destroying it.
+         */
+        GifWriter.writeImageStreaming(
+            byteReader = byteReader,
+            byteWriter = byteWriter,
+            failOnTrailingXmp = true
+        ) { chunks, outputWriter ->
 
             val xmp = GifImageParser.parseXmp(chunks)
 
