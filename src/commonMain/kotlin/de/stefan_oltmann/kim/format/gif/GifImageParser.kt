@@ -90,8 +90,10 @@ public object GifImageParser : ImageParser {
          * first frame's descriptor is only a crop of that canvas, so it is
          * just the fallback for files without a usable screen descriptor.
          */
-        val imageSize = chunks.filterIsInstance<GifChunkLogicalScreenDescriptor>()
-            .firstOrNull()?.canvasSize
+        val imageSize = chunks
+            .filterIsInstance<GifChunkLogicalScreenDescriptor>()
+            .firstOrNull()
+            ?.canvasSize
             ?: firstImageDescriptorChunk.imageSize
 
         /* Only GIF89A supports XMP metadata */

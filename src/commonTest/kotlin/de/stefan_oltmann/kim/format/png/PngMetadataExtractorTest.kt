@@ -17,6 +17,7 @@
 package de.stefan_oltmann.kim.format.png
 
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.toSingleNumberHexes
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
@@ -40,7 +41,7 @@ class PngMetadataExtractorTest {
 
         assertTrue(
             expectedCrcBytes.contentEquals(actualCrcBytes),
-            "IEND chunk must carry CRC AE 42 60 82, but was ${actualCrcBytes.joinToString(" ") { it.toUByte().toString(16) }}"
+            "IEND chunk must carry CRC AE 42 60 82, but was ${actualCrcBytes.toSingleNumberHexes()}"
         )
     }
 

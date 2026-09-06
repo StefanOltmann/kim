@@ -60,10 +60,10 @@ internal object ExtendedXmpWriter {
     private const val MINIMAL_FOOTER = "</rdf:RDF></x:xmpmeta>"
 
     /* The attribute and element forms of the reference that the read path detects. */
-    private val staleAttributeReferenceRegex = Regex("xmpNote:HasExtendedXMP=\"[^\"]*\"")
+    private val staleAttributeReferenceRegex = Regex("""xmpNote:HasExtendedXMP=\x22[^\x22]*\x22""")
 
     private val staleElementReferenceRegex =
-        Regex("<xmpNote:HasExtendedXMP>\\s*[0-9A-Fa-f]{32}\\s*</xmpNote:HasExtendedXMP>")
+        Regex("""<xmpNote:HasExtendedXMP>\s*[0-9A-Fa-f]{32}\s*</xmpNote:HasExtendedXMP>""")
 
     /**
      * Splits the given XMP packet. Packets that already fit into a single
