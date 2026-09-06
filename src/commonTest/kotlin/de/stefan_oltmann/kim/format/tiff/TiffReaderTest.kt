@@ -128,6 +128,27 @@ class TiffReaderTest {
     }
 
     /**
+     * A GPS pointer that resolves beyond the end of the file must fail
+     * the read like an in-range corrupt GPS IFD does. Treating it as
+     * "successfully read" makes the next rewrite drop the GPS block
+     * silently (read/update symmetry).
+     */
+    @Test
+    fun testReadRejectsGpsIfdOffsetBeyondEof() {
+
+        val bytes = convertHexStringToByteArray(
+            "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
+                "0100" + // 1 entry
+                "2588040001000000" + "00300000" + // GPSInfo, LONG, GPS IFD at offset 12288
+                "00000000" // No next directory
+        )
+
+        assertFailsWith<ImageReadException> {
+            TiffReader.read(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /**
      * A BigTIFF (version 43, 20-byte directory entries) must be rejected.
      * Misreading it as classic TIFF would emit a valid-looking file with
      * truncated metadata on rewrite.

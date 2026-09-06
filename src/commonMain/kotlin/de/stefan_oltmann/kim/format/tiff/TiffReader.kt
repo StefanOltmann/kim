@@ -379,6 +379,20 @@ public object TiffReader {
 
             for ((index, subDirOffset) in subDirOffsets.withIndex()) {
 
+                /*
+                 * An offset at or beyond the end of the file exits
+                 * readDirectory with "success" (the lenient root-chain
+                 * behavior), which would silently drop the pointer and
+                 * its sub-IFD from the rewrite. That must fail loudly
+                 * for the metadata-bearing sub-IFDs.
+                 */
+                if (isMetadataBearingOffsetField(offsetField) &&
+                    subDirOffset.toLong() >= byteReader.contentLength
+                )
+                    throw ImageReadException(
+                        "The ${offsetField.name} offset $subDirOffset points beyond the end of the file."
+                    )
+
                 val subDirectoryRead = try {
 
                     readDirectory(
