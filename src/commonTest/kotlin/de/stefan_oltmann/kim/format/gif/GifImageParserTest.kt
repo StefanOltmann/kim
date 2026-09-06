@@ -17,6 +17,7 @@
 
 package de.stefan_oltmann.kim.format.gif
 
+import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.gif.chunk.GifChunkApplicationExtension
 import de.stefan_oltmann.kim.format.gif.chunk.GifChunkHeader
@@ -29,6 +30,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class GifImageParserTest {
 
@@ -112,6 +114,34 @@ class GifImageParserTest {
         assertFailsWith<ImageReadException> {
             GifImageParser.readChunks(ByteArrayByteReader(bytes), null)
         }
+    }
+
+    /**
+     * An application extension whose first sub-block is too short to
+     * hold the 8-byte identifier is preserved with a NULL identifier,
+     * like the streaming writer tolerates it. One malformed extension
+     * must not make the whole file unreadable.
+     */
+    @Test
+    fun testReadToleratesShortApplicationExtension() {
+
+        /* Header, logical screen descriptor, app extension with a
+           4-byte first sub-block, a minimal 1x1 image, terminator. */
+        val bytes = "GIF89a".encodeToByteArray() +
+            byteArrayOf(1, 0, 1, 0, 0, 0, 0) +
+            byteArrayOf(0x21.toByte(), 0xFF.toByte(), 4, 1, 2, 3, 4, 0) +
+            byteArrayOf(0x2C.toByte(), 0, 0, 0, 0, 1, 0, 1, 0, 0) +
+            byteArrayOf(2, 1, 5, 0) +
+            byteArrayOf(GifConstants.GIF_TERMINATOR)
+
+        val chunks = GifImageParser.readChunks(ByteArrayByteReader(bytes), null)
+
+        val appExtension = chunks.filterIsInstance<GifChunkApplicationExtension>().single()
+
+        assertNull(appExtension.applicationIdentifier)
+
+        /* The file must still be readable. */
+        assertNotNull(Kim.readMetadata(bytes))
     }
 
     /**

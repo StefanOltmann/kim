@@ -26,6 +26,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class GifImageParserFullTest {
@@ -292,21 +293,25 @@ class GifImageParserFullTest {
         assertEquals("XMP", chunk.applicationCode)
         assertEquals(xmp, chunk.parseAsXmpOrThrow())
 
-        /* Empty sub chunks. */
-        assertFailsWith<ImageReadException> {
-            GifChunkApplicationExtension(
-                header = byteArrayOf(0x21, 0xFF.toByte()),
-                subChunks = emptyList()
-            )
-        }
+        /*
+         * Empty and too-short first sub chunks keep the extension with a
+         * NULL identifier instead of rejecting the whole file, matching
+         * the tolerance of the streaming writer.
+         */
+        val emptySubChunksChunk = GifChunkApplicationExtension(
+            header = byteArrayOf(0x21, 0xFF.toByte()),
+            subChunks = emptyList()
+        )
 
-        /* Too small first sub chunk. */
-        assertFailsWith<ImageReadException> {
-            GifChunkApplicationExtension(
-                header = byteArrayOf(0x21, 0xFF.toByte()),
-                subChunks = listOf(byteArrayOf(3) + "abc".encodeToByteArray())
-            )
-        }
+        assertNull(emptySubChunksChunk.applicationIdentifier)
+
+        val shortSubChunk = GifChunkApplicationExtension(
+            header = byteArrayOf(0x21, 0xFF.toByte()),
+            subChunks = listOf(byteArrayOf(3) + "abc".encodeToByteArray())
+        )
+
+        assertNull(shortSubChunk.applicationIdentifier)
+        assertNull(shortSubChunk.applicationCode)
 
         /* No XMP content. */
         assertFailsWith<ImageReadException> {

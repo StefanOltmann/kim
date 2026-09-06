@@ -41,37 +41,46 @@ public class GifChunkApplicationExtension(
 
     private val xmpMetaTag: String = "x:xmpmeta"
 
-    public val applicationIdentifier: String
-    public val applicationCode: String
+    public val applicationIdentifier: String?
+    public val applicationCode: String?
 
     init {
 
-        if (subChunks.isEmpty())
-            throw ImageReadException("Application extension must have at least 1 subchunk.")
-
-        val firstSubChunkByteReader = ByteArrayByteReader(subChunks.first())
-
         /*
-         * The size is an unsigned byte, so legal sub chunk sizes of 128
-         * to 255 must not become negative through sign extension.
+         * The extension is kept even when its first sub-block is empty or
+         * too short to hold the 8-byte identifier: unknown structures
+         * stay untouched, and only the XMP matching cares about the
+         * identifier, which is NULL then.
          */
-        val firstSubChunkSize = firstSubChunkByteReader.readByte("first sub chunk size").toUInt8()
+        val firstSubChunk = subChunks.firstOrNull()
 
-        if (firstSubChunkSize < APPLICATION_IDENTIFIER_LENGTH)
-            throw ImageReadException(
-                "Invalid size for initial application extension sub chunk: $firstSubChunkSize bytes," +
-                    " expected at least 8 bytes (typically 11)."
-            )
+        val firstSubChunkSize = firstSubChunk
+            ?.firstOrNull()
+            ?.toUInt8()
+            ?: 0
 
-        applicationIdentifier = firstSubChunkByteReader.readBytes(
-            fieldName = "application identifier",
-            count = APPLICATION_IDENTIFIER_LENGTH
-        ).decodeToString()
+        if (firstSubChunk != null && firstSubChunkSize >= APPLICATION_IDENTIFIER_LENGTH) {
 
-        applicationCode = firstSubChunkByteReader.readBytes(
-            fieldName = "application code",
-            count = firstSubChunkSize - APPLICATION_IDENTIFIER_LENGTH
-        ).decodeToString()
+            val firstSubChunkByteReader = ByteArrayByteReader(firstSubChunk)
+
+            /* The first byte is the sub-block size, not part of the payload. */
+            firstSubChunkByteReader.readByte()
+
+            applicationIdentifier = firstSubChunkByteReader.readBytes(
+                fieldName = "application identifier",
+                count = APPLICATION_IDENTIFIER_LENGTH
+            ).decodeToString()
+
+            applicationCode = firstSubChunkByteReader.readBytes(
+                fieldName = "application code",
+                count = firstSubChunkSize - APPLICATION_IDENTIFIER_LENGTH
+            ).decodeToString()
+
+        } else {
+
+            applicationIdentifier = null
+            applicationCode = null
+        }
     }
 
     public fun parseAsXmpOrThrow(): String {
