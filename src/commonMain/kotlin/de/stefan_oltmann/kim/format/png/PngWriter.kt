@@ -184,13 +184,19 @@ public object PngWriter {
 
             val header = byteReader.readBytes(CHUNK_HEADER_LENGTH)
 
-            /* A truncated chunk header at the end of the stream. */
-            if (header.size < CHUNK_HEADER_LENGTH) {
-
-                byteWriter.write(header)
-
+            /* A clean end of the stream. */
+            if (header.isEmpty())
                 return
-            }
+
+            /*
+             * A partial chunk header means the file is truncated. Copying
+             * the fragment would produce a corrupt-looking but unreadable
+             * output, so the file is rejected like any other corrupt input.
+             */
+            if (header.size < CHUNK_HEADER_LENGTH)
+                throw ImageReadException(
+                    "Truncated PNG chunk header: ${header.size} of $CHUNK_HEADER_LENGTH bytes."
+                )
 
             val dataLength = header.toInt(0, PNG_BYTE_ORDER)
 
