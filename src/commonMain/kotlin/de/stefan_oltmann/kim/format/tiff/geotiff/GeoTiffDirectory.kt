@@ -68,12 +68,30 @@ public data class GeoTiffDirectory(
 
     public companion object {
 
+        /**
+         * The header of a GeoKey directory: version, revision, minor
+         * revision and the number of keys.
+         */
+        private const val KEY_DIRECTORY_HEADER_SHORT_COUNT: Int = 4
+
+        /**
+         * Each key is a quadruple of ID, TIFFTagLocation, Count and Value_Offset.
+         */
+        private const val GEO_KEY_SHORT_COUNT: Int = 4
+
         @Suppress("MagicNumber")
         public fun parseFrom(shorts: ShortArray): GeoTiffDirectory {
 
-            require(shorts.size >= 4) {
-                "GeoTiffDirectory should be at least 4 bytes, but was ${shorts.size}."
-            }
+            /*
+             * Undersized arrays and key counts beyond the array are hostile
+             * input and must fail as ImageReadException instead of a raw
+             * exception escaping this public function.
+             */
+            if (shorts.size < KEY_DIRECTORY_HEADER_SHORT_COUNT)
+                throw ImageReadException(
+                    "GeoTiffDirectory should be at least " +
+                        "$KEY_DIRECTORY_HEADER_SHORT_COUNT shorts, but was ${shorts.size}."
+                )
 
             val keyDirectoryVersion = shorts[0]
 
@@ -88,6 +106,16 @@ public data class GeoTiffDirectory(
              * are defined by the rest of this Tag.
              */
             val numberOfKeys = shorts[3]
+
+            /*
+             * Each key occupies 4 shorts behind the header, so a count
+             * claiming more keys than the array holds is corrupt.
+             */
+            if (shorts.size < KEY_DIRECTORY_HEADER_SHORT_COUNT + numberOfKeys.toInt() * GEO_KEY_SHORT_COUNT)
+                throw ImageReadException(
+                    "NumberOfKeys $numberOfKeys exceeds the ${shorts.size - KEY_DIRECTORY_HEADER_SHORT_COUNT} " +
+                        "shorts following the GeoKey directory header."
+                )
 
             var geoTiffModelType: GeoTiffModelType? = null
             var geoTiffRasterType: GeoTiffRasterType? = null
