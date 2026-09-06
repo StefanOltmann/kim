@@ -176,6 +176,65 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
     }
 
     /**
+     * A spec-legal APP0 segment without the JFIF identifier (JFXX
+     * thumbnail extension or vendor data) must survive an update
+     * byte-identically instead of failing the rewrite, matching the
+     * read path that accepts such files (read/update symmetry).
+     */
+    @Test
+    fun testUpdatePreservesNonJfifApp0Segment() {
+
+        /* "JFXX\0" identifier plus a 10-byte extension payload. */
+        val jfxxSegmentBytes = byteArrayOf(
+            0xFF.toByte(), 0xE0.toByte(),
+            0x00, 0x11,
+            0x4A, 0x46, 0x58, 0x58, 0x00,
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+        )
+
+        val bytesWithJfxx = insertSegmentAfterJfif(originalBytes, jfxxSegmentBytes)
+
+        val newBytes = Kim.update(
+            bytes = bytesWithJfxx,
+            updates = setOf(MetadataUpdate.Title(title))
+        )
+
+        assertTrue(newBytes.containsSegment(jfxxSegmentBytes))
+    }
+
+    /**
+     * Inserts the given segment bytes after the first header segment that
+     * follows the SOI marker.
+     */
+    private fun insertSegmentAfterJfif(
+        jpegBytes: ByteArray,
+        segment: ByteArray
+    ): ByteArray {
+
+        /* SOI occupies 2 bytes; the length field of the next segment follows. */
+        val firstSegmentLength = (jpegBytes[SEGMENT_HEADER_BYTES].toInt() and 0xFF) shl 8 or
+            (jpegBytes[SEGMENT_HEADER_BYTES + 1].toInt() and 0xFF)
+
+        val insertIndex = SEGMENT_HEADER_BYTES + firstSegmentLength
+
+        return jpegBytes.copyOfRange(0, insertIndex) +
+            segment +
+            jpegBytes.copyOfRange(insertIndex, jpegBytes.size)
+    }
+
+    /**
+     * Returns whether the given segment bytes appear anywhere in the JPEG bytes.
+     */
+    private fun ByteArray.containsSegment(segment: ByteArray): Boolean {
+
+        for (offset in 0..size - segment.size)
+            if (copyOfRange(offset, offset + segment.size).contentEquals(segment))
+                return true
+
+        return false
+    }
+
+    /**
      * Returns the markers of all segments before the image data.
      */
     private fun segmentMarkers(jpegBytes: ByteArray): Set<Int> {

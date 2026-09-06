@@ -184,7 +184,20 @@ public object JpegImageParser : ImageParser {
         when (marker) {
             JpegConstants.JPEG_APP1_MARKER -> AppnSegment(marker, segmentBytes)
             JpegConstants.JPEG_APP13_MARKER -> App13Segment(marker, segmentBytes)
-            JpegConstants.JFIF_MARKER -> JfifSegment(marker, segmentBytes)
+
+            /*
+             * An APP0 without the JFIF identifier is a spec-legal JFXX
+             * extension or vendor segment. It must be treated as unknown,
+             * so files carrying it stay updatable like they are readable.
+             */
+            JpegConstants.JFIF_MARKER ->
+                if (segmentBytes.startsWith(JpegConstants.JFIF0_SIGNATURE) ||
+                    segmentBytes.startsWith(JpegConstants.JFIF0_SIGNATURE_ALTERNATIVE)
+                )
+                    JfifSegment(marker, segmentBytes)
+                else
+                    UnknownSegment(marker, segmentBytes)
+
             else ->
                 when {
 
