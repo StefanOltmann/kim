@@ -117,6 +117,23 @@ class GifImageParserTest {
     }
 
     /**
+     * The pre-image scanner used by the rewrite must reject unknown
+     * introducers too, so an update cannot silently drop the block.
+     */
+    @Test
+    fun testReadChunksBeforeImageRejectsUnknownBlockIntroducer() {
+
+        val bytes = "GIF89a".encodeToByteArray() +
+            byteArrayOf(1, 0, 1, 0, 0, 0, 0) +
+            byteArrayOf(0x55.toByte()) +
+            byteArrayOf(GifConstants.GIF_TERMINATOR)
+
+        assertFailsWith<ImageReadException> {
+            GifImageParser.readChunksBeforeImage(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /**
      * An application extension whose first sub-block is too short to
      * hold the 8-byte identifier is preserved with a NULL identifier,
      * like the streaming writer tolerates it. One malformed extension

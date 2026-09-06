@@ -237,7 +237,9 @@ public object GifImageParser : ImageParser {
         /* Read extension chunks until the first image starts. */
         while (true) {
 
-            when (byteReader.readByte("introducer")) {
+            val introducer = byteReader.readByte("introducer")
+
+            when (introducer) {
 
                 GifConstants.IMAGE_SEPARATOR -> return chunks to true
 
@@ -252,6 +254,15 @@ public object GifImageParser : ImageParser {
 
                     return chunks to false
                 }
+
+                /*
+                 * Dropping the byte would shift all following data and
+                 * silently corrupt the rewrite, so unknown structures
+                 * fail like in the full chunk read.
+                 */
+                else -> throw ImageReadException(
+                    "Unknown GIF block introducer: ${introducer.toHex()}"
+                )
             }
         }
     }
