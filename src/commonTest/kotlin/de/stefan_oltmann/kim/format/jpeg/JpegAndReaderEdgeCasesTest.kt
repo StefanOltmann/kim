@@ -402,4 +402,41 @@ class JpegAndReaderEdgeCasesTest {
         /* Setting same-size bytes works. */
         field.setBytes(byteArrayOf(16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1))
     }
+
+    /**
+     * A file built from an unbounded number of small header segments
+     * must fail the read instead of buffering an unbounded amount of
+     * segment data during an update.
+     */
+    @Test
+    fun testReadSegmentsRejectsExcessiveHeaderSize() {
+
+        /* A COM segment with a 14-byte payload. The length field includes itself. */
+        val comSegmentContentLength = 14
+
+        val comSegment = byteArrayOf(
+            0xFF.toByte(), COM_MARKER.toByte(), 0, (comSegmentContentLength + 2).toByte()
+        ) + "0123456789ABCD".encodeToByteArray()
+
+        /* Only the payload of each segment counts towards the limit. */
+        val segmentCount = (16 * 1024 * 1024) / comSegmentContentLength + 1
+
+        val headerBytes = ByteArray(segmentCount * comSegment.size)
+
+        for (index in 0 until segmentCount)
+            comSegment.copyInto(headerBytes, index * comSegment.size)
+
+        val file = byteArrayOf(0xFF.toByte(), SOI_MARKER.toByte()) + headerBytes
+
+        assertFailsWith<ImageReadException> {
+            JpegUtils.readSegments(ByteArrayByteReader(file))
+        }
+    }
+
+    private companion object {
+
+        const val SOI_MARKER: Int = 0xD8
+
+        const val COM_MARKER: Int = 0xFE
+    }
 }

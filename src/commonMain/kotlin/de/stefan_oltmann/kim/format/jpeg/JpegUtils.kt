@@ -28,6 +28,13 @@ import de.stefan_oltmann.kim.input.readBytes
 internal object JpegUtils {
 
     /**
+     * The buffered header is what a rewrite carries in memory, so a
+     * hostile file of many small segments must not accumulate
+     * unboundedly. Legitimate files stay far below this limit.
+     */
+    private const val MAX_HEADER_SEGMENT_BYTES: Int = 16 * 1024 * 1024
+
+    /**
      * Reads the header segments of a JPEG file up to the image data.
      *
      * Returns the kept segments and the SOS marker bytes, or NULL when the
@@ -52,6 +59,8 @@ internal object JpegUtils {
          * truncation checks below.
          */
         var readBytesCount = JpegConstants.SOI.size.toLong()
+
+        var headerSegmentBytes = 0
 
         while (true) {
 
@@ -98,7 +107,15 @@ internal object JpegUtils {
 
             readBytesCount += segmentContentLength.toLong()
 
-            if (keepMarker(scan.marker))
+            if (keepMarker(scan.marker)) {
+
+                headerSegmentBytes += segmentContentLength
+
+                if (headerSegmentBytes > MAX_HEADER_SEGMENT_BYTES)
+                    throw ImageReadException(
+                        "JPEG header exceeds $MAX_HEADER_SEGMENT_BYTES bytes."
+                    )
+
                 segments.add(
                     JFIFPieceSegment(
                         scan.marker,
@@ -107,6 +124,7 @@ internal object JpegUtils {
                         segmentData
                     )
                 )
+            }
         }
     }
 }
