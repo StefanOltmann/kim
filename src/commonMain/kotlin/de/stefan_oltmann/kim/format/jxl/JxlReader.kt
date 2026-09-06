@@ -42,6 +42,15 @@ internal object JxlReader {
                 "The file contains an Exif box whose content cannot be parsed as TIFF."
             )
 
+        /*
+         * Corrupt XMP fails the update path in XMPMetaFactory anyway, so
+         * it must fail the read as well (read/update symmetry).
+         */
+        val xmp = xmlBox?.xmp
+
+        if (xmlBox != null && xmp?.contains("<x:xmpmeta") != true)
+            throw ImageReadException("The JXL XML box has no <x:xmpmeta> element.")
+
         return MediaMetadata(
             mediaFormat = MediaFormat.JXL,
             /*
@@ -51,7 +60,7 @@ internal object JxlReader {
             exif = exifBox?.tiffContents,
             exifBytes = exifBox?.exifBytes,
             iptc = null, // not covered by ISO BMFF
-            xmp = xmlBox?.xmp
+            xmp = xmp
         )
     }
 }

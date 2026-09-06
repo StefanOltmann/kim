@@ -88,13 +88,23 @@ public object WebPImageParser : ImageParser {
             val exifChunk = chunks.filterIsInstance<WebPChunkExif>().firstOrNull()
             val xmpChunk = chunks.filterIsInstance<WebPChunkXmp>().firstOrNull()
 
+            /*
+             * Corrupt XMP fails the update path in XMPMetaFactory anyway,
+             * so it must fail the read as well (read/update symmetry),
+             * like the GIF chunk validation.
+             */
+            val xmp = xmpChunk?.xmp?.takeIf { it.contains("<x:xmpmeta") }
+
+            if (xmpChunk != null && xmp == null)
+                throw ImageReadException("The WebP XMP chunk has no <x:xmpmeta> element.")
+
             return@tryWithImageReadException MediaMetadata(
                 mediaFormat = MediaFormat.WEBP,
                 imageSize = imageSize,
                 exif = exifChunk?.tiffContents,
                 exifBytes = exifChunk?.bytes,
                 iptc = null, // not supported by WebP
-                xmp = xmpChunk?.xmp
+                xmp = xmp
             )
         }
 
