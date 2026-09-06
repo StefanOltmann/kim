@@ -16,9 +16,12 @@
 package de.stefan_oltmann.kim.format.tiff.write
 
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.RationalNumber
+import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 class TiffOutputSetTest {
 
@@ -45,5 +48,38 @@ class TiffOutputSetTest {
 
         /* Valid coordinates, including the boundaries, are accepted. */
         outputSet.setGpsCoordinates(GpsCoordinates(latitude = -90.0, longitude = 180.0))
+    }
+
+    /**
+     * A NULL GpsCoordinates documents "remove the location". All GPS
+     * fields must go - residual altitude, timestamps or a free-text
+     * processing method would still expose the recorded place.
+     */
+    @Test
+    fun testSetGpsCoordinatesNullRemovesAllGpsTags() {
+
+        val outputSet = TiffOutputSet()
+
+        outputSet.setGpsCoordinates(GpsCoordinates(latitude = 50.0, longitude = 8.0))
+
+        val gpsDirectory = outputSet.getOrCreateGPSDirectory()
+
+        gpsDirectory.add(GpsTag.GPS_TAG_GPS_PROCESSING_METHOD, "Home, Riverside Drive")
+        gpsDirectory.add(GpsTag.GPS_TAG_GPS_ALTITUDE, RationalNumber(120, 1))
+        gpsDirectory.add(GpsTag.GPS_TAG_GPS_MAP_DATUM, "WGS-84")
+
+        outputSet.setGpsCoordinates(null)
+
+        /* No GPS field of any kind may survive the removal. */
+        for (tag in listOf(
+            GpsTag.GPS_TAG_GPS_LATITUDE,
+            GpsTag.GPS_TAG_GPS_LONGITUDE,
+            GpsTag.GPS_TAG_GPS_ALTITUDE,
+            GpsTag.GPS_TAG_GPS_PROCESSING_METHOD,
+            GpsTag.GPS_TAG_GPS_MAP_DATUM,
+            GpsTag.GPS_TAG_GPS_TIME_STAMP,
+            GpsTag.GPS_TAG_GPS_DATE_STAMP
+        ))
+            assertNull(gpsDirectory.findField(tag), "Field ${tag.name} survived the removal")
     }
 }
