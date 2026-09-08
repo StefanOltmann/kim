@@ -126,6 +126,10 @@ public object Kim {
      * Pinning an explicit zone also allows tests to run deterministically
      * on every machine, without hidden test state changing production
      * behavior.
+     *
+     * Set this once before any concurrent read or write: the property is
+     * a plain global without visibility guarantees, so concurrent access
+     * during the assignment could observe a stale zone for one call.
      */
     public var defaultTimeZone: TimeZone? = null
 
