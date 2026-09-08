@@ -106,45 +106,9 @@ public object Cr3PreviewExtractor {
 
         while (previewBytes == null) {
 
-            val available = byteReader.contentLength - position
+            val header = readTopLevelBoxHeader(byteReader, position) ?: break
 
-            /* Enough bytes for a box header must remain. */
-            if (available < BOX_HEADER_LENGTH)
-                break
-
-            val boxOffset = position
-
-            var headerLength = BOX_HEADER_LENGTH.toLong()
-
-            var largeSize: Long? = null
-
-            var size = byteReader.read4BytesAsInt("length", BMFF_BYTE_ORDER).toLong()
-
-            val typeBytes = byteReader.readBytes("type", TYPE_LENGTH)
-
-            val type = BoxType.of(typeBytes)
-
-            when (size) {
-
-                0L -> size = available // The last box extends to the end of the file.
-
-                1L -> {
-                    size = byteReader.read8BytesAsLong("largesize", BMFF_BYTE_ORDER)
-                    largeSize = size
-
-                    /* The 64-bit largesize field extends the box header. */
-                    val LARGE_SIZE_FIELD_LENGTH = 8L
-
-                    headerLength += LARGE_SIZE_FIELD_LENGTH
-                }
-            }
-
-            if (size !in 1..available)
-                throw ImageReadException("Box $type has an invalid size: $size.")
-
-            val dataSize = (size - headerLength).toInt()
-
-            when (type) {
+            when (header.type) {
 
                 BoxType.MOOV -> {
 
@@ -152,9 +116,15 @@ public object Cr3PreviewExtractor {
                      * The movie box is small metadata, so buffering it is
                      * fine - unlike the mdat that follows it.
                      */
-                    val payload = byteReader.readBytes("moov", dataSize)
+                    val payload = header.readData(byteReader)
 
-                    movieBox = MovieBox(boxOffset, size, largeSize, payload, depth = 1)
+                    movieBox = MovieBox(
+                        header.boxOffset,
+                        header.size,
+                        header.largeSize,
+                        payload,
+                        depth = 1
+                    )
                 }
 
                 BoxType.MDAT -> {
@@ -167,13 +137,13 @@ public object Cr3PreviewExtractor {
 
                     if (window == null) {
 
-                        byteReader.skipBytes("mdat data", dataSize.toLong())
+                        byteReader.skipBytes("mdat data", header.dataSize)
 
                     } else {
 
                         val (windowOffset, windowLength) = window
 
-                        val dataStart = boxOffset + headerLength
+                        val dataStart = header.boxOffset + header.headerLength
 
                         val relativeOffset = windowOffset - dataStart
 
@@ -184,7 +154,7 @@ public object Cr3PreviewExtractor {
                          * so huge deltas cannot wrap into the valid range.
                          */
                         if (relativeOffset >= 0 &&
-                            relativeOffset + windowLength <= dataSize
+                            relativeOffset + windowLength <= header.dataSize
                         ) {
 
                             byteReader.skipBytes("", relativeOffset)
@@ -193,26 +163,112 @@ public object Cr3PreviewExtractor {
 
                             byteReader.skipBytes(
                                 "mdat tail",
-                                (dataSize - relativeOffset - windowLength)
+                                (header.dataSize - relativeOffset - windowLength)
                             )
 
                         } else {
 
-                            byteReader.skipBytes("mdat data", dataSize.toLong())
+                            byteReader.skipBytes("mdat data", header.dataSize)
                         }
                     }
                 }
 
-                else -> byteReader.skipBytes("box data", dataSize.toLong())
+                else -> byteReader.skipBytes("box data", header.dataSize)
             }
 
-            position = boxOffset + size
+            position = header.boxOffset + header.size
         }
 
         /* Only real JPEGs are previews - like in the other extractors. */
         val preview = previewBytes?.takeIf { it.startsWith(MediaFormatMagicNumbers.jpeg) }
 
         return@tryWithImageReadException preview
+    }
+
+    /**
+     * One parsed top-level box header.
+     *
+     * All sizes stay in Long space: ISOBMFF sizes are unsigned 32- or
+     * 64-bit values, so a box of 2 GiB and above must not truncate into a
+     * negative data size during the skip arithmetic.
+     */
+    private class TopLevelBoxHeader(
+        val boxOffset: Long,
+        val headerLength: Long,
+        val size: Long,
+        val largeSize: Long?,
+        val dataSize: Long,
+        val type: BoxType
+    ) {
+
+        /**
+         * Reads the box data as one bounded buffer. Only call this for
+         * boxes that are small metadata, never for the mdat.
+         */
+        fun readData(byteReader: ByteReader): ByteArray {
+
+            if (dataSize > Int.MAX_VALUE)
+                throw ImageReadException(
+                    "Box $type is too large to buffer: $dataSize bytes."
+                )
+
+            return byteReader.readBytes("box data", dataSize.toInt())
+        }
+    }
+
+    /**
+     * Reads one top-level box header at [position].
+     *
+     * Returns NULL when fewer bytes than a box header remain, which is the
+     * clean end of the box walk.
+     */
+    private fun readTopLevelBoxHeader(
+        byteReader: ByteReader,
+        position: Long
+    ): TopLevelBoxHeader? {
+
+        val available = byteReader.contentLength - position
+
+        /* Enough bytes for a box header must remain. */
+        if (available < BOX_HEADER_LENGTH)
+            return null
+
+        val boxOffset = position
+
+        var headerLength = BOX_HEADER_LENGTH.toLong()
+
+        var largeSize: Long? = null
+
+        var size = byteReader.read4BytesAsInt("length", BMFF_BYTE_ORDER).toLong()
+
+        val typeBytes = byteReader.readBytes("type", TYPE_LENGTH)
+
+        val type = BoxType.of(typeBytes)
+
+        when (size) {
+
+            0L -> size = available // The last box extends to the end of the file.
+
+            1L -> {
+                size = byteReader.read8BytesAsLong("largesize", BMFF_BYTE_ORDER)
+                largeSize = size
+
+                /* The 64-bit largesize field extends the box header. */
+                headerLength += LARGE_SIZE_FIELD_LENGTH
+            }
+        }
+
+        if (size !in 1..available)
+            throw ImageReadException("Box $type has an invalid size: $size.")
+
+        return TopLevelBoxHeader(
+            boxOffset = boxOffset,
+            headerLength = headerLength,
+            size = size,
+            largeSize = largeSize,
+            dataSize = size - headerLength,
+            type = type
+        )
     }
 
     /**

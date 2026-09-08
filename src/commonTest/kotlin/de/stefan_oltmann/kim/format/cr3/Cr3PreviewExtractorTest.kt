@@ -18,6 +18,7 @@ package de.stefan_oltmann.kim.format.cr3
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.bmff.BaseMediaFileFormatImageParser
 import de.stefan_oltmann.kim.format.bmff.box.MovieBox
+import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.testdata.KimTestData
@@ -356,6 +357,79 @@ class Cr3PreviewExtractorTest {
     }
 
     /**
+     * A box whose largesize reaches beyond the file is corrupt and must
+     * fail loudly. The Long-space size arithmetic must not let such a box
+     * wrap into a negative data size that breaks the skip accounting.
+     */
+    @Test
+    fun testExtractRejectsLargesizeBeyondFile() {
+
+        val ftypBox = box("ftyp", "crx ".encodeToByteArray() + "0000".encodeToByteArray())
+
+        val moovBox = box("moov", ByteArray(64))
+
+        /* Box header with size = 1 and a largesize of 2 GiB - 1. */
+        val mdatHeader = byteArrayOf(
+            0, 0, 0, 1,
+            0x6D, 0x64, 0x61, 0x74,
+            0x7F.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0, 0, 0, 0
+        )
+
+        val bytes = ftypBox + moovBox + mdatHeader
+
+        assertFailsWith<ImageReadException> {
+            Cr3PreviewExtractor.extractFullSizePreviewImage(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /**
+     * The small preview must stream like the full-size preview: a large
+     * mdat is skipped in bounded chunks instead of being buffered whole.
+     * A counting reader pins that no single read ever serves the mdat.
+     */
+    @Test
+    fun testExtractSmallPreviewSkipsLargeMdatWithoutBufferingIt() {
+
+        val jpegBytes =
+            byteArrayOf(0xFF.toByte(), 0xD8.toByte()) + "jpeg-data".encodeToByteArray()
+
+        val payload =
+            byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0) +
+                byteArrayOf(0, 0, 0, 0) +
+                "PRVW".encodeToByteArray() +
+                ByteArray(12) +
+                byteArrayOf(
+                    (jpegBytes.size shr 24).toByte(),
+                    (jpegBytes.size shr 16).toByte(),
+                    (jpegBytes.size shr 8).toByte(),
+                    jpegBytes.size.toByte()
+                ) +
+                jpegBytes
+
+        val uuidBox = box("uuid", uuidBytes(Cr3Reader.CR3_PREVIEW_UUID) + payload)
+
+        /* 9 MB: far above every legitimate single read. */
+        val largeMdat = box("mdat", ByteArray(9 * 1024 * 1024))
+
+        val bytes =
+            box("ftyp", "crx ".encodeToByteArray() + "0000".encodeToByteArray()) +
+                largeMdat +
+                uuidBox
+
+        val countingReader = CountingByteReader(ByteArrayByteReader(bytes))
+
+        val preview = Cr3PreviewExtractor.extractSmallPreviewImage(countingReader)
+
+        assertNotNull(preview)
+
+        assertTrue(
+            countingReader.largestReadByteCount < largeMdat.size,
+            "Largest single read was ${countingReader.largestReadByteCount} bytes, " +
+                "so the mdat was buffered instead of skipped."
+        )
+    }
+
+    /**
      * Builds a CR3-like file: ftyp + moov(trak > mdia > minf > stbl with
      * stsz & co64) + mdat.
      *
@@ -613,5 +687,34 @@ class Cr3PreviewExtractorTest {
 
         /* The XMP UUID box before the cut moov must be read. */
         assertEquals("<xmp/>", metadata.xmp)
+    }
+
+    /**
+     * A reader that records the largest single readBytes request, so the
+     * buffering contract of an extractor can be asserted.
+     */
+    private class CountingByteReader(
+        private val delegate: ByteArrayByteReader
+    ) : ByteReader {
+
+        var largestReadByteCount: Int = 0
+            private set
+
+        override val contentLength: Long =
+            delegate.contentLength
+
+        override fun readByte(): Byte? =
+            delegate.readByte()
+
+        override fun readBytes(count: Int): ByteArray {
+
+            if (count > largestReadByteCount)
+                largestReadByteCount = count
+
+            return delegate.readBytes(count)
+        }
+
+        override fun close() =
+            delegate.close()
     }
 }
