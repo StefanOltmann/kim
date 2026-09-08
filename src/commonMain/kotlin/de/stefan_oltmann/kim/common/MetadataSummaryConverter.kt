@@ -62,11 +62,22 @@ public object MetadataSummaryConverter {
     @Suppress("LongMethod")
     public fun convertToSummary(
         mediaMetadata: MediaMetadata,
-        ignoreOrientation: Boolean = false
+        ignoreOrientation: Boolean = false,
+        ignoreBrokenXmp: Boolean = false
     ): MetadataSummary {
 
-        val xmpMetadata: MetadataSummary? = mediaMetadata.xmp?.let {
-            XmpReader.readMetadata(it)
+        val xmpMetadata: MetadataSummary? = mediaMetadata.xmp?.let { xmp ->
+            try {
+                XmpReader.readMetadata(xmp)
+            } catch (ex: Exception) {
+                if (ignoreBrokenXmp)
+                    null
+                else
+                    throw ImageReadException(
+                        "Failed to parse XMP data: ${ex.message}",
+                        ex
+                    )
+            }
         }
 
         val orientation = if (ignoreOrientation)
@@ -443,10 +454,12 @@ public object MetadataSummaryConverter {
 }
 
 public fun MediaMetadata.convertToSummary(
-    ignoreOrientation: Boolean = false
+    ignoreOrientation: Boolean = false,
+    ignoreBrokenXmp: Boolean = false
 ): MetadataSummary =
     MetadataSummaryConverter.convertToSummary(
         mediaMetadata = this,
-        ignoreOrientation = ignoreOrientation
+        ignoreOrientation = ignoreOrientation,
+        ignoreBrokenXmp = ignoreBrokenXmp
     )
 

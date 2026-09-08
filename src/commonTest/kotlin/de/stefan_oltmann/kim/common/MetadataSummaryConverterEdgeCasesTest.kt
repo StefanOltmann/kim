@@ -41,6 +41,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
@@ -232,6 +233,50 @@ class MetadataSummaryConverterEdgeCasesTest {
             expected = TiffOrientation.STANDARD,
             actual = metadata.convertToSummary(ignoreOrientation = true).orientation
         )
+    }
+
+    /**
+     * A summary with [ignoreBrokenXmp] omits XMP fields from a malformed
+     * packet and continues building the rest of the summary.
+     */
+    @Test
+    fun testCorruptXmpIsOmittedFromTheSummary() {
+
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.JPEG,
+            imageSize = null,
+            exif = null,
+            exifBytes = null,
+            iptc = null,
+            xmp = "<x:xmpmeta><broken"
+        )
+
+        val summary = metadata.convertToSummary(ignoreBrokenXmp = true)
+
+        /* The corrupt packet contributes nothing, including no taken date. */
+        assertNull(summary.takenDate)
+        assertNull(summary.title)
+    }
+
+    /**
+     * By default a malformed XMP packet is re-packed into an
+     * [ImageReadException] so callers are informed about the corrupt data.
+     */
+    @Test
+    fun testCorruptXmpThrowsImageReadException() {
+
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.JPEG,
+            imageSize = null,
+            exif = null,
+            exifBytes = null,
+            iptc = null,
+            xmp = "<x:xmpmeta><broken"
+        )
+
+        assertFailsWith<ImageReadException> {
+            metadata.convertToSummary()
+        }
     }
 
     @Test
