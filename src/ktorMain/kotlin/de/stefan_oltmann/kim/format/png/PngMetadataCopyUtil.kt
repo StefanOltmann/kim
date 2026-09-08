@@ -29,8 +29,16 @@ import kotlinx.io.files.SystemFileSystem
 /**
  * A utility for transferring all metadata chunks from one file to another.
  *
- * The intended use case is to retain metadata when a new
- * image is created due to scaling, rotation, or other modifications.
+ * This is a maintained public feature in its own right, used by production
+ * apps to retain metadata when a new image is created due to scaling,
+ * rotation, or other modifications. It is not a leftover of [PngWriter].
+ *
+ * The contract: the tEXt, zTXt, iTXt and eXIf chunks of the source replace
+ * the same types in the destination and are inserted right behind the
+ * mandatory IHDR chunk. Both files must be valid PNGs; the output is
+ * written by [PngWriter], so both entry points produce byte-identical
+ * results. The file variant writes a temporary file and moves it
+ * atomically, so the destination is never left half-written.
  */
 public object PngMetadataCopyUtil {
 
