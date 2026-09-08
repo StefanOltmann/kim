@@ -300,6 +300,20 @@ intentionally omit certain boxes outlined in the HEIC specification, notably the
 and image rotation ("irot") boxes. This approach extends to AVIF images, as they repurpose the same
 boxes.
 
+### Android: GPS metadata requires the ACCESS_MEDIA_LOCATION permission
+
+On Android 10 (API 29) and above the platform only hands out the GPS coordinates of media files
+when the app holds the `ACCESS_MEDIA_LOCATION` permission. Without it the GPS tags of photos that
+are read through a ContentResolver stream come back empty or corrupted, which is easy to mistake
+for a library bug. This is platform behavior - Kim cannot bypass it.
+
+Declare the permission in your manifest and request it at runtime like other dangerous permissions
+if your app needs GPS metadata:
+
+```xml
+<uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
+```
+
 ## Contributions
 
 Contributions to Kim are welcome! If you encounter any issues, have suggestions for improvements, or
