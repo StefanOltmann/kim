@@ -16,6 +16,7 @@
  */
 package de.stefan_oltmann.kim.model
 
+import de.stefan_oltmann.kim.common.toInvariantString
 import kotlin.math.round
 
 private const val MAX_LATITUDE = 90.0
@@ -46,7 +47,8 @@ public data class GpsCoordinates(
     val longitude: Double
 ) {
 
-    val latLongString: String = "${roundPrecise(latitude)}, ${roundPrecise(longitude)}"
+    val latLongString: String =
+        "${roundPrecise(latitude).toInvariantString()}, ${roundPrecise(longitude).toInvariantString()}"
 
     public fun toRoundedCoordinates(
         precision: Precision

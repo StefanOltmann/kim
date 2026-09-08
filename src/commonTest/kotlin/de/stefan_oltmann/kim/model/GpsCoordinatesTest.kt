@@ -24,6 +24,20 @@ import kotlin.test.assertTrue
 
 class GpsCoordinatesTest {
 
+    /**
+     * Whole degrees must render invariantly on every platform: the raw
+     * Double toString omits the fraction on JS and Wasm, so the display
+     * string would diverge between targets.
+     */
+    @Test
+    fun testLatLongStringIsInvariantForWholeDegrees() {
+
+        assertEquals(
+            expected = "8.0, 53.0",
+            actual = GpsCoordinates(latitude = 8.0, longitude = 53.0).latLongString
+        )
+    }
+
     @Test
     fun testLatLongString() {
 
