@@ -1,6 +1,5 @@
 /*
  * Copyright 2026 Stefan Oltmann
- * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +19,8 @@ import java.io.OutputStream
 
 /**
  * A ByteWriter that writes into an OutputStream.
+ *
+ * Shared by every JVM-based backend: the desktop JVM and Android.
  */
 public class OutputStreamByteWriter(
     private val outputStream: OutputStream

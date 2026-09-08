@@ -1,6 +1,5 @@
 /*
  * Copyright 2026 Stefan Oltmann
- * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,33 +19,27 @@ import android.os.Build
 import java.io.InputStream
 
 /**
- * Provides way to read from Android ContentReolver that
- * should work on all versions.
+ * A ByteReader that reads from an InputStream on Android.
+ *
+ * Shares the JVM implementation, but below Android 13 the efficient
+ * InputStream.readNBytes does not exist, so reads use the legacy API.
  */
 public open class AndroidInputStreamByteReader(
-    private val inputStream: InputStream,
-    override val contentLength: Long
-) : ByteReader {
-
-    override fun readByte(): Byte? {
-
-        val nextByte = inputStream.read()
-
-        if (nextByte == -1)
-            return null
-
-        return nextByte.toByte()
-    }
+    inputStream: InputStream,
+    contentLength: Long
+) : JvmInputStreamByteReader(
+    inputStream = inputStream,
+    contentLength = contentLength
+) {
 
     override fun readBytes(count: Int): ByteArray {
         require(count >= 0) { "Count must not be negative: $count" }
-
 
         /*
          * On Android 13 and later use the more efficient API.
          */
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-            return inputStream.readNBytes(count)
+            return super.readBytes(count)
 
         /*
          * Fall back to old API that works on all versions.
@@ -82,7 +75,4 @@ public open class AndroidInputStreamByteReader(
 
         return result.copyOf(bytesRead)
     }
-
-    override fun close(): Unit =
-        inputStream.close()
 }

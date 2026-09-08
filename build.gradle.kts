@@ -274,16 +274,28 @@ kotlin {
         dependsOn(ktorMain)
     }
 
+    /*
+     * Shared backend for the JVM-based targets: the desktop JVM and
+     * Android both run on the java.util.zip / java.io APIs and share one
+     * implementation instead of maintaining drifting copies.
+     */
+    val jvmCommonMain = sourceSets.create("jvmCommonMain") {
+
+        dependsOn(commonMain)
+    }
+
     sourceSets.getByName("jvmMain") {
 
         dependsOn(commonMain)
         dependsOn(ktorMain)
+        dependsOn(jvmCommonMain)
     }
 
     sourceSets.getByName("androidMain") {
 
         dependsOn(commonMain)
         dependsOn(ktorMain)
+        dependsOn(jvmCommonMain)
     }
 
     sourceSets.getByName("winMain") {
