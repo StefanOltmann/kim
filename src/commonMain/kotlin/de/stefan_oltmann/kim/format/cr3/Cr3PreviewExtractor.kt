@@ -48,8 +48,10 @@ public object Cr3PreviewExtractor {
      */
     private const val STSZ_SKIP_BYTES = 12
 
-    /* Skip one version byte, 3 bytes flags and 4 bytes entry count */
-    /* Version, flags and entry count are identical for co64 and stco. */
+    /*
+     * Skip one version byte, 3 bytes flags and 4 bytes entry count.
+     * Version, flags and entry count are identical for co64 and stco.
+     */
     private const val CHUNK_OFFSET_SKIP_BYTES = 8
 
     /* Third-party muxers write 32-bit chunk offsets in an stco box. */
