@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'de.stefan-oltmann:kim:0.38.1'
+    implementation 'de.stefan-oltmann:kim:0.38.2'
 }
 
 // Needed to make it work for the Gradle java plugin
