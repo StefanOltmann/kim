@@ -478,16 +478,23 @@ class Cr3PreviewExtractorTest {
         assertNull(metadata.xmp)
     }
 
+    /**
+     * A CR3 without a moov box simply has no EXIF metadata: an empty
+     * sub-box list is the correct result, not a degradation.
+     */
     @Test
-    fun testCr3ReaderFindMetadataSubBoxesRejectsMissingMovieBox() {
+    fun testCr3ReaderFindMetadataSubBoxesWithoutMoovIsEmpty() {
 
-        assertFailsWith<ImageReadException> {
-            Cr3Reader.findMetadataSubBoxes(emptyList())
-        }
+        assertTrue(Cr3Reader.findMetadataSubBoxes(emptyList()).isEmpty())
     }
 
+    /**
+     * A moov box without the EXIF metadata UUID box simply has no EXIF
+     * metadata: an empty sub-box list is the correct result, not a
+     * degradation.
+     */
     @Test
-    fun testCr3ReaderFindMetadataSubBoxesRejectsMissingUuidBox() {
+    fun testCr3ReaderFindMetadataSubBoxesWithoutUuidBoxIsEmpty() {
 
         val movieBox = MovieBox(
             offset = 0,
@@ -496,9 +503,7 @@ class Cr3PreviewExtractorTest {
             payload = byteArrayOf()
         )
 
-        assertFailsWith<ImageReadException> {
-            Cr3Reader.findMetadataSubBoxes(listOf(movieBox))
-        }
+        assertTrue(Cr3Reader.findMetadataSubBoxes(listOf(movieBox)).isEmpty())
     }
 
     /**
