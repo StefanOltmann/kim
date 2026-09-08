@@ -17,7 +17,6 @@
 package de.stefan_oltmann.kim.format.xmp
 
 import de.stefan_oltmann.kim.Kim
-import de.stefan_oltmann.kim.common.GpsUtil
 import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.LocationShown
@@ -86,19 +85,15 @@ public object XmpReader {
 
         /*
          * Read location
+         *
+         * The XMP library parses both property values and validates the
+         * range, so corrupt coordinates yield NULL instead of flowing
+         * into the position.
          */
 
-        val latitude = GpsUtil.dmsToDecimal(xmpMeta.getGpsLatitude())
-        val longitude = GpsUtil.dmsToDecimal(xmpMeta.getGpsLongitude())
-
-        /*
-         * Corrupt XMP can carry coordinates far outside the valid range,
-         * so the result is validated like the write path requires.
-         */
-        val gpsCoordinates = if (latitude != null && longitude != null)
-            GpsCoordinates(latitude, longitude).takeIf(GpsCoordinates::isValid)
-        else
-            null
+        val gpsCoordinates = xmpMeta.getGpsCoordinates()?.let {
+            GpsCoordinates(it.latitude, it.longitude)
+        }
 
         val locationShown = xmpMeta.getLocation()?.let {
 

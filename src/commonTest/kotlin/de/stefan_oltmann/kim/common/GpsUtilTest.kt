@@ -18,45 +18,8 @@ package de.stefan_oltmann.kim.common
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
 class GpsUtilTest {
-
-    @Test
-    fun testDmsToDecimal() {
-
-        /* Valid inputs */
-        assertEquals(40.72568166666667, GpsUtil.dmsToDecimal("40,43.5409N"))
-        assertEquals(-74.08378666666667, GpsUtil.dmsToDecimal("74,5.0272W"))
-        assertEquals(-33.865144111111114, GpsUtil.dmsToDecimal("33,51,54.5188S"))
-        assertEquals(151.20929999999998, GpsUtil.dmsToDecimal("151,12,33.48E"))
-
-        /* Lowercase direction letters are accepted too. */
-        assertEquals(40.72568166666667, GpsUtil.dmsToDecimal("40,43.5409n"))
-        assertEquals(-74.08378666666667, GpsUtil.dmsToDecimal("74,5.0272w"))
-
-        /* Null island */
-        assertEquals(0.0, GpsUtil.dmsToDecimal("00,00N"))
-        assertEquals(0.0, GpsUtil.dmsToDecimal("00,00.0000N"))
-
-        /* Invalid inputs */
-        assertNull(GpsUtil.dmsToDecimal(null))
-        assertNull(GpsUtil.dmsToDecimal(""))
-        assertNull(GpsUtil.dmsToDecimal("40N"))
-        assertNull(GpsUtil.dmsToDecimal("74W"))
-        assertNull(GpsUtil.dmsToDecimal("40,43.5409"))
-        assertNull(GpsUtil.dmsToDecimal("invalid input"))
-        assertNull(GpsUtil.dmsToDecimal("40,43,32.454"))
-        assertNull(GpsUtil.dmsToDecimal("40,43.5409X"))
-        assertNull(GpsUtil.dmsToDecimal("N40,43.5409"))
-        assertNull(GpsUtil.dmsToDecimal("40.72568166666667N"))
-
-        /* Minutes and seconds of 60 or more are implausible. */
-        assertNull(GpsUtil.dmsToDecimal("40,99N"))
-        assertNull(GpsUtil.dmsToDecimal("400,999N"))
-        assertNull(GpsUtil.dmsToDecimal("10,30,90W"))
-        assertNull(GpsUtil.dmsToDecimal("10,60N"))
-    }
 
     @Test
     fun testDecimalLatitudeToDDM() {

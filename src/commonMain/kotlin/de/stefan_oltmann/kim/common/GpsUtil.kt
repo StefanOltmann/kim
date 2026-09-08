@@ -27,59 +27,9 @@ public object GpsUtil {
 
     internal const val MINUTES_PER_HOUR: Double = 60.0
     internal const val SECONDS_PER_HOUR: Double = 3600.0
-    private const val SECONDS_PER_MINUTE: Double = 60.0
     private const val MAX_DDM_FRACTION_DIGITS: Int = 4
     private const val MAX_LATITUDE_DEGREES: Int = 90
     private const val MAX_LONGITUDE_DEGREES: Int = 180
-
-    /**
-     * Converts a GPS coordinate in DMS (Degrees, Minutes, Seconds) format
-     * or DDM (Degrees, Decimal Minutes) to decimal degrees.
-     *
-     * Direction letters are accepted in upper and lower case.
-     *
-     * This method is designed to be robust and will not throw any errors.
-     *
-     * @param dms the GPS coordinate in DMS or DDM format.
-     * @return the decimal value of the GPS coordinate, or null if the input is null or invalid.
-     */
-    @Suppress("MagicNumber")
-    public fun dmsToDecimal(dms: String?): Double? {
-
-        /* Blank values are illegal. */
-        if (dms.isNullOrBlank())
-            return null
-
-        val normalized = dms.uppercase()
-
-        val directionLetter = normalized.last()
-
-        /* Proper dms ends with a direction letter. */
-        if (directionLetter !in setOf('N', 'S', 'E', 'W'))
-            return null
-
-        val parts = normalized.split(",", "N", "S", "E", "W")
-
-        /* Proper dms requires degrees and minutes. Only seconds are optional. */
-        if (parts.size < 2)
-            return null
-
-        val degrees = parts[0].toDoubleOrNull() ?: return null
-        val minutes = parts[1].toDoubleOrNull() ?: return null
-        val seconds = if (parts.size >= 3) parts[2].toDoubleOrNull() ?: 0.0 else 0.0
-
-        /*
-         * Minutes and seconds of 60 or more are implausible and usually
-         * a sign of corrupt data, so they are rejected instead of
-         * silently producing an out-of-range coordinate.
-         */
-        if (minutes >= MINUTES_PER_HOUR || seconds >= SECONDS_PER_MINUTE)
-            return null
-
-        val direction = if (directionLetter == 'S' || directionLetter == 'W') -1 else 1
-
-        return direction * (degrees + minutes / MINUTES_PER_HOUR + seconds / SECONDS_PER_HOUR)
-    }
 
     /**
      * XMP requires geo data to be in DDM (Degrees, decimal minutes) format.
