@@ -19,11 +19,11 @@ package de.stefan_oltmann.kim.format.gif
 
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
-import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.format.gif.chunk.GifChunk
 import de.stefan_oltmann.kim.format.gif.chunk.GifChunkApplicationExtension
 import de.stefan_oltmann.kim.format.gif.chunk.GifChunkHeader
+import de.stefan_oltmann.kim.format.gif.chunk.GifChunkImageDescriptor
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.transferExactly
 import de.stefan_oltmann.kim.output.ByteWriter
@@ -36,10 +36,6 @@ public object GifWriter {
 
     /* Left, top, width, height and the packed field. */
     private const val IMAGE_DESCRIPTOR_LENGTH: Int = 9
-
-    private const val LOCAL_COLOR_TABLE_FLAG: Int = 0x80
-
-    private const val COLOR_TABLE_SIZE_MASK: Int = 0x07
 
     /* The application identifier of a GIF application extension is 8 bytes. */
     private const val APPLICATION_IDENTIFIER_LENGTH: Int = 8
@@ -94,58 +90,25 @@ public object GifWriter {
          */
         copyImageData(byteReader, byteWriter)
 
-        copyBlocksSkippingMetadata(byteReader, byteWriter, failOnTrailingXmp)
-    }
-
-    /**
-     * Streams the remaining GIF blocks to the given writer, dropping XMP
-     * application extensions and comment extensions, so stale metadata
-     * between animation frames cannot survive an update or a deletion.
-     *
-     * Only these recognized metadata types are dropped, because the
-     * caller asked for their replacement or removal. All other blocks,
-     * including unknown extensions, stream through untouched.
-     */
-    private fun copyBlocksSkippingMetadata(
-        byteReader: ByteReader,
-        byteWriter: ByteWriter,
-        failOnTrailingXmp: Boolean
-    ) {
-
-        while (true) {
-
-            /*
-             * A valid GIF always ends with a terminator block. An EOF
-             * before it means the file is truncated and must not be
-             * rewritten, because that would drop the trailer silently.
-             */
-            val introducer = byteReader.readByte()
-                ?: throw ImageReadException("Unexpected end of file inside a GIF block chain.")
-
-            when (introducer) {
-
-                GifConstants.GIF_TERMINATOR -> {
-
-                    byteWriter.write(introducer)
-
-                    return
-                }
-
-                GifConstants.IMAGE_SEPARATOR -> {
-
-                    byteWriter.write(introducer)
-
-                    copyImageData(byteReader, byteWriter)
-                }
-
-                GifConstants.EXTENSION_INTRODUCER ->
-                    copyExtensionBlock(byteReader, byteWriter, failOnTrailingXmp)
-
-                else -> throw ImageReadException(
-                    "Unknown GIF block introducer: ${introducer.toHex()}"
-                )
+        /*
+         * The walker rejects unknown introducers and unexpected EOFs, so
+         * a rewrite can never emit a shifted or silently truncated file.
+         */
+        byteReader.walkGifBlocks(
+            onImageBlock = {
+                byteWriter.write(GifConstants.IMAGE_SEPARATOR)
+                copyImageData(byteReader, byteWriter)
+                false
+            },
+            onExtensionBlock = { extensionLabel ->
+                copyExtensionBlock(byteReader, byteWriter, extensionLabel, failOnTrailingXmp)
+                false
+            },
+            onTrailerBlock = {
+                byteWriter.write(GifConstants.GIF_TERMINATOR)
+                true
             }
-        }
+        )
     }
 
     /**
@@ -171,17 +134,18 @@ public object GifWriter {
                     "$IMAGE_DESCRIPTOR_LENGTH bytes."
             )
 
+        val imageDescriptorChunk = GifChunkImageDescriptor(
+            byteArrayOf(GifConstants.IMAGE_SEPARATOR) + descriptorBytes
+        )
+
         byteWriter.write(descriptorBytes)
 
-        val packedField = descriptorBytes[IMAGE_DESCRIPTOR_LENGTH - 1].toUInt8()
-
         /* Bit 7 signals a local color table, bits 0 to 2 its size. */
-        if (packedField and LOCAL_COLOR_TABLE_FLAG != 0) {
+        if (imageDescriptorChunk.localColorTableFlag) {
 
-            val colorTableSize =
-                3 * (1 shl ((packedField and COLOR_TABLE_SIZE_MASK) + 1))
+            val localColorTableSize = gifColorTableSizeBytes(imageDescriptorChunk.localColorTableSize)
 
-            byteReader.transferExactly(byteWriter, colorTableSize.toLong())
+            byteReader.transferExactly(byteWriter, localColorTableSize.toLong())
         }
 
         /* The LZW minimum code size byte precedes the sub-block chain. */
@@ -190,25 +154,26 @@ public object GifWriter {
         if (lzwMinimumCodeSize != null)
             byteWriter.write(lzwMinimumCodeSize)
 
-        copySubBlocks(byteReader, byteWriter)
+        byteReader.transferGifSubBlocks(byteWriter)
     }
 
     /**
      * Copies an extension block, dropping comment extensions and XMP
-     * application extensions, which carry user-editable metadata.
+     * application extensions, which carry user-editable metadata. All
+     * other blocks, including unknown extensions, stream through
+     * untouched, so stale metadata cannot survive an update or deletion
+     * while nothing the caller asked to keep is destroyed.
      */
     private fun copyExtensionBlock(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
+        extensionLabel: Byte,
         failOnTrailingXmp: Boolean
     ) {
 
-        val label = byteReader.readByte()
-            ?: throw ImageReadException("Unexpected end of file behind a GIF extension introducer.")
+        when (extensionLabel) {
 
-        when (label) {
-
-            GifConstants.COMMENT_EXTENSION_LABEL -> copySubBlocks(byteReader, byteWriter = null)
+            GifConstants.COMMENT_EXTENSION_LABEL -> byteReader.transferGifSubBlocks(byteWriter = null)
 
             GifConstants.APPLICATION_EXTENSION_LABEL ->
                 copyApplicationExtensionBlock(byteReader, byteWriter, failOnTrailingXmp)
@@ -216,9 +181,9 @@ public object GifWriter {
             else -> {
 
                 byteWriter.write(GifConstants.EXTENSION_INTRODUCER)
-                byteWriter.write(label)
+                byteWriter.write(extensionLabel)
 
-                copySubBlocks(byteReader, byteWriter)
+                byteReader.transferGifSubBlocks(byteWriter)
             }
         }
     }
@@ -284,37 +249,14 @@ public object GifWriter {
                 )
 
             byteReader.transferExactly(null, remainingFirstSubBlockLength)
-            copySubBlocks(byteReader, byteWriter = null)
+            byteReader.transferGifSubBlocks(byteWriter = null)
 
         } else {
 
             byteWriter.write(firstSubBlockSizeByte)
             byteWriter.write(identifierBytes)
             byteReader.transferExactly(byteWriter, remainingFirstSubBlockLength)
-            copySubBlocks(byteReader, byteWriter)
-        }
-    }
-
-    /**
-     * Copies a chain of size-prefixed sub-blocks up to and including the
-     * block terminator, or skips it when the writer is NULL.
-     */
-    private fun copySubBlocks(
-        byteReader: ByteReader,
-        byteWriter: ByteWriter?
-    ) {
-
-        while (true) {
-
-            val sizeByte = byteReader.readByte()
-                ?: throw ImageReadException("Unexpected end of file behind a GIF sub-block chain.")
-
-            byteWriter?.write(sizeByte)
-
-            if (sizeByte == GifConstants.BLOCK_TERMINATOR)
-                return
-
-            byteReader.transferExactly(byteWriter, sizeByte.toUInt8().toLong())
+            byteReader.transferGifSubBlocks(byteWriter)
         }
     }
 

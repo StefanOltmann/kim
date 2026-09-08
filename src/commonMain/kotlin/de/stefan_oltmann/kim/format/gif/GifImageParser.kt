@@ -19,6 +19,7 @@ package de.stefan_oltmann.kim.format.gif
 
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.toHex
+import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaMetadata
@@ -35,7 +36,9 @@ import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.readByte
 import de.stefan_oltmann.kim.input.readByteAsInt
 import de.stefan_oltmann.kim.input.readBytes
+import de.stefan_oltmann.kim.input.transferExactly
 import de.stefan_oltmann.kim.model.MediaFormat
+import de.stefan_oltmann.kim.output.ByteWriter
 import kotlin.jvm.JvmStatic
 
 /**
@@ -157,7 +160,7 @@ public object GifImageParser : ImageParser {
         /* Read global color table chunk if present */
         if (logicalScreenDescriptorChunk.globalColorTableFlag) {
 
-            val globalColorTableSize = 3 * (1 shl (logicalScreenDescriptorChunk.globalColorTableSize + 1))
+            val globalColorTableSize = gifColorTableSizeBytes(logicalScreenDescriptorChunk.globalColorTableSize)
 
             val globalColorTableBytes = byteReader.readBytes(globalColorTableSize)
 
@@ -166,34 +169,21 @@ public object GifImageParser : ImageParser {
         }
 
         /* Read remaining chunks */
-        while (true) {
-
-            val introducer = byteReader.readByte("introducer")
-
-            when (introducer) {
-
-                GifConstants.IMAGE_SEPARATOR -> chunks.addAll(readImageChunks(byteReader, chunkTypeFilter))
-
-                GifConstants.EXTENSION_INTRODUCER -> readExtensionChunk(byteReader, chunkTypeFilter)?.also(chunks::add)
-
-                GifConstants.GIF_TERMINATOR -> {
-
-                    if (chunkTypeFilter?.contains(GifChunkType.TERMINATOR) != false)
-                        chunks.add(GifChunkTerminator(byteArrayOf(GifConstants.GIF_TERMINATOR)))
-
-                    break
-                }
-
-                /*
-                 * Dropping the byte would shift all following data and
-                 * produce a shortened GIF, so unknown structures fail
-                 * the parse like in the streaming write path.
-                 */
-                else -> throw ImageReadException(
-                    "Unknown GIF block introducer: ${introducer.toHex()}"
-                )
+        byteReader.walkGifBlocks(
+            onImageBlock = {
+                chunks.addAll(readImageChunks(byteReader, chunkTypeFilter))
+                false
+            },
+            onExtensionBlock = { extensionLabel ->
+                readExtensionChunk(byteReader, extensionLabel, chunkTypeFilter)?.also(chunks::add)
+                false
+            },
+            onTrailerBlock = {
+                if (chunkTypeFilter?.contains(GifChunkType.TERMINATOR) != false)
+                    chunks.add(GifChunkTerminator(byteArrayOf(GifConstants.GIF_TERMINATOR)))
+                true
             }
-        }
+        )
 
         return chunks
     }
@@ -227,7 +217,7 @@ public object GifImageParser : ImageParser {
         /* Read global color table chunk if present */
         if (logicalScreenDescriptorChunk.globalColorTableFlag) {
 
-            val globalColorTableSize = 3 * (1 shl (logicalScreenDescriptorChunk.globalColorTableSize + 1))
+            val globalColorTableSize = gifColorTableSizeBytes(logicalScreenDescriptorChunk.globalColorTableSize)
 
             val globalColorTableBytes = byteReader.readBytes(globalColorTableSize)
 
@@ -235,36 +225,24 @@ public object GifImageParser : ImageParser {
         }
 
         /* Read extension chunks until the first image starts. */
-        while (true) {
+        var foundImage = false
 
-            val introducer = byteReader.readByte("introducer")
-
-            when (introducer) {
-
-                GifConstants.IMAGE_SEPARATOR -> return chunks to true
-
-                GifConstants.EXTENSION_INTRODUCER -> {
-
-                    readExtensionChunk(byteReader, chunkTypeFilter = null)?.let(chunks::add)
-                }
-
-                GifConstants.GIF_TERMINATOR -> {
-
-                    chunks.add(GifChunkTerminator(byteArrayOf(GifConstants.GIF_TERMINATOR)))
-
-                    return chunks to false
-                }
-
-                /*
-                 * Dropping the byte would shift all following data and
-                 * silently corrupt the rewrite, so unknown structures
-                 * fail like in the full chunk read.
-                 */
-                else -> throw ImageReadException(
-                    "Unknown GIF block introducer: ${introducer.toHex()}"
-                )
+        byteReader.walkGifBlocks(
+            onImageBlock = {
+                foundImage = true
+                true
+            },
+            onExtensionBlock = { extensionLabel ->
+                readExtensionChunk(byteReader, extensionLabel, chunkTypeFilter = null)?.let(chunks::add)
+                false
+            },
+            onTrailerBlock = {
+                chunks.add(GifChunkTerminator(byteArrayOf(GifConstants.GIF_TERMINATOR)))
+                true
             }
-        }
+        )
+
+        return chunks to foundImage
     }
 
     private fun readImageChunks(
@@ -287,7 +265,8 @@ public object GifImageParser : ImageParser {
         /* Read local color table if present */
         if (imageDescriptorChunk.localColorTableFlag) {
 
-            val localColorTableSize = 3 * (1 shl (imageDescriptorChunk.localColorTableSize + 1))
+            val localColorTableSize = gifColorTableSizeBytes(imageDescriptorChunk.localColorTableSize)
+
             val localColorTableBytes = byteReader.readBytes("local color table", localColorTableSize)
 
             if (chunkTypeFilter?.contains(GifChunkType.LOCAL_COLOR_TABLE) != false)
@@ -306,9 +285,10 @@ public object GifImageParser : ImageParser {
 
     private fun readExtensionChunk(
         byteReader: ByteReader,
+        extensionLabel: Byte,
         chunkTypeFilter: List<GifChunkType>?
     ): GifChunk? =
-        when (val extensionLabel = byteReader.readByte("extension label")) {
+        when (extensionLabel) {
 
             GifConstants.GRAPHICS_CONTROL_EXTENSION_LABEL -> {
 
@@ -423,3 +403,74 @@ public object GifImageParser : ImageParser {
         return subChunks
     }
 }
+
+/**
+ * Walks the top-level blocks of a GIF file starting at the next
+ * introducer byte and dispatches every block to its handler.
+ *
+ * The walker owns introducer dispatch, EOF handling and the rejection of
+ * unknown introducers, so every GIF read and write follows the same
+ * framing rules. A handler returns true to end the walk after its block;
+ * the block's own bytes are consumed by the handler.
+ */
+internal fun ByteReader.walkGifBlocks(
+    onImageBlock: () -> Boolean,
+    onExtensionBlock: (extensionLabel: Byte) -> Boolean,
+    onTrailerBlock: () -> Boolean
+) {
+
+    while (true) {
+
+        val introducer = readByte("introducer")
+
+        val stop = when (introducer) {
+
+            GifConstants.IMAGE_SEPARATOR -> onImageBlock()
+
+            GifConstants.EXTENSION_INTRODUCER -> onExtensionBlock(readByte("extension label"))
+
+            GifConstants.GIF_TERMINATOR -> onTrailerBlock()
+
+            /*
+             * Dropping the byte would shift all following data and
+             * silently corrupt the file, so unknown structures fail
+             * the read like the streaming write path.
+             */
+            else -> throw ImageReadException(
+                "Unknown GIF block introducer: ${introducer.toHex()}"
+            )
+        }
+
+        if (stop)
+            return
+    }
+}
+
+/**
+ * Streams a chain of size-prefixed sub-blocks up to and including the
+ * block terminator to the given writer, or skips it when the writer is
+ * NULL, so a filtered extension cannot desync the stream.
+ */
+internal fun ByteReader.transferGifSubBlocks(byteWriter: ByteWriter?) {
+
+    while (true) {
+
+        val sizeByte = readByte()
+            ?: throw ImageReadException("Unexpected end of file behind a GIF sub-block chain.")
+
+        byteWriter?.write(sizeByte)
+
+        if (sizeByte == GifConstants.BLOCK_TERMINATOR)
+            return
+
+        transferExactly(byteWriter, sizeByte.toUInt8().toLong())
+    }
+}
+
+/**
+ * The byte length of a GIF color table for the given 3-bit size field:
+ * 2^(N+1) entries of 3 bytes each.
+ */
+@Suppress("MagicNumber")
+internal fun gifColorTableSizeBytes(colorTableSizeField: Int): Int =
+    3 * (1 shl (colorTableSizeField + 1))
