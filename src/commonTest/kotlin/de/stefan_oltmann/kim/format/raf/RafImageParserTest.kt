@@ -15,12 +15,15 @@
  */
 package de.stefan_oltmann.kim.format.raf
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class RafImageParserTest {
 
@@ -29,6 +32,29 @@ class RafImageParserTest {
      * extractor, so its parse must be covered directly: the EXIF of the
      * JPEG embedded in the RAF becomes the metadata of the file.
      */
+    /**
+     * A hostile JPEG offset that cannot point into the file (zero,
+     * negative or beyond the end) must be rejected with a targeted
+     * message instead of underflowing into a full-file skip scan.
+     */
+    @Test
+    fun testParseRejectsOutOfRangeJpegOffset() {
+
+        /* RAF magic ("FUJIFILMCCD-RAW ") + 68 header bytes + offset. */
+        val header = "FUJIFILMCCD-RAW ".encodeToByteArray() + ByteArray(68 + 4)
+
+        val bytes = header + "jpeg".encodeToByteArray()
+
+        val exception = assertFailsWith<ImageReadException> {
+            RafImageParser.parseMetadata(ByteArrayByteReader(bytes))
+        }
+
+        assertTrue(
+            exception.message?.contains("out of range") == true,
+            "Unexpected message: ${exception.message}"
+        )
+    }
+
     @Test
     fun testParseMetadataReadsTheEmbeddedJpegExif() {
 

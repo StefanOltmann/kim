@@ -52,6 +52,14 @@ public object RafImageParser : ImageParser {
 
             val offset = byteReader.read4BytesAsInt("JPEG offset", ByteOrder.BIG_ENDIAN)
 
+            /*
+             * A hostile offset cannot point into the file. Rejecting it
+             * here beats the underflowing skip distance (and the wasteful
+             * full-file scan) that the raw subtraction would produce.
+             */
+            if (offset <= 0 || offset > byteReader.contentLength)
+                throw ImageReadException("RAF JPEG offset out of range: $offset")
+
             @Suppress("MagicNumber")
             val remainingBytesToOffset = offset -
                 (RafMetadataExtractor.REMAINING_HEADER_BYTE_COUNT + MediaFormatMagicNumbers.raf.size + 4)
