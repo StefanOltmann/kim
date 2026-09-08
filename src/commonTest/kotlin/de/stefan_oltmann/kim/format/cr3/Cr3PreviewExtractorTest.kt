@@ -76,6 +76,17 @@ class Cr3PreviewExtractorTest {
             )
     )
 
+    private fun stcoBox(offset: Int): ByteArray = box(
+        "stco",
+        byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0) +
+            byteArrayOf(
+                (offset shr 24).toByte(),
+                (offset shr 16).toByte(),
+                (offset shr 8).toByte(),
+                offset.toByte()
+            )
+    )
+
     @Test
     fun testExtractFullSizePreviewFromRealFile() {
 
@@ -383,6 +394,58 @@ class Cr3PreviewExtractorTest {
     }
 
     /**
+     * Third-party muxers write 32-bit chunk offsets (stco) instead of
+     * co64. The preview window must resolve from stco as well.
+     */
+    @Test
+    fun testStcoBasedSampleTableYieldsPreview() {
+
+        val mdatPayload = byteArrayOf(0xFF.toByte(), 0xD8.toByte()) + "jpeg".encodeToByteArray()
+
+        val jpegLength = mdatPayload.size
+
+        val bytes = buildCr3File(
+            mdatPayload = mdatPayload,
+            jpegLength = jpegLength,
+            co64Offset = { it },
+            sampleTable = { length, offset -> stszBox(length) + stcoBox(offset.toInt()) }
+        )
+
+        val preview = Cr3PreviewExtractor.extractFullSizePreviewImage(
+            ByteArrayByteReader(bytes)
+        )
+
+        assertNotNull(preview)
+    }
+
+    /**
+     * A constant-sample-size stsz has no per-sample table, so the parse
+     * runs past its end. That is a structural miss, not a corrupt file:
+     * the preview degrades to NULL like every other missing structure.
+     */
+    @Test
+    fun testConstantSampleSizeStszReturnsNullPreview() {
+
+        val stblPayload = box("stsz", ByteArray(12)) + co64Box(0x40)
+
+        val trakBox =
+            box("trak", tkhdBox() + box("mdia", box("minf", box("stbl", stblPayload))))
+
+        val moovBox = box("moov", trakBox)
+
+        val mdatPayload = byteArrayOf(0xFF.toByte(), 0xD8.toByte()) + "jpeg".encodeToByteArray()
+
+        val bytes =
+            box("ftyp", "crx ".encodeToByteArray() + "0000".encodeToByteArray()) +
+                moovBox +
+                box("mdat", mdatPayload)
+
+        assertNull(
+            Cr3PreviewExtractor.extractFullSizePreviewImage(ByteArrayByteReader(bytes))
+        )
+    }
+
+    /**
      * The small preview must stream like the full-size preview: a large
      * mdat is skipped in bounded chunks instead of being buffered whole.
      * A counting reader pins that no single read ever serves the mdat.
@@ -440,7 +503,9 @@ class Cr3PreviewExtractorTest {
     private fun buildCr3File(
         mdatPayload: ByteArray,
         jpegLength: Int,
-        co64Offset: (mdatDataOffset: Long) -> Long
+        co64Offset: (mdatDataOffset: Long) -> Long,
+        sampleTable: (jpegLength: Int, mdatDataOffset: Long) -> ByteArray =
+            { length, offset -> stszAndCo64(length, offset) }
     ): ByteArray {
 
         val tkhd = tkhdBox()
@@ -450,7 +515,7 @@ class Cr3PreviewExtractorTest {
             "crx ".encodeToByteArray() + byteArrayOf(0, 0, 0, 0) + "fTyp".encodeToByteArray()
         )
 
-        val minfPayload = stszAndCo64(jpegLength, 0L)
+        val minfPayload = sampleTable(jpegLength, 0L)
 
         val trakBox =
             box("trak", tkhd + box("mdia", box("minf", box("stbl", minfPayload))))
@@ -463,7 +528,7 @@ class Cr3PreviewExtractorTest {
         val mdatDataOffset = prefix.size + 8L
 
         /* Second pass with the real offset. */
-        val realMinfPayload = stszAndCo64(jpegLength, co64Offset(mdatDataOffset))
+        val realMinfPayload = sampleTable(jpegLength, co64Offset(mdatDataOffset))
 
         val realTrakBox =
             box("trak", tkhd + box("mdia", box("minf", box("stbl", realMinfPayload))))

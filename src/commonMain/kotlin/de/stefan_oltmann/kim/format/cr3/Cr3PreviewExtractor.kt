@@ -49,7 +49,11 @@ public object Cr3PreviewExtractor {
     private const val STSZ_SKIP_BYTES = 12
 
     /* Skip one version byte, 3 bytes flags and 4 bytes entry count */
-    private const val CO64_SKIP_BYTES = 8
+    /* Version, flags and entry count are identical for co64 and stco. */
+    private const val CHUNK_OFFSET_SKIP_BYTES = 8
+
+    /* Third-party muxers write 32-bit chunk offsets in an stco box. */
+    private val STCO_BOX_TYPE: BoxType = BoxType.of("stco".encodeToByteArray())
 
     /* Skip unknown bytes */
     private const val PRVW_UNKNOWN_BYTES = 8
@@ -114,17 +118,24 @@ public object Cr3PreviewExtractor {
 
                     /*
                      * The movie box is small metadata, so buffering it is
-                     * fine - unlike the mdat that follows it.
+                     * fine - unlike the mdat that follows it. An interrupted
+                     * recording can cut the file inside the moov; the preview
+                     * then degrades to NULL like the metadata path tolerates
+                     * truncated moovs, instead of failing the read.
                      */
-                    val payload = header.readData(byteReader)
+                    movieBox = try {
+                        val payload = header.readData(byteReader)
 
-                    movieBox = MovieBox(
-                        header.boxOffset,
-                        header.size,
-                        header.largeSize,
-                        payload,
-                        depth = 1
-                    )
+                        MovieBox(
+                            header.boxOffset,
+                            header.size,
+                            header.largeSize,
+                            payload,
+                            depth = 1
+                        )
+                    } catch (_: ImageReadException) {
+                        null
+                    }
                 }
 
                 BoxType.MDAT -> {
@@ -277,10 +288,23 @@ public object Cr3PreviewExtractor {
      *
      * Returns NULL when the structure is missing one of them.
      */
-    private fun computePreviewWindow(movieBox: MovieBox): Pair<Long, Int>? {
+    private fun computePreviewWindow(movieBox: MovieBox): Pair<Long, Int>? =
+        try {
+            computePreviewWindowFrom(movieBox)
+        } catch (_: ImageReadException) {
+
+            /*
+             * A sample table that cannot be parsed is a structural miss,
+             * not a corrupt file: the preview degrades to NULL like every
+             * other missing structure instead of failing the read.
+             */
+            null
+        }
+
+    private fun computePreviewWindowFrom(movieBox: MovieBox): Pair<Long, Int>? {
 
         val firstTrack = movieBox.boxes.filterIsInstance<TrackBox>().firstOrNull()
-            ?: return null
+        firstTrack ?: return null
 
         val mediaBox = firstTrack.mediaBox
 
@@ -304,6 +328,7 @@ public object Cr3PreviewExtractor {
             ?: return null
 
         val chunkOffsetBox = stblBoxes.find { it.type == BoxType.CO64 }
+            ?: stblBoxes.find { it.type == STCO_BOX_TYPE }
             ?: return null
 
         val stszReader = ByteArrayByteReader(sampleSizesBox.payload)
@@ -312,16 +337,21 @@ public object Cr3PreviewExtractor {
 
         val length = stszReader.read4BytesAsInt("length", ByteOrder.BIG_ENDIAN)
 
-        val co64Reader = ByteArrayByteReader(chunkOffsetBox.payload)
+        val chunkOffsetReader = ByteArrayByteReader(chunkOffsetBox.payload)
 
-        co64Reader.skipBytes("", CO64_SKIP_BYTES)
+        chunkOffsetReader.skipBytes("", CHUNK_OFFSET_SKIP_BYTES)
 
         /*
-         * co64 offsets are absolute positions in the file, so the preview
+         * Chunk offsets are absolute positions in the file, so the preview
          * bytes can be read directly during the mdat stream - no need to
-         * hold the mdat itself in memory.
+         * hold the mdat itself in memory. co64 carries them as 64-bit
+         * values, stco as unsigned 32-bit values.
          */
-        val offset = co64Reader.read8BytesAsLong("offset", ByteOrder.BIG_ENDIAN)
+        val offset = if (chunkOffsetBox.type == BoxType.CO64)
+            chunkOffsetReader.read8BytesAsLong("offset", ByteOrder.BIG_ENDIAN)
+        else
+            chunkOffsetReader.read4BytesAsInt("offset", ByteOrder.BIG_ENDIAN)
+                .toLong() and 0xFFFFFFFFL
 
         if (offset < 0 || length <= 0)
             return null
