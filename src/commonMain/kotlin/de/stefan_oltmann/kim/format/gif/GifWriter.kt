@@ -344,6 +344,16 @@ public object GifWriter {
 
             byteWriter.write(chunk.bytes)
         }
+
+        /*
+         * The XMP is anchored ahead of the first image descriptor. A GIF
+         * without image data therefore has no place for it - failing beats
+         * silently writing an output without the requested metadata.
+         */
+        if (xmp != null && !xmpWritten)
+            throw ImageWriteException(
+                "GIF file has no image data, so the requested XMP cannot be written."
+            )
     }
 
     /**

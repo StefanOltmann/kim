@@ -18,6 +18,7 @@
 package de.stefan_oltmann.kim.format.gif
 
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
@@ -27,6 +28,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -157,6 +159,44 @@ class GifWriterTest {
         val extractedXmp = walkApplicationExtensionPayload(byteWriter.toByteArray())
 
         assertEquals(xmp, extractedXmp)
+    }
+
+    /**
+     * An XMP request on a GIF without image data must fail loudly. The
+     * chunks-based writer emits the XMP only ahead of an image descriptor,
+     * so without the check it silently wrote an output without the XMP.
+     */
+    @Test
+    fun testWriteImageFailsWhenImagelessGifCannotCarryXmp() {
+
+        /*
+         * GIF89a header, logical screen descriptor, an XMP application
+         * extension and the trailer - no image descriptor anywhere.
+         */
+        val oldXmp = "<x:xmpmeta>OLD</x:xmpmeta>"
+
+        val oldXmpBytes = oldXmp.encodeToByteArray()
+
+        val imagelessGif = "GIF89a".encodeToByteArray() +
+            byteArrayOf(1, 0, 1, 0, 0, 0, 0) +
+            byteArrayOf(0x21, 0xFF.toByte(), 11) +
+            "XMP DataXMP".encodeToByteArray() +
+            byteArrayOf(oldXmpBytes.size.toByte()) +
+            oldXmpBytes +
+            byteArrayOf(0, 0x3B.toByte())
+
+        val exception = assertFailsWith<ImageWriteException> {
+            GifWriter.writeImage(
+                byteReader = ByteArrayByteReader(imagelessGif),
+                byteWriter = ByteArrayByteWriter(),
+                xmp = "<x:xmpmeta>NEW</x:xmpmeta>"
+            )
+        }
+
+        assertTrue(
+            exception.message?.contains("no image data") == true,
+            "Unexpected message: ${exception.message}"
+        )
     }
 
     /**
