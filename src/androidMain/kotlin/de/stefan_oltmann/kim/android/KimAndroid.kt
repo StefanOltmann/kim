@@ -19,7 +19,6 @@ package de.stefan_oltmann.kim.android
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
@@ -121,46 +120,19 @@ public object KimAndroid {
     ): ByteReader = tryWithImageReadException {
 
         /*
-         * On Android 10 (API 29) and above, we must use ContentResolver
-         * due to Scoped Storage restrictions. For older versions, we can
-         * directly access the file system using file paths.
+         * The ContentResolver handles content and file URIs on every API
+         * level. The old file-path fallback only worked for URIs whose
+         * path happens to be a real filesystem path - MediaStore and SAF
+         * URIs failed on older devices.
          */
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        val inputStream = contentResolver.openInputStream(uri)
 
-            /*
-             * If a length was provided we use that,
-             * otherwise we receive it from the contentResolver.
-             */
-            val contentLength: Long? = length ?: contentResolver.getFileSize(uri)
-
-            if (contentLength == null)
-                throw ImageReadException("Unable to get file size for URI $uri")
-
-            val inputStream = contentResolver.openInputStream(uri)
-
-            if (inputStream == null)
-                throw ImageReadException("Unable to open input stream for URI $uri")
-
-            return@tryWithImageReadException AndroidInputStreamByteReader(inputStream, contentLength)
-        }
-
-        /*
-         * Fall back to the old way
-         */
-
-        val pathname = uri.path
-
-        if (pathname == null)
-            throw ImageReadException("Unable to find path for URI $uri")
-
-        val file = File(pathname)
-
-        if (!file.exists())
-            throw ImageReadException("File does not exist: $file")
+        if (inputStream == null)
+            throw ImageReadException("Unable to open input stream for URI $uri")
 
         return@tryWithImageReadException AndroidInputStreamByteReader(
-            inputStream = file.inputStream(),
-            contentLength = length ?: file.length()
+            inputStream = inputStream,
+            contentLength = length ?: (contentResolver.getFileSize(uri) ?: 0L)
         )
     }
 
@@ -430,38 +402,18 @@ public object KimAndroid {
     ): ByteWriter = tryWithImageWriteException {
 
         /*
-         * On Android 10 (API 29) and above, we must use ContentResolver
-         * due to Scoped Storage restrictions. For older versions, we can
-         * directly access the file system using file paths.
+         * The ContentResolver handles content and file URIs on every API
+         * level. The old file-path fallback only worked for URIs whose
+         * path happens to be a real filesystem path - MediaStore and SAF
+         * URIs failed on older devices.
          */
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        val outputStream = contentResolver.openOutputStream(uri)
 
-            val outputStream = contentResolver.openOutputStream(uri)
+        if (outputStream == null)
+            throw ImageWriteException("Unable to open ouput stream for URI $uri")
 
-            if (outputStream == null)
-                throw ImageWriteException("Unable to open ouput stream for URI $uri")
-
-            return@tryWithImageWriteException OutputStreamByteWriter(outputStream)
-        }
-
-        /*
-         * Fall back to the old way
-         */
-
-        val pathname = uri.path
-
-        if (pathname == null)
-            throw ImageWriteException("Unable to find path for URI $uri")
-
-        val file = File(pathname)
-
-        if (!file.exists())
-            throw ImageWriteException("File does not exist: $file")
-
-        return@tryWithImageWriteException OutputStreamByteWriter(
-            outputStream = file.outputStream()
-        )
+        return@tryWithImageWriteException OutputStreamByteWriter(outputStream)
     }
 }
 
