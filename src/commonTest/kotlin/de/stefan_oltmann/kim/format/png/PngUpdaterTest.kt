@@ -35,6 +35,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class PngUpdaterTest : AbstractUpdaterTest("png") {
@@ -163,7 +164,7 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
         val bytes = createPngWithTrailingMetadata()
 
         /* Sanity: the trailing Exif is the only Exif and parses cleanly. */
-        assertTrue(Kim.readMetadata(bytes)?.exif != null)
+        assertNotNull(Kim.readMetadata(bytes)?.exif)
 
         val exception = assertFailsWith<ImageWriteException> {
             Kim.update(

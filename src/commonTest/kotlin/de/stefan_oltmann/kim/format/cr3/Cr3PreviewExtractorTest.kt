@@ -18,8 +18,8 @@ package de.stefan_oltmann.kim.format.cr3
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.bmff.BaseMediaFileFormatImageParser
 import de.stefan_oltmann.kim.format.bmff.box.MovieBox
-import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
@@ -99,7 +99,8 @@ class Cr3PreviewExtractorTest {
         assertNotNull(previewBytes)
 
         /* It must be a JPEG. */
-        assertTrue(previewBytes[0] == 0xFF.toByte() && previewBytes[1] == 0xD8.toByte())
+        assertEquals(0xFF.toByte(), previewBytes[0])
+        assertEquals(0xD8.toByte(), previewBytes[1])
     }
 
     @Test
@@ -112,7 +113,8 @@ class Cr3PreviewExtractorTest {
         )
 
         assertNotNull(previewBytes)
-        assertTrue(previewBytes[0] == 0xFF.toByte() && previewBytes[1] == 0xD8.toByte())
+        assertEquals(0xFF.toByte(), previewBytes[0])
+        assertEquals(0xD8.toByte(), previewBytes[1])
     }
 
     @Test

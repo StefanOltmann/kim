@@ -34,6 +34,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class TiffFieldMethodsTest {
@@ -239,7 +240,7 @@ class TiffFieldMethodsTest {
 
         val tiffField = field(0x9999, FieldTypeLong, byteArrayOf(0, 0, 0, 1))
 
-        assertTrue(tiffField.tagInfo == null)
+        assertNull(tiffField.tagInfo)
         assertTrue(tiffField.toString().contains("Unknown"))
     }
 

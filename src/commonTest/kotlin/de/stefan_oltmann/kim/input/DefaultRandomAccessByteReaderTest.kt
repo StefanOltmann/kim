@@ -15,10 +15,10 @@
  */
 package de.stefan_oltmann.kim.input
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertContentEquals
 import de.stefan_oltmann.kim.common.ImageReadException
+import kotlin.test.Test
+import kotlin.test.assertContentEquals
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -128,7 +128,7 @@ class DefaultRandomAccessByteReaderTest {
         /* The random access read is independent of the position. */
         assertContentEquals(byteArrayOf(3, 4, 5), reader.readBytes(2, 3))
 
-        assertTrue(reader.contentLength == bytes.size.toLong())
+        assertEquals(bytes.size.toLong(), reader.contentLength)
     }
 
     /**

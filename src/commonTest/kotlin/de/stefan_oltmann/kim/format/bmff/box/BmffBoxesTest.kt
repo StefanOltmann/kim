@@ -406,7 +406,7 @@ class BmffBoxesTest {
             payload = metaPayload
         )
 
-        assertTrue(metaBox.itemLocationBox.extents.single().constructionMethod == 1)
+        assertEquals(1, metaBox.itemLocationBox.extents.single().constructionMethod)
 
         assertTrue(metaBox.findMetadataOffsets().isEmpty())
     }
