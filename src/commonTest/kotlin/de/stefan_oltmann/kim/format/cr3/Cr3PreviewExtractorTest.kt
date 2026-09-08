@@ -535,6 +535,26 @@ class Cr3PreviewExtractorTest {
     }
 
     /**
+     * A UUID box too short to even carry the 16 vendor UUID bytes is
+     * malformed. It must be skipped without reading past its end, so the
+     * preview extraction degrades to NULL instead of failing.
+     */
+    @Test
+    fun testShortUuidBoxDegradesToNull() {
+
+        val uuidBox = box("uuid", ByteArray(12))
+
+        val bytes =
+            box("ftyp", "crx ".encodeToByteArray() + "0000".encodeToByteArray()) +
+                box("mdat", byteArrayOf(1, 2, 3, 4)) +
+                uuidBox
+
+        assertNull(
+            Cr3PreviewExtractor.extractSmallPreviewImage(ByteArrayByteReader(bytes))
+        )
+    }
+
+    /**
      * Builds a CR3-like file: ftyp + moov(trak > mdia > minf > stbl with
      * stsz & co64) + mdat.
      *

@@ -391,26 +391,38 @@ public object Cr3PreviewExtractor {
             if (header.type == BoxType.UUID) {
 
                 /*
-                 * The first payload bytes identify the vendor extension.
-                 * Only the Canon preview extension is buffered; every
-                 * other UUID box is skipped, exactly like the box object
-                 * filter did before.
+                 * A box too short to carry the vendor UUID is malformed;
+                 * skipping it whole keeps the walk alive and degrades the
+                 * preview to NULL, exactly like the box object filter did
+                 * for such boxes before.
                  */
-                val uuidBytes = byteReader.readBytes("uuid", UUID_LENGTH_BYTES)
+                if (header.dataSize < UUID_LENGTH_BYTES) {
 
-                previewBytes =
-                    if (uuidBytes.toHex() == Cr3Reader.CR3_PREVIEW_UUID)
-                        parsePrvwPreview(
-                            readPreviewPayload(
-                                byteReader = byteReader,
-                                dataLength = header.dataSize - UUID_LENGTH_BYTES
+                    byteReader.skipBytes("uuid box data", header.dataSize)
+                } else {
+
+                    /*
+                     * The first payload bytes identify the vendor extension.
+                     * Only the Canon preview extension is buffered; every
+                     * other UUID box is skipped, exactly like the box object
+                     * filter did before.
+                     */
+                    val uuidBytes = byteReader.readBytes("uuid", UUID_LENGTH_BYTES)
+
+                    previewBytes =
+                        if (uuidBytes.toHex() == Cr3Reader.CR3_PREVIEW_UUID)
+                            parsePrvwPreview(
+                                readPreviewPayload(
+                                    byteReader = byteReader,
+                                    dataLength = header.dataSize - UUID_LENGTH_BYTES
+                                )
                             )
-                        )
-                    else
-                        byteReader.skipBytes(
-                            "uuid box data",
-                            header.dataSize - UUID_LENGTH_BYTES
-                        ).let { null }
+                        else
+                            byteReader.skipBytes(
+                                "uuid box data",
+                                header.dataSize - UUID_LENGTH_BYTES
+                            ).let { null }
+                }
             } else {
 
                 byteReader.skipBytes("box data", header.dataSize)
