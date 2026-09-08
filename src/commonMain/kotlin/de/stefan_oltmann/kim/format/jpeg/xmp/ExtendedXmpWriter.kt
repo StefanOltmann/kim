@@ -127,8 +127,11 @@ internal object ExtendedXmpWriter {
         /*
          * Like ExifTool, the smallest descriptions are kept in the main packet
          * first, so as much as possible remains readable by simple tools.
+         * Splitting by indices instead of block equality: byte-identical
+         * duplicate blocks are legal RDF, and removing by equality would
+         * lose every unkept occurrence of them.
          */
-        val sortedBySize = blocks.sortedBy { it.encodeToByteArray().size }
+        val sortedIndices = blocks.indices.sortedBy { index -> blocks[index].encodeToByteArray().size }
 
         val fixedMainBytes =
             (header + footer + referenceDescriptionTemplate).encodeToByteArray().size
@@ -137,9 +140,9 @@ internal object ExtendedXmpWriter {
 
         var keepCount = 0
 
-        for (block in sortedBySize) {
+        for (index in sortedIndices) {
 
-            val blockSize = block.encodeToByteArray().size
+            val blockSize = blocks[index].encodeToByteArray().size
 
             if (usedBytes + blockSize > JpegConstants.MAX_XMP_BYTES_PER_SEGMENT)
                 break
@@ -148,9 +151,11 @@ internal object ExtendedXmpWriter {
             keepCount++
         }
 
-        val keptBlocks = sortedBySize.take(keepCount)
+        val keptIndices = sortedIndices.take(keepCount).toHashSet()
 
-        val movedBlocks = blocks.filterNot { block -> block in keptBlocks }
+        val keptBlocks = sortedIndices.take(keepCount).map { blocks[it] }
+
+        val movedBlocks = blocks.filterIndexed { index, _ -> index !in keptIndices }
 
         /*
          * Only the main packet must fit into a single segment. The extended
