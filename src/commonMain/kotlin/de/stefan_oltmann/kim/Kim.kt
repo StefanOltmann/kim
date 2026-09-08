@@ -225,50 +225,34 @@ public object Kim {
 
             return@use when (mediaFormat) {
 
-                MediaFormat.CR2 -> {
-
-                    val reader = DefaultRandomAccessByteReader(prePendingByteReader)
-
-                    Cr2PreviewExtractor.extractPreviewImage(TiffReader.read(reader), reader)
-                }
-
-                MediaFormat.RW2 -> {
-
-                    val reader = DefaultRandomAccessByteReader(prePendingByteReader)
-
-                    Rw2PreviewExtractor.extractPreviewImage(TiffReader.read(reader), reader)
-                }
-
-                MediaFormat.ORF -> {
-
-                    val reader = DefaultRandomAccessByteReader(prePendingByteReader)
-
-                    OrfPreviewExtractor.extractPreviewImage(TiffReader.read(reader), reader)
-                }
-
+                MediaFormat.CR2,
+                MediaFormat.RW2,
+                MediaFormat.ORF,
                 MediaFormat.TIFF -> {
 
                     val reader = DefaultRandomAccessByteReader(prePendingByteReader)
 
                     val tiffContents = TiffReader.read(reader)
 
-                    /*
-                     * It can now be DNG, NEF or ARW.
-                     *
-                     * A single broken tag must not abort the whole chain:
-                     * TIFF-family vendors use different layouts, so each
-                     * extractor gets its own chance before NULL is reported.
-                     */
-                    extractPreviewOrNull(DngPreviewExtractor, tiffContents, reader)
-                        ?.let { return@use it }
+                    when (mediaFormat) {
 
-                    extractPreviewOrNull(NefPreviewExtractor, tiffContents, reader)
-                        ?.let { return@use it }
+                        MediaFormat.CR2 -> Cr2PreviewExtractor.extractPreviewImage(tiffContents, reader)
 
-                    extractPreviewOrNull(ArwPreviewExtractor, tiffContents, reader)
-                        ?.let { return@use it }
+                        MediaFormat.RW2 -> Rw2PreviewExtractor.extractPreviewImage(tiffContents, reader)
 
-                    null
+                        MediaFormat.ORF -> OrfPreviewExtractor.extractPreviewImage(tiffContents, reader)
+
+                        /*
+                         * It can now be DNG, NEF or ARW.
+                         *
+                         * A single broken tag must not abort the whole chain:
+                         * TIFF-family vendors use different layouts, so each
+                         * extractor gets its own chance before NULL is reported.
+                         */
+                        else -> extractPreviewOrNull(DngPreviewExtractor, tiffContents, reader)
+                            ?: extractPreviewOrNull(NefPreviewExtractor, tiffContents, reader)
+                            ?: extractPreviewOrNull(ArwPreviewExtractor, tiffContents, reader)
+                    }
                 }
 
                 /*
