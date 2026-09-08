@@ -44,6 +44,19 @@ class GeoTiffDirectoryTest {
     }
 
     /**
+     * A negative NumberOfKeys is corrupt (the shorts are unsigned in
+     * spirit). The bounds check would silently treat it as zero keys,
+     * dropping the directory - the read must fail instead.
+     */
+    @Test
+    fun testParseFromRejectsNegativeNumberOfKeys() {
+
+        assertFailsWith<ImageReadException> {
+            GeoTiffDirectory.parseFrom(shortArrayOf(1, 1, 1, -1))
+        }
+    }
+
+    /**
      * A directory smaller than the mandatory key header has no keys to
      * parse and must be rejected like any other corrupt directory.
      */
