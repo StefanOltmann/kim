@@ -56,6 +56,14 @@ internal object Cr3Reader {
             it.uuidAsHex == CR3_XMP_UUID
         }?.data?.decodeToString()
 
+        /*
+         * Like WebP and JXL, corrupt XMP must fail the read instead of
+         * being handed to sidecar writers as a corrupt packet (read/update
+         * symmetry: an update would embed the broken bytes as-is).
+         */
+        if (xmpFromUuidBox != null && !xmpFromUuidBox.contains("<x:xmpmeta"))
+            throw ImageReadException("The CR3 XMP UUID box has no <x:xmpmeta> element.")
+
         val idf0: TiffContents? = readTiffContents(
             boxes = subBoxes,
             boxType = BoxType.CMT1,

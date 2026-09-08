@@ -720,7 +720,7 @@ class Cr3PreviewExtractorTest {
             "crx ".encodeToByteArray() + byteArrayOf(0, 0, 0, 0)
         )
 
-        val xmpData = "<xmp/>".encodeToByteArray()
+        val xmpData = "<x:xmpmeta></x:xmpmeta>".encodeToByteArray()
 
         val xmpUuidBox = box(
             "uuid",
@@ -738,7 +738,7 @@ class Cr3PreviewExtractorTest {
         assertNull(metadata.exif)
 
         /* The XMP UUID box survived the truncation and must be read. */
-        assertEquals("<xmp/>", metadata.xmp)
+        assertEquals("<x:xmpmeta></x:xmpmeta>", metadata.xmp)
     }
 
     /**
@@ -755,7 +755,7 @@ class Cr3PreviewExtractorTest {
 
         val moovBox = box("moov", byteArrayOf())
 
-        val xmpData = "<xmp/>".encodeToByteArray()
+        val xmpData = "<x:xmpmeta></x:xmpmeta>".encodeToByteArray()
 
         val xmpUuidBox = box(
             "uuid",
@@ -772,7 +772,7 @@ class Cr3PreviewExtractorTest {
 
         assertNull(metadata.exif)
 
-        assertEquals("<xmp/>", metadata.xmp)
+        assertEquals("<x:xmpmeta></x:xmpmeta>", metadata.xmp)
     }
 
     /**
@@ -791,7 +791,7 @@ class Cr3PreviewExtractorTest {
 
         val xmpUuidBox = box(
             "uuid",
-            uuidBytes(Cr3Reader.CR3_XMP_UUID) + "<xmp/>".encodeToByteArray()
+            uuidBytes(Cr3Reader.CR3_XMP_UUID) + "<x:xmpmeta></x:xmpmeta>".encodeToByteArray()
         )
 
         /*
@@ -813,7 +813,7 @@ class Cr3PreviewExtractorTest {
         assertNull(metadata.exif)
 
         /* The XMP UUID box before the cut moov must be read. */
-        assertEquals("<xmp/>", metadata.xmp)
+        assertEquals("<x:xmpmeta></x:xmpmeta>", metadata.xmp)
     }
 
     /**

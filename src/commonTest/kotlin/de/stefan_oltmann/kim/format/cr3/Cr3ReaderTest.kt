@@ -99,4 +99,27 @@ class Cr3ReaderTest {
             BaseMediaFileFormatImageParser.parseMetadata(ByteArrayByteReader(bytes))
         }
     }
+
+    /**
+     * XMP that cannot be parsed must fail the read like on WebP and JXL:
+     * sidecar writers would otherwise embed a corrupt packet.
+     */
+    @Test
+    fun testCorruptXmpUuidBoxFailsTheRead() {
+
+        val corruptXmpBox = box(
+            "uuid",
+            uuidBytes(Cr3Reader.CR3_XMP_UUID) + "no xmp here".encodeToByteArray()
+        )
+
+        val moovBox = box("moov", byteArrayOf())
+
+        val ftypBox = box("ftyp", "crx ".encodeToByteArray() + "0000".encodeToByteArray())
+
+        val bytes = ftypBox + moovBox + corruptXmpBox
+
+        assertFailsWith<ImageReadException> {
+            BaseMediaFileFormatImageParser.parseMetadata(ByteArrayByteReader(bytes))
+        }
+    }
 }
