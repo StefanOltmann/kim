@@ -38,6 +38,27 @@ class GpsCoordinatesTest {
         )
     }
 
+    /**
+     * Coordinates below 0.001 must render in plain decimal notation: the
+     * invariant conversion switches to exponent notation there, which the
+     * parse regex rejects and which is unreadable in the display.
+     */
+    @Test
+    fun testLatLongStringRendersSmallValuesInPlainNotation() {
+
+        val coordinate = GpsCoordinates(latitude = 0.00045, longitude = 30.0)
+
+        assertEquals(
+            expected = "0.00045, 30.0",
+            actual = coordinate.latLongString
+        )
+
+        assertEquals(
+            expected = coordinate,
+            actual = GpsCoordinates.parse(coordinate.latLongString)
+        )
+    }
+
     @Test
     fun testLatLongString() {
 

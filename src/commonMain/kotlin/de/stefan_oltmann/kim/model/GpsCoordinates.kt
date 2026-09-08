@@ -48,7 +48,7 @@ public data class GpsCoordinates(
 ) {
 
     val latLongString: String =
-        "${roundPrecise(latitude).toInvariantString()}, ${roundPrecise(longitude).toInvariantString()}"
+        "${invariantPlain(roundPrecise(latitude))}, ${invariantPlain(roundPrecise(longitude))}"
 
     public fun toRoundedCoordinates(
         precision: Precision
@@ -92,6 +92,69 @@ public data class GpsCoordinates(
         TEN_METERS,
         HUNDRED_METERS
     }
+}
+
+/**
+ * Renders the value like [toInvariantString], but rewrites exponent
+ * notation (used below 1.0E-3) into plain decimal digits: the coordinate
+ * display stays readable and `parse(latLongString)` round-trips, which
+ * the parse regex with its plain-decimal pattern could not accept
+ * otherwise.
+ */
+private fun invariantPlain(value: Double): String {
+
+    val invariant = value.toInvariantString()
+
+    val exponentIndex = invariant.indexOf('E')
+
+    if (exponentIndex == -1)
+        return invariant
+
+    /* Sign, mantissa digits without the dot, and the decimal exponent. */
+    val negative = invariant.startsWith("-")
+
+    val mantissa = if (negative) invariant.substring(1, exponentIndex) else invariant.substring(0, exponentIndex)
+
+    val exponent = invariant.substring(exponentIndex + 1).toInt()
+
+    val digits = mantissa.replace(".", "")
+
+    /* The dot in the mantissa sat directly after the first digit. */
+    val decimalPosition = 1 + exponent
+
+    val plain = buildString {
+
+        if (negative)
+            append('-')
+
+        if (decimalPosition <= 0) {
+
+            append("0.")
+
+            repeat(-decimalPosition) { append('0') }
+
+            append(digits)
+        } else {
+
+            if (decimalPosition >= digits.length) {
+
+                append(digits)
+
+                repeat(decimalPosition - digits.length) { append('0') }
+
+                append(".0")
+            } else {
+
+                append(digits.substring(0, decimalPosition))
+
+                append('.')
+
+                append(digits.substring(decimalPosition))
+            }
+        }
+    }
+
+    return plain
 }
 
 private fun roundPrecise(
