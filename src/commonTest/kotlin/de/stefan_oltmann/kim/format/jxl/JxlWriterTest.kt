@@ -141,6 +141,61 @@ class JxlWriterTest {
     }
 
     /**
+     * A cut box may use the 64-bit largesize encoding (size field = 1).
+     * The streaming writer must copy exactly `largesize - 16` payload
+     * bytes, so an off-by-8 would corrupt every updated JXL whose cut
+     * box uses largesize.
+     */
+    @Test
+    fun testStreamingCutBoxWithLargesizeIsCopiedCompletely() {
+
+        val jxlpPayload = byteArrayOf(0, 0, 0, 0, 1, 2, 3, 4)
+
+        val jxlpHeader = byteArrayOf(
+            0, 0, 0, (jxlpPayload.size + 8).toByte(),
+            0x6A, 0x78, 0x6C, 0x70 // "jxlp"
+        ) + jxlpPayload
+
+        /* The cut payload: largesize - 16 bytes must survive the update. */
+        val cutPayload = "CODestream-PAYLOAD".encodeToByteArray()
+
+        val largeSize = 16L + cutPayload.size
+
+        val cutHeader = byteArrayOf(
+            0, 0, 0, 1, // size = 1 -> largesize follows
+            0x6A, 0x78, 0x6C, 0x63 // "jxlc"
+        ) + byteArrayOf(
+            (largeSize shr 56).toByte(),
+            (largeSize shr 48).toByte(),
+            (largeSize shr 40).toByte(),
+            (largeSize shr 32).toByte(),
+            (largeSize shr 24).toByte(),
+            (largeSize shr 16).toByte(),
+            (largeSize shr 8).toByte(),
+            largeSize.toByte()
+        )
+
+        val byteReader = ByteArrayByteReader(jxlpHeader + cutHeader + cutPayload)
+
+        val byteWriter = ByteArrayByteWriter()
+
+        JxlWriter.writeImageStreaming(byteReader, byteWriter) { boxes, outputWriter ->
+
+            /* Header passthrough: every box before the cut box. */
+            outputWriter.write(jxlpHeader)
+
+            assertTrue(boxes.last().payload.isEmpty())
+        }
+
+        val output = byteWriter.toByteArray()
+
+        assertTrue(
+            output.decodeToString().endsWith(cutPayload.decodeToString()),
+            "The cut payload was not copied completely."
+        )
+    }
+
+    /**
      * Tests that there is no loss if writing
      * the JXL chunks again without any change.
      */
