@@ -222,6 +222,25 @@ class ZLibTest {
     }
 
     /**
+     * Concatenated zlib members are legal and must decode to the
+     * concatenation of the member texts. An inflater that stops after the
+     * first member would silently drop the rest.
+     */
+    @Test
+    fun testDecompressConcatenatedMembers() {
+
+        val textA = "First member payload. ".repeat(3)
+        val textB = "Second member payload."
+
+        val joined = compress(textA) + compress(textB)
+
+        assertEquals(
+            expected = textA + textB,
+            actual = decompress(joined)
+        )
+    }
+
+    /**
      * Decompression must abort once the output exceeds the limit instead
      * of allocating unbounded memory for hostile input.
      */

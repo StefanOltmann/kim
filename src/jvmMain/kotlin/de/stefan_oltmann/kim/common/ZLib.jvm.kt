@@ -58,15 +58,55 @@ internal actual fun decompress(
     maxOutputByteCount: Int
 ): String {
 
-    val inflater = Inflater()
+    /* An empty stream cannot be valid zlib data. */
+    if (byteArray.isEmpty())
+        throw ImageReadException("Unexpected end of compressed data.")
+
+    val outputStream = ByteArrayOutputStream()
+
+    val buffer = ByteArray(ZLIB_BUFFER_SIZE)
+
+    var inputOffset = 0
+
+    /*
+     * Concatenated zlib members are legal: when one member ends and more
+     * input remains, a fresh inflater continues with the rest.
+     */
+    while (inputOffset < byteArray.size) {
+
+        val inflater = Inflater()
+
+        inputOffset += inflateMember(inflater, byteArray, inputOffset, outputStream, buffer, maxOutputByteCount)
+    }
+
+    /*
+     * Decode explicitly as UTF-8, matching all other platforms. The
+     * platform default charset differs between systems (for example
+     * windows-1252 on Windows JDKs below 18) and would corrupt
+     * multi-byte characters depending on the machine.
+     */
+    return outputStream.toByteArray().decodeToString()
+}
+
+/**
+ * Inflates one zlib member starting at [inputOffset] and appends its
+ * output to [outputStream], enforcing the output budget.
+ *
+ * Returns the number of input bytes the member actually consumed, so the
+ * caller can continue with a fresh inflater for a concatenated member.
+ */
+private fun inflateMember(
+    inflater: Inflater,
+    input: ByteArray,
+    inputOffset: Int,
+    outputStream: ByteArrayOutputStream,
+    buffer: ByteArray,
+    maxOutputByteCount: Int
+): Int {
 
     try {
 
-        val outputStream = ByteArrayOutputStream()
-
-        val buffer = ByteArray(ZLIB_BUFFER_SIZE)
-
-        inflater.setInput(byteArray)
+        inflater.setInput(input, inputOffset, input.size - inputOffset)
 
         while (true) {
 
@@ -89,30 +129,16 @@ internal actual fun decompress(
 
             /* The inflater made no progress, so one of these must apply. */
             if (inflater.finished())
-                break
+                return input.size - inputOffset - inflater.remaining
 
-            if (inflater.needsInput()) {
-
-                /*
-                 * The data ended without a final block. Returning the
-                 * partial output would silently lose data.
-                 */
+            if (inflater.needsInput())
                 throw ImageReadException("Unexpected end of compressed data.")
-            }
 
             if (inflater.needsDictionary())
                 throw ImageReadException("Compressed data requires a preset dictionary.")
 
             throw ImageReadException("The inflater could not make progress.")
         }
-
-        /*
-         * Decode explicitly as UTF-8, matching all other platforms. The
-         * platform default charset differs between systems (for example
-         * windows-1252 on Windows JDKs below 18) and would corrupt
-         * multi-byte characters depending on the machine.
-         */
-        return outputStream.toByteArray().decodeToString()
 
     } catch (ex: DataFormatException) {
         throw ImageReadException("Failed to decompress the data.", ex)
