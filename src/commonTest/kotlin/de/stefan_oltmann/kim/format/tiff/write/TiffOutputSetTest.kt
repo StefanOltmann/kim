@@ -26,6 +26,7 @@ import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class TiffOutputSetTest {
 
@@ -113,5 +114,25 @@ class TiffOutputSetTest {
             GpsTag.GPS_TAG_GPS_DATE_STAMP
         ))
             assertNull(gpsDirectory.findField(tag), "Field ${tag.name} survived the removal")
+    }
+
+    /**
+     * An empty thumbnail array would produce a
+     * JPEGInterchangeFormat/Length pair with length 0, which the EXIF
+     * spec defines as invalid. The write must reject it instead.
+     */
+    @Test
+    fun testSetThumbnailBytesRejectsEmptyArray() {
+
+        val outputSet = TiffOutputSet()
+
+        val exception = assertFailsWith<ImageWriteException> {
+            outputSet.setThumbnailBytes(ByteArray(0))
+        }
+
+        assertTrue(
+            exception.message?.contains("empty") == true,
+            "Unexpected message: ${exception.message}"
+        )
     }
 }
