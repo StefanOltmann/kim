@@ -168,6 +168,42 @@ class MetadataSummaryConverterEdgeCasesTest {
         )
     }
 
+    /**
+     * Zeroed EXIF rationals (0/0, 1/0) yield NaN/Infinity. The summary
+     * must omit them like the Nikon lens values already do - NaN would
+     * break JSON sidecars and render as garbage.
+     */
+    @Test
+    fun testNonFiniteCaptureRationalsAreOmitted() {
+
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.JPEG,
+            imageSize = null,
+            exif = tiffContents(
+                field(
+                    ExifTag.EXIF_TAG_EXPOSURE_TIME,
+                    byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0),
+                    fieldType = FieldTypeRational,
+                    count = 1
+                ),
+                field(
+                    ExifTag.EXIF_TAG_FNUMBER,
+                    byteArrayOf(0, 0, 0, 1),
+                    fieldType = FieldTypeRational,
+                    count = 1
+                )
+            ),
+            exifBytes = null,
+            iptc = null,
+            xmp = null
+        )
+
+        val summary = metadata.convertToSummary()
+
+        assertNull(summary.exposureTime)
+        assertNull(summary.fNumber)
+    }
+
     @Test
     fun testIgnoreOrientation() {
 

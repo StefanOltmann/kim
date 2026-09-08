@@ -97,9 +97,16 @@ public object MetadataSummaryConverter {
         val iso = mediaMetadata.findTiffField(ExifTag.EXIF_TAG_ISO)?.toInt()
             ?: mediaMetadata.findTiffField(ExifTag.EXIF_TAG_ISO_PANASONIC)?.toInt()
 
-        val exposureTime = mediaMetadata.findDoubleValue(ExifTag.EXIF_TAG_EXPOSURE_TIME)
-        val fNumber = mediaMetadata.findDoubleValue(ExifTag.EXIF_TAG_FNUMBER)
-        val focalLength = mediaMetadata.findDoubleValue(ExifTag.EXIF_TAG_FOCAL_LENGTH)
+        /*
+         * Zeroed rationals (0/0, 1/0) from corrupt files yield
+         * NaN/Infinity; the summary omits them like the Nikon lens values,
+         * so display formatters and JSON sidecars never see them.
+         */
+        fun Double?.takeIfFinite(): Double? = this?.takeIf(Double::isFinite)
+
+        val exposureTime = mediaMetadata.findDoubleValue(ExifTag.EXIF_TAG_EXPOSURE_TIME).takeIfFinite()
+        val fNumber = mediaMetadata.findDoubleValue(ExifTag.EXIF_TAG_FNUMBER).takeIfFinite()
+        val focalLength = mediaMetadata.findDoubleValue(ExifTag.EXIF_TAG_FOCAL_LENGTH).takeIfFinite()
 
         /* Extract Fujifilm film simulation from MakerNote */
         val filmSimulation = extractFilmSimulation(mediaMetadata)
