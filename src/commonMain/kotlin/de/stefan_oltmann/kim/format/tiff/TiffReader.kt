@@ -541,13 +541,14 @@ public object TiffReader {
                 getFieldType(type)
             } catch (ignore: ImageReadException) {
                 /*
-                 * Skip over unknown field types, since we can't calculate
-                 * their size without knowing their type.
-                 *
-                 * Except for fields that a rewrite cannot afford to lose.
+                 * Unknown field types cannot be sized or read. Per the
+                 * strict read policy the read fails instead of silently
+                 * dropping the field (and thus its content from any
+                 * rewrite).
                  */
-                rejectUnreadableMakerNote(tag)
-                continue
+                throw ImageReadException(
+                    "Unknown TIFF field type $type for tag $tag."
+                )
             }
 
             /*

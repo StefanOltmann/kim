@@ -34,6 +34,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class TiffReaderTest {
 
@@ -41,6 +42,36 @@ class TiffReaderTest {
      * Regression test: entries with a corrupt count that makes the value
      * length negative must be skipped instead of crashing the parser.
      */
+    /**
+     * A TIFF entry with an unknown field type cannot be sized or read.
+     * Per the strict read policy it must fail the read instead of being
+     * silently dropped from the field list (and thus from any rewrite).
+     */
+    @Test
+    fun testUnknownFieldTypeFailsTheRead() {
+
+        /* IFD0 with a single entry: tag 0x0001, type 0x0F, count 1, inline 0. */
+        val bytes = byteArrayOf(
+            0x49, 0x49, 0x2A, 0x00, // TIFF header.
+            8, 0, 0, 0,             // IFD0 offset.
+            1, 0,                   // Entry count.
+            1, 0,                   // Tag.
+            0x0F, 0,                // Unknown type.
+            1, 0, 0, 0,             // Count.
+            0, 0, 0, 0,             // Inline value.
+            0, 0, 0, 0              // No next IFD.
+        )
+
+        val exception = assertFailsWith<ImageReadException> {
+            TiffReader.read(bytes)
+        }
+
+        assertTrue(
+            exception.message?.contains("Unknown TIFF field type") == true,
+            "Unexpected message: ${exception.message}"
+        )
+    }
+
     @Test
     fun testReadSkipsEntryWithOverflowingCount() {
 
