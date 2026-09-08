@@ -356,7 +356,7 @@ public object KimAndroid {
         bytes: ByteArray
     ): Unit = tryWithImageWriteException {
 
-        val outputStream = contentResolver.openOutputStream(uri)
+        val outputStream = contentResolver.openOutputStream(uri, "wt")
             ?: throw ImageWriteException("Unable to open output stream for URI $uri")
 
         outputStream.use {
@@ -408,7 +408,7 @@ public object KimAndroid {
          * URIs failed on older devices.
          */
 
-        val outputStream = contentResolver.openOutputStream(uri)
+        val outputStream = contentResolver.openOutputStream(uri, "wt")
 
         if (outputStream == null)
             throw ImageWriteException("Unable to open ouput stream for URI $uri")
