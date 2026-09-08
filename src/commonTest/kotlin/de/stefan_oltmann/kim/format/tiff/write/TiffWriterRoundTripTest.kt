@@ -470,7 +470,7 @@ class TiffWriterRoundTripTest {
 
         /* UserComment with a UNICODE encoding prefix, as cameras write it. */
         val userCommentBytes =
-            "UNICODE ".encodeToByteArray() + byteArrayOf(0x3E, 0x00, 0x2C, 0x00)
+            "UNICODE\u0000".encodeToByteArray() + byteArrayOf(0x3E, 0x00, 0x2C, 0x00)
 
         val artistField = TiffField(
             offset = 0,
