@@ -65,6 +65,28 @@ class TiffFieldMethodsTest {
         assertEquals("0x0100", tiffField.tagFormatted)
     }
 
+    /**
+     * The TIFF BYTE type is unsigned in all converters: the sign-aware
+     * widening of [TiffField.toInt] must extend to [TiffField.toShort] and
+     * [TiffField.toDouble], so the same field cannot report contradictory
+     * values (240 and -16) depending on the method called.
+     */
+    @Test
+    fun testToShortAndToDoubleWidenByteUnsigned() {
+
+        val byteField = field(0x0158, FieldTypeByte, byteArrayOf(0xF0.toByte()))
+
+        assertEquals(240, byteField.toInt())
+        assertEquals(240.toShort(), byteField.toShort())
+        assertEquals(240.0, byteField.toDouble())
+
+        val sbyteField = field(0x0159, FieldTypeSByte, byteArrayOf(0x90.toByte()))
+
+        assertEquals(-112, sbyteField.toInt())
+        assertEquals((-112).toShort(), sbyteField.toShort())
+        assertEquals(-112.0, sbyteField.toDouble())
+    }
+
     @Test
     fun testValueDescriptionForByteArrays() {
 
