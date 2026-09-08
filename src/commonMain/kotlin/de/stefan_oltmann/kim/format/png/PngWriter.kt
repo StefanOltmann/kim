@@ -122,10 +122,15 @@ public object PngWriter {
      * duplicates of what it rewrote. The image data behind the first IDAT
      * chunk is then streamed in bounded chunks, so the whole file never has
      * to be buffered in memory.
+     *
+     * The updateComputer can only see the chunks before the image data, so
+     * with [failOnStaleMetadata] a trailing chunk that the stale filter
+     * would drop fails the write instead of being destroyed unheard of.
      */
     internal fun writeImageStreaming(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
+        failOnStaleMetadata: Boolean,
         updateComputer: (List<PngChunk>, ByteWriter) -> StaleChunkFilter
     ) {
 
@@ -161,7 +166,7 @@ public object PngWriter {
          * From here on every chunk boundary is intact, so stale metadata
          * chunks can be dropped while streaming the tail.
          */
-        copyChunksSkippingMetadata(byteReader, byteWriter, staleFilter)
+        copyChunksSkippingMetadata(byteReader, byteWriter, staleFilter, failOnStaleMetadata)
     }
 
     /**
@@ -172,12 +177,15 @@ public object PngWriter {
      *
      * Attention: A candidate chunk whose content cannot be parsed is
      * preserved, because Kim must never destroy data it does not
-     * understand.
+     * understand. With [failOnStaleMetadata] a stale candidate is never
+     * dropped silently: the caller never saw its content, so the write
+     * fails instead of losing it.
      */
     private fun copyChunksSkippingMetadata(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
-        staleFilter: StaleChunkFilter
+        staleFilter: StaleChunkFilter,
+        failOnStaleMetadata: Boolean
     ) {
 
         while (true) {
@@ -227,6 +235,17 @@ public object PngWriter {
                 } catch (_: ImageReadException) {
                     false
                 }
+
+                /*
+                 * The rewrite never saw the content of this trailing chunk,
+                 * so dropping it would silently destroy metadata. Fail the
+                 * write instead; the caller keeps the untouched file.
+                 */
+                if (isStale && failOnStaleMetadata)
+                    throw ImageWriteException(
+                        "The file contains metadata behind the image data, " +
+                            "which the update cannot merge. The file was not changed."
+                    )
 
                 if (!isStale) {
 

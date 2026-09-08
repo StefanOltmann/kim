@@ -24,6 +24,9 @@ import de.stefan_oltmann.kim.format.AbstractUpdaterTest
 import de.stefan_oltmann.kim.format.png.PngCrc.continuePartialCrc
 import de.stefan_oltmann.kim.format.png.PngCrc.finishPartialCrc
 import de.stefan_oltmann.kim.format.png.PngCrc.startPartialCrc
+import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
+import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
+import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
@@ -149,18 +152,25 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
     }
 
     /**
-     * An Exif chunk behind the image data must not survive an update,
-     * otherwise the file ends up with two conflicting Exif chunks.
+     * The streaming update rewrites the metadata from the chunks before the
+     * image data; it can never see an Exif chunk behind the IDAT. Dropping
+     * it would silently destroy its content, so the update must fail and
+     * leave the file untouched instead.
      */
     @Test
-    fun testUpdateDoesNotDuplicateTrailingExifChunk() {
+    fun testUpdateFailsWhenOnlyExifSitsBehindImageData() {
 
-        val updatedBytes = Kim.update(
-            bytes = createPngWithTrailingMetadata(),
-            update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT)
-        )
+        val bytes = createPngWithTrailingMetadata()
 
-        assertEquals(1, chunkTypeCount(updatedBytes, "eXIf"))
+        /* Sanity: the trailing Exif is the only Exif and parses cleanly. */
+        assertTrue(Kim.readMetadata(bytes)?.exif != null)
+
+        assertFailsWith<ImageWriteException> {
+            Kim.update(
+                bytes = bytes,
+                update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT)
+            )
+        }
     }
 
     /**
@@ -172,7 +182,7 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
     fun testUpdatePreservesUnrelatedTrailingComment() {
 
         val updatedBytes = Kim.update(
-            bytes = createPngWithTrailingMetadata(),
+            bytes = createPngWithTrailingUserData(),
             update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT)
         )
 
@@ -186,22 +196,19 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
     }
 
     /**
-     * A trailing XMP chunk of which the update wrote a fresh copy must be
-     * removed, so no stale duplicate survives.
+     * An XMP packet behind the image data was never seen by the update, so
+     * dropping it in favor of the fresh packet would silently destroy its
+     * content. The update must fail and leave the file untouched instead.
      */
     @Test
-    fun testUpdateRemovesStaleTrailingXmp() {
+    fun testUpdateFailsOnTrailingXmp() {
 
-        val updatedBytes = Kim.update(
-            bytes = createPngWithTrailingXmp(),
-            update = MetadataUpdate.Title("New title")
-        )
-
-        val xmpChunks = findChunkData(updatedBytes, "iTXt")
-
-        assertEquals(1, xmpChunks.size)
-        assertFalse(xmpChunks.single().decodeToString().contains(STALE_XMP))
-        assertTrue(Kim.readMetadata(updatedBytes)?.xmp?.contains("New title") == true)
+        assertFailsWith<ImageWriteException> {
+            Kim.update(
+                bytes = createPngWithTrailingXmp(),
+                update = MetadataUpdate.Title("New title")
+            )
+        }
     }
 
     /**
@@ -267,37 +274,6 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
     }
 
     /**
-     * Returns how often a chunk of the given type occurs, so duplicated
-     * chunks behind the image data can be detected.
-     */
-    private fun chunkTypeCount(pngBytes: ByteArray, chunkTypeName: String): Int {
-
-        var count = 0
-
-        var offset = PngConstants.PNG_SIGNATURE.size
-
-        while (offset + 12 <= pngBytes.size) {
-
-            val length = (pngBytes[offset].toInt() and 0xFF) shl 24 or
-                (pngBytes[offset + 1].toInt() and 0xFF) shl 16 or
-                (pngBytes[offset + 2].toInt() and 0xFF) shl 8 or
-                (pngBytes[offset + 3].toInt() and 0xFF)
-
-            val chunkType = pngBytes.copyOfRange(offset + 4, offset + 8).decodeToString()
-
-            if (chunkType == chunkTypeName)
-                count++
-
-            if (chunkType == "IEND")
-                break
-
-            offset += 12 + length
-        }
-
-        return count
-    }
-
-    /**
      * Builds a minimal PNG whose Exif and text chunks sit behind the image
      * data, a legal ancillary placement that some encoders use.
      */
@@ -344,6 +320,43 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
             typeName = "IEND",
             data = byteArrayOf()
         )
+
+        return byteWriter.toByteArray()
+    }
+
+    /**
+     * Builds a minimal PNG whose only trailing chunks are user data - a
+     * comment and the modification time - which an update must preserve.
+     */
+    private fun createPngWithTrailingUserData(): ByteArray {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        byteWriter.write(PngConstants.PNG_SIGNATURE)
+
+        /* 1x1 pixel, 8 bit RGBA, no interlace. */
+        writeChunk(
+            byteWriter = byteWriter,
+            typeName = "IHDR",
+            data = byteArrayOf(0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0)
+        )
+
+        writeChunk(byteWriter = byteWriter, typeName = "IDAT", data = byteArrayOf(1, 2, 3, 4))
+
+        writeChunk(
+            byteWriter = byteWriter,
+            typeName = "tEXt",
+            data = "Comment\u0000$STALE_TEXT".encodeToByteArray()
+        )
+
+        /* Year 2024, May 12th, 18:04:00. */
+        writeChunk(
+            byteWriter = byteWriter,
+            typeName = "tIME",
+            data = byteArrayOf(0x07, 0xE8.toByte(), 5, 12, 18, 4, 0)
+        )
+
+        writeChunk(byteWriter = byteWriter, typeName = "IEND", data = byteArrayOf())
 
         return byteWriter.toByteArray()
     }
@@ -432,9 +445,23 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
 
     private companion object {
 
-        /* A minimal big-endian TIFF header, so the payload looks like EXIF. */
-        val STALE_EXIF_BYTES: ByteArray =
-            byteArrayOf(0x49, 0x49, 0x2A, 0, 8, 0, 0, 0)
+        /**
+         * A valid minimal TIFF structure with one IFD0 entry, so the
+         * trailing Exif chunk carries real, parseable metadata.
+         */
+        val STALE_EXIF_BYTES: ByteArray = run {
+
+            val outputSet = TiffOutputSet()
+
+            outputSet.getOrCreateRootDirectory()
+                .add(TiffTag.TIFF_TAG_MAKE, "Canon")
+
+            val writer = ByteArrayByteWriter()
+
+            TiffWriter(outputSet.byteOrder).write(writer, outputSet)
+
+            writer.toByteArray()
+        }
 
         const val STALE_TEXT: String = "stale text"
 
