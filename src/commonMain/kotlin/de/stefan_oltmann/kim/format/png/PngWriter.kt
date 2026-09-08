@@ -126,6 +126,9 @@ public object PngWriter {
      * The updateComputer can only see the chunks before the image data, so
      * with [failOnStaleMetadata] a trailing chunk that the stale filter
      * would drop fails the write instead of being destroyed unheard of.
+     * The failure happens after header and image data were written, so
+     * streaming callers must discard the partial output; only the source
+     * file is guaranteed to be untouched.
      */
     internal fun writeImageStreaming(
         byteReader: ByteReader,
@@ -239,12 +242,17 @@ public object PngWriter {
                 /*
                  * The rewrite never saw the content of this trailing chunk,
                  * so dropping it would silently destroy metadata. Fail the
-                 * write instead; the caller keeps the untouched file.
+                 * write instead. Byte-array callers simply discard their
+                 * buffered output; streaming callers must discard what was
+                 * written so far, because the tail - including IEND - was
+                 * never reached.
                  */
                 if (isStale && failOnStaleMetadata)
                     throw ImageWriteException(
-                        "The file contains metadata behind the image data, " +
-                            "which the update cannot merge. The file was not changed."
+                        "The update cannot merge metadata behind the image " +
+                            "data. The source file was not modified, but the " +
+                            "output written so far is incomplete and must be " +
+                            "discarded."
                     )
 
                 if (!isStale) {

@@ -185,10 +185,12 @@ class GifWriterTest {
             oldXmpBytes +
             byteArrayOf(0, 0x3B.toByte())
 
+        val byteWriter = ByteArrayByteWriter()
+
         val exception = assertFailsWith<ImageWriteException> {
             GifWriter.writeImage(
                 byteReader = ByteArrayByteReader(imagelessGif),
-                byteWriter = ByteArrayByteWriter(),
+                byteWriter = byteWriter,
                 xmp = "<x:xmpmeta>NEW</x:xmpmeta>"
             )
         }
@@ -196,6 +198,15 @@ class GifWriterTest {
         assertTrue(
             exception.message?.contains("no image data") == true,
             "Unexpected message: ${exception.message}"
+        )
+
+        /*
+         * The chunks are fully in memory, so the failure can be detected
+         * before any output: the writer must stay empty.
+         */
+        assertTrue(
+            byteWriter.toByteArray().isEmpty(),
+            "Output was written before the failure."
         )
     }
 

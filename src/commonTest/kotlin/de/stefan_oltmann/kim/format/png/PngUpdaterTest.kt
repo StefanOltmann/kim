@@ -165,12 +165,22 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
         /* Sanity: the trailing Exif is the only Exif and parses cleanly. */
         assertTrue(Kim.readMetadata(bytes)?.exif != null)
 
-        assertFailsWith<ImageWriteException> {
+        val exception = assertFailsWith<ImageWriteException> {
             Kim.update(
                 bytes = bytes,
                 update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT)
             )
         }
+
+        /*
+         * The source file was not modified, but streaming callers hold
+         * incomplete output - the message must say so instead of claiming
+         * nothing changed at all.
+         */
+        assertTrue(
+            exception.message?.contains("must be discarded") == true,
+            "Unexpected message: ${exception.message}"
+        )
     }
 
     /**
