@@ -37,8 +37,10 @@ import de.stefan_oltmann.kim.format.tiff.makernote.MakerNoteParseResult
 import de.stefan_oltmann.kim.format.tiff.makernote.apple.AppleMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.canon.CanonMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.fujifilm.FujiFilmMakerNoteHandler
+import de.stefan_oltmann.kim.format.tiff.makernote.leica.LeicaMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.nikon.NikonMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.olympus.OlympusMakerNoteHandler
+import de.stefan_oltmann.kim.format.tiff.makernote.sigma.SigmaMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.panasonic.PanasonicMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.pentax.PentaxMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.ricoh.RicohMakerNoteHandler
@@ -832,6 +834,12 @@ public object TiffReader {
 
                 make.startsWith("SONY", ignoreCase = true) ->
                     SonyMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+
+                make.contains("LEICA", ignoreCase = true) ->
+                    LeicaMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+
+                make.startsWith("SIGMA", ignoreCase = true) ->
+                    SigmaMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
             }
         } catch (_: Exception) {
 
