@@ -30,17 +30,34 @@ internal actual fun decompress(
 ): String =
     try {
 
-        /* Without options pako returns the raw bytes instead of a string. */
-        val rawBytes = Pako.inflate(byteArray.toUint8Array())
-
         /*
-         * Abort before hostile data is decoded further, so it can never
-         * grow the output beyond the limit.
+         * The input is fed in bounded chunks, so the accumulated output can
+         * be checked between pushes. A whole-buffer inflate grows the full
+         * output in memory before any size check can run, which lets a few
+         * KB of hostile input exhaust the memory on this target.
          */
-        if (rawBytes.length > maxOutputByteCount)
-            throw ImageReadException(
-                "Decompressed data exceeds $maxOutputByteCount bytes."
-            )
+        val inflater = Pako.Inflate()
+
+        var offset = 0
+
+        while (offset < byteArray.size) {
+
+            val chunkLength = minOf(INFLATE_INPUT_CHUNK_SIZE, byteArray.size - offset)
+
+            inflater.push(byteArray.toUint8Array(offset, chunkLength))
+
+            if (inflater.strm.total_out > maxOutputByteCount)
+                throw ImageReadException(
+                    "Decompressed data exceeds $maxOutputByteCount bytes."
+                )
+
+            offset += chunkLength
+        }
+
+        inflater.push(Uint8Array(0), end = true)
+
+        val rawBytes = inflater.result
+            ?: throw ImageReadException("Failed to decompress the data.")
 
         rawBytes.toByteArray().decodeToString()
 
@@ -69,10 +86,35 @@ private fun ByteArray.toUint8Array(): Uint8Array {
     return result
 }
 
+private fun ByteArray.toUint8Array(offset: Int, length: Int): Uint8Array {
+    val result = Uint8Array(length)
+    for (index in 0 until length)
+        result[index] = this[offset + index]
+    return result
+}
+
+internal const val INFLATE_INPUT_CHUNK_SIZE: Int = 8192
+
 @OptIn(ExperimentalWasmJsInterop::class)
 @Suppress("UnusedPrivateMember", "UnusedParameter") // False positive
 @JsModule("pako")
 private external object Pako {
     fun deflate(data: String): Uint8Array
     fun inflate(data: Uint8Array): Uint8Array
+
+    /**
+     * The incremental stream interface. The accumulated output is visible
+     * in [chunks] between pushes, which is what the decompression budget
+     * checks against.
+     */
+    class Inflate {
+        val strm: ZStream
+        val result: Uint8Array?
+
+        fun push(data: Uint8Array, end: Boolean = definedExternally)
+    }
+
+    class ZStream {
+        val total_out: Int
+    }
 }
