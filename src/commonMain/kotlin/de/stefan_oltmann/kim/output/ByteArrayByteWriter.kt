@@ -28,6 +28,13 @@ public class ByteArrayByteWriter : ByteWriter {
 
     private var position: Int = 0
 
+    /**
+     * The number of bytes written so far. Together with [getBytesAt] this
+     * lets a caller replay the buffer without copying it as a whole.
+     */
+    internal val writtenByteCount: Int
+        get() = position
+
     override fun write(byte: Byte) {
         ensureCapacity(1)
         bytes[position++] = byte
@@ -48,6 +55,23 @@ public class ByteArrayByteWriter : ByteWriter {
     }
 
     public fun toByteArray(): ByteArray = bytes.copyOfRange(0, position)
+
+    /**
+     * Returns up to [count] bytes starting at [offset], copying only the
+     * requested range instead of the whole buffer.
+     */
+    internal fun getBytesAt(offset: Int, count: Int): ByteArray {
+
+        require(offset >= 0) { "Offset must not be negative: $offset" }
+        require(count >= 0) { "Count must not be negative: $count" }
+
+        if (offset >= position)
+            return byteArrayOf()
+
+        val toIndex = minOf(offset.toLong() + count, position.toLong()).toInt()
+
+        return bytes.copyOfRange(offset, toIndex)
+    }
 
     private fun ensureCapacity(requiredCapacity: Int) {
 

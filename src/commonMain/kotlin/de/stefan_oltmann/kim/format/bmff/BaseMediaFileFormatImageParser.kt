@@ -145,10 +145,14 @@ public object BaseMediaFileFormatImageParser : ImageParser {
 
         } else {
 
-            /* Read all remaining bytes. */
+            /* Read all remaining bytes into the retained buffer. */
             copyByteReader.readRemainingBytes()
 
-            ByteArrayByteReader(copyByteReader.getBytes())
+            /*
+             * Replay the buffer in place instead of copying it, so the
+             * reposition does not hold the file twice in memory.
+             */
+            copyByteReader.replayByteReader()
         }
 
         check(byteReader.contentLength == byteReaderToUse.contentLength) {

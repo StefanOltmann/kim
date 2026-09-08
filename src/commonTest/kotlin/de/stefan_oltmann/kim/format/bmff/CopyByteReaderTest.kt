@@ -66,4 +66,47 @@ class CopyByteReaderTest {
 
         assertContentEquals(byteArrayOf(1, 2), copyByteReader.getBytes())
     }
+
+    /**
+     * The replay reader serves the retained bytes sequentially without
+     * requiring a second full buffer copy: fresh position, short reads at
+     * the end and NULL at EOF.
+     */
+    @Test
+    fun testReplayReaderServesRetainedBytes() {
+
+        val copyByteReader = CopyByteReader(
+            ByteArrayByteReader(byteArrayOf(1, 2, 3, 4))
+        )
+
+        assertContentEquals(byteArrayOf(1, 2), copyByteReader.readBytes(2))
+
+        val replayReader = copyByteReader.replayByteReader()
+
+        assertEquals(2, replayReader.contentLength)
+
+        assertContentEquals(byteArrayOf(1, 2), replayReader.readBytes(10))
+
+        assertEquals(null, replayReader.readByte())
+    }
+
+    /**
+     * A replay behind a subsequent write stays consistent with the grown
+     * buffer: the replayed content length reflects the additional bytes.
+     */
+    @Test
+    fun testReplaySeesBytesRetainedAfterItsCreation() {
+
+        val copyByteReader = CopyByteReader(
+            ByteArrayByteReader(byteArrayOf(1, 2, 3))
+        )
+
+        copyByteReader.readByte()
+
+        val replayReader = copyByteReader.replayByteReader()
+
+        copyByteReader.readBytes(2)
+
+        assertContentEquals(byteArrayOf(1, 2, 3), replayReader.readBytes(10))
+    }
 }
