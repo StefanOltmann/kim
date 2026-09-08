@@ -39,15 +39,6 @@ import kotlin.test.assertTrue
 class TiffReaderTest {
 
     /**
-     * Regression test: entries with a corrupt count that makes the value
-     * length negative must be skipped instead of crashing the parser.
-     */
-    /**
-     * A TIFF entry with an unknown field type cannot be sized or read.
-     * Per the strict read policy it must fail the read instead of being
-     * silently dropped from the field list (and thus from any rewrite).
-     */
-    /**
      * An offset field whose value cannot be parsed (count 0 = no value)
      * is a dangling reference: the sub-IFD it points to is unreachable,
      * so there is nothing to preserve. The read succeeds and the field
@@ -74,6 +65,11 @@ class TiffReaderTest {
         assertTrue(metadata.directories.first().entries.isEmpty())
     }
 
+    /**
+     * A TIFF entry with an unknown field type cannot be sized or read.
+     * Per the strict read policy it must fail the read instead of being
+     * silently dropped from the field list (and thus from any rewrite).
+     */
     @Test
     fun testUnknownFieldTypeFailsTheRead() {
 
@@ -99,6 +95,10 @@ class TiffReaderTest {
         )
     }
 
+    /**
+     * Regression test: entries with a corrupt count that makes the value
+     * length negative must be skipped instead of crashing the parser.
+     */
     @Test
     fun testReadSkipsEntryWithOverflowingCount() {
 

@@ -28,11 +28,6 @@ import kotlin.test.assertTrue
 class RafImageParserTest {
 
     /**
-     * The RAF metadata parser is wired into Kim separately from the
-     * extractor, so its parse must be covered directly: the EXIF of the
-     * JPEG embedded in the RAF becomes the metadata of the file.
-     */
-    /**
      * A hostile JPEG offset that cannot point into the file (zero,
      * negative or beyond the end) must be rejected with a targeted
      * message instead of underflowing into a full-file skip scan.
