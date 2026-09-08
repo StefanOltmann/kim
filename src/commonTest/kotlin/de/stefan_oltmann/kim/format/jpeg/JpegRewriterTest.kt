@@ -32,15 +32,18 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.input.DEFAULT_BUFFER_SIZE
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
+import de.stefan_oltmann.kim.output.ByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
 import de.stefan_oltmann.kim.testdata.ModifiedBytesVerifier
 import de.stefan_oltmann.xmp.XMPMetaFactory
 import kotlinx.datetime.TimeZone
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
@@ -871,6 +874,121 @@ class JpegRewriterTest {
         return writer.toByteArray()
     }
 
+    /**
+     * Regression test for the OutOfMemoryError report with large camera
+     * photos: the image data behind the SOS marker must be streamed to the
+     * output in bounded chunks. An implementation that buffers the whole
+     * image data and writes it as a single array needs twice the image
+     * size in memory and crashed on phones for photos of a few
+     * hundred megabytes.
+     */
+    @Test
+    fun testUpdateExifMetadataStreamsImageData() {
+
+        val baseJpeg = createJpegWithLargeImageData(STREAM_TEST_IMAGE_DATA_SIZE)
+
+        val outputSet = TiffOutputSet()
+
+        outputSet.getOrCreateRootDirectory()
+            .add(TiffTag.TIFF_TAG_ORIENTATION, 1)
+
+        val measuringWriter = MeasuringByteWriter()
+
+        JpegRewriter.updateExifMetadata(
+            byteReader = ByteArrayByteReader(baseJpeg),
+            byteWriter = measuringWriter,
+            outputSet = outputSet
+        )
+
+        val updatedBytes = measuringWriter.toByteArray()
+
+        /* The rewrite stays correct: the image data survives byte-exact in front of the EOI. */
+        val imageStart = updatedBytes.size - STREAM_TEST_IMAGE_DATA_SIZE - JpegConstants.EOI.size
+
+        val baseImageStart = baseJpeg.size - STREAM_TEST_IMAGE_DATA_SIZE - JpegConstants.EOI.size
+
+        assertContentEquals(
+            baseJpeg.copyOfRange(baseImageStart, baseJpeg.size - JpegConstants.EOI.size),
+            updatedBytes.copyOfRange(imageStart, updatedBytes.size - JpegConstants.EOI.size)
+        )
+
+        assertNotNull(Kim.readMetadata(updatedBytes)?.exif)
+
+        /*
+         * No single write may carry more than a bounded chunk of the image
+         * data, so the memory need stays flat no matter how large the photo.
+         */
+        assertTrue(
+            measuringWriter.largestSingleWrite <= 2 * DEFAULT_BUFFER_SIZE,
+            "Image data was written as one block of ${measuringWriter.largestSingleWrite} bytes."
+        )
+    }
+
+    /**
+     * Builds a minimal JPEG whose entropy-coded image data has the given
+     * size. The data pattern stays below 0x80, so no image byte can be
+     * mistaken for a marker.
+     */
+    @Suppress("MagicNumber")
+    private fun createJpegWithLargeImageData(imageDataSize: Int): ByteArray {
+
+        val imageData = ByteArray(imageDataSize) { index -> (index % 0x7F).toByte() }
+
+        val writer = ByteArrayByteWriter()
+
+        writer.write(byteArrayOf(0xFF.toByte(), 0xD8.toByte())) // SOI
+
+        /* SOS with minimal parameters and entropy-coded data. */
+        writer.write(
+            byteArrayOf(
+                0xFF.toByte(), 0xDA.toByte(), 0x00, 0x08,
+                0x01, 0x01, 0x00, 0x00, 0x3F, 0x00
+            )
+        )
+
+        writer.write(imageData)
+
+        writer.write(byteArrayOf(0xFF.toByte(), 0xD9.toByte())) // EOI
+
+        return writer.toByteArray()
+    }
+
+    /**
+     * A ByteWriter that records the size of the largest single array
+     * write, so a test can verify the image data is streamed in bounded
+     * chunks instead of being handed over as one block.
+     */
+    private class MeasuringByteWriter : ByteWriter {
+
+        private val delegate = ByteArrayByteWriter()
+
+        var largestSingleWrite: Int = 0
+            private set
+
+        override fun write(byte: Byte) {
+            delegate.write(byte)
+        }
+
+        override fun write(byteArray: ByteArray) {
+
+            if (byteArray.size > largestSingleWrite)
+                largestSingleWrite = byteArray.size
+
+            delegate.write(byteArray)
+        }
+
+        override fun flush() {
+            delegate.flush()
+        }
+
+        override fun close() {
+            delegate.close()
+        }
+
+        fun toByteArray(): ByteArray =
+            delegate.toByteArray()
+    }
+
     private fun ByteArray.countOccurrences(needle: String): Int {
 
         val needleBytes = needle.encodeToByteArray()
@@ -900,6 +1018,9 @@ class JpegRewriterTest {
 
         private const val largeXmpKeywordCount = 4000
         private const val iptcKeywordCount = 5000
+
+        /* Large enough that chunked streaming and one-block writing are clearly distinguishable */
+        private const val STREAM_TEST_IMAGE_DATA_SIZE = 1024 * 1024
 
         private const val exifOffsetTag = 0x8769
         private const val interopOffsetTag = 0xa005
