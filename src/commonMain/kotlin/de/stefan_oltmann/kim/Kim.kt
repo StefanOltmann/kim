@@ -219,19 +219,34 @@ public object Kim {
             if (mediaFormat == MediaFormat.CR3)
                 return@use Cr3PreviewExtractor.extractPreviewImage(prePendingByteReader)
 
-            val reader = DefaultRandomAccessByteReader(prePendingByteReader)
-
-            val tiffContents = TiffReader.read(reader)
-
             return@use when (mediaFormat) {
 
-                MediaFormat.CR2 -> Cr2PreviewExtractor.extractPreviewImage(tiffContents, reader)
+                MediaFormat.CR2 -> {
 
-                MediaFormat.RW2 -> Rw2PreviewExtractor.extractPreviewImage(tiffContents, reader)
+                    val reader = DefaultRandomAccessByteReader(prePendingByteReader)
 
-                MediaFormat.ORF -> OrfPreviewExtractor.extractPreviewImage(tiffContents, reader)
+                    Cr2PreviewExtractor.extractPreviewImage(TiffReader.read(reader), reader)
+                }
+
+                MediaFormat.RW2 -> {
+
+                    val reader = DefaultRandomAccessByteReader(prePendingByteReader)
+
+                    Rw2PreviewExtractor.extractPreviewImage(TiffReader.read(reader), reader)
+                }
+
+                MediaFormat.ORF -> {
+
+                    val reader = DefaultRandomAccessByteReader(prePendingByteReader)
+
+                    OrfPreviewExtractor.extractPreviewImage(TiffReader.read(reader), reader)
+                }
 
                 MediaFormat.TIFF -> {
+
+                    val reader = DefaultRandomAccessByteReader(prePendingByteReader)
+
+                    val tiffContents = TiffReader.read(reader)
 
                     /*
                      * It can now be DNG, NEF or ARW.
@@ -251,6 +266,13 @@ public object Kim {
 
                     null
                 }
+
+                /*
+                 * Formats without a preview concept report NULL. Unknown
+                 * bytes keep the legacy TIFF-parse attempt, which fails
+                 * loudly for them.
+                 */
+                null -> TiffReader.read(DefaultRandomAccessByteReader(prePendingByteReader)).let { null }
 
                 else -> null
             }
