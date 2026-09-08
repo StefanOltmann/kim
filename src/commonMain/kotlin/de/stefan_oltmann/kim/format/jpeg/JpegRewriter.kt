@@ -40,6 +40,11 @@ import kotlin.jvm.JvmStatic
 
 /**
  * Interface for Exif write/update/remove functionality for Jpeg/JFIF images.
+ *
+ * The rewrite normalizes redundant fill bytes (0xFF) between the header
+ * markers away. They carry no meaning for any decoder, so the output stays
+ * semantically identical - but a no-op rewrite is not byte-identical for
+ * such files.
  */
 public object JpegRewriter {
 

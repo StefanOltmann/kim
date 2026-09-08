@@ -41,6 +41,12 @@ internal object JpegUtils {
      * file ends before the SOS marker (a truncated or header-only file).
      * The image data behind the SOS marker is left in the reader, so
      * callers can stream it in bounded chunks.
+     *
+     * Attention: Redundant fill bytes (0xFF) between the header markers are
+     * deliberately not carried into the returned segments, so a rewrite
+     * normalizes them away. They carry no meaning - every decoder skips
+     * them per the spec - and buffering arbitrary inter-marker junk is
+     * exactly the unbounded growth the scanner must not do.
      */
     fun readSegments(
         byteReader: ByteReader,
