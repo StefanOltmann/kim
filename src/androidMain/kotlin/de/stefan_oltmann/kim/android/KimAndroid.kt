@@ -312,6 +312,13 @@ public object KimAndroid {
 
         val tempFile = File.createTempFile(target.name, ".tmp", parentDirectory)
 
+        /*
+         * Kept for the rare file system that cannot overwrite via rename:
+         * the delete-and-retry fallback destroys the target, so the
+         * original content is backed up to restore it if the retry fails.
+         */
+        val originalBytes = target.readBytes()
+
         try {
 
             tempFile.writeBytes(bytes)
@@ -323,10 +330,25 @@ public object KimAndroid {
              */
             if (!tempFile.renameTo(target)) {
 
+                /*
+                 * The file system cannot overwrite the target via rename.
+                 * Deleting first is risky: if the second rename also fails,
+                 * the original photo is already destroyed - so the restore
+                 * via copy keeps the target intact and only the temp file
+                 * is left behind for cleanup.
+                 */
                 target.delete()
 
-                if (!tempFile.renameTo(target))
-                    throw ImageWriteException("Could not replace $target with the new content.")
+                if (!tempFile.renameTo(target)) {
+
+                    /* Best-effort restore: put the original photo back. */
+                    target.writeBytes(originalBytes)
+
+                    throw ImageWriteException(
+                        "Could not replace $target with the new content; " +
+                            "the original file was restored."
+                    )
+                }
             }
 
         } finally {
