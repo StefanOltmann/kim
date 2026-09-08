@@ -118,10 +118,15 @@ public object Cr3PreviewExtractor {
 
                     /*
                      * The movie box is small metadata, so buffering it is
-                     * fine - unlike the mdat that follows it. An interrupted
-                     * recording can cut the file inside the moov; the preview
-                     * then degrades to NULL like the metadata path tolerates
-                     * truncated moovs, instead of failing the read.
+                     * fine - unlike the mdat that follows it. A stream that
+                     * claims more bytes than it delivers (e.g. an aborted
+                     * transfer) fails the moov read; without a parsed moov
+                     * no preview window can ever be located, so the preview
+                     * degrades to NULL right here - continuing the box walk
+                     * on the desynced reader position would only produce a
+                     * spurious error. A physically truncated file fails
+                     * loudly in the box header validation like every other
+                     * corrupt input.
                      */
                     movieBox = try {
                         val payload = header.readData(byteReader)
@@ -134,7 +139,7 @@ public object Cr3PreviewExtractor {
                             depth = 1
                         )
                     } catch (_: ImageReadException) {
-                        null
+                        return@tryWithImageReadException null
                     }
                 }
 

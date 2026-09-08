@@ -493,6 +493,48 @@ class Cr3PreviewExtractorTest {
     }
 
     /**
+     * A stream that claims more bytes than it delivers fails the moov read
+     * mid-way. Without a parsed moov no preview window can be located, so
+     * the extraction must return null instead of continuing the box walk
+     * on a desynced reader position.
+     */
+    @Test
+    fun testShortDeliveringMoovStreamDegradesToNull() {
+
+        val bytes = buildCr3File(
+            mdatPayload = byteArrayOf(0xFF.toByte(), 0xD8.toByte()) + "jpeg".encodeToByteArray(),
+            jpegLength = 8,
+            co64Offset = { it }
+        )
+
+        /* The stream claims the full length but stops inside the moov. */
+        val cutPosition = bytes.size * 2 / 3
+
+        val shortDeliveringReader = object : ByteReader {
+            override val contentLength: Long = bytes.size.toLong()
+            private var delivered = 0
+            override fun readByte(): Byte? {
+                if (delivered >= cutPosition) return null
+                delivered++
+                return bytes[delivered - 1]
+            }
+            override fun readBytes(count: Int): ByteArray {
+                val end = minOf(delivered + count, cutPosition)
+                val result = bytes.copyOfRange(delivered, end)
+                delivered = end
+                return result
+            }
+            override fun close() {
+                /* Nothing to do. */
+            }
+        }
+
+        assertNull(
+            Cr3PreviewExtractor.extractFullSizePreviewImage(shortDeliveringReader)
+        )
+    }
+
+    /**
      * Builds a CR3-like file: ftyp + moov(trak > mdia > minf > stbl with
      * stsz & co64) + mdat.
      *
