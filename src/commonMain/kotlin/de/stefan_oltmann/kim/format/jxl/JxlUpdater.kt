@@ -131,10 +131,7 @@ internal object JxlUpdater : MetadataUpdater {
 
         val byteReader = ByteArrayByteReader(bytes)
 
-        val allBoxes = BoxReader.readBoxes(
-            byteReader = byteReader,
-            stopAfterMetadataRead = false
-        )
+        val allBoxes = BoxReader.readAllBoxes(byteReader = byteReader)
 
         val metadata = JxlReader.createMetadata(allBoxes)
 

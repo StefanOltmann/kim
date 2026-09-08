@@ -68,13 +68,12 @@ public class ItemInformationBox(
          * accounts for it. offsetShift maps payload-relative positions to
          * file positions, which is always the box header (offset + 8).
          */
-        boxes = BoxReader.readBoxes(
+        boxes = BoxReader.readChildBoxes(
             byteReader = byteReader,
-            stopAfterMetadataRead = false,
-            positionOffset = 4L + if (version == 0) 2 else 4,
-            offsetShift = offset + 8,
             parentBoxType = type,
-            depth = depth
+            depth = depth,
+            offsetShift = offset + 8,
+            positionOffset = 4L + if (version == 0) 2 else 4
         )
 
         val map = mutableMapOf<Int, ItemInfoEntryBox>()

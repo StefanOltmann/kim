@@ -316,17 +316,15 @@ public object Cr3PreviewExtractor {
         val mediaInformationContainer = mediaBox.boxes.find { it.type == BoxType.MINF }
             ?: return null
 
-        val minfBoxes = BoxReader.readBoxes(
-            byteReader = ByteArrayByteReader(mediaInformationContainer.payload),
-            stopAfterMetadataRead = false
+        val minfBoxes = BoxReader.readAllBoxes(
+            byteReader = ByteArrayByteReader(mediaInformationContainer.payload)
         )
 
         val sampleTableBox = minfBoxes.find { it.type == BoxType.STBL }
             ?: return null
 
-        val stblBoxes = BoxReader.readBoxes(
-            byteReader = ByteArrayByteReader(sampleTableBox.payload),
-            stopAfterMetadataRead = false
+        val stblBoxes = BoxReader.readAllBoxes(
+            byteReader = ByteArrayByteReader(sampleTableBox.payload)
         )
 
         val sampleSizesBox = stblBoxes.find { it.type == BoxType.STSZ }

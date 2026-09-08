@@ -61,26 +61,100 @@ public object BoxReader {
     private const val READ_CHUNK_SIZE: Long = 64 * 1024
 
     /**
+     * Reads all top-level boxes of the file completely, including the
+     * image data payloads.
+     *
      * @param byteReader The reader as source for the bytes
-     * @param stopAfterMetadataRead If reading the file for metadata on the highest level we
-     * want to stop reading after the top-level meta boxes to prevent reading the whole image data
-     * block in. For iPhone HEIC this is possible, but Samsung HEIC has "meta" coming after "mdat"
-     * @param stopBeforeImageData If reading a JPEG XL file for an update we want to stop reading
-     * before the image data starts, so the image data can be streamed without buffering the whole
-     * file. The first JXLP box contains the codestream header, so every following JXLP box is
-     * image data. The cut box is returned with an empty payload, because its content is streamed
-     * by the caller.
+     * @param offsetShift The shift to apply to the reported box offsets
+     */
+    internal fun readAllBoxes(
+        byteReader: ByteReader,
+        offsetShift: Long = 0
+    ): List<Box> =
+        readBoxes(
+            byteReader = byteReader,
+            offsetShift = offsetShift
+        )
+
+    /**
+     * Scans only the leading metadata boxes of the file top level, so the
+     * image data block is not read in. The scan may continue past the meta
+     * box while an XMP UUID box is still missing, because Samsung HEIC has
+     * "meta" coming after "mdat".
+     *
+     * @param byteReader The reader as source for the bytes
+     * @param updatePosition A callback to report the position when reading
+     * has finished
+     */
+    internal fun scanMetadataBoxes(
+        byteReader: ByteReader,
+        updatePosition: ((Long) -> Unit)? = null
+    ): List<Box> =
+        readBoxes(
+            byteReader = byteReader,
+            stopAfterMetadataRead = true,
+            updatePosition = updatePosition
+        )
+
+    /**
+     * Reads the leading boxes of a JPEG XL file for an update and stops
+     * before the image data starts, so the image data can be streamed
+     * without buffering the whole file. The first JXLP box contains the
+     * codestream header, so every following JXLP box is image data. The
+     * cut box is returned with an empty payload, because its content is
+     * streamed by the caller.
+     *
+     * @param byteReader The reader as source for the bytes
+     */
+    internal fun readBoxesForUpdate(byteReader: ByteReader): List<Box> =
+        readBoxes(
+            byteReader = byteReader,
+            stopBeforeImageData = true
+        )
+
+    /**
+     * Reads the child boxes of the given container box.
+     *
+     * @param byteReader The reader as source for the bytes
+     * @param parentBoxType The type of the container whose children are
+     * read - a "meta" box below the top level needs to be treated
+     * differently to a "meta" box at the top level
+     * @param depth The nesting level of the children, used to bound the
+     * recursion for hostile files that nest container boxes arbitrarily
+     * @param offsetShift The shift to apply to the reported box offsets
+     * @param positionOffset The position where to start reading boxes
+     */
+    internal fun readChildBoxes(
+        byteReader: ByteReader,
+        parentBoxType: BoxType,
+        depth: Int,
+        offsetShift: Long,
+        positionOffset: Long = 0
+    ): List<Box> =
+        readBoxes(
+            byteReader = byteReader,
+            positionOffset = positionOffset,
+            offsetShift = offsetShift,
+            parentBoxType = parentBoxType,
+            depth = depth
+        )
+
+    /**
+     * The one shared box scan loop. Every entry point passes a fixed,
+     * tested combination of the mode flags into it.
+     *
+     * @param byteReader The reader as source for the bytes
+     * @param stopAfterMetadataRead Stop after the top-level metadata boxes, so the whole image
+     * data block is not read in - see [scanMetadataBoxes]
+     * @param stopBeforeImageData Stop before the JXL image data starts - see [readBoxesForUpdate]
      * @param positionOffset The position where to start reading boxes
      * @param offsetShift The shift to apply to the reported box offsets
      * @param updatePosition A callback to report the position when reading has finished
-     * @param parentBoxType can be used to specify the type of the parent box - used when traversing
-     * through sub boxes. This can change the logic for parsing boxes as "meta" boxes within a sub
-     * box need to be treated differently to "meta" boxes at the top level.
-     * @param depth The nesting level of this box within its containers, used to bound the
-     * recursion for hostile files that nest container boxes arbitrarily.
+     * @param parentBoxType The type of the container whose children are read
+     * @param depth The nesting level of the boxes, used to bound the recursion
      */
     @Suppress("NestedBlockDepth")
-    public fun readBoxes(
+    private fun readBoxes(
         byteReader: ByteReader,
         stopAfterMetadataRead: Boolean = false,
         stopBeforeImageData: Boolean = false,

@@ -59,9 +59,8 @@ class BoxReaderTest {
         )
 
         val exception = assertFailsWith<ImageReadException> {
-            BoxReader.readBoxes(
-                byteReader = ByteArrayByteReader(bytes),
-                stopAfterMetadataRead = false
+            BoxReader.readAllBoxes(
+                byteReader = ByteArrayByteReader(bytes)
             )
         }
 
@@ -83,9 +82,8 @@ class BoxReaderTest {
             9, 9, 9, 9
         )
 
-        val boxes = BoxReader.readBoxes(
-            byteReader = ByteArrayByteReader(bytes),
-            stopAfterMetadataRead = false
+        val boxes = BoxReader.readAllBoxes(
+            byteReader = ByteArrayByteReader(bytes)
         )
 
         assertEquals(2, boxes.size)
@@ -98,9 +96,8 @@ class BoxReaderTest {
 
         val byteReader = ByteArrayByteReader(bytes)
 
-        val boxes = BoxReader.readBoxes(
-            byteReader = byteReader,
-            stopAfterMetadataRead = false
+        val boxes = BoxReader.readAllBoxes(
+            byteReader = byteReader
         )
 
         val allBoxes = BoxContainer.findAllBoxesRecursive(boxes)
@@ -122,9 +119,8 @@ class BoxReaderTest {
 
         val byteReader = ByteArrayByteReader(bytes)
 
-        val boxes = BoxReader.readBoxes(
-            byteReader = byteReader,
-            stopAfterMetadataRead = false
+        val boxes = BoxReader.readAllBoxes(
+            byteReader = byteReader
         )
 
         val allBoxes = BoxContainer.findAllBoxesRecursive(boxes)
@@ -146,9 +142,8 @@ class BoxReaderTest {
 
         val byteReader = ByteArrayByteReader(bytes)
 
-        val boxes = BoxReader.readBoxes(
-            byteReader = byteReader,
-            stopAfterMetadataRead = false
+        val boxes = BoxReader.readAllBoxes(
+            byteReader = byteReader
         )
 
         val allBoxes = BoxContainer.findAllBoxesRecursive(boxes)
@@ -171,9 +166,8 @@ class BoxReaderTest {
     @Test
     fun reportsInfeOffsetForIinfVersionZero() {
 
-        val boxes = BoxReader.readBoxes(
-            byteReader = ByteArrayByteReader(createIinfBox(version = 0)),
-            stopAfterMetadataRead = false
+        val boxes = BoxReader.readAllBoxes(
+            byteReader = ByteArrayByteReader(createIinfBox(version = 0))
         )
 
         val iinf = boxes.first() as ItemInformationBox
@@ -189,9 +183,8 @@ class BoxReaderTest {
     @Test
     fun reportsInfeOffsetForIinfVersionOne() {
 
-        val boxes = BoxReader.readBoxes(
-            byteReader = ByteArrayByteReader(createIinfBox(version = 1)),
-            stopAfterMetadataRead = false
+        val boxes = BoxReader.readAllBoxes(
+            byteReader = ByteArrayByteReader(createIinfBox(version = 1))
         )
 
         val iinf = boxes.first() as ItemInformationBox
@@ -217,9 +210,8 @@ class BoxReaderTest {
         box.write("free".encodeToByteArray())
 
         assertFailsWith<ImageReadException> {
-            BoxReader.readBoxes(
-                byteReader = ByteArrayByteReader(box.toByteArray()),
-                stopAfterMetadataRead = false
+            BoxReader.readAllBoxes(
+                byteReader = ByteArrayByteReader(box.toByteArray())
             )
         }
     }
@@ -243,9 +235,8 @@ class BoxReaderTest {
 
         val copyReader = CopyByteReader(ByteArrayByteReader(box.toByteArray()))
 
-        val boxes = BoxReader.readBoxes(
-            byteReader = copyReader,
-            stopAfterMetadataRead = true
+        val boxes = BoxReader.scanMetadataBoxes(
+            byteReader = copyReader
         )
 
         /* The reader itself retained everything... */
@@ -275,9 +266,8 @@ class BoxReaderTest {
         }
 
         assertFailsWith<ImageReadException> {
-            BoxReader.readBoxes(
-                byteReader = ByteArrayByteReader(bytes),
-                stopAfterMetadataRead = false
+            BoxReader.readAllBoxes(
+                byteReader = ByteArrayByteReader(bytes)
             )
         }
     }
@@ -297,9 +287,8 @@ class BoxReaderTest {
 
         val bytes = createBox(BoxType.MOOV, outerMeta)
 
-        val boxes = BoxReader.readBoxes(
-            byteReader = ByteArrayByteReader(bytes),
-            stopAfterMetadataRead = false
+        val boxes = BoxReader.readAllBoxes(
+            byteReader = ByteArrayByteReader(bytes)
         )
 
         val movieBox = boxes.filterIsInstance<MovieBox>().single()
