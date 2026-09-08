@@ -24,10 +24,15 @@ import de.stefan_oltmann.kim.format.jpeg.JpegSegmentAnalyzer.JpegSegmentInfo
 import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputField
+import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
+import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
+import de.stefan_oltmann.kim.output.ByteWriter
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -486,6 +491,81 @@ class JpegAndReaderEdgeCasesTest {
         assertFailsWith<ImageReadException> {
             JpegUtils.readSegments(ByteArrayByteReader(file))
         }
+    }
+
+    /**
+     * A JPEG whose header ends at the EOI marker has no image data (no
+     * SOS). Every rewrite must reject it loudly - emitting header-only
+     * output would silently lose the picture, the most destructive
+     * failure a rewriter can have.
+     */
+    @Test
+    fun testRewritersRejectTruncatedInputWithoutSos() {
+
+        val truncatedBytes = createJpegWithoutSosButWithExif()
+
+        assertFailsWith<ImageWriteException> {
+            Kim.update(
+                bytes = truncatedBytes,
+                update = MetadataUpdate.Title("x")
+            )
+        }
+
+        val byteWriter = ByteArrayByteWriter()
+
+        assertFailsWith<ImageWriteException> {
+            JpegRewriter.updateExifMetadata(
+                byteReader = ByteArrayByteReader(truncatedBytes),
+                byteWriter = byteWriter,
+                outputSet = TiffOutputSet()
+            )
+        }
+
+        assertFailsWith<ImageWriteException> {
+            JpegRewriter.writeIPTC(
+                byteReader = ByteArrayByteReader(truncatedBytes),
+                byteWriter = byteWriter,
+                metadata = IptcMetadata(records = emptyList(), rawBlocks = emptyList())
+            )
+        }
+
+        assertFailsWith<ImageWriteException> {
+            JpegRewriter.updateXmpXml(
+                byteReader = ByteArrayByteReader(truncatedBytes),
+                byteWriter = byteWriter,
+                xmpXml = "<x:xmpmeta/>"
+            )
+        }
+    }
+
+    /**
+     * Builds SOI + one EXIF APP1 segment + EOI: a parseable header
+     * without an SOS marker.
+     */
+    private fun createJpegWithoutSosButWithExif(): ByteArray {
+
+        val outputSet = TiffOutputSet()
+
+        outputSet.getOrCreateRootDirectory()
+
+        val exifWriter = ByteArrayByteWriter()
+
+        TiffWriter(outputSet.byteOrder).write(exifWriter, outputSet)
+
+        val app1Payload = JpegConstants.EXIF_IDENTIFIER_CODE + exifWriter.toByteArray()
+
+        val writer = ByteArrayByteWriter()
+
+        writer.write(JpegConstants.SOI)
+
+        val length = app1Payload.size + 2
+
+        writer.write(byteArrayOf(0xFF.toByte(), JpegConstants.JPEG_APP1_MARKER.toByte()))
+        writer.write(byteArrayOf((length ushr 8).toByte(), length.toByte()))
+        writer.write(app1Payload)
+        writer.write(JpegConstants.EOI)
+
+        return writer.toByteArray()
     }
 
     private companion object {
