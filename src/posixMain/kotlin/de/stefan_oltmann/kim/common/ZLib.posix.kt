@@ -37,6 +37,7 @@ import platform.zlib.deflateInit
 import platform.zlib.inflate
 import platform.zlib.inflateEnd
 import platform.zlib.inflateInit
+import platform.zlib.inflateReset
 import platform.zlib.z_stream
 
 private const val OUTPUT_BUFFER_LENGTH = 4096
@@ -166,9 +167,22 @@ internal actual fun decompress(
 
                 byteWriter.write(outputBuffer.copyOf(bytesWritten))
 
-                /* The end of the compressed data was reached */
-                if (result == Z_STREAM_END)
+                /*
+                 * The end of a compressed member was reached. Concatenated
+                 * members are legal: reset the stream and continue with
+                 * the remaining input.
+                 */
+                if (result == Z_STREAM_END) {
+
+                    if (stream.avail_in > 0u) {
+
+                        inflateReset(stream.ptr)
+
+                        continue
+                    }
+
                     break
+                }
             }
 
         } finally {

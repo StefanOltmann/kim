@@ -33,7 +33,6 @@ import de.stefan_oltmann.kim.format.cr3.Cr3Reader
 import de.stefan_oltmann.kim.format.jxl.JxlReader
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffReader
-import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.PrePendingByteReader
 import de.stefan_oltmann.kim.input.read4BytesAsInt
@@ -145,10 +144,14 @@ public object BaseMediaFileFormatImageParser : ImageParser {
 
         } else {
 
-            /* Read all remaining bytes. */
+            /* Read all remaining bytes into the retained buffer. */
             copyByteReader.readRemainingBytes()
 
-            ByteArrayByteReader(copyByteReader.getBytes())
+            /*
+             * Replay the buffer in place instead of copying it, so the
+             * reposition does not hold the file twice in memory.
+             */
+            copyByteReader.replayByteReader()
         }
 
         check(byteReader.contentLength == byteReaderToUse.contentLength) {

@@ -142,6 +142,7 @@ internal fun ByteReader.readXBytesAtInt(fieldName: String, count: Int, byteOrder
         Byte.SIZE_BYTES ->
             readByte()?.toUInt8()?.toLong()
                 ?: throw ImageReadException("Couldn't read a byte for $fieldName")
+
         Short.SIZE_BYTES -> read2BytesAsInt(fieldName, byteOrder).toLong()
         /* ISOBMFF/TIFF 32-bit fields are unsigned: the high bit must not
          * sign-extend into the Long result. */

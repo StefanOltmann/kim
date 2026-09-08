@@ -68,6 +68,23 @@ class XmpWriterEdgeCasesTest {
         assertNull(xmpMeta.getProperty(XMP_NS_EXIF, "DateTimeOriginal"))
     }
 
+    /**
+     * External writers store DateTimeOriginal AND DateTimeDigitized.
+     * Removing the taken date must clear both, mirroring the EXIF write
+     * path - a leftover digitized date contradicts the deletion.
+     */
+    @Test
+    fun testUpdateRemovesDateTimeDigitized() {
+
+        xmpMeta.setProperty(XMP_NS_EXIF, "DateTimeOriginal", "2020:08:30 18:43:00")
+        xmpMeta.setProperty(XMP_NS_EXIF, "DateTimeDigitized", "2020:08:30 18:43:00")
+
+        apply(MetadataUpdate.TakenDate(null))
+
+        assertNull(xmpMeta.getProperty(XMP_NS_EXIF, "DateTimeOriginal"))
+        assertNull(xmpMeta.getProperty(XMP_NS_EXIF, "DateTimeDigitized"))
+    }
+
     @Test
     fun testUpdateRemovesGpsCoordinates() {
 

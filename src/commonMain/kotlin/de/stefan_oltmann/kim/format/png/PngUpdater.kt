@@ -42,7 +42,17 @@ internal object PngUpdater : MetadataUpdater {
         updates: Set<MetadataUpdate>
     ) = tryWithImageWriteException {
 
-        PngWriter.writeImageStreaming(byteReader, byteWriter) { chunks, outputWriter ->
+        /*
+         * The update rewrites metadata it finds before the image data.
+         * Metadata behind the IDAT is invisible to it, so the write fails
+         * instead of silently destroying it. A deletion asked for the
+         * removal and keeps skipping.
+         */
+        PngWriter.writeImageStreaming(
+            byteReader = byteReader,
+            byteWriter = byteWriter,
+            failOnStaleMetadata = true
+        ) { chunks, outputWriter ->
 
             val metadata = PngImageParser.parseMetadataFromChunks(chunks)
 
@@ -99,7 +109,11 @@ internal object PngUpdater : MetadataUpdater {
         byteWriter: ByteWriter
     ) = tryWithImageWriteException {
 
-        PngWriter.writeImageStreaming(byteReader, byteWriter) { chunks, outputWriter ->
+        PngWriter.writeImageStreaming(
+            byteReader = byteReader,
+            byteWriter = byteWriter,
+            failOnStaleMetadata = false
+        ) { chunks, outputWriter ->
 
             /*
              * Remove the EXIF chunk and all text chunks, which carry XMP,

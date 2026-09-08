@@ -20,9 +20,11 @@ import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.tiff.TiffDirectory
+import de.stefan_oltmann.kim.format.tiff.TiffImageParser
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
+import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.write2BytesAsInt
 import de.stefan_oltmann.kim.output.writeInt
@@ -231,6 +233,54 @@ class MakerNoteRejectionTest {
         out.writeInt(0, ByteOrder.LITTLE_ENDIAN) // No next IFD.
 
         out.write(makerNote)
+
+        return out.toByteArray()
+    }
+
+    /**
+     * The MakerNote of a CR2/DNG-style RAW lives inside the EXIF of the
+     * embedded JPEG. If that JPEG cannot be scanned, the maker note
+     * content exists in the file but stays uninterpreted - per the
+     * strict read policy the read must fail instead of silently
+     * returning metadata without the note.
+     */
+    @Test
+    fun testUnscannableEmbeddedJpegMakerNoteFailsTheRead() {
+
+        val bytes = buildTiffWithGarbageJpgFromRaw()
+
+        assertFailsWith<ImageReadException> {
+            TiffImageParser.parseMetadata(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /**
+     * Builds a TIFF whose IFD0 carries a JPG_FROM_RAW tag pointing at
+     * bytes that are not a JPEG, so the embedded scan cannot succeed.
+     */
+    private fun buildTiffWithGarbageJpgFromRaw(): ByteArray {
+
+        val out = ByteArrayByteWriter()
+
+        val garbageJpeg = "definitely not a jpeg".encodeToByteArray()
+
+        val ifd0Offset = 8
+        val ifd0Size = 2 + ENTRY_LENGTH + 4
+        val jpegOffset = ifd0Offset + ifd0Size
+
+        out.write(byteArrayOf(0x49, 0x49, 0x2A, 0x00)) // TIFF header.
+        out.writeInt(ifd0Offset, ByteOrder.LITTLE_ENDIAN)
+
+        out.write2BytesAsInt(1, ByteOrder.LITTLE_ENDIAN)
+
+        out.write2BytesAsInt(TiffTag.TIFF_TAG_JPG_FROM_RAW.tag, ByteOrder.LITTLE_ENDIAN)
+        out.write2BytesAsInt(TYPE_UNDEFINED, ByteOrder.LITTLE_ENDIAN)
+        out.writeInt(garbageJpeg.size, ByteOrder.LITTLE_ENDIAN)
+        out.writeInt(jpegOffset, ByteOrder.LITTLE_ENDIAN)
+
+        out.writeInt(0, ByteOrder.LITTLE_ENDIAN) // No next IFD.
+
+        out.write(garbageJpeg)
 
         return out.toByteArray()
     }

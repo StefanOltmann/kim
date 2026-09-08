@@ -18,6 +18,7 @@ package de.stefan_oltmann.kim.input
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ByteArrayByteReaderTest {
@@ -58,7 +59,7 @@ class ByteArrayByteReaderTest {
         reader.moveTo(3)
 
         /* Reading at end returns null. */
-        assertTrue(reader.readByte() == null)
+        assertNull(reader.readByte())
     }
 
     @Test

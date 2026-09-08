@@ -201,6 +201,14 @@ public class TiffOutputSet(
      */
     public fun setThumbnailBytes(thumbnailBytes: ByteArray) {
 
+        /*
+         * An empty array would produce a JPEGInterchangeFormat/Length pair
+         * with length 0, which the EXIF spec defines as invalid. Callers
+         * that want no thumbnail must remove the field pair instead.
+         */
+        if (thumbnailBytes.isEmpty())
+            throw ImageWriteException("Thumbnail bytes must not be empty.")
+
         val thumbnailDirectory = getOrCreateThumbnailDirectory()
 
         thumbnailDirectory.setThumbnailBytes(thumbnailBytes)

@@ -40,6 +40,11 @@ import kotlin.jvm.JvmStatic
 
 /**
  * Interface for Exif write/update/remove functionality for Jpeg/JFIF images.
+ *
+ * The rewrite normalizes redundant fill bytes (0xFF) between the header
+ * markers away. They carry no meaning for any decoder, so the output stays
+ * semantically identical - but a no-op rewrite is not byte-identical for
+ * such files.
  */
 public object JpegRewriter {
 
@@ -93,11 +98,11 @@ public object JpegRewriter {
 
         tryWithImageWriteException {
 
-        /*
-         * Streaming keeps memory bounded: the image data behind the SOS
-         * marker is transferred in bounded chunks instead of being
-         * buffered as a whole.
-         */
+            /*
+             * Streaming keeps memory bounded: the image data behind the SOS
+             * marker is transferred in bounded chunks instead of being
+             * buffered as a whole.
+             */
             updateMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
                 writeSegments(
                     byteWriter = outputWriter,
@@ -206,11 +211,11 @@ public object JpegRewriter {
 
         tryWithImageWriteException {
 
-        /*
-         * Streaming keeps memory bounded: the image data behind the SOS
-         * marker is transferred in bounded chunks instead of being
-         * buffered as a whole.
-         */
+            /*
+             * Streaming keeps memory bounded: the image data behind the SOS
+             * marker is transferred in bounded chunks instead of being
+             * buffered as a whole.
+             */
             updateMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
 
                 writeSegments(
@@ -290,11 +295,11 @@ public object JpegRewriter {
 
         tryWithImageWriteException {
 
-        /*
-         * Streaming keeps memory bounded: the image data behind the SOS
-         * marker is transferred in bounded chunks instead of being
-         * buffered as a whole.
-         */
+            /*
+             * Streaming keeps memory bounded: the image data behind the SOS
+             * marker is transferred in bounded chunks instead of being
+             * buffered as a whole.
+             */
             updateMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
 
                 writeSegments(

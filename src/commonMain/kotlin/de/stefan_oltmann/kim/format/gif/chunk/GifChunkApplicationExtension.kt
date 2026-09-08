@@ -21,7 +21,6 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.format.gif.GifChunkType
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
-import de.stefan_oltmann.kim.input.readByte
 import de.stefan_oltmann.kim.input.readBytes
 
 /**

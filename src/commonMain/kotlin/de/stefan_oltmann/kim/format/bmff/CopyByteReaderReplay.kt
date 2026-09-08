@@ -1,6 +1,5 @@
 /*
  * Copyright 2026 Stefan Oltmann
- * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,44 +18,40 @@ package de.stefan_oltmann.kim.format.bmff
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 
-internal class CopyByteReader(
-    val byteReader: ByteReader
-) : ByteReader, SelfRetainingByteReader {
+/**
+ * A sequential reader over the bytes a [CopyByteReader] has retained so
+ * far.
+ *
+ * The replay serves every read out of the existing buffer, copying only
+ * the requested range, so repositioning the Samsung layout parse does not
+ * allocate a second full copy of the file.
+ */
+internal class CopyByteReaderReplay(
+    private val retainedBytes: ByteArrayByteWriter
+) : ByteReader {
 
-    private val byteWriter = ByteArrayByteWriter()
+    private var position: Int = 0
 
     override val contentLength: Long =
-        byteReader.contentLength
-
-    fun getBytes(): ByteArray =
-        byteWriter.toByteArray()
-
-    /**
-     * A reader over the bytes retained so far, without copying the whole
-     * buffer a second time. Used to reposition a forward-only parse on an
-     * already buffered prefix, such as the Samsung layout reposition.
-     */
-    fun replayByteReader(): ByteReader =
-        CopyByteReaderReplay(byteWriter)
+        retainedBytes.writtenByteCount.toLong()
 
     override fun readByte(): Byte? {
 
-        val byte = byteReader.readByte() ?: return null
+        val bytes = readBytes(1)
 
-        byteWriter.write(byteArrayOf(byte))
-
-        return byte
+        return bytes.firstOrNull()
     }
 
     override fun readBytes(count: Int): ByteArray {
 
-        val bytes = byteReader.readBytes(count)
+        val result = retainedBytes.getBytesAt(position, count)
 
-        byteWriter.write(bytes)
+        position += result.size
 
-        return bytes
+        return result
     }
 
-    override fun close() =
-        byteReader.close()
+    override fun close() {
+        /* Nothing to do. The retained buffer outlives this replay. */
+    }
 }

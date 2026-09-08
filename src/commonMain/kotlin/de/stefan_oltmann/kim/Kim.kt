@@ -65,11 +65,33 @@ import kotlinx.datetime.TimeZone
  * This library must never destroy metadata. When parsing encounters data
  * that cannot be interpreted, the data itself is always preserved: files
  * are rewritten from the original raw bytes and unknown structures stay
- * untouched inside them. Skipping on read is only acceptable when the
- * skipped data is certainly corrupt or explicitly marked invalid (for
- * example broken preview bytes or out-of-range coordinates). Data that
- * might be valid but is simply not understood must never be dropped or
- * misinterpreted, on read nor on write.
+ * untouched inside them. Data that might be valid but is simply not
+ * understood must never be dropped or misinterpreted, on read nor on write.
+ *
+ * # Strict read policy: fail on anything that cannot be read cleanly
+ *
+ * A read fails with [ImageReadException] when any metadata content that
+ * exists in the file cannot be read cleanly - a truncated record, a corrupt
+ * box, an uninterpretable structure. This holds for every format, including
+ * formats Kim cannot write: even without an embed path, callers write
+ * sidecars (XMP, JSON) from the read result, so a silent partial read loses
+ * data anyway.
+ *
+ * There are exactly two kinds of garbage that may be dropped silently:
+ *
+ * 1. Corrupt embedded thumbnails and preview images: they are always
+ *    restorable from the primary image data, so dropping them is not real
+ *    data loss.
+ *
+ * 2. GPS coordinates that were read cleanly but lie outside the valid
+ *    range: they are physically meaningless.
+ *
+ * Dropping a MakerNote, EXIF, IPTC or XMP content is real data loss and
+ * must fail the read instead. Stopping a parse at the exact boundary where
+ * the file's bytes end inside a structure is clean handling, not a
+ * degradation - provided everything before the boundary is returned
+ * completely, nothing is fabricated from the incomplete remainder, and the
+ * raw bytes survive any rewrite byte-exact.
  *
  * # Read/update symmetry
  *
@@ -84,32 +106,13 @@ import kotlinx.datetime.TimeZone
  * its existing metadata cannot be parsed. Corrupt or invalid files are
  * never touched in any way.
  *
- * # Whitelist: structures exempt from the read/update symmetry rule
+ * # Derived projections
  *
- * The following may degrade silently on read because their rewrite
- * fidelity never depends on whether they can be interpreted:
- *
- * 1. MakerNote blocks: Kim never updates their internals. They are always
- *    preserved byte-exact at their original offset, regardless of
- *    parseability (enforced by MakerNotePreservationTest).
- *
- * 2. Thumbnail and preview images: not user-editable metadata; extracted
- *    for display only and regenerated from the primary image data.
- *
- * 3. GeoTIFF interpretation (GeoTiffDirectory): display-only overlay.
- *    The raw GeoKeyDirectory tag survives every rewrite as a normal field.
- *
- * 4. Invalid GPS ranges and types: coordinates outside the valid sphere
- *    or stored with a wrong TIFF type are physically meaningless. Dropping
- *    them prevents nonsense output; the raw fields survive the rewrite via
- *    TiffOutputSet.
- *
- * 5. MetadataSummaryConverter output: the summary is display-only and is
- *    never used for rewriting. Parse failures in the converter do not
- *    affect rewrite fidelity.
- *
- * 6. Read-only formats (CR3, HEIC, AVIF): no update path exists, so
- *    partial reads cannot create a read/update asymmetry.
+ * [MetadataSummaryConverter][de.stefan_oltmann.kim.common.MetadataSummaryConverter]
+ * builds a display-only view from already-returned metadata. When the raw
+ * XMP packet cannot be parsed, the summary omits the XMP-derived fields;
+ * the raw packet itself stays fully available on the metadata object, so
+ * nothing is lost for sidecar writers, which never consume the summary.
  */
 public object Kim {
 
@@ -123,6 +126,10 @@ public object Kim {
      * Pinning an explicit zone also allows tests to run deterministically
      * on every machine, without hidden test state changing production
      * behavior.
+     *
+     * Set this once before any concurrent read or write: the property is
+     * a plain global without visibility guarantees, so concurrent access
+     * during the assignment could observe a stale zone for one call.
      */
     public var defaultTimeZone: TimeZone? = null
 
@@ -216,19 +223,34 @@ public object Kim {
             if (mediaFormat == MediaFormat.CR3)
                 return@use Cr3PreviewExtractor.extractPreviewImage(prePendingByteReader)
 
-            val reader = DefaultRandomAccessByteReader(prePendingByteReader)
-
-            val tiffContents = TiffReader.read(reader)
-
             return@use when (mediaFormat) {
 
-                MediaFormat.CR2 -> Cr2PreviewExtractor.extractPreviewImage(tiffContents, reader)
+                MediaFormat.CR2 -> {
 
-                MediaFormat.RW2 -> Rw2PreviewExtractor.extractPreviewImage(tiffContents, reader)
+                    val reader = DefaultRandomAccessByteReader(prePendingByteReader)
 
-                MediaFormat.ORF -> OrfPreviewExtractor.extractPreviewImage(tiffContents, reader)
+                    Cr2PreviewExtractor.extractPreviewImage(TiffReader.read(reader), reader)
+                }
+
+                MediaFormat.RW2 -> {
+
+                    val reader = DefaultRandomAccessByteReader(prePendingByteReader)
+
+                    Rw2PreviewExtractor.extractPreviewImage(TiffReader.read(reader), reader)
+                }
+
+                MediaFormat.ORF -> {
+
+                    val reader = DefaultRandomAccessByteReader(prePendingByteReader)
+
+                    OrfPreviewExtractor.extractPreviewImage(TiffReader.read(reader), reader)
+                }
 
                 MediaFormat.TIFF -> {
+
+                    val reader = DefaultRandomAccessByteReader(prePendingByteReader)
+
+                    val tiffContents = TiffReader.read(reader)
 
                     /*
                      * It can now be DNG, NEF or ARW.
@@ -248,6 +270,13 @@ public object Kim {
 
                     null
                 }
+
+                /*
+                 * Formats without a preview concept report NULL. Unknown
+                 * bytes keep the legacy TIFF-parse attempt, which fails
+                 * loudly for them.
+                 */
+                null -> TiffReader.read(DefaultRandomAccessByteReader(prePendingByteReader)).let { null }
 
                 else -> null
             }

@@ -46,6 +46,7 @@ class GifMetadataExtractorTest {
             "Photo $index has not the expected bytes!"
         )
     }
+
     /**
      * A byte that is not a known block introducer must fail the
      * metadata extraction like the full read does. Silently dropping

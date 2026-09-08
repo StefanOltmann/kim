@@ -247,7 +247,7 @@ public class TiffOutputDirectory(
         add(
             TiffOutputField(
                 tag = tagInfo.tag,
-                fieldType = FieldTypeShort,
+                fieldType = FieldTypeSShort,
                 count = 1,
                 bytes = value.toBytes(byteOrder)
             )

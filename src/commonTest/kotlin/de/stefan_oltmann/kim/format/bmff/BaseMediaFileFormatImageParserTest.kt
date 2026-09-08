@@ -25,9 +25,9 @@ import de.stefan_oltmann.kim.output.write2BytesAsInt
 import de.stefan_oltmann.kim.output.writeInt
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 /**

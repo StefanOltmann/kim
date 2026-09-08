@@ -405,6 +405,53 @@ class ExtendedXmpTest {
         assertTrue(extendedData.toByteArray().decodeToString().contains("KEEP"))
     }
 
+    /**
+     * Byte-identical duplicate rdf:Description blocks are legal RDF. The
+     * size-based split must treat every occurrence on its own: removing
+     * the kept blocks by equality would lose the second copy from both
+     * the main packet and the extended data.
+     */
+    @Test
+    fun testPartitionKeepsDuplicateDescriptionOccurrences() {
+
+        /* Two byte-identical mid-size blocks, so only the first fits into
+           the main packet and the second must move to the extended data. */
+        val duplicateBlock =
+            """<rdf:Description rdf:about="" xmlns:custom="http://example.com/custom/">""" +
+                "<custom:Mark>KEEPME</custom:Mark>" +
+                "<custom:Filler>" + "y".repeat(32_700) + "</custom:Filler>" +
+                "</rdf:Description>"
+
+        val hugeXmp =
+            """<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>""" +
+                """<x:xmpmeta xmlns:x="adobe:ns:meta/">""" +
+                """<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">""" +
+                duplicateBlock +
+                duplicateBlock +
+                """<rdf:Description rdf:about="" xmlns:custom="http://example.com/custom/">""" +
+                "<custom:Big>" + "z".repeat(200) + "</custom:Big>" +
+                "</rdf:Description>" +
+                "</rdf:RDF></x:xmpmeta>" +
+                """<?xpacket end="w"?>"""
+
+        val partitioned = ExtendedXmpWriter.partition(hugeXmp)
+
+        /* The main packet keeps exactly one occurrence of the duplicate. */
+        assertEquals(1, partitioned.mainPacketXml.split("KEEPME").size - 1)
+
+        /* The extended data carries the second occurrence and the big block
+           stays in the main packet, so both occurrences survive in total. */
+        val extendedData = ByteArrayByteWriter()
+
+        for (payload in partitioned.extensionSegmentPayloads)
+            extendedData.write(payload.copyOfRange(EXTENDED_XMP_HEADER_BYTES, payload.size))
+
+        val extendedText = extendedData.toByteArray().decodeToString()
+
+        assertEquals(1, extendedText.split("KEEPME").size - 1)
+        assertTrue(partitioned.mainPacketXml.contains("z".repeat(200)))
+    }
+
     /*
      * ------------------------------------------------------------------
      * Fixture helpers

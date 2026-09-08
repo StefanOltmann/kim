@@ -271,12 +271,16 @@ public object GifWriter {
              * computer (it only receives the chunks before the first
              * image), so dropping it here would silently destroy the
              * metadata. An update must fail loudly instead; a deletion
-             * asked for the removal and keeps skipping.
+             * asked for the removal and keeps skipping. Byte-array callers
+             * simply discard their buffered output; streaming callers must
+             * discard what was written so far.
              */
             if (failOnTrailingXmp)
                 throw ImageWriteException(
-                    "The file contains an XMP application extension behind the first " +
-                        "frame, which the update cannot merge. The file was not changed."
+                    "The update cannot merge the XMP application extension " +
+                        "behind the first frame. The source file was not " +
+                        "modified, but the output written so far is incomplete " +
+                        "and must be discarded."
                 )
 
             byteReader.transferExactly(null, remainingFirstSubBlockLength)
@@ -333,6 +337,17 @@ public object GifWriter {
 
             upgradeGif87aHeader(modifiedChunks)
         }
+
+        /*
+         * The XMP is anchored ahead of the first image descriptor. A GIF
+         * without image data therefore has no place for it - and because
+         * all chunks are in memory here, the failure is detected before
+         * any output is written.
+         */
+        if (xmp != null && modifiedChunks.none { it.type == GifChunkType.IMAGE_DESCRIPTOR })
+            throw ImageWriteException(
+                "GIF file has no image data, so the requested XMP cannot be written."
+            )
 
         for (chunk in modifiedChunks) {
 

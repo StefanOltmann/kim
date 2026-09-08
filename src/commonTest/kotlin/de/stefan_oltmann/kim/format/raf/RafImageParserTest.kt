@@ -1,6 +1,5 @@
 /*
  * Copyright 2026 Stefan Oltmann
- * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,43 +15,25 @@
  */
 package de.stefan_oltmann.kim.format.raf
 
-import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class RafMetadataExtractorTest {
-
-    @Test
-    fun testExtractMetadataBytes() {
-
-        val index = KimTestData.RAF_TEST_IMAGE_INDEX
-
-        val bytes = KimTestData.getBytesOf(index)
-
-        val byteReader = ByteArrayByteReader(bytes)
-
-        /* Use the public Kim interface to ensure it works. */
-        val actualMetadataBytes = Kim.extractMetadataBytes(byteReader).second
-
-        val expectedMetadataBytes = KimTestData.getHeaderBytesOf(index)
-
-        assertTrue(
-            expectedMetadataBytes.contentEquals(actualMetadataBytes),
-            "Photo $index has not the expected bytes!"
-        )
-    }
+class RafImageParserTest {
 
     /**
-     * Mirrors the parser guard: a hostile JPEG offset that cannot point
-     * into the file must fail with a targeted message instead of
-     * underflowing into a full-file skip scan.
+     * A hostile JPEG offset that cannot point into the file (zero,
+     * negative or beyond the end) must be rejected with a targeted
+     * message instead of underflowing into a full-file skip scan.
      */
     @Test
-    fun testExtractMetadataBytesRejectsOutOfRangeJpegOffset() {
+    fun testParseRejectsOutOfRangeJpegOffset() {
 
         /* RAF magic ("FUJIFILMCCD-RAW ") + 68 header bytes + offset. */
         val header = "FUJIFILMCCD-RAW ".encodeToByteArray() + ByteArray(68 + 4)
@@ -60,12 +41,24 @@ class RafMetadataExtractorTest {
         val bytes = header + "jpeg".encodeToByteArray()
 
         val exception = assertFailsWith<ImageReadException> {
-            Kim.extractMetadataBytes(ByteArrayByteReader(bytes))
+            RafImageParser.parseMetadata(ByteArrayByteReader(bytes))
         }
 
         assertTrue(
             exception.message?.contains("out of range") == true,
             "Unexpected message: ${exception.message}"
         )
+    }
+
+    @Test
+    fun testParseMetadataReadsTheEmbeddedJpegExif() {
+
+        val bytes = KimTestData.getBytesOf(KimTestData.RAF_TEST_IMAGE_INDEX)
+
+        val metadata = RafImageParser.parseMetadata(ByteArrayByteReader(bytes))
+
+        assertEquals(MediaFormat.RAF, metadata.mediaFormat)
+
+        assertNotNull(metadata.exif)
     }
 }

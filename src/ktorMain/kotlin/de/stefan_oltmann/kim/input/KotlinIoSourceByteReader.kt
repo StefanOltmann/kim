@@ -21,7 +21,6 @@ import kotlinx.io.Source
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
-import kotlinx.io.readByteArray
 
 /**
  * A ByteReader that reads from a kotlinx.io Source.
@@ -32,16 +31,6 @@ public class KotlinIoSourceByteReader(
 ) : ByteReader {
 
     private var position: Long = 0
-
-    /*
-     * Attention: `Source.remaining` returns 0 for unbuffered or streaming sources,
-     * so we need this to be specified.
-     *
-     * Computed in Long space, because declared sizes beyond the signed Int
-     * range would wrap around into a negative count otherwise.
-     */
-    private val remainingByteCount: Long
-        get() = (contentLength - position).coerceAtLeast(0L)
 
     override fun readByte(): Byte? {
 
@@ -57,11 +46,29 @@ public class KotlinIoSourceByteReader(
 
         require(count >= 0) { "Count must not be negative: $count" }
 
-        val bytes = source.readByteArray(minOf(count.toLong(), remainingByteCount).toInt())
+        /*
+         * Byte-at-a-time, terminating at the real source EOF: the
+         * contentLength is a caller-provided hint that must never gate
+         * the reads (a hint of 0 would report "no data" for a valid
+         * source, an overstated hint would make exact-count reads throw).
+         * Metadata chunks are small, so the per-byte loop cost is
+         * negligible; image data is streamed via transferExactly.
+         */
+        val result = ByteArray(count)
 
-        position += bytes.size
+        var filled = 0
 
-        return bytes
+        while (filled < count) {
+
+            if (source.exhausted())
+                break
+
+            result[filled++] = source.readByte()
+        }
+
+        position += filled
+
+        return if (filled == count) result else result.copyOf(filled)
     }
 
     override fun close(): Unit =

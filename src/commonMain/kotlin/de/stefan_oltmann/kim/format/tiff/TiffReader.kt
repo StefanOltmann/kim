@@ -37,11 +37,13 @@ import de.stefan_oltmann.kim.format.tiff.makernote.MakerNoteParseResult
 import de.stefan_oltmann.kim.format.tiff.makernote.apple.AppleMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.canon.CanonMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.fujifilm.FujiFilmMakerNoteHandler
+import de.stefan_oltmann.kim.format.tiff.makernote.leica.LeicaMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.nikon.NikonMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.olympus.OlympusMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.panasonic.PanasonicMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.pentax.PentaxMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.ricoh.RicohMakerNoteHandler
+import de.stefan_oltmann.kim.format.tiff.makernote.sigma.SigmaMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.sony.SonyMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoLong
@@ -539,13 +541,14 @@ public object TiffReader {
                 getFieldType(type)
             } catch (ignore: ImageReadException) {
                 /*
-                 * Skip over unknown field types, since we can't calculate
-                 * their size without knowing their type.
-                 *
-                 * Except for fields that a rewrite cannot afford to lose.
+                 * Unknown field types cannot be sized or read. Per the
+                 * strict read policy the read fails instead of silently
+                 * dropping the field (and thus its content from any
+                 * rewrite).
                  */
-                rejectUnreadableMakerNote(tag)
-                continue
+                throw ImageReadException(
+                    "Unknown TIFF field type $type for tag $tag."
+                )
             }
 
             /*
@@ -832,6 +835,12 @@ public object TiffReader {
 
                 make.startsWith("SONY", ignoreCase = true) ->
                     SonyMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+
+                make.contains("LEICA", ignoreCase = true) ->
+                    LeicaMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+
+                make.startsWith("SIGMA", ignoreCase = true) ->
+                    SigmaMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
             }
         } catch (_: Exception) {
 
@@ -844,36 +853,26 @@ public object TiffReader {
 
     /**
      * Parses the GeoTIFF directory from the GeoKeyDirectory tag of the
-     * given directories, or returns null when the tag is missing.
+     * given directories, or returns null when the tag is missing or
+     * stored with a type other than SHORT.
      *
-     * Failures are silent, because GeoTIFF interpretation is optional.
+     * Parse failures propagate per the strict read policy in the [Kim]
+     * documentation: the GeoKeyDirectory exists in the file, so silently
+     * dropping it would lose structured metadata to sidecar writers.
      */
     private fun tryToParseGeoTiff(
         directories: MutableList<TiffDirectory>
     ): GeoTiffDirectory? {
 
-        try {
+        val geoTiffDirectoryField = TiffDirectory.findTiffField(
+            directories,
+            GeoTiffTag.EXIF_TAG_GEO_KEY_DIRECTORY_TAG
+        ) ?: return null
 
-            val geoTiffDirectoryField = TiffDirectory.findTiffField(
-                directories,
-                GeoTiffTag.EXIF_TAG_GEO_KEY_DIRECTORY_TAG
-            ) ?: return null
+        val shorts = geoTiffDirectoryField.value as? ShortArray
+            ?: return null
 
-            val shorts = geoTiffDirectoryField.value as? ShortArray
-
-            if (shorts != null)
-                return GeoTiffDirectory.parseFrom(shorts)
-
-            return null
-
-        } catch (ignore: Exception) {
-
-            /*
-             * Be silent here as GeoTiff interpretation is not essential.
-             */
-
-            return null
-        }
+        return GeoTiffDirectory.parseFrom(shorts)
     }
 }
 

@@ -21,7 +21,7 @@ public class Main {
         System.out.println(imageMetadata);
 
         try (ByteReader byteReader =
-            new JvmInputStreamByteReader(new FileInputStream(testFile), testFile.length())) {
+                 new JvmInputStreamByteReader(new FileInputStream(testFile), testFile.length())) {
 
             ByteArrayByteWriter byteWriter = new ByteArrayByteWriter();
 

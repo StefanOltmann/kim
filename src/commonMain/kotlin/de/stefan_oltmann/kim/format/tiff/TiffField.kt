@@ -26,9 +26,9 @@ import de.stefan_oltmann.kim.common.toInvariantString
 import de.stefan_oltmann.kim.common.toSingleNumberHexes
 import de.stefan_oltmann.kim.format.tiff.TiffTags.getTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldType
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeSByte
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeSShort
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeShort
-import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeSByte
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoGpsText
 
@@ -78,12 +78,12 @@ public class TiffField(
 
     public val value: Any = if (tagInfo is TagInfoGpsText)
 
-        /*
-         * A single hostile GPS text field (e.g. a UserComment with a LONG
-         * type) must not fail the whole directory. Like every other
-         * per-entry corruption it is skipped by falling back to the
-         * generic type decode.
-         */
+    /*
+     * A single hostile GPS text field (e.g. a UserComment with a LONG
+     * type) must not fail the whole directory. Like every other
+     * per-entry corruption it is skipped by falling back to the
+     * generic type decode.
+     */
         try {
             tagInfo.getValue(this)
         } catch (_: ImageReadException) {
@@ -276,7 +276,7 @@ public class TiffField(
      * values (count == 0) or a type that cannot be converted.
      */
     public fun toShort(): Short? = when (value) {
-        is ByteArray -> value.firstOrNull()?.toShort()
+        is ByteArray -> value.firstOrNull()?.toShortByFieldType()
         is ShortArray -> value.firstOrNull()
         is IntArray -> value.firstOrNull()?.toShort()
         else -> (value as? Number)?.toShort()
@@ -289,7 +289,7 @@ public class TiffField(
     public fun toDouble(): Double? = when (value) {
         is RationalNumbers -> value.values.firstOrNull()?.doubleValue()
         is RationalNumber -> value.doubleValue()
-        is ByteArray -> value.firstOrNull()?.toDouble()
+        is ByteArray -> value.firstOrNull()?.toIntByFieldType()?.toDouble()
         is ShortArray -> value.firstOrNull()?.toIntByFieldType()?.toDouble()
         is IntArray -> value.firstOrNull()?.toDouble()
         is FloatArray -> value.firstOrNull()?.toDouble()
@@ -322,6 +322,12 @@ public class TiffField(
             toInt()
         else
             toUByte().toInt()
+
+    /**
+     * Interprets this [Byte] according to the field type of this [TiffField],
+     * mirroring [toIntByFieldType] for Short results.
+     */
+    private fun Byte.toShortByFieldType(): Short = toIntByFieldType().toShort()
 
     /*
      * Note that we need to show the local 'tagFormatted', because

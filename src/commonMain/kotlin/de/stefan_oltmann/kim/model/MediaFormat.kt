@@ -208,7 +208,16 @@ public enum class MediaFormat(
                 /* JXL naked codestream (without ISOBMFF container) */
                 bytes.startsWith(MediaFormatMagicNumbers.jxlCodeStream) -> JXL
 
-                /* Check HEIC variants */
+                /*
+                 * Check HEIC variants.
+                 *
+                 * Attention: A mif1 major brand with an avif compatible
+                 * brand is an AVIF, but the compatible brands sit behind
+                 * the 16-byte detection window. Distinguishing the two
+                 * would need a bigger header, so such files are labeled
+                 * HEIC - parsing is identical, only the label is a
+                 * heuristic for this brand.
+                 */
                 bytes.startsWithNullable(MediaFormatMagicNumbers.heic) -> HEIC
                 bytes.startsWithNullable(MediaFormatMagicNumbers.mif1) -> HEIC
                 bytes.startsWithNullable(MediaFormatMagicNumbers.msf1) -> HEIC

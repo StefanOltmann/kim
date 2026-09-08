@@ -16,8 +16,6 @@
  */
 package de.stefan_oltmann.kim.input
 
-import kotlin.math.min
-
 /**
  * ByteArray backed ByteReader
  *

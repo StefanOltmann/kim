@@ -160,7 +160,8 @@ public class TiffWriter(
          * vendor-specific offsets.
          */
         if (makerNoteItem != null && makerNoteAnchor != null &&
-            makerNoteItem.offset != makerNoteAnchor)
+            makerNoteItem.offset != makerNoteAnchor
+        )
             throw ImageWriteException(
                 "The MakerNote moved from 0x${makerNoteAnchor.toString(HEX_RADIX)} " +
                     "to 0x${makerNoteItem.offset.toString(HEX_RADIX)}."

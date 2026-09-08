@@ -107,6 +107,9 @@ public data class GeoTiffDirectory(
              */
             val numberOfKeys = shorts[3]
 
+            if (numberOfKeys < 0)
+                throw ImageReadException("Negative NumberOfKeys: $numberOfKeys")
+
             /*
              * Each key occupies 4 shorts behind the header, so a count
              * claiming more keys than the array holds is corrupt.

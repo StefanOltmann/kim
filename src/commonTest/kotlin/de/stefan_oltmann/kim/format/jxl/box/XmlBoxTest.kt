@@ -15,11 +15,10 @@
  */
 package de.stefan_oltmann.kim.format.jxl.box
 
-import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.jxl.JxlReader
-import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
 import kotlin.test.assertFailsWith

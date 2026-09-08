@@ -34,6 +34,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class TiffFieldMethodsTest {
@@ -63,6 +64,28 @@ class TiffFieldMethodsTest {
 
         assertEquals("0000000000", tiffField.offsetFormatted)
         assertEquals("0x0100", tiffField.tagFormatted)
+    }
+
+    /**
+     * The TIFF BYTE type is unsigned in all converters: the sign-aware
+     * widening of [TiffField.toInt] must extend to [TiffField.toShort] and
+     * [TiffField.toDouble], so the same field cannot report contradictory
+     * values (240 and -16) depending on the method called.
+     */
+    @Test
+    fun testToShortAndToDoubleWidenByteUnsigned() {
+
+        val byteField = field(0x0158, FieldTypeByte, byteArrayOf(0xF0.toByte()))
+
+        assertEquals(240, byteField.toInt())
+        assertEquals(240.toShort(), byteField.toShort())
+        assertEquals(240.0, byteField.toDouble())
+
+        val sbyteField = field(0x0159, FieldTypeSByte, byteArrayOf(0x90.toByte()))
+
+        assertEquals(-112, sbyteField.toInt())
+        assertEquals((-112).toShort(), sbyteField.toShort())
+        assertEquals(-112.0, sbyteField.toDouble())
     }
 
     @Test
@@ -217,7 +240,7 @@ class TiffFieldMethodsTest {
 
         val tiffField = field(0x9999, FieldTypeLong, byteArrayOf(0, 0, 0, 1))
 
-        assertTrue(tiffField.tagInfo == null)
+        assertNull(tiffField.tagInfo)
         assertTrue(tiffField.toString().contains("Unknown"))
     }
 

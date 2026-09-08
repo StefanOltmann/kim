@@ -22,7 +22,6 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.toInt
 import de.stefan_oltmann.kim.common.toInts
-import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag

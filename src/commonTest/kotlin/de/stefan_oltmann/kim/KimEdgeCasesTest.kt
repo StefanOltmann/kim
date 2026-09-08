@@ -20,6 +20,7 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
+import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -115,5 +116,19 @@ class KimEdgeCasesTest {
                 ByteArrayByteReader(unknownFormatBytes)
             )
         }
+    }
+
+    /**
+     * Formats without a preview concept - everything except RAF, CR3 and
+     * the TIFF family - must report NULL instead of failing inside the
+     * TIFF header validation.
+     */
+    @Test
+    fun testExtractPreviewImageFromJpegReturnsNull() {
+
+        /* A plain JPEG test image. */
+        val bytes = KimTestData.getBytesOf(2)
+
+        assertNull(Kim.extractPreviewImage(ByteArrayByteReader(bytes)))
     }
 }

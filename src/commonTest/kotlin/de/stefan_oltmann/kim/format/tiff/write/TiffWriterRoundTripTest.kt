@@ -26,13 +26,14 @@ import de.stefan_oltmann.kim.format.tiff.TiffField
 import de.stefan_oltmann.kim.format.tiff.TiffHeader
 import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
-import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeAscii
-import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong
-import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeUndefined
 import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeAscii
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeSShort
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeUndefined
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoDouble
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoDoubles
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoFloat
@@ -95,6 +96,38 @@ class TiffWriterRoundTripTest {
 
     private val tagInfoDoubles =
         TagInfoDoubles(customTagBase + 11, "CustomDoubles", 2, TiffDirectoryType.TIFF_DIRECTORY_IFD0)
+
+    /**
+     * SSHORT values must be written with the TIFF field type 8. The type
+     * byte decides how spec-conforming readers interpret the sign: written
+     * as type 3 (SHORT), -300 reads back as 65236.
+     */
+    @Test
+    fun testAddSShortWritesFieldTypeSShort() {
+
+        val outputSet = TiffOutputSet(ByteOrder.LITTLE_ENDIAN)
+
+        val rootDirectory = outputSet.getOrCreateRootDirectory()
+
+        rootDirectory.add(tagInfoSShort, (-300).toShort())
+
+        val byteWriter = ByteArrayByteWriter()
+
+        TiffWriter(ByteOrder.LITTLE_ENDIAN).write(byteWriter, outputSet)
+
+        val field = TiffReader.read(byteWriter.toByteArray())
+            .findTiffDirectory(TiffConstants.TIFF_DIRECTORY_TYPE_IFD0)
+            ?.findField(tagInfoSShort)
+
+        assertNotNull(field)
+
+        assertEquals(FieldTypeSShort.type, field.fieldType.type)
+
+        assertEquals(
+            expected = -300,
+            actual = (field.value as ShortArray).first().toInt()
+        )
+    }
 
     @Test
     fun testWriteAndReadBackAllFieldTypes() {
@@ -470,7 +503,7 @@ class TiffWriterRoundTripTest {
 
         /* UserComment with a UNICODE encoding prefix, as cameras write it. */
         val userCommentBytes =
-            "UNICODE ".encodeToByteArray() + byteArrayOf(0x3E, 0x00, 0x2C, 0x00)
+            "UNICODE\u0000".encodeToByteArray() + byteArrayOf(0x3E, 0x00, 0x2C, 0x00)
 
         val artistField = TiffField(
             offset = 0,

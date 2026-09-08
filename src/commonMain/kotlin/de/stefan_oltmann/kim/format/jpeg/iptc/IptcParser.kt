@@ -23,9 +23,9 @@ import de.stefan_oltmann.kim.common.decodeLatin1BytesToString
 import de.stefan_oltmann.kim.common.slice
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toInt
-import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.common.toUInt8
+import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcTypes.Companion.getIptcType
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
@@ -152,15 +152,16 @@ public object IptcParser {
 
                 if (recordSize < 0)
                     return records
-
-                /*
-                 * The record length is file-controlled. A length larger than
-                 * the remaining data terminates parsing instead of overflowing
-                 * the index on the next loop iteration.
-                 */
-                if (recordSize > bytes.size - index)
-                    return records
             }
+
+            /*
+             * The record length is file-controlled. A length larger than the
+             * remaining data means the record is incomplete: terminate parsing
+             * and keep what was parsed so far, instead of emitting a silently
+             * shortened value or overflowing the index on the next iteration.
+             */
+            if (recordSize > bytes.size - index)
+                return records
 
             val recordData = bytes.slice(index, recordSize)
 

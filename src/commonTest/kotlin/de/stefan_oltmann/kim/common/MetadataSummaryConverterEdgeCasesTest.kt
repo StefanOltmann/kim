@@ -41,6 +41,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
@@ -168,6 +169,42 @@ class MetadataSummaryConverterEdgeCasesTest {
         )
     }
 
+    /**
+     * Zeroed EXIF rationals (0/0, 1/0) yield NaN/Infinity. The summary
+     * must omit them like the Nikon lens values already do - NaN would
+     * break JSON sidecars and render as garbage.
+     */
+    @Test
+    fun testNonFiniteCaptureRationalsAreOmitted() {
+
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.JPEG,
+            imageSize = null,
+            exif = tiffContents(
+                field(
+                    ExifTag.EXIF_TAG_EXPOSURE_TIME,
+                    byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0),
+                    fieldType = FieldTypeRational,
+                    count = 1
+                ),
+                field(
+                    ExifTag.EXIF_TAG_FNUMBER,
+                    byteArrayOf(0, 0, 0, 1),
+                    fieldType = FieldTypeRational,
+                    count = 1
+                )
+            ),
+            exifBytes = null,
+            iptc = null,
+            xmp = null
+        )
+
+        val summary = metadata.convertToSummary()
+
+        assertNull(summary.exposureTime)
+        assertNull(summary.fNumber)
+    }
+
     @Test
     fun testIgnoreOrientation() {
 
@@ -196,6 +233,50 @@ class MetadataSummaryConverterEdgeCasesTest {
             expected = TiffOrientation.STANDARD,
             actual = metadata.convertToSummary(ignoreOrientation = true).orientation
         )
+    }
+
+    /**
+     * A summary with [ignoreBrokenXmp] omits XMP fields from a malformed
+     * packet and continues building the rest of the summary.
+     */
+    @Test
+    fun testCorruptXmpIsOmittedFromTheSummary() {
+
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.JPEG,
+            imageSize = null,
+            exif = null,
+            exifBytes = null,
+            iptc = null,
+            xmp = "<x:xmpmeta><broken"
+        )
+
+        val summary = metadata.convertToSummary(ignoreBrokenXmp = true)
+
+        /* The corrupt packet contributes nothing, including no taken date. */
+        assertNull(summary.takenDate)
+        assertNull(summary.title)
+    }
+
+    /**
+     * By default a malformed XMP packet is re-packed into an
+     * [ImageReadException] so callers are informed about the corrupt data.
+     */
+    @Test
+    fun testCorruptXmpThrowsImageReadException() {
+
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.JPEG,
+            imageSize = null,
+            exif = null,
+            exifBytes = null,
+            iptc = null,
+            xmp = "<x:xmpmeta><broken"
+        )
+
+        assertFailsWith<ImageReadException> {
+            metadata.convertToSummary()
+        }
     }
 
     @Test
