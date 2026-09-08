@@ -72,6 +72,14 @@ public object XmpWriter {
                 } else {
 
                     deleteDateTimeOriginal()
+
+                    /*
+                     * External writers (Lightroom & Co.) store both date
+                     * properties; leaving the digitized date behind would
+                     * contradict the deletion on the sidecar and embedded
+                     * XMP.
+                     */
+                    deleteProperty(XMPConst.NS_EXIF, "DateTimeDigitized")
                 }
             }
 
@@ -212,6 +220,8 @@ public object XmpWriter {
     }
 
     /**
+     * Convenience overload for applying a single update.
+     *
      * Note: Parameter 'writePackageWrapper' should be "true" for embedded XMP.
      */
     @Throws(XMPException::class)
