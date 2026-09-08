@@ -18,6 +18,7 @@ package de.stefan_oltmann.kim.format.cr3
 
 import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
@@ -28,7 +29,6 @@ import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.bmff.box.MovieBox
 import de.stefan_oltmann.kim.format.bmff.box.TrackBox
-import de.stefan_oltmann.kim.format.bmff.box.UuidBox
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.read4BytesAsInt
@@ -56,6 +56,12 @@ public object Cr3PreviewExtractor {
 
     /* Skip size */
     private const val PRVW_SIZE_BYTES = 4
+
+    /* The 64-bit largesize field extends the box header. */
+    private const val LARGE_SIZE_FIELD_LENGTH = 8L
+
+    /* The vendor UUID at the start of every UUID box payload. */
+    private const val UUID_LENGTH_BYTES = 16
 
     /* Skip not interesting bytes */
     private const val PRVW_HEADER_BYTES = 12
@@ -270,6 +276,11 @@ public object Cr3PreviewExtractor {
     /**
      * Extracts an JPG with an resoltion of 1620 x 1080
      *
+     * The box walk streams like in [extractFullSizePreviewImage]: the mdat
+     * payload is skipped in bounded chunks and only the payload of the
+     * Canon preview UUID box is buffered, so memory stays flat no matter
+     * how large the video data of the CR3 is.
+     *
      * See https://github.com/lclevy/canon_cr3?tab=readme-ov-file#prvw-preview
      */
     @Throws(ImageReadException::class)
@@ -278,16 +289,74 @@ public object Cr3PreviewExtractor {
         byteReader: ByteReader
     ): ByteArray? = tryWithImageReadException {
 
-        val allBoxes = BoxReader.readBoxes(
-            byteReader = byteReader,
-            stopAfterMetadataRead = false
-        )
+        var previewBytes: ByteArray? = null
 
-        val previewUuidBox = allBoxes.filterIsInstance<UuidBox>().find {
-            it.uuidAsHex == Cr3Reader.CR3_PREVIEW_UUID
-        } ?: return@tryWithImageReadException null
+        var position = 0L
 
-        val payloadReader = ByteArrayByteReader(previewUuidBox.data)
+        while (previewBytes == null) {
+
+            val header = readTopLevelBoxHeader(byteReader, position) ?: break
+
+            if (header.type == BoxType.UUID) {
+
+                /*
+                 * The first payload bytes identify the vendor extension.
+                 * Only the Canon preview extension is buffered; every
+                 * other UUID box is skipped, exactly like the box object
+                 * filter did before.
+                 */
+                val uuidBytes = byteReader.readBytes("uuid", UUID_LENGTH_BYTES)
+
+                previewBytes =
+                    if (uuidBytes.toHex() == Cr3Reader.CR3_PREVIEW_UUID)
+                        parsePrvwPreview(
+                            readPreviewPayload(
+                                byteReader = byteReader,
+                                dataLength = header.dataSize - UUID_LENGTH_BYTES
+                            )
+                        )
+                    else
+                        byteReader.skipBytes(
+                            "uuid box data",
+                            header.dataSize - UUID_LENGTH_BYTES
+                        ).let { null }
+            } else {
+
+                byteReader.skipBytes("box data", header.dataSize)
+            }
+
+            position = header.boxOffset + header.size
+        }
+
+        return@tryWithImageReadException previewBytes
+    }
+
+    /**
+     * Buffers the preview payload behind the UUID. A payload that cannot
+     * fit into a buffer is corrupt for a preview box and fails the read.
+     */
+    private fun readPreviewPayload(
+        byteReader: ByteReader,
+        dataLength: Long
+    ): ByteArray {
+
+        if (dataLength < 0 || dataLength > Int.MAX_VALUE)
+            throw ImageReadException(
+                "The CR3 preview box is too large to buffer: $dataLength bytes."
+            )
+
+        return byteReader.readBytes("preview payload", dataLength.toInt())
+    }
+
+    /**
+     * Parses the preview JPEG out of a Canon PRVW UUID box payload.
+     *
+     * A wrong marker fails the read loudly; a truncated or non-JPEG
+     * payload degrades to NULL like in the other extractors.
+     */
+    private fun parsePrvwPreview(data: ByteArray): ByteArray? {
+
+        val payloadReader = ByteArrayByteReader(data)
 
         /* Skip unknown bytes */
         payloadReader.skipBytes("", PRVW_UNKNOWN_BYTES)
@@ -310,16 +379,16 @@ public object Cr3PreviewExtractor {
          * truncated. The raw read would silently return a short array.
          */
         if (jpegSize <= 0 ||
-            jpegSize > previewUuidBox.data.size - PRVW_BYTES_BEFORE_JPEG
+            jpegSize > data.size - PRVW_BYTES_BEFORE_JPEG
         )
-            return@tryWithImageReadException null
+            return null
 
         val jpegBytes = payloadReader.readBytes("jpegBytes", jpegSize)
 
         /* Only real JPEGs are previews - like in the other extractors. */
         if (!jpegBytes.startsWith(MediaFormatMagicNumbers.jpeg))
-            return@tryWithImageReadException null
+            return null
 
-        return@tryWithImageReadException jpegBytes
+        return jpegBytes
     }
 }
