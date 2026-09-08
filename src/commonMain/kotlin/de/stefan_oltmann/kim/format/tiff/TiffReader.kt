@@ -852,36 +852,26 @@ public object TiffReader {
 
     /**
      * Parses the GeoTIFF directory from the GeoKeyDirectory tag of the
-     * given directories, or returns null when the tag is missing.
+     * given directories, or returns null when the tag is missing or
+     * stored with a type other than SHORT.
      *
-     * Failures are silent, because GeoTIFF interpretation is optional.
+     * Parse failures propagate per the strict read policy in the [Kim]
+     * documentation: the GeoKeyDirectory exists in the file, so silently
+     * dropping it would lose structured metadata to sidecar writers.
      */
     private fun tryToParseGeoTiff(
         directories: MutableList<TiffDirectory>
     ): GeoTiffDirectory? {
 
-        try {
+        val geoTiffDirectoryField = TiffDirectory.findTiffField(
+            directories,
+            GeoTiffTag.EXIF_TAG_GEO_KEY_DIRECTORY_TAG
+        ) ?: return null
 
-            val geoTiffDirectoryField = TiffDirectory.findTiffField(
-                directories,
-                GeoTiffTag.EXIF_TAG_GEO_KEY_DIRECTORY_TAG
-            ) ?: return null
+        val shorts = geoTiffDirectoryField.value as? ShortArray
+            ?: return null
 
-            val shorts = geoTiffDirectoryField.value as? ShortArray
-
-            if (shorts != null)
-                return GeoTiffDirectory.parseFrom(shorts)
-
-            return null
-
-        } catch (ignore: Exception) {
-
-            /*
-             * Be silent here as GeoTiff interpretation is not essential.
-             */
-
-            return null
-        }
+        return GeoTiffDirectory.parseFrom(shorts)
     }
 }
 
