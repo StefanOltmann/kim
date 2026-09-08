@@ -84,20 +84,7 @@ public object TiffImageParser : ImageParser {
         val exifBytes = extractExifBytesFromJpegForMakerNote(jpegBytes)
             ?: return tiffContents
 
-        val previewTiffContents = try {
-
-            TiffReader.read(exifBytes)
-
-        } catch (_: Exception) {
-
-            /*
-             * Skip the unreadable embedded JPEG.
-             *
-             * Like ExifTool, the MakerNote is kept as an opaque
-             * binary block in this case.
-             */
-            return tiffContents
-        }
+        val previewTiffContents = TiffReader.read(exifBytes)
 
         val makerNoteDirectory = previewTiffContents.makerNoteDirectory
             ?: return tiffContents
@@ -117,22 +104,9 @@ public object TiffImageParser : ImageParser {
      */
     private fun extractExifBytesFromJpegForMakerNote(jpegBytes: ByteArray): ByteArray? {
 
-        val segments = try {
-
-            JpegSegmentAnalyzer.findSegmentInfos(
-                ByteArrayByteReader(jpegBytes)
-            )
-
-        } catch (_: Exception) {
-
-            /*
-             * Skip the unreadable embedded JPEG.
-             *
-             * Like ExifTool, the MakerNote is kept as an opaque
-             * binary block in this case.
-             */
-            return null
-        }
+        val segments = JpegSegmentAnalyzer.findSegmentInfos(
+            ByteArrayByteReader(jpegBytes)
+        )
 
         val exifSegment = segments.firstOrNull { info ->
 
