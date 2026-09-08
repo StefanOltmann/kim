@@ -79,14 +79,14 @@ public class DefaultRandomAccessByteReader(
             return byteArrayOf()
 
         /*
-         * Computed in Long space and capped at the Int range, so a huge
-         * count combined with a content length beyond the signed Int
-         * range cannot wrap the end index into a negative value.
+         * Capped at the Int range in addition to the content length, so a
+         * huge count can never produce a target beyond the addressable
+         * buffer space.
          */
-        val targetIndex = minOf(
-            currentPosition.toLong() + count,
-            contentLength,
-            Int.MAX_VALUE.toLong()
+        val targetIndex = clampedEndIndex(
+            fromIndex = currentPosition.toLong(),
+            count = count.toLong(),
+            limit = minOf(contentLength, Int.MAX_VALUE.toLong())
         )
 
         /*
@@ -95,7 +95,7 @@ public class DefaultRandomAccessByteReader(
          */
         while (bufferPosition < targetIndex) {
 
-            val stepEnd = minOf(targetIndex, buffer.size.toLong() + BUFFER_EXPANSION).toInt()
+            val stepEnd = minOf(targetIndex.toLong(), buffer.size.toLong() + BUFFER_EXPANSION).toInt()
 
             readToIndex(stepEnd)
 
@@ -108,7 +108,7 @@ public class DefaultRandomAccessByteReader(
         if (currentPosition >= bufferPosition)
             return byteArrayOf()
 
-        val endIndex = minOf(targetIndex, bufferPosition.toLong()).toInt()
+        val endIndex = minOf(targetIndex, bufferPosition)
 
         val bytes = buffer.copyOfRange(currentPosition, endIndex)
 
@@ -146,11 +146,11 @@ public class DefaultRandomAccessByteReader(
         if (offset.toLong() >= contentLength)
             return byteArrayOf()
 
-        /*
-         * Computed in Long space, so a hostile size cannot overflow the
-         * addition back into a small or negative end index.
-         */
-        val endIndex = minOf(offset.toLong() + length, contentLength).toInt()
+        val endIndex = clampedEndIndex(
+            fromIndex = offset.toLong(),
+            count = length.toLong(),
+            limit = contentLength
+        )
 
         if (endIndex > bufferPosition)
             readToIndex(endIndex)

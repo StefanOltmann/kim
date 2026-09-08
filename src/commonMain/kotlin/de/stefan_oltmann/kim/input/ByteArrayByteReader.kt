@@ -44,22 +44,11 @@ public class ByteArrayByteReader(
     override fun readBytes(count: Int): ByteArray {
         require(count >= 0) { "Count must not be negative: $count" }
 
-        if (currentPosition >= bytes.size)
-            return byteArrayOf()
-
-        /*
-         * Computed in Long space, so a hostile count cannot overflow the
-         * addition into a wrapped-around range that would crash
-         * copyOfRange. Mirrors DefaultRandomAccessByteReader.
-         */
-        val targetToIndex = minOf(
-            currentPosition.toLong() + count,
-            bytes.size.toLong()
-        ).toInt()
-
-        val result = bytes.copyOfRange(
-            fromIndex = currentPosition,
-            toIndex = targetToIndex
+        val result = copyClamped(
+            source = bytes,
+            fromIndex = currentPosition.toLong(),
+            count = count.toLong(),
+            limit = bytes.size.toLong()
         )
 
         currentPosition += result.size
@@ -81,17 +70,12 @@ public class ByteArrayByteReader(
         require(offset >= 0) { "Offset must be positive: $offset" }
         require(length > 0) { "Length must be positive: $length" }
 
-        if (offset.toLong() >= contentLength)
-            return byteArrayOf()
-
-        /*
-         * Computed in Long space, so a hostile size cannot overflow the
-         * addition back into a small or negative end index that would
-         * slip through the bounds check and crash copyOfRange.
-         */
-        val endIndex = minOf(offset.toLong() + length, contentLength).toInt()
-
-        return bytes.copyOfRange(offset, endIndex)
+        return copyClamped(
+            source = bytes,
+            fromIndex = offset.toLong(),
+            count = length.toLong(),
+            limit = contentLength
+        )
     }
 
     override fun close() {
