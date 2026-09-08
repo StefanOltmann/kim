@@ -146,6 +146,16 @@ kotlin {
             sourceCompatibility = JavaVersion.VERSION_11
             targetCompatibility = JavaVersion.VERSION_11
         }
+
+        /*
+         * Without this pin the emitted bytecode follows the JDK running
+         * the build, so the published jar's minimum JVM requirement
+         * drifted with the build machine (sourceCompatibility alone has
+         * no effect on Kotlin compilation).
+         */
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_11)
+        }
     }
 
     js {
