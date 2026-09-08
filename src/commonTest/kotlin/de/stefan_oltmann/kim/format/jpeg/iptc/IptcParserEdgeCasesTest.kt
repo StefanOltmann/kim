@@ -256,6 +256,30 @@ class IptcParserEdgeCasesTest {
     }
 
     /**
+     * A standard record whose file-controlled length exceeds the remaining
+     * block bytes is incomplete. Terminating keeps what was parsed instead
+     * of emitting a silently shortened value as if it were the truth.
+     */
+    @Test
+    fun testParseStandardRecordBeyondRemainingData() {
+
+        /* ObjectName record declaring 64 data bytes - only 7 remain. */
+        val recordBytes = byteArrayOf(
+            IptcConstants.IPTC_RECORD_TAG_MARKER.toByte(),
+            IptcConstants.IPTC_APPLICATION_2_RECORD_NUMBER.toByte(),
+            25,
+            0x00, 0x40
+        ) + "partial".encodeToByteArray()
+
+        val metadata = IptcParser.parseIptc(
+            bytes = wrapIn8BimBlock(recordBytes),
+            startsWithApp13Header = false
+        )
+
+        assertTrue(metadata.records.isEmpty())
+    }
+
+    /**
      * The block name is a Pascal string whose length byte is unsigned per
      * the Photoshop IRB spec. A length above 127 must be read as the
      * unsigned value, or the whole block - and everything after it - is
