@@ -21,8 +21,8 @@ import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
-import de.stefan_oltmann.kim.output.writeInt
 import de.stefan_oltmann.kim.output.write2BytesAsInt
+import de.stefan_oltmann.kim.output.writeInt
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

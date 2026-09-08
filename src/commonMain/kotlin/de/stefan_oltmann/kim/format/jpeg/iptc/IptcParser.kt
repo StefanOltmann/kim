@@ -23,9 +23,9 @@ import de.stefan_oltmann.kim.common.decodeLatin1BytesToString
 import de.stefan_oltmann.kim.common.slice
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toInt
-import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.common.toUInt8
+import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcTypes.Companion.getIptcType
 import de.stefan_oltmann.kim.input.ByteArrayByteReader

@@ -16,8 +16,8 @@
  */
 package de.stefan_oltmann.kim.format.raf
 
-import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test

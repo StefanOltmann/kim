@@ -520,12 +520,14 @@ class Cr3PreviewExtractorTest {
                 delivered++
                 return bytes[delivered - 1]
             }
+
             override fun readBytes(count: Int): ByteArray {
                 val end = minOf(delivered + count, cutPosition)
                 val result = bytes.copyOfRange(delivered, end)
                 delivered = end
                 return result
             }
+
             override fun close() {
                 /* Nothing to do. */
             }

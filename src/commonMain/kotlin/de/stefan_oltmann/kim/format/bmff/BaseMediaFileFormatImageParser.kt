@@ -33,7 +33,6 @@ import de.stefan_oltmann.kim.format.cr3.Cr3Reader
 import de.stefan_oltmann.kim.format.jxl.JxlReader
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffReader
-import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.PrePendingByteReader
 import de.stefan_oltmann.kim.input.read4BytesAsInt

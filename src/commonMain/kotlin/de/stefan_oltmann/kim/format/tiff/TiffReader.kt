@@ -40,10 +40,10 @@ import de.stefan_oltmann.kim.format.tiff.makernote.fujifilm.FujiFilmMakerNoteHan
 import de.stefan_oltmann.kim.format.tiff.makernote.leica.LeicaMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.nikon.NikonMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.olympus.OlympusMakerNoteHandler
-import de.stefan_oltmann.kim.format.tiff.makernote.sigma.SigmaMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.panasonic.PanasonicMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.pentax.PentaxMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.ricoh.RicohMakerNoteHandler
+import de.stefan_oltmann.kim.format.tiff.makernote.sigma.SigmaMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.sony.SonyMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoLong

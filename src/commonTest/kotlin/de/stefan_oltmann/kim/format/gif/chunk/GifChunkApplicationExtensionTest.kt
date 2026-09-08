@@ -15,7 +15,6 @@
  */
 package de.stefan_oltmann.kim.format.gif.chunk
 
-import de.stefan_oltmann.kim.common.ImageReadException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

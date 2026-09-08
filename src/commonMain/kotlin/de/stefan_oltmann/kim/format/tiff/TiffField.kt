@@ -26,9 +26,9 @@ import de.stefan_oltmann.kim.common.toInvariantString
 import de.stefan_oltmann.kim.common.toSingleNumberHexes
 import de.stefan_oltmann.kim.format.tiff.TiffTags.getTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldType
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeSByte
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeSShort
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeShort
-import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeSByte
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoGpsText
 
@@ -78,12 +78,12 @@ public class TiffField(
 
     public val value: Any = if (tagInfo is TagInfoGpsText)
 
-        /*
-         * A single hostile GPS text field (e.g. a UserComment with a LONG
-         * type) must not fail the whole directory. Like every other
-         * per-entry corruption it is skipped by falling back to the
-         * generic type decode.
-         */
+    /*
+     * A single hostile GPS text field (e.g. a UserComment with a LONG
+     * type) must not fail the whole directory. Like every other
+     * per-entry corruption it is skipped by falling back to the
+     * generic type decode.
+     */
         try {
             tagInfo.getValue(this)
         } catch (_: ImageReadException) {

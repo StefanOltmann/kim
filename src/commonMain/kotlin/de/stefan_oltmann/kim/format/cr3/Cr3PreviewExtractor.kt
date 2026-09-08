@@ -18,8 +18,8 @@ package de.stefan_oltmann.kim.format.cr3
 
 import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
-import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.common.startsWith
+import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER

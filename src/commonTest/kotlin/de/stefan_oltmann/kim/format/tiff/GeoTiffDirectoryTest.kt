@@ -20,8 +20,8 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.tiff.constant.GeoTiffTag
 import de.stefan_oltmann.kim.format.tiff.geotiff.GeoTiffDirectory
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
-import de.stefan_oltmann.kim.output.writeInt
 import de.stefan_oltmann.kim.output.write2BytesAsInt
+import de.stefan_oltmann.kim.output.writeInt
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 
@@ -67,6 +67,7 @@ class GeoTiffDirectoryTest {
             GeoTiffDirectory.parseFrom(shortArrayOf(1, 1))
         }
     }
+
     /**
      * A TIFF whose GeoKeyDirectory cannot be parsed must fail the read.
      * Geo keys are structured metadata; per the strict read policy a
@@ -106,10 +107,12 @@ class GeoTiffDirectoryTest {
         out.writeInt(0, ByteOrder.LITTLE_ENDIAN) // No next IFD.
 
         for (short in geoShorts) {
-            out.write(byteArrayOf(
-                (short.toInt() and 0xFF).toByte(),
-                ((short.toInt() shr 8) and 0xFF).toByte()
-            ))
+            out.write(
+                byteArrayOf(
+                    (short.toInt() and 0xFF).toByte(),
+                    ((short.toInt() shr 8) and 0xFF).toByte()
+                )
+            )
         }
 
         return out.toByteArray()

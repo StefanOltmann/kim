@@ -17,10 +17,9 @@ package de.stefan_oltmann.kim.format.tiff.write
 
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.RationalNumber
+import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong
-import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
-import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test

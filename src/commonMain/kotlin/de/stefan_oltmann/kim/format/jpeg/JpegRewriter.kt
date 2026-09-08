@@ -98,11 +98,11 @@ public object JpegRewriter {
 
         tryWithImageWriteException {
 
-        /*
-         * Streaming keeps memory bounded: the image data behind the SOS
-         * marker is transferred in bounded chunks instead of being
-         * buffered as a whole.
-         */
+            /*
+             * Streaming keeps memory bounded: the image data behind the SOS
+             * marker is transferred in bounded chunks instead of being
+             * buffered as a whole.
+             */
             updateMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
                 writeSegments(
                     byteWriter = outputWriter,
@@ -211,11 +211,11 @@ public object JpegRewriter {
 
         tryWithImageWriteException {
 
-        /*
-         * Streaming keeps memory bounded: the image data behind the SOS
-         * marker is transferred in bounded chunks instead of being
-         * buffered as a whole.
-         */
+            /*
+             * Streaming keeps memory bounded: the image data behind the SOS
+             * marker is transferred in bounded chunks instead of being
+             * buffered as a whole.
+             */
             updateMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
 
                 writeSegments(
@@ -295,11 +295,11 @@ public object JpegRewriter {
 
         tryWithImageWriteException {
 
-        /*
-         * Streaming keeps memory bounded: the image data behind the SOS
-         * marker is transferred in bounded chunks instead of being
-         * buffered as a whole.
-         */
+            /*
+             * Streaming keeps memory bounded: the image data behind the SOS
+             * marker is transferred in bounded chunks instead of being
+             * buffered as a whole.
+             */
             updateMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
 
                 writeSegments(

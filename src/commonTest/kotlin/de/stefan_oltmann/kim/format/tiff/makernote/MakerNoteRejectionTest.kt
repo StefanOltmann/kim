@@ -19,8 +19,8 @@ import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
-import de.stefan_oltmann.kim.format.tiff.TiffImageParser
 import de.stefan_oltmann.kim.format.tiff.TiffDirectory
+import de.stefan_oltmann.kim.format.tiff.TiffImageParser
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
