@@ -16,6 +16,7 @@
  */
 package de.stefan_oltmann.kim.input
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
 import kotlin.math.max
 
@@ -29,6 +30,21 @@ public class DefaultRandomAccessByteReader(
 
     override val contentLength: Long =
         byteReader.contentLength
+
+    init {
+
+        /*
+         * Positions are Int-based (the interface is Int-indexed), so
+         * content beyond the signed Int range cannot be addressed. A
+         * descriptive error beats the phantom EOF and wrapped-around
+         * reads such content would otherwise produce.
+         */
+        if (contentLength > Int.MAX_VALUE)
+            throw ImageReadException(
+                "Content of $contentLength bytes exceeds the " +
+                    "supported maximum of ${Int.MAX_VALUE}."
+            )
+    }
 
     private var currentPosition: Int = 0
 

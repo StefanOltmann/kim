@@ -18,6 +18,7 @@ package de.stefan_oltmann.kim.input
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertContentEquals
+import de.stefan_oltmann.kim.common.ImageReadException
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -182,73 +183,6 @@ class DefaultRandomAccessByteReaderTest {
     }
 
     /**
-     * Regression test: a content length beyond the signed Int range
-     * (e.g. a 3 GiB TIFF) previously wrapped [DefaultRandomAccessByteReader.readBytes]'s
-     * coercion into a negative value, crashing inside copyOfRange.
-     * The Long-space clamp must return a normal short read instead.
-     */
-    @Test
-    fun testSequentialReadWithHugeContentLengthDoesNotCrash() {
-
-        val hugeLengthReader = object : ByteReader {
-            override val contentLength: Long = Int.MAX_VALUE + 1024L
-
-            override fun readByte(): Byte? = null
-
-            override fun readBytes(count: Int): ByteArray = byteArrayOf()
-
-            override fun close() { /* Does nothing. */
-            }
-        }
-
-        val reader = DefaultRandomAccessByteReader(hugeLengthReader)
-
-        /* Must return an empty array instead of crashing. */
-        assertContentEquals(byteArrayOf(), reader.readBytes(10))
-    }
-
-    /**
-     * A huge count at a high position must not overflow the Int-space
-     * index computation; the read stops at the end of the content.
-     */
-    @Test
-    fun testReadBytesCountDoesNotOverflowAtHighPositions() {
-
-        /* A stream that declares more than the signed Int range but
-           delivers only 10 bytes. */
-        val reader = DefaultRandomAccessByteReader(object : ByteReader {
-
-            override val contentLength: Long = Int.MAX_VALUE + 1024L
-
-            private val data = byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-
-            private var position = 0
-
-            override fun readByte(): Byte? =
-                if (position < data.size) data[position++] else null
-
-            override fun readBytes(count: Int): ByteArray {
-
-                val end = minOf(position + count, data.size)
-
-                val result = data.copyOfRange(position, end)
-
-                position = end
-
-                return result
-            }
-
-            override fun close() {
-                /* No resources to close. */
-            }
-        })
-
-        reader.moveTo(5)
-
-        assertEquals(5, reader.readBytes(Int.MAX_VALUE).size)
-    }
-
-    /**
      * A stream that delivers fewer bytes than its declared contentLength
      * must produce short reads instead of a raw range error once the
      * position is past the delivered data.
@@ -295,5 +229,32 @@ class DefaultRandomAccessByteReaderTest {
         override fun close() {
             /* Does nothing. */
         }
+    }
+
+    /**
+     * A reader over content beyond the signed Int range cannot address
+     * that content (the interface is Int-indexed). It must fail loudly
+     * with a descriptive message instead of reading phantom EOFs or
+     * wrapped-around ranges.
+     */
+    @Test
+    fun testContentBeyondIntMaxValueIsRejected() {
+
+        val beyondIntMax = Int.MAX_VALUE.toLong() + 1
+
+        val delegate = object : ByteReader {
+            override val contentLength: Long = beyondIntMax
+            override fun readByte(): Byte? = null
+            override fun readBytes(count: Int): ByteArray = ByteArray(0)
+            override fun close() {
+                /* Nothing to do. */
+            }
+        }
+
+        val exception = assertFailsWith<ImageReadException> {
+            DefaultRandomAccessByteReader(delegate)
+        }
+
+        assertTrue(exception.message?.contains("exceeds the supported maximum") == true)
     }
 }
