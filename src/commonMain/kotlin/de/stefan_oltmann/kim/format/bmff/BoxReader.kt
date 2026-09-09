@@ -64,10 +64,12 @@ public object BoxReader {
      * Reads all top-level boxes of the file completely, including the
      * image data payloads.
      *
+     * **Attention:** Must be public API as this is used by https://stefan-oltmann.de/exif-viewer
+     *
      * @param byteReader The reader as source for the bytes
      * @param offsetShift The shift to apply to the reported box offsets
      */
-    internal fun readAllBoxes(
+    public fun readAllBoxes(
         byteReader: ByteReader,
         offsetShift: Long = 0
     ): List<Box> =
