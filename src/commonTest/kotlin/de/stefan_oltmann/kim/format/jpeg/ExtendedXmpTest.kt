@@ -62,6 +62,37 @@ class ExtendedXmpTest {
     }
 
     /**
+     * Writers of third-party tools serialize the GUID in different cases.
+     * The merge must match the chunk GUID against the packet reference
+     * case-insensitively, so files from tools that emit lowercase letters
+     * stay readable.
+     */
+    @Test
+    fun testReadMetadataMergesExtendedXmpWithMismatchedGuidCase() {
+
+        val extendedXml =
+            MINIMAL_HEADER +
+                "<rdf:Description rdf:about=\"\" " +
+                "xmlns:custom=\"http://example.com/custom/\">" +
+                "<custom:Extra>EXTENDED_VALUE</custom:Extra>" +
+                "</rdf:Description>" +
+                MINIMAL_FOOTER
+
+        val guid = digestAsGuid(extendedXml)
+
+        val jpegBytes = createJpegWithExtendedXmp(
+            mainPacket = buildMainPacket(guid.lowercase()),
+            extensionPayloads = listOf(buildExtensionPayload(guid, extendedXml))
+        )
+
+        val xmp = Kim.readMetadata(jpegBytes)?.xmp
+
+        assertNotNull(xmp)
+        assertTrue(xmp.contains("Main Title"))
+        assertTrue(xmp.contains("EXTENDED_VALUE"))
+    }
+
+    /**
      * A main packet that references extended data without the matching
      * segments existing must fail loudly instead of silently dropping the
      * referenced properties - a rewrite would destroy them otherwise.
