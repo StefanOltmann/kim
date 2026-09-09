@@ -602,6 +602,7 @@ class TiffReaderTest {
                 position < headerBytes.size -> headerBytes[position.toInt()]
                 position >= tailOffset && position < tailOffset + tailBytes.size ->
                     tailBytes[(position - tailOffset).toInt()]
+
                 else -> 0
             }
     }
