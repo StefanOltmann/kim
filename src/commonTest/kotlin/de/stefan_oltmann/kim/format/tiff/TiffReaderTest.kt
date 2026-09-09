@@ -27,6 +27,7 @@ import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.DefaultRandomAccessByteReader
+import de.stefan_oltmann.kim.input.RandomAccessByteReader
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.writeInt
@@ -311,6 +312,56 @@ class TiffReaderTest {
     }
 
     /**
+     * Regression test: a directory just below the 2 GiB boundary makes the
+     * entry offset arithmetic fold the last entries into the negative Int
+     * range. Such an entry must be skipped like the other unreadable fields
+     * instead of carrying a folded negative offset into the rewrite anchor
+     * checks.
+     */
+    @Test
+    fun testReadSkipsEntryWithOverflowingEntryOffset() {
+
+        /*
+         * The directory sits 15 bytes below the Int maximum, so the offset
+         * of the third entry (2 * 12 bytes further) folds around 2^31.
+         */
+        val directoryOffset = 0x7FFFFFF0
+
+        val headerBytes = byteArrayOf(
+            0x49, 0x49, 0x2A, 0x00, // TIFF header.
+            0xF0.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0x7F.toByte() // Directory far out.
+        )
+
+        /* Entry count, three SHORT entries and no next directory. */
+        val tailBytes = byteArrayOf(
+            3, 0,
+            0x01, 0x01, 0x03, 0x00, 1, 0, 0, 0, 42, 0, 0, 0, // Tag 0x0101, SHORT, count 1, value 42.
+            0x02, 0x01, 0x03, 0x00, 1, 0, 0, 0, 1, 0, 0, 0, // Tag 0x0102, SHORT, count 1, value 1.
+            0x03, 0x01, 0x03, 0x00, 1, 0, 0, 0, 1, 0, 0, 0, // Tag 0x0103, SHORT, count 1, value 1.
+            0, 0, 0, 0
+        )
+
+        val byteReader = HugeVirtualTiffReader(
+            headerBytes = headerBytes,
+            tailOffset = directoryOffset.toLong(),
+            tailBytes = tailBytes,
+            contentLength = directoryOffset.toLong() + tailBytes.size + 16
+        )
+
+        val tiffContents = TiffReader.read(byteReader)
+
+        val entries = tiffContents.directories.first().entries
+
+        /* The third entry's offset folds around 2^31 into the negative range. */
+        assertTrue(
+            entries.all { it.offset >= 0 },
+            "Entry offsets folded into the negative range: ${entries.map { it.offset }}"
+        )
+
+        assertEquals(2, entries.size)
+    }
+
+    /**
      * Regression test: a directory-specific tag must resolve to the field in
      * its directory, not to a same-numbered tag in another directory.
      */
@@ -491,6 +542,68 @@ class TiffReaderTest {
 
         byteWriter.write(byteArrayOf(0x49, 0x49, 0x2A, 0)) // II, version 42
         byteWriter.writeInt(8, ByteOrder.LITTLE_ENDIAN) // IFD0 at offset 8
+    }
+
+    /**
+     * A virtual reader that reports a content length beyond the signed Int
+     * range and serves the TIFF header at the start and the directory bytes
+     * at the far end - without allocating the whole data.
+     */
+    private class HugeVirtualTiffReader(
+        private val headerBytes: ByteArray,
+        private val tailOffset: Long,
+        private val tailBytes: ByteArray,
+        override val contentLength: Long
+    ) : RandomAccessByteReader {
+
+        private var position: Long = 0
+
+        override fun readByte(): Byte? {
+
+            if (position >= contentLength)
+                return null
+
+            val byte = byteAt(position)
+
+            position += 1
+
+            return byte
+        }
+
+        override fun readBytes(count: Int): ByteArray {
+
+            val start = position
+
+            position += count
+
+            val fullyInGap = start >= headerBytes.size &&
+                (start + count <= tailOffset || start >= tailOffset + tailBytes.size)
+
+            /* The gap is all zeros, which the ByteArray provides natively. */
+            if (fullyInGap)
+                return ByteArray(count)
+
+            return ByteArray(count) { index -> byteAt(start + index) }
+        }
+
+        override fun moveTo(position: Int) {
+            this.position = position.toLong()
+        }
+
+        override fun readBytes(offset: Int, length: Int): ByteArray =
+            ByteArray(length) { index -> byteAt(offset.toLong() + index) }
+
+        override fun close() {
+            /* Nothing to close. */
+        }
+
+        private fun byteAt(position: Long): Byte =
+            when {
+                position < headerBytes.size -> headerBytes[position.toInt()]
+                position >= tailOffset && position < tailOffset + tailBytes.size ->
+                    tailBytes[(position - tailOffset).toInt()]
+                else -> 0
+            }
     }
 
     private companion object {
