@@ -95,7 +95,7 @@ class JpegRewriterTest {
         for (index in 1..KimTestData.HIGHEST_JPEG_INDEX) {
 
             /* Broken files are rejected by the segment length validation. */
-            if (index == 44 || index == 45 || index == 47)
+            if (KimTestData.brokenJpegIds.contains(index))
                 continue
 
             val bytes = KimTestData.getBytesOf(index)
@@ -179,7 +179,7 @@ class JpegRewriterTest {
         for (index in 1..KimTestData.HIGHEST_JPEG_INDEX) {
 
             /* Broken files are rejected by the segment length validation. */
-            if (index == 44 || index == 45 || index == 47)
+            if (KimTestData.brokenJpegIds.contains(index))
                 continue
 
             val bytes = KimTestData.getBytesOf(index)
@@ -332,7 +332,7 @@ class JpegRewriterTest {
                 continue
 
             /* Broken files are rejected by the segment length validation. */
-            if (index == 44 || index == 45 || index == 47)
+            if (KimTestData.brokenJpegIds.contains(index))
                 continue
 
             val bytes = KimTestData.getBytesOf(index)

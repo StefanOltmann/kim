@@ -52,7 +52,7 @@ class JpegSegmentAnalyzerTest {
         for (index in 1..KimTestData.HIGHEST_JPEG_INDEX) {
 
             /* Media 44, 45 and 47 are broken files without consistent segments. */
-            if (brokenJpegIds.contains(index))
+            if (KimTestData.brokenJpegIds.contains(index))
                 continue
 
             val bytes = KimTestData.getBytesOf(index)
@@ -84,7 +84,7 @@ class JpegSegmentAnalyzerTest {
                 continue
 
             /* The modified version of the broken file is broken as well. */
-            if (brokenModifiedJpegIds.contains(index))
+            if (KimTestData.brokenModifiedJpegIds.contains(index))
                 continue
 
             val bytes = KimTestData.getModifiedBytesOf(index)
@@ -333,11 +333,5 @@ class JpegSegmentAnalyzerTest {
 
         /* The modified files and their dumps live in the modified test data folder. */
         const val MODIFIED_RESOURCE_PATH: String = "de/stefan_oltmann/kim/testdata/modified"
-
-        /* Media 44, 45 and 47 are broken files. */
-        val brokenJpegIds: Set<Int> = setOf(44, 45, 47)
-
-        /* Media 45 is a broken modified file. */
-        val brokenModifiedJpegIds: Set<Int> = setOf(45)
     }
 }

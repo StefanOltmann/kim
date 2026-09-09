@@ -46,7 +46,7 @@ class MediaMetadataTest {
             val bytes = KimTestData.getBytesOf(index)
 
             /* Broken files are rejected by the segment length validation. */
-            if (rejectedJpegIds.contains(index)) {
+            if (KimTestData.brokenJpegIds.contains(index)) {
 
                 assertFailsWith<ImageReadException> {
                     Kim.readMetadata(bytes)
@@ -78,11 +78,5 @@ class MediaMetadataTest {
                 mismatchedIndexes.joinToString(prefix = "[", postfix = "]") +
                 ". The regenerated dumps were written to build/regenerated_txt."
         )
-    }
-
-    private companion object {
-
-        /* Media 44, 45 and 47 contain invalid segment lengths. */
-        private val rejectedJpegIds = setOf(44, 45, 47)
     }
 }
