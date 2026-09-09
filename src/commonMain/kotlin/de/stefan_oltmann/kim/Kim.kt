@@ -110,9 +110,12 @@ import kotlinx.datetime.TimeZone
  *
  * [MetadataSummaryConverter][de.stefan_oltmann.kim.common.MetadataSummaryConverter]
  * builds a display-only view from already-returned metadata. When the raw
- * XMP packet cannot be parsed, the summary omits the XMP-derived fields;
- * the raw packet itself stays fully available on the metadata object, so
- * nothing is lost for sidecar writers, which never consume the summary.
+ * XMP packet cannot be parsed, the conversion fails with
+ * [ImageReadException][de.stefan_oltmann.kim.common.ImageReadException] by
+ * default; with `ignoreBrokenXmp = true` the summary omits the XMP-derived
+ * fields instead. The raw packet itself stays fully available on the
+ * metadata object in both cases, so nothing is lost for sidecar writers,
+ * which never consume the summary.
  */
 public object Kim {
 
@@ -141,6 +144,12 @@ public object Kim {
         else
             readMetadata(ByteArrayByteReader(bytes))
 
+    /**
+     * Reads all metadata of the image.
+     *
+     * Attention: The given [ByteReader] is closed by this call, including
+     * the stream below it, and must not be used afterwards.
+     */
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
     public fun readMetadata(
@@ -178,6 +187,9 @@ public object Kim {
      * RAW, ...) yields an empty array, so callers cannot distinguish
      * "format has no metadata" from "metadata bytes not provided". Use
      * [readMetadata] for a format independent metadata view.
+     *
+     * Attention: The given [ByteReader] is closed by this call, including
+     * the stream below it, and must not be used afterwards.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
@@ -203,6 +215,12 @@ public object Kim {
         }
     }
 
+    /**
+     * Extracts the embedded preview image of the file.
+     *
+     * Attention: The given [ByteReader] is closed by this call, including
+     * the stream below it, and must not be used afterwards.
+     */
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
     public fun extractPreviewImage(
@@ -225,50 +243,34 @@ public object Kim {
 
             return@use when (mediaFormat) {
 
-                MediaFormat.CR2 -> {
-
-                    val reader = DefaultRandomAccessByteReader(prePendingByteReader)
-
-                    Cr2PreviewExtractor.extractPreviewImage(TiffReader.read(reader), reader)
-                }
-
-                MediaFormat.RW2 -> {
-
-                    val reader = DefaultRandomAccessByteReader(prePendingByteReader)
-
-                    Rw2PreviewExtractor.extractPreviewImage(TiffReader.read(reader), reader)
-                }
-
-                MediaFormat.ORF -> {
-
-                    val reader = DefaultRandomAccessByteReader(prePendingByteReader)
-
-                    OrfPreviewExtractor.extractPreviewImage(TiffReader.read(reader), reader)
-                }
-
+                MediaFormat.CR2,
+                MediaFormat.RW2,
+                MediaFormat.ORF,
                 MediaFormat.TIFF -> {
 
                     val reader = DefaultRandomAccessByteReader(prePendingByteReader)
 
                     val tiffContents = TiffReader.read(reader)
 
-                    /*
-                     * It can now be DNG, NEF or ARW.
-                     *
-                     * A single broken tag must not abort the whole chain:
-                     * TIFF-family vendors use different layouts, so each
-                     * extractor gets its own chance before NULL is reported.
-                     */
-                    extractPreviewOrNull(DngPreviewExtractor, tiffContents, reader)
-                        ?.let { return@use it }
+                    when (mediaFormat) {
 
-                    extractPreviewOrNull(NefPreviewExtractor, tiffContents, reader)
-                        ?.let { return@use it }
+                        MediaFormat.CR2 -> Cr2PreviewExtractor.extractPreviewImage(tiffContents, reader)
 
-                    extractPreviewOrNull(ArwPreviewExtractor, tiffContents, reader)
-                        ?.let { return@use it }
+                        MediaFormat.RW2 -> Rw2PreviewExtractor.extractPreviewImage(tiffContents, reader)
 
-                    null
+                        MediaFormat.ORF -> OrfPreviewExtractor.extractPreviewImage(tiffContents, reader)
+
+                        /*
+                         * It can now be DNG, NEF or ARW.
+                         *
+                         * A single broken tag must not abort the whole chain:
+                         * TIFF-family vendors use different layouts, so each
+                         * extractor gets its own chance before NULL is reported.
+                         */
+                        else -> extractPreviewOrNull(DngPreviewExtractor, tiffContents, reader)
+                            ?: extractPreviewOrNull(NefPreviewExtractor, tiffContents, reader)
+                            ?: extractPreviewOrNull(ArwPreviewExtractor, tiffContents, reader)
+                    }
                 }
 
                 /*
@@ -327,6 +329,9 @@ public object Kim {
 
     /**
      * Updates the file with the desired change.
+     *
+     * Attention: The given [ByteReader] and [ByteWriter] are not closed by
+     * this call; the caller owns and closes both.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -342,6 +347,9 @@ public object Kim {
      *
      * Every update is applied to all formats that can represent it, so EXIF,
      * IPTC and XMP can be updated simultaneously in a single call.
+     *
+     * Attention: The given [ByteReader] and [ByteWriter] are not closed by
+     * this call; the caller owns and closes both.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -404,6 +412,9 @@ public object Kim {
      * The file must be readable; if the file or its metadata is corrupt
      * or cannot be parsed, the operation fails and the file is left
      * untouched.
+     *
+     * Attention: The given [ByteReader] and [ByteWriter] are not closed by
+     * this call; the caller owns and closes both.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)

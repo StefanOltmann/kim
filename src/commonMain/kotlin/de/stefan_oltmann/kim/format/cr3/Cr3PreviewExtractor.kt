@@ -48,8 +48,10 @@ public object Cr3PreviewExtractor {
      */
     private const val STSZ_SKIP_BYTES = 12
 
-    /* Skip one version byte, 3 bytes flags and 4 bytes entry count */
-    /* Version, flags and entry count are identical for co64 and stco. */
+    /*
+     * Skip one version byte, 3 bytes flags and 4 bytes entry count.
+     * Version, flags and entry count are identical for co64 and stco.
+     */
     private const val CHUNK_OFFSET_SKIP_BYTES = 8
 
     /* Third-party muxers write 32-bit chunk offsets in an stco box. */
@@ -106,11 +108,7 @@ public object Cr3PreviewExtractor {
 
         var previewBytes: ByteArray? = null
 
-        var position = 0L
-
-        while (previewBytes == null) {
-
-            val header = readTopLevelBoxHeader(byteReader, position) ?: break
+        walkTopLevelBoxes(byteReader) { header ->
 
             when (header.type) {
 
@@ -139,8 +137,10 @@ public object Cr3PreviewExtractor {
                             depth = 1
                         )
                     } catch (_: ImageReadException) {
-                        return@tryWithImageReadException null
+                        return@walkTopLevelBoxes true
                     }
+
+                    false
                 }
 
                 BoxType.MDAT -> {
@@ -187,18 +187,47 @@ public object Cr3PreviewExtractor {
                             byteReader.skipBytes("mdat data", header.dataSize)
                         }
                     }
+
+                    previewBytes != null
                 }
 
-                else -> byteReader.skipBytes("box data", header.dataSize)
-            }
+                else -> {
 
-            position = header.boxOffset + header.size
+                    byteReader.skipBytes("box data", header.dataSize)
+
+                    false
+                }
+            }
         }
 
         /* Only real JPEGs are previews - like in the other extractors. */
         val preview = previewBytes?.takeIf { it.startsWith(MediaFormatMagicNumbers.jpeg) }
 
         return@tryWithImageReadException preview
+    }
+
+    /**
+     * Streams the top-level boxes of a CR3 file. The walk owns header
+     * parsing, validation and position advancement; the decision callback
+     * consumes the payload of each box from the reader and returns true to
+     * end the walk.
+     */
+    private fun walkTopLevelBoxes(
+        byteReader: ByteReader,
+        onBox: (TopLevelBoxHeader) -> Boolean
+    ) {
+
+        var position = 0L
+
+        while (true) {
+
+            val header = readTopLevelBoxHeader(byteReader, position) ?: return
+
+            if (onBox(header))
+                return
+
+            position = header.boxOffset + header.size
+        }
     }
 
     /**
@@ -316,17 +345,15 @@ public object Cr3PreviewExtractor {
         val mediaInformationContainer = mediaBox.boxes.find { it.type == BoxType.MINF }
             ?: return null
 
-        val minfBoxes = BoxReader.readBoxes(
-            byteReader = ByteArrayByteReader(mediaInformationContainer.payload),
-            stopAfterMetadataRead = false
+        val minfBoxes = BoxReader.readAllBoxes(
+            byteReader = ByteArrayByteReader(mediaInformationContainer.payload)
         )
 
         val sampleTableBox = minfBoxes.find { it.type == BoxType.STBL }
             ?: return null
 
-        val stblBoxes = BoxReader.readBoxes(
-            byteReader = ByteArrayByteReader(sampleTableBox.payload),
-            stopAfterMetadataRead = false
+        val stblBoxes = BoxReader.readAllBoxes(
+            byteReader = ByteArrayByteReader(sampleTableBox.payload)
         )
 
         val sampleSizesBox = stblBoxes.find { it.type == BoxType.STSZ }
@@ -382,11 +409,7 @@ public object Cr3PreviewExtractor {
 
         var previewBytes: ByteArray? = null
 
-        var position = 0L
-
-        while (previewBytes == null) {
-
-            val header = readTopLevelBoxHeader(byteReader, position) ?: break
+        walkTopLevelBoxes(byteReader) { header ->
 
             if (header.type == BoxType.UUID) {
 
@@ -428,7 +451,7 @@ public object Cr3PreviewExtractor {
                 byteReader.skipBytes("box data", header.dataSize)
             }
 
-            position = header.boxOffset + header.size
+            previewBytes != null
         }
 
         return@tryWithImageReadException previewBytes

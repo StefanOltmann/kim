@@ -18,7 +18,6 @@
 package de.stefan_oltmann.kim.format.gif
 
 import de.stefan_oltmann.kim.common.ImageReadException
-import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.common.toSingleNumberHexes
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.MetadataExtractor
@@ -84,7 +83,7 @@ public object GifMetadataExtractor : MetadataExtractor {
         /* Read global color table chunk if present */
         if (logicalScreenDescriptorChunk.globalColorTableFlag) {
 
-            val globalColorTableSize = 3 * (1 shl (logicalScreenDescriptorChunk.globalColorTableSize + 1))
+            val globalColorTableSize = gifColorTableSizeBytes(logicalScreenDescriptorChunk.globalColorTableSize)
 
             val globalColorTableBytes = byteReader.readBytes(globalColorTableSize)
 
@@ -92,31 +91,20 @@ public object GifMetadataExtractor : MetadataExtractor {
         }
 
         /* Read remaining chunks */
-        while (true) {
-
-            val introducer = byteReader.readByte("introducer")
-
-            when (introducer) {
-
-                GifConstants.IMAGE_SEPARATOR -> modifyImageChunks(byteReader, bytes)
-
-                GifConstants.EXTENSION_INTRODUCER -> parseAndCopyExtensionChunk(byteReader, bytes)
-
-                GifConstants.GIF_TERMINATOR -> {
-                    bytes.add(GifConstants.GIF_TERMINATOR)
-                    break
-                }
-
-                /*
-                 * Dropping the byte would shift all following data and
-                 * produce a shortened metadata GIF, so unknown structures
-                 * fail the extraction like the full read does.
-                 */
-                else -> throw ImageReadException(
-                    "Unknown GIF block introducer: ${introducer.toHex()}"
-                )
+        byteReader.walkGifBlocks(
+            onImageBlock = {
+                modifyImageChunks(byteReader, bytes)
+                false
+            },
+            onExtensionBlock = { extensionLabel ->
+                copyExtensionChunk(byteReader, bytes, extensionLabel)
+                false
+            },
+            onTrailerBlock = {
+                bytes.add(GifConstants.GIF_TERMINATOR)
+                true
             }
-        }
+        )
 
         return@tryWithImageReadException bytes.toByteArray()
     }
@@ -145,7 +133,7 @@ public object GifMetadataExtractor : MetadataExtractor {
         /* Read local color table if present */
         if (imageDescriptorChunk.localColorTableFlag) {
 
-            val localColorTableSize = 3 * (1 shl (imageDescriptorChunk.localColorTableSize + 1))
+            val localColorTableSize = gifColorTableSizeBytes(imageDescriptorChunk.localColorTableSize)
 
             val localColorTableBytes = byteReader.readBytes("local color table", localColorTableSize)
 
@@ -163,13 +151,17 @@ public object GifMetadataExtractor : MetadataExtractor {
         outputBytes.add(0x00)
     }
 
-    private fun parseAndCopyExtensionChunk(byteReader: ByteReader, outputBytes: MutableList<Byte>) {
+    private fun copyExtensionChunk(
+        byteReader: ByteReader,
+        outputBytes: MutableList<Byte>,
+        extensionLabel: Byte
+    ) {
 
-        when (val extensionLabelByte = byteReader.readByte("extension label")) {
+        when (extensionLabel) {
 
             GifConstants.GRAPHICS_CONTROL_EXTENSION_LABEL -> {
 
-                outputBytes.addAll(listOf(GifConstants.EXTENSION_INTRODUCER, extensionLabelByte))
+                outputBytes.addAll(listOf(GifConstants.EXTENSION_INTRODUCER, extensionLabel))
 
                 val graphicsControlExtensionBytes = byteReader.readBytes("graphics control extension", 6)
 
@@ -180,7 +172,7 @@ public object GifMetadataExtractor : MetadataExtractor {
             GifConstants.COMMENT_EXTENSION_LABEL,
             GifConstants.PLAIN_TEXT_EXTENSION_LABEL -> {
 
-                outputBytes.addAll(listOf(GifConstants.EXTENSION_INTRODUCER, extensionLabelByte))
+                outputBytes.addAll(listOf(GifConstants.EXTENSION_INTRODUCER, extensionLabel))
 
                 val subChunks = byteReader.parseGifSubChunksUntilEmpty("plain text extension")
 
@@ -196,7 +188,7 @@ public object GifMetadataExtractor : MetadataExtractor {
              */
             else -> {
 
-                outputBytes.addAll(listOf(GifConstants.EXTENSION_INTRODUCER, extensionLabelByte))
+                outputBytes.addAll(listOf(GifConstants.EXTENSION_INTRODUCER, extensionLabel))
 
                 val subChunks = byteReader.parseGifSubChunksUntilEmpty("unknown extension")
 

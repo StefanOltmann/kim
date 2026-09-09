@@ -126,9 +126,8 @@ class BmffBoxesTest {
             de.stefan_oltmann.kim.testdata.KimTestData.CR3_TEST_IMAGE_INDEX
         )
 
-        val cr3Box = de.stefan_oltmann.kim.format.bmff.BoxReader.readBoxes(
-            byteReader = de.stefan_oltmann.kim.input.ByteArrayByteReader(cr3Bytes),
-            stopAfterMetadataRead = false
+        val cr3Box = de.stefan_oltmann.kim.format.bmff.BoxReader.readAllBoxes(
+            byteReader = de.stefan_oltmann.kim.input.ByteArrayByteReader(cr3Bytes)
         ).filterIsInstance<FileTypeBox>().first()
 
         assertEquals(FileTypeBox.CR3_BRAND, cr3Box.majorBrand)
@@ -139,9 +138,8 @@ class BmffBoxesTest {
             de.stefan_oltmann.kim.testdata.KimTestData.MP4_TEST_VIDEO_INDEX
         )
 
-        val mp4Box = de.stefan_oltmann.kim.format.bmff.BoxReader.readBoxes(
-            byteReader = de.stefan_oltmann.kim.input.ByteArrayByteReader(mp4Bytes),
-            stopAfterMetadataRead = false
+        val mp4Box = de.stefan_oltmann.kim.format.bmff.BoxReader.readAllBoxes(
+            byteReader = de.stefan_oltmann.kim.input.ByteArrayByteReader(mp4Bytes)
         ).filterIsInstance<FileTypeBox>().first()
 
         assertEquals("mp42", mp4Box.majorBrand)

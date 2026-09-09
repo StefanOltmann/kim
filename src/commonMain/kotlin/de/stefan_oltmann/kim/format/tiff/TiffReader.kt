@@ -506,7 +506,8 @@ public object TiffReader {
         @Suppress("LoopWithTooManyJumpStatements")
         for (entryIndex in 0 until entryCount) {
 
-            val offset = fieldsOffset + entryIndex * TiffConstants.TIFF_ENTRY_LENGTH
+            val offset =
+                fieldsOffset.toLong() + entryIndex.toLong() * TiffConstants.TIFF_ENTRY_LENGTH
 
             val tag = byteReader.read2BytesAsInt("Entry $entryIndex: 'tag'", byteOrder)
             val type = byteReader.read2BytesAsInt("Entry $entryIndex: 'type'", byteOrder)
@@ -536,6 +537,17 @@ public object TiffReader {
              */
             if (tag == 0 && directoryType >= 0 && directoryType != TiffConstants.TIFF_DIRECTORY_GPS)
                 continue
+
+            /*
+             * The entry offset itself can exceed the signed Int range when a
+             * directory sits just below the 2 GiB boundary. Such an entry
+             * cannot be addressed by the readers, so it is handled like the
+             * other unreadable fields.
+             */
+            if (offset > Int.MAX_VALUE) {
+                rejectUnreadableMakerNote(tag)
+                continue
+            }
 
             val fieldType = try {
                 getFieldType(type)
@@ -604,7 +616,7 @@ public object TiffReader {
 
             fields.add(
                 TiffField(
-                    offset = offset,
+                    offset = offset.toInt(),
                     tag = tag,
                     directoryType = directoryType,
                     fieldType = fieldType,

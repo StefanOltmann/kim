@@ -1,6 +1,5 @@
 /*
  * Copyright 2026 Stefan Oltmann
- * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +19,17 @@ import java.io.InputStream
 
 /**
  * A ByteReader that reads from an InputStream.
+ *
+ * Shared by every JVM-based backend: the desktop JVM and Android.
  */
 public open class JvmInputStreamByteReader(
-    private val inputStream: InputStream,
+
+    /**
+     * The stream the bytes are read from. Protected so platform
+     * subclasses can implement platform-specific read strategies.
+     */
+    protected val inputStream: InputStream,
+
     override val contentLength: Long
 ) : ByteReader {
 

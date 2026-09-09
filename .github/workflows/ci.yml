@@ -56,11 +56,11 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew build check assembleXCFramework --parallel
-      - name: Build Kotlin JVM sample
+      - name: Build Kotlin JVM sample against the last release
         run: |
           chmod +x ./examples/kim-kotlin-jvm-sample/gradlew
           ./examples/kim-kotlin-jvm-sample/gradlew -p examples/kim-kotlin-jvm-sample build
-      - name: Build Java sample
+      - name: Build Java sample against the last release
         run: |
           chmod +x ./examples/kim-java-sample/gradlew
           ./examples/kim-java-sample/gradlew -p examples/kim-java-sample build

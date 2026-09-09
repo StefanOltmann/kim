@@ -81,11 +81,8 @@ public object BaseMediaFileFormatImageParser : ImageParser {
 
         var position: Long = 0
 
-        val allBoxes = BoxReader.readBoxes(
+        val allBoxes = BoxReader.scanMetadataBoxes(
             byteReader = copyPendingByteReader,
-            stopAfterMetadataRead = true,
-            positionOffset = 0,
-            offsetShift = 0,
             updatePosition = { position = it }
         )
 

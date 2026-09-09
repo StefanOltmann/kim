@@ -31,6 +31,15 @@ import kotlin.jvm.JvmStatic
 
 /**
  * Algorithm to find segment offsets, types and lengths.
+ *
+ * This analyzer is a maintained public feature in its own right and not a
+ * helper of the segment reader used for writing, so its contract is
+ * documented here explicitly.
+ *
+ * Offsets are absolute positions from the stream start and lengths include
+ * the 2 marker bytes. The SOS segment reaches to the end of the file; an
+ * EOI segment is only reported when the marker is physically present, so a
+ * truncated file yields exactly the segments its bytes contain.
  */
 public object JpegSegmentAnalyzer {
 

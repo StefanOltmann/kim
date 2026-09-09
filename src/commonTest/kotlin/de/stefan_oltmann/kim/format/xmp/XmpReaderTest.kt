@@ -25,6 +25,7 @@ import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.testdata.KimTestData
 import de.stefan_oltmann.xmp.XMPRegionArea
 import kotlinx.datetime.TimeZone
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -35,6 +36,11 @@ class XmpReaderTest {
     @BeforeTest
     fun setUp() {
         Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
+    }
+
+    @AfterTest
+    fun tearDown() {
+        Kim.defaultTimeZone = null
     }
 
     @Test
@@ -186,8 +192,8 @@ class XmpReaderTest {
     }
 
     /**
-     * Regression test: a DateTimeOriginal with a negative UTC offset must not
-     * be dropped.
+     * Regression test: a DateTimeOriginal with a negative UTC offset must be
+     * used for the epoch conversion, not dropped in favor of the local zone.
      */
     @Test
     fun testReadTakenDateWithNegativeUtcOffset() {
@@ -200,6 +206,35 @@ class XmpReaderTest {
                     <rdf:Description rdf:about=""
                         xmlns:exif="http://ns.adobe.com/exif/1.0/"
                       exif:DateTimeOriginal="2023-05-12T18:04:00-05:00"/>
+                  </rdf:RDF>
+                </x:xmpmeta>
+            <?xpacket end="w"?>
+        """.trimIndent()
+
+        val summary = XmpReader.readMetadata(xmp)
+
+        /* 2023-05-12T18:04:00-05:00 == 2023-05-12T23:04:00Z. */
+        assertEquals(
+            expected = 1_683_932_640_000,
+            actual = summary.takenDate
+        )
+    }
+
+    /**
+     * A DateTimeOriginal without an offset must be interpreted in the
+     * configured default time zone, like before.
+     */
+    @Test
+    fun testReadTakenDateWithoutOffsetUsesConfiguredZone() {
+
+        /* language=XML */
+        val xmp = """
+            <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
+                <x:xmpmeta xmlns:x="adobe:ns:meta/">
+                  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+                    <rdf:Description rdf:about=""
+                        xmlns:exif="http://ns.adobe.com/exif/1.0/"
+                      exif:DateTimeOriginal="2023-05-12T18:04:00"/>
                   </rdf:RDF>
                 </x:xmpmeta>
             <?xpacket end="w"?>

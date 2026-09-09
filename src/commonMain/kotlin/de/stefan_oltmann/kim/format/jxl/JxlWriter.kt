@@ -55,7 +55,7 @@ public object JxlWriter {
         exifBytes: ByteArray?,
         xmp: String?
     ): Unit = writeImage(
-        boxes = BoxReader.readBoxes(byteReader, false),
+        boxes = BoxReader.readAllBoxes(byteReader),
         byteWriter = byteWriter,
         exifBytes = exifBytes,
         xmp = xmp
@@ -81,7 +81,7 @@ public object JxlWriter {
         updateComputer: (List<Box>, ByteWriter) -> Unit
     ) {
 
-        val boxes = BoxReader.readBoxes(byteReader, stopBeforeImageData = true)
+        val boxes = BoxReader.readBoxesForUpdate(byteReader)
 
         updateComputer(boxes, byteWriter)
 

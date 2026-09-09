@@ -187,10 +187,8 @@ internal object Cr3Reader {
             box.uuidAsHex == CR3_EXIF_UUID
         } ?: return emptyList()
 
-        return BoxReader.readBoxes(
+        return BoxReader.readAllBoxes(
             byteReader = ByteArrayByteReader(metadataBox.data),
-            stopAfterMetadataRead = false,
-            positionOffset = 0,
             offsetShift = metadataBox.offset + 24
         )
     }

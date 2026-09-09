@@ -45,13 +45,11 @@ public class TrackBox(
 
         val byteReader = ByteArrayByteReader(payload)
 
-        boxes = BoxReader.readBoxes(
+        boxes = BoxReader.readChildBoxes(
             byteReader = byteReader,
-            stopAfterMetadataRead = false,
-            positionOffset = 0,
-            offsetShift = offset + 8,
             parentBoxType = type,
-            depth = depth
+            depth = depth,
+            offsetShift = offset + 8
         )
 
         if (boxes.size < 2)

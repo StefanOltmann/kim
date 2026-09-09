@@ -62,7 +62,7 @@ Little-endian (Intel, II)
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
-<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core for KMP 1.7.4">
+<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core for KMP 1.8.0">
   <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <rdf:Description rdf:about=""
         xmlns:GIMP="http://www.gimp.org/xmp/"
@@ -220,6 +220,7 @@ Little-endian (Intel, II)
       xmp:MetadataDate="2019-07-25T09:51:16-07:00"
       xmp:ModifyDate="2019-07-25T09:51:16-07:00"
       xmp:Rating="2"
+      xmpDM:good="True"
       xmpDM:pick="1"
       xmpMM:DocumentID="xmp.did:84a3bb93-c18a-4f32-becb-7381417d4f44"
       xmpMM:InstanceID="xmp.iid:2d83b93d-ee1e-470c-9705-05eba0760e8a"

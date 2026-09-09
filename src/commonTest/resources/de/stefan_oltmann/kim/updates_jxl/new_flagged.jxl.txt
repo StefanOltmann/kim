@@ -61,7 +61,7 @@ Little-endian (Intel, II)
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
-<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core for KMP 1.7.4">
+<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core for KMP 1.8.0">
   <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <rdf:Description rdf:about=""
         xmlns:MY="http://ns.mylollc.com/MyloEdit/"
@@ -199,6 +199,7 @@ Little-endian (Intel, II)
       xmp:MetadataDate="2019-08-04T21:22:41+02:00"
       xmp:ModifyDate="2019-08-04T21:22:41+02:00"
       xmp:Rating="0"
+      xmpDM:good="True"
       xmpDM:pick="1"
       xmpMM:DocumentID="xmp.did:ce2000f3-5b24-1346-bf4e-cd945cb900a8"
       xmpMM:InstanceID="xmp.iid:ce2000f3-5b24-1346-bf4e-cd945cb900a8"

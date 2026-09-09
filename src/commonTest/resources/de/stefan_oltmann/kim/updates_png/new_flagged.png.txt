@@ -257,7 +257,7 @@ Time Created (60) = '15:28:58-15:28'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
-<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core for KMP 1.7.4">
+<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core for KMP 1.8.0">
   <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <rdf:Description rdf:about=""
         xmlns:GIMP="http://www.gimp.org/xmp/"
@@ -281,6 +281,7 @@ Time Created (60) = '15:28:58-15:28'
       tiff:Orientation="1"
       xmp:CreatorTool="GIMP 2.10"
       xmp:Rating="2"
+      xmpDM:good="True"
       xmpDM:pick="1"
       xmpMM:DocumentID="gimp:docid:gimp:008091ee-2d50-4d1d-8112-4cb6b993f829"
       xmpMM:InstanceID="xmp.iid:d6632067-909d-439e-bbc8-b2c999060e48"

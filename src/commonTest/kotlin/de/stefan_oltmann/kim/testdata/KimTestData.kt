@@ -116,6 +116,13 @@ object KimTestData {
         WEBP_TEST_IMAGE_INDEX
     )
 
+    @Suppress("MagicNumber")
+    val brokenJpegIds: Set<Int> = setOf(44, 45, 47)
+
+    /* The modified variant of a broken file is broken as well. */
+    @Suppress("MagicNumber")
+    val brokenModifiedJpegIds: Set<Int> = setOf(45)
+
     private fun getExtension(index: Int) = when (index) {
         GIF_TEST_IMAGE_INDEX -> "gif"
         WEBP_TEST_IMAGE_INDEX -> "webp"

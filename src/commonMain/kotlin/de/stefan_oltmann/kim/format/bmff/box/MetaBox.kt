@@ -57,13 +57,12 @@ public open class MetaBox(
 
         flags = byteReader.readBytes("flags", FLAGS_LENGTH)
 
-        boxes = BoxReader.readBoxes(
+        boxes = BoxReader.readChildBoxes(
             byteReader = byteReader,
-            stopAfterMetadataRead = false,
-            positionOffset = 4,
-            offsetShift = offset + 8,
             parentBoxType = type,
-            depth = depth
+            depth = depth,
+            offsetShift = offset + 8,
+            positionOffset = 4
         )
 
         /* Find & set mandatory box */

@@ -331,3 +331,43 @@ internal fun ByteReader.skipToBytes(needle: ByteArray): Boolean {
 /** Masks a 4-byte value to its unsigned 32-bit range. */
 @Suppress("MagicNumber")
 private const val UINT32_MASK: Long = 0xFFFF_FFFFL
+
+/**
+ * The exclusive end index for a read of [count] bytes starting at
+ * [fromIndex], clamped to [limit].
+ *
+ * Computed in Long space, so a hostile count cannot overflow the addition
+ * into a wrapped-around index that would crash the subsequent array copy.
+ * The limit must not exceed the signed Int range, which the buffer-backed
+ * readers enforce at construction.
+ */
+internal fun clampedEndIndex(
+    fromIndex: Long,
+    count: Long,
+    limit: Long
+): Int =
+    minOf(fromIndex + count, limit).toInt()
+
+/**
+ * Copies the bytes of [source] from [fromIndex] up to the clamped end of
+ * the requested [count] range. An empty array is returned when [fromIndex]
+ * is at or past [limit], matching the ByteReader short-read contract.
+ *
+ * The end index is computed in Long space, so a hostile count cannot
+ * overflow the addition into a wrapped-around index that would crash
+ * copyOfRange.
+ */
+internal fun copyClamped(
+    source: ByteArray,
+    fromIndex: Long,
+    count: Long,
+    limit: Long
+): ByteArray {
+
+    if (fromIndex >= limit)
+        return ByteArray(0)
+
+    val endIndex = clampedEndIndex(fromIndex, count, limit)
+
+    return source.copyOfRange(fromIndex.toInt(), endIndex)
+}

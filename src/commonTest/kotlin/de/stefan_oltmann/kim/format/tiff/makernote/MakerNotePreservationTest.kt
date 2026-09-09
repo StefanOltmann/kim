@@ -30,6 +30,7 @@ import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlinx.datetime.TimeZone
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -53,6 +54,11 @@ class MakerNotePreservationTest {
     @BeforeTest
     fun setUp() {
         Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
+    }
+
+    @AfterTest
+    fun tearDown() {
+        Kim.defaultTimeZone = null
     }
 
     /**
