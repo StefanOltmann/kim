@@ -110,9 +110,12 @@ import kotlinx.datetime.TimeZone
  *
  * [MetadataSummaryConverter][de.stefan_oltmann.kim.common.MetadataSummaryConverter]
  * builds a display-only view from already-returned metadata. When the raw
- * XMP packet cannot be parsed, the summary omits the XMP-derived fields;
- * the raw packet itself stays fully available on the metadata object, so
- * nothing is lost for sidecar writers, which never consume the summary.
+ * XMP packet cannot be parsed, the conversion fails with
+ * [ImageReadException][de.stefan_oltmann.kim.common.ImageReadException] by
+ * default; with `ignoreBrokenXmp = true` the summary omits the XMP-derived
+ * fields instead. The raw packet itself stays fully available on the
+ * metadata object in both cases, so nothing is lost for sidecar writers,
+ * which never consume the summary.
  */
 public object Kim {
 

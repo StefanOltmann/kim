@@ -57,6 +57,19 @@ private const val MAX_SUB_SECOND_DIGITS: Int = 9
  */
 public object MetadataSummaryConverter {
 
+    /**
+     * Converts the metadata into a summary for display purposes.
+     *
+     * A raw XMP packet that cannot be parsed fails the conversion with an
+     * [ImageReadException]; with `ignoreBrokenXmp = true` the XMP-derived
+     * fields are omitted instead and the summary is built from the EXIF
+     * and IPTC data only.
+     *
+     * @param mediaMetadata The metadata to derive the summary from.
+     * @param ignoreOrientation Set to not apply the EXIF orientation.
+     * @param ignoreBrokenXmp Set to omit the XMP-derived fields when the
+     *        raw XMP packet cannot be parsed instead of failing.
+     */
     @JvmStatic
     @JvmOverloads
     @Suppress("LongMethod")
