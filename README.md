@@ -12,6 +12,11 @@
 
 Kim is a Kotlin Multiplatform library for reading and writing image metadata.
 
+This lib is used in production by my online [EXIF Viewer](https://stefan-oltmann.de/exif-viewer),
+[Thumbnail Fixer Pro](https://apps.microsoft.com/detail/9p9hdfltk63l),
+[Quick Metadata Remover](https://apps.microsoft.com/detail/9ngnvr157ztg)
+and [PixelSafe](https://github.com/StefanOltmann/pixelsafe).
+
 ## Features
 
 * JPG: Read & Write EXIF, IPTC & XMP

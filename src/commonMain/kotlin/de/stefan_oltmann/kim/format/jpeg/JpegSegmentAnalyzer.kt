@@ -30,20 +30,17 @@ import de.stefan_oltmann.kim.input.skipBytes
 import kotlin.jvm.JvmStatic
 
 /**
- * Algorithm to find segment offsets, types and lengths.
- *
- * This analyzer is a maintained public feature in its own right and not a
- * helper of the segment reader used for writing, so its contract is
- * documented here explicitly.
+ * Algorithm to find segment offsets, types, and lengths.
  *
  * Offsets are absolute positions from the stream start and lengths include
  * the 2 marker bytes. The SOS segment reaches to the end of the file; an
  * EOI segment is only reported when the marker is physically present, so a
  * truncated file yields exactly the segments its bytes contain.
+ *
+ * **Attention:** Must be public API as this is used by https://stefan-oltmann.de/exif-viewer
  */
 public object JpegSegmentAnalyzer {
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Throws(ImageReadException::class)
     @Suppress("ComplexMethod")
     @JvmStatic
@@ -145,7 +142,7 @@ public object JpegSegmentAnalyzer {
 
         } while (true)
 
-        return segmentInfos
+        return@findSegmentInfos segmentInfos
     }
 
     /**
