@@ -30,6 +30,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlin.jvm.JvmStatic
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 /**
  * We only read metadata that the user is likely to change/correct
@@ -61,17 +62,25 @@ public object XmpReader {
 
         val timeZone = Kim.defaultTimeZone ?: TimeZone.currentSystemDefault()
 
-        val takenDateIsoStringWithoutTimezone =
-            takenDateIsoString?.replace(ISO8601_TIMEZONE_REGEX, "")
+        val takenDate = takenDateIsoString?.let {
 
-        val takenDate = takenDateIsoStringWithoutTimezone?.let {
             try {
-                LocalDateTime.parse(it)
-                    .toInstant(timeZone)
-                    .toEpochMilliseconds()
+                /*
+                 * An embedded offset (or Z) is authoritative - use it for the
+                 * epoch conversion instead of assuming the reader's zone.
+                 */
+                Instant.parse(it).toEpochMilliseconds()
             } catch (_: Exception) {
-                /* We ignore invalid XMP DateTimeOriginal values. */
-                null
+
+                /* No offset embedded: interpret the local time in the configured zone. */
+                try {
+                    LocalDateTime.parse(it.replace(ISO8601_TIMEZONE_REGEX, ""))
+                        .toInstant(timeZone)
+                        .toEpochMilliseconds()
+                } catch (_: Exception) {
+                    /* We ignore invalid XMP DateTimeOriginal values. */
+                    null
+                }
             }
         }
 
