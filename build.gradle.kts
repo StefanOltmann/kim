@@ -343,7 +343,7 @@ kotlin {
         dependsOn(commonMain)
 
         dependencies {
-            api(npm("pako", "2.1.0"))
+            api(npm("pako", libs.versions.pako.get()))
         }
     }
 
