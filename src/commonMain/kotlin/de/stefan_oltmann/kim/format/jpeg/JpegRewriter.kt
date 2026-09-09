@@ -29,13 +29,13 @@ import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPiece
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegmentExif
-import de.stefan_oltmann.kim.format.jpeg.xmp.ExtendedXmpWriter
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.copyRemainingTo
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
+import de.stefan_oltmann.xmp.XMPMetaFactory
 import kotlin.jvm.JvmStatic
 
 /**
@@ -47,13 +47,6 @@ import kotlin.jvm.JvmStatic
  * such files.
  */
 public object JpegRewriter {
-
-    /*
-     * The processing instruction that terminates an XMP packet. The
-     * whitespace between the packet content and this marker is editable
-     * padding that carries no information.
-     */
-    private const val XMP_PACKET_END_MARKER = "<?xpacket end="
 
     /**
      * Inserts the new segments at a place where readers look for
@@ -389,34 +382,29 @@ public object JpegRewriter {
     /**
      * Returns the APP1 segments for the given XMP packet.
      *
-     * The editable padding of the packet is removed when the packet does
-     * not fit into a single segment, because large padding can push an
-     * otherwise small packet beyond the segment size.
-     *
-     * Oversized packets are written using Adobe extended XMP, exactly like
-     * ExifTool does it: the main packet keeps as many whole rdf:Description
-     * blocks as fit and references the rest through "xmpNote:HasExtendedXMP",
-     * followed by extension segments carrying the GUID and chunks of the
-     * extended data. This scheme is part of the Adobe XMP specification and
-     * is read by ExifTool, Photoshop and Lightroom. Naive byte splitting of
-     * the packet would produce truncated XML that third-party readers reject.
+     * Oversized packets are split by the XMP library using Adobe extended
+     * XMP, exactly like ExifTool does it: the main packet keeps as many
+     * whole rdf:Description blocks as fit and references the rest through
+     * "xmpNote:HasExtendedXMP", followed by extension segments carrying the
+     * GUID and chunks of the extended data. This scheme is part of the
+     * Adobe XMP specification and is read by ExifTool, Photoshop and
+     * Lightroom. Naive byte splitting of the packet across standard XMP
+     * segments would produce truncated XML that third-party readers reject.
      */
     private fun createXmpSegments(xmpXml: String): List<JFIFPieceSegment> {
 
-        var xmpBytes = xmpXml.encodeToByteArray()
-
-        if (xmpBytes.size > JpegConstants.MAX_XMP_BYTES_PER_SEGMENT)
-            xmpBytes = removeXmpPadding(xmpXml).encodeToByteArray()
-
-        val partitioned =
-            ExtendedXmpWriter.partition(xmpBytes.decodeToString())
-
-        val segments = mutableListOf(
-            createStandardXmpSegment(partitioned.mainPacketXml.encodeToByteArray())
+        val partitioned = XMPMetaFactory.partitionPacket(
+            packet = xmpXml,
+            maxMainPacketBytes = JpegConstants.MAX_XMP_BYTES_PER_SEGMENT,
+            maxExtendedChunkBytes = JpegConstants.MAX_EXTENDED_XMP_BYTES_PER_SEGMENT
         )
 
-        for (payload in partitioned.extensionSegmentPayloads)
-            segments.add(JFIFPieceSegment(JpegConstants.JPEG_APP1_MARKER, payload))
+        val segments = mutableListOf(
+            createStandardXmpSegment(partitioned.mainPacket.encodeToByteArray())
+        )
+
+        for (chunk in partitioned.extendedChunks)
+            segments.add(JFIFPieceSegment(JpegConstants.JPEG_APP1_MARKER, chunk))
 
         return segments
     }
@@ -429,25 +417,5 @@ public object JpegRewriter {
         segmentWriter.write(xmpBytes)
 
         return JFIFPieceSegment(JpegConstants.JPEG_APP1_MARKER, segmentWriter.toByteArray())
-    }
-
-    /**
-     * Removes the whitespace padding between the XMP content and the packet
-     * terminator processing instruction. Padding exists so tools can edit a
-     * packet in place; it carries no information.
-     */
-    private fun removeXmpPadding(xmpXml: String): String {
-
-        val endIndex = xmpXml.indexOf(XMP_PACKET_END_MARKER)
-
-        if (endIndex == -1)
-            return xmpXml
-
-        var contentEnd = endIndex
-
-        while (contentEnd > 0 && xmpXml[contentEnd - 1].isWhitespace())
-            contentEnd--
-
-        return xmpXml.substring(0, contentEnd) + xmpXml.substring(endIndex)
     }
 }

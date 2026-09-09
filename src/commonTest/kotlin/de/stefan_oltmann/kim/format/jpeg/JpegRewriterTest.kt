@@ -357,8 +357,37 @@ class JpegRewriterTest {
 
             val newBytesXmp = Kim.readMetadata(newBytes)?.xmp
 
-            assertEquals(newXmp, newBytesXmp)
+            /*
+             * The write canonicalizes the packet: the packet terminator
+             * always starts on its own line, and whitespace that shares
+             * the content's line becomes that line break.
+             */
+            assertEquals(ensureTerminatorOnOwnLine(newXmp), newBytesXmp)
         }
+    }
+
+    /**
+     * Puts the packet terminator on its own line, mirroring the canonical
+     * form the XMP library writes: whitespace that shares the content's
+     * line becomes the single line break, while in-place editing padding
+     * with line breaks of its own stays untouched.
+     */
+    private fun ensureTerminatorOnOwnLine(xmp: String): String {
+
+        val endIndex = xmp.indexOf("<?xpacket end=")
+
+        if (endIndex == -1)
+            return xmp
+
+        var runStart = endIndex
+
+        while (runStart > 0 && xmp[runStart - 1].isWhitespace())
+            runStart--
+
+        if (xmp.indexOf('\n', runStart) in runStart until endIndex)
+            return xmp
+
+        return xmp.substring(0, runStart) + "\n" + xmp.substring(endIndex)
     }
 
     /**

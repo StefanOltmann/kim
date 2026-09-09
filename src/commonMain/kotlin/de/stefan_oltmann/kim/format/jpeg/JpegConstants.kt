@@ -134,15 +134,6 @@ public object JpegConstants {
             EXTENDED_XMP_GUID_LENGTH - EXTENDED_XMP_TOTAL_LENGTH_BYTES -
             EXTENDED_XMP_OFFSET_BYTES
 
-    /**
-     * Namespace URI of the xmpNote schema, which carries the
-     * HasExtendedXMP reference between the main packet and its extensions.
-     */
-    public const val XMP_NOTE_NAMESPACE: String = "http://ns.adobe.com/xmp/note/"
-
-    /** Name of the property that links a main packet to its extended data. */
-    public const val HAS_EXTENDED_XMP_PROPERTY: String = "HasExtendedXMP"
-
     public val SOI: ByteArray = byteArrayOf(0xFF.toByte(), 0xD8.toByte())
     public val EOI: ByteArray = byteArrayOf(0xFF.toByte(), 0xD9.toByte())
 
