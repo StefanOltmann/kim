@@ -261,7 +261,7 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
             0x00, 0x00, 0x01, 0x00 // Block data
         )
 
-        val app13Payload = "Photoshop 3.0 ".encodeToByteArray() + emptyBlock
+        val app13Payload = "Photoshop 3.0\u0000".encodeToByteArray() + emptyBlock
 
         val fakeStreamSegment = byteArrayOf(
             0xFF.toByte(), 0xED.toByte(),
