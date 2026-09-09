@@ -141,6 +141,12 @@ public object Kim {
         else
             readMetadata(ByteArrayByteReader(bytes))
 
+    /**
+     * Reads all metadata of the image.
+     *
+     * Attention: The given [ByteReader] is closed by this call, including
+     * the stream below it, and must not be used afterwards.
+     */
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
     public fun readMetadata(
@@ -178,6 +184,9 @@ public object Kim {
      * RAW, ...) yields an empty array, so callers cannot distinguish
      * "format has no metadata" from "metadata bytes not provided". Use
      * [readMetadata] for a format independent metadata view.
+     *
+     * Attention: The given [ByteReader] is closed by this call, including
+     * the stream below it, and must not be used afterwards.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
@@ -203,6 +212,12 @@ public object Kim {
         }
     }
 
+    /**
+     * Extracts the embedded preview image of the file.
+     *
+     * Attention: The given [ByteReader] is closed by this call, including
+     * the stream below it, and must not be used afterwards.
+     */
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
     public fun extractPreviewImage(
@@ -311,6 +326,9 @@ public object Kim {
 
     /**
      * Updates the file with the desired change.
+     *
+     * Attention: The given [ByteReader] and [ByteWriter] are not closed by
+     * this call; the caller owns and closes both.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -326,6 +344,9 @@ public object Kim {
      *
      * Every update is applied to all formats that can represent it, so EXIF,
      * IPTC and XMP can be updated simultaneously in a single call.
+     *
+     * Attention: The given [ByteReader] and [ByteWriter] are not closed by
+     * this call; the caller owns and closes both.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -388,6 +409,9 @@ public object Kim {
      * The file must be readable; if the file or its metadata is corrupt
      * or cannot be parsed, the operation fails and the file is left
      * untouched.
+     *
+     * Attention: The given [ByteReader] and [ByteWriter] are not closed by
+     * this call; the caller owns and closes both.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
