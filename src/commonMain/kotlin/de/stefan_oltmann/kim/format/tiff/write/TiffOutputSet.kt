@@ -19,7 +19,6 @@ package de.stefan_oltmann.kim.format.tiff.write
 
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ByteOrder
-import de.stefan_oltmann.kim.common.GpsUtil.MINUTES_PER_HOUR
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.RationalNumber.Companion.valueOf
 import de.stefan_oltmann.kim.common.RationalNumbers
@@ -328,6 +327,12 @@ public class TiffOutputSet(
 
     public fun addGPSDirectory(): TiffOutputDirectory =
         addDirectory(TiffOutputDirectory(TiffConstants.TIFF_DIRECTORY_GPS, byteOrder))
+
+    private companion object {
+
+        /* The EXIF GPS rationals carry degrees, minutes and seconds */
+        const val MINUTES_PER_HOUR: Double = 60.0
+    }
 }
 
 /**

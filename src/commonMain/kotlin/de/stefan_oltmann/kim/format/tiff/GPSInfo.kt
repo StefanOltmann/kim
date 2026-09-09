@@ -17,8 +17,6 @@
  */
 package de.stefan_oltmann.kim.format.tiff
 
-import de.stefan_oltmann.kim.common.GpsUtil.MINUTES_PER_HOUR
-import de.stefan_oltmann.kim.common.GpsUtil.SECONDS_PER_HOUR
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.RationalNumbers
 import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
@@ -66,6 +64,11 @@ internal data class GPSInfo(
 
         /* A GPS coordinate has degrees, minutes and seconds */
         private const val GPS_DMS_COMPONENT_COUNT = 3
+
+        /* The EXIF GPS rationals carry degrees, minutes and seconds */
+        private const val MINUTES_PER_HOUR: Double = 60.0
+
+        private const val SECONDS_PER_HOUR: Double = 3600.0
 
         fun createFrom(gpsDirectory: TiffDirectory): GPSInfo? {
 

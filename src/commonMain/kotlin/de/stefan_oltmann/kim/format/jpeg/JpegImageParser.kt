@@ -18,7 +18,6 @@
 package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.common.ImageReadException
-import de.stefan_oltmann.kim.common.Md5
 import de.stefan_oltmann.kim.common.getRemainingBytes
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toInt
@@ -46,6 +45,8 @@ import de.stefan_oltmann.kim.input.skipBytes
 import de.stefan_oltmann.kim.model.ImageSize
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
+import de.stefan_oltmann.xmp.XMPException
+import de.stefan_oltmann.xmp.XMPMetaFactory
 
 /**
  * Parses the metadata of JPEG files.
@@ -53,16 +54,6 @@ import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 public object JpegImageParser : ImageParser {
 
     private const val XMP_META_CLOSE = "</x:xmpmeta>"
-
-    private val attributeFormRegex = Regex(
-        """xmpNote:HasExtendedXMP\s*=\s*["']([0-9A-Fa-f]{32})["']"""
-    )
-
-    private val elementFormRegex = Regex(
-        """<xmpNote:HasExtendedXMP>\s*([0-9A-Fa-f]{32})\s*</xmpNote:HasExtendedXMP>"""
-    )
-
-    private const val RDF_CLOSE_TAG = "</rdf:RDF>"
 
     public fun getImageSize(byteReader: ByteReader): ImageSize? {
 
@@ -304,157 +295,28 @@ public object JpegImageParser : ImageParser {
     }
 
     /**
-     * Merges Adobe extended XMP data into the main packet, exactly like
-     * ExifTool does by default: the main packet carries an
-     * "xmpNote:HasExtendedXMP" property with the GUID of the extended data,
-     * and only extension segments whose GUID matches are reassembled.
+     * Merges Adobe extended XMP data into the main packet via the XMP
+     * library, which validates the chunks for a matching GUID, contiguous
+     * offsets, the declared total length and the MD5 digest, so incomplete
+     * or tampered data fails the read instead of being merged silently -
+     * a rewrite would destroy it otherwise.
      *
-     * The reassembled data is verified against its MD5 digest, because a
-     * mismatch would mean silent metadata loss on a subsequent rewrite -
-     * and Kim must never destroy or misrepresent metadata.
+     * The consumed "xmpNote:HasExtendedXMP" reference is not part of the
+     * returned packet, because it would point at chunks that no longer
+     * exist when the merged packet is written back.
      */
-    @OptIn(ExperimentalStdlibApi::class)
     private fun mergeExtendedXmp(
         mainPacket: String,
         extendedSegments: List<AppnSegment>
-    ): String {
-
-        val guid = findHasExtendedXmpGuid(mainPacket) ?: return mainPacket
-
-        if (extendedSegments.isEmpty())
-            throw ImageReadException(
-                "The XMP packet references extended data (GUID $guid), " +
-                    "but no extended XMP segments exist."
+    ): String =
+        try {
+            XMPMetaFactory.assemblePacket(
+                mainPacket = mainPacket,
+                extendedChunks = extendedSegments.map { segment -> segment.segmentBytes }
             )
-
-        val fragments = extendedSegments.map { segment ->
-            JpegXmpParser.parseExtendedXmpJpegSegment(segment.segmentBytes)
+        } catch (ex: XMPException) {
+            throw ImageReadException("Failed to merge the extended XMP data.", ex)
         }
-
-        /* Segments of foreign GUIDs belong to another packet and are ignored. */
-        val matchingFragments = fragments.filter { fragment ->
-            fragment.guid.equals(guid, ignoreCase = true)
-        }
-
-        if (matchingFragments.isEmpty())
-            throw ImageReadException(
-                "The XMP packet references extended data (GUID $guid), " +
-                    "but no extended XMP segments with this GUID exist."
-            )
-
-        val declaredLength = matchingFragments.first().totalLength
-
-        val mismatchedLength = matchingFragments.firstOrNull { fragment ->
-            fragment.totalLength != declaredLength
-        }
-
-        if (mismatchedLength != null)
-            throw ImageReadException(
-                "Inconsistent extended XMP total length: ${mismatchedLength.totalLength} " +
-                    "(expected $declaredLength)."
-            )
-
-        /*
-         * The chunks are placed at their offset inside the complete
-         * extended data. Sort by offset and verify the assembly is
-         * contiguous, so missing or duplicated chunks fail loudly
-         * instead of producing silently shifted data.
-         */
-        val sortedFragments = matchingFragments.sortedBy { it.offset }
-
-        var expectedOffset = 0
-
-        for (fragment in sortedFragments) {
-
-            if (fragment.offset != expectedOffset)
-                throw ImageReadException(
-                    "The extended XMP chunks are not contiguous: " +
-                        "expected offset $expectedOffset, got ${fragment.offset}."
-                )
-
-            expectedOffset += fragment.data.size
-        }
-
-        val extendedData = ByteArrayByteWriter()
-
-        for (fragment in sortedFragments)
-            extendedData.write(fragment.data)
-
-        val extendedBytes = extendedData.toByteArray()
-
-        if (extendedBytes.size != declaredLength)
-            throw ImageReadException(
-                "Incomplete extended XMP: got ${extendedBytes.size} of $declaredLength bytes."
-            )
-
-        val actualDigest = Md5.digest(extendedBytes).toHexString(HexFormat.UpperCase)
-
-        if (!actualDigest.equals(guid, ignoreCase = true))
-            throw ImageReadException(
-                "The MD5 checksum of the extended XMP data does not match the GUID " +
-                    "$guid declared by the main packet."
-            )
-
-        return injectExtendedDescriptions(mainPacket, extendedBytes.decodeToString(), guid)
-    }
-
-    /**
-     * Extracts the value of the "xmpNote:HasExtendedXMP" property from the
-     * raw packet text. Both serialization forms that writers emit are
-     * recognized: the shorthand attribute form and the element form.
-     */
-    private fun findHasExtendedXmpGuid(packet: String): String? {
-
-        attributeFormRegex.find(packet)?.let { return it.groupValues[1] }
-
-        return elementFormRegex.find(packet)?.groupValues?.get(1)
-    }
-
-    /**
-     * Inserts the rdf:Description elements of the extended data into the
-     * main packet, so both parse as one metadata tree afterwards.
-     */
-    private fun injectExtendedDescriptions(
-        mainPacket: String,
-        extendedXml: String,
-        guid: String
-    ): String {
-
-        val innerStart = locateTagEnd(extendedXml, "<rdf:RDF")
-        val innerEnd = extendedXml.indexOf(RDF_CLOSE_TAG, innerStart)
-
-        if (innerStart == -1 || innerEnd == -1)
-            throw ImageReadException(
-                "The extended XMP data referenced by GUID $guid has no RDF content."
-            )
-
-        val descriptions = extendedXml.substring(innerStart, innerEnd)
-
-        val insertionPoint = mainPacket.lastIndexOf(RDF_CLOSE_TAG)
-
-        if (insertionPoint == -1)
-            throw ImageReadException(
-                "The main XMP packet referencing extended data (GUID $guid) has no RDF content."
-            )
-
-        return mainPacket.substring(0, insertionPoint) + descriptions +
-            mainPacket.substring(insertionPoint)
-    }
-
-    /**
-     * Returns the index behind the '>' of the given tag's first occurrence.
-     */
-    private fun locateTagEnd(xml: String, tagName: String): Int {
-
-        val tagStart = xml.indexOf(tagName)
-
-        if (tagStart == -1)
-            return -1
-
-        val tagEnd = xml.indexOf('>', tagStart)
-
-        return if (tagEnd == -1) -1 else tagEnd + 1
-    }
 
     private fun getIptc(segments: List<Segment>): IptcMetadata? {
 

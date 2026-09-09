@@ -20,7 +20,7 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.Md5
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
-import de.stefan_oltmann.kim.format.jpeg.xmp.ExtendedXmpWriter
+import de.stefan_oltmann.kim.format.jpeg.xmp.JpegXmpParser
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
@@ -59,6 +59,37 @@ class ExtendedXmpTest {
         assertNotNull(xmp)
         assertFalse(!xmp.contains("Main Title"))
         assertFalse(!xmp.contains("EXTENDED_VALUE"))
+    }
+
+    /**
+     * Writers of third-party tools serialize the GUID in different cases.
+     * The merge must match the chunk GUID against the packet reference
+     * case-insensitively, so files from tools that emit lowercase letters
+     * stay readable.
+     */
+    @Test
+    fun testReadMetadataMergesExtendedXmpWithMismatchedGuidCase() {
+
+        val extendedXml =
+            MINIMAL_HEADER +
+                "<rdf:Description rdf:about=\"\" " +
+                "xmlns:custom=\"http://example.com/custom/\">" +
+                "<custom:Extra>EXTENDED_VALUE</custom:Extra>" +
+                "</rdf:Description>" +
+                MINIMAL_FOOTER
+
+        val guid = digestAsGuid(extendedXml)
+
+        val jpegBytes = createJpegWithExtendedXmp(
+            mainPacket = buildMainPacket(guid.lowercase()),
+            extensionPayloads = listOf(buildExtensionPayload(guid, extendedXml))
+        )
+
+        val xmp = Kim.readMetadata(jpegBytes)?.xmp
+
+        assertNotNull(xmp)
+        assertTrue(xmp.contains("Main Title"))
+        assertTrue(xmp.contains("EXTENDED_VALUE"))
     }
 
     /**
@@ -141,7 +172,7 @@ class ExtendedXmpTest {
      * unlimited size, and the main packet keeps only the GUID reference.
      */
     @Test
-    fun testPartitionMovesSingleHugeSchemaToExtendedData() {
+    fun testUpdateXmpXmlMovesSingleHugeSchemaToExtendedData() {
 
         val hugeValue = "x".repeat(JpegConstants.MAX_XMP_BYTES_PER_SEGMENT + 100)
 
@@ -152,32 +183,31 @@ class ExtendedXmpTest {
                 """<rdf:Description rdf:about="" xmlns:custom="http://example.com/custom/">""" +
                 "<custom:Big>$hugeValue</custom:Big>" +
                 "</rdf:Description>" +
-                "</rdf:RDF></x:xmpmeta>" +
+                "</rdf:RDF>" +
+                """"</x:xmpmeta>""" +
                 """<?xpacket end="w"?>"""
 
-        val partitioned = ExtendedXmpWriter.partition(hugeXmp)
+        val newBytes = writeXmpToBareJpeg(hugeXmp)
 
         /* The main packet fits into a single segment and carries only the reference. */
-        assertTrue(partitioned.mainPacketXml.encodeToByteArray().size <= JpegConstants.MAX_XMP_BYTES_PER_SEGMENT)
-        assertTrue(partitioned.mainPacketXml.contains("HasExtendedXMP"))
-        assertFalse(partitioned.mainPacketXml.contains(hugeValue))
+        val (segments, _) = JpegUtils.readSegments(ByteArrayByteReader(newBytes))
 
-        /* The extension segments reassemble to the complete extended data. */
-        assertFalse(partitioned.extensionSegmentPayloads.isEmpty())
+        val mainSegment = segments.first { segment -> JpegXmpParser.isXmpJpegSegment(segment.segmentBytes) }
 
-        val reassembled = ByteArrayByteWriter()
+        assertTrue(mainSegment.segmentBytes.size <= JpegConstants.MAX_PAYLOAD_BYTES_PER_SEGMENT)
 
-        for (payload in partitioned.extensionSegmentPayloads)
-            reassembled.write(payload.copyOfRange(EXTENDED_XMP_HEADER_BYTES, payload.size))
+        val mainPacket = mainSegment.segmentBytes.decodeToString()
 
-        val extendedBytes = reassembled.toByteArray()
+        assertTrue(mainPacket.contains("HasExtendedXMP"))
+        assertFalse(mainPacket.contains(hugeValue))
 
-        assertTrue(extendedBytes.decodeToString().contains(hugeValue))
-
-        assertEquals(
-            digestAsGuid(extendedBytes.decodeToString()),
-            extractGuidFromMainPacket(partitioned.mainPacketXml)
+        /* The extension segments exist beside the main packet. */
+        assertTrue(
+            segments.any { segment -> JpegXmpParser.isExtendedXmpJpegSegment(segment.segmentBytes) }
         )
+
+        /* The metadata must survive a read of the written file. */
+        assertTrue(Kim.readMetadata(newBytes)?.xmp?.contains(hugeValue) == true)
     }
 
     /**
@@ -187,7 +217,7 @@ class ExtendedXmpTest {
      * empty packet, which would destroy all XMP properties.
      */
     @Test
-    fun testPartitionRejectsUnrecognizedNodeElements() {
+    fun testUpdateXmpXmlRejectsUnrecognizedNodeElements() {
 
         val hugeValue = "x".repeat(JpegConstants.MAX_XMP_BYTES_PER_SEGMENT + 100)
 
@@ -202,7 +232,7 @@ class ExtendedXmpTest {
                 """<?xpacket end="w"?>"""
 
         assertFailsWith<ImageWriteException> {
-            ExtendedXmpWriter.partition(hugeXmp)
+            writeXmpToBareJpeg(hugeXmp)
         }
     }
 
@@ -371,12 +401,12 @@ class ExtendedXmpTest {
      * regeneration must reference the reassembled extended data.
      */
     @Test
-    fun testPartitionKeepsSiblingsOfStaleReferenceBlock() {
+    fun testUpdateXmpXmlKeepsSiblingsOfStaleReferenceBlock() {
 
         val hugeValue = "x".repeat(JpegConstants.MAX_XMP_BYTES_PER_SEGMENT + 100)
 
         /* One description carries both the stale reference (attribute
-           form) and a real property. */
+           form) and real properties. */
         val hugeXmp =
             """<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>""" +
                 """<x:xmpmeta xmlns:x="adobe:ns:meta/">""" +
@@ -390,19 +420,13 @@ class ExtendedXmpTest {
                 "</rdf:RDF></x:xmpmeta>" +
                 """<?xpacket end="w"?>"""
 
-        val partitioned = ExtendedXmpWriter.partition(hugeXmp)
+        val newBytes = writeXmpToBareJpeg(hugeXmp)
 
-        /* The stale reference is regenerated with a fresh GUID. */
-        assertTrue(partitioned.mainPacketXml.contains("HasExtendedXMP"))
-        assertFalse(partitioned.mainPacketXml.contains(GUID))
+        /* The stale reference was regenerated with a fresh GUID. */
+        assertFalse(newBytes.decodeToString().contains(GUID))
 
-        /* The sibling property must survive in the extended data. */
-        val extendedData = ByteArrayByteWriter()
-
-        for (payload in partitioned.extensionSegmentPayloads)
-            extendedData.write(payload.copyOfRange(EXTENDED_XMP_HEADER_BYTES, payload.size))
-
-        assertTrue(extendedData.toByteArray().decodeToString().contains("KEEP"))
+        /* The sibling property must survive a read of the written file. */
+        assertTrue(Kim.readMetadata(newBytes)?.xmp?.contains("KEEP") == true)
     }
 
     /**
@@ -412,7 +436,7 @@ class ExtendedXmpTest {
      * the main packet and the extended data.
      */
     @Test
-    fun testPartitionKeepsDuplicateDescriptionOccurrences() {
+    fun testUpdateXmpXmlKeepsDuplicateDescriptionOccurrences() {
 
         /* Two byte-identical mid-size blocks, so only the first fits into
            the main packet and the second must move to the extended data. */
@@ -434,29 +458,58 @@ class ExtendedXmpTest {
                 "</rdf:RDF></x:xmpmeta>" +
                 """<?xpacket end="w"?>"""
 
-        val partitioned = ExtendedXmpWriter.partition(hugeXmp)
+        val newBytes = writeXmpToBareJpeg(hugeXmp)
 
-        /* The main packet keeps exactly one occurrence of the duplicate. */
-        assertEquals(1, partitioned.mainPacketXml.split("KEEPME").size - 1)
+        /* The smallest description stays in the main packet ... */
+        val (segments, _) = JpegUtils.readSegments(ByteArrayByteReader(newBytes))
 
-        /* The extended data carries the second occurrence and the big block
-           stays in the main packet, so both occurrences survive in total. */
-        val extendedData = ByteArrayByteWriter()
+        val mainPacket = segments
+            .first { segment -> JpegXmpParser.isXmpJpegSegment(segment.segmentBytes) }
+            .segmentBytes
+            .decodeToString()
 
-        for (payload in partitioned.extensionSegmentPayloads)
-            extendedData.write(payload.copyOfRange(EXTENDED_XMP_HEADER_BYTES, payload.size))
+        assertTrue(mainPacket.contains("z".repeat(200)))
 
-        val extendedText = extendedData.toByteArray().decodeToString()
+        /* ... and on read the merged packet carries both occurrences. */
+        val xmp = assertNotNull(Kim.readMetadata(newBytes)?.xmp)
 
-        assertEquals(1, extendedText.split("KEEPME").size - 1)
-        assertTrue(partitioned.mainPacketXml.contains("z".repeat(200)))
+        assertEquals(2, xmp.split("KEEPME").size - 1)
     }
 
-    /*
-     * ------------------------------------------------------------------
-     * Fixture helpers
-     * ------------------------------------------------------------------
+    /**
+     * Writes the given XMP packet into a bare JPEG via the rewriter and
+     * returns the resulting bytes.
      */
+    private fun writeXmpToBareJpeg(xmpXml: String): ByteArray {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        JpegRewriter.updateXmpXml(
+            byteReader = ByteArrayByteReader(createBareJpeg()),
+            byteWriter = byteWriter,
+            xmpXml = xmpXml
+        )
+
+        return byteWriter.toByteArray()
+    }
+
+    /**
+     * Builds a minimal JPEG with SOI, a minimal scan and no header
+     * segments, used as base for XMP rewrites.
+     */
+    private fun createBareJpeg(): ByteArray {
+
+        val bytes = ByteArrayByteWriter()
+
+        bytes.write(byteArrayOf(0xFF.toByte(), 0xD8.toByte())) /* SOI */
+
+        /* SOS with minimal scan data. */
+        bytes.write(byteArrayOf(0xFF.toByte(), 0xDA.toByte(), 0, 8, 1, 1, 0, 0, 63.toByte(), 0))
+        bytes.write(byteArrayOf(0x11, 0x22, 0x33, 0x44))
+        bytes.write(byteArrayOf(0xFF.toByte(), 0xD9.toByte())) /* EOI */
+
+        return bytes.toByteArray()
+    }
 
     private fun buildMainPacket(guid: String): String {
 
@@ -561,21 +614,7 @@ class ExtendedXmpTest {
     private fun digestAsGuid(text: String): String =
         Md5.digest(text.encodeToByteArray()).toHexString(HexFormat.UpperCase)
 
-    private fun extractGuidFromMainPacket(mainPacketXml: String): String {
-
-        val openTag = "<xmpNote:HasExtendedXMP>"
-        val closeTag = "</xmpNote:HasExtendedXMP>"
-
-        val start = mainPacketXml.indexOf(openTag) + openTag.length
-        val end = mainPacketXml.indexOf(closeTag)
-
-        return mainPacketXml.substring(start, end)
-    }
-
     companion object {
-
-        /** Identifier (35) + GUID (32) + total length (4) + offset (4). */
-        private const val EXTENDED_XMP_HEADER_BYTES: Int = 75
 
         private const val GUID: String = "00112233445566778899AABBCCDDEEFF"
 

@@ -17,16 +17,17 @@
 package de.stefan_oltmann.kim.format.xmp
 
 import de.stefan_oltmann.kim.Kim
-import de.stefan_oltmann.kim.common.GpsUtil
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.GpsCoordinates
+import de.stefan_oltmann.kim.model.LocationShown
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.xmp.XMPConst
 import de.stefan_oltmann.xmp.XMPException
 import de.stefan_oltmann.xmp.XMPLocation
 import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
+import de.stefan_oltmann.xmp.XmpGps
 import de.stefan_oltmann.xmp.options.SerializeOptions
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -83,79 +84,17 @@ public object XmpWriter {
                 }
             }
 
-            is MetadataUpdate.GpsCoordinates -> {
+            is MetadataUpdate.GpsCoordinates ->
+                applyGpsCoordinates(update.gpsCoordinates)
 
-                if (update.gpsCoordinates != null) {
-
-                    requireValidGpsCoordinates(update.gpsCoordinates)
-
-                    setGpsCoordinates(
-                        GpsUtil.decimalLatitudeToDDM(update.gpsCoordinates.latitude),
-                        GpsUtil.decimalLongitudeToDDM(update.gpsCoordinates.longitude)
-                    )
-
-                } else {
-
-                    deleteGpsCoordinates()
-                }
-            }
-
-            is MetadataUpdate.LocationShown -> {
-
-                val locationShown = update.locationShown
-
-                if (locationShown == null) {
-                    setLocation(null)
-                    return
-                }
-
-                setLocation(
-                    XMPLocation(
-                        name = locationShown.name,
-                        location = locationShown.street,
-                        city = locationShown.city,
-                        state = locationShown.state,
-                        country = locationShown.country
-                    )
-                )
-            }
+            is MetadataUpdate.LocationShown ->
+                applyLocationShown(update.locationShown)
 
             is MetadataUpdate.GpsCoordinatesAndLocationShown -> {
 
-                /* GPS */
+                applyGpsCoordinates(update.gpsCoordinates)
 
-                if (update.gpsCoordinates != null) {
-
-                    requireValidGpsCoordinates(update.gpsCoordinates)
-
-                    setGpsCoordinates(
-                        GpsUtil.decimalLatitudeToDDM(update.gpsCoordinates.latitude),
-                        GpsUtil.decimalLongitudeToDDM(update.gpsCoordinates.longitude)
-                    )
-
-                } else {
-
-                    deleteGpsCoordinates()
-                }
-
-                /* Location */
-
-                val locationShown = update.locationShown
-
-                if (locationShown == null) {
-                    setLocation(null)
-                    return
-                }
-
-                setLocation(
-                    XMPLocation(
-                        name = locationShown.name,
-                        location = locationShown.street,
-                        city = locationShown.city,
-                        state = locationShown.state,
-                        country = locationShown.country
-                    )
-                )
+                applyLocationShown(update.locationShown)
             }
 
             is MetadataUpdate.Title ->
@@ -249,6 +188,47 @@ public object XmpWriter {
      */
     private fun deleteStaleExtendedXmpReference(xmpMeta: XMPMeta) {
         xmpMeta.deleteProperty(XMPConst.NS_XMP_NOTE, "HasExtendedXMP")
+    }
+
+    /**
+     * Writes the GPS coordinates, or deletes them for NULL. Coordinates
+     * outside the valid range fail the update instead of being written.
+     */
+    private fun XMPMeta.applyGpsCoordinates(gpsCoordinates: GpsCoordinates?) {
+
+        if (gpsCoordinates == null) {
+            deleteGpsCoordinates()
+            return
+        }
+
+        requireValidGpsCoordinates(gpsCoordinates)
+
+        /*
+         * The XMP library renders the DDM values and writes the GPS
+         * version identifier next to them, like ExifTool expects it.
+         */
+        setGpsCoordinates(XmpGps(gpsCoordinates.latitude, gpsCoordinates.longitude))
+    }
+
+    /**
+     * Writes the location, or deletes it for NULL.
+     */
+    private fun XMPMeta.applyLocationShown(locationShown: LocationShown?) {
+
+        if (locationShown == null) {
+            setLocation(null)
+            return
+        }
+
+        setLocation(
+            XMPLocation(
+                name = locationShown.name,
+                location = locationShown.street,
+                city = locationShown.city,
+                state = locationShown.state,
+                country = locationShown.country
+            )
+        )
     }
 
     /**
