@@ -302,22 +302,25 @@ public object BoxReader {
             val remainingBytesToReadInThisBox = nextBoxOffset - position
 
             /*
-             * Media data and padding is skipped in chunks in the video scan,
-             * so even boxes beyond the signed Int range cannot overflow the
-             * read count and stay streamable.
+             * In the video scan only the payload of boxes that carry
+             * metadata is buffered (moov and the XMP boxes); media data,
+             * padding and unknown boxes of arbitrary size are streamed
+             * through in bounded chunks instead.
              */
-            val isSkippableDataBox = skipDataBoxPayloads &&
+            val isMetadataPayloadBox = skipDataBoxPayloads &&
                 (
-                    type == BoxType.MDAT ||
-                        type == BoxType.FREE ||
-                        type == BoxType.SKIP ||
-                        type == BoxType.WIDE
+                    type == BoxType.MOOV ||
+                        type == BoxType.UUID ||
+                        type == BoxType.XMP_ ||
+                        type == BoxType.FTYP
                     )
 
+            val isSkippableDataBox = skipDataBoxPayloads && !isMetadataPayloadBox
+
             /*
-             * The payload of every other box is read into memory, so boxes
-             * larger than Int.MAX_VALUE bytes must be rejected instead of
-             * overflowing the read count.
+             * The payload of every buffered box is read into memory, so
+             * boxes larger than Int.MAX_VALUE bytes must be rejected
+             * instead of overflowing the read count.
              */
             if (!isSkippableDataBox && remainingBytesToReadInThisBox > Int.MAX_VALUE)
                 throw ImageReadException(
