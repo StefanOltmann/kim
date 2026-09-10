@@ -745,7 +745,7 @@ public object TiffReader {
      * Inspect if MakerNotes are present and could be added as
      * TiffDirectory. This is true for almost all manufacturers.
      */
-    private fun tryToParseMakerNote(
+    internal fun tryToParseMakerNote(
         directories: MutableList<TiffDirectory>,
         byteReader: RandomAccessByteReader,
         byteOrder: ByteOrder
@@ -872,7 +872,7 @@ public object TiffReader {
      * documentation: the GeoKeyDirectory exists in the file, so silently
      * dropping it would lose structured metadata to sidecar writers.
      */
-    private fun tryToParseGeoTiff(
+    internal fun tryToParseGeoTiff(
         directories: MutableList<TiffDirectory>
     ): GeoTiffDirectory? {
 

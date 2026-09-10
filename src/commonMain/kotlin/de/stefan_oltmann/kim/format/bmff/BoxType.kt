@@ -154,6 +154,28 @@ public data class BoxType(
         public val UUID: BoxType = of("uuid".encodeToByteArray())
 
         /**
+         * QuickTime user data box that carries the XMP packet of MOV
+         * videos, written by ExifTool and Adobe applications.
+         */
+        public val XMP_: BoxType = of("XMP_".encodeToByteArray())
+
+        /**
+         * ISOBMFF padding box with undefined content.
+         */
+        public val FREE: BoxType = of("free".encodeToByteArray())
+
+        /**
+         * ISOBMFF padding box whose content must be ignored.
+         */
+        public val SKIP: BoxType = of("skip".encodeToByteArray())
+
+        /**
+         * QuickTime placeholder box that reserves the space a box needs
+         * when its size grows from the 32-bit to the 64-bit encoding.
+         */
+        public val WIDE: BoxType = of("wide".encodeToByteArray())
+
+        /**
          * Extra box for EXIF data as part of the JPEG XL spec.
          */
         public val EXIF: BoxType = of("Exif".encodeToByteArray())

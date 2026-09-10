@@ -599,7 +599,8 @@ class BmffBoxesTest {
     @Test
     fun testTrackBox() {
 
-        val tkhdPayload = byteArrayOf(0, 0, 0, 0)
+        /* A complete version 0 track header with 84 payload bytes. */
+        val tkhdPayload = ByteArray(84)
 
         val tkhdBox = byteArrayOf(
             0, 0, 0, (tkhdPayload.size + 8).toByte(),
@@ -646,8 +647,9 @@ class BmffBoxesTest {
         /*
          * Small sub-boxes after the first one must still be read.
          * The mdia box is only 8 bytes (header without payload).
+         * The tkhd payload is a complete version 0 track header.
          */
-        val tkhdPayload = byteArrayOf(0, 0, 0, 0)
+        val tkhdPayload = ByteArray(84)
 
         val tkhdBox = byteArrayOf(
             0, 0, 0, (tkhdPayload.size + 8).toByte(),
@@ -673,7 +675,7 @@ class BmffBoxesTest {
         assertEquals(2, box.boxes.size)
 
         /* The mdia box is reported at its real payload offset. */
-        assertEquals(20L, box.mediaBox.offset)
+        assertEquals(100L, box.mediaBox.offset)
     }
 
     @Test
