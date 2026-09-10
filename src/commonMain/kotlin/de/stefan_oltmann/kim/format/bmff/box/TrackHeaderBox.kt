@@ -24,7 +24,6 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.readByteAsInt
 import de.stefan_oltmann.kim.input.readXBytesAtInt
 import de.stefan_oltmann.kim.input.skipBytes
-import kotlin.math.roundToInt
 
 /**
  * EIC/ISO 14496-12 track header box.
@@ -81,12 +80,20 @@ public class TrackHeaderBox(
     /**
      * Reads one size field and converts its 16.16 fixed point encoding
      * into whole pixels.
+     *
+     * Some cameras (Pentax) write the size fields as plain integers
+     * without the fixed point encoding. Like ExifTool, values with
+     * anything in the high bits are treated as fixed point, while small
+     * values are used as they are.
      */
     private fun readDisplaySize(byteReader: ByteArrayByteReader, fieldName: String): Int {
 
         val rawValue = byteReader.readXBytesAtInt(fieldName, FIELD_LENGTH, BMFF_BYTE_ORDER)
 
-        return (rawValue / FIXED_POINT_ONE).roundToInt()
+        return if (rawValue and FIXED_POINT_HIGH_BITS != 0L)
+            (rawValue shr FIXED_POINT_BITS).toInt()
+        else
+            rawValue.toInt()
     }
 
     private companion object {
@@ -107,6 +114,9 @@ public class TrackHeaderBox(
         const val FIELD_LENGTH: Int = 4
 
         /** A 16.16 fixed point value stores the fraction in the low 16 bits. */
-        const val FIXED_POINT_ONE: Double = 65536.0
+        const val FIXED_POINT_BITS: Int = 16
+
+        @Suppress("MagicNumber")
+        const val FIXED_POINT_HIGH_BITS: Long = 0xFFF00000L
     }
 }

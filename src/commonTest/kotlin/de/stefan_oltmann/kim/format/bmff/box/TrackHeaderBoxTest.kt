@@ -46,6 +46,31 @@ class TrackHeaderBoxTest {
         assertEquals(1080, box.height)
     }
 
+    /**
+     * Some cameras (Pentax) write the size fields as plain integers
+     * without the 16.16 fixed point encoding. Like ExifTool, values with
+     * anything in the high bits are treated as fixed point, while small
+     * values are used as they are.
+     */
+    @Test
+    fun testTrackHeaderBoxWithoutFixedPointEncoding() {
+
+        val payload = ByteArray(84)
+
+        putDisplaySize(payload, offset = 76, pixels = 640)
+        putDisplaySize(payload, offset = 80, pixels = 480)
+
+        val box = TrackHeaderBox(
+            offset = 0,
+            size = 92,
+            largeSize = null,
+            payload = payload
+        )
+
+        assertEquals(640, box.width)
+        assertEquals(480, box.height)
+    }
+
     @Test
     fun testTrackHeaderBoxVersion1() {
 
@@ -91,6 +116,20 @@ class TrackHeaderBoxTest {
         assertFailsWith<ImageReadException> {
             TrackHeaderBox(offset = 0, size = 92, largeSize = null, payload = ByteArray(10))
         }
+    }
+
+    /**
+     * Writes one size field of a track header as a plain big endian
+     * integer.
+     */
+    private fun putDisplaySize(payload: ByteArray, offset: Int, pixels: Int) {
+
+        val value = pixels
+
+        payload[offset] = (value shr 24).toByte()
+        payload[offset + 1] = (value shr 16).toByte()
+        payload[offset + 2] = (value shr 8).toByte()
+        payload[offset + 3] = value.toByte()
     }
 
     /**
