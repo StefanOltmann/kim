@@ -43,7 +43,11 @@ class Cr3PreviewExtractorTest {
         ) + type.encodeToByteArray() + payload
     }
 
-    private fun tkhdBox(): ByteArray = box("tkhd", byteArrayOf(0, 0, 0, 0))
+    /**
+     * A complete version 0 track header with 84 payload bytes, so the
+     * fixture matches a real track header box.
+     */
+    private fun tkhdBox(): ByteArray = box("tkhd", ByteArray(84))
 
     private fun uuidBytes(hexString: String): ByteArray =
         ByteArray(hexString.length / 2) { index ->

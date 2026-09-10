@@ -99,6 +99,22 @@ public object BoxReader {
         )
 
     /**
+     * Scans all top-level boxes of a video container without retaining the
+     * media data, so metadata can be read from any position of arbitrarily
+     * large video files. Media data and padding boxes are skipped in
+     * bounded chunks instead of being buffered; a stream that ends inside
+     * such a box - an interrupted recording - ends the scan with the boxes
+     * parsed so far instead of failing the read.
+     *
+     * @param byteReader The reader as source for the bytes
+     */
+    internal fun scanVideoMetadataBoxes(byteReader: ByteReader): List<Box> =
+        readBoxes(
+            byteReader = byteReader,
+            skipDataBoxPayloads = true
+        )
+
+    /**
      * Reads the leading boxes of a JPEG XL file for an update and stops
      * before the image data starts, so the image data can be streamed
      * without buffering the whole file. The first JXLP box contains the
@@ -149,6 +165,8 @@ public object BoxReader {
      * @param stopAfterMetadataRead Stop after the top-level metadata boxes, so the whole image
      * data block is not read in - see [scanMetadataBoxes]
      * @param stopBeforeImageData Stop before the JXL image data starts - see [readBoxesForUpdate]
+     * @param skipDataBoxPayloads Skip media data and padding payloads instead of buffering
+     * them - see [scanVideoMetadataBoxes]
      * @param positionOffset The position where to start reading boxes
      * @param offsetShift The shift to apply to the reported box offsets
      * @param updatePosition A callback to report the position when reading has finished
@@ -160,6 +178,7 @@ public object BoxReader {
         byteReader: ByteReader,
         stopAfterMetadataRead: Boolean = false,
         stopBeforeImageData: Boolean = false,
+        skipDataBoxPayloads: Boolean = false,
         positionOffset: Long = 0,
         offsetShift: Long = 0,
         updatePosition: ((Long) -> Unit)? = null,
@@ -283,11 +302,27 @@ public object BoxReader {
             val remainingBytesToReadInThisBox = nextBoxOffset - position
 
             /*
-             * The payload is read into memory, so boxes larger than
-             * Int.MAX_VALUE bytes must be rejected instead of overflowing
-             * the read count.
+             * In the video scan only the payload of boxes that carry
+             * metadata is buffered (moov and the XMP boxes); media data,
+             * padding and unknown boxes of arbitrary size are streamed
+             * through in bounded chunks instead.
              */
-            if (remainingBytesToReadInThisBox > Int.MAX_VALUE)
+            val isMetadataPayloadBox = skipDataBoxPayloads &&
+                (
+                    type == BoxType.MOOV ||
+                        type == BoxType.UUID ||
+                        type == BoxType.XMP_ ||
+                        type == BoxType.FTYP
+                    )
+
+            val isSkippableDataBox = skipDataBoxPayloads && !isMetadataPayloadBox
+
+            /*
+             * The payload of every buffered box is read into memory, so
+             * boxes larger than Int.MAX_VALUE bytes must be rejected
+             * instead of overflowing the read count.
+             */
+            if (!isSkippableDataBox && remainingBytesToReadInThisBox > Int.MAX_VALUE)
                 throw ImageReadException(
                     "Box $type is too large: $remainingBytesToReadInThisBox bytes."
                 )
@@ -304,6 +339,19 @@ public object BoxReader {
             var payloadTruncated = false
 
             val bytes: ByteArray = when {
+
+                isSkippableDataBox -> {
+
+                    val skippedByteCount = skipPayloadUpToEof(
+                        byteReader,
+                        remainingBytesToReadInThisBox
+                    )
+
+                    payloadTruncated = skippedByteCount < remainingBytesToReadInThisBox
+
+                    /* The payload is discarded, not retained. */
+                    ByteArray(0)
+                }
 
                 type == BoxType.MDAT &&
                     stopAfterMetadataRead &&
@@ -434,6 +482,32 @@ public object BoxReader {
         updatePosition?.let { it(position) }
 
         return boxes
+    }
+
+    /**
+     * Discards up to [count] bytes in bounded chunks and returns how many
+     * bytes were actually skipped, so media data never has to be buffered.
+     *
+     * Only used in the video scan; the write paths read via
+     * [ByteReader.readBytes] and fail loudly on truncation.
+     */
+    private fun skipPayloadUpToEof(byteReader: ByteReader, count: Long): Long {
+
+        var remaining = count
+
+        while (remaining > 0) {
+
+            val chunkSize = minOf(remaining, READ_CHUNK_SIZE).toInt()
+
+            val skippedByteCount = byteReader.readBytes(chunkSize).size
+
+            if (skippedByteCount == 0)
+                break
+
+            remaining -= skippedByteCount
+        }
+
+        return count - remaining
     }
 
     /**

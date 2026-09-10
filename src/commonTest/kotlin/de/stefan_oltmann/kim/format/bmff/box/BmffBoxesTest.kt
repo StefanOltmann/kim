@@ -16,8 +16,10 @@
 package de.stefan_oltmann.kim.format.bmff.box
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.bmff.Extent
+import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -599,7 +601,8 @@ class BmffBoxesTest {
     @Test
     fun testTrackBox() {
 
-        val tkhdPayload = byteArrayOf(0, 0, 0, 0)
+        /* A complete version 0 track header with 84 payload bytes. */
+        val tkhdPayload = ByteArray(84)
 
         val tkhdBox = byteArrayOf(
             0, 0, 0, (tkhdPayload.size + 8).toByte(),
@@ -646,8 +649,9 @@ class BmffBoxesTest {
         /*
          * Small sub-boxes after the first one must still be read.
          * The mdia box is only 8 bytes (header without payload).
+         * The tkhd payload is a complete version 0 track header.
          */
-        val tkhdPayload = byteArrayOf(0, 0, 0, 0)
+        val tkhdPayload = ByteArray(84)
 
         val tkhdBox = byteArrayOf(
             0, 0, 0, (tkhdPayload.size + 8).toByte(),
@@ -673,7 +677,7 @@ class BmffBoxesTest {
         assertEquals(2, box.boxes.size)
 
         /* The mdia box is reported at its real payload offset. */
-        assertEquals(20L, box.mediaBox.offset)
+        assertEquals(100L, box.mediaBox.offset)
     }
 
     @Test
@@ -771,6 +775,33 @@ class BmffBoxesTest {
 
         /* The raw payload is untouched, so rewrites preserve everything. */
         assertContentEquals(payload, box.payload)
+    }
+
+    /**
+     * The video scan must not buffer the payload of boxes that carry no
+     * metadata - unknown boxes of arbitrary size are streamed through, so
+     * their payload is not retained.
+     */
+    @Test
+    fun testVideoScanStreamsUnknownBoxes() {
+
+        val unknownBox = byteArrayOf(
+            0, 0, 0, 72,
+            'U'.code.toByte(), 'N'.code.toByte(), 'K'.code.toByte(), 'N'.code.toByte()
+        ) + ByteArray(64)
+
+        val moovBox = byteArrayOf(
+            0, 0, 0, 8,
+            'm'.code.toByte(), 'o'.code.toByte(), 'o'.code.toByte(), 'v'.code.toByte()
+        )
+
+        val bytes = unknownBox + moovBox
+
+        val boxes = BoxReader.scanVideoMetadataBoxes(ByteArrayByteReader(bytes))
+
+        val unknown = boxes.first { it.type == BoxType.of("UNKN".encodeToByteArray()) }
+
+        assertTrue(unknown.payload.isEmpty())
     }
 
     private fun createBox(type: BoxType, payload: ByteArray): ByteArray {

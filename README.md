@@ -25,6 +25,9 @@ and [PixelSafe](https://github.com/StefanOltmann/pixelsafe).
 * WebP: Read & Write EXIF & XMP
 * HEIC / AVIF: Read EXIF & XMP
     + Support for animated AVIF files (AV1 Image Sequence)
+* MOV / MP4: Read EXIF & XMP
+    + Includes the MakerNote and thumbnail of Fujifilm videos and the display
+      resolution of the video track
 * JXL: Read & Write EXIF & XMP of uncompressed files
 * TIFF / RAW: Read EXIF & XMP
     + Full support for Adobe DNG, Canon CR2, Canon CR3 & Fujifilm RAF
@@ -296,6 +299,9 @@ Java projects.
 * The MakerNotes of GoPro cameras and the undocumented records of the oldest Canon and Sony models
   are not interpreted.
 * There is right now no convienient tooling for GeoTiff like there is for GPS.
+* Videos: QuickTime `ilst` tags (title, keywords as written by Apple tools) and the QuickTime GPS
+  tag are not read yet; such videos report the XMP packet, the display resolution and - when
+  present - the Fujifilm metadata only.
 
 ### Regarding HEIC & AVIF metadata
 
@@ -316,7 +322,8 @@ Declare the permission in your manifest and request it at runtime like other dan
 if your app needs GPS metadata:
 
 ```xml
-<uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
+
+<uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION"/>
 ```
 
 ## Contributions

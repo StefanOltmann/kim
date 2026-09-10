@@ -1,2 +1,75 @@
 File format : MOV
-Resolution  : null
+Resolution  : 3840 x 2160
+---- TIFF ----
+Version 42
+Little-endian (Intel, II)
+---- Directory IFD0 @ 0 ----
+0000000002 0x010f Make = FUJIFILM
+0000000014 0x0110 Model = X-T4
+0000000026 0x0132 ModifyDate = 2026:04:15 12:43:42
+0000000038 0x013b Artist = Stefan Oltmann                                                                                                                                                                                                                                                 
+0000000050 0x0201 JPEGInterchangeFormat = 1962
+0000000062 0x0202 JPEGInterchangeFormatLength = 970
+0000000074 0x8298 Copyright = Stefan Oltmann                                                                                                                                                                                                                                                 
+0000000086 0x8769 ExifOffset = 906
+
+---- Directory ExifIFD @ 906 ----
+0000000908 0x829a ExposureTime = 10/1200 (0.008333)
+0000000920 0x829d FNumber = 360/100 (3.6)
+0000000932 0x8827 ISO = 640
+0000000944 0x8830 SensitivityType = 1
+0000000956 0x9003 DateTimeOriginal = 2026:04:15 12:43:42
+0000000968 0x9004 DateTimeDigitized = 2026:04:15 12:43:42
+0000000980 0x9010 OffsetTime = +02:00
+0000000992 0x9011 OffsetTimeOriginal = +02:00
+0000001004 0x9012 OffsetTimeDigitized = +02:00
+0000001016 0x9201 ShutterSpeedValue = 691/100 (6.91)
+0000001028 0x9204 ExposureCompensation = 0/100 (0.0)
+0000001040 0x9207 MeteringMode = 5
+0000001052 0x927c MakerNote = [754 bytes]
+0000001064 0xa432 LensSpecification = [3300/100 (33.0), 3300/100 (33.0), 140/100 (1.4), 140/100 (1.4)]
+
+---- Directory MakerNoteFujiFilm @ 1220 ----
+0000001222 0x0000 Version = [0x30, 0x31, 0x33, 0x30]
+0000001234 0x0010 InternalSerialNumber = FF02B5892188     593536303034200415B84330310193
+0000001246 0x1000 Quality = NORMAL 
+0000001258 0x1001 Sharpness = 5
+0000001270 0x1002 WhiteBalance = 1
+0000001282 0x1003 Saturation = 0
+0000001294 0x100e NoiseReduction = 384
+0000001306 0x1010 FujiFlashMode = -32768
+0000001318 0x1011 FlashExposureComp = 0/100 (0.0)
+0000001330 0x1021 FocusMode = -1
+0000001342 0x1030 SlowSync = 0
+0000001354 0x1031 PictureMode = 768
+0000001366 0x1040 ShadowTone = 0
+0000001378 0x1041 HighlightTone = 0
+0000001390 0x1047 GrainEffectRoughness = 0
+0000001402 0x1100 AutoBracketing = 0
+0000001414 0x1200 FujiFilm_0x1200 = 0
+0000001426 0x1300 BlurWarning = 0
+0000001438 0x1301 FocusWarning = 0
+0000001450 0x1302 ExposureWarning = 0
+0000001462 0x1303 FujiFilm_0x1303 = 0
+0000001474 0x1304 GEImageSize = 0
+0000001486 0x1401 FilmMode = 0
+0000001498 0x1402 DynamicRangeSetting = 1
+0000001510 0x1403 DevelopmentDynamicRange = 100
+0000001522 0x1404 MinFocalLength = 3300/100 (33.0)
+0000001534 0x1405 MaxFocalLength = 3300/100 (33.0)
+0000001546 0x1406 MaxApertureAtMinFocal = 140/100 (1.4)
+0000001558 0x1407 MaxApertureAtMaxFocal = 140/100 (1.4)
+0000001570 0x1422 ImageStabilization = [2, 1, 0]
+0000001582 0x1424 FujiFilm_0x1424 = 4096
+0000001594 0x1430 FujiFilm_0x1430 = [129 bytes]
+0000001606 0x3803 VideoRecordingMode = 0
+0000001618 0x3804 PeripheralLighting = 1
+0000001630 0x3805 FujiFilm_0x3805 = 1
+0000001642 0x3806 VideoCompression = 1
+0000001654 0x3810 FujiFilm_0x3810 = 65540
+0000001666 0x3820 FrameRate = 60
+0000001678 0x3821 FrameWidth = 3840
+0000001690 0x3822 FrameHeight = 2160
+0000001702 0x3823 FujiFilm_0x3823 = 1
+0000001714 0x3824 FullHDHighSpeedRec = 1
+

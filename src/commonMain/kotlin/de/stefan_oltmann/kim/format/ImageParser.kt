@@ -21,6 +21,7 @@ import de.stefan_oltmann.kim.format.bmff.BaseMediaFileFormatImageParser
 import de.stefan_oltmann.kim.format.gif.GifImageParser
 import de.stefan_oltmann.kim.format.jpeg.JpegImageParser
 import de.stefan_oltmann.kim.format.png.PngImageParser
+import de.stefan_oltmann.kim.format.quicktime.QuickTimeImageParser
 import de.stefan_oltmann.kim.format.raf.RafImageParser
 import de.stefan_oltmann.kim.format.tiff.TiffImageParser
 import de.stefan_oltmann.kim.format.webp.WebPImageParser
@@ -61,6 +62,9 @@ public fun interface ImageParser {
                 MediaFormat.AVIF,
                 MediaFormat.CR3,
                 MediaFormat.JXL -> BaseMediaFileFormatImageParser
+
+                MediaFormat.MOV,
+                MediaFormat.MP4 -> QuickTimeImageParser
 
                 MediaFormat.GIF -> GifImageParser
 
