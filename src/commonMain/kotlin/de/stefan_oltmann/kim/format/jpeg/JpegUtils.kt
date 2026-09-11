@@ -41,6 +41,11 @@ internal object JpegUtils {
      */
     private const val MAX_GARBAGE_PREFIX_LENGTH: Int = 4
 
+    /**
+     * The byte order marker "II*\0" or "MM\0*" is 3 bytes distinct.
+     */
+    private const val BYTE_ORDER_MARKER_LENGTH: Int = 3
+
     private const val EXIF_HEADER_LENGTH: Int = 6
 
     /**
@@ -82,6 +87,32 @@ internal object JpegUtils {
         val upper = expected.uppercaseChar().code
 
         return value == lower || value == upper
+    }
+
+    /**
+     * Whether the bytes at the given offset start with a TIFF byte order
+     * marker ("II*\0" or "MM\0*").
+     *
+     * A payload that starts with such a marker belongs to an independent
+     * EXIF block; a payload without one is a continuation of the block
+     * before it.
+     */
+    internal fun startsWithTiffByteOrderMarker(bytes: ByteArray, offset: Int): Boolean {
+
+        if (bytes.size - offset < BYTE_ORDER_MARKER_LENGTH)
+            return false
+
+        val isLittleEndian =
+            bytes[offset] == 0x49.toByte() &&
+                bytes[offset + 1] == 0x49.toByte() &&
+                bytes[offset + 2] == 0x2A.toByte()
+
+        val isBigEndian =
+            bytes[offset] == 0x4D.toByte() &&
+                bytes[offset + 1] == 0x4D.toByte() &&
+                bytes[offset + 2] == 0x00.toByte()
+
+        return isLittleEndian || isBigEndian
     }
 
     /**

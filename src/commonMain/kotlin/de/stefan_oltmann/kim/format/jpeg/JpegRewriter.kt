@@ -18,6 +18,7 @@
 package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toBytes
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
@@ -112,19 +113,42 @@ public object JpegRewriter {
         writeExifSegment(TiffWriter(outputSet.byteOrder), outputSet)
 
     /**
-     * Removes all EXIF segments from the given segments and returns them with
-     * the new EXIF segment inserted after the JFIF segment.
+     * Removes the first EXIF block (its own segments plus every
+     * continuation behind it) from the given segments and returns them
+     * with the new EXIF segment inserted after the JFIF segment.
      *
-     * A NULL payload deletes the EXIF data instead, so the segments are
-     * returned without any EXIF segment.
+     * Additional *independent* EXIF blocks - ones that start with their
+     * own TIFF byte order marker - belong to other tools. They survive
+     * byte-exact, because Kim never interpreted them and deleting them
+     * would destroy data. Kim keeps reading only the first block.
+     *
+     * A NULL payload deletes the first EXIF data instead, so the segments
+     * are returned without it - independent blocks still survive.
      */
     private fun replaceExifSegments(
         segments: List<JFIFPiece>,
         newBytes: ByteArray?
     ): List<JFIFPiece> {
 
-        val oldSegmentsWithoutExif =
-            segments.filterNot { piece -> piece is JFIFPieceSegment && piece.isExifSegment() }
+        var removedFirstExif = false
+
+        val oldSegmentsWithoutExif = segments.filterNot { piece ->
+
+            if (piece !is JFIFPieceSegment || !piece.isExifSegment())
+                return@filterNot false
+
+            val headerEnd = JpegUtils.findExifHeaderEnd(piece.segmentBytes)
+
+            val isContinuation = headerEnd != null &&
+                !JpegUtils.startsWithTiffByteOrderMarker(piece.segmentBytes, headerEnd)
+
+            if (removedFirstExif && !isContinuation)
+                return@filterNot false
+
+            removedFirstExif = true
+
+            true
+        }
 
         /*
          * A NULL payload means the EXIF data is deleted, so the EXIF-free
@@ -354,9 +378,29 @@ public object JpegRewriter {
 
         if (xmpXml != null) {
 
+            /*
+             * Only the first XMP packet (plus its extended data, which the
+             * update merged into the new packet) is replaced. Additional
+             * independent packets belong to other tools and survive
+             * byte-exact - Kim keeps reading only the first packet.
+             */
+            var removedFirstXmp = false
+
             updatedSegments = insertAfterLastAppSegments(
                 updatedSegments.filterNot { segment ->
-                    segment is JFIFPieceSegment && segment.isXmpSegment()
+
+                    if (segment !is JFIFPieceSegment || !segment.isXmpSegment())
+                        return@filterNot false
+
+                    if (segment.segmentBytes.startsWith(JpegConstants.EXTENDED_XMP_IDENTIFIER))
+                        return@filterNot true
+
+                    if (removedFirstXmp)
+                        return@filterNot false
+
+                    removedFirstXmp = true
+
+                    true
                 },
                 createXmpSegments(xmpXml)
             )

@@ -55,9 +55,6 @@ public object JpegImageParser : ImageParser {
 
     private const val XMP_META_CLOSE = "</x:xmpmeta>"
 
-    /* The byte order marker "II*\0" or "MM\0*" is 3 bytes distinct. */
-    private const val BYTE_ORDER_MARKER_LENGTH: Int = 3
-
     public fun getImageSize(byteReader: ByteReader): ImageSize? {
 
         val magicNumberBytes = byteReader.readBytes(MediaFormatMagicNumbers.jpeg.size).toList()
@@ -272,7 +269,7 @@ public object JpegImageParser : ImageParser {
             val isContinuation =
                 segment.marker == JpegConstants.JPEG_APP1_MARKER &&
                     headerEnd != null &&
-                    !startsWithTiffByteOrderMarker(segmentBytes, headerEnd)
+                    !JpegUtils.startsWithTiffByteOrderMarker(segmentBytes, headerEnd)
 
             if (!isContinuation)
                 break
@@ -284,28 +281,6 @@ public object JpegImageParser : ImageParser {
             return null
 
         return exifBytes.toByteArray()
-    }
-
-    /**
-     * Whether the bytes at the given offset start with a TIFF byte order
-     * marker ("II*\0" or "MM\0*").
-     */
-    private fun startsWithTiffByteOrderMarker(bytes: ByteArray, offset: Int): Boolean {
-
-        if (bytes.size - offset < BYTE_ORDER_MARKER_LENGTH)
-            return false
-
-        val isLittleEndian =
-            bytes[offset] == 0x49.toByte() &&
-                bytes[offset + 1] == 0x49.toByte() &&
-                bytes[offset + 2] == 0x2A.toByte()
-
-        val isBigEndian =
-            bytes[offset] == 0x4D.toByte() &&
-                bytes[offset + 1] == 0x4D.toByte() &&
-                bytes[offset + 2] == 0x00.toByte()
-
-        return isLittleEndian || isBigEndian
     }
 
     private fun getXmpXml(segments: List<Segment>): String? {
