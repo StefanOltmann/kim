@@ -264,6 +264,45 @@ class MakerNotePreservationTest {
     }
 
     /**
+     * A MakerNote whose value is the last output item must be written
+     * at its anchor too: the offset assignment must not depend on a
+     * following item overlapping the MakerNote region.
+     */
+    @Test
+    fun testMakerNoteWrittenAtAnchorWhenItIsTheLastItem() {
+
+        val outputSet = TiffOutputSet()
+
+        val rootDirectory = outputSet.getOrCreateRootDirectory()
+
+        rootDirectory.add(TiffTag.TIFF_TAG_MAKE, "Kim")
+
+        val makerNoteField = TiffOutputField(
+            tag = ExifTag.EXIF_TAG_MAKER_NOTE.tag,
+            fieldType = FieldTypeUndefined,
+            count = 8,
+            bytes = byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8)
+        )
+
+        /* An anchor behind every item that is written anyway. */
+        makerNoteField.originalOffset = ANCHOR_OFFSET
+
+        rootDirectory.add(makerNoteField)
+
+        val byteWriter = ByteArrayByteWriter()
+
+        TiffWriter(outputSet.byteOrder).write(byteWriter, outputSet)
+
+        val bytes = byteWriter.toByteArray()
+
+        assertContentEquals(
+            expected = byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8),
+            actual = bytes.copyOfRange(ANCHOR_OFFSET, ANCHOR_OFFSET + 8),
+            message = "The MakerNote value must sit at its original offset."
+        )
+    }
+
+    /**
      * Returns the MakerNote field of the given bytes, or null when
      * the file does not contain a MakerNote.
      */
@@ -325,5 +364,8 @@ class MakerNotePreservationTest {
         val unrewritableIndices: Set<Int> = setOf(44, 45, 47)
 
         const val TEST_TAKEN_DATE_MILLIS: Long = 1_575_302_400_000
+
+        /* Anchor behind every item a minimal output set writes anyway. */
+        const val ANCHOR_OFFSET: Int = 512
     }
 }

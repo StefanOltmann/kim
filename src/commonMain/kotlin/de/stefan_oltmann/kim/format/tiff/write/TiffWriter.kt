@@ -91,9 +91,9 @@ public class TiffWriter(
 
         for (outputItem in outputItems) {
 
-            if (outputItem === makerNoteItem) {
+            if (outputItem === makerNoteItem && makerNoteAnchor != null) {
 
-                if (makerNotePending && makerNoteAnchor != null) {
+                if (makerNotePending) {
 
                     /*
                      * Keep the MakerNote at its original offset at all
@@ -112,6 +112,14 @@ public class TiffWriter(
                                 "; rewriting would corrupt vendor-specific offsets."
                         )
                     }
+
+                    /*
+                     * The offset is assigned here, so a MakerNote that is
+                     * the last output item is placed at its anchor too.
+                     * The item stays pending, so a following item still
+                     * pays for the MakerNote region before it is placed.
+                     */
+                    makerNoteItem.offset = makerNoteAnchor
                 }
 
                 continue
