@@ -95,6 +95,37 @@ class TiffReaderTest {
     }
 
     /**
+     * The GeoKeyDirectory must be stored as SHORT values. A file that
+     * stores it with another type carries structured GeoTIFF metadata
+     * that cannot be interpreted - per the strict read policy the read
+     * must fail instead of silently losing the GeoTIFF information.
+     */
+    @Test
+    fun testGeoKeyDirectoryWithWrongTypeFailsTheRead() {
+
+        /* IFD0 with a single entry: GeoKeyDirectory (0x87AF), stored as
+         * LONG, count 4, value at offset 24. */
+        val bytes = byteArrayOf(
+            0x49, 0x49, 0x2A, 0x00, // TIFF header.
+            8, 0, 0, 0,             // IFD0 offset.
+            1, 0,                   // Entry count.
+            0xAF.toByte(), 0x87.toByte(),    // GeoKeyDirectory tag.
+            4, 0,                   // Type LONG (wrong).
+            4, 0, 0, 0,             // Count 4.
+            24, 0, 0, 0,            // Value offset 24.
+            0, 0, 0, 0,             // No next IFD.
+            1, 0, 0, 0,             // Value: 4 LONGs (16 bytes).
+            0, 0, 0, 0,
+            2, 0, 0, 0,
+            0, 0, 0, 0
+        )
+
+        assertFailsWith<ImageReadException> {
+            TiffReader.read(DefaultRandomAccessByteReader(ByteArrayByteReader(bytes)))
+        }
+    }
+
+    /**
      * A TIFF entry with an unknown field type cannot be sized or read.
      * Per the strict read policy it must fail the read instead of being
      * silently dropped from the field list (and thus from any rewrite).
