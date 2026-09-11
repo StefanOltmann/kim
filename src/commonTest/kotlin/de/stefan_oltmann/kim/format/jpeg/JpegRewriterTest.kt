@@ -768,7 +768,7 @@ class JpegRewriterTest {
         /* ... and the image data must still be present behind it. */
         assertTrue(updatedBytes.size > createBareJpeg().size)
 
-        assertTrue(Kim.readMetadata(updatedBytes)?.xmp?.contains("x:xmpmeta") == true)
+        assertEquals(true, Kim.readMetadata(updatedBytes)?.xmp?.contains("x:xmpmeta"))
     }
 
     /**
@@ -815,7 +815,7 @@ class JpegRewriterTest {
 
         assertEquals("ffd8ffe1", updatedBytes.copyOfRange(0, 4).toHex())
 
-        assertTrue(Kim.readMetadata(updatedBytes)?.xmp?.contains("Bare") == true)
+        assertEquals(true, Kim.readMetadata(updatedBytes)?.xmp?.contains("Bare"))
     }
 
     /**
