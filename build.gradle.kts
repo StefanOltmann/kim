@@ -359,9 +359,13 @@ kotlin {
 
         dependencies {
 
+            /*
+             * "implementation" because the web interop types (org.khronos
+             * webgl, Uint8Array) only back the internal ZLib bindings.
+             */
             implementation(libs.kotlinx.browser)
 
-            implementation(npm("pako", libs.versions.pako.get()))
+            api(npm("pako", libs.versions.pako.get()))
         }
     }
 }
@@ -478,7 +482,6 @@ kover {
     }
 }
 // endregion
-
 
 // region Check text files
 /*

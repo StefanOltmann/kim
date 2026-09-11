@@ -207,7 +207,7 @@ class ExtendedXmpTest {
         )
 
         /* The metadata must survive a read of the written file. */
-        assertTrue(Kim.readMetadata(newBytes)?.xmp?.contains(hugeValue) == true)
+        assertEquals(true, Kim.readMetadata(newBytes)?.xmp?.contains(hugeValue))
     }
 
     /**
@@ -426,7 +426,7 @@ class ExtendedXmpTest {
         assertFalse(newBytes.decodeToString().contains(GUID))
 
         /* The sibling property must survive a read of the written file. */
-        assertTrue(Kim.readMetadata(newBytes)?.xmp?.contains("KEEP") == true)
+        assertEquals(true, Kim.readMetadata(newBytes)?.xmp?.contains("KEEP"))
     }
 
     /**
@@ -610,7 +610,6 @@ class ExtendedXmpTest {
         writer.write(payload)
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     private fun digestAsGuid(text: String): String =
         Md5.digest(text.encodeToByteArray()).toHexString(HexFormat.UpperCase)
 

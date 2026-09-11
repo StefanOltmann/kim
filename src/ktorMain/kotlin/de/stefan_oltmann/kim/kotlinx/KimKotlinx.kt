@@ -30,7 +30,6 @@ import kotlin.jvm.JvmStatic
 public object KimKotlinx {
 
     @JvmStatic
-    @OptIn(ExperimentalStdlibApi::class)
     @Throws(ImageReadException::class)
     public fun readMetadata(path: Path): MediaMetadata? = tryWithImageReadException {
 
@@ -40,7 +39,6 @@ public object KimKotlinx {
     }
 }
 
-@OptIn(ExperimentalStdlibApi::class)
 @Throws(ImageReadException::class)
 public fun Kim.readMetadata(path: Path): MediaMetadata? =
     KimKotlinx.readMetadata(path)

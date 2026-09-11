@@ -33,6 +33,7 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_SLONG
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_SRATIONAL_INDEX
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_SSHORT_INDEX
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_UNDEFINED_INDEX
+import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_UTF8_INDEX
 
 /**
  * The type of a TIFF field value.
@@ -68,6 +69,7 @@ public interface FieldType<T> {
                 FIELD_TYPE_DOUBLE_INDEX -> FieldTypeDouble
                 FIELD_TYPE_IFD_INDEX -> FieldTypeIfd
                 FIELD_TYPE_INT64_INDEX -> FieldTypeInt64
+                FIELD_TYPE_UTF8_INDEX -> FieldTypeUtf8
                 else -> throw ImageReadException("Unknown field type $type")
             }
     }

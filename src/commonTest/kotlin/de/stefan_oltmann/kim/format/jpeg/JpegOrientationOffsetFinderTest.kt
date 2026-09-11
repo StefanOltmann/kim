@@ -56,7 +56,6 @@ class JpegOrientationOffsetFinderTest {
     /**
      * Regression test based on a fixed small set of test files.
      */
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testFindOrientationOffset() {
 
@@ -79,7 +78,7 @@ class JpegOrientationOffsetFinderTest {
             val orientationOffset = JpegOrientationOffsetFinder.findOrientationOffset(byteReader)
 
             assertEquals(
-                expected = expectedMap.get(index),
+                expected = expectedMap[index],
                 actual = orientationOffset
             )
         }

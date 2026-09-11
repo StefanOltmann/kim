@@ -29,7 +29,6 @@ class ExifThumbnailExtractionTest {
     /**
      * Regression test based on a fixed small set of test files.
      */
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testExtractJpegThumbnail() {
 

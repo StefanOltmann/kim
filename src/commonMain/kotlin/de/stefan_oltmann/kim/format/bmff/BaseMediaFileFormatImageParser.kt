@@ -168,24 +168,22 @@ public object BaseMediaFileFormatImageParser : ImageParser {
             val firstExtent = item.extents.first()
 
             /*
-             * Ignore illegal offsets.
+             * Fail on illegal extents per the strict read policy: the
+             * item's content exists in the file but cannot be read
+             * cleanly, so a successful read without it would silently
+             * drop metadata from sidecar exports.
              *
-             * Every extent is validated against the content bounds.
-             * Checking only the last extent would let a hostile file hide
-             * an oversized extent between two legal ones, which would then
-             * abort the read of all remaining items further below, even
-             * though only this single item is broken. Items that start
-             * before the current position would make the reader jump
-             * backwards and desync it, so they are skipped as well.
-             * endPosition is checked for negative values to also catch
-             * value overflows.
+             * endPosition is checked for negative values to catch value
+             * overflows; extents beyond the actual data fail on their
+             * read below, because the content length is only a hint for
+             * stream sources. Items that start before the current
+             * position would make the reader jump backwards and desync
+             * it, so they fail as well.
              */
-            val hasIllegalExtent = item.extents.any { extent ->
-                extent.endPosition < 0 || extent.endPosition > byteReader.contentLength
-            }
-
-            if (hasIllegalExtent || firstExtent.offset < position)
-                continue
+            if (item.extents.any { it.endPosition < 0 } || firstExtent.offset < position)
+                throw ImageReadException(
+                    "The metadata item of type ${item.type} has an extent that cannot be read."
+                )
 
             val lastExtent = item.extents.last()
 
@@ -215,6 +213,16 @@ public object BaseMediaFileFormatImageParser : ImageParser {
         if (xmp == null) {
             xmp = uuidBoxes.firstOrNull { it.isXmp }?.data?.decodeToString()
         }
+
+        /*
+         * Like WebP, JXL and CR3, corrupt XMP must fail the read instead
+         * of being handed to sidecar writers as a corrupt packet
+         * (read/update symmetry: an update would embed the broken bytes
+         * as-is). This holds even though HEIC and AVIF have no write
+         * path.
+         */
+        if (xmp != null && !xmp.contains("<x:xmpmeta"))
+            throw ImageReadException("The XMP data has no <x:xmpmeta> element.")
 
         return MediaMetadata(
             mediaFormat = null, // could be any ISO BMFF

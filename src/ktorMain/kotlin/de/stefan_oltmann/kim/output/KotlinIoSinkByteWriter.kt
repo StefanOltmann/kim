@@ -42,7 +42,6 @@ public class KotlinIoSinkByteWriter(
 
     public companion object {
 
-        @OptIn(ExperimentalStdlibApi::class)
         public fun <T> write(path: Path, block: (ByteWriter) -> T): T {
 
             return SystemFileSystem.sink(path).buffered().use { sink ->

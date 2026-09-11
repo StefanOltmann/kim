@@ -16,6 +16,8 @@
 package de.stefan_oltmann.kim.input
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.format.tiff.TiffReader
+import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -195,6 +197,115 @@ class DefaultRandomAccessByteReaderTest {
         reader.moveTo(15)
 
         assertEquals(0, reader.readBytes(5).size)
+    }
+
+    /**
+     * The content length of stream sources is only a hint that the
+     * delegate may understate - a cloud provider can report size 0 for a
+     * perfectly readable file. Reads must be decided by the delegate's
+     * actual end of data, never by the hint.
+     */
+    @Test
+    fun testUnderstatedContentLengthHintDoesNotGateReads() {
+
+        val reader = DefaultRandomAccessByteReader(ZeroHintStreamReader(bytes))
+
+        assertContentEquals(bytes, reader.readBytes(bytes.size))
+        assertContentEquals(byteArrayOf(), reader.readBytes(1))
+
+        reader.moveTo(5)
+
+        assertContentEquals(byteArrayOf(6, 7, 8), reader.readBytes(3))
+
+        /* Random access behind the hint must read the real data too. */
+        assertContentEquals(byteArrayOf(9, 10), reader.readBytes(8, 2))
+
+        /* The sequential position is unchanged by the random access read. */
+        assertContentEquals(byteArrayOf(9, 10), reader.readBytes(2))
+
+        assertNull(reader.readByte())
+    }
+
+    /**
+     * A TIFF whose reader reports a zero content length must parse
+     * completely: the whole TIFF chain wraps its sources in this reader,
+     * so a false EOF here would render valid files unreadable.
+     */
+    @Test
+    fun testTiffParseWithUnderstatedContentLengthHint() {
+
+        val bytes = buildMinimalTiff()
+
+        val contents = TiffReader.read(DefaultRandomAccessByteReader(ZeroHintStreamReader(bytes)))
+
+        assertEquals(1, contents.directories.size)
+
+        assertEquals("Kim", contents.directories[0].findField(TiffTag.TIFF_TAG_MAKE)?.value.toString())
+    }
+
+    /**
+     * Builds a little endian classic TIFF: 8-byte header and an IFD0
+     * with the inline Make tag and no successor.
+     */
+    private fun buildMinimalTiff(): ByteArray {
+
+        val bytes = ByteArray(26)
+
+        bytes[0] = 'I'.code.toByte()
+        bytes[1] = 'I'.code.toByte()
+        bytes[2] = 0x2A
+        bytes[3] = 0
+
+        bytes[4] = 8
+
+        /* IFD0 at offset 8: entry count 1, one Make entry, no successor. */
+        bytes[8] = 1
+
+        /* Entry at 10: tag 10-11, type 12-13, count 14-17, value 18-21. */
+        bytes[10] = 0x0F
+        bytes[11] = 0x01
+
+        bytes[12] = 2
+
+        bytes[14] = 4
+
+        "Kim\u0000".encodeToByteArray().copyInto(bytes, 18)
+
+        return bytes
+    }
+
+    /**
+     * A reader whose contentLength understates the actual data, like a
+     * stream from a provider that reports an unknown file size as 0.
+     */
+    private class ZeroHintStreamReader(
+        private val bytes: ByteArray
+    ) : ByteReader {
+
+        override val contentLength: Long = 0
+
+        private var position = 0
+
+        override fun readByte(): Byte? {
+
+            if (position >= bytes.size)
+                return null
+
+            return bytes[position++]
+        }
+
+        override fun readBytes(count: Int): ByteArray {
+
+            val result = bytes.copyOfRange(position, minOf(position + count, bytes.size))
+
+            position += result.size
+
+            return result
+        }
+
+        override fun close() {
+            /* Does nothing. */
+        }
     }
 
     /**

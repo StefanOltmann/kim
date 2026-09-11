@@ -312,6 +312,24 @@ class TiffFieldTypesAndTagInfoTest {
         sortHint = 0
     )
 
+    /**
+     * EXIF 3.0 adds the UTF-8 type (129) for string fields. ExifTool reads
+     * such fields; failing the whole read for them would reject valid
+     * files.
+     */
+    @Test
+    fun testFieldTypeUtf8() {
+
+        val fieldType = FieldType.getFieldType(129)
+
+        assertEquals(1, fieldType.size)
+
+        assertEquals(
+            expected = "Hällö",
+            actual = fieldType.getValue("Hällö\u0000rest".encodeToByteArray(), ByteOrder.LITTLE_ENDIAN)
+        )
+    }
+
     private companion object {
 
         val GpsTagGpsProcessingMethod: TagInfoGpsText = TagInfoGpsText(
@@ -320,4 +338,5 @@ class TiffFieldTypesAndTagInfoTest {
             exifDirectory = TiffDirectoryType.EXIF_DIRECTORY_GPS
         )
     }
+
 }

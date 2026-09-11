@@ -128,13 +128,17 @@ public object IptcWriter {
             /*
              * The dataset length field is 2 bytes. Up to 32767 bytes the size is
              * written directly. Larger datasets use the IPTC extended-length
-             * encoding: the length field holds the marker 0x8000 and the actual
-             * size follows as a 4-byte value. A 2-byte truncation would corrupt
-             * the block.
+             * encoding: the length field holds the marker 0x8000 combined with
+             * the number of bytes of the length field that follows (4, like
+             * ExifTool writes it), and that field holds the actual size. A
+             * 2-byte truncation would corrupt the block.
              */
             if (recordData.size > IptcConstants.IPTC_NON_EXTENDED_RECORD_MAXIMUM_SIZE) {
 
-                binaryWriter.write2Bytes(IptcConstants.IPTC_EXTENDED_RECORD_LENGTH_MARKER)
+                binaryWriter.write2Bytes(
+                    IptcConstants.IPTC_EXTENDED_RECORD_LENGTH_MARKER or
+                        IptcConstants.IPTC_EXTENDED_LENGTH_FIELD_SIZE
+                )
                 binaryWriter.write4Bytes(recordData.size)
 
             } else {

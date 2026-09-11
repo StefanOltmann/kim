@@ -155,6 +155,41 @@ public object MediaFormatMagicNumbers {
         null, null, null, null
     ).plus("ftypiso2".encodeToByteArray().toList())
 
+    /** Apple MPEG-4 video (iTunes). */
+    public val m4v: List<Byte?> = byteListOf(
+        null, null, null, null
+    ).plus("ftypm4v".encodeToByteArray().toList())
+
+    /** Adobe Flash video. */
+    public val f4v: List<Byte?> = byteListOf(
+        null, null, null, null
+    ).plus("ftypf4v".encodeToByteArray().toList())
+
+    /** MP4 as written by newer iPhone generations. */
+    public val mp71: List<Byte?> = byteListOf(
+        null, null, null, null
+    ).plus("ftypmp71".encodeToByteArray().toList())
+
+    /** Sony MP4. */
+    public val msnv: List<Byte?> = byteListOf(
+        null, null, null, null
+    ).plus("ftypMSNV".encodeToByteArray().toList())
+
+    /** MPEG-DASH self-initializing segment. */
+    public val dash: List<Byte?> = byteListOf(
+        null, null, null, null
+    ).plus("ftypdash".encodeToByteArray().toList())
+
+    /** MP4 baseline profile. */
+    public val iso5: List<Byte?> = byteListOf(
+        null, null, null, null
+    ).plus("ftypiso5".encodeToByteArray().toList())
+
+    /** MP4 extended profile. */
+    public val iso6: List<Byte?> = byteListOf(
+        null, null, null, null
+    ).plus("ftypiso6".encodeToByteArray().toList())
+
     /** MP4, often used for H.264 encoded files. */
     public val avc1: List<Byte?> = byteListOf(
         null, null, null, null

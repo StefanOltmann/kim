@@ -27,6 +27,18 @@ internal object IptcConstants {
      */
     const val IPTC_EXTENDED_RECORD_LENGTH_MARKER = 0x8000
 
+    /** The extended length field is 4 bytes, like ExifTool writes it. */
+    const val IPTC_EXTENDED_LENGTH_FIELD_SIZE = 4
+
+    /** The length field size is stored in the low 15 bits of the length word. */
+    const val IPTC_EXTENDED_LENGTH_SIZE_MASK = 0x7FFF
+
+    /** The maximum number of bytes the extended length field may use. */
+    const val IPTC_MAX_EXTENDED_LENGTH_FIELD_SIZE = 8
+
+    /** IPTC data consists of 32-bit words. */
+    const val IPTC_WORD_SIZE = 4
+
     /* The extended record length field is 4 bytes */
     const val IPTC_EXTENDED_RECORD_LENGTH_SIZE = 4
 

@@ -234,12 +234,15 @@ public object TiffReader {
 
             /*
              * Sometimes TIFF offsets are greater than the file itself.
-             * We ignore such corruptions.
+             * We ignore such corruptions. The content length is only a
+             * hint for stream sources, so the decision is made by the
+             * actual read, not by the hint.
              */
-            if (currentOffset >= byteReader.contentLength)
+            try {
+                byteReader.skipBytes("Directory offset", currentOffset)
+            } catch (_: ImageReadException) {
                 return true
-
-            byteReader.skipBytes("Directory offset", currentOffset)
+            }
 
             val fields = try {
 
@@ -315,6 +318,15 @@ public object TiffReader {
             if (nextDirectoryOffset in visitedOffsets)
                 return true
 
+            /*
+             * Register the successor like ExifTool registers every
+             * processed directory start position. Without this, a corrupt
+             * chain cycling between two successors is re-read forever,
+             * accumulating duplicate directories until the memory is
+             * exhausted.
+             */
+            visitedOffsets.add(nextDirectoryOffset)
+
             currentOffset = nextDirectoryOffset
             currentType += 1
         }
@@ -386,10 +398,12 @@ public object TiffReader {
                  * readDirectory with "success" (the lenient root-chain
                  * behavior), which would silently drop the pointer and
                  * its sub-IFD from the rewrite. That must fail loudly
-                 * for the metadata-bearing sub-IFDs.
+                 * for the metadata-bearing sub-IFDs. The content length
+                 * is only a hint for stream sources, so a real read
+                 * probe decides, not the hint.
                  */
                 if (isMetadataBearingOffsetField(offsetField) &&
-                    subDirOffset.toLong() >= byteReader.contentLength
+                    (subDirOffset < 0 || byteReader.readBytes(subDirOffset, 1).isEmpty())
                 )
                     throw ImageReadException(
                         "The ${offsetField.name} offset $subDirOffset points beyond the end of the file."
@@ -448,20 +462,36 @@ public object TiffReader {
     }
 
     /**
-     * Rejects the file when the MakerNote field cannot be read.
+     * Rejects the file when a field cannot be read that a rewrite could
+     * not afford to lose.
      *
      * This mirrors ExifTool, which treats an unreadable MakerNote
      * value as a fatal error ("Error reading value for ... ID 0x927c
      * MakerNote") and aborts the write: a rewrite would otherwise
-     * drop the MakerNote silently and damage the file. Unlike
+     * drop the MakerNote silently and damage the file. The same holds
+     * for the offset fields that carry the Exif, GPS and Interop
+     * sub-IFDs - dropping them would remove the whole sub-IFD. Unlike
      * unreadable MakerNote sub-directories, which ExifTool skips while
      * keeping the MakerNote as an opaque binary block, an unreadable
      * field cannot be preserved at all.
      */
-    private fun rejectUnreadableMakerNote(tag: Int) {
+    private fun rejectUnreadableField(tag: Int) {
 
         if (tag == ExifTag.EXIF_TAG_MAKER_NOTE.tag)
             throw ImageReadException("Failed to read the MakerNote.")
+
+        /*
+         * The offset fields that carry the metadata-bearing sub-IFDs must
+         * not be dropped silently either: a rewrite would remove the
+         * whole Exif, GPS or Interop sub-IFD from the file.
+         */
+        if (tag == ExifTag.EXIF_TAG_EXIF_OFFSET.tag ||
+            tag == ExifTag.EXIF_TAG_GPSINFO.tag ||
+            tag == ExifTag.EXIF_TAG_INTEROP_OFFSET.tag
+        )
+            throw ImageReadException(
+                "Failed to read a metadata-bearing offset field (tag ${tag.toUInt()})."
+            )
     }
 
     /*
@@ -545,7 +575,7 @@ public object TiffReader {
              * other unreadable fields.
              */
             if (offset > Int.MAX_VALUE) {
-                rejectUnreadableMakerNote(tag)
+                rejectUnreadableField(tag)
                 continue
             }
 
@@ -577,7 +607,7 @@ public object TiffReader {
             val totalLength = count.toLong() * fieldType.size
 
             if (count < 0 || totalLength > Int.MAX_VALUE) {
-                rejectUnreadableMakerNote(tag)
+                rejectUnreadableField(tag)
                 continue
             }
 
@@ -601,13 +631,23 @@ public object TiffReader {
 
                 /*
                  * Except for fields that a rewrite cannot afford to lose.
+                 * The content length is only a hint for stream sources,
+                 * so an offset is corrupt when the real read comes back
+                 * short, not when the hint says so.
                  */
-                if (resolvedOffset < 0 || endPos < 0 || endPos > byteReader.contentLength) {
-                    rejectUnreadableMakerNote(tag)
+                if (resolvedOffset < 0 || endPos < 0) {
+                    rejectUnreadableField(tag)
                     continue
                 }
 
-                byteReader.readBytes(resolvedOffset.toInt(), valueLength)
+                val bytes = byteReader.readBytes(resolvedOffset.toInt(), valueLength)
+
+                if (bytes.size < valueLength) {
+                    rejectUnreadableField(tag)
+                    continue
+                }
+
+                bytes
 
             } else {
 
@@ -865,12 +905,13 @@ public object TiffReader {
 
     /**
      * Parses the GeoTIFF directory from the GeoKeyDirectory tag of the
-     * given directories, or returns null when the tag is missing or
-     * stored with a type other than SHORT.
+     * given directories, or returns null when the tag is missing.
      *
      * Parse failures propagate per the strict read policy in the [Kim]
      * documentation: the GeoKeyDirectory exists in the file, so silently
-     * dropping it would lose structured metadata to sidecar writers.
+     * dropping it would lose structured metadata to sidecar writers. A
+     * GeoKeyDirectory stored with a type other than SHORT fails the
+     * read as well, instead of vanishing with its GeoTIFF content.
      */
     internal fun tryToParseGeoTiff(
         directories: MutableList<TiffDirectory>
@@ -882,10 +923,11 @@ public object TiffReader {
         ) ?: return null
 
         val shorts = geoTiffDirectoryField.value as? ShortArray
-            ?: return null
+            ?: throw ImageReadException(
+                "The GeoKeyDirectory is stored as " +
+                    "${geoTiffDirectoryField.fieldType.name} instead of SHORT."
+            )
 
         return GeoTiffDirectory.parseFrom(shorts)
     }
 }
-
-

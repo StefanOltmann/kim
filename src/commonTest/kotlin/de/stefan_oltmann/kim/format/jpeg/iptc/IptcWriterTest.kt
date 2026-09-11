@@ -115,11 +115,13 @@ class IptcWriterTest {
 
         /*
          * Envelope and record version stay standard.
-         * The keyword dataset uses the extended-length encoding:
-         * 80 00 followed by the 4-byte size 000080e8 (33000).
+         * The keyword dataset uses the extended-length encoding like
+         * ExifTool writes it: marker 0x8000 with the length field size
+         * (4) in the low bits, followed by the 4-byte size 000080e8
+         * (33000).
          */
         assertTrue(
-            blockData.toHex().startsWith("1c015a00031b25471c0200000200041c02198000000080e8")
+            blockData.toHex().startsWith("1c015a00031b25471c0200000200041c02198004" + "000080e8")
         )
     }
 

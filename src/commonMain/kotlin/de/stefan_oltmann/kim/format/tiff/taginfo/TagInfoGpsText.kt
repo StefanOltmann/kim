@@ -20,9 +20,11 @@ package de.stefan_oltmann.kim.format.tiff.taginfo
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.decodeLatin1BytesToString
+import de.stefan_oltmann.kim.common.decodeUtf16BytesToString
 import de.stefan_oltmann.kim.common.encodeToLatin1Bytes
 import de.stefan_oltmann.kim.common.isEquals
 import de.stefan_oltmann.kim.common.slice
+import de.stefan_oltmann.kim.common.startsWithUtf16BigEndianBom
 import de.stefan_oltmann.kim.format.tiff.TiffField
 import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeAscii
@@ -121,6 +123,32 @@ public class TagInfoGpsText(
                 return decodedString
         }
 
+        /*
+         * The UTF-16 code is only recognized in upper case: ExifTool notes
+         * that Ricoh writes a lower case "Unicode\0" while the text is
+         * actually ASCII, so matching it here would decode plain ASCII as
+         * UTF-16 garbage.
+         */
+        if (encodingPrefixBytes.contentEquals(TEXT_ENCODING_UNICODE_BYTES)) {
+
+            val payload = bytes.copyOfRange(
+                fromIndex = TEXT_ENCODING_BYTE_LENGTH,
+                toIndex = bytes.size
+            )
+
+            val decodedString = payload.decodeUtf16BytesToString(
+                littleEndian = !payload.startsWithUtf16BigEndianBom()
+            )
+
+            /* A terminating NUL character cuts the text like in ASCII. */
+            val terminatorIndex = decodedString.indexOf('\u0000')
+
+            return if (terminatorIndex > -1)
+                decodedString.take(terminatorIndex)
+            else
+                decodedString
+        }
+
         return bytes.decodeLatin1BytesToString()
     }
 
@@ -137,6 +165,13 @@ public class TagInfoGpsText(
          */
         private val TEXT_ENCODING_ASCII_BYTES =
             byteArrayOf(0x41, 0x53, 0x43, 0x49, 0x49, 0x00, 0x00, 0x00)
+
+        /**
+         * Code for UTF-16. The byte order is signaled by a BOM in the
+         * payload and defaults to little endian, like ExifTool assumes.
+         */
+        private val TEXT_ENCODING_UNICODE_BYTES =
+            byteArrayOf(0x55, 0x4E, 0x49, 0x43, 0x4F, 0x44, 0x45, 0x00)
 
         /*
          * Undefined

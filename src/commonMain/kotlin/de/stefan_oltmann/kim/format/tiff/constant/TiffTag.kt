@@ -548,6 +548,11 @@ public object TiffTag {
         0x2BC, "XMP", TagInfo.LENGTH_UNKNOWN, TIFF_DIRECTORY_IFD0
     )
 
+    /** IPTC IIM block embedded in IFD0, written by Photoshop and scanners. */
+    public val TIFF_TAG_IPTC_NAA: TagInfoBytes = TagInfoBytes(
+        0x83BB, "IPTC-NAA", TagInfo.LENGTH_UNKNOWN, TIFF_DIRECTORY_IFD0
+    )
+
     /** Panasonic RW2 special tag. */
     public val TIFF_TAG_JPG_FROM_RAW: TagInfoBytes = TagInfoBytes(
         0x002E, "JpgFromRaw", TagInfo.LENGTH_UNKNOWN, TIFF_DIRECTORY_IFD0
@@ -596,8 +601,3 @@ public object TiffTag {
         TIFF_TAG_DNG_VERSION
     )
 }
-
-
-
-
-

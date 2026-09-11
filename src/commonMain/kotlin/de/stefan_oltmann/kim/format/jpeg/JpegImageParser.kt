@@ -232,22 +232,55 @@ public object JpegImageParser : ImageParser {
 
     private fun getExifBytes(segments: List<Segment>): ByteArray? {
 
-        val exifSegments = segments
-            .filterIsInstance<GenericSegment>()
-            .filter { it.segmentBytes.startsWith(JpegConstants.EXIF_IDENTIFIER_CODE) }
+        val exifBytes = ByteArrayByteWriter()
 
-        if (exifSegments.isEmpty())
+        var haveFirstSegment = false
+
+        for (segment in segments.filterIsInstance<GenericSegment>()) {
+
+            val segmentBytes = segment.segmentBytes
+
+            if (!haveFirstSegment) {
+
+                val headerEnd = JpegUtils.findExifHeaderEnd(segmentBytes)
+
+                if (headerEnd == null)
+                    continue
+
+                exifBytes.write(segmentBytes.getRemainingBytes(headerEnd))
+
+                haveFirstSegment = true
+                continue
+            }
+
+            /*
+             * EXIF larger than the ~64 KB limit of one APP1 segment is
+             * split across consecutive APP1 segments: every part repeats
+             * the "Exif\0\0" header, but only the first part starts with
+             * a TIFF byte order marker. ExifTool stitches those parts and
+             * warns "File contains multi-segment EXIF".
+             *
+             * A second, independent EXIF block does start with a byte
+             * order marker, so the stitch ends there - mixing separate
+             * EXIF blocks would lead to inconsistencies.
+             */
+            val headerEnd = JpegUtils.findExifHeaderEnd(segmentBytes)
+
+            val isContinuation =
+                segment.marker == JpegConstants.JPEG_APP1_MARKER &&
+                    headerEnd != null &&
+                    !JpegUtils.startsWithTiffByteOrderMarker(segmentBytes, headerEnd)
+
+            if (!isContinuation)
+                break
+
+            exifBytes.write(segmentBytes.getRemainingBytes(headerEnd))
+        }
+
+        if (!haveFirstSegment)
             return null
 
-        /*
-         * Always take the first APP1 EXIF segment and ignore all others.
-         * This seems to be the way ExifTool handles this, too.
-         * Trying to merge different EXIF segments will most likely lead
-         * to inconsistencies.
-         */
-        val firstSegment = exifSegments.first()
-
-        return firstSegment.segmentBytes.getRemainingBytes(JpegConstants.EXIF_IDENTIFIER_CODE.size)
+        return exifBytes.toByteArray()
     }
 
     private fun getXmpXml(segments: List<Segment>): String? {

@@ -94,7 +94,6 @@ class JpegRewriterTest {
     /**
      * Regression test based on a fixed small set of test files.
      */
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testChangeMetadata() {
 
@@ -292,9 +291,9 @@ class JpegRewriterTest {
 
                     /* Value of offsets is expected to change due to rewrites. */
                     if (
-                        expectedField.tag == exifOffsetTag ||
-                        expectedField.tag == interopOffsetTag ||
-                        expectedField.tag == gpsInfoTag
+                        expectedField.tag == EXIF_OFFSET_TAG ||
+                        expectedField.tag == INTEROP_OFFSET_TAG ||
+                        expectedField.tag == GPS_INFO_TAG
                     )
                         continue
 
@@ -399,7 +398,7 @@ class JpegRewriterTest {
     @Test
     fun testUpdateXmpLargerThanMaxSegmentUsesExtendedXmp() {
 
-        val largeKeywords = (1..largeXmpKeywordCount)
+        val largeKeywords = (1..LARGE_XMP_KEYWORD_COUNT)
             .map { index -> "keyword_$index" }
             .toSet()
 
@@ -501,7 +500,7 @@ class JpegRewriterTest {
     @Test
     fun testUpdateIptcLargerThanMaxSegmentIsSplit() {
 
-        val keywords = (1..iptcKeywordCount)
+        val keywords = (1..IPTC_KEYWORD_COUNT)
             .map { index -> "keyword_$index" }
             .toSet()
 
@@ -592,7 +591,7 @@ class JpegRewriterTest {
             JpegRewriter.updateExifMetadata(
                 ByteArrayByteReader(baseJpeg),
                 byteWriter,
-                createOutputSetWithXmpField(smallestRejectedExifPayloadBytes - fixedExifBytes)
+                createOutputSetWithXmpField(SMALLEST_REJECTED_EXIF_PAYLOAD_BYTES - fixedExifBytes)
             )
         }
     }
@@ -614,12 +613,12 @@ class JpegRewriterTest {
         JpegRewriter.updateExifMetadata(
             ByteArrayByteReader(baseJpeg),
             byteWriter,
-            createOutputSetWithXmpField(largestWriteableExifPayloadBytes - fixedExifBytes)
+            createOutputSetWithXmpField(LARGEST_WRITEABLE_EXIF_PAYLOAD_BYTES - fixedExifBytes)
         )
 
         val newBytes = byteWriter.toByteArray()
 
-        assertEquals(largestWriteableExifPayloadBytes, exifSegmentPayloadSize(newBytes))
+        assertEquals(LARGEST_WRITEABLE_EXIF_PAYLOAD_BYTES, exifSegmentPayloadSize(newBytes))
 
         assertNotNull(Kim.readMetadata(newBytes)?.exif)
     }
@@ -684,10 +683,10 @@ class JpegRewriterTest {
 
         val calibratedJpeg = writeExif(
             baseJpeg,
-            createOutputSetWithXmpField(calibrationFieldSize)
+            createOutputSetWithXmpField(CALIBRATION_FIELD_SIZE)
         )
 
-        return exifSegmentPayloadSize(calibratedJpeg) - calibrationFieldSize
+        return exifSegmentPayloadSize(calibratedJpeg) - CALIBRATION_FIELD_SIZE
     }
 
     /**
@@ -769,7 +768,7 @@ class JpegRewriterTest {
         /* ... and the image data must still be present behind it. */
         assertTrue(updatedBytes.size > createBareJpeg().size)
 
-        assertTrue(Kim.readMetadata(updatedBytes)?.xmp?.contains("x:xmpmeta") == true)
+        assertEquals(true, Kim.readMetadata(updatedBytes)?.xmp?.contains("x:xmpmeta"))
     }
 
     /**
@@ -816,7 +815,7 @@ class JpegRewriterTest {
 
         assertEquals("ffd8ffe1", updatedBytes.copyOfRange(0, 4).toHex())
 
-        assertTrue(Kim.readMetadata(updatedBytes)?.xmp?.contains("Bare") == true)
+        assertEquals(true, Kim.readMetadata(updatedBytes)?.xmp?.contains("Bare"))
     }
 
     /**
@@ -1051,21 +1050,21 @@ class JpegRewriterTest {
 
     companion object {
 
-        private const val largeXmpKeywordCount = 4000
-        private const val iptcKeywordCount = 5000
+        private const val LARGE_XMP_KEYWORD_COUNT = 4000
+        private const val IPTC_KEYWORD_COUNT = 5000
 
         /* Large enough that chunked streaming and one-block writing are clearly distinguishable */
         private const val STREAM_TEST_IMAGE_DATA_SIZE = 1024 * 1024
 
-        private const val exifOffsetTag = 0x8769
-        private const val interopOffsetTag = 0xa005
-        private const val gpsInfoTag = 0x8825
+        private const val EXIF_OFFSET_TAG = 0x8769
+        private const val INTEROP_OFFSET_TAG = 0xa005
+        private const val GPS_INFO_TAG = 0x8825
 
-        private const val calibrationFieldSize = 100
+        private const val CALIBRATION_FIELD_SIZE = 100
 
-        private const val largestWriteableExifPayloadBytes = 65_530
+        private const val LARGEST_WRITEABLE_EXIF_PAYLOAD_BYTES = 65_530
 
-        private const val smallestRejectedExifPayloadBytes = 65_534
+        private const val SMALLEST_REJECTED_EXIF_PAYLOAD_BYTES = 65_534
 
         private const val SEGMENT_MARKER_BYTES = 2
 

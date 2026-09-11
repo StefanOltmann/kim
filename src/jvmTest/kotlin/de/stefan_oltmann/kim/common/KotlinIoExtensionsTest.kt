@@ -48,7 +48,6 @@ class KotlinIoExtensionsTest {
         return Path(dir.toString())
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testWriteAndReadBytes() {
 
@@ -62,7 +61,6 @@ class KotlinIoExtensionsTest {
         assertContentEquals(bytes, path.readBytes())
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testCopyTo() {
 
@@ -76,7 +74,6 @@ class KotlinIoExtensionsTest {
         assertContentEquals(byteArrayOf(9, 8, 7), destination.readBytes())
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testCopyToRejectsMissingSource() {
 
@@ -85,7 +82,6 @@ class KotlinIoExtensionsTest {
         }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testList() {
 
@@ -99,7 +95,6 @@ class KotlinIoExtensionsTest {
         assertEquals(listOf("one.bin", "two.bin"), names)
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testKotlinIoSourceByteReader() {
 
@@ -125,7 +120,6 @@ class KotlinIoExtensionsTest {
      * number, which made the very first read throw. The remaining count
      * must be tracked in Long space instead.
      */
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testKotlinIoSourceByteReaderWithHugeDeclaredLength() {
 
@@ -148,7 +142,6 @@ class KotlinIoExtensionsTest {
         assertEquals(MediaFormat.JPEG, result)
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testKotlinIoSourceByteReaderRejectsMissingFile() {
 
@@ -162,7 +155,6 @@ class KotlinIoExtensionsTest {
         assertTrue(blockCalled)
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testKotlinIoSinkByteWriter() {
 

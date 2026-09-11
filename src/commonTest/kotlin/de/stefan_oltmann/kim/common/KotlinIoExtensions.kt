@@ -25,7 +25,6 @@ import kotlinx.io.readByteArray
  * Copied from ktorMain sourceset, which is not available for pure JS!
  */
 
-@OptIn(ExperimentalStdlibApi::class)
 internal fun Path.copyTo(destination: Path) {
 
     require(exists()) { "$this does not exist." }
@@ -42,20 +41,17 @@ internal fun Path.copyTo(destination: Path) {
     }
 }
 
-@OptIn(ExperimentalStdlibApi::class)
 internal fun Path.writeBytes(byteArray: ByteArray) =
     SystemFileSystem
         .sink(this)
         .buffered()
         .use { it.write(byteArray) }
 
-@OptIn(ExperimentalStdlibApi::class)
 internal fun Path.readBytes(): ByteArray =
     SystemFileSystem
         .source(this)
         .buffered()
         .use { it.readByteArray() }
 
-@OptIn(ExperimentalStdlibApi::class)
 internal fun Path.exists(): Boolean =
     SystemFileSystem.exists(this)

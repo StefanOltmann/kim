@@ -46,7 +46,6 @@ class KotlinIoPathSourceTest {
     /**
      * Test to check that KotlinIoSourceByteReader works correctly.
      */
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testToStringWithKotlinIoPath() {
 

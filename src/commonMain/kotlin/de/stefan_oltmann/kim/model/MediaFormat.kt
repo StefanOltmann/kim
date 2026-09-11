@@ -241,6 +241,13 @@ public enum class MediaFormat(
                 bytes.startsWithNullable(MediaFormatMagicNumbers.isom) -> MP4
                 bytes.startsWithNullable(MediaFormatMagicNumbers.iso2) -> MP4
                 bytes.startsWithNullable(MediaFormatMagicNumbers.avc1) -> MP4
+                bytes.startsWithNullable(MediaFormatMagicNumbers.m4v) -> MP4
+                bytes.startsWithNullable(MediaFormatMagicNumbers.f4v) -> MP4
+                bytes.startsWithNullable(MediaFormatMagicNumbers.mp71) -> MP4
+                bytes.startsWithNullable(MediaFormatMagicNumbers.msnv) -> MP4
+                bytes.startsWithNullable(MediaFormatMagicNumbers.dash) -> MP4
+                bytes.startsWithNullable(MediaFormatMagicNumbers.iso5) -> MP4
+                bytes.startsWithNullable(MediaFormatMagicNumbers.iso6) -> MP4
 
                 /* Check QuickTime video format */
                 bytes.startsWithNullable(MediaFormatMagicNumbers.qt) -> MOV

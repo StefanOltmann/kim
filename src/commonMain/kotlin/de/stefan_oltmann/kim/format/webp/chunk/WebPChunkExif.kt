@@ -16,6 +16,7 @@
  */
 package de.stefan_oltmann.kim.format.webp.chunk
 
+import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.format.webp.WebPChunkType
@@ -28,6 +29,21 @@ public class WebPChunkExif(
 ) : WebPChunk(WebPChunkType.EXIF, bytes) {
 
     /* Directly parse EXIF to ensure that it's valid. */
-    public val tiffContents: TiffContents = TiffReader.read(bytes)
+    public val tiffContents: TiffContents = TiffReader.read(stripImproperHeader(bytes))
 
+    private companion object {
+
+        /*
+         * Some writers add the JPEG style header although the WebP
+         * specification defines the chunk as raw TIFF bytes. ExifTool
+         * warns "Improper EXIF header" for those and still reads them.
+         */
+        val IMPROPER_HEADER: ByteArray = "Exif\u0000\u0000".encodeToByteArray()
+
+        fun stripImproperHeader(bytes: ByteArray): ByteArray =
+            if (bytes.startsWith(IMPROPER_HEADER))
+                bytes.copyOfRange(IMPROPER_HEADER.size, bytes.size)
+            else
+                bytes
+    }
 }

@@ -46,6 +46,8 @@ internal class PrePendingByteReader(
 
     override fun readBytes(count: Int): ByteArray {
 
+        require(count >= 0) { "Count must not be negative: $count" }
+
         if (prependedBytesBuffer.isEmpty())
             return delegate.readBytes(count)
 

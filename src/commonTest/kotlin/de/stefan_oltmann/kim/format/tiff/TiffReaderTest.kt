@@ -67,6 +67,65 @@ class TiffReaderTest {
     }
 
     /**
+     * An offset field whose value exists but cannot be read (the value
+     * points behind the end of the file) carries the whole Exif sub-IFD
+     * on its back. Per the strict read policy the read must fail instead
+     * of dropping the field silently - a rewrite would remove the entire
+     * sub-IFD from the file.
+     */
+    @Test
+    fun testUnreadableExifOffsetValueFailsTheRead() {
+
+        /* IFD0 with a single entry: ExifOffset (0x8769), LONG, count 5,
+         * value offset 1000 - far behind the end of this 26-byte file. */
+        val bytes = byteArrayOf(
+            0x49, 0x49, 0x2A, 0x00, // TIFF header.
+            8, 0, 0, 0,             // IFD0 offset.
+            1, 0,                   // Entry count.
+            0x69, 0x87.toByte(),    // ExifOffset tag.
+            4, 0,                   // Type LONG.
+            5, 0, 0, 0,             // Count 5 (value does not fit inline).
+            0xE8.toByte(), 0x03, 0x00, 0x00, // Value offset 1000.
+            0, 0, 0, 0              // No next IFD.
+        )
+
+        assertFailsWith<ImageReadException> {
+            TiffReader.read(DefaultRandomAccessByteReader(ByteArrayByteReader(bytes)))
+        }
+    }
+
+    /**
+     * The GeoKeyDirectory must be stored as SHORT values. A file that
+     * stores it with another type carries structured GeoTIFF metadata
+     * that cannot be interpreted - per the strict read policy the read
+     * must fail instead of silently losing the GeoTIFF information.
+     */
+    @Test
+    fun testGeoKeyDirectoryWithWrongTypeFailsTheRead() {
+
+        /* IFD0 with a single entry: GeoKeyDirectory (0x87AF), stored as
+         * LONG, count 4, value at offset 24. */
+        val bytes = byteArrayOf(
+            0x49, 0x49, 0x2A, 0x00, // TIFF header.
+            8, 0, 0, 0,             // IFD0 offset.
+            1, 0,                   // Entry count.
+            0xAF.toByte(), 0x87.toByte(),    // GeoKeyDirectory tag.
+            4, 0,                   // Type LONG (wrong).
+            4, 0, 0, 0,             // Count 4.
+            24, 0, 0, 0,            // Value offset 24.
+            0, 0, 0, 0,             // No next IFD.
+            1, 0, 0, 0,             // Value: 4 LONGs (16 bytes).
+            0, 0, 0, 0,
+            2, 0, 0, 0,
+            0, 0, 0, 0
+        )
+
+        assertFailsWith<ImageReadException> {
+            TiffReader.read(DefaultRandomAccessByteReader(ByteArrayByteReader(bytes)))
+        }
+    }
+
+    /**
      * A TIFF entry with an unknown field type cannot be sized or read.
      * Per the strict read policy it must fail the read instead of being
      * silently dropped from the field list (and thus from any rewrite).
