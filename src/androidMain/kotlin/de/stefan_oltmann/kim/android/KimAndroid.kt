@@ -42,6 +42,13 @@ import java.io.InputStream
  */
 public object KimAndroid {
 
+    /**
+     * Reads the metadata from a stream.
+     *
+     * Attention: The stream is read but NOT closed - closing it stays
+     * the caller's responsibility, like the core [Kim] API documents.
+     * The [length] is only a hint and may be 0 for unknown sizes.
+     */
     @JvmStatic
     @Throws(ImageReadException::class)
     public fun readMetadata(inputStream: InputStream, length: Long): MediaMetadata? =
@@ -439,6 +446,11 @@ public object KimAndroid {
     }
 }
 
+/**
+ * Reads the metadata from a stream. The stream is read but NOT closed -
+ * closing it stays the caller's responsibility. The [length] is only a
+ * hint and may be 0 for unknown sizes.
+ */
 @Throws(ImageReadException::class)
 public fun Kim.readMetadata(inputStream: InputStream, length: Long): MediaMetadata? =
     KimAndroid.readMetadata(inputStream, length)
