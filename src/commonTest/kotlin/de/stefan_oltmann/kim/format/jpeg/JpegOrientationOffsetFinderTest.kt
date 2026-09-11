@@ -78,7 +78,7 @@ class JpegOrientationOffsetFinderTest {
             val orientationOffset = JpegOrientationOffsetFinder.findOrientationOffset(byteReader)
 
             assertEquals(
-                expected = expectedMap.get(index),
+                expected = expectedMap[index],
                 actual = orientationOffset
             )
         }
