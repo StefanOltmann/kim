@@ -16,6 +16,7 @@
  */
 package de.stefan_oltmann.kim.format.png
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.png.chunk.PngChunkItxt
 import de.stefan_oltmann.kim.format.png.chunk.PngChunkText
 import de.stefan_oltmann.kim.format.png.chunk.PngChunkZtxt
@@ -23,6 +24,7 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 
 class PngImageParserTest {
@@ -107,4 +109,56 @@ class PngImageParserTest {
 
         assertNotNull(metadata)
     }
+
+    /**
+     * A "Raw profile type exif" chunk with valid hex that does not end
+     * at the JPEG EOI marker is a truncated record. Per the strict read
+     * policy the read fails instead of silently dropping the EXIF
+     * content.
+     */
+    @Test
+    fun testTruncatedExifTextChunkFailsTheRead() {
+
+        val ihdrChunk = readIhdrChunk()
+
+        val truncatedChunk = PngChunkText(
+            PngChunkType.TEXT,
+            "Raw profile type exif\u00004578696600000002000a00ff".encodeToByteArray(),
+            crc = 0
+        )
+
+        assertFailsWith<ImageReadException> {
+            PngImageParser.parseMetadataFromChunks(listOf(ihdrChunk, truncatedChunk))
+        }
+    }
+
+    /**
+     * A "Raw profile type iptc" chunk with an odd number of hex digits
+     * cannot be converted to bytes completely - it is truncated. Per the
+     * strict read policy the read fails instead of silently dropping the
+     * IPTC content.
+     */
+    @Test
+    fun testTruncatedIptcTextChunkFailsTheRead() {
+
+        val ihdrChunk = readIhdrChunk()
+
+        val truncatedChunk = PngChunkText(
+            PngChunkType.TEXT,
+            "Raw profile type iptc\u00003842494d1c021".encodeToByteArray(),
+            crc = 0
+        )
+
+        assertFailsWith<ImageReadException> {
+            PngImageParser.parseMetadataFromChunks(listOf(ihdrChunk, truncatedChunk))
+        }
+    }
+
+    private fun readIhdrChunk() =
+        PngImageParser.readChunks(
+            ByteArrayByteReader(
+                KimTestData.getHeaderBytesOf(KimTestData.PNG_TEST_IMAGE_INDEX)
+            ),
+            listOf(PngChunkType.IHDR)
+        ).single()
 }

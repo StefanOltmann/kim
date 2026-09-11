@@ -151,15 +151,20 @@ public object PngImageParser : ImageParser {
             .trim()
 
         /*
-         * Ensure the block is completely read and is a multiple of two.
-         * We don't want the following ByteArray-conversion to fail.
+         * The chunk content is file-controlled and may be garbage, which
+         * is ignored instead of failing the read.
          */
-        if (!exifText.endsWith("ffd9") || exifText.length % 2 != 0)
-            return null
-
-        /* The chunk content is file-controlled and may be garbage. */
         if (!exifText.isValidHexString())
             return null
+
+        /*
+         * A hex encoded profile that claims to be EXIF but does not end
+         * at the JPEG EOI marker on an even boundary is a truncated
+         * record. Per the strict read policy the read fails instead of
+         * silently dropping the EXIF content.
+         */
+        if (!exifText.endsWith("ffd9") || exifText.length % 2 != 0)
+            throw ImageReadException("The EXIF text chunk of the PNG is truncated.")
 
         /*
          * Convert it to bytes and drop the header.
@@ -201,15 +206,20 @@ public object PngImageParser : ImageParser {
             .trim()
 
         /*
-         * Ensure the block is completely read and is a multiple of two.
-         * We don't want the following ByteArray-conversion to fail.
+         * The chunk content is file-controlled and may be garbage, which
+         * is ignored instead of failing the read.
          */
-        if (iptcText.length % 2 != 0)
-            return null
-
-        /* The chunk content is file-controlled and may be garbage. */
         if (!iptcText.isValidHexString())
             return null
+
+        /*
+         * An odd number of hex digits cannot be converted to bytes
+         * completely - the record is truncated. Per the strict read
+         * policy the read fails instead of silently dropping the IPTC
+         * content.
+         */
+        if (iptcText.length % 2 != 0)
+            throw ImageReadException("The IPTC text chunk of the PNG is truncated.")
 
         /*
          * Convert it to bytes.
