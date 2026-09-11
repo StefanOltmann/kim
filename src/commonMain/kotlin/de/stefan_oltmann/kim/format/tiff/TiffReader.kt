@@ -462,20 +462,36 @@ public object TiffReader {
     }
 
     /**
-     * Rejects the file when the MakerNote field cannot be read.
+     * Rejects the file when a field cannot be read that a rewrite could
+     * not afford to lose.
      *
      * This mirrors ExifTool, which treats an unreadable MakerNote
      * value as a fatal error ("Error reading value for ... ID 0x927c
      * MakerNote") and aborts the write: a rewrite would otherwise
-     * drop the MakerNote silently and damage the file. Unlike
+     * drop the MakerNote silently and damage the file. The same holds
+     * for the offset fields that carry the Exif, GPS and Interop
+     * sub-IFDs - dropping them would remove the whole sub-IFD. Unlike
      * unreadable MakerNote sub-directories, which ExifTool skips while
      * keeping the MakerNote as an opaque binary block, an unreadable
      * field cannot be preserved at all.
      */
-    private fun rejectUnreadableMakerNote(tag: Int) {
+    private fun rejectUnreadableField(tag: Int) {
 
         if (tag == ExifTag.EXIF_TAG_MAKER_NOTE.tag)
             throw ImageReadException("Failed to read the MakerNote.")
+
+        /*
+         * The offset fields that carry the metadata-bearing sub-IFDs must
+         * not be dropped silently either: a rewrite would remove the
+         * whole Exif, GPS or Interop sub-IFD from the file.
+         */
+        if (tag == ExifTag.EXIF_TAG_EXIF_OFFSET.tag ||
+            tag == ExifTag.EXIF_TAG_GPSINFO.tag ||
+            tag == ExifTag.EXIF_TAG_INTEROP_OFFSET.tag
+        )
+            throw ImageReadException(
+                "Failed to read a metadata-bearing offset field (tag ${tag.toUInt()})."
+            )
     }
 
     /*
@@ -559,7 +575,7 @@ public object TiffReader {
              * other unreadable fields.
              */
             if (offset > Int.MAX_VALUE) {
-                rejectUnreadableMakerNote(tag)
+                rejectUnreadableField(tag)
                 continue
             }
 
@@ -591,7 +607,7 @@ public object TiffReader {
             val totalLength = count.toLong() * fieldType.size
 
             if (count < 0 || totalLength > Int.MAX_VALUE) {
-                rejectUnreadableMakerNote(tag)
+                rejectUnreadableField(tag)
                 continue
             }
 
@@ -620,14 +636,14 @@ public object TiffReader {
                  * short, not when the hint says so.
                  */
                 if (resolvedOffset < 0 || endPos < 0) {
-                    rejectUnreadableMakerNote(tag)
+                    rejectUnreadableField(tag)
                     continue
                 }
 
                 val bytes = byteReader.readBytes(resolvedOffset.toInt(), valueLength)
 
                 if (bytes.size < valueLength) {
-                    rejectUnreadableMakerNote(tag)
+                    rejectUnreadableField(tag)
                     continue
                 }
 
