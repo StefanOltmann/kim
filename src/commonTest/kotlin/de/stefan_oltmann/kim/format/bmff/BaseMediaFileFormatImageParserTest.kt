@@ -157,13 +157,15 @@ class BaseMediaFileFormatImageParserTest {
     }
 
     /**
-     * Regression test: an item with one oversized extent between legal
-     * ones must be skipped on its own. The old validation only checked
-     * the LAST extent, so the hostile extent passed and its read aborted
-     * the whole loop, discarding the metadata of all other items.
+     * Regression test: an item with one illegal extent must fail the
+     * read. Its EXIF content exists in the file but cannot be read
+     * cleanly, so a successful read without it would silently drop
+     * metadata from sidecar exports - the old skip-only-this-item
+     * behavior did exactly that and was aligned with the strict read
+     * policy.
      */
     @Test
-    fun testOversizedMiddleExtentSkipsOnlyItsItem() {
+    fun testOversizedMiddleExtentFailsTheRead() {
 
         val bytes = buildHeicFile(
             iinfEntries = listOf(ItemSpec(itemId = 1, itemType = BMFFConstants.ITEM_TYPE_EXIF))
@@ -187,20 +189,19 @@ class BaseMediaFileFormatImageParserTest {
             Pair(ilocBox, ByteArray(32))
         }
 
-        /* The hostile item is skipped instead of aborting the parse. */
-        val metadata = BaseMediaFileFormatImageParser.parseMetadata(ByteArrayByteReader(bytes))
-
-        assertNull(metadata.exif)
+        assertFailsWith<ImageReadException> {
+            BaseMediaFileFormatImageParser.parseMetadata(ByteArrayByteReader(bytes))
+        }
     }
 
     /**
-     * Regression test: an item that starts before the end position of the
-     * previously processed item must be skipped. The old code hit a
-     * check() for the backwards jump and turned it into an exception that
-     * discarded the metadata of all other items.
+     * Regression test: an item that starts before the end position of
+     * the previously processed item must fail the read. The reader
+     * would have to jump backwards and desync, and silently dropping
+     * the item would drop its EXIF content from sidecar exports.
      */
     @Test
-    fun testOverlappingItemIsSkippedWithoutLosingOtherMetadata() {
+    fun testOverlappingExtentFailsTheRead() {
 
         val bytes = buildHeicFile(
             iinfEntries = listOf(
@@ -217,7 +218,7 @@ class BaseMediaFileFormatImageParserTest {
             val xmpOffset = mdatDataOffset
             val exifOffset = xmpOffset + 2L
 
-            /* A well formed packet, because the test is about the skip. */
+            /* A well formed packet, because the test is about the overlap. */
             val xmpPayload = "<x:xmpmeta></x:xmpmeta>".encodeToByteArray()
 
             val ilocBox = createBox(
@@ -248,13 +249,9 @@ class BaseMediaFileFormatImageParserTest {
             Pair(ilocBox, mdatPayload)
         }
 
-        val metadata = BaseMediaFileFormatImageParser.parseMetadata(ByteArrayByteReader(bytes))
-
-        /* The XMP of the first item must survive. */
-        assertTrue(metadata.xmp?.startsWith("<x:xmpmeta") == true)
-
-        /* The overlapping EXIF item is skipped instead of failing everything. */
-        assertNull(metadata.exif)
+        assertFailsWith<ImageReadException> {
+            BaseMediaFileFormatImageParser.parseMetadata(ByteArrayByteReader(bytes))
+        }
     }
 
     /**
