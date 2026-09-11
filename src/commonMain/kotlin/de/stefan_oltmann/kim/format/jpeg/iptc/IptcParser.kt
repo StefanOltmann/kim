@@ -144,6 +144,16 @@ public object IptcParser {
         return result
     }
 
+    /**
+     * Parses a raw IPTC IIM dataset stream, for example from the TIFF
+     * tag 0x83BB, that is not wrapped in a Photoshop image resource block.
+     */
+    @JvmStatic
+    public fun parseIptcDataset(bytes: ByteArray): IptcMetadata =
+        tryWithImageReadException {
+            IptcMetadata(parseIPTCBlock(detectWordSwap(bytes)), emptyList())
+        }
+
     private fun parseIPTCBlock(bytes: ByteArray): List<IptcRecord> {
 
         var isUtf8 = false

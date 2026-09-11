@@ -23,6 +23,8 @@ import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
 import de.stefan_oltmann.kim.format.jpeg.JpegSegmentAnalyzer
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
@@ -62,7 +64,7 @@ public object TiffImageParser : ImageParser {
                 imageSize = imageSize,
                 exif = contents,
                 exifBytes = null,
-                iptc = null,
+                iptc = getIptc(contents),
                 xmp = xmp
             )
         }
@@ -207,6 +209,19 @@ public object TiffImageParser : ImageParser {
         val height = heightField.toInt() ?: return null
 
         return ImageSize(width, height)
+    }
+
+    /**
+     * Reads the IPTC IIM block from the IFD0 tag 0x83BB, like ExifTool
+     * reads it for TIFF files.
+     */
+    private fun getIptc(tiffContents: TiffContents): IptcMetadata? {
+
+        val iptcBytes = tiffContents.directories.firstOrNull()
+            ?.getFieldValue(TiffTag.TIFF_TAG_IPTC_NAA, false)
+            ?: return null
+
+        return IptcParser.parseIptcDataset(iptcBytes)
     }
 
     private fun getXmpXml(tiffContents: TiffContents): String? {
