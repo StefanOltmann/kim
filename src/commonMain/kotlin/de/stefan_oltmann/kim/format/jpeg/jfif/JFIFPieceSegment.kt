@@ -20,6 +20,7 @@ package de.stefan_oltmann.kim.format.jpeg.jfif
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toBytes
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
+import de.stefan_oltmann.kim.format.jpeg.JpegUtils
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
 import de.stefan_oltmann.kim.output.ByteWriter
 
@@ -53,7 +54,11 @@ internal open class JFIFPieceSegment(
         if (marker != JpegConstants.JPEG_APP1_MARKER)
             return false
 
-        return segmentBytes.startsWith(JpegConstants.EXIF_IDENTIFIER_CODE)
+        /*
+         * The tolerant match is used here as well, so a rewrite replaces
+         * a variant header instead of keeping it beside the new segment.
+         */
+        return JpegUtils.findExifHeaderEnd(segmentBytes) != null
     }
 
     fun isIptcSegment(): Boolean {

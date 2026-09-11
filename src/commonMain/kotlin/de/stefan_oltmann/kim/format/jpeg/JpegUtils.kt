@@ -34,6 +34,56 @@ internal object JpegUtils {
      */
     private const val MAX_HEADER_SEGMENT_BYTES: Int = 16 * 1024 * 1024
 
+    /*
+     * The identifier is "Exif\0" plus one more byte. Some cameras omit
+     * the second NUL, and up to four garbage bytes before the identifier
+     * have been seen as well.
+     */
+    private const val MAX_GARBAGE_PREFIX_LENGTH: Int = 4
+
+    private const val EXIF_HEADER_LENGTH: Int = 6
+
+    /**
+     * Returns the end of the "Exif\0?" header within the given segment
+     * bytes, or NULL when the segment does not carry an EXIF header.
+     *
+     * Like ExifTool, the identifier is tolerated case-insensitively with
+     * up to four garbage bytes in front of it and one arbitrary byte
+     * behind the NUL, because those variants occur in files of real
+     * cameras.
+     */
+    fun findExifHeaderEnd(segmentBytes: ByteArray): Int? {
+
+        for (prefixLength in 0..MAX_GARBAGE_PREFIX_LENGTH) {
+
+            if (prefixLength + EXIF_HEADER_LENGTH > segmentBytes.size)
+                return null
+
+            val isIdentifier =
+                isExifChar(segmentBytes[prefixLength], 'E') &&
+                    isExifChar(segmentBytes[prefixLength + 1], 'x') &&
+                    isExifChar(segmentBytes[prefixLength + 2], 'i') &&
+                    isExifChar(segmentBytes[prefixLength + 3], 'f') &&
+                    segmentBytes[prefixLength + 4] == 0x00.toByte()
+
+            if (isIdentifier)
+                return prefixLength + EXIF_HEADER_LENGTH
+        }
+
+        return null
+    }
+
+    private fun isExifChar(byte: Byte, expected: Char): Boolean {
+
+        val value = byte.toInt() and 0xFF
+
+        val lower = expected.lowercaseChar().code
+
+        val upper = expected.uppercaseChar().code
+
+        return value == lower || value == upper
+    }
+
     /**
      * Reads the header segments of a JPEG file up to the image data.
      *

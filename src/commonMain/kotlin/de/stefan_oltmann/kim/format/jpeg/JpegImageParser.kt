@@ -237,8 +237,6 @@ public object JpegImageParser : ImageParser {
 
         val exifBytes = ByteArrayByteWriter()
 
-        val headerLength = JpegConstants.EXIF_IDENTIFIER_CODE.size
-
         var haveFirstSegment = false
 
         for (segment in segments.filterIsInstance<GenericSegment>()) {
@@ -247,10 +245,12 @@ public object JpegImageParser : ImageParser {
 
             if (!haveFirstSegment) {
 
-                if (!segmentBytes.startsWith(JpegConstants.EXIF_IDENTIFIER_CODE))
+                val headerEnd = JpegUtils.findExifHeaderEnd(segmentBytes)
+
+                if (headerEnd == null)
                     continue
 
-                exifBytes.write(segmentBytes.getRemainingBytes(headerLength))
+                exifBytes.write(segmentBytes.getRemainingBytes(headerEnd))
 
                 haveFirstSegment = true
                 continue
@@ -267,15 +267,17 @@ public object JpegImageParser : ImageParser {
              * order marker, so the stitch ends there - mixing separate
              * EXIF blocks would lead to inconsistencies.
              */
+            val headerEnd = JpegUtils.findExifHeaderEnd(segmentBytes)
+
             val isContinuation =
                 segment.marker == JpegConstants.JPEG_APP1_MARKER &&
-                    segmentBytes.startsWith(JpegConstants.EXIF_IDENTIFIER_CODE) &&
-                    !startsWithTiffByteOrderMarker(segmentBytes, headerLength)
+                    headerEnd != null &&
+                    !startsWithTiffByteOrderMarker(segmentBytes, headerEnd)
 
             if (!isContinuation)
                 break
 
-            exifBytes.write(segmentBytes.getRemainingBytes(headerLength))
+            exifBytes.write(segmentBytes.getRemainingBytes(headerEnd))
         }
 
         if (!haveFirstSegment)

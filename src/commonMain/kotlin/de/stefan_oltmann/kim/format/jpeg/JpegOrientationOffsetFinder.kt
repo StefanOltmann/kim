@@ -105,8 +105,20 @@ public object JpegOrientationOffsetFinder {
 
             positionCounter += identifierLength
 
-            /* Skip the APP1 XMP segment. */
-            if (!exifIdentifierBytes.contentEquals(JpegConstants.EXIF_IDENTIFIER_CODE)) {
+            /*
+             * Skip the APP1 XMP segment. The tolerant header match keeps
+             * the lossless swap working for files whose identifier
+             * deviates from the spec. A segment whose identifier starts
+             * behind garbage bytes is not matched here - the lossless
+             * swap is skipped and the rewrite path applies the
+             * orientation instead.
+             */
+            val hasExifHeader =
+                identifierLength == JpegConstants.EXIF_IDENTIFIER_CODE.size &&
+                    JpegUtils.findExifHeaderEnd(exifIdentifierBytes) ==
+                    JpegConstants.EXIF_IDENTIFIER_CODE.size
+
+            if (!hasExifHeader) {
 
                 byteReader.skipBytes(
                     "skip segment",
