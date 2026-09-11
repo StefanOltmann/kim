@@ -42,6 +42,9 @@ import kotlin.jvm.JvmStatic
  */
 public object IptcParser {
 
+    /** IPTC data consists of 32-bit words. */
+    private const val IPTC_WORD_SIZE = 4
+
     internal val EMPTY_BYTE_ARRAY = byteArrayOf()
 
     /**
@@ -96,15 +99,49 @@ public object IptcParser {
         val blocks = parseAllIptcBlocks(bytes, startsWithApp13Header)
 
         for (block in blocks) {
-
             /* Ignore everything but IPTC data. */
             if (!block.isIPTCBlock())
                 continue
 
-            records.addAll(parseIPTCBlock(block.blockData))
+            records.addAll(parseIPTCBlock(detectWordSwap(block.blockData)))
         }
 
         IptcMetadata(records, blocks)
+    }
+
+    /**
+     * Some broken writers store IPTC with 32-bit word swapped bytes, so
+     * the marker ends up at index 3 of every word. Like ExifTool, such
+     * data is detected and the words are swapped back before parsing.
+     */
+    private fun detectWordSwap(bytes: ByteArray): ByteArray {
+
+        if (bytes.size < IPTC_WORD_SIZE)
+            return bytes
+
+        val startsWithMarker =
+            bytes[0].toUInt8() == IptcConstants.IPTC_RECORD_TAG_MARKER
+
+        val markerAtIndex3 =
+            bytes[IPTC_WORD_SIZE - 1].toUInt8() == IptcConstants.IPTC_RECORD_TAG_MARKER
+
+        if (startsWithMarker || !markerAtIndex3)
+            return bytes
+
+        /* Like ExifTool, the data is padded to full 32-bit words. */
+        val paddedSize = bytes.size + (IPTC_WORD_SIZE - bytes.size % IPTC_WORD_SIZE) % IPTC_WORD_SIZE
+
+        val result = ByteArray(paddedSize)
+
+        for (group in 0 until paddedSize step IPTC_WORD_SIZE) {
+            for (offset in 0 until IPTC_WORD_SIZE) {
+                val source = group + offset
+                result[group + (IPTC_WORD_SIZE - 1 - offset)] =
+                    if (source < bytes.size) bytes[source] else 0
+            }
+        }
+
+        return result
     }
 
     private fun parseIPTCBlock(bytes: ByteArray): List<IptcRecord> {
@@ -134,24 +171,42 @@ public object IptcParser {
             val recordNumber = bytes[index++].toUInt8()
             val recordType = bytes[index++].toUInt8()
 
-            var recordSize = bytes.toUInt16(index, APP13_BYTE_ORDER)
+            val recordSize = bytes.toUInt16(index, APP13_BYTE_ORDER)
             index += 2
 
             /*
-             * The IPTC extended-length encoding: a length above 32767 means the
-             * 2-byte field holds the marker 0x8000 and the actual size follows
-             * as a 4-byte value.
+             * The IPTC extended-length encoding: when the high bit of the
+             * length field is set, its remaining 15 bits hold the size of
+             * the length field that follows (1 to 8 bytes), and that field
+             * holds the actual length. Like ExifTool, any field size in
+             * that range is read instead of assuming exactly four bytes.
              */
-            if (recordSize > IptcConstants.IPTC_NON_EXTENDED_RECORD_MAXIMUM_SIZE) {
+            var recordLength = recordSize.toLong()
 
-                if (index + IptcConstants.IPTC_EXTENDED_RECORD_LENGTH_SIZE > bytes.size)
+            if (recordSize and IptcConstants.IPTC_EXTENDED_RECORD_LENGTH_MARKER != 0) {
+
+                /*
+                 * The low 15 bits hold the size of the length field that
+                 * follows (1 to 8 bytes, ExifTool writes 4). A marker of
+                 * exactly 0x8000 is the legacy variant written by older Kim
+                 * versions with a 4-byte length field behind it.
+                 */
+                val lengthFieldSize = (recordSize and 0x7FFF)
+                    .takeIf { it != 0 }
+                    ?: IptcConstants.IPTC_EXTENDED_LENGTH_FIELD_SIZE
+
+                if (lengthFieldSize > IptcConstants.IPTC_MAX_EXTENDED_LENGTH_FIELD_SIZE ||
+                    index + lengthFieldSize > bytes.size)
                     return records
 
-                recordSize = bytes.toInt(index, APP13_BYTE_ORDER)
-                index += IptcConstants.IPTC_EXTENDED_RECORD_LENGTH_SIZE
+                recordLength = 0
 
-                if (recordSize < 0)
-                    return records
+                for (offset in 0 until lengthFieldSize) {
+                    recordLength =
+                        (recordLength shl Byte.SIZE_BITS) or bytes[index + offset].toUInt8().toLong()
+                }
+
+                index += lengthFieldSize
             }
 
             /*
@@ -160,12 +215,12 @@ public object IptcParser {
              * and keep what was parsed so far, instead of emitting a silently
              * shortened value or overflowing the index on the next iteration.
              */
-            if (recordSize > bytes.size - index)
+            if (recordLength > bytes.size - index)
                 return records
 
-            val recordData = bytes.slice(index, recordSize)
+            val recordData = bytes.slice(index, recordLength.toInt())
 
-            index += recordSize
+            index += recordLength.toInt()
 
             if (recordNumber == IptcConstants.IPTC_ENVELOPE_RECORD_NUMBER &&
                 recordType == CODED_CHARACTER_SET_IPTC_CODE
