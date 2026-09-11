@@ -16,7 +16,6 @@
  */
 package de.stefan_oltmann.kim
 
-import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.MetadataSummaryConverter
 import de.stefan_oltmann.kim.common.writeBytes

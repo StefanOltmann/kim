@@ -25,10 +25,10 @@ import de.stefan_oltmann.kim.format.AbstractUpdaterTest
 import de.stefan_oltmann.kim.format.png.PngCrc.continuePartialCrc
 import de.stefan_oltmann.kim.format.png.PngCrc.finishPartialCrc
 import de.stefan_oltmann.kim.format.png.PngCrc.startPartialCrc
-import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
+import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter

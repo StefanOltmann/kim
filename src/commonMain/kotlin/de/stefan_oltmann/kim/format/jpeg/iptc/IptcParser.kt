@@ -209,7 +209,8 @@ public object IptcParser {
                     ?: IptcConstants.IPTC_EXTENDED_LENGTH_FIELD_SIZE
 
                 if (lengthFieldSize > IptcConstants.IPTC_MAX_EXTENDED_LENGTH_FIELD_SIZE ||
-                    index + lengthFieldSize > bytes.size)
+                    index + lengthFieldSize > bytes.size
+                )
                     return records
 
                 recordLength = 0

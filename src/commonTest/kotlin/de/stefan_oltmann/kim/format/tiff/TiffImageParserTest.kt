@@ -17,11 +17,11 @@ package de.stefan_oltmann.kim.format.tiff
 
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcRecord
-import kotlin.test.assertNotNull
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcTypes
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 /**
  * Tests reading TIFF container level metadata that is not part of the

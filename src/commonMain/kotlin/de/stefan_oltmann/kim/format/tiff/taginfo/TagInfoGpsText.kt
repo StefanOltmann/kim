@@ -21,10 +21,10 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.decodeLatin1BytesToString
 import de.stefan_oltmann.kim.common.decodeUtf16BytesToString
-import de.stefan_oltmann.kim.common.startsWithUtf16BigEndianBom
 import de.stefan_oltmann.kim.common.encodeToLatin1Bytes
 import de.stefan_oltmann.kim.common.isEquals
 import de.stefan_oltmann.kim.common.slice
+import de.stefan_oltmann.kim.common.startsWithUtf16BigEndianBom
 import de.stefan_oltmann.kim.format.tiff.TiffField
 import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeAscii

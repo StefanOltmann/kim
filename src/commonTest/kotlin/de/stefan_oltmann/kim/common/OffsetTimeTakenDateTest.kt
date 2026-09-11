@@ -24,9 +24,8 @@ import de.stefan_oltmann.kim.format.tiff.TiffHeader
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeAscii
-import de.stefan_oltmann.kim.model.MediaFormat
-import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
+import de.stefan_oltmann.kim.model.MediaFormat
 import kotlinx.datetime.TimeZone
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest

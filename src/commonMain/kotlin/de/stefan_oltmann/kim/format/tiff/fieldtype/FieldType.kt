@@ -25,7 +25,6 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_DOUBL
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_FLOAT_INDEX
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_IFD_INDEX
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_INT64_INDEX
-import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_UTF8_INDEX
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_LONG_INDEX
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_RATIONAL_INDEX
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_SBYTE_INDEX
@@ -34,6 +33,7 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_SLONG
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_SRATIONAL_INDEX
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_SSHORT_INDEX
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_UNDEFINED_INDEX
+import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_UTF8_INDEX
 
 /**
  * The type of a TIFF field value.

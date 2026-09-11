@@ -17,8 +17,8 @@ package de.stefan_oltmann.kim.format.tiff
 
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.DefaultRandomAccessByteReader
-import kotlin.test.assertEquals
 import org.junit.Test
+import kotlin.test.assertEquals
 
 /**
  * Tests that a next-IFD chain that cycles back to an earlier directory
