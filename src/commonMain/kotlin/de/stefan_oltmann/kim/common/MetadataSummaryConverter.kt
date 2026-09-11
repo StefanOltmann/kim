@@ -102,8 +102,14 @@ public object MetadataSummaryConverter {
         else
             TiffOrientation.of(mediaMetadata.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)?.toInt())
 
-        val takenDateMillis: Long? = xmpMetadata?.takenDate
-            ?: extractTakenDateMillisFromExif(mediaMetadata)
+        /*
+         * Like ExifTool, the EXIF DateTimeOriginal is the authority for
+         * the taken date: some tools write a stale re-export date into
+         * the XMP while the EXIF tag carries the real capture instant.
+         * The XMP date is only the fallback for files without EXIF.
+         */
+        val takenDateMillis: Long? = extractTakenDateMillisFromExif(mediaMetadata)
+            ?: xmpMetadata?.takenDate
 
         val gpsCoordinates: GpsCoordinates? = xmpMetadata?.gpsCoordinates
             ?: extractGpsCoordinatesFromExif(mediaMetadata)
