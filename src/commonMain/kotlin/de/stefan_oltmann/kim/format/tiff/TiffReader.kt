@@ -318,6 +318,15 @@ public object TiffReader {
             if (nextDirectoryOffset in visitedOffsets)
                 return true
 
+            /*
+             * Register the successor like ExifTool registers every
+             * processed directory start position. Without this, a corrupt
+             * chain cycling between two successors is re-read forever,
+             * accumulating duplicate directories until the memory is
+             * exhausted.
+             */
+            visitedOffsets.add(nextDirectoryOffset)
+
             currentOffset = nextDirectoryOffset
             currentType += 1
         }
