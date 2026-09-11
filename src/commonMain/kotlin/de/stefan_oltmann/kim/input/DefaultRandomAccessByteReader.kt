@@ -23,6 +23,11 @@ import kotlin.math.max
 /**
  * This class buffers the reading from the original ByteReader and
  * provides random access needed for parsing TIFF files.
+ *
+ * Attention: The delegate's [ByteReader.contentLength] is only a hint -
+ * stream sources may understate it (a provider can report an unknown
+ * size as 0). Every read is therefore decided by the delegate's actual
+ * end of data, never by the hint; reads past it return short arrays.
  */
 public class DefaultRandomAccessByteReader(
     public val byteReader: ByteReader
@@ -58,9 +63,6 @@ public class DefaultRandomAccessByteReader(
 
     override fun readByte(): Byte? {
 
-        if (currentPosition >= contentLength)
-            return null
-
         val endIndex = currentPosition + 1
 
         if (endIndex > bufferPosition)
@@ -75,18 +77,16 @@ public class DefaultRandomAccessByteReader(
     override fun readBytes(count: Int): ByteArray {
         require(count >= 0) { "Count must not be negative: $count" }
 
-        if (currentPosition >= contentLength)
-            return byteArrayOf()
-
         /*
-         * Capped at the Int range in addition to the content length, so a
-         * huge count can never produce a target beyond the addressable
-         * buffer space.
+         * Capped at the Int range in addition to nothing else, so a huge
+         * count can never produce a target beyond the addressable buffer
+         * space. The loop below ends at the delegate's end of data: the
+         * content length is only a hint and must never gate the reads.
          */
         val targetIndex = clampedEndIndex(
             fromIndex = currentPosition.toLong(),
             count = count.toLong(),
-            limit = minOf(contentLength, Int.MAX_VALUE.toLong())
+            limit = Int.MAX_VALUE.toLong()
         )
 
         /*
@@ -120,13 +120,15 @@ public class DefaultRandomAccessByteReader(
     override fun moveTo(position: Int) {
 
         /*
-         * Positioning exactly at the content end is allowed - like in
-         * ByteArrayByteReader - so reads from there return short or
-         * empty arrays instead of failing. This also keeps moveTo(0)
-         * working for empty content.
+         * The delegate's end of data decides reads, so any non-negative
+         * position is addressable; reads behind it return short or empty
+         * arrays. Positioning exactly at the content end is allowed - like
+         * in ByteArrayByteReader - so reads from there return empty arrays
+         * instead of failing. This also keeps moveTo(0) working for empty
+         * content.
          */
-        require(position in 0..contentLength) {
-            "Can't move to $position in content of $contentLength bytes."
+        require(position >= 0) {
+            "Can't move to negative position $position."
         }
 
         this.currentPosition = position
@@ -143,17 +145,26 @@ public class DefaultRandomAccessByteReader(
 
         require(length > 0) { "Length must be positive: $length" }
 
-        if (offset.toLong() >= contentLength)
-            return byteArrayOf()
-
         val endIndex = clampedEndIndex(
             fromIndex = offset.toLong(),
             count = length.toLong(),
-            limit = contentLength
+            limit = Int.MAX_VALUE.toLong()
         )
 
-        if (endIndex > bufferPosition)
-            readToIndex(endIndex)
+        /*
+         * Grow the buffer in bounded steps, so a hostile offset or length
+         * cannot drive a huge up-front allocation. The delegate's end of
+         * data ends the loop early.
+         */
+        while (bufferPosition < endIndex) {
+
+            val stepEnd = minOf(endIndex.toLong(), buffer.size.toLong() + BUFFER_EXPANSION).toInt()
+
+            readToIndex(stepEnd)
+
+            if (bufferPosition < stepEnd)
+                break
+        }
 
         if (offset >= bufferPosition)
             return byteArrayOf()

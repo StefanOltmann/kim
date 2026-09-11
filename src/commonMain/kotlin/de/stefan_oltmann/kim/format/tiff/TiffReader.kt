@@ -234,12 +234,15 @@ public object TiffReader {
 
             /*
              * Sometimes TIFF offsets are greater than the file itself.
-             * We ignore such corruptions.
+             * We ignore such corruptions. The content length is only a
+             * hint for stream sources, so the decision is made by the
+             * actual read, not by the hint.
              */
-            if (currentOffset >= byteReader.contentLength)
+            try {
+                byteReader.skipBytes("Directory offset", currentOffset)
+            } catch (_: ImageReadException) {
                 return true
-
-            byteReader.skipBytes("Directory offset", currentOffset)
+            }
 
             val fields = try {
 
@@ -386,10 +389,12 @@ public object TiffReader {
                  * readDirectory with "success" (the lenient root-chain
                  * behavior), which would silently drop the pointer and
                  * its sub-IFD from the rewrite. That must fail loudly
-                 * for the metadata-bearing sub-IFDs.
+                 * for the metadata-bearing sub-IFDs. The content length
+                 * is only a hint for stream sources, so a real read
+                 * probe decides, not the hint.
                  */
                 if (isMetadataBearingOffsetField(offsetField) &&
-                    subDirOffset.toLong() >= byteReader.contentLength
+                    (subDirOffset < 0 || byteReader.readBytes(subDirOffset, 1).isEmpty())
                 )
                     throw ImageReadException(
                         "The ${offsetField.name} offset $subDirOffset points beyond the end of the file."
@@ -601,13 +606,23 @@ public object TiffReader {
 
                 /*
                  * Except for fields that a rewrite cannot afford to lose.
+                 * The content length is only a hint for stream sources,
+                 * so an offset is corrupt when the real read comes back
+                 * short, not when the hint says so.
                  */
-                if (resolvedOffset < 0 || endPos < 0 || endPos > byteReader.contentLength) {
+                if (resolvedOffset < 0 || endPos < 0) {
                     rejectUnreadableMakerNote(tag)
                     continue
                 }
 
-                byteReader.readBytes(resolvedOffset.toInt(), valueLength)
+                val bytes = byteReader.readBytes(resolvedOffset.toInt(), valueLength)
+
+                if (bytes.size < valueLength) {
+                    rejectUnreadableMakerNote(tag)
+                    continue
+                }
+
+                bytes
 
             } else {
 
@@ -887,5 +902,3 @@ public object TiffReader {
         return GeoTiffDirectory.parseFrom(shorts)
     }
 }
-
-
