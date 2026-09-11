@@ -359,6 +359,12 @@ kotlin {
 
         dependencies {
 
+            /*
+             * "implementation" because the web interop types (org.khronos
+             * webgl, Uint8Array) only back the internal ZLib bindings.
+             */
+            implementation(libs.kotlinx.browser)
+
             api(npm("pako", libs.versions.pako.get()))
         }
     }
