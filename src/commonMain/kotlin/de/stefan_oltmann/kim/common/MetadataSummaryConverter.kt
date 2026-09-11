@@ -39,12 +39,16 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.toInstant
 import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
 import kotlin.time.ExperimentalTime
 
 private const val NIKON_LENS_VALUE_COUNT: Int = 4
+
+/* OffsetTime tags store "+HH:MM" or "+HH:MM:SS". */
+private val UTC_OFFSET_REGEX = Regex("""^[+-]\d{2}:\d{2}(:\d{2})?$""")
 
 /* ISO local date time supports at most 9 fractional second digits. */
 private const val MAX_SUB_SECOND_DIGITS: Int = 9
@@ -252,6 +256,14 @@ public object MetadataSummaryConverter {
                 }
                 ?: "0"
 
+            /*
+             * Like ExifTool, the offset tags of the file take priority over
+             * the time zone of the viewer: a DateTimeOriginal of
+             * "12:00:00" with OffsetTimeOriginal "+05:00" is 07:00Z, no
+             * matter which zone the app runs in.
+             */
+            val offset = extractUtcOffset(metadata)
+
             val timeZone = Kim.defaultTimeZone ?: TimeZone.currentSystemDefault()
 
             /*
@@ -273,10 +285,12 @@ public object MetadataSummaryConverter {
             else
                 takenDate
 
-            return LocalDateTime
-                .parse(takenDatePlusSubSecond)
-                .toInstant(timeZone)
-                .toEpochMilliseconds()
+            val localDateTime = LocalDateTime.parse(takenDatePlusSubSecond)
+
+            return if (offset != null)
+                localDateTime.toInstant(offset).toEpochMilliseconds()
+            else
+                localDateTime.toInstant(timeZone).toEpochMilliseconds()
 
         } catch (_: Exception) {
 
@@ -456,6 +470,22 @@ public object MetadataSummaryConverter {
         return "$focalLengths $apertures"
     }
 
+    /**
+     * Reads the offset of the file from its OffsetTime tags, or returns
+     * NULL when the file has none or the value is not a valid offset.
+     */
+    private fun extractUtcOffset(metadata: MediaMetadata): UtcOffset? {
+
+        val offsetString = metadata.findStringValue(ExifTag.EXIF_TAG_OFFSET_TIME_ORIGINAL)
+            ?: metadata.findStringValue(ExifTag.EXIF_TAG_OFFSET_TIME)
+            ?: return null
+
+        if (!UTC_OFFSET_REGEX.matches(offsetString))
+            return null
+
+        return runCatching { UtcOffset.parse(offsetString) }.getOrNull()
+    }
+
     private fun formatLensValue(value: Double): String {
 
         if (value == value.toLong().toDouble())
@@ -475,4 +505,3 @@ public fun MediaMetadata.convertToSummary(
         ignoreOrientation = ignoreOrientation,
         ignoreBrokenXmp = ignoreBrokenXmp
     )
-
