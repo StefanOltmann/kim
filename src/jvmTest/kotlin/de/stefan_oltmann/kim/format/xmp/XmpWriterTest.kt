@@ -83,7 +83,6 @@ class XmpWriterTest {
     fun testWriteNarrativeXmpFile(): Unit =
         doCompare("narrative_sample")
 
-    @OptIn(ExperimentalStdlibApi::class)
     private fun doCompare(baseFileName: String) {
 
         val originalXmp = KimTestData.getXmp("$baseFileName.xmp")

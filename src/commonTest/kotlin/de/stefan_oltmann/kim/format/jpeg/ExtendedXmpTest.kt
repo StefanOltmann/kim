@@ -610,7 +610,6 @@ class ExtendedXmpTest {
         writer.write(payload)
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     private fun digestAsGuid(text: String): String =
         Md5.digest(text.encodeToByteArray()).toHexString(HexFormat.UpperCase)
 

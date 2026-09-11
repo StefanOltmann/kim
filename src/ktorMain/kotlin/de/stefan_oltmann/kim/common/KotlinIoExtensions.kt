@@ -21,7 +21,6 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
 
-@OptIn(ExperimentalStdlibApi::class)
 public fun Path.copyTo(destination: Path) {
 
     require(exists()) { "$this does not exist." }
@@ -38,14 +37,12 @@ public fun Path.copyTo(destination: Path) {
     }
 }
 
-@OptIn(ExperimentalStdlibApi::class)
 public fun Path.writeBytes(byteArray: ByteArray): Unit =
     SystemFileSystem
         .sink(this)
         .buffered()
         .use { it.write(byteArray) }
 
-@OptIn(ExperimentalStdlibApi::class)
 public fun Path.readBytes(): ByteArray =
     SystemFileSystem
         .source(this)

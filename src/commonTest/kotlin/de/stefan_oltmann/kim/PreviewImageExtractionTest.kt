@@ -45,7 +45,6 @@ class PreviewImageExtractionTest {
     /**
      * Regression test based on a fixed small set of test files.
      */
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testExtractPreviewImage() {
 

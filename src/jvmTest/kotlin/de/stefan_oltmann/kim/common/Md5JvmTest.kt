@@ -28,7 +28,6 @@ import kotlin.test.assertEquals
  */
 class Md5JvmTest {
 
-    @OptIn(ExperimentalStdlibApi::class)
     private fun referenceDigest(input: ByteArray): String =
         MessageDigest.getInstance("MD5").digest(input).toHexString(HexFormat.UpperCase)
 

@@ -76,7 +76,6 @@ public class KotlinIoSourceByteReader(
 
     public companion object {
 
-        @OptIn(ExperimentalStdlibApi::class)
         public fun <T> read(path: Path, block: (ByteReader?) -> T): T {
 
             if (!path.exists())

@@ -38,7 +38,6 @@ class MediaMetadataTest {
      * Mismatching outputs are written to "build/regenerated_txt" to ease
      * updating the goldens after an intentional change.
      */
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testToString() {
 

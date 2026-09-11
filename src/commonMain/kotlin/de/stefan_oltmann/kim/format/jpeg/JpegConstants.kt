@@ -235,7 +235,6 @@ public object JpegConstants {
     /** Hex value of "8BIM" (38 42 49 4D). */
     public const val IPTC_RESOURCE_BLOCK_SIGNATURE_HEX: String = "3842494d"
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Suppress("kotlin:S1479")
     public fun markerDescription(marker: Int): String =
         when (marker) {

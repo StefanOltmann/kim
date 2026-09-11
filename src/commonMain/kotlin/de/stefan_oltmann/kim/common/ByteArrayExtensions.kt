@@ -20,14 +20,12 @@ package de.stefan_oltmann.kim.common
 
 internal const val HEX_RADIX: Int = 16
 
-@OptIn(ExperimentalStdlibApi::class)
 private val singleNumberHexFormat = HexFormat {
     upperCase = false
     bytes.bytePrefix = "0x"
     bytes.byteSeparator = ", "
 }
 
-@OptIn(ExperimentalStdlibApi::class)
 internal fun Byte.toHex(): String =
     this.toHexString(HexFormat.Default)
 
@@ -37,7 +35,6 @@ internal fun convertHexStringToByteArray(string: String): ByteArray =
         .map { it.toInt(HEX_RADIX).toByte() }
         .toByteArray()
 
-@OptIn(ExperimentalStdlibApi::class)
 @Suppress("MagicNumber")
 internal fun ByteArray.toSingleNumberHexes(): String =
     this.toHexString(singleNumberHexFormat)
@@ -45,7 +42,6 @@ internal fun ByteArray.toSingleNumberHexes(): String =
 internal fun List<Byte>.toSingleNumberHexes(): String =
     this.toByteArray().toSingleNumberHexes()
 
-@OptIn(ExperimentalStdlibApi::class)
 @Suppress("MagicNumber")
 internal fun ByteArray.toHex(): String =
     this.toHexString(HexFormat.Default)
