@@ -26,6 +26,7 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeAscii
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeUtf8
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoBytes
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoGpsText
@@ -219,11 +220,16 @@ public class TiffDirectory(
                  * GPS text encoding prefixes are replaced. Values the
                  * caller did not change must survive a rewrite untouched,
                  * see "Never destroy metadata" in the [Kim] documentation.
+                 * This includes the EXIF 3.0 UTF-8 type 129.
                  */
-                val bytes = if (fieldType === FieldTypeAscii || tagInfo is TagInfoGpsText)
-                    entry.valueBytes
-                else
-                    fieldType.writeData(entry.value, byteOrder)
+                val bytes =
+                    if (fieldType === FieldTypeAscii ||
+                        fieldType === FieldTypeUtf8 ||
+                        tagInfo is TagInfoGpsText
+                    )
+                        entry.valueBytes
+                    else
+                        fieldType.writeData(entry.value, byteOrder)
 
                 val count = bytes.size / fieldType.size
 

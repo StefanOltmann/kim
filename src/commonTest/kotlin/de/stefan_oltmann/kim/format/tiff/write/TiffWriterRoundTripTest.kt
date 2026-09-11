@@ -34,6 +34,7 @@ import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeAscii
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeSShort
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeUndefined
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeUtf8
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoDouble
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoDoubles
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoFloat
@@ -497,7 +498,6 @@ class TiffWriterRoundTripTest {
      */
     @Test
     fun testUnchangedTextFieldsAreCopiedByteExact() {
-
         /* Artist "Rä" in Latin-1 with terminator. */
         val artistBytes = byteArrayOf(0x52, 0xE4.toByte(), 0x00)
 
@@ -577,6 +577,65 @@ class TiffWriterRoundTripTest {
             actual = readBack.directories
                 .first { it.type == TiffConstants.TIFF_DIRECTORY_EXIF }
                 .findField(ExifTag.EXIF_TAG_USER_COMMENT)
+                ?.valueBytes
+                ?.toList()
+        )
+    }
+
+    /**
+     * EXIF 3.0 UTF-8 fields (type 129) are copied byte exact like ASCII
+     * fields: their value may hold several NUL terminated strings or
+     * bytes behind a NUL, which a decode and re-encode round trip would
+     * truncate or mangle.
+     */
+    @Test
+    fun testUnchangedUtf8FieldsAreCopiedByteExact() {
+
+        /* Two NUL terminated strings: "Zwilling" and "Zweit". */
+        val utf8Bytes = "Zwilling\u0000Zweit\u0000".encodeToByteArray()
+
+        val utf8Field = TiffField(
+            offset = 0,
+            tag = TiffTag.TIFF_TAG_IMAGE_DESCRIPTION.tag,
+            directoryType = TiffConstants.TIFF_DIRECTORY_TYPE_IFD0,
+            fieldType = FieldTypeUtf8,
+            count = utf8Bytes.size,
+            localValue = null,
+            valueOffset = 0,
+            valueBytes = utf8Bytes,
+            byteOrder = ByteOrder.BIG_ENDIAN,
+            sortHint = 0
+        )
+
+        val ifd0 = TiffDirectory(
+            type = TiffConstants.TIFF_DIRECTORY_TYPE_IFD0,
+            entries = listOf(utf8Field),
+            offset = 8,
+            nextDirectoryOffset = 0,
+            byteOrder = ByteOrder.BIG_ENDIAN
+        )
+
+        val tiffContents = TiffContents(
+            header = TiffHeader(ByteOrder.BIG_ENDIAN, 42, 8),
+            directories = listOf(ifd0),
+            makerNoteDirectory = null,
+            makerNoteSubDirectories = emptyList(),
+            geoTiffDirectory = null
+        )
+
+        val outputSet = tiffContents.createOutputSet()
+
+        val byteWriter = ByteArrayByteWriter()
+
+        TiffWriter(outputSet.byteOrder).write(byteWriter, outputSet)
+
+        val readBack = TiffReader.read(byteWriter.toByteArray())
+
+        assertEquals(
+            expected = utf8Bytes.toList(),
+            actual = readBack.directories
+                .first()
+                .findField(TiffTag.TIFF_TAG_IMAGE_DESCRIPTION)
                 ?.valueBytes
                 ?.toList()
         )
