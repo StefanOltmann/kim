@@ -216,6 +216,16 @@ public object BaseMediaFileFormatImageParser : ImageParser {
             xmp = uuidBoxes.firstOrNull { it.isXmp }?.data?.decodeToString()
         }
 
+        /*
+         * Like WebP, JXL and CR3, corrupt XMP must fail the read instead
+         * of being handed to sidecar writers as a corrupt packet
+         * (read/update symmetry: an update would embed the broken bytes
+         * as-is). This holds even though HEIC and AVIF have no write
+         * path.
+         */
+        if (xmp != null && !xmp.contains("<x:xmpmeta"))
+            throw ImageReadException("The XMP data has no <x:xmpmeta> element.")
+
         return MediaMetadata(
             mediaFormat = null, // could be any ISO BMFF
             imageSize = null, // not covered by ISO BMFF

@@ -217,6 +217,9 @@ class BaseMediaFileFormatImageParserTest {
             val xmpOffset = mdatDataOffset
             val exifOffset = xmpOffset + 2L
 
+            /* A well formed packet, because the test is about the skip. */
+            val xmpPayload = "<x:xmpmeta></x:xmpmeta>".encodeToByteArray()
+
             val ilocBox = createBox(
                 type = BoxType.ILOC,
                 payload = createIlocPayloadForItems(
@@ -224,7 +227,9 @@ class BaseMediaFileFormatImageParserTest {
                         ItemSpec(
                             itemId = 1,
                             itemType = ITEM_TYPE_MIME,
-                            extents = listOf(ExtentSpec(offset = xmpOffset, length = 8))
+                            extents = listOf(
+                                ExtentSpec(offset = xmpOffset, length = xmpPayload.size)
+                            )
                         ),
                         ItemSpec(
                             itemId = 2,
@@ -238,7 +243,7 @@ class BaseMediaFileFormatImageParserTest {
             )
 
             val mdatPayload =
-                "xmpdata".encodeToByteArray() + ByteArray(TIFF_HEADER_OFFSET_SIZE + 60)
+                xmpPayload + ByteArray(TIFF_HEADER_OFFSET_SIZE + 60)
 
             Pair(ilocBox, mdatPayload)
         }
@@ -246,10 +251,81 @@ class BaseMediaFileFormatImageParserTest {
         val metadata = BaseMediaFileFormatImageParser.parseMetadata(ByteArrayByteReader(bytes))
 
         /* The XMP of the first item must survive. */
-        assertTrue(metadata.xmp?.startsWith("xmpdata") == true)
+        assertTrue(metadata.xmp?.startsWith("<x:xmpmeta") == true)
 
         /* The overlapping EXIF item is skipped instead of failing everything. */
         assertNull(metadata.exif)
+    }
+
+    /**
+     * Like WebP, JXL and CR3, an XMP item without a `<x:xmpmeta>` element
+     * must fail the read instead of being handed to sidecar writers as a
+     * corrupt packet.
+     */
+    @Test
+    fun testCorruptXmpItemFailsTheRead() {
+
+        val bytes = buildHeicFile(
+            iinfEntries = listOf(ItemSpec(itemId = 1, itemType = ITEM_TYPE_MIME))
+        ) { mdatDataOffset ->
+
+            val ilocBox = createBox(
+                type = BoxType.ILOC,
+                payload = createIlocPayloadForItems(
+                    items = listOf(
+                        ItemSpec(
+                            itemId = 1,
+                            itemType = ITEM_TYPE_MIME,
+                            extents = listOf(
+                                ExtentSpec(offset = mdatDataOffset, length = 8)
+                            )
+                        )
+                    )
+                )
+            )
+
+            Pair(ilocBox, "truncated".encodeToByteArray())
+        }
+
+        assertFailsWith<ImageReadException> {
+            BaseMediaFileFormatImageParser.parseMetadata(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /**
+     * XMP can also hide in a top level UUID box. A packet without the
+     * `<x:xmpmeta>` element is corrupt there as well and must fail the
+     * read.
+     */
+    @Test
+    fun testCorruptXmpUuidBoxFailsTheRead() {
+
+        val ftypBox =
+            createBox(BoxType.FTYP, "heic\u0000\u0000\u0000\u0000mif1".encodeToByteArray())
+
+        /* A meta box without metadata items, so only the UUID box carries XMP. */
+        val metaBox = createBox(
+            type = BoxType.META,
+            payload = byteArrayOf(0, 0, 0, 0) +
+                createHdlrBox() +
+                createPitmBox(itemId = 1) +
+                createIinfBox(entries = emptyList()) +
+                createBox(BoxType.ILOC, createIlocPayloadForItems(items = emptyList()))
+        )
+
+        val uuidBox = createBox(
+            type = BoxType.UUID,
+            payload = convertHexStringToByteArray(BMFFConstants.XMP_UUID) +
+                "truncated".encodeToByteArray()
+        )
+
+        val mdatBox = createBox(type = BoxType.MDAT, payload = ByteArray(32))
+
+        val bytes = ftypBox + metaBox + uuidBox + mdatBox
+
+        assertFailsWith<ImageReadException> {
+            BaseMediaFileFormatImageParser.parseMetadata(ByteArrayByteReader(bytes))
+        }
     }
 
     /**
@@ -415,7 +491,8 @@ class BaseMediaFileFormatImageParserTest {
 
         return createBox(
             BoxType.IINF,
-            byteArrayOf(0, 0, 0, 0) + byteArrayOf(0, entries.size.toByte()) + entryBoxes.reduce { a, b -> a + b }
+            byteArrayOf(0, 0, 0, 0) + byteArrayOf(0, entries.size.toByte()) +
+                entryBoxes.fold(byteArrayOf()) { a, b -> a + b }
         )
     }
 
