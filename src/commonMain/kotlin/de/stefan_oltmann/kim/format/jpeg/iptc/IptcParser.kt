@@ -45,6 +45,9 @@ public object IptcParser {
     /** IPTC data consists of 32-bit words. */
     private const val IPTC_WORD_SIZE = 4
 
+    /** An 8BIM resource block signature is a 4-byte word. */
+    private const val BLOCK_SIGNATURE_LENGTH = 4
+
     internal val EMPTY_BYTE_ARRAY = byteArrayOf()
 
     /**
@@ -383,21 +386,33 @@ public object IptcParser {
      */
     private fun ByteReader.skipToNextResourceBlock(): Boolean {
 
-        val resourceBlockSignature: Int = try {
-            read4BytesAsInt("Image Resource Block Signature", APP13_BYTE_ORDER)
-        } catch (ignore: ImageReadException) {
+        val signatureBytes = readBytes(BLOCK_SIGNATURE_LENGTH)
+
+        /*
+         * Fewer than 4 bytes means the data ended mid-signature - like
+         * every other EOF truncation this stops the parse gracefully.
+         */
+        if (signatureBytes.size < BLOCK_SIGNATURE_LENGTH)
             return false
-        }
+
+        val resourceBlockSignature = signatureBytes.toInt(APP13_BYTE_ORDER)
 
         if (resourceBlockSignature == JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_INT)
             return true
 
         /*
-         * Some files seem to contain invalid markers: 04 3A 00 00 in case of our test data.
-         * We just ignore these and skip to the next 8BIM (38 42 49 4D) segment.
-         * If we can't skip to the next we found everything we can interpret.
+         * Some files seem to contain invalid markers: 04 3A 00 00 in case
+         * of our test data. When another 8BIM (38 42 49 4D) follows, the
+         * junk between the blocks is skipped and parsing continues.
+         *
+         * When no 8BIM follows, the tail is unparseable content that an
+         * update would rebuild without it - destroying the bytes. Per the
+         * strict read policy this fails instead.
          */
-        return skipToQuad(JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_INT)
+        if (!skipToQuad(JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_INT))
+            throw ImageReadException("Unparseable Photoshop APP13 tail.")
+
+        return true
     }
 
     /**
