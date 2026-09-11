@@ -160,5 +160,7 @@ public object TiffConstants {
     public const val FIELD_TYPE_DOUBLE_INDEX: Int = 12
     public const val FIELD_TYPE_IFD_INDEX: Int = 13
     public const val FIELD_TYPE_INT64_INDEX: Int = 16
-}
 
+    /** EXIF 3.0 UTF-8 string. */
+    public const val FIELD_TYPE_UTF8_INDEX: Int = 129
+}
