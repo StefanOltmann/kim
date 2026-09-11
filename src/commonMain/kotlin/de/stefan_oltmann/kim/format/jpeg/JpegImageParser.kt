@@ -55,6 +55,9 @@ public object JpegImageParser : ImageParser {
 
     private const val XMP_META_CLOSE = "</x:xmpmeta>"
 
+    /* The byte order marker "II*\0" or "MM\0*" is 3 bytes distinct. */
+    private const val BYTE_ORDER_MARKER_LENGTH: Int = 3
+
     public fun getImageSize(byteReader: ByteReader): ImageSize? {
 
         val magicNumberBytes = byteReader.readBytes(MediaFormatMagicNumbers.jpeg.size).toList()
@@ -232,22 +235,75 @@ public object JpegImageParser : ImageParser {
 
     private fun getExifBytes(segments: List<Segment>): ByteArray? {
 
-        val exifSegments = segments
-            .filterIsInstance<GenericSegment>()
-            .filter { it.segmentBytes.startsWith(JpegConstants.EXIF_IDENTIFIER_CODE) }
+        val exifBytes = ByteArrayByteWriter()
 
-        if (exifSegments.isEmpty())
+        val headerLength = JpegConstants.EXIF_IDENTIFIER_CODE.size
+
+        var haveFirstSegment = false
+
+        for (segment in segments.filterIsInstance<GenericSegment>()) {
+
+            val segmentBytes = segment.segmentBytes
+
+            if (!haveFirstSegment) {
+
+                if (!segmentBytes.startsWith(JpegConstants.EXIF_IDENTIFIER_CODE))
+                    continue
+
+                exifBytes.write(segmentBytes.getRemainingBytes(headerLength))
+
+                haveFirstSegment = true
+                continue
+            }
+
+            /*
+             * EXIF larger than the ~64 KB limit of one APP1 segment is
+             * split across consecutive APP1 segments: every part repeats
+             * the "Exif\0\0" header, but only the first part starts with
+             * a TIFF byte order marker. ExifTool stitches those parts and
+             * warns "File contains multi-segment EXIF".
+             *
+             * A second, independent EXIF block does start with a byte
+             * order marker, so the stitch ends there - mixing separate
+             * EXIF blocks would lead to inconsistencies.
+             */
+            val isContinuation =
+                segment.marker == JpegConstants.JPEG_APP1_MARKER &&
+                    segmentBytes.startsWith(JpegConstants.EXIF_IDENTIFIER_CODE) &&
+                    !startsWithTiffByteOrderMarker(segmentBytes, headerLength)
+
+            if (!isContinuation)
+                break
+
+            exifBytes.write(segmentBytes.getRemainingBytes(headerLength))
+        }
+
+        if (!haveFirstSegment)
             return null
 
-        /*
-         * Always take the first APP1 EXIF segment and ignore all others.
-         * This seems to be the way ExifTool handles this, too.
-         * Trying to merge different EXIF segments will most likely lead
-         * to inconsistencies.
-         */
-        val firstSegment = exifSegments.first()
+        return exifBytes.toByteArray()
+    }
 
-        return firstSegment.segmentBytes.getRemainingBytes(JpegConstants.EXIF_IDENTIFIER_CODE.size)
+    /**
+     * Whether the bytes at the given offset start with a TIFF byte order
+     * marker ("II*\0" or "MM\0*").
+     */
+    private fun startsWithTiffByteOrderMarker(bytes: ByteArray, offset: Int): Boolean {
+
+        if (bytes.size - offset < BYTE_ORDER_MARKER_LENGTH)
+            return false
+
+        val isLittleEndian =
+            bytes[offset] == 0x49.toByte() &&
+                bytes[offset + 1] == 0x49.toByte() &&
+                bytes[offset + 2] == 0x2A.toByte()
+
+        val isBigEndian =
+            bytes[offset] == 0x4D.toByte() &&
+                bytes[offset + 1] == 0x4D.toByte() &&
+                bytes[offset + 2] == 0x00.toByte()
+
+        return isLittleEndian || isBigEndian
     }
 
     private fun getXmpXml(segments: List<Segment>): String? {
