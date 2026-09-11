@@ -134,8 +134,8 @@ val metadataBytes: ByteArray = result.second
 
 ### Extract preview image
 
-`Kim.extractPreviewImage()` extracts the embedded preview image of DNG, CR2, CR3, RAF, NEF, ARW &
-RW2 files as JPEG bytes.
+`Kim.extractPreviewImage()` extracts the embedded preview image of DNG, CR2, CR3, RAF, NEF, ARW,
+RW2 & ORF files as JPEG bytes.
 
 ```kotlin
 val previewBytes: ByteArray? = Kim.extractPreviewImage(byteReader)

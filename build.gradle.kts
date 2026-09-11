@@ -359,9 +359,7 @@ kotlin {
 
         dependencies {
 
-            implementation(libs.kotlinx.browser)
-
-            implementation(npm("pako", libs.versions.pako.get()))
+            api(npm("pako", libs.versions.pako.get()))
         }
     }
 }
@@ -478,7 +476,6 @@ kover {
     }
 }
 // endregion
-
 
 // region Check text files
 /*

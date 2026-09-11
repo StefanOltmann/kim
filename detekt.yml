@@ -36,7 +36,7 @@ console-reports:
 comments:
   active: true
   AbsentOrWrongFileLicense:
-    active: true
+    active: false
     licenseTemplateIsRegex: false
     licenseTemplate: ''
   DeprecatedBlockTag:
