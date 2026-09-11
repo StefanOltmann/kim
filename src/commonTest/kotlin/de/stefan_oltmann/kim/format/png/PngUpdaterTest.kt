@@ -20,10 +20,12 @@ import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.MetadataSummaryConverter
 import de.stefan_oltmann.kim.format.AbstractUpdaterTest
 import de.stefan_oltmann.kim.format.png.PngCrc.continuePartialCrc
 import de.stefan_oltmann.kim.format.png.PngCrc.finishPartialCrc
 import de.stefan_oltmann.kim.format.png.PngCrc.startPartialCrc
+import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
@@ -220,6 +222,71 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
                 update = MetadataUpdate.Title("New title")
             )
         }
+    }
+
+    /**
+     * XMP stored in a tEXt or zTXt chunk (the Exiv2 legacy layout) is the
+     * base packet for an update. The writer removes every text chunk with
+     * the XMP keyword, so a packet the parser did not read would be
+     * replaced by a nearly empty one - silently destroying the original
+     * properties.
+     */
+    @Test
+    fun testUpdatePreservesXmpStoredInTextChunk() {
+
+        val pngBytes = createPngWithXmpInTextChunk()
+
+        /* The parser must read the legacy packet as the base for updates. */
+        val original = assertNotNull(Kim.readMetadata(pngBytes))
+
+        assertNotNull(original.xmp, "The XMP of the tEXt chunk must be read.")
+
+        val updatedBytes = Kim.update(
+            bytes = pngBytes,
+            update = MetadataUpdate.Description("Updated description")
+        )
+
+        val summary = MetadataSummaryConverter.convertToSummary(
+            assertNotNull(Kim.readMetadata(updatedBytes))
+        )
+
+        /* The update must be applied. */
+        assertEquals("Updated description", summary.description)
+
+        /* The original rating of the legacy packet must survive. */
+        assertEquals(ExifRating.THREE_STARS, summary.rating)
+    }
+
+    /**
+     * Builds a minimal PNG whose XMP lives in a tEXt chunk with the XMP
+     * keyword, the layout Exiv2 wrote before iTXt became common.
+     */
+    private fun createPngWithXmpInTextChunk(): ByteArray {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        byteWriter.write(PngConstants.PNG_SIGNATURE)
+
+        /* 1x1 pixel, 8 bit RGBA, no interlace. */
+        writeChunk(
+            byteWriter = byteWriter,
+            typeName = "IHDR",
+            data = byteArrayOf(0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0)
+        )
+
+        writeChunk(
+            byteWriter = byteWriter,
+            typeName = "tEXt",
+            data = PngConstants.XMP_KEYWORD.encodeToByteArray() +
+                byteArrayOf(0) +
+                LEGACY_XMP.encodeToByteArray()
+        )
+
+        writeChunk(byteWriter = byteWriter, typeName = "IDAT", data = byteArrayOf(1, 2, 3, 4))
+
+        writeChunk(byteWriter = byteWriter, typeName = "IEND", data = byteArrayOf())
+
+        return byteWriter.toByteArray()
     }
 
     /**
@@ -477,6 +544,19 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
         const val STALE_TEXT: String = "stale text"
 
         const val STALE_XMP: String = "<x:xmpmeta>stale</x:xmpmeta>"
+
+        /*
+         * A packet with a rating property, stored as RDF attribute like
+         * Exiv2 writes it, so the update tests can verify that original
+         * properties survive a rewrite.
+         */
+        val LEGACY_XMP: String =
+            """
+                <x:xmpmeta xmlns:x="adobe:ns:meta/">
+                <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+                <rdf:Description rdf:about="" xmlns:xmp="http://ns.adobe.com/xap/1.0/" xmp:Rating="3"/>
+                </rdf:RDF></x:xmpmeta>
+            """.trimIndent()
 
         /* The 8-byte PNG signature at the start of every file. */
         private const val PNG_SIGNATURE_LENGTH: Int = 8

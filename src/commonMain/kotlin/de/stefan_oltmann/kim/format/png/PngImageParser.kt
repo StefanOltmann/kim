@@ -236,15 +236,15 @@ public object PngImageParser : ImageParser {
         )
     }
 
-    private fun getXmpXml(chunks: List<PngChunk>): String? {
-
-        val text = chunks
-            .filterIsInstance<PngChunkItxt>()
-            .firstOrNull { it.getKeyword() == PngConstants.XMP_KEYWORD }
-            ?.getText()
-
-        return text
-    }
+    private fun getXmpXml(chunks: List<PngChunk>): String? =
+        /*
+         * The XMP keyword is looked up in all text chunk types, not just
+         * iTXt: Exiv2 wrote the packet into tEXt or zTXt chunks, and the
+         * writer below removes every text chunk with this keyword. A
+         * packet that is not read here would be destroyed on the next
+         * update.
+         */
+        getTextChunkWithKeyword(chunks, PngConstants.XMP_KEYWORD)
 
     /**
      * Whether the string consists of hex digits only, so a profile that
