@@ -206,6 +206,24 @@ class MediaFormatTest {
     }
 
     /**
+     * The most common real-world MP4 brands beyond the standard ones
+     * must be detected as MP4.
+     */
+    @Test
+    fun testDetectCommonMp4Brands() {
+
+        for (brand in listOf("m4v", "f4v", "mp71", "MSNV", "dash", "iso5", "iso6")) {
+
+            val header = byteArrayOf(0, 0, 0, 28) +
+                "ftyp$brand".encodeToByteArray() +
+                brand.encodeToByteArray() +
+                ByteArray(4)
+
+            assertEquals(MediaFormat.MP4, MediaFormat.detect(header), "brand $brand")
+        }
+    }
+
+    /**
      * The naked JXL codestream signature must be detected as JXL just
      * like the ISOBMFF container variant.
      */
