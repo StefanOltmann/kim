@@ -279,24 +279,35 @@ public object KimValueFormatter {
         }
     }
 
-    public fun formatFNumber(fNumber: Double): String {
+    public fun formatFNumber(fNumber: Double): String =
 
-        return if (fNumber % 1.0 == 0.0)
+        nonFiniteSymbol(fNumber) ?: if (fNumber % 1.0 == 0.0)
             "ƒ${fNumber.toInt()}"
         else
             "ƒ$fNumber"
-    }
 
     /*
      * Focal length is almost every time a round integer
      * number like "18mm" and should be formatted like that,
      * but in case of an iPhone is actually can be "4.2mm".
      */
-    public fun formatFocalLength(focalLength: Double): String {
+    public fun formatFocalLength(focalLength: Double): String =
 
-        return if (focalLength % 1.0 == 0.0)
+        nonFiniteSymbol(focalLength) ?: if (focalLength % 1.0 == 0.0)
             "${focalLength.toInt()} mm"
         else
             "$focalLength mm"
-    }
+
+    /**
+     * Values that are no real measurements (NaN, infinity) render as an
+     * empty string: decorating them (f-stop, unit) would suggest a real
+     * measurement, and no symbol is more honest than a fake one.
+     */
+    private fun nonFiniteSymbol(value: Double): String? =
+        when {
+            value.isNaN() -> ""
+            value == Double.POSITIVE_INFINITY -> ""
+            value == Double.NEGATIVE_INFINITY -> ""
+            else -> null
+        }
 }

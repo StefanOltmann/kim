@@ -394,4 +394,21 @@ class KimValueFormatterTest {
             KimValueFormatter.formatFocalLength(18.0)
         )
     }
+
+    /**
+     * Non-finite values from corrupt EXIF rationals are no real
+     * measurements and render as an empty string - never decorated like
+     * ordinary numbers ("fNaN" or "NaN mm" would suggest one).
+     */
+    @Test
+    fun testFormatNonFiniteValues() {
+
+        assertEquals("", KimValueFormatter.formatFNumber(Double.NaN))
+        assertEquals("", KimValueFormatter.formatFNumber(Double.POSITIVE_INFINITY))
+        assertEquals("", KimValueFormatter.formatFNumber(Double.NEGATIVE_INFINITY))
+
+        assertEquals("", KimValueFormatter.formatFocalLength(Double.NaN))
+        assertEquals("", KimValueFormatter.formatFocalLength(Double.POSITIVE_INFINITY))
+        assertEquals("", KimValueFormatter.formatFocalLength(Double.NEGATIVE_INFINITY))
+    }
 }
