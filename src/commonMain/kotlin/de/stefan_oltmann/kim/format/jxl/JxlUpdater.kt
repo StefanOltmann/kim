@@ -53,7 +53,7 @@ internal object JxlUpdater : MetadataUpdater {
              * unchanged data produces identical output (the serializer is
              * deterministic), so a string comparison is sufficient.
              */
-            val updatedXmp: String? = metadata.xmp?.let { original ->
+            val updatedXmp: String = metadata.xmp?.let { original ->
                 val xmpMeta = XMPMetaFactory.parseFromString(original)
                 val updated = XmpWriter.updateXmp(xmpMeta, updates, true)
                 if (updated == original) null else updated

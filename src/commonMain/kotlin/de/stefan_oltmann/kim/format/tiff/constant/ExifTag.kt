@@ -1190,18 +1190,18 @@ public object ExifTag {
     /** Rating tag used by Windows. */
     public val EXIF_TAG_RATING: TagInfoShort = TagInfoShort(
         0x4746, "Rating",
-        TiffDirectoryType.TIFF_DIRECTORY_IFD0
+        TIFF_DIRECTORY_IFD0
     )
 
     /** Rating tag used by Windows, value in percent. */
     public val EXIF_TAG_RATING_PERCENT: TagInfoShort = TagInfoShort(
         0x4749, "RatingPercent",
-        TiffDirectoryType.TIFF_DIRECTORY_IFD0
+        TIFF_DIRECTORY_IFD0
     )
 
     public val EXIF_TAG_MODIFY_DATE: TagInfoAscii = TagInfoAscii(
         0x0132, "ModifyDate", TagInfo.LENGTH_UNKNOWN,
-        TiffDirectoryType.TIFF_DIRECTORY_IFD0
+        TIFF_DIRECTORY_IFD0
     )
 
     /**

@@ -70,7 +70,7 @@ public abstract class TagInfo(
         result = 31 * result + tag
         result = 31 * result + fieldType.hashCode()
         result = 31 * result + length
-        result = 31 * result + (directoryType?.hashCode() ?: 0)
+        result = 31 * result + directoryType.hashCode()
         result = 31 * result + isOffset.hashCode()
         result = 31 * result + tagFormatted.hashCode()
         result = 31 * result + description.hashCode()
