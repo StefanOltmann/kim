@@ -77,6 +77,7 @@ public object PngWriter {
         if (exifBytes != null)
             modifiedChunks.removeAll {
                 it.type == PngChunkType.EXIF ||
+                    it.type == PngChunkType.ZXIF ||
                     it is PngTextChunk && it.getKeyword() == PngConstants.EXIF_KEYWORD
             }
 

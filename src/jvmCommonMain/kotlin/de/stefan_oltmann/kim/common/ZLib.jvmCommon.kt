@@ -53,10 +53,10 @@ internal actual fun compress(input: String): ByteArray {
     }
 }
 
-internal actual fun decompress(
+internal actual fun decompressBytes(
     byteArray: ByteArray,
     maxOutputByteCount: Int
-): String {
+): ByteArray {
 
     /* An empty stream cannot be valid zlib data. */
     if (byteArray.isEmpty())
@@ -79,13 +79,7 @@ internal actual fun decompress(
         inputOffset += inflateMember(inflater, byteArray, inputOffset, outputStream, buffer, maxOutputByteCount)
     }
 
-    /*
-     * Decode explicitly as UTF-8, matching all other platforms. The
-     * platform default charset differs between systems (for example
-     * windows-1252 on Windows JDKs below 18) and would corrupt
-     * multi-byte characters depending on the machine.
-     */
-    return outputStream.toByteArray().decodeToString()
+    return outputStream.toByteArray()
 }
 
 /**

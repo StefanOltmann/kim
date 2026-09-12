@@ -22,10 +22,10 @@ import org.khronos.webgl.Uint8Array
 internal actual fun compress(input: String): ByteArray =
     Pako.deflate(input).toByteArray()
 
-internal actual fun decompress(
+internal actual fun decompressBytes(
     byteArray: ByteArray,
     maxOutputByteCount: Int
-): String =
+): ByteArray =
     try {
 
         /*
@@ -107,7 +107,7 @@ internal actual fun decompress(
             position += member.size
         }
 
-        rawBytes.decodeToString()
+        rawBytes
 
     } catch (ex: ImageReadException) {
 

@@ -97,7 +97,11 @@ internal object PngUpdater : MetadataUpdater {
              */
             StaleChunkFilter { chunkType, keyword ->
                 (exifBytes != null &&
-                    (chunkType == PngChunkType.EXIF || keyword == PngConstants.EXIF_KEYWORD)) ||
+                    (
+                        chunkType == PngChunkType.EXIF ||
+                            chunkType == PngChunkType.ZXIF ||
+                            keyword == PngConstants.EXIF_KEYWORD
+                        )) ||
                     (keyword == PngConstants.XMP_KEYWORD)
             }
         }
@@ -116,12 +120,13 @@ internal object PngUpdater : MetadataUpdater {
         ) { chunks, outputWriter ->
 
             /*
-             * Remove the EXIF chunk and all text chunks, which carry XMP,
+             * Remove the EXIF chunks and all text chunks, which carry XMP,
              * IPTC and comments. The iCCP chunk is kept, because it affects
              * how the image is displayed.
              */
             val chunksWithoutMetadata = chunks.filterNot { chunk ->
                 chunk.type == PngChunkType.EXIF ||
+                    chunk.type == PngChunkType.ZXIF ||
                     chunk is PngTextChunk ||
                     chunk.type == PngChunkType.TIME
             }

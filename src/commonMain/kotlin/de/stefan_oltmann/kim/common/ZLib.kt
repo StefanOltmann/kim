@@ -27,12 +27,24 @@ internal const val MAX_DECOMPRESSED_BYTE_COUNT: Int = 8 * 1024 * 1024
 internal expect fun compress(input: String): ByteArray
 
 /**
+ * Decompresses the given zlib data into raw bytes.
+ *
+ * Aborts with an [ImageReadException] when the output exceeds
+ * [maxOutputByteCount], so hostile input cannot exhaust the memory.
+ */
+internal expect fun decompressBytes(
+    byteArray: ByteArray,
+    maxOutputByteCount: Int = MAX_DECOMPRESSED_BYTE_COUNT
+): ByteArray
+
+/**
  * Decompresses the given zlib data.
  *
  * Aborts with an [ImageReadException] when the output exceeds
  * [maxOutputByteCount], so hostile input cannot exhaust the memory.
  */
-internal expect fun decompress(
+internal fun decompress(
     byteArray: ByteArray,
     maxOutputByteCount: Int = MAX_DECOMPRESSED_BYTE_COUNT
-): String
+): String =
+    decompressBytes(byteArray, maxOutputByteCount).decodeToString()

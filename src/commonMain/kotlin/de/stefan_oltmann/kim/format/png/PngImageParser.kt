@@ -62,7 +62,8 @@ public object PngImageParser : ImageParser {
         PngChunkType.TEXT,
         PngChunkType.ZTXT,
         PngChunkType.ITXT,
-        PngChunkType.EXIF
+        PngChunkType.EXIF,
+        PngChunkType.ZXIF
     )
 
     @Throws(ImageReadException::class)
@@ -102,7 +103,7 @@ public object PngImageParser : ImageParser {
              */
             val exifChunk = chunks.filterIsInstance<PngChunkExif>().firstOrNull()
 
-            val exifPair = exifChunk?.let { it.bytes to it.tiffContents }
+            val exifPair = exifChunk?.let { it.exifBytes to it.tiffContents }
                 ?: getExifFromTextChunk(chunks)
 
             val iptc = getIptcFromTextChunk(chunks)
@@ -410,7 +411,7 @@ public object PngImageParser : ImageParser {
             PngChunkType.ZTXT -> PngChunkZtxt(bytes, crc)
             PngChunkType.IHDR -> PngChunkIhdr(bytes, crc)
             PngChunkType.ITXT -> PngChunkItxt(bytes, crc)
-            PngChunkType.EXIF -> PngChunkExif(bytes, crc)
+            PngChunkType.EXIF, PngChunkType.ZXIF -> PngChunkExif(chunkType, bytes, crc)
             else -> PngChunk(chunkType, bytes, crc)
         }
 }

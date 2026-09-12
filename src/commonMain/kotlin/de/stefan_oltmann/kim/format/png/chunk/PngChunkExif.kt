@@ -16,22 +16,38 @@
  */
 package de.stefan_oltmann.kim.format.png.chunk
 
+import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.MAX_DECOMPRESSED_BYTE_COUNT
+import de.stefan_oltmann.kim.common.decompressBytes
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.format.png.PngChunkType
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffReader
 
 /**
- * The EXIF chunk of a PNG file.
+ * The EXIF chunk of a PNG file, in the raw `eXIf` variant or in the
+ * compressed `zxIf` variant.
  */
 public class PngChunkExif(
+    chunkType: PngChunkType,
     bytes: ByteArray,
     crc: Int
-) : PngChunk(PngChunkType.EXIF, bytes, crc) {
+) : PngChunk(chunkType, bytes, crc) {
 
-    public val tiffContents: TiffContents = TiffReader.read(stripImproperHeader(bytes))
+    private val preparedTiffBytes: ByteArray = prepareTiffBytes(bytes)
 
-    private companion object {
+    public val tiffContents: TiffContents = TiffReader.read(preparedTiffBytes)
+
+    /**
+     * The TIFF bytes of this chunk: the decompressed data for `zxIf`,
+     * the chunk payload unchanged for `eXIf`.
+     */
+    public val exifBytes: ByteArray =
+        if (type == PngChunkType.ZXIF) preparedTiffBytes else bytes
+
+    public constructor(bytes: ByteArray, crc: Int) : this(PngChunkType.EXIF, bytes, crc)
+
+    internal companion object {
 
         /*
          * Some writers add the JPEG style header although the PNG
@@ -41,11 +57,67 @@ public class PngChunkExif(
          */
         val IMPROPER_HEADER: ByteArray = "Exif\u0000\u0000".encodeToByteArray()
 
-        fun stripImproperHeader(bytes: ByteArray): ByteArray =
-            if (bytes.startsWith(IMPROPER_HEADER))
-                bytes.copyOfRange(IMPROPER_HEADER.size, bytes.size)
-            else
-                bytes
-    }
+        /*
+         * zxIf header: one NUL byte that marks the chunk as compressed,
+         * followed by the uncompressed byte count as a big endian uint32.
+         */
+        const val ZXIF_HEADER_LENGTH: Int = 5
 
+        private const val ZERO_BYTE: Byte = 0
+
+        /**
+         * Normalizes the chunk payload to raw TIFF bytes: decompresses
+         * the zxIf layout, strips the improper JPEG style header and
+         * leaves standard TIFF bytes unchanged.
+         *
+         * A payload that fits none of the layouts fails the read, per
+         * the strict read policy in the [de.stefan_oltmann.kim.Kim]
+         * documentation.
+         */
+        internal fun prepareTiffBytes(bytes: ByteArray): ByteArray =
+            when {
+                bytes.isEmpty() ->
+                    bytes
+
+                bytes[0] == ZERO_BYTE ->
+                    decompressZxIf(bytes)
+
+                bytes.startsWith(IMPROPER_HEADER) ->
+                    bytes.copyOfRange(IMPROPER_HEADER.size, bytes.size)
+
+                else ->
+                    bytes
+            }
+
+        private fun decompressZxIf(bytes: ByteArray): ByteArray {
+
+            if (bytes.size <= ZXIF_HEADER_LENGTH)
+                throw ImageReadException(
+                    "The zxIf chunk carries no compressed data: ${bytes.size} bytes."
+                )
+
+            val declaredByteCount =
+                ((bytes[1].toInt() and 0xFF) shl 24) or
+                    ((bytes[2].toInt() and 0xFF) shl 16) or
+                    ((bytes[3].toInt() and 0xFF) shl 8) or
+                    (bytes[4].toInt() and 0xFF)
+
+            if (declaredByteCount <= 0 || declaredByteCount > MAX_DECOMPRESSED_BYTE_COUNT)
+                throw ImageReadException(
+                    "The zxIf chunk declares an invalid uncompressed size: $declaredByteCount."
+                )
+
+            val decompressedBytes = decompressBytes(
+                bytes.copyOfRange(ZXIF_HEADER_LENGTH, bytes.size)
+            )
+
+            if (decompressedBytes.size != declaredByteCount)
+                throw ImageReadException(
+                    "The zxIf chunk declares $declaredByteCount bytes, " +
+                        "but decompressed to ${decompressedBytes.size}."
+                )
+
+            return decompressedBytes
+        }
+    }
 }
