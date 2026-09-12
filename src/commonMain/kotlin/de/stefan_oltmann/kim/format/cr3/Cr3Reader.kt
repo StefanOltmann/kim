@@ -174,8 +174,9 @@ internal object Cr3Reader {
      * not a degradation.
      *
      * A metadata UUID box that IS present but cannot be scanned cleanly
-     * fails the read per the strict read policy in the [Kim]
-     * documentation: sidecar writers consume this result, so silently
+     * fails the read per the strict read policy in the
+     * [de.stefan_oltmann.kim.Kim] documentation: sidecar writers consume
+     * this result, so silently
      * returning only part of the existing metadata would lose data.
      */
     fun findMetadataSubBoxes(allBoxes: List<Box>): List<Box> {

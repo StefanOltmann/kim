@@ -75,8 +75,8 @@ public object QuickTimeImageParser : ImageParser {
      * Assembles the metadata from the scanned top-level boxes.
      *
      * A container without a "moov" box has no place where metadata could
-     * live and is rejected per the strict read policy in the [Kim]
-     * documentation.
+     * live and is rejected per the strict read policy in the
+     * [de.stefan_oltmann.kim.Kim] documentation.
      */
     internal fun createMetadata(allBoxes: List<Box>): MediaMetadata {
 

@@ -83,9 +83,9 @@ public object TiffReader {
     /**
      * A sub-directory of a MakerNote that is stored as a binary blob.
      *
-     * The fields are stored at tag * [byteOffsetMultiplier] within the
+     * The fields are stored at tag * byteOffsetMultiplier within the
      * blob, where the multiplier is the size of the data type that the
-     * vendor stores the fields in. [firstTag] and [offsetBase] shift the
+     * vendor stores the fields in. firstTag and offsetBase shift the
      * field positions for tables whose entries do not start at the
      * beginning of the blob.
      */
@@ -907,8 +907,9 @@ public object TiffReader {
      * Parses the GeoTIFF directory from the GeoKeyDirectory tag of the
      * given directories, or returns null when the tag is missing.
      *
-     * Parse failures propagate per the strict read policy in the [Kim]
-     * documentation: the GeoKeyDirectory exists in the file, so silently
+     * Parse failures propagate per the strict read policy in the
+     * [de.stefan_oltmann.kim.Kim] documentation: the GeoKeyDirectory
+     * exists in the file, so silently
      * dropping it would lose structured metadata to sidecar writers. A
      * GeoKeyDirectory stored with a type other than SHORT fails the
      * read as well, instead of vanishing with its GeoTIFF content.

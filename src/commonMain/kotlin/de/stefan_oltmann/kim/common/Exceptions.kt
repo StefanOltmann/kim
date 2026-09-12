@@ -44,7 +44,7 @@ public open class ImageWriteException(message: String? = null, cause: Throwable?
  * We need to ensure that every Exception that can occur is wrapped
  * into an ImageReadException, because on Kotlin/Native this is the expected exception type.
  *
- * Fatal VM errors like [OutOfMemoryError] or [StackOverflowError] are
+ * Fatal VM errors like OutOfMemoryError or StackOverflowError are
  * deliberately not wrapped: masking them as ordinary parse failures
  * would hide broken virtual machine state from the caller.
  *
