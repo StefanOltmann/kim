@@ -54,10 +54,6 @@ class MetadataSummaryConverterTest {
             else
                 KimTestData.getHeaderBytesOf(index)
 
-            /* Skip HEIC as it's not supported right now. */
-            if (index == KimTestData.HEIC_TEST_IMAGE_INDEX)
-                continue
-
             /* Broken files are rejected by the segment length validation. */
             if (rejectedJpegIds.contains(index)) {
 

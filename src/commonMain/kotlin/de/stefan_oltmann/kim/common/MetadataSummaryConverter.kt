@@ -114,12 +114,17 @@ public object MetadataSummaryConverter {
             ?: extractGpsCoordinatesFromExif(mediaMetadata)
 
         val cameraMake = mediaMetadata.findStringValue(TiffTag.TIFF_TAG_MAKE)
+            .trimTrailingPadding()
         val cameraModel = mediaMetadata.findStringValue(TiffTag.TIFF_TAG_MODEL)
+            .trimTrailingPadding()
 
         val lensMake = mediaMetadata.findStringValue(ExifTag.EXIF_TAG_LENS_MAKE)
+            .trimTrailingPadding()
 
-        val lensModel = mediaMetadata.findStringValue(ExifTag.EXIF_TAG_LENS_MODEL)
-            ?: extractLensModelFromMakerNote(mediaMetadata)
+        val lensModel = (
+            mediaMetadata.findStringValue(ExifTag.EXIF_TAG_LENS_MODEL)
+                ?: extractLensModelFromMakerNote(mediaMetadata)
+            ).trimTrailingPadding()
 
         /*
          * Look for ISO at the standard place and fall back to test RW2 logic.
@@ -150,13 +155,25 @@ public object MetadataSummaryConverter {
 
         val iptcRecords = mediaMetadata.iptc?.records
 
-        val title = xmpMetadata?.title ?: iptcRecords
-            ?.find { it.iptcType == IptcTypes.OBJECT_NAME }
-            ?.value
+        val title = (
+            xmpMetadata?.title ?: iptcRecords
+                ?.find { it.iptcType == IptcTypes.OBJECT_NAME }
+                ?.value
+            ).trimTrailingPadding()
 
-        val description = xmpMetadata?.description ?: iptcRecords
-            ?.find { it.iptcType == IptcTypes.CAPTION_ABSTRACT }
-            ?.value
+        /*
+         * Like ExifTool, the description falls back to the IPTC caption
+         * and to the EXIF ImageDescription. The EXIF tag is the last
+         * resort, because XMP and IPTC are the newer formats - it keeps
+         * the summary symmetric with MetadataUpdate.Description, which
+         * writes exactly that tag.
+         */
+        val description = (
+            xmpMetadata?.description ?: iptcRecords
+                ?.find { it.iptcType == IptcTypes.CAPTION_ABSTRACT }
+                ?.value
+            ?: mediaMetadata.findStringValue(TiffTag.TIFF_TAG_IMAGE_DESCRIPTION)
+            ).trimTrailingPadding()
 
         val location = xmpMetadata?.locationShown
             ?: extractLocationFromIptc(mediaMetadata)
@@ -213,6 +230,20 @@ public object MetadataSummaryConverter {
             thumbnailImageSize = thumbnailImageSize,
             thumbnailBytes = thumbnailBytes
         )
+    }
+
+    /**
+     * EXIF and IPTC strings are padded with spaces or NUL bytes to a
+     * fixed length. The padding is not data, so the summary reports
+     * these values like ExifTool does: with the trailing padding
+     * removed. An empty result is reported as NULL.
+     */
+    private fun String?.trimTrailingPadding(): String? {
+
+        if (this == null)
+            return null
+
+        return trimEnd(' ', ' ').ifEmpty { null }
     }
 
     @JvmStatic
