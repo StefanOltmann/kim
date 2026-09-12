@@ -43,7 +43,6 @@ import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toInstant
 import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
-import kotlin.time.ExperimentalTime
 
 private const val NIKON_LENS_VALUE_COUNT: Int = 4
 
@@ -236,7 +235,6 @@ public object MetadataSummaryConverter {
         return convertExifDateToIso8601Date(takenDate)
     }
 
-    @OptIn(ExperimentalTime::class)
     @JvmStatic
     private fun extractTakenDateMillisFromExif(
         metadata: MediaMetadata

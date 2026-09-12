@@ -33,7 +33,6 @@ import de.stefan_oltmann.kim.model.MetadataUpdate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.abs
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 /**
@@ -115,7 +114,6 @@ public class TiffOutputSet(
     public fun findDirectory(directoryType: Int): TiffOutputDirectory? =
         directories.find { it.type == directoryType }
 
-    @OptIn(ExperimentalTime::class)
     public fun applyUpdate(update: MetadataUpdate) {
 
         val rootDirectory = getOrCreateRootDirectory()

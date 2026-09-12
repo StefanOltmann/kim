@@ -32,7 +32,6 @@ import de.stefan_oltmann.xmp.options.SerializeOptions
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.jvm.JvmStatic
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 /**
@@ -48,7 +47,6 @@ public object XmpWriter {
             .setUseCanonicalFormat(false)
             .setSort(true)
 
-    @OptIn(ExperimentalTime::class)
     @JvmStatic
     public fun XMPMeta.applyUpdate(update: MetadataUpdate) {
 
