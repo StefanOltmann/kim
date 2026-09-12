@@ -28,13 +28,13 @@ import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.DEFAULT_TIFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeUndefined
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.abs
 import kotlin.time.Instant
-import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeUndefined
 
 private const val EXIF_VERSION_FIELD_LENGTH: Int = 4
 

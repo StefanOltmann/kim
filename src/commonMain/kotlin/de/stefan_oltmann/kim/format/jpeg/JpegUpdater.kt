@@ -17,19 +17,19 @@
 package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.Md5
 import de.stefan_oltmann.kim.common.startsWith
+import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
-import de.stefan_oltmann.kim.common.Md5
-import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcBlock
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcConstants
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
-import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcRecord
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcType
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcTypes
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet

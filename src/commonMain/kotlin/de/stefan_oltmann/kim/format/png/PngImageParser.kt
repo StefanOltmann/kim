@@ -437,30 +437,30 @@ public object PngImageParser : ImageParser {
         crc: Int,
         parseExif: Boolean
     ): PngChunk =
-        when {
-            chunkType == PngChunkType.TEXT ->
+        when (chunkType) {
+
+            PngChunkType.TEXT ->
                 PngChunkText(PngChunkType.TEXT, bytes, crc)
 
-            chunkType == PngChunkType.ZTXT ->
+            PngChunkType.ZTXT ->
                 PngChunkZtxt(bytes, crc)
 
-            chunkType == PngChunkType.IHDR ->
+            PngChunkType.IHDR ->
                 PngChunkIhdr(bytes, crc)
 
-            chunkType == PngChunkType.ITXT ->
+            PngChunkType.ITXT ->
                 PngChunkItxt(bytes, crc)
 
-            chunkType == PngChunkType.EXIF || chunkType == PngChunkType.ZXIF ->
+            /*
+             * A later duplicate EXIF chunk is ignored like
+             * ExifTool does, so its bytes stay preserved but are
+             * never parsed - a corrupt duplicate must not fail
+             * the read of the authoritative first chunk.
+             */
+            PngChunkType.EXIF, PngChunkType.ZXIF ->
                 if (parseExif)
                     PngChunkExif(chunkType, bytes, crc)
                 else
-
-                    /*
-                     * A later duplicate EXIF chunk is ignored like
-                     * ExifTool does, so its bytes stay preserved but are
-                     * never parsed - a corrupt duplicate must not fail
-                     * the read of the authoritative first chunk.
-                     */
                     PngChunk(chunkType, bytes, crc)
 
             else -> PngChunk(chunkType, bytes, crc)

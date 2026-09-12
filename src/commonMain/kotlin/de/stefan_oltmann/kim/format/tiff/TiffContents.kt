@@ -17,9 +17,9 @@
  */
 package de.stefan_oltmann.kim.format.tiff
 
+import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.geotiff.GeoTiffDirectory
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
-import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 
 /**

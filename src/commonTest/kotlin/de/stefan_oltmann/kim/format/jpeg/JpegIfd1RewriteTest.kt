@@ -17,9 +17,9 @@ package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
-import de.stefan_oltmann.kim.testdata.KimTestData
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.model.MetadataUpdate
+import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue

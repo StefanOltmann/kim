@@ -15,7 +15,6 @@
  */
 package de.stefan_oltmann.kim.common
 
-import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffDirectory

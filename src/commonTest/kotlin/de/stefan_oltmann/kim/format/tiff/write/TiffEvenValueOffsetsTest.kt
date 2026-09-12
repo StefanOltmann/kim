@@ -16,8 +16,8 @@
 package de.stefan_oltmann.kim.format.tiff.write
 
 import de.stefan_oltmann.kim.Kim
-import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
+import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertNotNull

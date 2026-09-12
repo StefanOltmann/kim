@@ -17,20 +17,19 @@ package de.stefan_oltmann.kim.format.tiff.write
 
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.RationalNumber
+import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
+import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong
 import de.stefan_oltmann.kim.model.GpsCoordinates
+import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import de.stefan_oltmann.kim.model.MetadataUpdate
-import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
-import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
-import kotlin.test.assertEquals
 
 class TiffOutputSetTest {
 
@@ -139,6 +138,7 @@ class TiffOutputSetTest {
             "Unexpected message: ${exception.message}"
         )
     }
+
     /**
      * Writing the taken date creates ExifIFD tags that Exif 2.3
      * validators require the ExifVersion for. Like ExifTool, the
@@ -163,6 +163,7 @@ class TiffOutputSetTest {
             "Unexpected ExifVersion value."
         )
     }
+
     /**
      * The OffsetTime tags describe the offset of the replaced date. A
      * rewrite that keeps them makes every reader interpret the new date
