@@ -343,7 +343,9 @@ public object Kim {
      * Updates the file with all desired changes at once.
      *
      * Every update is applied to all formats that can represent it, so EXIF,
-     * IPTC and XMP can be updated simultaneously in a single call.
+     * IPTC and XMP are updated together in the same write. The storages
+     * duplicate the same logical values, so updating only one of them would
+     * let the copies drift apart - see [MetadataUpdater].
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -389,7 +391,9 @@ public object Kim {
      * Updates the file with all desired changes at once.
      *
      * Every update is applied to all formats that can represent it, so EXIF,
-     * IPTC and XMP can be updated simultaneously in a single call.
+     * IPTC and XMP are updated together in the same write. The storages
+     * duplicate the same logical values, so updating only one of them would
+     * let the copies drift apart - see [MetadataUpdater].
      *
      * Attention: The given [ByteReader] and [ByteWriter] are not closed by
      * this call; the caller owns and closes both.

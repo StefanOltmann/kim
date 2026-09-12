@@ -174,7 +174,9 @@ See the [example project](examples/kim-kotlin-jvm-sample/src/main/kotlin/Main.kt
 ### Update metadata using Kim.update () API
 
 `Kim.update()` applies the given updates to all formats that can represent them, so EXIF, IPTC and
-XMP are updated simultaneously in one call.
+XMP are updated simultaneously in one call. The metadata storages duplicate the same logical values
+- updating only one of them would let the copies drift apart, which is why partial updates do not
+exist.
 
 ```kotlin
 val bytes: ByteArray = loadBytes()
