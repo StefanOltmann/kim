@@ -87,7 +87,7 @@ import kotlinx.datetime.TimeZone
  * 2. GPS coordinates that were read cleanly but lie outside the valid
  *    range: they are physically meaningless.
  *
- * Dropping a MakerNote, EXIF, IPTC or XMP content is real data loss and
+ * Dropping a MakerNote, EXIF, IPTC, or XMP content is real data loss and
  * must fail the read instead. Stopping a parse at the exact boundary where
  * the file's bytes end inside a structure is clean handling, not a
  * degradation - provided everything before the boundary is returned
@@ -225,7 +225,7 @@ public object Kim {
      *
      * Cloud services can not reliably tell the mime type, so we must determine it.
      *
-     * Attention: Only JPEG, PNG, RAF and GIF provide metadata bytes here.
+     * Attention: Only JPEG, PNG, RAF, and GIF provide metadata bytes here.
      * Every other supported format (CR3, HEIC, AVIF, JXL, WebP, TIFF-based
      * RAW, ...) yields an empty array, so callers cannot distinguish
      * "format has no metadata" from "metadata bytes not provided". Use
@@ -343,9 +343,9 @@ public object Kim {
      * Updates the file with all desired changes at once.
      *
      * Every update is applied to all formats that can represent it, so EXIF,
-     * IPTC and XMP are updated together in the same write. The storages
+     * IPTC, and XMP are updated together in the same write. The storages
      * duplicate the same logical values, so updating only one of them would
-     * let the copies drift apart - see [MetadataUpdater].
+     * let the copies drift apart - see [de.stefan_oltmann.kim.format.MetadataUpdater].
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -391,9 +391,9 @@ public object Kim {
      * Updates the file with all desired changes at once.
      *
      * Every update is applied to all formats that can represent it, so EXIF,
-     * IPTC and XMP are updated together in the same write. The storages
+     * IPTC, and XMP are updated together in the same write. The storages
      * duplicate the same logical values, so updating only one of them would
-     * let the copies drift apart - see [MetadataUpdater].
+     * let the copies drift apart - see [de.stefan_oltmann.kim.format.MetadataUpdater].
      *
      * Attention: The given [ByteReader] and [ByteWriter] are not closed by
      * this call; the caller owns and closes both.
