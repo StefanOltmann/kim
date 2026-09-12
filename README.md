@@ -21,7 +21,8 @@ and [PixelSafe](https://github.com/StefanOltmann/pixelsafe).
 
 * JPG: Read & Write EXIF, IPTC & XMP
 * PNG: Read & Write `eXIf` chunk & XMP
-    + Also read non-standard EXIF & IPTC from `tEXt`/`zTXt` chunk
+    + Also read the compressed `zxIf` chunk variant and non-standard EXIF & IPTC
+      from `tEXt`/`zTXt` chunks
 * WebP: Read & Write EXIF & XMP
 * HEIC / AVIF: Read EXIF & XMP
     + Support for animated AVIF files (AV1 Image Sequence)
@@ -90,25 +91,35 @@ val byteReader = JvmInputStreamByteReader(inputFile.inputStream(), inputFile.len
 val metadata = Kim.readMetadata(byteReader)
 ```
 
+Some tools write XMP or EXIF as APP1 segments behind the JPEG image data. By default the read stops
+at the image data. Pass `readTrailerMetadata = true` to also report that content:
+
+```kotlin
+val metadata = Kim.readMetadata(bytes, readTrailerMetadata = true)
+```
+
 ### Create high level summary object
 
 This creates an instance
 of [MetadataSummary](src/commonMain/kotlin/de/stefan_oltmann/kim/model/MetadataSummary.kt). It
 contains the following:
 
-- Image size
+- Media format
+- Image size, oriented size & megapixel count
 - Orientation
 - Date taken
-- GPS coordinates
+- GPS coordinates & location shown
 - Camera make & model
 - Lens make & model
 - ISO, Exposure time, F-Number, Focal length
+- Film simulation (Fujifilm specific)
 - Image title & description
 - Rating
 - `XMP:pick` flag
 - Keywords
 - Faces (XMP-mwg-rs regions, used by Picasa and others)
 - Persons in image
+- EXIF thumbnail size & bytes
 
 ```kotlin
 val bytes: ByteArray = loadBytes()
@@ -248,7 +259,8 @@ OutputStreamByteWriter(outputFile.outputStream()).use { outputStreamByteWriter -
 change how the image is displayed.
 
 * JPG: removes EXIF, XMP, IPTC & comment segments
-* PNG: removes the `eXIf` chunk, all text chunks & the `tIME` chunk
+* PNG: removes the `eXIf` chunk (including its compressed `zxIf` variant), all text chunks &
+  the `tIME` chunk
 * WebP: removes EXIF & XMP chunks and clears the VP8X metadata flags
 * JXL: removes Exif & xml boxes
 * GIF: removes the XMP application extension & comment extensions
@@ -300,7 +312,8 @@ Java projects.
 * Does not read brotli compressed metadata of JPEG XL due to missing brotli KMP libs.
 * The MakerNotes of GoPro cameras and the undocumented records of the oldest Canon and Sony models
   are not interpreted.
-* There is right now no convienient tooling for GeoTiff like there is for GPS.
+* There is right now no convenient tooling for GeoTiff like there is for GPS.
+* PDF files are detected by the format detection, but their metadata is not parsed.
 * Videos: QuickTime `ilst` tags (title, keywords as written by Apple tools) and the QuickTime GPS
   tag are not read yet; such videos report the XMP packet, the display resolution and - when
   present - the Fujifilm metadata only.
