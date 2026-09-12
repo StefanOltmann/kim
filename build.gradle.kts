@@ -175,13 +175,8 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        nodejs {
-            testTask {
-                useMocha {
-                    timeout = "60s"
-                }
-            }
-        }
+        /* WASM JS doesn't have Mocha */
+        nodejs()
     }
 
 //    @OptIn(ExperimentalWasmDsl::class)
