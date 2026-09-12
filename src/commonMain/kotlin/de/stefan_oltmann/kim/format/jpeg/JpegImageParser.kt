@@ -21,6 +21,7 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.getRemainingBytes
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toInt
+import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
@@ -54,6 +55,8 @@ import de.stefan_oltmann.xmp.XMPMetaFactory
 public object JpegImageParser : ImageParser {
 
     private const val XMP_META_CLOSE = "</x:xmpmeta>"
+
+    private const val TRAILER_LENGTH_BYTE_COUNT: Int = 2
 
     public fun getImageSize(byteReader: ByteReader): ImageSize? {
 
@@ -97,7 +100,7 @@ public object JpegImageParser : ImageParser {
             val remainingByteCount = byteReader.contentLength - readBytesCount
 
             /* A zero content length is an empty segment, which is spec-legal. */
-            if (segmentLength < 0 || segmentLength > remainingByteCount)
+            if (segmentLength !in 0..remainingByteCount)
                 throw ImageReadException("Illegal JPEG segment length: $segmentLength")
 
             /* We are only looking for a SOF segment. */
@@ -125,15 +128,44 @@ public object JpegImageParser : ImageParser {
 
     @Throws(ImageReadException::class)
     override fun parseMetadata(byteReader: ByteReader): MediaMetadata =
+        parseMetadata(byteReader = byteReader, readTrailerMetadata = false)
+
+    /**
+     * Parses the metadata of a JPEG file.
+     *
+     * With `readTrailerMetadata = true` the APP1 EXIF and XMP segments
+     * behind the image data are scanned as well, like ExifTool reads
+     * them. The trailer scan happens in the same single pass, so
+     * forward-only stream sources work.
+     */
+    @Throws(ImageReadException::class)
+    public fun parseMetadata(
+        byteReader: ByteReader,
+        readTrailerMetadata: Boolean
+    ): MediaMetadata =
         tryWithImageReadException {
 
-            val segments = readSegments(
-                byteReader,
-                JpegConstants.SOFN_MARKERS +
+            val (segments, endMarkerBytes) = JpegUtils.readSegments(byteReader) { marker ->
+                marker in JpegConstants.SOFN_MARKERS +
                     listOf(JpegConstants.JPEG_APP1_MARKER, JpegConstants.JPEG_APP13_MARKER)
-            )
+            }
 
-            parseMetadata(segments)
+            /*
+             * When the header scan ended on the SOS marker, the entropy
+             * coded image data still lies between the reader and the EOI
+             * marker. When it ended on the EOI marker instead, the reader
+             * is already behind the image data.
+             */
+            val trailerSegments =
+                if (!readTrailerMetadata)
+                    emptyList()
+                else
+                    readTrailerSegments(
+                        byteReader = byteReader,
+                        scanThroughImageData = endMarkerBytes != null
+                    )
+
+            parseMetadata(segments + trailerSegments)
         }
 
     /**
@@ -221,7 +253,7 @@ public object JpegImageParser : ImageParser {
      * still be able to read or repair it. This is a different level than
      * skipping a single invalid GPS value.
      */
-    private fun getExif(bytes: ByteArray): TiffContents? {
+    private fun getExif(bytes: ByteArray): TiffContents {
 
         val exifByteReader = ByteArrayByteReader(bytes)
 
@@ -243,9 +275,7 @@ public object JpegImageParser : ImageParser {
             if (!haveFirstSegment) {
 
                 val headerEnd = JpegUtils.findExifHeaderEnd(segmentBytes)
-
-                if (headerEnd == null)
-                    continue
+                    ?: continue
 
                 exifBytes.write(segmentBytes.getRemainingBytes(headerEnd))
 
@@ -420,12 +450,125 @@ public object JpegImageParser : ImageParser {
     }
 
     /**
-     * Reads the header segments that match the given markers.
+     * Reads the APP1 EXIF and XMP segments of the trailer behind the
+     * image data, like ExifTool scans them.
+     *
+     * The scan is deliberately limited to that scope: a SOI marker starts
+     * a vendor preview, which is image data of another tool and ends the
+     * scan, and every marker whose structure cannot be interpreted fails
+     * the read - the flag is an explicit request for the trailer content,
+     * so garbage behind the image data is reported instead of skipped.
      */
-    private fun readSegments(byteReader: ByteReader, markers: List<Int>): List<JFIFPieceSegment> {
+    private fun readTrailerSegments(
+        byteReader: ByteReader,
+        scanThroughImageData: Boolean
+    ): List<JFIFPieceSegment> {
 
-        val (segments, _) = JpegUtils.readSegments(byteReader) { marker -> marker in markers }
+        val scanner = JpegMarkerScanner(byteReader, keepConsumedBytes = false)
 
-        return segments
+        /*
+         * The entropy coded image data may contain restart markers, so the
+         * scan runs until the real EOI marker. When the stream ends first,
+         * the file simply has no trailer.
+         */
+        if (scanThroughImageData) {
+
+            @Suppress("LoopWithTooManyJumpStatements")
+            while (true) {
+
+                val scan = scanner.nextMarker(zeroIsFillByte = true)
+                    ?: return emptyList()
+
+                if (scan.marker == JpegConstants.EOI_MARKER)
+                    break
+            }
+        }
+
+        val trailerSegments = mutableListOf<JFIFPieceSegment>()
+
+        /*
+         * The retained trailer segments share the size budget of the
+         * header segments, so a hostile file of many small segments
+         * cannot accumulate memory unboundedly.
+         */
+        var retainedTrailerSegmentBytes = 0L
+
+        @Suppress("LoopWithTooManyJumpStatements")
+        while (true) {
+
+            val scan = scanner.nextMarker(zeroIsFillByte = true) ?: break
+
+            when (scan.marker) {
+                /*
+                 * A SOI starts a vendor preview like the Panasonic ones.
+                 * That is image data of another tool, so the scan stops
+                 * instead of interpreting its bytes as segments.
+                 */
+                JpegConstants.SOI_MARKER ->
+                    break
+
+                /* Restart markers, TEM and duplicate EOI markers carry no payload. */
+                JpegConstants.TEM_MARKER,
+                in JpegConstants.RST0_MARKER..JpegConstants.RST7_MARKER,
+                JpegConstants.EOI_MARKER ->
+                    continue
+
+                else -> {
+
+                    val segmentLengthBytes = byteReader.readBytes(TRAILER_LENGTH_BYTE_COUNT)
+
+                    if (segmentLengthBytes.size != TRAILER_LENGTH_BYTE_COUNT)
+                        throw ImageReadException("Truncated JPEG trailer segment length.")
+
+                    val segmentContentLength =
+                        segmentLengthBytes.toUInt16(JpegConstants.JPEG_BYTE_ORDER) - 2
+
+                    /* A zero content length is an empty segment, which is spec-legal. */
+                    if (segmentContentLength < 0)
+                        throw ImageReadException(
+                            "Illegal JPEG trailer segment length: $segmentContentLength"
+                        )
+
+                    val segmentData = byteReader.readBytes(segmentContentLength)
+
+                    if (segmentData.size != segmentContentLength)
+                        throw ImageReadException(
+                            "Truncated JPEG trailer segment: " +
+                                "${segmentData.size} of $segmentContentLength bytes."
+                        )
+
+                    /*
+                     * Only APP1 carries the EXIF and XMP the flag asks for;
+                     * all other segments stream through unread.
+                     */
+                    if (scan.marker == JpegConstants.JPEG_APP1_MARKER) {
+
+                        retainedTrailerSegmentBytes += segmentContentLength
+
+                        if (retainedTrailerSegmentBytes > JpegUtils.MAX_HEADER_SEGMENT_BYTES)
+                            throw ImageReadException(
+                                "JPEG trailer exceeds " +
+                                    "${JpegUtils.MAX_HEADER_SEGMENT_BYTES} bytes."
+                            )
+
+                        trailerSegments.add(
+                            JFIFPieceSegment(
+                                scan.marker,
+                                scan.markerBytes,
+                                segmentLengthBytes,
+                                segmentData
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
+        return trailerSegments
     }
+    /*
+     * The header segments are read through JpegUtils.readSegments
+     * directly by the callers, so a marker-filtered wrapper would be
+     * dead code.
+     */
 }

@@ -50,6 +50,8 @@ public object KimKtor {
 }
 
 @Throws(ImageReadException::class)
+@Suppress("UnusedReceiverParameter")
+/* False positive. */
 public fun Kim.readMetadata(source: Source, contentLength: Long): MediaMetadata? =
     KimKtor.readMetadata(source, contentLength)
 
@@ -61,5 +63,7 @@ public fun Kim.readMetadata(source: Source, contentLength: Long): MediaMetadata?
  * details and the supported usage.
  */
 @Throws(ImageReadException::class)
+@Suppress("UnusedReceiverParameter")
+/* False positive. */
 public fun Kim.readMetadata(byteReadChannel: ByteReadChannel, contentLength: Long): MediaMetadata? =
     KimKtor.readMetadata(byteReadChannel, contentLength)

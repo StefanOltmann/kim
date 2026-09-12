@@ -59,7 +59,7 @@ public enum class MediaFormat(
     PDF(MediaFormatType.DOCUMENT, "application/pdf", "com.adobe.pdf", setOf("pdf"));
 
     /**
-     * If true, KIM can embedd metadata into this kind of file.
+     * If true, KIM can embed metadata into this kind of file.
      */
     public fun isMetadataEmbeddable(): Boolean =
         this == JPEG || this == GIF || this == PNG || this == WEBP || this == JXL

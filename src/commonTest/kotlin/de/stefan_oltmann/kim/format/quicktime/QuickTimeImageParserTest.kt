@@ -449,4 +449,27 @@ class QuickTimeImageParserTest {
         }
     }
 
+    /**
+     * Multiple XMP packets leave no way to tell which one is
+     * authoritative, so the read rejects the file instead of reporting
+     * an arbitrary first packet as the metadata of the video.
+     */
+    @Test
+    fun testRejectsMultipleXmpBoxes() {
+
+        val xmpBytes = QuickTimeTestVideos.xmpPacket.encodeToByteArray()
+
+        val bytes = QuickTimeTestVideos.ftypBox() +
+            QuickTimeTestVideos.box(
+                "moov",
+                QuickTimeTestVideos.box("uuid", QuickTimeTestVideos.xmpUuidPayload(xmpBytes))
+            ) +
+            QuickTimeTestVideos.box("uuid", QuickTimeTestVideos.xmpUuidPayload(xmpBytes)) +
+            QuickTimeTestVideos.mdatBox()
+
+        assertFailsWith<ImageReadException> {
+            Kim.readMetadata(bytes)
+        }
+    }
+
 }

@@ -24,8 +24,13 @@ import de.stefan_oltmann.kim.output.ByteWriter
 /**
  * Updates the metadata of a media file.
  *
- * Every update of the given set is applied to all formats that can represent
- * it, so EXIF, IPTC and XMP can be updated simultaneously in one call.
+ * **Every update is applied to every metadata storage that can represent it:
+ * EXIF, IPTC and XMP are updated together in the same write.** The storages
+ * duplicate the same logical values (title, keywords, location, ...), so
+ * touching only one of them would let the copies drift apart - one tool would
+ * show the new value, every other tool the stale one. Updating all relevant
+ * places at once is a core correctness principle of this API, not a
+ * convenience.
  */
 public interface MetadataUpdater {
 

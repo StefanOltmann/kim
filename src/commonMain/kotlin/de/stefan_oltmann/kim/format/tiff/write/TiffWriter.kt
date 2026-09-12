@@ -156,6 +156,16 @@ public class TiffWriter(
                 makerNotePending = false
             }
 
+            /*
+             * Multi-byte values should start at an even offset: an odd
+             * base can remain behind an anchored MakerNote whose original
+             * offset was odd, and validators flag every value laid out
+             * behind it. The one-byte gap is filled with zeros by the
+             * writer.
+             */
+            if (offset % 2 == 1)
+                offset += 1
+
             outputItem.offset = offset
 
             offset += itemLength + imageDataPaddingLength(itemLength)

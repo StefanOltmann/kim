@@ -21,6 +21,7 @@ import de.stefan_oltmann.kim.common.toSingleNumberHexes
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataExtractor
+import de.stefan_oltmann.kim.format.png.chunk.PngChunkExif
 import de.stefan_oltmann.kim.input.ByteReader
 
 /**
@@ -189,6 +190,10 @@ public object PngMetadataExtractor : MetadataExtractor {
             if (chunkType == PngChunkType.EXIF)
                 return chunkBytes
 
+            /* The compressed variant is reported as the TIFF bytes it holds. */
+            if (chunkType == PngChunkType.ZXIF)
+                return PngChunkExif.prepareTiffBytes(chunkBytes)
+
             reader.readBytes(INT32_BYTE_SIZE)
         }
     }
@@ -225,7 +230,8 @@ public object PngMetadataExtractor : MetadataExtractor {
         ITXT(byteArrayOf(0x69, 0x54, 0x58, 0x74)),
         TEXT(byteArrayOf(0x74, 0x45, 0x58, 0x74)),
         ZTXT(byteArrayOf(0x7a, 0x54, 0x58, 0x74)),
-        EXIF(byteArrayOf(0x65, 0x58, 0x49, 0x66));
+        EXIF(byteArrayOf(0x65, 0x58, 0x49, 0x66)),
+        ZXIF(byteArrayOf(0x7a, 0x58, 0x49, 0x66));
 
         companion object {
 

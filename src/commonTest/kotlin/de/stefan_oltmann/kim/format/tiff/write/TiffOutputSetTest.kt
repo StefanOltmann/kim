@@ -17,13 +17,17 @@ package de.stefan_oltmann.kim.format.tiff.write
 
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.RationalNumber
+import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
+import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong
 import de.stefan_oltmann.kim.model.GpsCoordinates
+import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -133,5 +137,54 @@ class TiffOutputSetTest {
             exception.message?.contains("empty") == true,
             "Unexpected message: ${exception.message}"
         )
+    }
+
+    /**
+     * Writing the taken date creates ExifIFD tags that Exif 2.3
+     * validators require the ExifVersion for. Like ExifTool, the
+     * version is added when the EXIF does not carry one yet.
+     */
+    @Test
+    fun testTakenDateUpdateAddsExifVersionWhenMissing() {
+
+        val outputSet = TiffOutputSet()
+
+        outputSet.applyUpdate(MetadataUpdate.TakenDate(1700000000000L))
+
+        val exifDirectory = assertNotNull(outputSet.findDirectory(TiffConstants.TIFF_DIRECTORY_EXIF))
+
+        val exifVersion = assertNotNull(
+            exifDirectory.findField(ExifTag.EXIF_TAG_EXIF_VERSION),
+            "The ExifVersion was not added."
+        )
+
+        assertTrue(
+            exifVersion.bytesEqual("0232".encodeToByteArray()),
+            "Unexpected ExifVersion value."
+        )
+    }
+
+    /**
+     * The OffsetTime tags describe the offset of the replaced date. A
+     * rewrite that keeps them makes every reader interpret the new date
+     * in the old zone - Kim itself does - so they must be removed with
+     * the date they belong to.
+     */
+    @Test
+    fun testTakenDateUpdateRemovesStaleOffsetTime() {
+
+        val outputSet = TiffOutputSet()
+
+        val exifDirectory = outputSet.getOrCreateExifDirectory()
+
+        exifDirectory.add(ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL, "2020:01:01 10:00:00")
+        exifDirectory.add(ExifTag.EXIF_TAG_OFFSET_TIME_ORIGINAL, "+05:00")
+        exifDirectory.add(ExifTag.EXIF_TAG_DATE_TIME_DIGITIZED, "2020:01:01 10:00:00")
+        exifDirectory.add(ExifTag.EXIF_TAG_OFFSET_TIME_DIGITIZED, "+05:00")
+
+        outputSet.applyUpdate(MetadataUpdate.TakenDate(1700000000000L))
+
+        assertNull(exifDirectory.findField(ExifTag.EXIF_TAG_OFFSET_TIME_ORIGINAL))
+        assertNull(exifDirectory.findField(ExifTag.EXIF_TAG_OFFSET_TIME_DIGITIZED))
     }
 }

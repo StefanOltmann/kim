@@ -133,9 +133,7 @@ public object KimAndroid {
          * URIs failed on older devices.
          */
         val inputStream = contentResolver.openInputStream(uri)
-
-        if (inputStream == null)
-            throw ImageReadException("Unable to open input stream for URI $uri")
+            ?: throw ImageReadException("Unable to open input stream for URI $uri")
 
         return@tryWithImageReadException AndroidInputStreamByteReader(
             inputStream = inputStream,
@@ -153,7 +151,7 @@ public object KimAndroid {
      *
      * Attention: A failure while writing the new content (for example a
      * full disk) can still leave a truncated file, because
-     * [ContentResolver.openOutputStream] truncates the target on open
+     * ContentResolver.openOutputStream() truncates the target on open
      * and does not support atomic replacement.
      */
     @JvmStatic
@@ -174,7 +172,7 @@ public object KimAndroid {
      *
      * Attention: A failure while writing the new content (for example a
      * full disk) can still leave a truncated file, because
-     * [ContentResolver.openOutputStream] truncates the target on open
+     * ContentResolver.openOutputStream() truncates the target on open
      * and does not support atomic replacement.
      */
     @JvmStatic
@@ -215,7 +213,7 @@ public object KimAndroid {
      *
      * Attention: A failure while writing the new content (for example a
      * full disk) can still leave a truncated file, because
-     * [ContentResolver.openOutputStream] truncates the target on open
+     * ContentResolver.openOutputStream() truncates the target on open
      * and does not support atomic replacement.
      */
     @JvmStatic
@@ -438,9 +436,7 @@ public object KimAndroid {
          */
 
         val outputStream = contentResolver.openOutputStream(uri, "wt")
-
-        if (outputStream == null)
-            throw ImageWriteException("Unable to open ouput stream for URI $uri")
+            ?: throw ImageWriteException("Unable to open ouput stream for URI $uri")
 
         return@tryWithImageWriteException OutputStreamByteWriter(outputStream)
     }
@@ -452,18 +448,26 @@ public object KimAndroid {
  * hint and may be 0 for unknown sizes.
  */
 @Throws(ImageReadException::class)
+@Suppress("UnusedReceiverParameter")
+/* False positive. */
 public fun Kim.readMetadata(inputStream: InputStream, length: Long): MediaMetadata? =
     KimAndroid.readMetadata(inputStream, length)
 
 @Throws(ImageReadException::class)
+@Suppress("UnusedReceiverParameter")
+/* False positive. */
 public fun Kim.readMetadata(path: String): MediaMetadata? =
     KimAndroid.readMetadata(path)
 
 @Throws(ImageReadException::class)
+@Suppress("UnusedReceiverParameter")
+/* False positive. */
 public fun Kim.readMetadata(file: File): MediaMetadata? =
     KimAndroid.readMetadata(file)
 
 @Throws(ImageReadException::class)
+@Suppress("UnusedReceiverParameter")
+/* False positive. */
 public fun Kim.readMetadata(
     context: Context,
     uri: String,
@@ -472,6 +476,8 @@ public fun Kim.readMetadata(
     KimAndroid.readMetadata(context, uri, length)
 
 @Throws(ImageReadException::class)
+@Suppress("UnusedReceiverParameter")
+/* False positive. */
 public fun Kim.readMetadata(
     contentResolver: ContentResolver,
     uri: String,

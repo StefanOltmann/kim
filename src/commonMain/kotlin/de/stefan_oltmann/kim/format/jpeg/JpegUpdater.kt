@@ -17,14 +17,19 @@
 package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.Md5
 import de.stefan_oltmann.kim.common.startsWith
+import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcBlock
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcConstants
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcRecord
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcType
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcTypes
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
@@ -37,6 +42,7 @@ import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
+import de.stefan_oltmann.xmp.XMPConst
 import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
 
@@ -48,6 +54,29 @@ internal object JpegUpdater : MetadataUpdater {
         IptcTypes.PROVINCE_STATE,
         IptcTypes.COUNTRY_PRIMARY_LOCATION_NAME
     )
+
+    /**
+     * Replaces the data of the Photoshop IPTCDigest resource (0x0425,
+     * 16 raw MD5 bytes) with the given digest, so the MWG sync
+     * indicator matches the rewritten IPTC data - like ExifTool
+     * maintains it when the IPTC is written.
+     */
+    private fun IptcMetadata.withIptcDigestResource(digestBytes: ByteArray): IptcMetadata {
+
+        if (nonIptcBlocks.isEmpty())
+            return this
+
+        val blocks = nonIptcBlocks.map { block ->
+            if (block.blockType == IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DIGEST &&
+                block.blockData.size == digestBytes.size
+            )
+                IptcBlock(block.blockType, block.blockNameBytes, digestBytes)
+            else
+                block
+        }
+
+        return IptcMetadata(records, blocks)
+    }
 
     @Throws(ImageWriteException::class)
     override fun update(
@@ -67,6 +96,32 @@ internal object JpegUpdater : MetadataUpdater {
                 XMPMetaFactory.parseFromString(kimMetadata.xmp)
             else
                 XMPMetaFactory.create()
+
+            var iptcWithDigest: IptcMetadata? = null
+
+            val iptc = createIptcMetadata(kimMetadata.iptc, updates)
+
+            /*
+             * When the rewrite replaces the IPTC block, the Photoshop
+             * IPTCDigest resource (0x0425, the MWG sync indicator) and
+             * the xmpNote:IPTCDigest of the XMP must be updated to the
+             * digest of the new IPTC data, like ExifTool maintains them.
+             * Both are only synced when the file carried the resource -
+             * a digest that a tool invented for IPTC the file never
+             * declared as synced would be misleading. Unchanged IPTC
+             * keeps its existing (still valid) digest.
+             */
+            val carriedIptcDigestResource = kimMetadata.iptc?.nonIptcBlocks
+                ?.any { it.blockType == IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DIGEST } == true
+
+            if (iptc != null && carriedIptcDigestResource) {
+
+                val digestBytes = Md5.digest(IptcWriter.writeIptcBlockData(iptc.records))
+
+                xmpMeta.setProperty(XMPConst.NS_XMP_NOTE, "IPTCDigest", digestBytes.toHex())
+
+                iptcWithDigest = iptc.withIptcDigestResource(digestBytes)
+            }
 
             val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
 
@@ -92,9 +147,8 @@ internal object JpegUpdater : MetadataUpdater {
             else
                 createExifOutputSet(kimMetadata.exif, exifUpdates)
 
-            val iptc = createIptcMetadata(kimMetadata.iptc, updates)
-
-            val updatedSegments = JpegRewriter.applyMetadataUpdates(segments, updatedXmp, outputSet, iptc)
+            val updatedSegments =
+                JpegRewriter.applyMetadataUpdates(segments, updatedXmp, outputSet, iptcWithDigest ?: iptc)
 
             outputWriter.write(JpegConstants.SOI)
 

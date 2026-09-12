@@ -44,6 +44,7 @@ internal fun interface StaleChunkFilter {
 
         fun isMetadataChunkType(chunkType: PngChunkType): Boolean =
             chunkType == PngChunkType.EXIF ||
+                chunkType == PngChunkType.ZXIF ||
                 chunkType == PngChunkType.TEXT ||
                 chunkType == PngChunkType.ZTXT ||
                 chunkType == PngChunkType.ITXT ||

@@ -30,9 +30,10 @@ internal object JpegUtils {
     /**
      * The buffered header is what a rewrite carries in memory, so a
      * hostile file of many small segments must not accumulate
-     * unboundedly. Legitimate files stay far below this limit.
+     * unboundedly. Legitimate files stay far below this limit. The
+     * trailer scan applies the same budget to the segments it retains.
      */
-    private const val MAX_HEADER_SEGMENT_BYTES: Int = 16 * 1024 * 1024
+    internal const val MAX_HEADER_SEGMENT_BYTES: Int = 16 * 1024 * 1024
 
     /*
      * The identifier is "Exif\0" plus one more byte. Some cameras omit
@@ -185,7 +186,7 @@ internal object JpegUtils {
             val remainingByteCount = byteReader.contentLength - readBytesCount
 
             /* A zero content length is an empty segment, which is spec-legal. */
-            if (segmentContentLength < 0 || segmentContentLength > remainingByteCount)
+            if (segmentContentLength !in 0..remainingByteCount)
                 throw ImageReadException("Illegal JPEG segment length: $segmentContentLength")
 
             val segmentData = byteReader.readBytes("segmentData", segmentContentLength)

@@ -73,9 +73,10 @@ public object TiffImageParser : ImageParser {
      * The Panasonic RW2 stores its MakerNote inside the EXIF of the
      * embedded JPEG preview instead of the TIFF, so it is read from there.
      *
-     * Like ExifTool, an embedded JPEG whose EXIF cannot be read is
-     * skipped instead of rejecting the file: the MakerNote stays in
-     * the file as an opaque binary block.
+     * An embedded JPEG whose EXIF cannot be read fails the read like an
+     * unreadable MakerNote field: per the strict read policy in the
+     * [de.stefan_oltmann.kim.Kim] documentation the file is rejected
+     * instead of silently losing the MakerNote content it carries.
      */
     private fun parseEmbeddedJpegMakerNote(tiffContents: TiffContents): TiffContents {
 
@@ -100,9 +101,11 @@ public object TiffImageParser : ImageParser {
     /**
      * Extracts the payload of the first APP1 EXIF segment of the given JPEG bytes.
      *
-     * Like the TIFF read below, a JPEG that cannot be scanned is skipped
-     * instead of rejecting the file, so RAW files with a truncated or
-     * otherwise malformed preview remain readable.
+     * Preview bytes that contain no APP1 EXIF segment yield NULL, so a
+     * well-formed preview simply carrying no EXIF leaves the file
+     * readable. Bytes that are not a scannable JPEG at all fail the
+     * read in [JpegSegmentAnalyzer], because the MakerNote they might
+     * carry cannot be recovered from them.
      */
     private fun extractExifBytesFromJpegForMakerNote(jpegBytes: ByteArray): ByteArray? {
 

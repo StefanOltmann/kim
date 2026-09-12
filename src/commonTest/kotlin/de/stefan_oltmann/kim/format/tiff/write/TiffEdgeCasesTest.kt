@@ -349,8 +349,8 @@ class TiffEdgeCasesTest {
         val byteOrder = ByteOrder.LITTLE_ENDIAN
 
         fun field(
-            tag: de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo,
-            fieldType: de.stefan_oltmann.kim.format.tiff.fieldtype.FieldType<out Any>,
+            tag: TagInfo,
+            fieldType: FieldType<out Any>,
             count: Int,
             bytes: ByteArray
         ): TiffField = TiffField(

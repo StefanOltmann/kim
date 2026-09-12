@@ -20,6 +20,10 @@ import de.stefan_oltmann.xmp.XMPRegionArea
 
 /**
  * Represents possible updates that can be performed.
+ *
+ * An update never targets a single metadata storage: the updater applies it
+ * to every storage that can represent it (EXIF, IPTC & XMP) in the same
+ * write, so the copies of the same logical value can never drift apart.
  */
 public sealed interface MetadataUpdate {
 

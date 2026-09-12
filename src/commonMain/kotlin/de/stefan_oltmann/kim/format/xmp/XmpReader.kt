@@ -28,7 +28,6 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlin.jvm.JvmStatic
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 /**
@@ -45,7 +44,6 @@ public object XmpReader {
      */
     private val ISO8601_TIMEZONE_REGEX: Regex = Regex("[+-]\\d{2}:\\d{2}$|Z$")
 
-    @OptIn(ExperimentalTime::class)
     @Suppress("LoopWithTooManyJumpStatements")
     @Throws(XMPException::class)
     @JvmStatic

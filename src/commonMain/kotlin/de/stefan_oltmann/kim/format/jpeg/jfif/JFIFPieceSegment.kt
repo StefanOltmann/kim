@@ -49,37 +49,22 @@ internal open class JFIFPieceSegment(
     fun isAppSegment(): Boolean =
         marker >= JpegConstants.JPEG_APP0_MARKER && marker <= JpegConstants.JPEG_APP15_MARKER
 
-    fun isExifSegment(): Boolean {
+    /*
+     * The tolerant match is used here as well, so a rewrite replaces
+     * a variant header instead of keeping it beside the new segment.
+     */
+    fun isExifSegment(): Boolean =
+        marker == JpegConstants.JPEG_APP1_MARKER && JpegUtils.findExifHeaderEnd(segmentBytes) != null
 
-        if (marker != JpegConstants.JPEG_APP1_MARKER)
-            return false
-
-        /*
-         * The tolerant match is used here as well, so a rewrite replaces
-         * a variant header instead of keeping it beside the new segment.
-         */
-        return JpegUtils.findExifHeaderEnd(segmentBytes) != null
-    }
-
-    fun isIptcSegment(): Boolean {
-
-        if (marker != JpegConstants.JPEG_APP13_MARKER)
-            return false
-
-        return IptcParser.isPhotoshopApp13Segment(segmentBytes)
-    }
+    fun isIptcSegment(): Boolean =
+        marker == JpegConstants.JPEG_APP13_MARKER && IptcParser.isPhotoshopApp13Segment(segmentBytes)
 
     /**
      * Matches standard XMP packets and Adobe extended XMP segments alike,
      * so a rewrite replaces or removes both instead of leaving stale
      * extensions behind.
      */
-    fun isXmpSegment(): Boolean {
-
-        if (marker != JpegConstants.JPEG_APP1_MARKER)
-            return false
-
-        return segmentBytes.startsWith(JpegConstants.XMP_IDENTIFIER) ||
-            segmentBytes.startsWith(JpegConstants.EXTENDED_XMP_IDENTIFIER)
-    }
+    fun isXmpSegment(): Boolean =
+        marker == JpegConstants.JPEG_APP1_MARKER && (segmentBytes.startsWith(JpegConstants.XMP_IDENTIFIER) ||
+            segmentBytes.startsWith(JpegConstants.EXTENDED_XMP_IDENTIFIER))
 }

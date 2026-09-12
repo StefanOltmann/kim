@@ -81,11 +81,18 @@ public object TiffReader {
     private const val BIGTIFF_VERSION: Int = 43
 
     /**
+     * Panasonic RW2 and RWL files are TIFF variants whose header
+     * carries 0x55 as the version, and whose IFD0 uses the Panasonic
+     * RAW tag namespace.
+     */
+    private const val PANASONIC_RAW_TIFF_VERSION: Int = 0x55
+
+    /**
      * A sub-directory of a MakerNote that is stored as a binary blob.
      *
-     * The fields are stored at tag * [byteOffsetMultiplier] within the
+     * The fields are stored at tag * byteOffsetMultiplier within the
      * blob, where the multiplier is the size of the data type that the
-     * vendor stores the fields in. [firstTag] and [offsetBase] shift the
+     * vendor stores the fields in. firstTag and offsetBase shift the
      * field positions for tables whose entries do not start at the
      * beginning of the blob.
      */
@@ -93,7 +100,7 @@ public object TiffReader {
         ExifTag.EXIF_TAG_EXIF_OFFSET to TiffConstants.TIFF_DIRECTORY_EXIF,
         ExifTag.EXIF_TAG_GPSINFO to TiffConstants.TIFF_DIRECTORY_GPS,
         ExifTag.EXIF_TAG_INTEROP_OFFSET to TiffConstants.TIFF_DIRECTORY_INTEROP,
-        ExifTag.EXIF_TAG_SUB_IFDS_OFFSET to TiffConstants.TIFF_DIRECTORY_TYPE_IFD1
+        ExifTag.EXIF_TAG_SUB_IFDS_OFFSET to TIFF_DIRECTORY_TYPE_IFD1
     )
 
     /**
@@ -137,6 +144,7 @@ public object TiffReader {
             directoryType = directoryType,
             visitedOffsets = hashSetOf(),
             readTiffImageBytes = readTiffImageBytes,
+            preferPanasonicRawTags = tiffHeader.tiffVersion == PANASONIC_RAW_TIFF_VERSION,
             addDirectory = {
                 directories.add(it)
             }
@@ -206,6 +214,7 @@ public object TiffReader {
         addDirectory: (TiffDirectory) -> Unit,
         valueOffsetBase: Int = 0,
         followNextDirectory: Boolean = true,
+        preferPanasonicRawTags: Boolean = false,
         depth: Int = 0
     ): Boolean {
 
@@ -254,7 +263,8 @@ public object TiffReader {
                     entryCount = entryCount,
                     byteOrder = byteOrder,
                     directoryType = currentType,
-                    valueOffsetBase = valueOffsetBase
+                    valueOffsetBase = valueOffsetBase,
+                    preferPanasonicRawTags = preferPanasonicRawTags
                 )
 
             } catch (ex: Exception) {
@@ -264,7 +274,7 @@ public object TiffReader {
                  * Thumbnails are not essential and can be re-created anytime.
                  */
 
-                val isThumbnailDirectory = currentType == TiffConstants.TIFF_DIRECTORY_TYPE_IFD1
+                val isThumbnailDirectory = currentType == TIFF_DIRECTORY_TYPE_IFD1
 
                 if (isThumbnailDirectory)
                     return true
@@ -304,6 +314,7 @@ public object TiffReader {
                 visitedOffsets = visitedOffsets,
                 readTiffImageBytes = readTiffImageBytes,
                 addDirectory = addDirectory,
+                preferPanasonicRawTags = preferPanasonicRawTags,
                 depth = depth
             )
 
@@ -349,6 +360,7 @@ public object TiffReader {
         visitedOffsets: MutableSet<Int>,
         readTiffImageBytes: Boolean,
         addDirectory: (TiffDirectory) -> Unit,
+        preferPanasonicRawTags: Boolean,
         depth: Int
     ) {
 
@@ -428,6 +440,7 @@ public object TiffReader {
                          * Exif IFD.
                          */
                         followNextDirectory = false,
+                        preferPanasonicRawTags = preferPanasonicRawTags,
                         depth = depth + 1
                     )
 
@@ -524,7 +537,8 @@ public object TiffReader {
         entryCount: Int,
         byteOrder: ByteOrder,
         directoryType: Int,
-        valueOffsetBase: Int
+        valueOffsetBase: Int,
+        preferPanasonicRawTags: Boolean
     ): MutableList<TiffField> {
 
         /*
@@ -581,7 +595,7 @@ public object TiffReader {
 
             val fieldType = try {
                 getFieldType(type)
-            } catch (ignore: ImageReadException) {
+            } catch (_: ImageReadException) {
                 /*
                  * Unknown field types cannot be sized or read. Per the
                  * strict read policy the read fails instead of silently
@@ -665,7 +679,8 @@ public object TiffReader {
                     valueOffset = if (!isLocalValue) resolvedOffset.toInt() else null,
                     valueBytes = valueBytes,
                     byteOrder = byteOrder,
-                    sortHint = entryIndex
+                    sortHint = entryIndex,
+                    preferPanasonicRawTags = preferPanasonicRawTags
                 )
             )
         }
@@ -796,7 +811,7 @@ public object TiffReader {
             ExifTag.EXIF_TAG_MAKER_NOTE
         )
 
-        if (makerNoteField != null && makerNoteField.valueOffset != null) {
+        if (makerNoteField?.valueOffset != null) {
 
             val make = TiffDirectory.findTiffField(
                 directories, TiffTag.TIFF_TAG_MAKE
@@ -907,8 +922,9 @@ public object TiffReader {
      * Parses the GeoTIFF directory from the GeoKeyDirectory tag of the
      * given directories, or returns null when the tag is missing.
      *
-     * Parse failures propagate per the strict read policy in the [Kim]
-     * documentation: the GeoKeyDirectory exists in the file, so silently
+     * Parse failures propagate per the strict read policy in the
+     * [de.stefan_oltmann.kim.Kim] documentation: the GeoKeyDirectory
+     * exists in the file, so silently
      * dropping it would lose structured metadata to sidecar writers. A
      * GeoKeyDirectory stored with a type other than SHORT fails the
      * read as well, instead of vanishing with its GeoTIFF content.

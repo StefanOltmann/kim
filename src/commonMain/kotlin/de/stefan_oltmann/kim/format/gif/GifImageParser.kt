@@ -421,9 +421,7 @@ internal fun ByteReader.walkGifBlocks(
 
     while (true) {
 
-        val introducer = readByte("introducer")
-
-        val stop = when (introducer) {
+        val stop = when (val introducer = readByte("introducer")) {
 
             GifConstants.IMAGE_SEPARATOR -> onImageBlock()
 

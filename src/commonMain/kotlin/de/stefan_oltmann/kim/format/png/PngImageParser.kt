@@ -62,7 +62,8 @@ public object PngImageParser : ImageParser {
         PngChunkType.TEXT,
         PngChunkType.ZTXT,
         PngChunkType.ITXT,
-        PngChunkType.EXIF
+        PngChunkType.EXIF,
+        PngChunkType.ZXIF
     )
 
     @Throws(ImageReadException::class)
@@ -96,13 +97,15 @@ public object PngImageParser : ImageParser {
             val imageSize = headerChunk.imageSize
 
             /*
-             * We attempt to read EXIF data from the EXIF chunk, which has been the standard
-             * location since 2017. If the EXIF chunk is not present, we fallback to reading
-             * it from TXT. Some older apps may still store the data there.
+             * The EXIF chunk has been the standard location since 2017.
+             * Like ExifTool, only the first eXIf/zxIf chunk is
+             * authoritative: later ones are ignored entirely (not
+             * merged), and a text-chunk EXIF only serves as the fallback
+             * when no chunk exists.
              */
-            val exifChunk = chunks.filterIsInstance<PngChunkExif>().firstOrNull()
-
-            val exifPair = exifChunk?.let { it.bytes to it.tiffContents }
+            val exifPair = chunks.filterIsInstance<PngChunkExif>()
+                .firstOrNull()
+                ?.let { it.exifBytes to it.tiffContents }
                 ?: getExifFromTextChunk(chunks)
 
             val iptc = getIptcFromTextChunk(chunks)
@@ -161,9 +164,10 @@ public object PngImageParser : ImageParser {
          * A hex encoded profile that claims to be EXIF but does not end
          * at the JPEG EOI marker on an even boundary is a truncated
          * record. Per the strict read policy the read fails instead of
-         * silently dropping the EXIF content.
+         * silently dropping the EXIF content. The marker check ignores
+         * the case, because the hex encoding itself is case insensitive.
          */
-        if (!exifText.endsWith("ffd9") || exifText.length % 2 != 0)
+        if (!exifText.endsWith("ffd9", ignoreCase = true) || exifText.length % 2 != 0)
             throw ImageReadException("The EXIF text chunk of the PNG is truncated.")
 
         /*
@@ -284,6 +288,12 @@ public object PngImageParser : ImageParser {
 
         val chunks = mutableListOf<PngChunk>()
 
+        /*
+         * Only the first EXIF chunk is parsed; like ExifTool, later ones
+         * are ignored instead of failing or merging the read.
+         */
+        var haveParsedExifChunk = false
+
         while (true) {
 
             val length = byteReader.read4BytesAsInt("chunk length", PNG_BYTE_ORDER)
@@ -316,7 +326,14 @@ public object PngImageParser : ImageParser {
                  */
                 verifyChunkCrc(chunkType, bytes, crc)
 
-                chunks.add(createChunk(chunkType, bytes, crc))
+                val parseExif =
+                    (chunkType == PngChunkType.EXIF || chunkType == PngChunkType.ZXIF) &&
+                        !haveParsedExifChunk
+
+                if (parseExif)
+                    haveParsedExifChunk = true
+
+                chunks.add(createChunk(chunkType, bytes, crc, parseExif))
             }
 
             if (PngChunkType.IEND == chunkType)
@@ -343,6 +360,9 @@ public object PngImageParser : ImageParser {
 
         val chunks = mutableListOf<PngChunk>()
 
+        /* See readChunksInternal: only the first EXIF chunk is parsed. */
+        var haveParsedExifChunk = false
+
         while (true) {
 
             val length = byteReader.read4BytesAsInt("chunk length", PNG_BYTE_ORDER)
@@ -368,7 +388,14 @@ public object PngImageParser : ImageParser {
 
             verifyChunkCrc(chunkType, bytes, crc)
 
-            chunks.add(createChunk(chunkType, bytes, crc))
+            val parseExif =
+                (chunkType == PngChunkType.EXIF || chunkType == PngChunkType.ZXIF) &&
+                    !haveParsedExifChunk
+
+            if (parseExif)
+                haveParsedExifChunk = true
+
+            chunks.add(createChunk(chunkType, bytes, crc, parseExif))
 
             if (PngChunkType.IEND == chunkType)
                 break
@@ -404,13 +431,38 @@ public object PngImageParser : ImageParser {
             )
     }
 
-    private fun createChunk(chunkType: PngChunkType, bytes: ByteArray, crc: Int): PngChunk =
+    private fun createChunk(
+        chunkType: PngChunkType,
+        bytes: ByteArray,
+        crc: Int,
+        parseExif: Boolean
+    ): PngChunk =
         when (chunkType) {
-            PngChunkType.TEXT -> PngChunkText(PngChunkType.TEXT, bytes, crc)
-            PngChunkType.ZTXT -> PngChunkZtxt(bytes, crc)
-            PngChunkType.IHDR -> PngChunkIhdr(bytes, crc)
-            PngChunkType.ITXT -> PngChunkItxt(bytes, crc)
-            PngChunkType.EXIF -> PngChunkExif(bytes, crc)
+
+            PngChunkType.TEXT ->
+                PngChunkText(PngChunkType.TEXT, bytes, crc)
+
+            PngChunkType.ZTXT ->
+                PngChunkZtxt(bytes, crc)
+
+            PngChunkType.IHDR ->
+                PngChunkIhdr(bytes, crc)
+
+            PngChunkType.ITXT ->
+                PngChunkItxt(bytes, crc)
+
+            /*
+             * A later duplicate EXIF chunk is ignored like
+             * ExifTool does, so its bytes stay preserved but are
+             * never parsed - a corrupt duplicate must not fail
+             * the read of the authoritative first chunk.
+             */
+            PngChunkType.EXIF, PngChunkType.ZXIF ->
+                if (parseExif)
+                    PngChunkExif(chunkType, bytes, crc)
+                else
+                    PngChunk(chunkType, bytes, crc)
+
             else -> PngChunk(chunkType, bytes, crc)
         }
 }

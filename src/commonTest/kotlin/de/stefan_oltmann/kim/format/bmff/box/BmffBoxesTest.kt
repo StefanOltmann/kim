@@ -128,8 +128,8 @@ class BmffBoxesTest {
             de.stefan_oltmann.kim.testdata.KimTestData.CR3_TEST_IMAGE_INDEX
         )
 
-        val cr3Box = de.stefan_oltmann.kim.format.bmff.BoxReader.readAllBoxes(
-            byteReader = de.stefan_oltmann.kim.input.ByteArrayByteReader(cr3Bytes)
+        val cr3Box = BoxReader.readAllBoxes(
+            byteReader = ByteArrayByteReader(cr3Bytes)
         ).filterIsInstance<FileTypeBox>().first()
 
         assertEquals(FileTypeBox.CR3_BRAND, cr3Box.majorBrand)
@@ -140,8 +140,8 @@ class BmffBoxesTest {
             de.stefan_oltmann.kim.testdata.KimTestData.MP4_TEST_VIDEO_INDEX
         )
 
-        val mp4Box = de.stefan_oltmann.kim.format.bmff.BoxReader.readAllBoxes(
-            byteReader = de.stefan_oltmann.kim.input.ByteArrayByteReader(mp4Bytes)
+        val mp4Box = BoxReader.readAllBoxes(
+            byteReader = ByteArrayByteReader(mp4Bytes)
         ).filterIsInstance<FileTypeBox>().first()
 
         assertEquals("mp42", mp4Box.majorBrand)
@@ -621,12 +621,10 @@ class BmffBoxesTest {
             'h'.code.toByte(), 'd'.code.toByte(), 'l'.code.toByte(), 'r'.code.toByte()
         ) + hdlrPayload
 
-        val mdiaPayload = hdlrBox
-
         val mdiaBox = byteArrayOf(
-            0, 0, 0, (mdiaPayload.size + 8).toByte(),
+            0, 0, 0, (hdlrBox.size + 8).toByte(),
             'm'.code.toByte(), 'd'.code.toByte(), 'i'.code.toByte(), 'a'.code.toByte()
-        ) + mdiaPayload
+        ) + hdlrBox
 
         /* The payload contains the sub-boxes with their headers. */
         val trackPayload = tkhdBox + mdiaBox

@@ -14,7 +14,7 @@ Little-endian (Intel, II)
 0000000110 0x0008 SamplesPerPixel = 1
 0000000122 0x0009 CFAPattern = 2
 0000000134 0x000a BitsPerSample = 12
-0000000146 0x000b ProcessingSoftware = -31220
+0000000146 0x000b Compression = -31220
 0000000158 0x000d PanasonicRaw_0x000d = 1
 0000000170 0x000e LinearityLimitRed = 4095
 0000000182 0x000f LinearityLimitGreen = 4095
@@ -35,12 +35,12 @@ Little-endian (Intel, II)
 0000000362 0x002e JpgFromRaw = [616448 bytes]
 0000000374 0x010f Make = Panasonic
 0000000386 0x0110 Model = DMC-LX7
-0000000398 0x0111 PreviewImageStart = -1
+0000000398 0x0111 StripOffsets = -1
 0000000410 0x0112 Orientation = 1
 0000000422 0x0116 RowsPerStrip = 2752
-0000000434 0x0117 PreviewImageLength = 0
-0000000446 0x0118 MinSampleValue = 617984
-0000000458 0x0119 MaxSampleValue = [32 bytes]
+0000000434 0x0117 StripByteCounts = 0
+0000000446 0x0118 RawDataOffset = 617984
+0000000458 0x0119 DistortionInfo = [32 bytes]
 0000000470 0x011a XResolution = 1
 0000000482 0x011b YResolution = [64 bytes]
 0000000494 0x8769 ExifOffset = 708

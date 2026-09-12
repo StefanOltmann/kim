@@ -7,8 +7,9 @@ Big-endian (Motorola, MM)
 0000000010 0x8769 ExifOffset = 26
 
 ---- Directory ExifIFD @ 26 ----
-0000000028 0x9003 DateTimeOriginal = 2023:07:12 14:48:45
-0000000040 0x9004 DateTimeDigitized = 2023:07:12 14:48:45
+0000000028 0x9000 ExifVersion = [0x30, 0x32, 0x33, 0x32]
+0000000040 0x9003 DateTimeOriginal = 2023:07:12 14:48:45
+0000000052 0x9004 DateTimeDigitized = 2023:07:12 14:48:45
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

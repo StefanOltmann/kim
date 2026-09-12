@@ -36,17 +36,17 @@ gitVersioning.apply {
     refs {
         /* Main branch contains the current dev version */
         branch("main") {
-            version = "\${commit.short}"
+            version = $$"${commit.short}"
         }
         /* Release / tags have real version numbers */
         tag("v(?<version>.*)") {
-            version = "\${ref.version}"
+            version = $$"${ref.version}"
         }
     }
 
     /* Fallback if branch was not found (for feature branches) */
     rev {
-        version = "\${commit.short}"
+        version = $$"${commit.short}"
     }
 }
 
@@ -175,13 +175,8 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        nodejs {
-            testTask {
-                useMocha {
-                    timeout = "60s"
-                }
-            }
-        }
+        /* WASM JS doesn't have Mocha */
+        nodejs()
     }
 
 //    @OptIn(ExperimentalWasmDsl::class)

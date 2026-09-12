@@ -101,10 +101,10 @@ internal actual fun compress(input: String): ByteArray {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun decompress(
+internal actual fun decompressBytes(
     byteArray: ByteArray,
     maxOutputByteCount: Int
-): String {
+): ByteArray {
 
     /* An empty stream cannot be valid zlib data. */
     if (byteArray.isEmpty())
@@ -127,11 +127,6 @@ internal actual fun decompress(
 
         val outputBuffer = ByteArray(OUTPUT_BUFFER_LENGTH)
 
-        /*
-         * The raw blocks are collected first and decoded as a whole at the
-         * end, because a multi-byte UTF-8 sequence that is split across two
-         * blocks would be corrupted by a per-block decode.
-         */
         val byteWriter = ByteArrayByteWriter()
 
         var totalBytesWritten = 0L
@@ -190,6 +185,6 @@ internal actual fun decompress(
             inflateEnd(stream.ptr)
         }
 
-        return@decompress byteWriter.toByteArray().decodeToString()
+        return@decompressBytes byteWriter.toByteArray()
     }
 }

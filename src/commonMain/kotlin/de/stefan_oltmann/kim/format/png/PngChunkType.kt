@@ -74,6 +74,9 @@ public data class PngChunkType(
         /** EXIF (since 2017). */
         public val EXIF: PngChunkType = of("eXIf".encodeToByteArray())
 
+        /** EXIF compressed with zlib behind a 5-byte header. */
+        public val ZXIF: PngChunkType = of("zxIf".encodeToByteArray())
+
         @Suppress("MagicNumber")
         public fun of(typeBytes: ByteArray): PngChunkType {
 

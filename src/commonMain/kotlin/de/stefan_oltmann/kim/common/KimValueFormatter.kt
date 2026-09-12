@@ -182,8 +182,8 @@ public object KimValueFormatter {
 
         if (makeMod != null) {
 
-            for (entry in makerNameReplacements.entries)
-                makeMod = makeMod?.replace(entry.key, entry.value, ignoreCase = false)
+            for ((make, replacement) in makerNameReplacements)
+                makeMod = makeMod?.replace(make, replacement, ignoreCase = false)
 
             /* Trim again, just to be safe. */
             makeMod = makeMod?.trim()
@@ -191,8 +191,8 @@ public object KimValueFormatter {
 
         if (modelMod != null) {
 
-            for (entry in makerNameReplacements.entries)
-                modelMod = modelMod?.replace(entry.key, entry.value, ignoreCase = false)
+            for ((make, replacement) in makerNameReplacements)
+                modelMod = modelMod?.replace(make, replacement, ignoreCase = false)
 
             /* Trim again, just to be safe. */
             modelMod = modelMod?.trim()

@@ -68,17 +68,25 @@ public object KimJvm {
 }
 
 @Throws(ImageReadException::class)
+@Suppress("UnusedReceiverParameter")
+/* False positive. */
 public fun Kim.readMetadata(inputStream: InputStream, length: Long): MediaMetadata? =
     KimJvm.readMetadata(inputStream, length)
 
 @Throws(ImageReadException::class)
+@Suppress("UnusedReceiverParameter")
+/* False positive. */
 public fun Kim.readMetadata(path: String): MediaMetadata? =
     KimJvm.readMetadata(path)
 
 @Throws(ImageReadException::class)
+@Suppress("UnusedReceiverParameter")
+/* False positive. */
 public fun Kim.readMetadata(file: File): MediaMetadata? =
     KimJvm.readMetadata(file)
 
 @Throws(ImageReadException::class)
+@Suppress("UnusedReceiverParameter")
+/* False positive. */
 public fun Kim.readMetadata(path: java.nio.file.Path): MediaMetadata? =
     KimJvm.readMetadata(path)

@@ -286,7 +286,7 @@ internal open class MakerNoteHandler {
                 readMakerNoteBlobSubDirectory(
                     blobBytes = nestedBlobBytes,
                     blobOffset = field?.let { getAbsoluteValueOffset(it) }
-                        ?: parentDirectory.offset + nestedPointer.tagId,
+                        ?: (parentDirectory.offset + nestedPointer.tagId),
                     blobLength = nestedBlobLength,
                     byteOrder = byteOrder,
                     directoryType = nestedPointer.directoryType,
@@ -385,7 +385,7 @@ internal open class MakerNoteHandler {
      * when the value is stored locally.
      */
     protected fun getAbsoluteValueOffset(field: TiffField): Int =
-        field.valueOffset ?: field.offset + TiffConstants.TIFF_ENTRY_VALUE_OFFSET
+        field.valueOffset ?: (field.offset + TiffConstants.TIFF_ENTRY_VALUE_OFFSET)
 
     /**
      * Reads a 16-bit integer from the given position.

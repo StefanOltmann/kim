@@ -28,13 +28,17 @@ import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.DEFAULT_TIFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeUndefined
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.abs
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
+
+private const val EXIF_VERSION_FIELD_LENGTH: Int = 4
+
+private val CURRENT_EXIF_VERSION_BYTES: ByteArray = "0232".encodeToByteArray()
 
 /**
  * A set of TIFF directories to be written.
@@ -115,7 +119,6 @@ public class TiffOutputSet(
     public fun findDirectory(directoryType: Int): TiffOutputDirectory? =
         directories.find { it.type == directoryType }
 
-    @OptIn(ExperimentalTime::class)
     public fun applyUpdate(update: MetadataUpdate) {
 
         val rootDirectory = getOrCreateRootDirectory()
@@ -134,6 +137,16 @@ public class TiffOutputSet(
                 exifDirectory.removeField(ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL)
                 exifDirectory.removeField(ExifTag.EXIF_TAG_DATE_TIME_DIGITIZED)
 
+                /*
+                 * The OffsetTime tags describe the offset of the replaced
+                 * date. Keeping them would make every reader interpret the
+                 * new date in the old zone, so they are removed with the
+                 * date they belong to.
+                 */
+                exifDirectory.removeField(ExifTag.EXIF_TAG_OFFSET_TIME_ORIGINAL)
+                exifDirectory.removeField(ExifTag.EXIF_TAG_OFFSET_TIME_DIGITIZED)
+                exifDirectory.removeField(ExifTag.EXIF_TAG_OFFSET_TIME)
+
                 if (update.takenDate != null) {
 
                     val timeZone = Kim.defaultTimeZone ?: TimeZone.currentSystemDefault()
@@ -146,6 +159,21 @@ public class TiffOutputSet(
                     exifDirectory.add(ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL, exifDateString)
                     exifDirectory.add(ExifTag.EXIF_TAG_DATE_TIME_DIGITIZED, exifDateString)
                 }
+
+                /*
+                 * The written tags are defined by Exif 2.3, so validators
+                 * require the ExifVersion. Like ExifTool, it is added
+                 * when the EXIF does not carry one yet.
+                 */
+                if (exifDirectory.findField(ExifTag.EXIF_TAG_EXIF_VERSION) == null)
+                    exifDirectory.add(
+                        TiffOutputField(
+                            tag = ExifTag.EXIF_TAG_EXIF_VERSION.tag,
+                            fieldType = FieldTypeUndefined,
+                            count = EXIF_VERSION_FIELD_LENGTH,
+                            bytes = CURRENT_EXIF_VERSION_BYTES
+                        )
+                    )
             }
 
             is MetadataUpdate.Description -> {

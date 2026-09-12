@@ -27,88 +27,88 @@ class ExifRatingTest {
     @Test
     fun testOfInt() {
 
-        assertNull(ExifRating.Companion.of(-2))
-        assertNull(ExifRating.Companion.of(6))
+        assertNull(ExifRating.of(-2))
+        assertNull(ExifRating.of(6))
 
         assertEquals(
             ExifRating.REJECTED,
-            ExifRating.Companion.of(-1)
+            ExifRating.of(-1)
         )
 
         assertEquals(
             ExifRating.UNRATED,
-            ExifRating.Companion.of(0)
+            ExifRating.of(0)
         )
 
         assertEquals(
             ExifRating.ONE_STAR,
-            ExifRating.Companion.of(1)
+            ExifRating.of(1)
         )
 
         assertEquals(
             ExifRating.TWO_STARS,
-            ExifRating.Companion.of(2)
+            ExifRating.of(2)
         )
 
         assertEquals(
             ExifRating.THREE_STARS,
-            ExifRating.Companion.of(3)
+            ExifRating.of(3)
         )
 
         assertEquals(
             ExifRating.FOUR_STARS,
-            ExifRating.Companion.of(4)
+            ExifRating.of(4)
         )
 
         assertEquals(
             ExifRating.FIVE_STARS,
-            ExifRating.Companion.of(5)
+            ExifRating.of(5)
         )
     }
 
     @Test
     fun testOfString() {
 
-        assertNull(ExifRating.Companion.of(nullString))
-        assertNull(ExifRating.Companion.of(""))
-        assertNull(ExifRating.Companion.of("   "))
-        assertNull(ExifRating.Companion.of("hello"))
-        assertNull(ExifRating.Companion.of("-2"))
-        assertNull(ExifRating.Companion.of("6"))
+        assertNull(ExifRating.of(nullString))
+        assertNull(ExifRating.of(""))
+        assertNull(ExifRating.of("   "))
+        assertNull(ExifRating.of("hello"))
+        assertNull(ExifRating.of("-2"))
+        assertNull(ExifRating.of("6"))
 
         assertEquals(
             ExifRating.REJECTED,
-            ExifRating.Companion.of("-1")
+            ExifRating.of("-1")
         )
 
         assertEquals(
             ExifRating.UNRATED,
-            ExifRating.Companion.of("0")
+            ExifRating.of("0")
         )
 
         assertEquals(
             ExifRating.ONE_STAR,
-            ExifRating.Companion.of("1")
+            ExifRating.of("1")
         )
 
         assertEquals(
             ExifRating.TWO_STARS,
-            ExifRating.Companion.of("2")
+            ExifRating.of("2")
         )
 
         assertEquals(
             ExifRating.THREE_STARS,
-            ExifRating.Companion.of("3")
+            ExifRating.of("3")
         )
 
         assertEquals(
             ExifRating.FOUR_STARS,
-            ExifRating.Companion.of("4")
+            ExifRating.of("4")
         )
 
         assertEquals(
             ExifRating.FIVE_STARS,
-            ExifRating.Companion.of("5")
+            ExifRating.of("5")
         )
     }
 }

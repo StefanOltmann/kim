@@ -200,14 +200,19 @@ public class TiffDirectory(
                  * Counterpart fields are only written as complete pairs:
                  * when the thumbnail or strip bytes could not be captured,
                  * the length field would remain as a dangling reference
-                 * without its offset in the output.
+                 * without its offset in the output. RowsPerStrip belongs
+                 * to the strip group and is dropped with it, so no
+                 * reference without data survives.
                  */
                 if (entry.tag == TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT_LENGTH.tag &&
                     thumbnailBytes == null
                 )
                     continue
 
-                if (entry.tag == TiffTag.TIFF_TAG_STRIP_BYTE_COUNTS.tag && tiffImageBytes == null)
+                if ((entry.tag == TiffTag.TIFF_TAG_STRIP_BYTE_COUNTS.tag ||
+                        entry.tag == TiffTag.TIFF_TAG_ROWS_PER_STRIP.tag) &&
+                    tiffImageBytes == null
+                )
                     continue
 
                 val tagInfo = entry.tagInfo

@@ -17,6 +17,7 @@
  */
 package de.stefan_oltmann.kim.format.tiff
 
+import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.geotiff.GeoTiffDirectory
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
@@ -45,9 +46,7 @@ public data class TiffContents(
         makerNoteSubDirectories.find { it.type == directoryType }
 
     public fun getExifThumbnailBytes(): ByteArray? =
-        directories.asSequence()
-            .mapNotNull { it.thumbnailBytes }
-            .firstOrNull()
+        directories.firstNotNullOfOrNull { it.thumbnailBytes }
 
     public fun createOutputSet(): TiffOutputSet {
 
@@ -60,6 +59,24 @@ public data class TiffContents(
              * Ignore this bug and just take the first occurrence.
              */
             if (result.findDirectory(directory.type) != null)
+                continue
+
+            /*
+             * IFD1 consists exclusively of thumbnail fields. When the
+             * thumbnail bytes could not be captured (some cameras write
+             * garbage at the JPEGInterchangeFormat offset), the offset
+             * and length fields would be dropped by the rewrite while
+             * the rest of the IFD1 survived - a hollow directory whose
+             * Compression field references a thumbnail that no longer
+             * exists. Dropping the whole directory keeps the output
+             * consistent; the garbage thumbnail is not real data loss.
+             */
+            val isUncapturableThumbnailDirectory =
+                directory.type == TiffConstants.TIFF_DIRECTORY_TYPE_IFD1 &&
+                    directory.hasJpegImageData() &&
+                    directory.thumbnailBytes == null
+
+            if (isUncapturableThumbnailDirectory)
                 continue
 
             result.addDirectory(

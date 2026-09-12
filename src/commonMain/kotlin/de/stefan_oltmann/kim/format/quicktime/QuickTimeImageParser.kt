@@ -75,8 +75,8 @@ public object QuickTimeImageParser : ImageParser {
      * Assembles the metadata from the scanned top-level boxes.
      *
      * A container without a "moov" box has no place where metadata could
-     * live and is rejected per the strict read policy in the [Kim]
-     * documentation.
+     * live and is rejected per the strict read policy in the
+     * [de.stefan_oltmann.kim.Kim] documentation.
      */
     internal fun createMetadata(allBoxes: List<Box>): MediaMetadata {
 
@@ -95,9 +95,21 @@ public object QuickTimeImageParser : ImageParser {
          * anywhere inside the moov box, so every box of the container is
          * searched - the same way the HEIC reader looks for its UUID boxes.
          */
-        val xmp = BoxContainer.findAllBoxesRecursive(allBoxes)
-            .firstOrNull { box -> isXmpSource(box) }
-            ?.let(::extractXmpPacket)
+        val xmpBoxes = BoxContainer.findAllBoxesRecursive(allBoxes)
+            .filter(::isXmpSource)
+
+        /*
+         * Multiple XMP packets leave no way to tell which one is
+         * authoritative, so reporting only the first would present an
+         * arbitrary pick as the metadata of the video.
+         */
+        if (xmpBoxes.size > 1)
+            throw ImageReadException(
+                "The video contains multiple XMP boxes, " +
+                    "so the packet that an update applies to is ambiguous."
+            )
+
+        val xmp = xmpBoxes.firstOrNull()?.let(::extractXmpPacket)
 
         /*
          * Like WebP, JXL and CR3, corrupt XMP must fail the read instead of

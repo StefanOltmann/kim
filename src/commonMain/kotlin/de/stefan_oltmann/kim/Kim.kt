@@ -29,6 +29,7 @@ import de.stefan_oltmann.kim.format.cr3.Cr3PreviewExtractor
 import de.stefan_oltmann.kim.format.dng.DngPreviewExtractor
 import de.stefan_oltmann.kim.format.gif.GifMetadataExtractor
 import de.stefan_oltmann.kim.format.gif.GifUpdater
+import de.stefan_oltmann.kim.format.jpeg.JpegImageParser
 import de.stefan_oltmann.kim.format.jpeg.JpegMetadataExtractor
 import de.stefan_oltmann.kim.format.jpeg.JpegUpdater
 import de.stefan_oltmann.kim.format.jxl.JxlUpdater
@@ -86,7 +87,7 @@ import kotlinx.datetime.TimeZone
  * 2. GPS coordinates that were read cleanly but lie outside the valid
  *    range: they are physically meaningless.
  *
- * Dropping a MakerNote, EXIF, IPTC or XMP content is real data loss and
+ * Dropping a MakerNote, EXIF, IPTC, or XMP content is real data loss and
  * must fail the read instead. Stopping a parse at the exact boundary where
  * the file's bytes end inside a structure is clean handling, not a
  * degradation - provided everything before the boundary is returned
@@ -139,10 +140,33 @@ public object Kim {
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
     public fun readMetadata(bytes: ByteArray): MediaMetadata? =
+        readMetadata(bytes = bytes, readTrailerMetadata = false)
+
+    /**
+     * Reads all metadata of the image.
+     *
+     * With `readTrailerMetadata = true` the APP1 EXIF and XMP segments
+     * that some tools write behind the JPEG image data are reported as
+     * well. Without the flag the read stops at the image data, which
+     * keeps the historical behavior for files whose trailer belongs to
+     * another tool.
+     *
+     * Attention: The given [ByteReader] is closed by this call, including
+     * the stream below it, and must not be used afterwards.
+     */
+    @kotlin.jvm.JvmStatic
+    @Throws(ImageReadException::class)
+    public fun readMetadata(
+        bytes: ByteArray,
+        readTrailerMetadata: Boolean
+    ): MediaMetadata? =
         if (bytes.isEmpty())
             null
         else
-            readMetadata(ByteArrayByteReader(bytes))
+            readMetadata(
+                byteReader = ByteArrayByteReader(bytes),
+                readTrailerMetadata = readTrailerMetadata
+            )
 
     /**
      * Reads all metadata of the image.
@@ -152,8 +176,24 @@ public object Kim {
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
+    public fun readMetadata(byteReader: ByteReader): MediaMetadata? =
+        readMetadata(byteReader = byteReader, readTrailerMetadata = false)
+
+    /**
+     * Reads all metadata of the image.
+     *
+     * With `readTrailerMetadata = true` the APP1 EXIF and XMP segments
+     * that some tools write behind the JPEG image data are reported as
+     * well. Formats without a trailer concept ignore the flag.
+     *
+     * Attention: The given [ByteReader] is closed by this call, including
+     * the stream below it, and must not be used afterwards.
+     */
+    @kotlin.jvm.JvmStatic
+    @Throws(ImageReadException::class)
     public fun readMetadata(
-        byteReader: ByteReader
+        byteReader: ByteReader,
+        readTrailerMetadata: Boolean
     ): MediaMetadata? = tryWithImageReadException {
 
         byteReader.use {
@@ -171,9 +211,12 @@ public object Kim {
              * We re-apply the MediaFormat here, because we don't want to report
              * "TIFF" for every TIFF-based RAW format like CR2.
              */
-            return@use imageParser
-                .parseMetadata(byteReader = newReader)
-                .withMediaFormat(mediaFormat = mediaFormat)
+            return@use (
+                if (readTrailerMetadata && mediaFormat == MediaFormat.JPEG)
+                    JpegImageParser.parseMetadata(newReader, readTrailerMetadata = true)
+                else
+                    imageParser.parseMetadata(byteReader = newReader)
+                ).withMediaFormat(mediaFormat = mediaFormat)
         }
     }
 
@@ -182,7 +225,7 @@ public object Kim {
      *
      * Cloud services can not reliably tell the mime type, so we must determine it.
      *
-     * Attention: Only JPEG, PNG, RAF and GIF provide metadata bytes here.
+     * Attention: Only JPEG, PNG, RAF, and GIF provide metadata bytes here.
      * Every other supported format (CR3, HEIC, AVIF, JXL, WebP, TIFF-based
      * RAW, ...) yields an empty array, so callers cannot distinguish
      * "format has no metadata" from "metadata bytes not provided". Use
@@ -300,7 +343,9 @@ public object Kim {
      * Updates the file with all desired changes at once.
      *
      * Every update is applied to all formats that can represent it, so EXIF,
-     * IPTC and XMP can be updated simultaneously in a single call.
+     * IPTC, and XMP are updated together in the same write. The storages
+     * duplicate the same logical values, so updating only one of them would
+     * let the copies drift apart - see [de.stefan_oltmann.kim.format.MetadataUpdater].
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -346,7 +391,9 @@ public object Kim {
      * Updates the file with all desired changes at once.
      *
      * Every update is applied to all formats that can represent it, so EXIF,
-     * IPTC and XMP can be updated simultaneously in a single call.
+     * IPTC, and XMP are updated together in the same write. The storages
+     * duplicate the same logical values, so updating only one of them would
+     * let the copies drift apart - see [de.stefan_oltmann.kim.format.MetadataUpdater].
      *
      * Attention: The given [ByteReader] and [ByteWriter] are not closed by
      * this call; the caller owns and closes both.
@@ -454,9 +501,7 @@ public object Kim {
         thumbnailBytes: ByteArray
     ): ByteArray = tryWithImageWriteException {
 
-        val mediaFormat = MediaFormat.detect(bytes)
-
-        return@tryWithImageWriteException when (mediaFormat) {
+        return@tryWithImageWriteException when (val mediaFormat = MediaFormat.detect(bytes)) {
             MediaFormat.JPEG -> JpegUpdater.updateThumbnail(bytes, thumbnailBytes)
             MediaFormat.PNG -> PngUpdater.updateThumbnail(bytes, thumbnailBytes)
             MediaFormat.WEBP -> WebPUpdater.updateThumbnail(bytes, thumbnailBytes)

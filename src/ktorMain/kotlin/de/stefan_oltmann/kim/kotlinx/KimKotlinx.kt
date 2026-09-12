@@ -40,5 +40,7 @@ public object KimKotlinx {
 }
 
 @Throws(ImageReadException::class)
+@Suppress("UnusedReceiverParameter")
+/* False positive. */
 public fun Kim.readMetadata(path: Path): MediaMetadata? =
     KimKotlinx.readMetadata(path)

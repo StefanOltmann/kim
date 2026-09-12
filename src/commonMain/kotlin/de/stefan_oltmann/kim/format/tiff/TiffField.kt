@@ -54,6 +54,11 @@ public class TiffField(
     public val byteOrder: ByteOrder,
     public val sortHint: Int,
     /**
+     * RW2 and RWL files use the Panasonic RAW tag namespace in IFD0, so
+     * their tags must resolve against the Panasonic table first.
+     */
+    public val preferPanasonicRawTags: Boolean = false,
+    /**
      * The TagInfo that belongs to this field, when the parsing context
      * already resolved it, for example a model-specific MakerNote blob
      * table. The registry lookup would be ambiguous when several tables
@@ -74,7 +79,8 @@ public class TiffField(
         "0x" + tag.toString(HEX_RADIX).padStart(4, '0')
 
     /** TagInfo, if the tag is found in our registry. */
-    public val tagInfo: TagInfo? = tagInfoOverride ?: getTag(directoryType, tag)
+    public val tagInfo: TagInfo? =
+        tagInfoOverride ?: getTag(directoryType, tag, preferPanasonicRawTags)
 
     public val value: Any = if (tagInfo is TagInfoGpsText)
 
@@ -96,16 +102,25 @@ public class TiffField(
         try {
 
             val maskedValue = tagInfo?.mask?.let { mask ->
-                when {
-                    value is Number -> (value.toInt() and mask) ushr mask.countTrailingZeroBits()
-                    value is ByteArray && value.size == 1 ->
-                        (value.first().toInt() and mask) ushr mask.countTrailingZeroBits()
+                when (value) {
+                    is Number -> (value.toInt() and mask) ushr mask.countTrailingZeroBits()
+                    is ByteArray ->
+                        if (value.size == 1)
+                            (value.first().toInt() and mask) ushr mask.countTrailingZeroBits()
+                        else
+                            null
 
-                    value is ShortArray && value.size == 1 ->
-                        (value.first().toInt() and mask) ushr mask.countTrailingZeroBits()
+                    is ShortArray ->
+                        if (value.size == 1)
+                            (value.first().toInt() and mask) ushr mask.countTrailingZeroBits()
+                        else
+                            null
 
-                    value is IntArray && value.size == 1 ->
-                        (value.first() and mask) ushr mask.countTrailingZeroBits()
+                    is IntArray ->
+                        if (value.size == 1)
+                            (value.first() and mask) ushr mask.countTrailingZeroBits()
+                        else
+                            null
 
                     else -> null
                 }
@@ -335,19 +350,6 @@ public class TiffField(
      */
     override fun toString(): String =
         "$offsetFormatted $tagFormatted ${tagInfo?.name ?: "Unknown"} = $valueDescription"
-
-    internal fun createOversizeValueElement(): TiffElement? =
-        valueOffset?.let { OversizeValueElement(it, valueBytes.size) }
-
-    internal inner class OversizeValueElement(offset: Int, length: Int) : TiffElement(
-        debugDescription = "Value of $tagInfo ($fieldType) @ $offset",
-        offset = offset,
-        length = length
-    ) {
-
-        override fun toString(): String =
-            debugDescription
-    }
 
     private companion object {
 
