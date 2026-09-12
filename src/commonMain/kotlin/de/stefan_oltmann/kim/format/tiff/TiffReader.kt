@@ -93,7 +93,7 @@ public object TiffReader {
         ExifTag.EXIF_TAG_EXIF_OFFSET to TiffConstants.TIFF_DIRECTORY_EXIF,
         ExifTag.EXIF_TAG_GPSINFO to TiffConstants.TIFF_DIRECTORY_GPS,
         ExifTag.EXIF_TAG_INTEROP_OFFSET to TiffConstants.TIFF_DIRECTORY_INTEROP,
-        ExifTag.EXIF_TAG_SUB_IFDS_OFFSET to TiffConstants.TIFF_DIRECTORY_TYPE_IFD1
+        ExifTag.EXIF_TAG_SUB_IFDS_OFFSET to TIFF_DIRECTORY_TYPE_IFD1
     )
 
     /**
@@ -264,7 +264,7 @@ public object TiffReader {
                  * Thumbnails are not essential and can be re-created anytime.
                  */
 
-                val isThumbnailDirectory = currentType == TiffConstants.TIFF_DIRECTORY_TYPE_IFD1
+                val isThumbnailDirectory = currentType == TIFF_DIRECTORY_TYPE_IFD1
 
                 if (isThumbnailDirectory)
                     return true

@@ -366,7 +366,7 @@ public object JxlWriter {
 
             byteWriter.writeInt(
                 box.size.toInt(),
-                BMFFConstants.BMFF_BYTE_ORDER
+                BMFF_BYTE_ORDER
             )
 
             byteWriter.write(box.type.bytes)
@@ -374,7 +374,7 @@ public object JxlWriter {
             box.largeSize?.let {
                 byteWriter.writeLong(
                     box.largeSize,
-                    BMFFConstants.BMFF_BYTE_ORDER
+                    BMFF_BYTE_ORDER
                 )
             }
 
@@ -388,14 +388,14 @@ public object JxlWriter {
 
                     val size = BMFFConstants.BOX_HEADER_LENGTH + 4 + exifBytes.size
 
-                    byteWriter.writeInt(size, BMFFConstants.BMFF_BYTE_ORDER)
+                    byteWriter.writeInt(size, BMFF_BYTE_ORDER)
                     byteWriter.write(BoxType.EXIF.bytes)
 
                     /*
                      * The TIFF header offset. The new Exif data starts
                      * right after the offset field, so it's always zero.
                      */
-                    byteWriter.writeInt(0, BMFFConstants.BMFF_BYTE_ORDER)
+                    byteWriter.writeInt(0, BMFF_BYTE_ORDER)
 
                     byteWriter.write(exifBytes)
                 }
@@ -406,7 +406,7 @@ public object JxlWriter {
 
                     val size = BMFFConstants.BOX_HEADER_LENGTH + xmpBytes.size
 
-                    byteWriter.writeInt(size, BMFFConstants.BMFF_BYTE_ORDER)
+                    byteWriter.writeInt(size, BMFF_BYTE_ORDER)
 
                     byteWriter.write(BoxType.XML.bytes)
 
