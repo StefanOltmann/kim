@@ -137,6 +137,8 @@ internal object TiffTags {
     private val TIFF_AND_EXIF_TAGS = ExifTag.ALL + TiffTag.ALL + GeoTiffTag.ALL + DngTag.ALL + PanasonicRawTag.ALL
 
     private val TIFF_AND_EXIF_TAGS_MAP = TIFF_AND_EXIF_TAGS.groupByTo(mutableMapOf()) { it.tag }
+
+    private val PANASONIC_RAW_TAGS_MAP = PanasonicRawTag.ALL.groupByTo(mutableMapOf()) { it.tag }
     private val GPS_TAGS_MAP = GpsTag.ALL.groupByTo(mutableMapOf()) { it.tag }
     private val CANON_TAGS_MAP = CanonTag.ALL.groupByTo(mutableMapOf()) { it.tag }
     private val NIKON_TAGS_MAP = NikonTag.ALL.groupByTo(mutableMapOf()) { it.tag }
@@ -256,82 +258,92 @@ internal object TiffTags {
     private val FUJIFILM_DRIVE_SETTINGS_TAGS_MAP =
         FujiFilmDriveSettingsTag.ALL.groupByTo(mutableMapOf()) { it.tag }
 
-    fun getTag(directoryType: Int, tag: Int): TagInfo? {
+    /*
+     * Note: Keep in sync with ImageMetadata.findTiffField()
+     */
+    fun getTag(
+        directoryType: Int,
+        tag: Int,
+        preferPanasonicRawTags: Boolean = false
+    ): TagInfo? {
 
         /*
          * GPS and Maker Notes should be exact matches.
          */
         @Suppress("UseIfInsteadOfWhen")
-        val possibleMatches = when (directoryType) {
-            TiffConstants.TIFF_DIRECTORY_GPS -> GPS_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON -> CANON_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_NIKON -> NIKON_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_FUJIFILM -> FUJIFILM_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_APPLE -> APPLE_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_OLYMPUS -> OLYMPUS_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_CAMERA_SETTINGS -> CANON_CAMERA_SETTINGS_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_FOCAL_LENGTH -> CANON_FOCAL_LENGTH_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_SHOT_INFO -> CANON_SHOT_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_PANORAMA -> CANON_PANORAMA_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_TIME_INFO -> CANON_TIME_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_FILE_INFO -> CANON_FILE_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_PROCESSING_INFO -> CANON_PROCESSING_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_CROP_INFO -> CANON_CROP_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_ASPECT_INFO -> CANON_ASPECT_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_MEASURED_COLOR -> CANON_MEASURED_COLOR_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_AF_MICRO_ADJ -> CANON_AF_MICRO_ADJ_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_VIGNETTING_CORR -> CANON_VIGNETTING_CORR_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_VIGNETTING_CORR2 -> CANON_VIGNETTING_CORR2_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_LIGHTING_OPT -> CANON_LIGHTING_OPT_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_LENS_INFO -> CANON_LENS_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_AMBIENCE_INFO -> CANON_AMBIENCE_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_MULTI_EXP -> CANON_MULTI_EXP_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_HDR_INFO -> CANON_HDR_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_NIKON_VR_INFO -> NIKON_VR_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_NIKON_WORLD_TIME -> NIKON_WORLD_TIME_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_NIKON_ISO_INFO -> NIKON_ISO_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_NIKON_DISTORT_INFO -> NIKON_DISTORT_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_NIKON_HDR_INFO -> NIKON_HDR_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_NIKON_MULTI_EXPOSURE -> NIKON_MULTI_EXPOSURE_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_NIKON_FILE_INFO -> NIKON_FILE_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_NIKON_RETOUCH_INFO -> NIKON_RETOUCH_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_PANASONIC_FACE_DET_INFO -> PANASONIC_FACE_DET_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_PANASONIC_FACE_REC_INFO -> PANASONIC_FACE_REC_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_PANASONIC_TIME_INFO -> PANASONIC_TIME_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_SONY_CAMERA_INFO3 -> SONY_CAMERA_INFO3_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_APPLE_RUN_TIME -> APPLE_RUN_TIME_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_AF_INFO2 -> CANON_AF_INFO2_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_SENSOR_INFO -> CANON_SENSOR_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_FILTER_INFO -> CANON_FILTER_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_PICTURE_STYLE_INFO -> CANON_PICTURE_STYLE_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_CAMERA_INFO -> CANON_CAMERA_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_CANON_CUSTOM_FUNCTIONS -> CANON_CUSTOM_FUNCTIONS_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_NIKON_FLASH_INFO -> NIKON_FLASH_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_NIKON_AF_INFO2 -> NIKON_AF_INFO2_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_NIKON_PICTURE_CONTROL -> NIKON_PICTURE_CONTROL_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_NIKON_LENS_DATA -> NIKON_LENS_DATA_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_NIKON_CUSTOM_SETTINGS -> NIKON_CUSTOM_SETTINGS_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_NIKON_COLOR_BALANCE -> NIKON_COLOR_BALANCE_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_NIKON_SHOT_INFO ->
+        val possibleMatches = when {
+            preferPanasonicRawTags && directoryType == TiffConstants.TIFF_DIRECTORY_TYPE_IFD0 ->
+                PANASONIC_RAW_TAGS_MAP[tag] ?: TIFF_AND_EXIF_TAGS_MAP[tag]
+
+            directoryType == TiffConstants.TIFF_DIRECTORY_GPS -> GPS_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON -> CANON_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON -> NIKON_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_FUJIFILM -> FUJIFILM_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_APPLE -> APPLE_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_OLYMPUS -> OLYMPUS_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_CAMERA_SETTINGS -> CANON_CAMERA_SETTINGS_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_FOCAL_LENGTH -> CANON_FOCAL_LENGTH_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_SHOT_INFO -> CANON_SHOT_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_PANORAMA -> CANON_PANORAMA_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_TIME_INFO -> CANON_TIME_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_FILE_INFO -> CANON_FILE_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_PROCESSING_INFO -> CANON_PROCESSING_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_CROP_INFO -> CANON_CROP_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_ASPECT_INFO -> CANON_ASPECT_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_MEASURED_COLOR -> CANON_MEASURED_COLOR_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_AF_MICRO_ADJ -> CANON_AF_MICRO_ADJ_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_VIGNETTING_CORR -> CANON_VIGNETTING_CORR_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_VIGNETTING_CORR2 -> CANON_VIGNETTING_CORR2_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_LIGHTING_OPT -> CANON_LIGHTING_OPT_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_LENS_INFO -> CANON_LENS_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_AMBIENCE_INFO -> CANON_AMBIENCE_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_MULTI_EXP -> CANON_MULTI_EXP_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_HDR_INFO -> CANON_HDR_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_VR_INFO -> NIKON_VR_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_WORLD_TIME -> NIKON_WORLD_TIME_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_ISO_INFO -> NIKON_ISO_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_DISTORT_INFO -> NIKON_DISTORT_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_HDR_INFO -> NIKON_HDR_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_MULTI_EXPOSURE -> NIKON_MULTI_EXPOSURE_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_FILE_INFO -> NIKON_FILE_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_RETOUCH_INFO -> NIKON_RETOUCH_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_PANASONIC_FACE_DET_INFO -> PANASONIC_FACE_DET_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_PANASONIC_FACE_REC_INFO -> PANASONIC_FACE_REC_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_PANASONIC_TIME_INFO -> PANASONIC_TIME_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_SONY_CAMERA_INFO3 -> SONY_CAMERA_INFO3_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_APPLE_RUN_TIME -> APPLE_RUN_TIME_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_AF_INFO2 -> CANON_AF_INFO2_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_SENSOR_INFO -> CANON_SENSOR_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_FILTER_INFO -> CANON_FILTER_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_PICTURE_STYLE_INFO -> CANON_PICTURE_STYLE_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_CAMERA_INFO -> CANON_CAMERA_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_CUSTOM_FUNCTIONS -> CANON_CUSTOM_FUNCTIONS_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_FLASH_INFO -> NIKON_FLASH_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_AF_INFO2 -> NIKON_AF_INFO2_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_PICTURE_CONTROL -> NIKON_PICTURE_CONTROL_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_LENS_DATA -> NIKON_LENS_DATA_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_CUSTOM_SETTINGS -> NIKON_CUSTOM_SETTINGS_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_COLOR_BALANCE -> NIKON_COLOR_BALANCE_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_SHOT_INFO ->
                 NIKON_SHOT_INFO_TAGS_MAP[tag] ?: NIKON_SHOT_INFO_D5100_TAGS_MAP[tag]
 
-            TiffConstants.TIFF_MAKER_NOTE_SONY_MORE_SETTINGS -> SONY_MORE_SETTINGS_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_SONY_FACE_INFO -> SONY_FACE_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_FUJIFILM_PRIORITY_SETTINGS -> FUJIFILM_PRIORITY_SETTINGS_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_FUJIFILM_FOCUS_SETTINGS -> FUJIFILM_FOCUS_SETTINGS_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_FUJIFILM_AFC_SETTINGS -> FUJIFILM_AFC_SETTINGS_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_FUJIFILM_DRIVE_SETTINGS -> FUJIFILM_DRIVE_SETTINGS_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_EQUIPMENT -> OLYMPUS_EQUIPMENT_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_CAMERA_SETTINGS -> OLYMPUS_CAMERA_SETTINGS_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_RAW_DEVELOPMENT -> OLYMPUS_RAW_DEVELOPMENT_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_RAW_DEV_2 -> OLYMPUS_RAW_DEV_2_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_IMAGE_PROCESSING -> OLYMPUS_IMAGE_PROCESSING_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_FOCUS_INFO -> OLYMPUS_FOCUS_INFO_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_AF_INFO -> OLYMPUS_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_PANASONIC -> PANASONIC_TAGS_MAP[tag]
-            TiffConstants.TIFF_MAKER_NOTE_SONY,
-            TiffConstants.TIFF_MAKER_NOTE_SONY5,
-            TiffConstants.TIFF_MAKER_NOTE_SONY_ERICSSON -> SONY_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_SONY_MORE_SETTINGS -> SONY_MORE_SETTINGS_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_SONY_FACE_INFO -> SONY_FACE_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_FUJIFILM_PRIORITY_SETTINGS -> FUJIFILM_PRIORITY_SETTINGS_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_FUJIFILM_FOCUS_SETTINGS -> FUJIFILM_FOCUS_SETTINGS_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_FUJIFILM_AFC_SETTINGS -> FUJIFILM_AFC_SETTINGS_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_FUJIFILM_DRIVE_SETTINGS -> FUJIFILM_DRIVE_SETTINGS_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_EQUIPMENT -> OLYMPUS_EQUIPMENT_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_CAMERA_SETTINGS -> OLYMPUS_CAMERA_SETTINGS_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_RAW_DEVELOPMENT -> OLYMPUS_RAW_DEVELOPMENT_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_RAW_DEV_2 -> OLYMPUS_RAW_DEV_2_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_IMAGE_PROCESSING -> OLYMPUS_IMAGE_PROCESSING_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_FOCUS_INFO -> OLYMPUS_FOCUS_INFO_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_AF_INFO -> OLYMPUS_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_PANASONIC -> PANASONIC_TAGS_MAP[tag]
+            directoryType == TiffConstants.TIFF_MAKER_NOTE_SONY ||
+                directoryType == TiffConstants.TIFF_MAKER_NOTE_SONY5 ||
+                directoryType == TiffConstants.TIFF_MAKER_NOTE_SONY_ERICSSON -> SONY_TAGS_MAP[tag]
 
             else -> TIFF_AND_EXIF_TAGS_MAP[tag]
         } ?: return null

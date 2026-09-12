@@ -54,6 +54,11 @@ public class TiffField(
     public val byteOrder: ByteOrder,
     public val sortHint: Int,
     /**
+     * RW2 and RWL files use the Panasonic RAW tag namespace in IFD0, so
+     * their tags must resolve against the Panasonic table first.
+     */
+    public val preferPanasonicRawTags: Boolean = false,
+    /**
      * The TagInfo that belongs to this field, when the parsing context
      * already resolved it, for example a model-specific MakerNote blob
      * table. The registry lookup would be ambiguous when several tables
@@ -74,7 +79,8 @@ public class TiffField(
         "0x" + tag.toString(HEX_RADIX).padStart(4, '0')
 
     /** TagInfo, if the tag is found in our registry. */
-    public val tagInfo: TagInfo? = tagInfoOverride ?: getTag(directoryType, tag)
+    public val tagInfo: TagInfo? =
+        tagInfoOverride ?: getTag(directoryType, tag, preferPanasonicRawTags)
 
     public val value: Any = if (tagInfo is TagInfoGpsText)
 
