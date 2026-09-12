@@ -102,16 +102,25 @@ public class TiffField(
         try {
 
             val maskedValue = tagInfo?.mask?.let { mask ->
-                when {
-                    value is Number -> (value.toInt() and mask) ushr mask.countTrailingZeroBits()
-                    value is ByteArray && value.size == 1 ->
-                        (value.first().toInt() and mask) ushr mask.countTrailingZeroBits()
+                when (value) {
+                    is Number -> (value.toInt() and mask) ushr mask.countTrailingZeroBits()
+                    is ByteArray ->
+                        if (value.size == 1)
+                            (value.first().toInt() and mask) ushr mask.countTrailingZeroBits()
+                        else
+                            null
 
-                    value is ShortArray && value.size == 1 ->
-                        (value.first().toInt() and mask) ushr mask.countTrailingZeroBits()
+                    is ShortArray ->
+                        if (value.size == 1)
+                            (value.first().toInt() and mask) ushr mask.countTrailingZeroBits()
+                        else
+                            null
 
-                    value is IntArray && value.size == 1 ->
-                        (value.first() and mask) ushr mask.countTrailingZeroBits()
+                    is IntArray ->
+                        if (value.size == 1)
+                            (value.first() and mask) ushr mask.countTrailingZeroBits()
+                        else
+                            null
 
                     else -> null
                 }

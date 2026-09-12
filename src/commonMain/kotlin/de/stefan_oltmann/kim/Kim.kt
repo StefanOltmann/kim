@@ -501,9 +501,7 @@ public object Kim {
         thumbnailBytes: ByteArray
     ): ByteArray = tryWithImageWriteException {
 
-        val mediaFormat = MediaFormat.detect(bytes)
-
-        return@tryWithImageWriteException when (mediaFormat) {
+        return@tryWithImageWriteException when (val mediaFormat = MediaFormat.detect(bytes)) {
             MediaFormat.JPEG -> JpegUpdater.updateThumbnail(bytes, thumbnailBytes)
             MediaFormat.PNG -> PngUpdater.updateThumbnail(bytes, thumbnailBytes)
             MediaFormat.WEBP -> WebPUpdater.updateThumbnail(bytes, thumbnailBytes)

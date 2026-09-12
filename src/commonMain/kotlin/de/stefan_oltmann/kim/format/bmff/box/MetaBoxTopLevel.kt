@@ -82,7 +82,7 @@ public class MetaBoxTopLevel(
 
         for (extent in resolvableExtents) {
 
-            val itemInfo = itemInfoBox.map.get(extent.itemId) ?: continue
+            val itemInfo = itemInfoBox.map[extent.itemId] ?: continue
 
             val type = when (itemInfo.itemType) {
 

@@ -127,7 +127,7 @@ internal object Md5 {
 
                 d = c
                 c = b
-                b = b + (a + f + chunk[g] + SINE_CONSTANTS[i]).rotateLeft(SHIFT_AMOUNTS[i])
+                b += (a + f + chunk[g] + SINE_CONSTANTS[i]).rotateLeft(SHIFT_AMOUNTS[i])
                 a = temp
             }
 
