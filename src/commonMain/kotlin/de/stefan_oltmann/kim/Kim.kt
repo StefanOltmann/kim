@@ -29,6 +29,7 @@ import de.stefan_oltmann.kim.format.cr3.Cr3PreviewExtractor
 import de.stefan_oltmann.kim.format.dng.DngPreviewExtractor
 import de.stefan_oltmann.kim.format.gif.GifMetadataExtractor
 import de.stefan_oltmann.kim.format.gif.GifUpdater
+import de.stefan_oltmann.kim.format.jpeg.JpegImageParser
 import de.stefan_oltmann.kim.format.jpeg.JpegMetadataExtractor
 import de.stefan_oltmann.kim.format.jpeg.JpegUpdater
 import de.stefan_oltmann.kim.format.jxl.JxlUpdater
@@ -139,10 +140,33 @@ public object Kim {
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
     public fun readMetadata(bytes: ByteArray): MediaMetadata? =
+        readMetadata(bytes = bytes, readTrailerMetadata = false)
+
+    /**
+     * Reads all metadata of the image.
+     *
+     * With `readTrailerMetadata = true` the APP1 EXIF and XMP segments
+     * that some tools write behind the JPEG image data are reported as
+     * well. Without the flag the read stops at the image data, which
+     * keeps the historical behavior for files whose trailer belongs to
+     * another tool.
+     *
+     * Attention: The given [ByteReader] is closed by this call, including
+     * the stream below it, and must not be used afterwards.
+     */
+    @kotlin.jvm.JvmStatic
+    @Throws(ImageReadException::class)
+    public fun readMetadata(
+        bytes: ByteArray,
+        readTrailerMetadata: Boolean
+    ): MediaMetadata? =
         if (bytes.isEmpty())
             null
         else
-            readMetadata(ByteArrayByteReader(bytes))
+            readMetadata(
+                byteReader = ByteArrayByteReader(bytes),
+                readTrailerMetadata = readTrailerMetadata
+            )
 
     /**
      * Reads all metadata of the image.
@@ -152,8 +176,24 @@ public object Kim {
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
+    public fun readMetadata(byteReader: ByteReader): MediaMetadata? =
+        readMetadata(byteReader = byteReader, readTrailerMetadata = false)
+
+    /**
+     * Reads all metadata of the image.
+     *
+     * With `readTrailerMetadata = true` the APP1 EXIF and XMP segments
+     * that some tools write behind the JPEG image data are reported as
+     * well. Formats without a trailer concept ignore the flag.
+     *
+     * Attention: The given [ByteReader] is closed by this call, including
+     * the stream below it, and must not be used afterwards.
+     */
+    @kotlin.jvm.JvmStatic
+    @Throws(ImageReadException::class)
     public fun readMetadata(
-        byteReader: ByteReader
+        byteReader: ByteReader,
+        readTrailerMetadata: Boolean
     ): MediaMetadata? = tryWithImageReadException {
 
         byteReader.use {
@@ -171,9 +211,12 @@ public object Kim {
              * We re-apply the MediaFormat here, because we don't want to report
              * "TIFF" for every TIFF-based RAW format like CR2.
              */
-            return@use imageParser
-                .parseMetadata(byteReader = newReader)
-                .withMediaFormat(mediaFormat = mediaFormat)
+            return@use (
+                if (readTrailerMetadata && mediaFormat == MediaFormat.JPEG)
+                    JpegImageParser.parseMetadata(newReader, readTrailerMetadata = true)
+                else
+                    imageParser.parseMetadata(byteReader = newReader)
+                ).withMediaFormat(mediaFormat = mediaFormat)
         }
     }
 

@@ -173,6 +173,10 @@ public object JpegConstants {
     public const val SOF15_MARKER: Int = 0xFFCF
 
     public const val DRI_MARKER: Int = 0xFFDD
+
+    /** TEM stands for comment marker and carries no payload. */
+    public const val TEM_MARKER: Int = 0xFF01
+
     public const val RST0_MARKER: Int = 0xFFD0
     public const val RST1_MARKER: Int = 0xFFD1
     public const val RST2_MARKER: Int = 0xFFD2
