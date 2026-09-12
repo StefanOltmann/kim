@@ -162,9 +162,10 @@ public object PngImageParser : ImageParser {
          * A hex encoded profile that claims to be EXIF but does not end
          * at the JPEG EOI marker on an even boundary is a truncated
          * record. Per the strict read policy the read fails instead of
-         * silently dropping the EXIF content.
+         * silently dropping the EXIF content. The marker check ignores
+         * the case, because the hex encoding itself is case insensitive.
          */
-        if (!exifText.endsWith("ffd9") || exifText.length % 2 != 0)
+        if (!exifText.endsWith("ffd9", ignoreCase = true) || exifText.length % 2 != 0)
             throw ImageReadException("The EXIF text chunk of the PNG is truncated.")
 
         /*
