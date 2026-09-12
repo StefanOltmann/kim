@@ -581,7 +581,7 @@ public object TiffReader {
 
             val fieldType = try {
                 getFieldType(type)
-            } catch (ignore: ImageReadException) {
+            } catch (_: ImageReadException) {
                 /*
                  * Unknown field types cannot be sized or read. Per the
                  * strict read policy the read fails instead of silently

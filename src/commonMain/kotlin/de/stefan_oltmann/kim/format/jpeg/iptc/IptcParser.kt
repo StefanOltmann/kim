@@ -326,7 +326,7 @@ public object IptcParser {
 
                 blockNameBytes = try {
                     byteReader.readBytes("block name bytes", blockNameLength)
-                } catch (ignore: ImageReadException) {
+                } catch (_: ImageReadException) {
                     break
                 }
 
@@ -355,7 +355,7 @@ public object IptcParser {
 
             val blockData: ByteArray = try {
                 byteReader.readBytes("block data", blockSize)
-            } catch (ignore: ImageReadException) {
+            } catch (_: ImageReadException) {
                 break
             }
 

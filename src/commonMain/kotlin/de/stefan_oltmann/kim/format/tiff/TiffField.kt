@@ -336,19 +336,6 @@ public class TiffField(
     override fun toString(): String =
         "$offsetFormatted $tagFormatted ${tagInfo?.name ?: "Unknown"} = $valueDescription"
 
-    internal fun createOversizeValueElement(): TiffElement? =
-        valueOffset?.let { OversizeValueElement(it, valueBytes.size) }
-
-    internal inner class OversizeValueElement(offset: Int, length: Int) : TiffElement(
-        debugDescription = "Value of $tagInfo ($fieldType) @ $offset",
-        offset = offset,
-        length = length
-    ) {
-
-        override fun toString(): String =
-            debugDescription
-    }
-
     private companion object {
 
         /**
