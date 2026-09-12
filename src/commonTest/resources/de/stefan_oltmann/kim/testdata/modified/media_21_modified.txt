@@ -17,7 +17,7 @@ Big-endian (Motorola, MM)
 0000000130 0x0213 YCbCrPositioning = 2
 0000000142 0x8298 Copyright = 
 0000000154 0x8769 ExifOffset = 290
-0000000166 0x8825 GPSInfo = 20845
+0000000166 0x8825 GPSInfo = 20846
 
 ---- Directory ExifIFD @ 290 ----
 0000000292 0x829a ExposureTime = 1/200 (0.005)
@@ -62,12 +62,12 @@ Big-endian (Motorola, MM)
 0000000760 0xa40c SubjectDistanceRange = 0
 0000000772 0xa500 Gamma = 11/5 (2.2)
 
----- Directory GPS @ 20845 ----
-0000020847 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
-0000020859 0x0001 GPSLatitudeRef = N
-0000020871 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
-0000020883 0x0003 GPSLongitudeRef = E
-0000020895 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
+---- Directory GPS @ 20846 ----
+0000020848 0x0000 GPSVersionID = [0x02, 0x03, 0x00, 0x00]
+0000020860 0x0001 GPSLatitudeRef = N
+0000020872 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
+0000020884 0x0003 GPSLongitudeRef = E
+0000020896 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
 ---- Directory MakerNoteNikon @ 911 ----
 0000000913 0x0001 MakerNoteVersion = [0x30, 0x32, 0x31, 0x31]
