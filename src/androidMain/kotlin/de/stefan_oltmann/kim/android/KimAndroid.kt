@@ -452,18 +452,26 @@ public object KimAndroid {
  * hint and may be 0 for unknown sizes.
  */
 @Throws(ImageReadException::class)
+@Suppress("UnusedReceiverParameter")
+/* False positive. */
 public fun Kim.readMetadata(inputStream: InputStream, length: Long): MediaMetadata? =
     KimAndroid.readMetadata(inputStream, length)
 
 @Throws(ImageReadException::class)
+@Suppress("UnusedReceiverParameter")
+/* False positive. */
 public fun Kim.readMetadata(path: String): MediaMetadata? =
     KimAndroid.readMetadata(path)
 
 @Throws(ImageReadException::class)
+@Suppress("UnusedReceiverParameter")
+/* False positive. */
 public fun Kim.readMetadata(file: File): MediaMetadata? =
     KimAndroid.readMetadata(file)
 
 @Throws(ImageReadException::class)
+@Suppress("UnusedReceiverParameter")
+/* False positive. */
 public fun Kim.readMetadata(
     context: Context,
     uri: String,
@@ -472,6 +480,8 @@ public fun Kim.readMetadata(
     KimAndroid.readMetadata(context, uri, length)
 
 @Throws(ImageReadException::class)
+@Suppress("UnusedReceiverParameter")
+/* False positive. */
 public fun Kim.readMetadata(
     contentResolver: ContentResolver,
     uri: String,

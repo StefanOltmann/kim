@@ -59,10 +59,14 @@ public object KimApple {
 }
 
 @Throws(ImageReadException::class)
+@Suppress("UnusedReceiverParameter")
+/* False positive. */
 public fun Kim.readMetadata(data: NSData): MediaMetadata? =
     KimApple.readMetadata(data)
 
 @Throws(ImageReadException::class)
+@Suppress("UnusedReceiverParameter")
+/* False positive. */
 public fun Kim.readMetadata(path: String): MediaMetadata? =
     KimApple.readMetadata(path)
 
