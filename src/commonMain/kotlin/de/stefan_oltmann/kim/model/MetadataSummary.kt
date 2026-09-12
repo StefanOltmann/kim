@@ -100,6 +100,78 @@ public data class MetadataSummary(
             else -> ImageSize(widthPx, heightPx)
         }
 
+    /*
+     * The ByteArray property cannot participate in the generated
+     * data class equality (identity comparison), so equals and
+     * hashCode are overridden to compare the bytes by content.
+     */
+    override fun equals(other: Any?): Boolean {
+
+        if (this === other)
+            return true
+
+        if (other !is MetadataSummary)
+            return false
+
+        return mediaFormat == other.mediaFormat &&
+            widthPx == other.widthPx &&
+            heightPx == other.heightPx &&
+            orientation == other.orientation &&
+            takenDate == other.takenDate &&
+            gpsCoordinates == other.gpsCoordinates &&
+            locationShown == other.locationShown &&
+            cameraMake == other.cameraMake &&
+            cameraModel == other.cameraModel &&
+            lensMake == other.lensMake &&
+            lensModel == other.lensModel &&
+            iso == other.iso &&
+            exposureTime == other.exposureTime &&
+            fNumber == other.fNumber &&
+            focalLength == other.focalLength &&
+            filmSimulation == other.filmSimulation &&
+            title == other.title &&
+            description == other.description &&
+            flagged == other.flagged &&
+            rating == other.rating &&
+            keywords == other.keywords &&
+            faces == other.faces &&
+            personsInImage == other.personsInImage &&
+            thumbnailImageSize == other.thumbnailImageSize &&
+            thumbnailBytes.contentEquals(other.thumbnailBytes)
+    }
+
+    override fun hashCode(): Int {
+
+        var result = mediaFormat.hashCode()
+
+        result = 31 * result + widthPx.hashCode()
+        result = 31 * result + heightPx.hashCode()
+        result = 31 * result + orientation.hashCode()
+        result = 31 * result + takenDate.hashCode()
+        result = 31 * result + gpsCoordinates.hashCode()
+        result = 31 * result + locationShown.hashCode()
+        result = 31 * result + cameraMake.hashCode()
+        result = 31 * result + cameraModel.hashCode()
+        result = 31 * result + lensMake.hashCode()
+        result = 31 * result + lensModel.hashCode()
+        result = 31 * result + iso.hashCode()
+        result = 31 * result + exposureTime.hashCode()
+        result = 31 * result + fNumber.hashCode()
+        result = 31 * result + focalLength.hashCode()
+        result = 31 * result + filmSimulation.hashCode()
+        result = 31 * result + title.hashCode()
+        result = 31 * result + description.hashCode()
+        result = 31 * result + flagged.hashCode()
+        result = 31 * result + rating.hashCode()
+        result = 31 * result + keywords.hashCode()
+        result = 31 * result + faces.hashCode()
+        result = 31 * result + personsInImage.hashCode()
+        result = 31 * result + thumbnailImageSize.hashCode()
+        result = 31 * result + thumbnailBytes.contentHashCode()
+
+        return result
+    }
+
     @Suppress("DataClassContainsFunctions")
     public fun isEmpty(): Boolean =
         this == emptySummary
