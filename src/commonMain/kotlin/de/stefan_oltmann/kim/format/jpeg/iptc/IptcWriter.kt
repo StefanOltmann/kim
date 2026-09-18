@@ -31,6 +31,14 @@ public object IptcWriter {
 
     @Suppress("ThrowsCount")
     @JvmStatic
+    /**
+     * Writes the given IPTC blocks, optionally prefixed with the 8BIM
+     * Photoshop APP13 identifier.
+     *
+     * @throws ImageWriteException for block types or names outside the
+     *         ranges the format defines.
+     */
+    @Throws(ImageWriteException::class)
     public fun writeIptcBlocks(
         blocks: List<IptcBlock>,
         includeApp13Identifier: Boolean = true
@@ -79,7 +87,14 @@ public object IptcWriter {
         return os.toByteArray()
     }
 
-    /* Writes the IPTC block in UTF-8 */
+    /**
+     * Encodes the given records into IPTC application record 2 data,
+     * written in UTF-8 with the coded-character-set envelope set.
+     *
+     * @throws ImageWriteException for record types outside the range the
+     *         format defines.
+     */
+    @Throws(ImageWriteException::class)
     public fun writeIptcBlockData(records: List<IptcRecord>): ByteArray {
 
         val byteWriter = ByteArrayByteWriter()

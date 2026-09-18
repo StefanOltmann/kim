@@ -84,6 +84,7 @@ public object JpegRewriter {
     }
 
     @JvmStatic
+    @Throws(ImageWriteException::class)
     public fun updateExifMetadata(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
@@ -310,6 +311,7 @@ public object JpegRewriter {
      * Replaces the XMP of the file with the given packet.
      */
     @JvmStatic
+    @Throws(ImageWriteException::class)
     public fun updateXmpXml(
         byteReader: ByteReader,
         byteWriter: ByteWriter,

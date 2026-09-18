@@ -40,6 +40,7 @@ public object GifWriter {
     /* The application identifier of a GIF application extension is 8 bytes. */
     private const val APPLICATION_IDENTIFIER_LENGTH: Int = 8
 
+    @Throws(ImageWriteException::class)
     public fun writeImage(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
@@ -265,6 +266,7 @@ public object GifWriter {
      * packet is given. A GIF87a header is upgraded to GIF89a, which the
      * XMP extension requires.
      */
+    @Throws(ImageWriteException::class)
     public fun writeImage(
         chunks: List<GifChunk>,
         byteWriter: ByteWriter,

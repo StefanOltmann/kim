@@ -97,6 +97,7 @@ public class GifChunkApplicationExtension(
      * Returns the XMP packet this extension carries, or throws when the
      * payload holds no readable packet.
      */
+    @Throws(ImageReadException::class)
     public fun parseAsXmpOrThrow(): String {
 
         val extensionContentAsString = try {

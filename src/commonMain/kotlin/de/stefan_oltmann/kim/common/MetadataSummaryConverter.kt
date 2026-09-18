@@ -75,6 +75,7 @@ public object MetadataSummaryConverter {
      */
     @JvmStatic
     @JvmOverloads
+    @Throws(ImageReadException::class)
     @Suppress("LongMethod")
     public fun convertToSummary(
         mediaMetadata: MediaMetadata,

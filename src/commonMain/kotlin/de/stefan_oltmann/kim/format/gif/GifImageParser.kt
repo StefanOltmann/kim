@@ -140,6 +140,7 @@ public object GifImageParser : ImageParser {
      * skipped chunks are still consumed, so the reader stays in sync.
      */
     @JvmStatic
+    @Throws(ImageReadException::class)
     public fun readChunks(
         byteReader: ByteReader,
         chunkTypeFilter: List<GifChunkType>?
