@@ -243,7 +243,7 @@ public object MetadataSummaryConverter {
         if (this == null)
             return null
 
-        return trimEnd(' ', ' ').ifEmpty { null }
+        return trimEnd(' ', '\u0000').ifEmpty { null }
     }
 
     @JvmStatic
