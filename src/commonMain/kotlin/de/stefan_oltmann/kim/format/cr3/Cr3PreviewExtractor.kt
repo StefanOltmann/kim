@@ -392,7 +392,7 @@ public object Cr3PreviewExtractor {
     }
 
     /**
-     * Extracts an JPG with an resoltion of 1620 x 1080
+     * Extracts a JPEG with a resolution of 1620 x 1080
      *
      * The box walk streams like in [extractFullSizePreviewImage]: the mdat
      * payload is skipped in bounded chunks and only the payload of the
@@ -433,18 +433,21 @@ public object Cr3PreviewExtractor {
                     val uuidBytes = byteReader.readBytes("uuid", UUID_LENGTH_BYTES)
 
                     previewBytes =
-                        if (uuidBytes.toHex() == Cr3Reader.CR3_PREVIEW_UUID)
+                        if (uuidBytes.toHex() == Cr3Reader.CR3_PREVIEW_UUID) {
                             parsePrvwPreview(
                                 readPreviewPayload(
                                     byteReader = byteReader,
                                     dataLength = header.dataSize - UUID_LENGTH_BYTES
                                 )
                             )
-                        else
+                        } else {
                             byteReader.skipBytes(
                                 "uuid box data",
                                 header.dataSize - UUID_LENGTH_BYTES
-                            ).let { null }
+                            )
+
+                            null
+                        }
                 }
             } else {
 

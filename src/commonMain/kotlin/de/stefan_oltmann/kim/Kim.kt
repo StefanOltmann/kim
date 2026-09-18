@@ -321,7 +321,11 @@ public object Kim {
                  * bytes keep the legacy TIFF-parse attempt, which fails
                  * loudly for them.
                  */
-                null -> TiffReader.read(DefaultRandomAccessByteReader(prePendingByteReader)).let { null }
+                null -> {
+                    TiffReader.read(DefaultRandomAccessByteReader(prePendingByteReader))
+
+                    null
+                }
 
                 else -> null
             }
