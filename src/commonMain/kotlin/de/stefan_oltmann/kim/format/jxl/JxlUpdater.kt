@@ -25,7 +25,7 @@ import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.jxl.box.CompressedBox
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
-import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
+
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
@@ -66,7 +66,7 @@ internal object JxlUpdater : MetadataUpdater {
 
             val exifBytes: ByteArray? =
                 if (outputSet.applyUpdates(updates))
-                    writeExifBytes(outputSet)
+                    outputSet.toTiffBytes()
                 else
                     null
 
@@ -133,7 +133,7 @@ internal object JxlUpdater : MetadataUpdater {
 
         outputSet.setThumbnailBytes(thumbnailBytes)
 
-        val exifBytes = writeExifBytes(outputSet)
+        val exifBytes = outputSet.toTiffBytes()
 
         val byteWriter = ByteArrayByteWriter()
 
@@ -145,17 +145,5 @@ internal object JxlUpdater : MetadataUpdater {
         )
 
         return@tryWithImageWriteException byteWriter.toByteArray()
-    }
-
-    /*
-     * Serializes the output set into the bytes of the EXIF box.
-     */
-    private fun writeExifBytes(outputSet: TiffOutputSet): ByteArray {
-
-        val exifBytesWriter = ByteArrayByteWriter()
-
-        TiffWriter(byteOrder = outputSet.byteOrder).write(exifBytesWriter, outputSet)
-
-        return exifBytesWriter.toByteArray()
     }
 }

@@ -23,7 +23,7 @@ import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
 import de.stefan_oltmann.kim.format.png.chunk.PngTextChunk
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
-import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
+
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
@@ -60,17 +60,10 @@ internal object PngUpdater : MetadataUpdater {
 
             val outputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
 
-            val exifBytes: ByteArray? = if (outputSet.applyUpdates(updates)) {
-
-                val exifBytesWriter = ByteArrayByteWriter()
-
-                TiffWriter(byteOrder = outputSet.byteOrder).write(exifBytesWriter, outputSet)
-
-                exifBytesWriter.toByteArray()
-
-            } else {
+            val exifBytes: ByteArray? = if (outputSet.applyUpdates(updates))
+                outputSet.toTiffBytes()
+            else
                 null
-            }
 
             PngWriter.writeImage(
                 chunks = chunks,
@@ -151,11 +144,7 @@ internal object PngUpdater : MetadataUpdater {
 
         outputSet.setThumbnailBytes(thumbnailBytes)
 
-        val exifBytesWriter = ByteArrayByteWriter()
-
-        TiffWriter(byteOrder = outputSet.byteOrder).write(exifBytesWriter, outputSet)
-
-        val exifBytes = exifBytesWriter.toByteArray()
+        val exifBytes = outputSet.toTiffBytes()
 
         val byteWriter = ByteArrayByteWriter()
 

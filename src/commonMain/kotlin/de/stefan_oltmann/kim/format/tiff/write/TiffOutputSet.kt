@@ -30,6 +30,7 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.DEFAULT_TIFF_BYT
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeUndefined
 import de.stefan_oltmann.kim.model.GpsCoordinates
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -129,6 +130,19 @@ public class TiffOutputSet(
 
     public fun findDirectory(directoryType: Int): TiffOutputDirectory? =
         directories.find { it.type == directoryType }
+
+    /**
+     * Serializes this output set into TIFF bytes, as the metadata writers
+     * embed it, for example as the EXIF payload of a JPEG APP1 segment.
+     */
+    internal fun toTiffBytes(): ByteArray {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        TiffWriter(byteOrder = byteOrder).write(byteWriter, this)
+
+        return byteWriter.toByteArray()
+    }
 
     /**
      * Applies a single update to the output directories, creating the
