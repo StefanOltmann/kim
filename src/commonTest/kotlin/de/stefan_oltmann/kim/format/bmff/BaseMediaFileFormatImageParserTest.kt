@@ -20,6 +20,7 @@ import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.ITEM_TYPE_MIME
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.testdata.BmffTestBoxes.box
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.write2BytesAsInt
 import de.stefan_oltmann.kim.output.writeInt
@@ -44,22 +45,22 @@ class BaseMediaFileFormatImageParserTest {
     fun testParseMetadataWrapsUnsupportedInfeVersion() {
 
         /* An infe with the unsupported version 0. */
-        val infeV0 = createBox(
+        val infeV0 = box(
             BoxType.INFE,
             byteArrayOf(0, 0, 0, 0, 0, 1, 0x6D, 0x69, 0x66, 0x31, 0)
         )
 
-        val iinf = createBox(
+        val iinf = box(
             BoxType.IINF,
             byteArrayOf(0, 0, 0, 0) + byteArrayOf(0, 1) + infeV0
         )
 
-        val meta = createBox(
+        val meta = box(
             BoxType.META,
             byteArrayOf(0, 0, 0, 0) + createHdlrBox() + iinf
         )
 
-        val file = createBox(
+        val file = box(
             BoxType.FTYP,
             "heic\u0000\u0000\u0000\u0000mif1".encodeToByteArray()
         ) + meta
@@ -97,7 +98,7 @@ class BaseMediaFileFormatImageParserTest {
             entries = listOf(ItemSpec(itemId = 1, itemType = BMFFConstants.ITEM_TYPE_EXIF))
         )
         val ilocPlaceholder =
-            createBox(
+            box(
                 type = BoxType.ILOC,
                 payload = createIlocPayload(
                     extent1Offset = 0L,
@@ -108,7 +109,7 @@ class BaseMediaFileFormatImageParserTest {
             )
 
         val ftypBox =
-            createBox(BoxType.FTYP, "heic\u0000\u0000\u0000\u0000mif1".encodeToByteArray())
+            box(BoxType.FTYP, "heic\u0000\u0000\u0000\u0000mif1".encodeToByteArray())
 
         val metaPayloadSize =
             VERSION_AND_FLAGS_SIZE + hdlrBox.size + pitmBox.size + iinfBox.size +
@@ -123,7 +124,7 @@ class BaseMediaFileFormatImageParserTest {
 
         val extent2Offset: Long = extent1Offset + extent1Length
 
-        val ilocBox = createBox(
+        val ilocBox = box(
             type = BoxType.ILOC,
             payload = createIlocPayload(
                 extent1Offset = extent1Offset,
@@ -133,13 +134,13 @@ class BaseMediaFileFormatImageParserTest {
             )
         )
 
-        val metaBox = createBox(
+        val metaBox = box(
             type = BoxType.META,
             payload = byteArrayOf(0, 0, 0, 0) + hdlrBox + pitmBox + iinfBox + ilocBox
         )
 
         /* The mdat payload carries both extents back to back. */
-        val mdatBox = createBox(
+        val mdatBox = box(
             type = BoxType.MDAT,
             payload = ByteArray(TIFF_HEADER_OFFSET_SIZE) + firstPart + secondPart
         )
@@ -168,7 +169,7 @@ class BaseMediaFileFormatImageParserTest {
         val bytes = buildHeicFile(
             iinfEntries = listOf(ItemSpec(itemId = 1, itemType = BMFFConstants.ITEM_TYPE_EXIF))
         ) { _ ->
-            val ilocBox = createBox(
+            val ilocBox = box(
                 type = BoxType.ILOC,
                 payload = createIlocPayloadForItems(
                     items = listOf(
@@ -219,7 +220,7 @@ class BaseMediaFileFormatImageParserTest {
             /* A well formed packet, because the test is about the overlap. */
             val xmpPayload = "<x:xmpmeta></x:xmpmeta>".encodeToByteArray()
 
-            val ilocBox = createBox(
+            val ilocBox = box(
                 type = BoxType.ILOC,
                 payload = createIlocPayloadForItems(
                     items = listOf(
@@ -264,7 +265,7 @@ class BaseMediaFileFormatImageParserTest {
             iinfEntries = listOf(ItemSpec(itemId = 1, itemType = ITEM_TYPE_MIME))
         ) { mdatDataOffset ->
 
-            val ilocBox = createBox(
+            val ilocBox = box(
                 type = BoxType.ILOC,
                 payload = createIlocPayloadForItems(
                     items = listOf(
@@ -296,25 +297,25 @@ class BaseMediaFileFormatImageParserTest {
     fun testCorruptXmpUuidBoxFailsTheRead() {
 
         val ftypBox =
-            createBox(BoxType.FTYP, "heic\u0000\u0000\u0000\u0000mif1".encodeToByteArray())
+            box(BoxType.FTYP, "heic\u0000\u0000\u0000\u0000mif1".encodeToByteArray())
 
         /* A meta box without metadata items, so only the UUID box carries XMP. */
-        val metaBox = createBox(
+        val metaBox = box(
             type = BoxType.META,
             payload = byteArrayOf(0, 0, 0, 0) +
                 createHdlrBox() +
                 createPitmBox(itemId = 1) +
                 createIinfBox(entries = emptyList()) +
-                createBox(BoxType.ILOC, createIlocPayloadForItems(items = emptyList()))
+                box(BoxType.ILOC, createIlocPayloadForItems(items = emptyList()))
         )
 
-        val uuidBox = createBox(
+        val uuidBox = box(
             type = BoxType.UUID,
             payload = convertHexStringToByteArray(BMFFConstants.XMP_UUID) +
                 "truncated".encodeToByteArray()
         )
 
-        val mdatBox = createBox(type = BoxType.MDAT, payload = ByteArray(32))
+        val mdatBox = box(type = BoxType.MDAT, payload = ByteArray(32))
 
         val bytes = ftypBox + metaBox + uuidBox + mdatBox
 
@@ -407,9 +408,9 @@ class BaseMediaFileFormatImageParserTest {
         val (placeholderIloc, _) = buildParts(0L)
 
         val ftypBox =
-            createBox(BoxType.FTYP, "heic\u0000\u0000\u0000\u0000mif1".encodeToByteArray())
+            box(BoxType.FTYP, "heic\u0000\u0000\u0000\u0000mif1".encodeToByteArray())
 
-        val metaBox = createBox(
+        val metaBox = box(
             type = BoxType.META,
             payload = byteArrayOf(0, 0, 0, 0) + hdlrBox + pitmBox + iinfBox + placeholderIloc
         )
@@ -419,28 +420,16 @@ class BaseMediaFileFormatImageParserTest {
 
         val (ilocBox, mdatPayload) = buildParts(mdatDataOffset)
 
-        val realMetaBox = createBox(
+        val realMetaBox = box(
             type = BoxType.META,
             payload = byteArrayOf(0, 0, 0, 0) + hdlrBox + pitmBox + iinfBox + ilocBox
         )
 
-        val mdatBox = createBox(type = BoxType.MDAT, payload = mdatPayload)
+        val mdatBox = box(type = BoxType.MDAT, payload = mdatPayload)
 
         return ftypBox + realMetaBox + mdatBox
     }
 
-    private fun createBox(type: BoxType, payload: ByteArray): ByteArray {
-
-        val size = payload.size + 8
-
-        val box = ByteArrayByteWriter()
-
-        box.writeInt(size, BMFF_BYTE_ORDER)
-        box.write(type.bytes)
-        box.write(payload)
-
-        return box.toByteArray()
-    }
 
     private fun createHdlrBox(): ByteArray {
 
@@ -452,7 +441,7 @@ class BaseMediaFileFormatImageParserTest {
         payload.write(ByteArray(12)) /* Reserved */
         payload.write(0) /* Empty name terminator */
 
-        return createBox(BoxType.HDLR, payload.toByteArray())
+        return box(BoxType.HDLR, payload.toByteArray())
     }
 
     private fun createPitmBox(itemId: Int): ByteArray {
@@ -462,7 +451,7 @@ class BaseMediaFileFormatImageParserTest {
         payload.write(byteArrayOf(0, 0, 0, 0)) /* Version & flags */
         payload.write2BytesAsInt(itemId, BMFF_BYTE_ORDER)
 
-        return createBox(BoxType.PITM, payload.toByteArray())
+        return box(BoxType.PITM, payload.toByteArray())
     }
 
     /**
@@ -481,10 +470,10 @@ class BaseMediaFileFormatImageParserTest {
             entryPayload.writeInt(entry.itemType, BMFF_BYTE_ORDER) /* Item type */
             entryPayload.write(0) /* Empty item name */
 
-            createBox(BoxType.INFE, entryPayload.toByteArray())
+            box(BoxType.INFE, entryPayload.toByteArray())
         }
 
-        return createBox(
+        return box(
             BoxType.IINF,
             byteArrayOf(0, 0, 0, 0) + byteArrayOf(0, entries.size.toByte()) +
                 entryBoxes.fold(byteArrayOf()) { a, b -> a + b }

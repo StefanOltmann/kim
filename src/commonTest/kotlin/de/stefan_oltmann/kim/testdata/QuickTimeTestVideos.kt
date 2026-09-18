@@ -49,17 +49,8 @@ internal object QuickTimeTestVideos {
         <?xpacket end="w"?>
     """.trimIndent()
 
-    fun box(type: String, payload: ByteArray): ByteArray {
-
-        val size = payload.size + 8
-
-        return byteArrayOf(
-            (size shr 24).toByte(),
-            (size shr 16).toByte(),
-            (size shr 8).toByte(),
-            size.toByte()
-        ) + type.encodeToByteArray() + payload
-    }
+    fun box(type: String, payload: ByteArray): ByteArray =
+        BmffTestBoxes.box(type, payload)
 
     fun uuidBytes(hexString: String): ByteArray =
         ByteArray(hexString.length / 2) { index ->

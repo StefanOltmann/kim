@@ -25,6 +25,7 @@ import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
+import de.stefan_oltmann.kim.testdata.BmffTestBoxes.writeBox
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.writeInt
 import kotlin.test.Test
@@ -480,13 +481,6 @@ class JxlUpdaterTest : AbstractUpdaterTest("jxl") {
         assertFailsWith<ImageReadException> {
             Kim.readMetadata(byteWriter.toByteArray())
         }
-    }
-
-    private fun writeBox(byteWriter: ByteArrayByteWriter, type: BoxType, payload: ByteArray) {
-
-        byteWriter.writeInt(payload.size + 8, BMFF_BYTE_ORDER)
-        byteWriter.write(type.bytes)
-        byteWriter.write(payload)
     }
 
     private fun ByteArray.countOccurrences(needle: String): Int {

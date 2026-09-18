@@ -20,6 +20,7 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.jxl.JxlReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
+import de.stefan_oltmann.kim.testdata.BmffTestBoxes.writeBox
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -85,25 +86,5 @@ class XmlBoxTest {
         }
 
         assertTrue(exception.message?.contains("xmpmeta") == true)
-    }
-
-    private fun writeBox(
-        byteWriter: ByteArrayByteWriter,
-        type: BoxType,
-        payload: ByteArray
-    ) {
-
-        val size = payload.size + 8
-
-        byteWriter.write(
-            byteArrayOf(
-                (size ushr 24).toByte(),
-                (size ushr 16).toByte(),
-                (size ushr 8).toByte(),
-                size.toByte()
-            )
-        )
-        byteWriter.write(type.bytes)
-        byteWriter.write(payload)
     }
 }

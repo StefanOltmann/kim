@@ -20,6 +20,7 @@ import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.bmff.Extent
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.testdata.BmffTestBoxes.box
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -394,7 +395,7 @@ class BmffBoxesTest {
             0, 0, 0, 50
         )
 
-        val ilocBox = createBox(BoxType.ILOC, ilocPayload)
+        val ilocBox = box(BoxType.ILOC, ilocPayload)
 
         val metaPayload =
             byteArrayOf(0, 0, 0, 0) + hdlrBox + pitmBox + iinfBox + ilocBox
@@ -753,8 +754,8 @@ class BmffBoxesTest {
             0, 0, 0, 0,
             0, 2
         ) +
-            createBox(BoxType.INFE, infePayload) +
-            createBox(BoxType.of("unk ".encodeToByteArray()), unknownPayload)
+            box(BoxType.INFE, infePayload) +
+            box(BoxType.of("unk ".encodeToByteArray()), unknownPayload)
 
         val box = ItemInformationBox(
             offset = 0,
@@ -802,14 +803,6 @@ class BmffBoxesTest {
         assertTrue(unknown.payload.isEmpty())
     }
 
-    private fun createBox(type: BoxType, payload: ByteArray): ByteArray {
-
-        val box = byteArrayOf(
-            0, 0, 0, (payload.size + 8).toByte()
-        ) + type.bytes + payload
-
-        return box
-    }
 
     private fun createHdlrBox(): ByteArray {
 
@@ -820,12 +813,12 @@ class BmffBoxesTest {
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         ) + "Main Image\u0000".encodeToByteArray()
 
-        return createBox(BoxType.HDLR, hdlrPayload)
+        return box(BoxType.HDLR, hdlrPayload)
     }
 
     private fun createPitmBox(itemId: Int): ByteArray =
 
-        createBox(
+        box(
             BoxType.PITM,
             byteArrayOf(0, 0, 0, 0, 0, itemId.toByte())
         )
@@ -843,9 +836,9 @@ class BmffBoxesTest {
             'E'.code.toByte(), 'x'.code.toByte(), 'i'.code.toByte(), 'f'.code.toByte()
         ) + "\u0000".encodeToByteArray()
 
-        return createBox(
+        return box(
             BoxType.IINF,
-            byteArrayOf(0, 0, 0, 0, 0, 1) + createBox(BoxType.INFE, infePayload)
+            byteArrayOf(0, 0, 0, 0, 0, 1) + box(BoxType.INFE, infePayload)
         )
     }
 }

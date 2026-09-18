@@ -30,6 +30,7 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.write2BytesAsInt
 import de.stefan_oltmann.kim.output.writeInt
+import de.stefan_oltmann.kim.testdata.BmffTestBoxes.box
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -262,7 +263,7 @@ class BoxReaderTest {
         var bytes = ByteArray(0)
 
         repeat(DEPTH_LIMIT_TEST_LEVELS) {
-            bytes = createBox(BoxType.MOOV, bytes)
+            bytes = box(BoxType.MOOV, bytes)
         }
 
         assertFailsWith<ImageReadException> {
@@ -280,12 +281,12 @@ class BoxReaderTest {
     @Test
     fun testNestedMetaBoxesArePlainContainers() {
 
-        val innerMeta = createBox(BoxType.META, VERSION_AND_FLAGS + createHdlrBox())
+        val innerMeta = box(BoxType.META, VERSION_AND_FLAGS + createHdlrBox())
 
         val outerMeta =
-            createBox(BoxType.META, VERSION_AND_FLAGS + createHdlrBox() + innerMeta)
+            box(BoxType.META, VERSION_AND_FLAGS + createHdlrBox() + innerMeta)
 
-        val bytes = createBox(BoxType.MOOV, outerMeta)
+        val bytes = box(BoxType.MOOV, outerMeta)
 
         val boxes = BoxReader.readAllBoxes(
             byteReader = ByteArrayByteReader(bytes)
@@ -360,18 +361,7 @@ class BoxReaderTest {
         payload.write(ByteArray(12)) /* reserved */
         payload.write(0) /* empty name terminator */
 
-        return createBox(BoxType.HDLR, payload.toByteArray())
-    }
-
-    private fun createBox(type: BoxType, payload: ByteArray): ByteArray {
-
-        val box = ByteArrayByteWriter()
-
-        box.writeInt(payload.size + 8, BMFF_BYTE_ORDER)
-        box.write(type.bytes)
-        box.write(payload)
-
-        return box.toByteArray()
+        return box(BoxType.HDLR, payload.toByteArray())
     }
 
     private companion object {

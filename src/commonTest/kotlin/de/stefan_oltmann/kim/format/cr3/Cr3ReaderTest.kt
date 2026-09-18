@@ -18,22 +18,11 @@ package de.stefan_oltmann.kim.format.cr3
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.bmff.BaseMediaFileFormatImageParser
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.testdata.BmffTestBoxes.box
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 
 class Cr3ReaderTest {
-
-    private fun box(type: String, payload: ByteArray): ByteArray {
-
-        val size = payload.size + 8
-
-        return byteArrayOf(
-            (size shr 24).toByte(),
-            (size shr 16).toByte(),
-            (size shr 8).toByte(),
-            size.toByte()
-        ) + type.encodeToByteArray() + payload
-    }
 
     private fun uuidBytes(hexString: String): ByteArray =
         ByteArray(hexString.length / 2) { index ->
