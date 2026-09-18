@@ -302,7 +302,7 @@ public object TiffReader {
                 directory.thumbnailBytes = readThumbnailBytes(byteReader, directory)
 
             if (readTiffImageBytes && directory.hasStripImageData())
-                directory.tiffImageBytes = readTiffImageBytes(byteReader, directory)
+                directory.tiffImageBytes = readStripBytes(byteReader, directory)
 
             addDirectory(directory)
 
@@ -747,7 +747,7 @@ public object TiffReader {
         return bytes
     }
 
-    private fun readTiffImageBytes(
+    private fun readStripBytes(
         byteReader: RandomAccessByteReader,
         directory: TiffDirectory
     ): ByteArray? {
