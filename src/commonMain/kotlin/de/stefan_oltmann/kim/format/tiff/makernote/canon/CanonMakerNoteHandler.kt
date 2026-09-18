@@ -355,41 +355,11 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
 
             for (paramIndex in 0 until numParams) {
 
-                if (pos + 8 > blob.size)
-                    return
+                val nextPos = appendParamField(
+                    blob, pos, blobOffset, TIFF_MAKER_NOTE_CANON_CUSTOM_FUNCTIONS, byteOrder, fields
+                ) ?: return
 
-                val tag = blob.toInt32(pos, byteOrder)
-                val count = blob.toInt32(pos + 4, byteOrder)
-
-                pos += 8
-
-                /* Guard against corrupt counts, which can overflow the multiplication below. */
-                if (count < 0 || count > (blob.size - pos) / 4)
-                    return
-
-                val valueLength = count * 4
-
-                if (pos + valueLength > blob.size)
-                    return
-
-                val valueBytes = blob.copyOfRange(pos, pos + valueLength)
-
-                pos += valueLength
-
-                fields.add(
-                    TiffField(
-                        offset = blobOffset + pos - valueLength,
-                        tag = tag,
-                        directoryType = TIFF_MAKER_NOTE_CANON_CUSTOM_FUNCTIONS,
-                        fieldType = FieldTypeLong,
-                        count = count,
-                        localValue = null,
-                        valueOffset = blobOffset + pos - valueLength,
-                        valueBytes = valueBytes,
-                        byteOrder = byteOrder,
-                        sortHint = tag
-                    )
-                )
+                pos = nextPos
             }
         }
 
@@ -452,41 +422,11 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
 
             for (paramIndex in 0 until numParams) {
 
-                if (pos + 8 > blob.size)
-                    return
+                val nextPos = appendParamField(
+                    blob, pos, blobOffset, TIFF_MAKER_NOTE_CANON_FILTER_INFO, byteOrder, fields
+                ) ?: return
 
-                val tag = blob.toInt32(pos, byteOrder)
-                val count = blob.toInt32(pos + 4, byteOrder)
-
-                pos += 8
-
-                /* Guard against corrupt counts, which can overflow the multiplication below. */
-                if (count < 0 || count > (blob.size - pos) / 4)
-                    return
-
-                val valueLength = count * 4
-
-                if (pos + valueLength > blob.size)
-                    return
-
-                val valueBytes = blob.copyOfRange(pos, pos + valueLength)
-
-                pos += valueLength
-
-                fields.add(
-                    TiffField(
-                        offset = blobOffset + pos - valueLength,
-                        tag = tag,
-                        directoryType = TIFF_MAKER_NOTE_CANON_FILTER_INFO,
-                        fieldType = FieldTypeLong,
-                        count = count,
-                        localValue = null,
-                        valueOffset = blobOffset + pos - valueLength,
-                        valueBytes = valueBytes,
-                        byteOrder = byteOrder,
-                        sortHint = tag
-                    )
-                )
+                pos = nextPos
             }
         }
 
@@ -499,6 +439,58 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
                 byteOrder = byteOrder
             )
         )
+    }
+
+    /**
+     * Reads one parameter entry at [pos] and appends it to [fields]:
+     * a tag id and count followed by count x 4 bytes of Long values.
+     *
+     * Returns the position behind the entry, or NULL when the blob ends
+     * inside the entry or the count is corrupt.
+     */
+    private fun appendParamField(
+        blob: ByteArray,
+        pos: Int,
+        blobOffset: Int,
+        directoryType: Int,
+        byteOrder: ByteOrder,
+        fields: MutableList<TiffField>
+    ): Int? {
+
+        if (pos + 8 > blob.size)
+            return null
+
+        val tag = blob.toInt32(pos, byteOrder)
+        val count = blob.toInt32(pos + 4, byteOrder)
+
+        /* The value bytes start behind the 8-byte tag/count header. */
+        val fieldOffset = pos + 8
+
+        /* Guard against corrupt counts, which can overflow the multiplication below. */
+        if (count < 0 || count > (blob.size - fieldOffset) / 4)
+            return null
+
+        val valueLength = count * 4
+
+        if (fieldOffset + valueLength > blob.size)
+            return null
+
+        fields.add(
+            TiffField(
+                offset = blobOffset + fieldOffset,
+                tag = tag,
+                directoryType = directoryType,
+                fieldType = FieldTypeLong,
+                count = count,
+                localValue = null,
+                valueOffset = blobOffset + fieldOffset,
+                valueBytes = blob.copyOfRange(fieldOffset, fieldOffset + valueLength),
+                byteOrder = byteOrder,
+                sortHint = tag
+            )
+        )
+
+        return fieldOffset + valueLength
     }
 }
 
