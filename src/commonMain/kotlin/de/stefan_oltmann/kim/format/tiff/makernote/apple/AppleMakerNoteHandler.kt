@@ -57,28 +57,20 @@ internal object AppleMakerNoteHandler : MakerNoteHandler() {
 
         val ifdOffset = APPLE_MAKER_NOTE_SIGNATURE.length + 2
 
-        var makerNoteDirectory: TiffDirectory? = null
-
-        readMakerNoteDirectory(
+        val makerNoteDirectory = readMakerNoteDirectory(
             byteReader = byteReader,
             directoryOffset = makerNoteValueOffset + ifdOffset,
             valueOffsetBase = makerNoteValueOffset,
             byteOrder = byteOrder,
             directoryType = TiffConstants.TIFF_MAKER_NOTE_APPLE,
-            addDirectory = {
-                makerNoteDirectory = it
-                addDirectory(it)
-            }
+            addDirectory = addDirectory
+        ) ?: return
+
+        readRunTime(
+            directory = makerNoteDirectory,
+            byteOrder = byteOrder,
+            addDirectory = addDirectory
         )
-
-        makerNoteDirectory?.let { directory ->
-
-            readRunTime(
-                directory = directory,
-                byteOrder = byteOrder,
-                addDirectory = addDirectory
-            )
-        }
     }
 
     /**

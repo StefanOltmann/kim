@@ -199,9 +199,7 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
         addDirectory: (TiffDirectory) -> Unit
     ) {
 
-        var makerNoteDirectory: TiffDirectory? = null
-
-        readMakerNoteDirectory(
+        val makerNoteDirectory = readMakerNoteDirectory(
             byteReader = byteReader,
             directoryOffset = makerNoteValueOffset,
             valueOffsetBase = resolveBaseAdjustment(
@@ -212,20 +210,15 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
             ),
             byteOrder = byteOrder,
             directoryType = TiffConstants.TIFF_MAKER_NOTE_CANON,
-            addDirectory = {
-                makerNoteDirectory = it
-                addDirectory(it)
-            }
-        )
+            addDirectory = addDirectory
+        ) ?: return
 
-        makerNoteDirectory?.let { directory ->
-            readSubDirectories(
-                directory = directory,
-                byteOrder = byteOrder,
-                model = model,
-                addDirectory = addDirectory
-            )
-        }
+        readSubDirectories(
+            directory = makerNoteDirectory,
+            byteOrder = byteOrder,
+            model = model,
+            addDirectory = addDirectory
+        )
     }
 
     /**

@@ -61,29 +61,21 @@ internal object PanasonicMakerNoteHandler : MakerNoteHandler() {
 
         val ifdOffset = PANASONIC_MAKER_NOTE_SIGNATURE.length
 
-        var makerNoteDirectory: TiffDirectory? = null
-
-        readMakerNoteDirectory(
+        val makerNoteDirectory = readMakerNoteDirectory(
             byteReader = byteReader,
             directoryOffset = makerNoteValueOffset + ifdOffset,
             valueOffsetBase = 0,
             byteOrder = ByteOrder.LITTLE_ENDIAN,
             directoryType = TiffConstants.TIFF_MAKER_NOTE_PANASONIC,
-            addDirectory = {
-                makerNoteDirectory = it
-                addDirectory(it)
-            }
+            addDirectory = addDirectory
+        ) ?: return
+
+        readMakerNoteBlobSubDirectories(
+            directory = makerNoteDirectory,
+            byteOrder = ByteOrder.LITTLE_ENDIAN,
+            blobPointers = BLOB_POINTERS,
+            addDirectory = addDirectory
         )
-
-        makerNoteDirectory?.let { directory ->
-
-            readMakerNoteBlobSubDirectories(
-                directory = directory,
-                byteOrder = ByteOrder.LITTLE_ENDIAN,
-                blobPointers = BLOB_POINTERS,
-                addDirectory = addDirectory
-            )
-        }
     }
 }
 

@@ -53,6 +53,10 @@ internal open class MakerNoteHandler {
      * The [valueOffsetBase] resolves the MakerNote value offsets
      * against the start of the TIFF bytes, so the stored fields always
      * carry absolute offsets.
+     *
+     * Every read directory is passed to [addDirectory]. The read
+     * directory is also returned, so callers can read its
+     * sub-directories without capturing it from the callback.
      */
     protected fun readMakerNoteDirectory(
         byteReader: RandomAccessByteReader,
@@ -61,7 +65,9 @@ internal open class MakerNoteHandler {
         byteOrder: ByteOrder,
         directoryType: Int,
         addDirectory: (TiffDirectory) -> Unit
-    ) {
+    ): TiffDirectory? {
+
+        var readDirectory: TiffDirectory? = null
 
         TiffReader.readDirectory(
             byteReader = byteReader,
@@ -70,10 +76,15 @@ internal open class MakerNoteHandler {
             directoryType = directoryType,
             visitedOffsets = hashSetOf(),
             readTiffImageBytes = false,
-            addDirectory = addDirectory,
+            addDirectory = {
+                readDirectory = it
+                addDirectory(it)
+            },
             valueOffsetBase = valueOffsetBase,
             followNextDirectory = false
         )
+
+        return readDirectory
     }
 
     /**
