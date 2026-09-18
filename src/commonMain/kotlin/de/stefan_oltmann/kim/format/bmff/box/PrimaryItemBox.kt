@@ -28,7 +28,7 @@ import de.stefan_oltmann.kim.input.readByteAsInt
 import de.stefan_oltmann.kim.input.readBytes
 
 /**
- * EIC/ISO 14496-12 pitm box.
+ * ISO/IEC 14496-12 pitm box.
  */
 public class PrimaryItemBox(
     offset: Long,
@@ -37,10 +37,13 @@ public class PrimaryItemBox(
     payload: ByteArray
 ) : Box(BoxType.PITM, offset, size, largeSize, payload) {
 
+    /** The box version. */
     public val version: Int
 
+    /** The box flags. */
     public val flags: ByteArray
 
+    /** The id of the item the file designates as its primary item. */
     public val itemId: Int
 
     init {

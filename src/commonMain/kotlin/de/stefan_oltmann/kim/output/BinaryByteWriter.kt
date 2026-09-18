@@ -32,6 +32,10 @@ public abstract class BinaryByteWriter(
 
     public companion object {
 
+        /**
+         * Creates the writer that emits multi-byte values in the given
+         * byte order.
+         */
         @kotlin.jvm.JvmStatic
         public fun createBinaryByteWriter(byteWriter: ByteWriter, byteOrder: ByteOrder): BinaryByteWriter =
             when (byteOrder) {

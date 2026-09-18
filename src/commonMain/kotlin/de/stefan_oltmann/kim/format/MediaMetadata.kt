@@ -36,6 +36,7 @@ public class MediaMetadata internal constructor(
     public val xmp: String?
 ) {
 
+    /** Returns the string value of the given tag, or NULL when absent. */
     public fun findStringValue(tagInfo: TagInfo): String? {
 
         val strings = findTiffField(tagInfo)?.value as? List<*>
@@ -50,12 +51,15 @@ public class MediaMetadata internal constructor(
     public fun findShortValue(tagInfo: TagInfo): Short? =
         findTiffField(tagInfo)?.toShort()
 
+    /** Returns the numeric value of the given tag, or NULL when absent. */
     public fun findDoubleValue(tagInfo: TagInfo): Double? =
         findTiffField(tagInfo)?.toDouble()
 
+    /** Returns the raw TIFF field of the given tag, or NULL when absent. */
     public fun findTiffField(tagInfo: TagInfo): TiffField? =
         exif?.findTiffField(tagInfo)
 
+    /** Returns the TIFF directory with the given type, or NULL when absent. */
     public fun findTiffDirectory(directoryType: Int): TiffDirectory? =
         exif?.findTiffDirectory(directoryType)
 

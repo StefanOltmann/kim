@@ -105,35 +105,27 @@ internal object SonyMakerNoteHandler : MakerNoteHandler() {
         /*
          * Some Sony cameras write the IFD without any header (Sony5 format).
          */
-        var makerNoteDirectory: TiffDirectory? = null
-
-        readMakerNoteDirectory(
+        val makerNoteDirectory = readMakerNoteDirectory(
             byteReader = byteReader,
             directoryOffset = makerNoteValueOffset,
             valueOffsetBase = 0,
             byteOrder = ByteOrder.LITTLE_ENDIAN,
             directoryType = TiffConstants.TIFF_MAKER_NOTE_SONY5,
-            addDirectory = {
-                makerNoteDirectory = it
-                addDirectory(it)
-            }
+            addDirectory = addDirectory
+        ) ?: return
+
+        readMakerNoteBlobSubDirectories(
+            directory = makerNoteDirectory,
+            byteOrder = ByteOrder.LITTLE_ENDIAN,
+            blobPointers = BLOB_POINTERS,
+            addDirectory = addDirectory
         )
 
-        makerNoteDirectory?.let { directory ->
-
-            readMakerNoteBlobSubDirectories(
-                directory = directory,
-                byteOrder = ByteOrder.LITTLE_ENDIAN,
-                blobPointers = BLOB_POINTERS,
-                addDirectory = addDirectory
-            )
-
-            readMoreInfo(
-                directory = directory,
-                byteOrder = ByteOrder.LITTLE_ENDIAN,
-                addDirectory = addDirectory
-            )
-        }
+        readMoreInfo(
+            directory = makerNoteDirectory,
+            byteOrder = ByteOrder.LITTLE_ENDIAN,
+            addDirectory = addDirectory
+        )
     }
 
     /**

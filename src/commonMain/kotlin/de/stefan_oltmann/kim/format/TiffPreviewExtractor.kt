@@ -19,6 +19,8 @@ package de.stefan_oltmann.kim.format
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.format.tiff.TiffContents
+import de.stefan_oltmann.kim.format.tiff.TiffDirectory
+import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoLong
 import de.stefan_oltmann.kim.input.RandomAccessByteReader
 
 /**
@@ -33,6 +35,42 @@ public fun interface TiffPreviewExtractor {
     ): ByteArray?
 
     public companion object {
+
+        /**
+         * Reads the preview described by the given start/length tag pair
+         * of [directory].
+         *
+         * This is the shared skeleton of the TIFF-family preview
+         * extractors: read both tags, ignore an empty length, and let
+         * [readValidatedPreviewBytes] decide whether the bytes are a
+         * usable preview. A NULL directory (the format variant that uses
+         * this extractor does not exist in the file) reports no preview.
+         */
+        internal fun previewFromTags(
+            directory: TiffDirectory?,
+            randomAccessByteReader: RandomAccessByteReader,
+            startTag: TagInfoLong,
+            lengthTag: TagInfoLong
+        ): ByteArray? {
+
+            if (directory == null)
+                return null
+
+            val previewImageStart = directory.getFieldValue(startTag)
+                ?: return null
+
+            val previewLength = directory.getFieldValue(lengthTag)
+                ?: return null
+
+            if (previewLength == 0)
+                return null
+
+            return readValidatedPreviewBytes(
+                randomAccessByteReader = randomAccessByteReader,
+                start = previewImageStart,
+                length = previewLength
+            )
+        }
 
         /**
          * Reads the claimed preview bytes and validates them.

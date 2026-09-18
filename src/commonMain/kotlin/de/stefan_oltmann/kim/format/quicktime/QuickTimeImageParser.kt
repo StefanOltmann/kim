@@ -28,6 +28,7 @@ import de.stefan_oltmann.kim.format.bmff.box.MovieBox
 import de.stefan_oltmann.kim.format.bmff.box.TrackBox
 import de.stefan_oltmann.kim.format.bmff.box.UserDataBox
 import de.stefan_oltmann.kim.format.bmff.box.UuidBox
+import de.stefan_oltmann.kim.format.xmp.requireValidXmpPacket
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.model.ImageSize
 
@@ -109,15 +110,10 @@ public object QuickTimeImageParser : ImageParser {
                     "so the packet that an update applies to is ambiguous."
             )
 
-        val xmp = xmpBoxes.firstOrNull()?.let(::extractXmpPacket)
-
-        /*
-         * Like WebP, JXL and CR3, corrupt XMP must fail the read instead of
-         * being handed to sidecar writers as a corrupt packet (read/update
-         * symmetry: an update would embed the broken bytes as-is).
-         */
-        if (xmp != null && !xmp.contains("<x:xmpmeta"))
-            throw ImageReadException("The XMP box has no <x:xmpmeta> element.")
+        val xmp = requireValidXmpPacket(
+            xmp = xmpBoxes.firstOrNull()?.let(::extractXmpPacket),
+            sourceDescription = "The XMP box"
+        )
 
         return MediaMetadata(
             mediaFormat = null, /* Set by Kim.readMetadata from the detected format. */

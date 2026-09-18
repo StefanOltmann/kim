@@ -90,29 +90,21 @@ internal object FujiFilmMakerNoteHandler : MakerNoteHandler() {
         /* IFD starts at offset 12 from the beginning of MakerNote data */
         val ifdOffset = FUJIFILM_MAKER_NOTE_SIGNATURE.length + FUJIFILM_MAKER_NOTE_VERSION_LENGTH
 
-        var makerNoteDirectory: TiffDirectory? = null
-
-        readMakerNoteDirectory(
+        val makerNoteDirectory = readMakerNoteDirectory(
             byteReader = byteReader,
             directoryOffset = makerNoteValueOffset + ifdOffset,
             valueOffsetBase = makerNoteValueOffset,
             byteOrder = ByteOrder.LITTLE_ENDIAN,
             directoryType = TiffConstants.TIFF_MAKER_NOTE_FUJIFILM,
-            addDirectory = {
-                makerNoteDirectory = it
-                addDirectory(it)
-            }
+            addDirectory = addDirectory
+        ) ?: return
+
+        readMakerNoteBlobSubDirectories(
+            directory = makerNoteDirectory,
+            byteOrder = ByteOrder.LITTLE_ENDIAN,
+            blobPointers = BLOB_POINTERS,
+            addDirectory = addDirectory
         )
-
-        makerNoteDirectory?.let { directory ->
-
-            readMakerNoteBlobSubDirectories(
-                directory = directory,
-                byteOrder = ByteOrder.LITTLE_ENDIAN,
-                blobPointers = BLOB_POINTERS,
-                addDirectory = addDirectory
-            )
-        }
     }
 }
 

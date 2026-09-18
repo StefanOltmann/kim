@@ -36,6 +36,7 @@ public class WebPChunkVP8L(
 
     public val hasAlpha: Boolean
 
+    /** The bitstream format version the chunk carries. */
     public val versionNumber: Int
 
     init {

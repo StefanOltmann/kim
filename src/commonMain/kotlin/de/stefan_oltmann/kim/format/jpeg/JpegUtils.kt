@@ -117,6 +117,31 @@ internal object JpegUtils {
     }
 
     /**
+     * Returns the position behind the "Exif\0\0" header when the segment
+     * continues a multi-segment EXIF block, or NULL for any other segment.
+     *
+     * EXIF larger than the ~64 KB limit of one APP1 segment is split
+     * across consecutive APP1 segments: every part repeats the Exif
+     * header, but only the first part starts with a TIFF byte order
+     * marker. ExifTool stitches those parts and warns "File contains
+     * multi-segment EXIF". A second, independent EXIF block does start
+     * with a byte order marker, so the stitch must end there - mixing
+     * separate EXIF blocks would lead to inconsistencies.
+     */
+    internal fun findExifContinuationHeaderEnd(marker: Int, segmentBytes: ByteArray): Int? {
+
+        if (marker != JpegConstants.JPEG_APP1_MARKER)
+            return null
+
+        val headerEnd = findExifHeaderEnd(segmentBytes) ?: return null
+
+        return if (startsWithTiffByteOrderMarker(segmentBytes, headerEnd))
+            null
+        else
+            headerEnd
+    }
+
+    /**
      * Reads the header segments of a JPEG file up to the image data.
      *
      * Returns the kept segments and the SOS marker bytes, or NULL when the

@@ -17,6 +17,7 @@
 package de.stefan_oltmann.kim.format.png
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.toInt
 import de.stefan_oltmann.kim.common.toSingleNumberHexes
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
@@ -100,7 +101,7 @@ public object PngMetadataExtractor : MetadataExtractor {
 
             val chunkDataLengthBytes = byteReader.readBytes(INT32_BYTE_SIZE)
 
-            val chunkDataLength = chunkDataLengthBytes.toInt32()
+            val chunkDataLength = chunkDataLengthBytes.toInt(0, PngConstants.PNG_BYTE_ORDER)
 
             /* If the number is negative we have an integer overflow. */
             if (chunkDataLength < 0)
@@ -108,7 +109,7 @@ public object PngMetadataExtractor : MetadataExtractor {
 
             val chunkTypeBytes = byteReader.readBytes(INT32_BYTE_SIZE)
 
-            val chunkType = PngChunkType.get(chunkTypeBytes)
+            val chunkType = PngChunkType.of(chunkTypeBytes)
 
             /*
              * We replace the first image data chunk with a fake black pixel
@@ -171,7 +172,7 @@ public object PngMetadataExtractor : MetadataExtractor {
          */
         while (true) {
 
-            val chunkDataLength = reader.readBytes(INT32_BYTE_SIZE).toInt32()
+            val chunkDataLength = reader.readBytes(INT32_BYTE_SIZE).toInt(0, PngConstants.PNG_BYTE_ORDER)
 
             /* If the number is negative we have an integer overflow. */
             if (chunkDataLength < 0)
@@ -179,7 +180,7 @@ public object PngMetadataExtractor : MetadataExtractor {
 
             val chunkTypeBytes = reader.readBytes(INT32_BYTE_SIZE)
 
-            val chunkType = PngChunkType.get(chunkTypeBytes)
+            val chunkType = PngChunkType.of(chunkTypeBytes)
 
             /* Break if we reached the image data or end marker. */
             if (chunkType == PngChunkType.IDAT || chunkType == PngChunkType.IEND)
@@ -206,53 +207,4 @@ public object PngMetadataExtractor : MetadataExtractor {
         byteList.addAll(bytes.toList())
         return bytes
     }
-
-    @Suppress("EnumNaming", "MagicNumber")
-    private enum class PngChunkType(
-        val bytes: ByteArray
-    ) {
-
-        IHDR(byteArrayOf(0x49, 0x48, 0x44, 0x52)),
-        PLTE(byteArrayOf(0x50, 0x4c, 0x54, 0x45)),
-        IDAT(byteArrayOf(0x49, 0x44, 0x41, 0x54)),
-        IEND(byteArrayOf(0x49, 0x45, 0x4e, 0x44)),
-        CHRM(byteArrayOf(0x63, 0x48, 0x52, 0x4d)),
-        GAMA(byteArrayOf(0x67, 0x41, 0x4d, 0x41)),
-        ICCP(byteArrayOf(0x69, 0x43, 0x43, 0x50)),
-        SBIT(byteArrayOf(0x73, 0x42, 0x49, 0x54)),
-        SRGB(byteArrayOf(0x73, 0x52, 0x47, 0x42)),
-        BKGD(byteArrayOf(0x62, 0x4b, 0x47, 0x44)),
-        HIST(byteArrayOf(0x68, 0x49, 0x53, 0x54)),
-        TRNS(byteArrayOf(0x74, 0x52, 0x4e, 0x53)),
-        PHYS(byteArrayOf(0x70, 0x48, 0x59, 0x73)),
-        SPLT(byteArrayOf(0x73, 0x50, 0x4c, 0x54)),
-        TIME(byteArrayOf(0x74, 0x49, 0x4d, 0x45)),
-        ITXT(byteArrayOf(0x69, 0x54, 0x58, 0x74)),
-        TEXT(byteArrayOf(0x74, 0x45, 0x58, 0x74)),
-        ZTXT(byteArrayOf(0x7a, 0x54, 0x58, 0x74)),
-        EXIF(byteArrayOf(0x65, 0x58, 0x49, 0x66)),
-        ZXIF(byteArrayOf(0x7a, 0x58, 0x49, 0x66));
-
-        companion object {
-
-            fun get(bytes: ByteArray): PngChunkType? {
-
-                for (type in PngChunkType.entries)
-                    if (bytes.contentEquals(type.bytes))
-                        return type
-
-                return null
-            }
-        }
-    }
-
-    private fun byteArrayOf(vararg ints: Int): ByteArray =
-        ints.map { it.toByte() }.toByteArray()
 }
-
-@Suppress("MagicNumber")
-private fun ByteArray.toInt32(): Int =
-    this[0].toInt() shl 24 and -0x1000000 or
-        (this[1].toInt() shl 16 and 0xFF0000) or
-        (this[2].toInt() shl 8 and 0xFF00) or
-        (this[3].toInt() and 0xFF)

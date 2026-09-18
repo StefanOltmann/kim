@@ -25,7 +25,7 @@ import de.stefan_oltmann.kim.format.bmff.Extent
 import de.stefan_oltmann.kim.format.bmff.MetadataItem
 
 /**
- * EIC/ISO 14496-12 meta box
+ * ISO/IEC 14496-12 meta box
  *
  * The Meta Box is a container for several metadata boxes. This class represents a top-level Meta
  * Box that is not a sub-box of some other box.
@@ -113,6 +113,10 @@ public class MetaBoxTopLevel(
         }.sortedBy { item -> item.extents.first().offset }
     }
 
+    /**
+     * The file positions of all metadata extents, sorted by position,
+     * regardless of which item they belong to.
+     */
     public fun findMetadataOffsets(): List<MetadataOffset> =
         findMetadataItems().flatMap { item -> item.extents }.sortedBy { it.offset }
 

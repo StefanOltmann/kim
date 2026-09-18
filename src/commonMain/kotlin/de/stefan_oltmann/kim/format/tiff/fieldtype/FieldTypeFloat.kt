@@ -26,7 +26,7 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 /**
  * Single precision (4-byte) IEEE format.
  */
-public object FieldTypeFloat : FieldType<FloatArray> {
+public data object FieldTypeFloat : FieldType<FloatArray> {
 
     override val type: Int = TiffConstants.FIELD_TYPE_FLOAT_INDEX
 

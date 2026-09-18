@@ -25,7 +25,7 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.readRemainingBytes
 
 /**
- * EIC/ISO 14496-12 UUID box
+ * ISO/IEC 14496-12 UUID box
  *
  * The UUID box is a container for several sub boxes.
  */
@@ -36,10 +36,13 @@ public class UuidBox(
     payload: ByteArray
 ) : Box(BoxType.UUID, offset, size, largeSize, payload) {
 
+    /** The 16 vendor UUID bytes of the box. */
     public val uuid: ByteArray
 
+    /** The UUID bytes rendered as a lowercase hex string. */
     public val uuidAsHex: String
 
+    /** The payload behind the UUID, whose meaning depends on the UUID. */
     public val data: ByteArray
 
     init {
@@ -52,6 +55,7 @@ public class UuidBox(
         data = byteReader.readRemainingBytes()
     }
 
+    /** Whether the UUID is the Adobe XMP identifier. */
     public val isXmp: Boolean get() = uuidAsHex == BMFFConstants.XMP_UUID
 
     override fun toString(): String =

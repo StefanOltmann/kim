@@ -27,7 +27,7 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
  * Two LONGs: the first represents the numerator of a
  * fraction; the second, the denominator.
  */
-public object FieldTypeRational : FieldType<RationalNumbers> {
+public data object FieldTypeRational : FieldType<RationalNumbers> {
 
     override val type: Int = TiffConstants.FIELD_TYPE_RATIONAL_INDEX
 

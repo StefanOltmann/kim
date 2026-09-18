@@ -28,7 +28,7 @@ import de.stefan_oltmann.kim.input.readByteAsInt
 import de.stefan_oltmann.kim.input.readBytes
 
 /**
- * EIC/ISO 14496-12 meta box
+ * ISO/IEC 14496-12 meta box
  *
  * The Meta Box is a container for several metadata boxes.
  */
@@ -40,8 +40,10 @@ public open class MetaBox(
     depth: Int = 0
 ) : Box(BoxType.META, offset, size, largeSize, payload), BoxContainer {
 
+    /** The box version. */
     public val version: Int
 
+    /** The box flags. */
     public val flags: ByteArray
 
     /* Mandatory boxes in META */

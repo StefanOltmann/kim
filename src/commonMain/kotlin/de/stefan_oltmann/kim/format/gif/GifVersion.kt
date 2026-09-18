@@ -36,5 +36,6 @@ public enum class GifVersion(public val bytes: ByteArray) {
         )
     );
 
+    /** Whether the three version bytes of a header identify this version. */
     public fun matches(bytes: ByteArray): Boolean = this.bytes.contentEquals(bytes)
 }

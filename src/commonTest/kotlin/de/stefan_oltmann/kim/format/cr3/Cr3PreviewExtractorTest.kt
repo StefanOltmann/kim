@@ -21,6 +21,7 @@ import de.stefan_oltmann.kim.format.bmff.box.MovieBox
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.model.MediaFormat
+import de.stefan_oltmann.kim.testdata.BmffTestBoxes.box
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -30,18 +31,6 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class Cr3PreviewExtractorTest {
-
-    private fun box(type: String, payload: ByteArray): ByteArray {
-
-        val size = payload.size + 8
-
-        return byteArrayOf(
-            (size shr 24).toByte(),
-            (size shr 16).toByte(),
-            (size shr 8).toByte(),
-            size.toByte()
-        ) + type.encodeToByteArray() + payload
-    }
 
     /**
      * A complete version 0 track header with 84 payload bytes, so the

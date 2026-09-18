@@ -42,10 +42,15 @@ import de.stefan_oltmann.kim.output.writeInt
 public object PngWriter {
 
     /* A chunk header consists of the 4-byte data length and the 4-byte type. */
-    private const val CHUNK_HEADER_LENGTH: Int = 2 * PngConstants.TPYE_LENGTH
+    private const val CHUNK_HEADER_LENGTH: Int = 2 * PngConstants.TYPE_LENGTH
 
     private const val CRC_LENGTH: Long = 4L
 
+    /**
+     * Reads the whole PNG from the reader and rewrites it with the given
+     * EXIF, IPTC and XMP data. NULL leaves that kind of metadata out.
+     */
+    @Throws(ImageWriteException::class)
     public fun writeImage(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
@@ -60,6 +65,11 @@ public object PngWriter {
         xmp = xmp
     )
 
+    /**
+     * Writes the chunks as a complete PNG file, replacing EXIF, IPTC and
+     * XMP with the given data. NULL leaves that kind of metadata out.
+     */
+    @Throws(ImageWriteException::class)
     public fun writeImage(
         chunks: List<PngChunk>,
         byteWriter: ByteWriter,
@@ -216,7 +226,7 @@ public object PngWriter {
                 throw ImageReadException("Invalid PNG chunk length: $dataLength")
 
             val chunkType = PngChunkType.of(
-                header.copyOfRange(PngConstants.TPYE_LENGTH, CHUNK_HEADER_LENGTH)
+                header.copyOfRange(PngConstants.TYPE_LENGTH, CHUNK_HEADER_LENGTH)
             )
 
             if (StaleChunkFilter.isMetadataChunkType(chunkType)) {
@@ -369,7 +379,6 @@ public object PngWriter {
      * Note that a lot of tools like Apple Preview will not be able to read this,
      * but at least ExifTool and GIMP will.
      */
-    @Suppress("UnusedPrivateMember", "kotlin:S1144")
     private fun writeIptcChunk(byteWriter: ByteWriter, iptcBytes: ByteArray) {
 
         /*

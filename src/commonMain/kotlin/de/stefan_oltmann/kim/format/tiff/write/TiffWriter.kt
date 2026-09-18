@@ -415,7 +415,7 @@ public class TiffWriter(
 
     private fun writeImageFileHeader(
         binaryByteWriter: BinaryByteWriter,
-        offsetToFirstIFD: Int = TIFF_HEADER_SIZE
+        offsetToFirstIFD: Int
     ) {
 
         if (byteOrder == ByteOrder.LITTLE_ENDIAN) {

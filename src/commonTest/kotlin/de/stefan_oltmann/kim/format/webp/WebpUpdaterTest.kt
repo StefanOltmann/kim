@@ -118,7 +118,7 @@ class WebpUpdaterTest : AbstractUpdaterTest("webp") {
 
             val type = webpBytes.copyOfRange(
                 offset,
-                offset + WebPConstants.TPYE_LENGTH
+                offset + WebPConstants.TYPE_LENGTH
             ).decodeToString()
 
             if (type == chunkType)
@@ -138,7 +138,7 @@ class WebpUpdaterTest : AbstractUpdaterTest("webp") {
 
         for (index in 0 until WebPConstants.CHUNK_SIZE_LENGTH) {
 
-            val byte = webpBytes[chunkOffset + WebPConstants.TPYE_LENGTH + index].toInt() and 0xFF
+            val byte = webpBytes[chunkOffset + WebPConstants.TYPE_LENGTH + index].toInt() and 0xFF
 
             size = size or (byte shl (index * Byte.SIZE_BITS))
         }
@@ -187,7 +187,7 @@ class WebpUpdaterTest : AbstractUpdaterTest("webp") {
 
             val type = webpBytes.copyOfRange(
                 offset,
-                offset + WebPConstants.TPYE_LENGTH
+                offset + WebPConstants.TYPE_LENGTH
             ).decodeToString()
 
             val size = readChunkSize(webpBytes, offset)
@@ -277,7 +277,7 @@ class WebpUpdaterTest : AbstractUpdaterTest("webp") {
 
         while (offset + 8 <= webpBytes.size) {
 
-            val chunkType = webpBytes.copyOfRange(offset, offset + WebPConstants.TPYE_LENGTH).decodeToString()
+            val chunkType = webpBytes.copyOfRange(offset, offset + WebPConstants.TYPE_LENGTH).decodeToString()
 
             val chunkSize = (webpBytes[offset + 4].toInt() and 0xFF) or
                 ((webpBytes[offset + 5].toInt() and 0xFF) shl 8) or
@@ -286,7 +286,7 @@ class WebpUpdaterTest : AbstractUpdaterTest("webp") {
 
             chunkTypes.add(chunkType)
 
-            offset += WebPConstants.TPYE_LENGTH + WebPConstants.CHUNK_SIZE_LENGTH + chunkSize + chunkSize % 2
+            offset += WebPConstants.TYPE_LENGTH + WebPConstants.CHUNK_SIZE_LENGTH + chunkSize + chunkSize % 2
         }
 
         return chunkTypes
@@ -303,7 +303,7 @@ class WebpUpdaterTest : AbstractUpdaterTest("webp") {
 
         while (offset + 8 <= webpBytes.size) {
 
-            val chunkType = webpBytes.copyOfRange(offset, offset + WebPConstants.TPYE_LENGTH).decodeToString()
+            val chunkType = webpBytes.copyOfRange(offset, offset + WebPConstants.TYPE_LENGTH).decodeToString()
 
             val chunkSize = (webpBytes[offset + 4].toInt() and 0xFF) or
                 ((webpBytes[offset + 5].toInt() and 0xFF) shl 8) or
@@ -313,14 +313,14 @@ class WebpUpdaterTest : AbstractUpdaterTest("webp") {
             if (chunkType == "VP8X") {
 
                 val payload = webpBytes.copyOfRange(
-                    offset + WebPConstants.TPYE_LENGTH + WebPConstants.CHUNK_SIZE_LENGTH,
-                    offset + WebPConstants.TPYE_LENGTH + WebPConstants.CHUNK_SIZE_LENGTH + chunkSize
+                    offset + WebPConstants.TYPE_LENGTH + WebPConstants.CHUNK_SIZE_LENGTH,
+                    offset + WebPConstants.TYPE_LENGTH + WebPConstants.CHUNK_SIZE_LENGTH + chunkSize
                 )
 
                 return WebPChunkVP8X(payload)
             }
 
-            offset += WebPConstants.TPYE_LENGTH + WebPConstants.CHUNK_SIZE_LENGTH + chunkSize + chunkSize % 2
+            offset += WebPConstants.TYPE_LENGTH + WebPConstants.CHUNK_SIZE_LENGTH + chunkSize + chunkSize % 2
         }
 
         error("WebP bytes contain no VP8X chunk.")

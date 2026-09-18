@@ -78,6 +78,9 @@ public object PngImageParser : ImageParser {
             return@tryWithImageReadException parseMetadataFromChunks(chunks)
         }
 
+    /**
+     * Assembles the metadata from the chunks of a PNG file.
+     */
     @Throws(ImageReadException::class)
     @JvmStatic
     public fun parseMetadataFromChunks(chunks: List<PngChunk>): MediaMetadata =
@@ -270,6 +273,12 @@ public object PngImageParser : ImageParser {
     private fun readAndVerifySignature(byteReader: ByteReader) =
         byteReader.readAndVerifyBytes("PNG signature", PngConstants.PNG_SIGNATURE)
 
+    /**
+     * Reads the chunks of a whole PNG file.
+     *
+     * With a non-NULL filter only chunks of the listed types are returned;
+     * skipped chunks are still consumed, so the reader stays in sync.
+     */
     @JvmStatic
     public fun readChunks(
         byteReader: ByteReader,
@@ -302,7 +311,7 @@ public object PngImageParser : ImageParser {
                 throw ImageReadException("Invalid PNG chunk length: $length")
 
             val chunkType = PngChunkType.of(
-                byteReader.readBytes("chunk type", PngConstants.TPYE_LENGTH)
+                byteReader.readBytes("chunk type", PngConstants.TYPE_LENGTH)
             )
 
             val keep = chunkTypeFilter?.contains(chunkType) ?: true
@@ -371,7 +380,7 @@ public object PngImageParser : ImageParser {
                 throw ImageReadException("Invalid PNG chunk length: $length")
 
             val chunkType = PngChunkType.of(
-                byteReader.readBytes("chunk type", PngConstants.TPYE_LENGTH)
+                byteReader.readBytes("chunk type", PngConstants.TYPE_LENGTH)
             )
 
             if (chunkType == PngChunkType.IDAT) {

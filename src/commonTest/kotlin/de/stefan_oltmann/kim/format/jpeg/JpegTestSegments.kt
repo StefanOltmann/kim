@@ -1,6 +1,5 @@
 /*
  * Copyright 2026 Stefan Oltmann
- * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.stefan_oltmann.kim.format.jxl.box
+package de.stefan_oltmann.kim.format.jpeg
 
-import de.stefan_oltmann.kim.format.bmff.BoxType
-import de.stefan_oltmann.kim.format.bmff.box.Box
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 
 /**
- * JPEG XL jxlp box.
+ * Writes a JPEG segment: the 0xFF marker prefix, a big-endian length that
+ * includes the two length bytes, then the payload.
  */
-public class JxlParticalCodestreamBox(
-    offset: Long,
-    size: Long,
-    largeSize: Long?,
+internal fun writeSegment(
+    byteWriter: ByteArrayByteWriter,
+    marker: Int,
     payload: ByteArray
-) : Box(BoxType.JXLP, offset, size, largeSize, payload) {
+) {
 
-    public val isHeader: Boolean =
-        jxlCodeStreamSignaure == payload.take(jxlCodeStreamSignaure.size)
+    byteWriter.write(byteArrayOf(0xFF.toByte(), marker.toByte()))
 
-    private companion object {
+    val length = payload.size + 2
 
-        private val jxlCodeStreamSignaure = listOf(
-            0x00, 0x00, 0x00, 0x00, 0xFF.toByte(), 0x0A
-        )
-    }
+    byteWriter.write(byteArrayOf((length ushr 8).toByte(), length.toByte()))
+    byteWriter.write(payload)
 }

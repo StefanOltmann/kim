@@ -25,7 +25,7 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.read4BytesAsInt
 
 /**
- * EIC/ISO 14496-12 ftyp box.
+ * ISO/IEC 14496-12 ftyp box.
  */
 public class FileTypeBox(
     offset: Long,
@@ -34,10 +34,13 @@ public class FileTypeBox(
     payload: ByteArray
 ) : Box(BoxType.FTYP, offset, size, largeSize, payload) {
 
+    /** The primary brand code that identifies the file variant, like "heic". */
     public val majorBrand: String
 
+    /** The four version bytes behind the major brand, as stored. */
     public val minorBrand: String
 
+    /** All brands the file declares compatibility with, including the major brand. */
     public val compatibleBrands: List<String>
 
     init {

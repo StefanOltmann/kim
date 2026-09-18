@@ -18,7 +18,8 @@
 package de.stefan_oltmann.kim.format.tiff.write
 
 /**
- * This class combines an Directory like the GPS directory with it's offset value.
+ * Pairs a data block with the offset field that points at it: after all
+ * offsets are known, the writer writes the block's position into the field.
  */
 public data class TiffOffsetItem(
     val outputItem: TiffOutputItem,

@@ -228,47 +228,39 @@ internal object NikonMakerNoteHandler : MakerNoteHandler() {
         val tiffHeaderOffset = makerNoteValueOffset + NIKON_MAKER_NOTE_SIGNATURE.length +
             NIKON_MAKER_NOTE_TYPE_LENGTH + NIKON_MAKER_NOTE_VERSION_LENGTH
 
-        var makerNoteDirectory: TiffDirectory? = null
-
-        readMakerNoteDirectory(
+        val makerNoteDirectory = readMakerNoteDirectory(
             byteReader = byteReader,
             directoryOffset = tiffHeaderOffset + ifdOffset,
             valueOffsetBase = tiffHeaderOffset,
             byteOrder = byteOrder,
             directoryType = TiffConstants.TIFF_MAKER_NOTE_NIKON,
-            addDirectory = {
-                makerNoteDirectory = it
-                addDirectory(it)
-            }
+            addDirectory = addDirectory
+        ) ?: return
+
+        readMakerNoteIfdSubDirectories(
+            byteReader = byteReader,
+            directory = makerNoteDirectory,
+            valueOffsetBase = tiffHeaderOffset,
+            byteOrder = byteOrder,
+            subIfdPointers = SUB_IFD_POINTERS,
+            addDirectory = addDirectory
         )
 
-        makerNoteDirectory?.let { directory ->
+        val serialKey = NikonDecryptor.serialKey(
+            serialNumber = makerNoteDirectory.findField(NikonTag.SERIAL_NUMBER)?.valueDescription,
+            model = model
+        )
 
-            readMakerNoteSubDirectories(
-                byteReader = byteReader,
-                directory = directory,
-                valueOffsetBase = tiffHeaderOffset,
-                byteOrder = byteOrder,
-                subIfdPointers = SUB_IFD_POINTERS,
-                addDirectory = addDirectory
-            )
+        val countKey = makerNoteDirectory.findField(NikonTag.SHUTTER_COUNT)?.toInt()
 
-            val serialKey = NikonDecryptor.serialKey(
-                serialNumber = directory.findField(NikonTag.SERIAL_NUMBER)?.valueDescription,
-                model = model
-            )
-
-            val countKey = directory.findField(NikonTag.SHUTTER_COUNT)?.toInt()
-
-            readMakerNoteBlobSubDirectories(
-                directory = directory,
-                byteOrder = byteOrder,
-                blobPointers = BLOB_POINTERS,
-                addDirectory = addDirectory,
-                serialKey = serialKey,
-                countKey = countKey
-            )
-        }
+        readMakerNoteBlobSubDirectories(
+            directory = makerNoteDirectory,
+            byteOrder = byteOrder,
+            blobPointers = BLOB_POINTERS,
+            addDirectory = addDirectory,
+            serialKey = serialKey,
+            countKey = countKey
+        )
     }
 }
 

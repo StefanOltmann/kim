@@ -81,7 +81,7 @@ public object TiffImageParser : ImageParser {
     private fun parseEmbeddedJpegMakerNote(tiffContents: TiffContents): TiffContents {
 
         val jpegBytes = tiffContents.directories.firstOrNull()
-            ?.getFieldValue(TiffTag.TIFF_TAG_JPG_FROM_RAW, false)
+            ?.getFieldValue(TiffTag.TIFF_TAG_JPG_FROM_RAW)
             ?: return tiffContents
 
         val exifBytes = extractExifBytesFromJpegForMakerNote(jpegBytes)
@@ -221,7 +221,7 @@ public object TiffImageParser : ImageParser {
     private fun getIptc(tiffContents: TiffContents): IptcMetadata? {
 
         val iptcBytes = tiffContents.directories.firstOrNull()
-            ?.getFieldValue(TiffTag.TIFF_TAG_IPTC_NAA, false)
+            ?.getFieldValue(TiffTag.TIFF_TAG_IPTC_NAA)
             ?: return null
 
         return IptcParser.parseIptcDataset(iptcBytes)
@@ -231,7 +231,7 @@ public object TiffImageParser : ImageParser {
 
         val firstDirectory = tiffContents.directories.first()
 
-        val bytes = firstDirectory.getFieldValue(TiffTag.TIFF_TAG_XMP, false) ?: return null
+        val bytes = firstDirectory.getFieldValue(TiffTag.TIFF_TAG_XMP) ?: return null
 
         if (bytes.isEmpty())
             return null

@@ -172,6 +172,9 @@ public data class MetadataSummary(
         return result
     }
 
+    /**
+     * Whether no field of the summary carries a value.
+     */
     @Suppress("DataClassContainsFunctions")
     public fun isEmpty(): Boolean =
         this == emptySummary

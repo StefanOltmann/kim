@@ -27,8 +27,10 @@ public interface ByteWriter : AutoCloseable {
         write(byte.toByte())
     }
 
+    /** Writes all bytes of the array in order. */
     public fun write(byteArray: ByteArray)
 
+    /** Pushes buffered bytes to the underlying sink. No-op for in-memory writers. */
     public fun flush()
 
 }

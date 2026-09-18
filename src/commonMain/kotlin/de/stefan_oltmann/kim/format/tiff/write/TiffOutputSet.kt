@@ -30,6 +30,7 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.DEFAULT_TIFF_BYT
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeUndefined
 import de.stefan_oltmann.kim.model.GpsCoordinates
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -60,6 +61,13 @@ public class TiffOutputSet(
         return outputItems
     }
 
+    /**
+     * Adds the directory to the set.
+     *
+     * Sub-directories are inserted before the thumbnail directory, so the
+     * embedded thumbnail stays the last block of the EXIF data. Only one
+     * directory per type is allowed.
+     */
     public fun addDirectory(directory: TiffOutputDirectory): TiffOutputDirectory {
 
         if (findDirectory(directory.type) != null)
@@ -87,7 +95,11 @@ public class TiffOutputSet(
         return directory
     }
 
-    public fun getDirectories(): List<TiffOutputDirectory> = directories
+    /**
+     * Returns a snapshot of the directories of this set, so callers can
+     * inspect them without holding the live list the writer mutates.
+     */
+    public fun getDirectories(): List<TiffOutputDirectory> = directories.toList()
 
     public fun getOrCreateRootDirectory(): TiffOutputDirectory =
         findDirectory(TiffConstants.TIFF_DIRECTORY_TYPE_IFD0) ?: addRootDirectory()
@@ -119,6 +131,23 @@ public class TiffOutputSet(
     public fun findDirectory(directoryType: Int): TiffOutputDirectory? =
         directories.find { it.type == directoryType }
 
+    /**
+     * Serializes this output set into TIFF bytes, as the metadata writers
+     * embed it, for example as the EXIF payload of a JPEG APP1 segment.
+     */
+    internal fun toTiffBytes(): ByteArray {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        TiffWriter(byteOrder = byteOrder).write(byteWriter, this)
+
+        return byteWriter.toByteArray()
+    }
+
+    /**
+     * Applies a single update to the output directories, creating the
+     * directories the update needs on the way.
+     */
     public fun applyUpdate(update: MetadataUpdate) {
 
         val rootDirectory = getOrCreateRootDirectory()
@@ -283,76 +312,67 @@ public class TiffOutputSet(
         gpsDirectory.add(GpsTag.GPS_TAG_GPS_LONGITUDE_REF, longitudeRef)
         gpsDirectory.add(GpsTag.GPS_TAG_GPS_LATITUDE_REF, latitudeRef)
 
-        run {
+        gpsDirectory.add(
+            GpsTag.GPS_TAG_GPS_LONGITUDE,
+            toDegreeMinuteSeconds(abs(gpsCoordinates.longitude))
+        )
 
-            var value = abs(gpsCoordinates.longitude)
-
-            val longitudeDegrees = value.toLong().toDouble()
-            value %= 1.0
-            value *= MINUTES_PER_HOUR
-
-            val longitudeMinutes = value.toLong().toDouble()
-            value %= 1.0
-            value *= MINUTES_PER_HOUR
-
-            val longitudeSeconds = value
-
-            gpsDirectory.add(
-                GpsTag.GPS_TAG_GPS_LONGITUDE,
-                RationalNumbers(
-                    arrayOf(
-                        valueOf(longitudeDegrees),
-                        valueOf(longitudeMinutes),
-                        valueOf(longitudeSeconds)
-                    )
-                )
-            )
-        }
-
-        run {
-
-            var value = abs(gpsCoordinates.latitude)
-
-            val latitudeDegrees = value.toLong().toDouble()
-
-            value %= 1.0
-            value *= MINUTES_PER_HOUR
-
-            val latitudeMinutes = value.toLong().toDouble()
-
-            value %= 1.0
-            value *= MINUTES_PER_HOUR
-
-            val latitudeSeconds = value
-
-            gpsDirectory.add(
-                GpsTag.GPS_TAG_GPS_LATITUDE,
-                RationalNumbers(
-                    arrayOf(
-                        valueOf(latitudeDegrees),
-                        valueOf(latitudeMinutes),
-                        valueOf(latitudeSeconds)
-                    )
-                )
-            )
-        }
+        gpsDirectory.add(
+            GpsTag.GPS_TAG_GPS_LATITUDE,
+            toDegreeMinuteSeconds(abs(gpsCoordinates.latitude))
+        )
     }
 
+    /*
+     * Converts a decimal degree value into the EXIF GPS rationals triple
+     * of degrees, minutes and seconds.
+     */
+    private fun toDegreeMinuteSeconds(degrees: Double): RationalNumbers {
+
+        var value = degrees
+
+        val wholeDegrees = value.toLong().toDouble()
+
+        value %= 1.0
+        value *= MINUTES_PER_HOUR
+
+        val minutes = value.toLong().toDouble()
+
+        value %= 1.0
+        value *= MINUTES_PER_HOUR
+
+        val seconds = value
+
+        return RationalNumbers(
+            arrayOf(
+                valueOf(wholeDegrees),
+                valueOf(minutes),
+                valueOf(seconds)
+            )
+        )
+    }
+
+    /** Returns the MakerNote output field, or NULL when none was added. */
     public fun findMakerNoteField(): TiffOutputField? =
         findField(ExifTag.EXIF_TAG_MAKER_NOTE.tag)
 
+    /** Returns the output field with the given tag id, searching all directories. */
     public fun findField(tag: Int): TiffOutputField? =
         directories.firstNotNullOfOrNull { directory -> directory.findField(tag) }
 
+    /** Adds an empty root directory (IFD0) and returns it. */
     public fun addRootDirectory(): TiffOutputDirectory =
         addDirectory(TiffOutputDirectory(TiffConstants.TIFF_DIRECTORY_TYPE_IFD0, byteOrder))
 
+    /** Adds an empty EXIF sub-directory and returns it. */
     public fun addExifDirectory(): TiffOutputDirectory =
         addDirectory(TiffOutputDirectory(TiffConstants.TIFF_DIRECTORY_EXIF, byteOrder))
 
+    /** Adds an empty thumbnail directory (IFD1) and returns it. */
     public fun addThumbnailDirectory(): TiffOutputDirectory =
         addDirectory(TiffOutputDirectory(TiffConstants.TIFF_DIRECTORY_TYPE_IFD1, byteOrder))
 
+    /** Adds an empty GPS sub-directory and returns it. */
     public fun addGPSDirectory(): TiffOutputDirectory =
         addDirectory(TiffOutputDirectory(TiffConstants.TIFF_DIRECTORY_GPS, byteOrder))
 

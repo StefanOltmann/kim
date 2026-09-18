@@ -18,6 +18,18 @@ package de.stefan_oltmann.kim.input
 
 /**
  * Reads bytes from a media file.
+ *
+ * # End-of-data contract
+ *
+ * The reading functions report the end of the data in three ways, each
+ * suited to its use:
+ *
+ * - [readByte] returns NULL.
+ * - [readBytes] returns a short array (possibly empty), never padded
+ *   with zero bytes, because zero would be parsed as data.
+ * - The field based extensions in `ByteReaderExtensions` throw an
+ *   [de.stefan_oltmann.kim.common.ImageReadException] when a requested
+ *   structure cannot be read completely.
  */
 public interface ByteReader : AutoCloseable {
 

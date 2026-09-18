@@ -29,9 +29,8 @@ import de.stefan_oltmann.kim.input.skipBytes
 
 internal class JfifSegment(
     marker: Int,
-    length: Int,
     byteReader: ByteReader
-) : Segment(marker, length) {
+) : Segment(marker) {
 
     val jfifMajorVersion: Int
     val jfifMinorVersion: Int
@@ -67,7 +66,7 @@ internal class JfifSegment(
     }
 
     constructor(marker: Int, segmentBytes: ByteArray) :
-        this(marker, segmentBytes.size, ByteArrayByteReader(segmentBytes))
+        this(marker, ByteArrayByteReader(segmentBytes))
 
     override fun getDescription(): String =
         "JFIF ($marker)"

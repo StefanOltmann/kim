@@ -38,7 +38,7 @@ import de.stefan_oltmann.kim.format.bmff.box.UserDataBox
 import de.stefan_oltmann.kim.format.bmff.box.UuidBox
 import de.stefan_oltmann.kim.format.jxl.box.CompressedBox
 import de.stefan_oltmann.kim.format.jxl.box.ExifBox
-import de.stefan_oltmann.kim.format.jxl.box.JxlParticalCodestreamBox
+import de.stefan_oltmann.kim.format.jxl.box.JxlPartialCodestreamBox
 import de.stefan_oltmann.kim.format.jxl.box.XmlBox
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.read4BytesAsInt
@@ -226,7 +226,7 @@ public object BoxReader {
 
             /*
              * If we read an JXL file and we already have seen the header,
-             * all reamining JXLP boxes are image data that we can skip.
+             * all remaining JXLP boxes are image data that we can skip.
              */
             if (stopAfterMetadataRead && type == BoxType.JXLP && haveSeenJxlHeaderBox)
                 break
@@ -235,7 +235,7 @@ public object BoxReader {
 
             val actualLength: Long = when (size) {
 
-                /* A vaule of zero indicates that it's the last box. */
+                /* A value of zero indicates that it's the last box. */
                 0L -> available
 
                 /* A length of 1 indicates that we should read the next 8 bytes to get a long value. */
@@ -389,7 +389,7 @@ public object BoxReader {
             val globalOffset = offset + offsetShift
 
             val box = when (type) {
-                /* Generic EIC/ISO 14496-12 boxes. */
+                /* Generic ISO/IEC 14496-12 boxes. */
                 BoxType.FTYP -> FileTypeBox(globalOffset, size, largeSize, bytes)
                 BoxType.META -> if (parentBoxType == null) {
                     MetaBoxTopLevel(globalOffset, size, largeSize, bytes, depth + 1)
@@ -412,7 +412,7 @@ public object BoxReader {
                 /* JXL boxes */
                 BoxType.EXIF -> ExifBox(globalOffset, size, largeSize, bytes)
                 BoxType.XML -> XmlBox(globalOffset, size, largeSize, bytes)
-                BoxType.JXLP -> JxlParticalCodestreamBox(globalOffset, size, largeSize, bytes)
+                BoxType.JXLP -> JxlPartialCodestreamBox(globalOffset, size, largeSize, bytes)
                 BoxType.BROB -> CompressedBox(globalOffset, size, largeSize, bytes)
                 /* Unknown box */
                 else -> Box(type, globalOffset, size, largeSize, bytes)
@@ -471,7 +471,7 @@ public object BoxReader {
                  */
                 if (type == BoxType.JXLP) {
 
-                    box as JxlParticalCodestreamBox
+                    box as JxlPartialCodestreamBox
 
                     if (box.isHeader)
                         haveSeenJxlHeaderBox = true

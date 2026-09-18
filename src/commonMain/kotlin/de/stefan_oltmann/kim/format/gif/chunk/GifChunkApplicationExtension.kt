@@ -20,6 +20,7 @@ package de.stefan_oltmann.kim.format.gif.chunk
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.format.gif.GifChunkType
+import de.stefan_oltmann.kim.format.gif.GifConstants
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.readBytes
 
@@ -40,8 +41,18 @@ public class GifChunkApplicationExtension(
 
     private val xmpMetaTag: String = "x:xmpmeta"
 
+    /** The 8-byte identifier that names the application, or NULL when the extension is too short to carry one. */
     public val applicationIdentifier: String?
+
+    /** The authentication code that follows the identifier, or NULL when absent. */
     public val applicationCode: String?
+
+    /**
+     * Whether this extension carries an XMP packet, matched by the
+     * well-known "XMP DataXMP" application identifier.
+     */
+    public val isXmpExtension: Boolean
+        get() = applicationIdentifier == GifConstants.XMP_APPLICATION_IDENTIFIER
 
     init {
 
@@ -82,6 +93,11 @@ public class GifChunkApplicationExtension(
         }
     }
 
+    /**
+     * Returns the XMP packet this extension carries, or throws when the
+     * payload holds no readable packet.
+     */
+    @Throws(ImageReadException::class)
     public fun parseAsXmpOrThrow(): String {
 
         val extensionContentAsString = try {

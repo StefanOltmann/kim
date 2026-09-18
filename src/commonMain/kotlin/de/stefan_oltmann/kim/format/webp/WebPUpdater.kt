@@ -46,26 +46,14 @@ internal object WebPUpdater : MetadataUpdater {
 
         val metadata = WebPImageParser.parseMetadataFromChunks(chunks)
 
-        val xmpMeta: XMPMeta = if (metadata.xmp != null)
-            XMPMetaFactory.parseFromString(metadata.xmp)
-        else
-            XMPMetaFactory.create()
-
-        val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
+        val updatedXmp = XmpWriter.updateXmp(metadata.xmp, updates, true)
 
         val outputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
 
-        val exifBytes: ByteArray? = if (outputSet.applyUpdates(updates)) {
-
-            val exifBytesWriter = ByteArrayByteWriter()
-
-            TiffWriter(byteOrder = outputSet.byteOrder).write(exifBytesWriter, outputSet)
-
-            exifBytesWriter.toByteArray()
-
-        } else {
+        val exifBytes: ByteArray? = if (outputSet.applyUpdates(updates))
+            outputSet.toTiffBytes()
+        else
             null
-        }
 
         WebPWriter.writeImage(
             chunks = chunks,
@@ -138,11 +126,7 @@ internal object WebPUpdater : MetadataUpdater {
 
         outputSet.setThumbnailBytes(thumbnailBytes)
 
-        val exifBytesWriter = ByteArrayByteWriter()
-
-        TiffWriter(byteOrder = outputSet.byteOrder).write(exifBytesWriter, outputSet)
-
-        val exifBytes = exifBytesWriter.toByteArray()
+        val exifBytes = outputSet.toTiffBytes()
 
         val byteWriter = ByteArrayByteWriter()
 

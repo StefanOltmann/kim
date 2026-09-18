@@ -24,7 +24,7 @@ import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 
 /**
- * EIC/ISO 14496-12 movie box
+ * ISO/IEC 14496-12 movie box
  *
  * The Track Box is a container for several sub boxes.
  */
@@ -38,7 +38,10 @@ public class TrackBox(
 
     override val boxes: List<Box>
 
+    /** The header describing the track, including the display width and height. */
     public val trackHeaderBox: TrackHeaderBox
+
+    /** The media container holding the track's content. */
     public val mediaBox: MediaBox
 
     init {

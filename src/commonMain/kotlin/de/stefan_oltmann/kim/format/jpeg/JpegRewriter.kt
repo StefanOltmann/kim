@@ -84,6 +84,7 @@ public object JpegRewriter {
     }
 
     @JvmStatic
+    @Throws(ImageWriteException::class)
     public fun updateExifMetadata(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
@@ -137,10 +138,13 @@ public object JpegRewriter {
             if (piece !is JFIFPieceSegment || !piece.isExifSegment())
                 return@filterNot false
 
-            val headerEnd = JpegUtils.findExifHeaderEnd(piece.segmentBytes)
-
-            val isContinuation = headerEnd != null &&
-                !JpegUtils.startsWithTiffByteOrderMarker(piece.segmentBytes, headerEnd)
+            /*
+             * Continuation parts of a multi-segment EXIF block are removed
+             * together with the first block they belong to; the start of a
+             * second, independent EXIF block stops the removal.
+             */
+            val isContinuation =
+                JpegUtils.findExifContinuationHeaderEnd(piece.marker, piece.segmentBytes) != null
 
             if (removedFirstExif && !isContinuation)
                 return@filterNot false
@@ -196,7 +200,7 @@ public object JpegRewriter {
     /**
      * Writes the given segments prefixed with the JPEG start-of-image marker (SOI).
      */
-    private fun writeSegments(byteWriter: ByteWriter, segments: List<JFIFPiece>) {
+    internal fun writeSegments(byteWriter: ByteWriter, segments: List<JFIFPiece>) {
 
         byteWriter.write(JpegConstants.SOI)
 
@@ -303,7 +307,11 @@ public object JpegRewriter {
         return segments
     }
 
+    /**
+     * Replaces the XMP of the file with the given packet.
+     */
     @JvmStatic
+    @Throws(ImageWriteException::class)
     public fun updateXmpXml(
         byteReader: ByteReader,
         byteWriter: ByteWriter,

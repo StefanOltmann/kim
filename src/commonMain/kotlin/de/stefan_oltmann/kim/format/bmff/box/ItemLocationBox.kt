@@ -31,7 +31,7 @@ import de.stefan_oltmann.kim.input.readXBytesAtInt
 import de.stefan_oltmann.kim.input.skipBytes
 
 /**
- * EIC/ISO 14496-12 iloc box.
+ * ISO/IEC 14496-12 iloc box.
  */
 public class ItemLocationBox(
     offset: Long,

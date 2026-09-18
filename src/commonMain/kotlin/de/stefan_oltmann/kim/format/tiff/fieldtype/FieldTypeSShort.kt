@@ -26,7 +26,7 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 /**
  * A 16-bit (2-byte) signed (twos-complement) integer.
  */
-public object FieldTypeSShort : FieldType<ShortArray> {
+public data object FieldTypeSShort : FieldType<ShortArray> {
 
     override val type: Int = TiffConstants.FIELD_TYPE_SSHORT_INDEX
 

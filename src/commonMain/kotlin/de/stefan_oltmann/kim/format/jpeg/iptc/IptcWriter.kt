@@ -20,7 +20,6 @@ package de.stefan_oltmann.kim.format.jpeg.iptc
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser.APP13_BYTE_ORDER
-import de.stefan_oltmann.kim.output.BigEndianBinaryByteWriter
 import de.stefan_oltmann.kim.output.BinaryByteWriter
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.jvm.JvmStatic
@@ -32,6 +31,14 @@ public object IptcWriter {
 
     @Suppress("ThrowsCount")
     @JvmStatic
+    /**
+     * Writes the given IPTC blocks, optionally prefixed with the 8BIM
+     * Photoshop APP13 identifier.
+     *
+     * @throws ImageWriteException for block types or names outside the
+     *         ranges the format defines.
+     */
+    @Throws(ImageWriteException::class)
     public fun writeIptcBlocks(
         blocks: List<IptcBlock>,
         includeApp13Identifier: Boolean = true
@@ -39,7 +46,7 @@ public object IptcWriter {
 
         val os = ByteArrayByteWriter()
 
-        val bos: BinaryByteWriter = BigEndianBinaryByteWriter(os)
+        val bos: BinaryByteWriter = BinaryByteWriter.createBinaryByteWriter(os, APP13_BYTE_ORDER)
 
         if (includeApp13Identifier)
             bos.write(JpegConstants.APP13_IDENTIFIER)
@@ -80,7 +87,14 @@ public object IptcWriter {
         return os.toByteArray()
     }
 
-    /* Writes the IPTC block in UTF-8 */
+    /**
+     * Encodes the given records into IPTC application record 2 data,
+     * written in UTF-8 with the coded-character-set envelope set.
+     *
+     * @throws ImageWriteException for record types outside the range the
+     *         format defines.
+     */
+    @Throws(ImageWriteException::class)
     public fun writeIptcBlockData(records: List<IptcRecord>): ByteArray {
 
         val byteWriter = ByteArrayByteWriter()
@@ -106,9 +120,7 @@ public object IptcWriter {
         binaryWriter.write2Bytes(2) // record version record size
         binaryWriter.write2Bytes(IptcConstants.IPTC_RECORD_VERSION_VALUE)
 
-        /**
-         * Write the IPTC records in order.
-         */
+        /* Write the IPTC records in order. */
         for ((iptcType, value) in records.sorted()) {
 
             /* Ignore the record version, because we already wrote it. */

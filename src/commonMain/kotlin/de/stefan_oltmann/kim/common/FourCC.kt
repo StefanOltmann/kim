@@ -23,7 +23,7 @@ package de.stefan_oltmann.kim.common
  * type bytes of a chunk/box translate to human readable strings
  * like "IHDR" & "IDAT" for PNG and "FTYP" & "META" for HEIC.
  *
- * This excension function converts an int to such an type string.
+ * This extension function converts an int to such a type string.
  */
 @Suppress("MagicNumber")
 public fun Int.toFourCCTypeString(): String =

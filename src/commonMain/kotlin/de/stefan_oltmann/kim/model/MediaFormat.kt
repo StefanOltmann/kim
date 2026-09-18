@@ -107,6 +107,7 @@ public enum class MediaFormat(
             return fileNameExtensions
         }
 
+        /** Whether the file name ends with an extension any known format uses. */
         @JvmStatic
         public fun hasValidFileNameExtension(fileName: String): Boolean {
 
@@ -117,6 +118,12 @@ public enum class MediaFormat(
             return false
         }
 
+        /**
+         * Resolves the format by its IANA media type, case-insensitive.
+         *
+         * Cloud providers report RAW files under wrong types like
+         * "image/CR2"; those are mapped back to the real format.
+         */
         @JvmStatic
         public fun byMimeType(mimeType: String): MediaFormat? {
 
@@ -137,6 +144,7 @@ public enum class MediaFormat(
             }
         }
 
+        /** Resolves the format by its Apple uniform type identifier, case-insensitive. */
         @JvmStatic
         public fun byUniformTypeIdentifier(
             uniformTypeIdentifier: String
@@ -149,6 +157,7 @@ public enum class MediaFormat(
             return null
         }
 
+        /** Resolves the format by the file name extension, case-insensitive. */
         @JvmStatic
         public fun byFileNameExtension(fileName: String): MediaFormat? {
 

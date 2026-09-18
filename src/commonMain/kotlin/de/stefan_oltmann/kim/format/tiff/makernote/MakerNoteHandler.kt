@@ -16,6 +16,9 @@
 package de.stefan_oltmann.kim.format.tiff.makernote
 
 import de.stefan_oltmann.kim.common.ByteOrder
+import de.stefan_oltmann.kim.common.toInt
+import de.stefan_oltmann.kim.common.toLong
+import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.format.tiff.TiffDirectory
 import de.stefan_oltmann.kim.format.tiff.TiffField
 import de.stefan_oltmann.kim.format.tiff.TiffReader
@@ -53,6 +56,10 @@ internal open class MakerNoteHandler {
      * The [valueOffsetBase] resolves the MakerNote value offsets
      * against the start of the TIFF bytes, so the stored fields always
      * carry absolute offsets.
+     *
+     * Every read directory is passed to [addDirectory]. The read
+     * directory is also returned, so callers can read its
+     * sub-directories without capturing it from the callback.
      */
     protected fun readMakerNoteDirectory(
         byteReader: RandomAccessByteReader,
@@ -61,7 +68,9 @@ internal open class MakerNoteHandler {
         byteOrder: ByteOrder,
         directoryType: Int,
         addDirectory: (TiffDirectory) -> Unit
-    ) {
+    ): TiffDirectory? {
+
+        var readDirectory: TiffDirectory? = null
 
         TiffReader.readDirectory(
             byteReader = byteReader,
@@ -70,10 +79,15 @@ internal open class MakerNoteHandler {
             directoryType = directoryType,
             visitedOffsets = hashSetOf(),
             readTiffImageBytes = false,
-            addDirectory = addDirectory,
+            addDirectory = {
+                readDirectory = it
+                addDirectory(it)
+            },
             valueOffsetBase = valueOffsetBase,
             followNextDirectory = false
         )
+
+        return readDirectory
     }
 
     /**
@@ -116,7 +130,7 @@ internal open class MakerNoteHandler {
     }
 
     /**
-     * Reads the sub-directories referenced by the given MakerNote
+     * Reads the IFD sub-directories referenced by the given MakerNote
      * directory. The pointer values are offsets relative to the
      * start of the MakerNote data.
      *
@@ -125,7 +139,7 @@ internal open class MakerNoteHandler {
      * opaque binary block and survives the rewrite unchanged, because
      * the writer keeps the whole MakerNote value at its original offset.
      */
-    protected fun readMakerNoteSubDirectories(
+    protected fun readMakerNoteIfdSubDirectories(
         byteReader: RandomAccessByteReader,
         directory: TiffDirectory,
         valueOffsetBase: Int,
@@ -390,45 +404,21 @@ internal open class MakerNoteHandler {
     /**
      * Reads a 16-bit integer from the given position.
      */
-    protected fun ByteArray.toInt16(offset: Int, byteOrder: ByteOrder): Int {
-
-        val byte0 = 0xFF and this[offset].toInt()
-        val byte1 = 0xFF and this[offset + 1].toInt()
-
-        return if (byteOrder == ByteOrder.BIG_ENDIAN)
-            (byte0 shl 8) or byte1
-        else
-            (byte1 shl 8) or byte0
-    }
+    protected fun ByteArray.toInt16(offset: Int, byteOrder: ByteOrder): Int =
+        toUInt16(offset, byteOrder)
 
     /**
      * Reads a 32-bit integer from the given position.
      */
-    protected fun ByteArray.toInt32(offset: Int, byteOrder: ByteOrder): Int {
-
-        val byte0 = 0xFF and this[offset].toInt()
-        val byte1 = 0xFF and this[offset + 1].toInt()
-        val byte2 = 0xFF and this[offset + 2].toInt()
-        val byte3 = 0xFF and this[offset + 3].toInt()
-
-        return if (byteOrder == ByteOrder.BIG_ENDIAN)
-            (byte0 shl 24) or (byte1 shl 16) or (byte2 shl 8) or byte3
-        else
-            byte3 shl 24 or (byte2 shl 16) or (byte1 shl 8) or byte0
-    }
+    protected fun ByteArray.toInt32(offset: Int, byteOrder: ByteOrder): Int =
+        toInt(offset, byteOrder)
 
     /**
-     * Reads a 64-bit integer from the given position.
+     * Reads a 64-bit big-endian integer from the given position,
+     * as used by the Apple RunTime property list.
      */
-    protected fun ByteArray.toInt64(offset: Int): Long {
-
-        var value = 0L
-
-        for (index in 0 until 8)
-            value = (value shl 8) or (0xFFL and this[offset + index].toLong())
-
-        return value
-    }
+    protected fun ByteArray.toInt64(offset: Int): Long =
+        toLong(offset, ByteOrder.BIG_ENDIAN)
 }
 
 

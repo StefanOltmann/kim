@@ -211,6 +211,10 @@ public object KimValueFormatter {
             modelMod ?: makeMod
     }
 
+    /**
+     * Shortens the lens name by the camera name prefix, or returns the
+     * lens name unchanged when one of the two is missing.
+     */
     public fun createModifiedLensName(
         cameraName: String?,
         lensName: String?
@@ -249,6 +253,7 @@ public object KimValueFormatter {
         }
     }
 
+    /** Formats the ISO value for display, like "ISO 400". */
     public fun formatIso(iso: Int): String = "ISO $iso"
 
     /**
@@ -279,6 +284,7 @@ public object KimValueFormatter {
         }
     }
 
+    /** Formats the f-stop for display, like "ƒ2.8". */
     public fun formatFNumber(fNumber: Double): String =
 
         nonFiniteSymbol(fNumber) ?: if (fNumber % 1.0 == 0.0)
@@ -291,6 +297,7 @@ public object KimValueFormatter {
      * number like "18mm" and should be formatted like that,
      * but in case of an iPhone is actually can be "4.2mm".
      */
+    /** Formats the focal length for display, like "18 mm". */
     public fun formatFocalLength(focalLength: Double): String =
 
         nonFiniteSymbol(focalLength) ?: if (focalLength % 1.0 == 0.0)
@@ -304,10 +311,5 @@ public object KimValueFormatter {
      * measurement, and no symbol is more honest than a fake one.
      */
     private fun nonFiniteSymbol(value: Double): String? =
-        when {
-            value.isNaN() -> ""
-            value == Double.POSITIVE_INFINITY -> ""
-            value == Double.NEGATIVE_INFINITY -> ""
-            else -> null
-        }
+        if (!value.isFinite()) "" else null
 }

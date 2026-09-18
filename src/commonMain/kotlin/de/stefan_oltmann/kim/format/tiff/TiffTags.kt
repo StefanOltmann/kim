@@ -139,62 +139,13 @@ internal object TiffTags {
     private val TIFF_AND_EXIF_TAGS_MAP = TIFF_AND_EXIF_TAGS.groupByTo(mutableMapOf()) { it.tag }
 
     private val PANASONIC_RAW_TAGS_MAP = PanasonicRawTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val GPS_TAGS_MAP = GpsTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_TAGS_MAP = CanonTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val NIKON_TAGS_MAP = NikonTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val FUJIFILM_TAGS_MAP = FujiFilmTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val APPLE_TAGS_MAP = AppleTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val OLYMPUS_TAGS_MAP = OlympusTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val OLYMPUS_EQUIPMENT_TAGS_MAP = OlympusEquipmentTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val OLYMPUS_CAMERA_SETTINGS_TAGS_MAP = OlympusCameraSettingsTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val OLYMPUS_RAW_DEVELOPMENT_TAGS_MAP = OlympusRawDevelopmentTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val OLYMPUS_RAW_DEV_2_TAGS_MAP = OlympusRawDevelopment2Tag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val OLYMPUS_IMAGE_PROCESSING_TAGS_MAP = OlympusImageProcessingTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val OLYMPUS_FOCUS_INFO_TAGS_MAP = OlympusFocusInfoTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val PANASONIC_TAGS_MAP = PanasonicTag.ALL.groupByTo(mutableMapOf()) { it.tag }
 
     /*
-     * The Sony variants share a large part of their tag tables,
-     * so they are all resolved from the same map.
+     * The Canon CameraInfo variants are model specific tables for the same
+     * directory. One lookup searches all of them, with the unknown tables
+     * as the fallback.
      */
-    private val SONY_TAGS_MAP = SonyTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_CAMERA_SETTINGS_TAGS_MAP = CanonCameraSettingsTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_FOCAL_LENGTH_TAGS_MAP = CanonFocalLengthTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_SHOT_INFO_TAGS_MAP = CanonShotInfoTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_PANORAMA_TAGS_MAP = CanonPanoramaTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_TIME_INFO_TAGS_MAP = CanonTimeInfoTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_FILE_INFO_TAGS_MAP = CanonFileInfoTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_PROCESSING_INFO_TAGS_MAP = CanonProcessingTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_CROP_INFO_TAGS_MAP = CanonCropInfoTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_ASPECT_INFO_TAGS_MAP = CanonAspectInfoTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_MEASURED_COLOR_TAGS_MAP = CanonMeasuredColorTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_AF_MICRO_ADJ_TAGS_MAP = CanonAfMicroAdjTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_VIGNETTING_CORR_TAGS_MAP = CanonVignettingCorrTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_VIGNETTING_CORR2_TAGS_MAP = CanonVignettingCorr2Tag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_LIGHTING_OPT_TAGS_MAP = CanonLightingOptTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_LENS_INFO_TAGS_MAP = CanonLensInfoTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_AMBIENCE_INFO_TAGS_MAP = CanonAmbienceTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_MULTI_EXP_TAGS_MAP = CanonMultiExpTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_HDR_INFO_TAGS_MAP = CanonHdrInfoTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val NIKON_VR_INFO_TAGS_MAP = NikonVrInfoTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val NIKON_WORLD_TIME_TAGS_MAP = NikonWorldTimeTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val NIKON_ISO_INFO_TAGS_MAP = NikonIsoInfoTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val NIKON_DISTORT_INFO_TAGS_MAP = NikonDistortInfoTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val NIKON_HDR_INFO_TAGS_MAP = NikonHdrInfoTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val NIKON_MULTI_EXPOSURE_TAGS_MAP = NikonMultiExposureTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val NIKON_FILE_INFO_TAGS_MAP = NikonFileInfoTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val NIKON_RETOUCH_INFO_TAGS_MAP = NikonRetouchInfoTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val NIKON_SHOT_INFO_TAGS_MAP = NikonShotInfoTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val PANASONIC_FACE_DET_INFO_TAGS_MAP = PanasonicFaceDetInfoTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val PANASONIC_FACE_REC_INFO_TAGS_MAP = PanasonicFaceRecInfoTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val PANASONIC_TIME_INFO_TAGS_MAP = PanasonicTimeInfoTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val SONY_CAMERA_INFO3_TAGS_MAP = SonyCameraInfo3Tag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val APPLE_RUN_TIME_TAGS_MAP = AppleRunTimeTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_AF_INFO2_TAGS_MAP = CanonAfInfo2Tag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_SENSOR_INFO_TAGS_MAP = CanonSensorInfoTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_FILTER_INFO_TAGS_MAP = CanonFilterInfoTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_PICTURE_STYLE_INFO_TAGS_MAP = CanonPictureStyleInfoTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_CAMERA_INFO_TAGS_MAP = listOf(
+    private val CANON_CAMERA_INFO_TAGS = listOf(
         CanonCameraInfo1DTag.ALL,
         CanonCameraInfo1DmkIITag.ALL,
         CanonCameraInfo1DmkIINTag.ALL,
@@ -225,8 +176,14 @@ internal object TiffTags {
         CanonCameraInfoPowerShot2Tag.ALL,
         CanonCameraInfoUnknown32Tag.ALL,
         CanonCameraInfoUnknownTag.ALL
-    ).flatten().groupByTo(mutableMapOf()) { it.tag }
-    private val CANON_CUSTOM_FUNCTIONS_TAGS_MAP = listOf(
+    ).flatten()
+
+    /*
+     * The Canon CustomFunctions variants are model specific tables for the
+     * same directory. One lookup searches all of them, with the version 2
+     * table as the fallback.
+     */
+    private val CANON_CUSTOM_FUNCTIONS_TAGS = listOf(
         CanonCustomFunctions1DTag.ALL,
         CanonCustomFunctions5DTag.ALL,
         CanonCustomFunctions10DTag.ALL,
@@ -236,27 +193,101 @@ internal object TiffTags {
         CanonCustomFunctions400DTag.ALL,
         CanonCustomFunctionsD30Tag.ALL,
         CanonCustomFunctions2Tag.ALL
-    ).flatten().groupByTo(mutableMapOf()) { it.tag }
-    private val NIKON_FLASH_INFO_TAGS_MAP =
-        (NikonFlashInfo0103Tag.ALL + NikonFlashInfo0107Tag.ALL).groupByTo(mutableMapOf()) { it.tag }
-    private val NIKON_AF_INFO2_TAGS_MAP = NikonAfInfo2Tag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val NIKON_PICTURE_CONTROL_TAGS_MAP =
-        (NikonPictureControlTag.ALL + NikonPictureControl2Tag.ALL).groupByTo(mutableMapOf()) { it.tag }
-    private val NIKON_LENS_DATA_TAGS_MAP = NikonLensData0204Tag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val NIKON_CUSTOM_SETTINGS_TAGS_MAP = NikonCustomSettingsD5100Tag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val NIKON_COLOR_BALANCE_TAGS_MAP =
-        (NikonColorBalance2Tag.ALL + NikonColorBalance4Tag.ALL).groupByTo(mutableMapOf()) { it.tag }
-    private val NIKON_SHOT_INFO_D5100_TAGS_MAP = NikonShotInfoD5100Tag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val SONY_MORE_SETTINGS_TAGS_MAP = SonyMoreSettingsTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val SONY_FACE_INFO_TAGS_MAP = SonyFaceInfoATag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val FUJIFILM_PRIORITY_SETTINGS_TAGS_MAP =
-        FujiFilmPrioritySettingsTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val FUJIFILM_FOCUS_SETTINGS_TAGS_MAP =
-        FujiFilmFocusSettingsTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val FUJIFILM_AFC_SETTINGS_TAGS_MAP =
-        FujiFilmAFCSettingsTag.ALL.groupByTo(mutableMapOf()) { it.tag }
-    private val FUJIFILM_DRIVE_SETTINGS_TAGS_MAP =
-        FujiFilmDriveSettingsTag.ALL.groupByTo(mutableMapOf()) { it.tag }
+    ).flatten()
+
+    /*
+     * Maps every directory type to the tag tables it resolves its tags
+     * from. The tables of a directory are searched in list order, so the
+     * first table that knows a tag wins. Variant tables of one directory
+     * (model specific Canon tables, Nikon FlashInfo versions, ...) are
+     * given as one concatenated table to preserve their entry order.
+     */
+    private val tagTablesByDirectoryType: Map<Int, List<Map<Int, List<TagInfo>>>> = mapOf(
+        TiffConstants.TIFF_DIRECTORY_GPS to tagTables(GpsTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON to tagTables(CanonTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_NIKON to tagTables(NikonTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_FUJIFILM to tagTables(FujiFilmTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_APPLE to tagTables(AppleTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_OLYMPUS to tagTables(OlympusTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_CAMERA_SETTINGS to tagTables(CanonCameraSettingsTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_FOCAL_LENGTH to tagTables(CanonFocalLengthTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_SHOT_INFO to tagTables(CanonShotInfoTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_PANORAMA to tagTables(CanonPanoramaTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_TIME_INFO to tagTables(CanonTimeInfoTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_FILE_INFO to tagTables(CanonFileInfoTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_PROCESSING_INFO to tagTables(CanonProcessingTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_CROP_INFO to tagTables(CanonCropInfoTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_ASPECT_INFO to tagTables(CanonAspectInfoTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_MEASURED_COLOR to tagTables(CanonMeasuredColorTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_AF_MICRO_ADJ to tagTables(CanonAfMicroAdjTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_VIGNETTING_CORR to tagTables(CanonVignettingCorrTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_VIGNETTING_CORR2 to tagTables(CanonVignettingCorr2Tag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_LIGHTING_OPT to tagTables(CanonLightingOptTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_LENS_INFO to tagTables(CanonLensInfoTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_AMBIENCE_INFO to tagTables(CanonAmbienceTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_MULTI_EXP to tagTables(CanonMultiExpTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_HDR_INFO to tagTables(CanonHdrInfoTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_AF_INFO2 to tagTables(CanonAfInfo2Tag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_SENSOR_INFO to tagTables(CanonSensorInfoTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_FILTER_INFO to tagTables(CanonFilterInfoTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_PICTURE_STYLE_INFO to tagTables(CanonPictureStyleInfoTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_CAMERA_INFO to tagTables(CANON_CAMERA_INFO_TAGS),
+        TiffConstants.TIFF_MAKER_NOTE_CANON_CUSTOM_FUNCTIONS to tagTables(CANON_CUSTOM_FUNCTIONS_TAGS),
+        TiffConstants.TIFF_MAKER_NOTE_NIKON_VR_INFO to tagTables(NikonVrInfoTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_NIKON_WORLD_TIME to tagTables(NikonWorldTimeTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_NIKON_ISO_INFO to tagTables(NikonIsoInfoTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_NIKON_DISTORT_INFO to tagTables(NikonDistortInfoTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_NIKON_HDR_INFO to tagTables(NikonHdrInfoTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_NIKON_MULTI_EXPOSURE to tagTables(NikonMultiExposureTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_NIKON_FILE_INFO to tagTables(NikonFileInfoTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_NIKON_RETOUCH_INFO to tagTables(NikonRetouchInfoTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_NIKON_FLASH_INFO to
+            tagTables(NikonFlashInfo0103Tag.ALL + NikonFlashInfo0107Tag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_NIKON_AF_INFO2 to tagTables(NikonAfInfo2Tag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_NIKON_PICTURE_CONTROL to
+            tagTables(NikonPictureControlTag.ALL + NikonPictureControl2Tag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_NIKON_LENS_DATA to tagTables(NikonLensData0204Tag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_NIKON_CUSTOM_SETTINGS to tagTables(NikonCustomSettingsD5100Tag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_NIKON_COLOR_BALANCE to
+            tagTables(NikonColorBalance2Tag.ALL + NikonColorBalance4Tag.ALL),
+        /* The D5100 variant is only consulted for tags the regular table does not know. */
+        TiffConstants.TIFF_MAKER_NOTE_NIKON_SHOT_INFO to
+            tagTables(NikonShotInfoTag.ALL, NikonShotInfoD5100Tag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_PANASONIC to tagTables(PanasonicTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_PANASONIC_FACE_DET_INFO to tagTables(PanasonicFaceDetInfoTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_PANASONIC_FACE_REC_INFO to tagTables(PanasonicFaceRecInfoTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_PANASONIC_TIME_INFO to tagTables(PanasonicTimeInfoTag.ALL),
+        /* The Sony variants share a large part of their tag tables. */
+        TiffConstants.TIFF_MAKER_NOTE_SONY to tagTables(SonyTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_SONY5 to tagTables(SonyTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_SONY_ERICSSON to tagTables(SonyTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_SONY_CAMERA_INFO3 to tagTables(SonyCameraInfo3Tag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_SONY_MORE_SETTINGS to tagTables(SonyMoreSettingsTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_SONY_FACE_INFO to tagTables(SonyFaceInfoATag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_APPLE_RUN_TIME to tagTables(AppleRunTimeTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_FUJIFILM_PRIORITY_SETTINGS to tagTables(FujiFilmPrioritySettingsTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_FUJIFILM_FOCUS_SETTINGS to tagTables(FujiFilmFocusSettingsTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_FUJIFILM_AFC_SETTINGS to tagTables(FujiFilmAFCSettingsTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_FUJIFILM_DRIVE_SETTINGS to tagTables(FujiFilmDriveSettingsTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_EQUIPMENT to tagTables(OlympusEquipmentTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_CAMERA_SETTINGS to tagTables(OlympusCameraSettingsTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_RAW_DEVELOPMENT to tagTables(OlympusRawDevelopmentTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_RAW_DEV_2 to tagTables(OlympusRawDevelopment2Tag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_IMAGE_PROCESSING to tagTables(OlympusImageProcessingTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_FOCUS_INFO to tagTables(OlympusFocusInfoTag.ALL),
+        /* The Olympus AF info lives in the regular Olympus table. */
+        TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_AF_INFO to tagTables(OlympusTag.ALL)
+    )
+
+    /**
+     * Groups the given tag lists into lookup tables, one per list.
+     *
+     * Multiple lists mean a fallback order: the first table that knows a
+     * tag provides its candidates. A single call with one list is the
+     * common case of a directory with one tag table.
+     */
+    private fun tagTables(vararg tagLists: List<TagInfo>): List<Map<Int, List<TagInfo>>> =
+        tagLists.map { tags -> tags.groupBy { it.tag } }
 
     /*
      * Note: Keep in sync with ImageMetadata.findTiffField()
@@ -267,86 +298,18 @@ internal object TiffTags {
         preferPanasonicRawTags: Boolean = false
     ): TagInfo? {
 
-        /*
-         * GPS and Maker Notes should be exact matches.
-         */
-        @Suppress("UseIfInsteadOfWhen")
-        val possibleMatches = when {
+        val tables = tagTablesByDirectoryType[directoryType]
+
+        val possibleMatches: List<TagInfo>? = when {
             preferPanasonicRawTags && directoryType == TiffConstants.TIFF_DIRECTORY_TYPE_IFD0 ->
                 PANASONIC_RAW_TAGS_MAP[tag] ?: TIFF_AND_EXIF_TAGS_MAP[tag]
 
-            directoryType == TiffConstants.TIFF_DIRECTORY_GPS -> GPS_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON -> CANON_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON -> NIKON_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_FUJIFILM -> FUJIFILM_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_APPLE -> APPLE_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_OLYMPUS -> OLYMPUS_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_CAMERA_SETTINGS -> CANON_CAMERA_SETTINGS_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_FOCAL_LENGTH -> CANON_FOCAL_LENGTH_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_SHOT_INFO -> CANON_SHOT_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_PANORAMA -> CANON_PANORAMA_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_TIME_INFO -> CANON_TIME_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_FILE_INFO -> CANON_FILE_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_PROCESSING_INFO -> CANON_PROCESSING_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_CROP_INFO -> CANON_CROP_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_ASPECT_INFO -> CANON_ASPECT_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_MEASURED_COLOR -> CANON_MEASURED_COLOR_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_AF_MICRO_ADJ -> CANON_AF_MICRO_ADJ_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_VIGNETTING_CORR -> CANON_VIGNETTING_CORR_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_VIGNETTING_CORR2 -> CANON_VIGNETTING_CORR2_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_LIGHTING_OPT -> CANON_LIGHTING_OPT_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_LENS_INFO -> CANON_LENS_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_AMBIENCE_INFO -> CANON_AMBIENCE_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_MULTI_EXP -> CANON_MULTI_EXP_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_HDR_INFO -> CANON_HDR_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_VR_INFO -> NIKON_VR_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_WORLD_TIME -> NIKON_WORLD_TIME_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_ISO_INFO -> NIKON_ISO_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_DISTORT_INFO -> NIKON_DISTORT_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_HDR_INFO -> NIKON_HDR_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_MULTI_EXPOSURE -> NIKON_MULTI_EXPOSURE_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_FILE_INFO -> NIKON_FILE_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_RETOUCH_INFO -> NIKON_RETOUCH_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_PANASONIC_FACE_DET_INFO -> PANASONIC_FACE_DET_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_PANASONIC_FACE_REC_INFO -> PANASONIC_FACE_REC_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_PANASONIC_TIME_INFO -> PANASONIC_TIME_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_SONY_CAMERA_INFO3 -> SONY_CAMERA_INFO3_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_APPLE_RUN_TIME -> APPLE_RUN_TIME_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_AF_INFO2 -> CANON_AF_INFO2_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_SENSOR_INFO -> CANON_SENSOR_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_FILTER_INFO -> CANON_FILTER_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_PICTURE_STYLE_INFO -> CANON_PICTURE_STYLE_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_CAMERA_INFO -> CANON_CAMERA_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_CANON_CUSTOM_FUNCTIONS -> CANON_CUSTOM_FUNCTIONS_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_FLASH_INFO -> NIKON_FLASH_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_AF_INFO2 -> NIKON_AF_INFO2_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_PICTURE_CONTROL -> NIKON_PICTURE_CONTROL_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_LENS_DATA -> NIKON_LENS_DATA_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_CUSTOM_SETTINGS -> NIKON_CUSTOM_SETTINGS_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_COLOR_BALANCE -> NIKON_COLOR_BALANCE_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_NIKON_SHOT_INFO ->
-                NIKON_SHOT_INFO_TAGS_MAP[tag] ?: NIKON_SHOT_INFO_D5100_TAGS_MAP[tag]
-
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_SONY_MORE_SETTINGS -> SONY_MORE_SETTINGS_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_SONY_FACE_INFO -> SONY_FACE_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_FUJIFILM_PRIORITY_SETTINGS -> FUJIFILM_PRIORITY_SETTINGS_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_FUJIFILM_FOCUS_SETTINGS -> FUJIFILM_FOCUS_SETTINGS_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_FUJIFILM_AFC_SETTINGS -> FUJIFILM_AFC_SETTINGS_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_FUJIFILM_DRIVE_SETTINGS -> FUJIFILM_DRIVE_SETTINGS_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_EQUIPMENT -> OLYMPUS_EQUIPMENT_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_CAMERA_SETTINGS -> OLYMPUS_CAMERA_SETTINGS_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_RAW_DEVELOPMENT -> OLYMPUS_RAW_DEVELOPMENT_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_RAW_DEV_2 -> OLYMPUS_RAW_DEV_2_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_IMAGE_PROCESSING -> OLYMPUS_IMAGE_PROCESSING_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_FOCUS_INFO -> OLYMPUS_FOCUS_INFO_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_OLYMPUS_AF_INFO -> OLYMPUS_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_PANASONIC -> PANASONIC_TAGS_MAP[tag]
-            directoryType == TiffConstants.TIFF_MAKER_NOTE_SONY ||
-                directoryType == TiffConstants.TIFF_MAKER_NOTE_SONY5 ||
-                directoryType == TiffConstants.TIFF_MAKER_NOTE_SONY_ERICSSON -> SONY_TAGS_MAP[tag]
+            tables != null -> tables.firstNotNullOfOrNull { it[tag] }
 
             else -> TIFF_AND_EXIF_TAGS_MAP[tag]
-        } ?: return null
+        }
+
+        possibleMatches ?: return null
 
         return getTag(directoryType, possibleMatches)
     }
@@ -357,6 +320,7 @@ internal object TiffTags {
     @Suppress("UnnecessaryParentheses")
     private fun getTag(directoryType: Int, possibleMatches: List<TagInfo>): TagInfo? {
 
+        /* GPS and Maker Notes should be exact matches. */
         val exactMatch = possibleMatches.firstOrNull { tagInfo ->
             tagInfo.directoryType?.typeId == directoryType &&
                 tagInfo.directoryType != EXIF_DIRECTORY_UNKNOWN
@@ -387,8 +351,3 @@ internal object TiffTags {
         return null
     }
 }
-
-
-
-
-

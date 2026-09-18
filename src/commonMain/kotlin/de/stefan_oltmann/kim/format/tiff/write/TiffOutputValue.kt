@@ -35,6 +35,10 @@ public class TiffOutputValue internal constructor(
     override fun getItemLength(): Int =
         bytes.size
 
+    /**
+     * Replaces the value bytes in place. The size must stay the same,
+     * because the offset and length fields were already laid out.
+     */
     public fun updateValue(bytes: ByteArray) {
 
         if (this.bytes.size != bytes.size)

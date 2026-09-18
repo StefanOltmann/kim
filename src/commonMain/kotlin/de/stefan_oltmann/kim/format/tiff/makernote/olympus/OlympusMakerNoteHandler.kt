@@ -70,31 +70,23 @@ internal object OlympusMakerNoteHandler : MakerNoteHandler() {
 
         val ifdOffset = OLYMPUS_MAKER_NOTE_SIGNATURE.length + 2 + OLYMPUS_MAKER_NOTE_VERSION_LENGTH
 
-        var makerNoteDirectory: TiffDirectory? = null
-
-        readMakerNoteDirectory(
+        val makerNoteDirectory = readMakerNoteDirectory(
             byteReader = byteReader,
             directoryOffset = makerNoteValueOffset + ifdOffset,
             valueOffsetBase = makerNoteValueOffset,
             byteOrder = byteOrder,
             directoryType = TiffConstants.TIFF_MAKER_NOTE_OLYMPUS,
-            addDirectory = {
-                makerNoteDirectory = it
-                addDirectory(it)
-            }
+            addDirectory = addDirectory
+        ) ?: return
+
+        readMakerNoteIfdSubDirectories(
+            byteReader = byteReader,
+            directory = makerNoteDirectory,
+            valueOffsetBase = makerNoteValueOffset,
+            byteOrder = byteOrder,
+            subIfdPointers = SUB_IFD_POINTERS,
+            addDirectory = addDirectory
         )
-
-        makerNoteDirectory?.let { directory ->
-
-            readMakerNoteSubDirectories(
-                byteReader = byteReader,
-                directory = directory,
-                valueOffsetBase = makerNoteValueOffset,
-                byteOrder = byteOrder,
-                subIfdPointers = SUB_IFD_POINTERS,
-                addDirectory = addDirectory
-            )
-        }
     }
 }
 

@@ -23,7 +23,7 @@ import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
 import de.stefan_oltmann.kim.format.png.chunk.PngTextChunk
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
-import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
+
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
@@ -56,26 +56,14 @@ internal object PngUpdater : MetadataUpdater {
 
             val metadata = PngImageParser.parseMetadataFromChunks(chunks)
 
-            val xmpMeta: XMPMeta = if (metadata.xmp != null)
-                XMPMetaFactory.parseFromString(metadata.xmp)
-            else
-                XMPMetaFactory.create()
-
-            val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
+            val updatedXmp = XmpWriter.updateXmp(metadata.xmp, updates, true)
 
             val outputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
 
-            val exifBytes: ByteArray? = if (outputSet.applyUpdates(updates)) {
-
-                val exifBytesWriter = ByteArrayByteWriter()
-
-                TiffWriter(byteOrder = outputSet.byteOrder).write(exifBytesWriter, outputSet)
-
-                exifBytesWriter.toByteArray()
-
-            } else {
+            val exifBytes: ByteArray? = if (outputSet.applyUpdates(updates))
+                outputSet.toTiffBytes()
+            else
                 null
-            }
 
             PngWriter.writeImage(
                 chunks = chunks,
@@ -125,10 +113,7 @@ internal object PngUpdater : MetadataUpdater {
              * how the image is displayed.
              */
             val chunksWithoutMetadata = chunks.filterNot { chunk ->
-                chunk.type == PngChunkType.EXIF ||
-                    chunk.type == PngChunkType.ZXIF ||
-                    chunk is PngTextChunk ||
-                    chunk.type == PngChunkType.TIME
+                StaleChunkFilter.isMetadataChunkType(chunk.type)
             }
 
             PngWriter.writeImage(
@@ -159,11 +144,7 @@ internal object PngUpdater : MetadataUpdater {
 
         outputSet.setThumbnailBytes(thumbnailBytes)
 
-        val exifBytesWriter = ByteArrayByteWriter()
-
-        TiffWriter(byteOrder = outputSet.byteOrder).write(exifBytesWriter, outputSet)
-
-        val exifBytes = exifBytesWriter.toByteArray()
+        val exifBytes = outputSet.toTiffBytes()
 
         val byteWriter = ByteArrayByteWriter()
 

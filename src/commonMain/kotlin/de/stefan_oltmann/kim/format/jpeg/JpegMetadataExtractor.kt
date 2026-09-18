@@ -67,7 +67,7 @@ public object JpegMetadataExtractor : MetadataExtractor {
         return@tryWithImageReadException bytes.toByteArray()
     }
 
-    internal fun readSegmentBytesIntoList(
+    private fun readSegmentBytesIntoList(
         byteReader: ByteReader,
         bytes: MutableList<Byte>
     ) {

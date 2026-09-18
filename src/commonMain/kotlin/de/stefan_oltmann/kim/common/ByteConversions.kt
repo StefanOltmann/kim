@@ -300,7 +300,7 @@ internal fun ByteArray.toInts(byteOrder: ByteOrder): IntArray =
 private fun ByteArray.toInts(offset: Int, length: Int, byteOrder: ByteOrder): IntArray =
     IntArray(length / 4) { index -> toInt(offset + 4 * index, byteOrder) }
 
-private fun ByteArray.toLong(offset: Int, byteOrder: ByteOrder): Long {
+internal fun ByteArray.toLong(offset: Int, byteOrder: ByteOrder): Long {
 
     val byte0 = 0xFFL and this[offset + 0].toLong()
     val byte1 = 0xFFL and this[offset + 1].toLong()

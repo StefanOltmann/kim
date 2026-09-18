@@ -28,6 +28,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import de.stefan_oltmann.kim.testdata.containsBytes
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -307,14 +308,6 @@ class GifUpdaterTest : AbstractUpdaterTest(
 
         return byteWriter.toByteArray()
     }
-
-    /**
-     * Returns whether the array contains the given byte sequence.
-     */
-    private fun ByteArray.containsBytes(needle: ByteArray): Boolean =
-        (0..size - needle.size).any { index ->
-            copyOfRange(index, index + needle.size).contentEquals(needle)
-        }
 
     private companion object {
 

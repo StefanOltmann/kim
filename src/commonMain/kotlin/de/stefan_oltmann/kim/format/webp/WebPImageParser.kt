@@ -22,7 +22,7 @@ import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.webp.WebPConstants.CHUNK_SIZE_LENGTH
 import de.stefan_oltmann.kim.format.webp.WebPConstants.RIFF_SIGNATURE
-import de.stefan_oltmann.kim.format.webp.WebPConstants.TPYE_LENGTH
+import de.stefan_oltmann.kim.format.webp.WebPConstants.TYPE_LENGTH
 import de.stefan_oltmann.kim.format.webp.WebPConstants.WEBP_BYTE_ORDER
 import de.stefan_oltmann.kim.format.webp.WebPConstants.WEBP_SIGNATURE
 import de.stefan_oltmann.kim.format.webp.chunk.ImageSizeAware
@@ -32,6 +32,7 @@ import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8L
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8X
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkXmp
+import de.stefan_oltmann.kim.format.xmp.requireValidXmpPacket
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.read4BytesAsInt
 import de.stefan_oltmann.kim.input.readAndVerifyBytes
@@ -52,7 +53,7 @@ public object WebPImageParser : ImageParser {
     private const val SIZE_HEADER_BYTES: Int = 16
 
     /* The "RIFF" signature plus the 4-byte size field. */
-    private const val RIFF_PREFIX_LENGTH: Int = TPYE_LENGTH + CHUNK_SIZE_LENGTH
+    private const val RIFF_PREFIX_LENGTH: Int = TYPE_LENGTH + CHUNK_SIZE_LENGTH
 
     /*
      * https://developers.google.com/speed/webp/docs/riff_container
@@ -71,6 +72,9 @@ public object WebPImageParser : ImageParser {
             parseMetadataFromChunks(chunks)
         }
 
+    /**
+     * Assembles the metadata from the chunks of a WebP file.
+     */
     @Throws(ImageReadException::class)
     @JvmStatic
     public fun parseMetadataFromChunks(chunks: List<WebPChunk>): MediaMetadata =
@@ -93,10 +97,10 @@ public object WebPImageParser : ImageParser {
              * so it must fail the read as well (read/update symmetry),
              * like the GIF chunk validation.
              */
-            val xmp = xmpChunk?.xmp?.takeIf { it.contains("<x:xmpmeta") }
-
-            if (xmpChunk != null && xmp == null)
-                throw ImageReadException("The WebP XMP chunk has no <x:xmpmeta> element.")
+            val xmp = requireValidXmpPacket(
+                xmp = xmpChunk?.xmp,
+                sourceDescription = "The WebP XMP chunk"
+            )
 
             return@tryWithImageReadException MediaMetadata(
                 mediaFormat = MediaFormat.WEBP,
@@ -161,7 +165,7 @@ public object WebPImageParser : ImageParser {
         while (bytesReadCount < bytesToRead) {
 
             val chunkType = WebPChunkType.of(
-                byteReader.readBytes("chunk type", TPYE_LENGTH)
+                byteReader.readBytes("chunk type", TYPE_LENGTH)
             )
 
             val chunkSize = byteReader.read4BytesAsInt("chunk size", WEBP_BYTE_ORDER)
@@ -203,14 +207,14 @@ public object WebPImageParser : ImageParser {
             val hasPadding = chunkSize % 2 != 0
 
             val paddedEndCount =
-                bytesReadCount + TPYE_LENGTH + CHUNK_SIZE_LENGTH + chunkSize + 1
+                bytesReadCount + TYPE_LENGTH + CHUNK_SIZE_LENGTH + chunkSize + 1
 
             val hasFinalPadding = hasPadding && paddedEndCount <= bytesToRead
 
             if (hasFinalPadding)
                 byteReader.skipBytes("padding byte", 1)
 
-            bytesReadCount += TPYE_LENGTH + CHUNK_SIZE_LENGTH + chunkSize +
+            bytesReadCount += TYPE_LENGTH + CHUNK_SIZE_LENGTH + chunkSize +
                 if (hasFinalPadding) 1 else 0
 
             /*

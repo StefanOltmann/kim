@@ -52,8 +52,10 @@ public enum class ExifRating(
 
     public companion object {
 
+        /** The full range of rating values the format defines. */
         public val validIntRange: IntRange = REJECTED.value..FIVE_STARS.value
 
+        /** Parses the integer rating the EXIF tags carry, or returns NULL. */
         /* **Note:** Swift problems if parameter value is of type Int? */
         public fun of(value: Int): ExifRating? = when (value) {
             REJECTED_VALUE -> REJECTED
@@ -66,6 +68,7 @@ public enum class ExifRating(
             else -> null
         }
 
+        /** Parses the textual rating form XMP uses, or returns NULL. */
         public fun of(value: String?): ExifRating? = when (value) {
             "-1" -> REJECTED
             "0" -> UNRATED

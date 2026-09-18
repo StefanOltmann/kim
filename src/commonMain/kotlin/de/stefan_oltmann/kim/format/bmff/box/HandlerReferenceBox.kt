@@ -27,7 +27,7 @@ import de.stefan_oltmann.kim.input.readNullTerminatedString
 import de.stefan_oltmann.kim.input.skipBytes
 
 /**
- * EIC/ISO 14496-12 hdlr box.
+ * ISO/IEC 14496-12 hdlr box.
  */
 public class HandlerReferenceBox(
     offset: Long,
@@ -36,12 +36,16 @@ public class HandlerReferenceBox(
     payload: ByteArray
 ) : Box(BoxType.HDLR, offset, size, largeSize, payload) {
 
+    /** The box version. */
     public val version: Int
 
+    /** The box flags. */
     public val flags: ByteArray
 
+    /** The four-character kind of the track, like "vide" for video or "pict" for images. */
     public val handlerType: String
 
+    /** A free-text name, often empty in real files. */
     public val name: String
 
     init {

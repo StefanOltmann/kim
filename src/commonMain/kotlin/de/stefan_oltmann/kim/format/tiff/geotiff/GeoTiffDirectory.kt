@@ -80,6 +80,7 @@ public data class GeoTiffDirectory(
         private const val GEO_KEY_SHORT_COUNT: Int = 4
 
         @Suppress("MagicNumber")
+        @Throws(ImageReadException::class)
         public fun parseFrom(shorts: ShortArray): GeoTiffDirectory {
 
             /*

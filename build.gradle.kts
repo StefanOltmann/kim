@@ -333,9 +333,20 @@ kotlin {
         macosArm64Test.dependsOn(this)
     }
 
+    /*
+     * Extra sourceSet shared by the JavaScript based targets: js and
+     * wasmJs compile the same ECMAScript actuals, so their common code
+     * lives here instead of in two drifting copies.
+     */
+    val webMain = sourceSets.create("webMain") {
+
+        dependsOn(commonMain)
+    }
+
     sourceSets.getByName("jsMain") {
 
         dependsOn(commonMain)
+        dependsOn(webMain)
 
         dependencies {
             api(npm("pako", libs.versions.pako.get()))
@@ -348,6 +359,7 @@ kotlin {
     sourceSets.create("wasmMain") {
 
         dependsOn(commonMain)
+        dependsOn(webMain)
 
         wasmJsMain.dependsOn(this)
         // wasmWasiMain.dependsOn(this)

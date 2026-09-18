@@ -47,6 +47,9 @@ public object XmpWriter {
             .setUseCanonicalFormat(false)
             .setSort(true)
 
+    /**
+     * Applies a single metadata update to this XMP packet.
+     */
     @JvmStatic
     public fun XMPMeta.applyUpdate(update: MetadataUpdate) {
 
@@ -140,7 +143,6 @@ public object XmpWriter {
      * Note: Parameter 'writePackageWrapper' should be "true" for embedded XMP.
      */
     @Throws(XMPException::class)
-    @Suppress("LoopWithTooManyJumpStatements")
     @JvmStatic
     public fun updateXmp(
         xmpMeta: XMPMeta,
@@ -157,25 +159,40 @@ public object XmpWriter {
     }
 
     /**
+     * Applies the updates to the given packet, or to a newly created
+     * packet when the file has no XMP yet.
+     *
+     * Note: Parameter 'writePackageWrapper' should be "true" for embedded XMP.
+     */
+    @Throws(XMPException::class)
+    @JvmStatic
+    public fun updateXmp(
+        existingXmp: String?,
+        updates: Set<MetadataUpdate>,
+        writePackageWrapper: Boolean
+    ): String {
+
+        val xmpMeta = if (existingXmp != null)
+            XMPMetaFactory.parseFromString(existingXmp)
+        else
+            XMPMetaFactory.create()
+
+        return updateXmp(xmpMeta, updates, writePackageWrapper)
+    }
+
+    /**
      * Convenience overload for applying a single update.
      *
      * Note: Parameter 'writePackageWrapper' should be "true" for embedded XMP.
      */
     @Throws(XMPException::class)
-    @Suppress("LoopWithTooManyJumpStatements")
     @JvmStatic
     public fun updateXmp(
         xmpMeta: XMPMeta,
         update: MetadataUpdate,
         writePackageWrapper: Boolean
-    ): String {
-
-        xmpMeta.applyUpdate(update)
-
-        deleteStaleExtendedXmpReference(xmpMeta)
-
-        return xmpMeta.serializeToString(writePackageWrapper)
-    }
+    ): String =
+        updateXmp(xmpMeta, setOf(update), writePackageWrapper)
 
     /**
      * Removes a stale "xmpNote:HasExtendedXMP" reference that was read from

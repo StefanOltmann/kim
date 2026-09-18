@@ -29,11 +29,11 @@ public object WebPConstants {
     public val WEBP_SIGNATURE: ByteArray = "WEBP".encodeToByteArray()
 
     /* ChunkType is a FourCC, so it's 4 bytes. */
-    public const val TPYE_LENGTH: Int = 4
+    public const val TYPE_LENGTH: Int = 4
 
     public const val CHUNK_SIZE_LENGTH: Int = 4
 
-    public const val CHUNK_HEADER_LENGTH: Int = TPYE_LENGTH + CHUNK_SIZE_LENGTH
+    public const val CHUNK_HEADER_LENGTH: Int = TYPE_LENGTH + CHUNK_SIZE_LENGTH
 
     public const val VP8X_PAYLOAD_LENGTH: Int = 10
 
