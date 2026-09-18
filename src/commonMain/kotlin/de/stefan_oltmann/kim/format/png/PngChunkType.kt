@@ -18,7 +18,7 @@
 package de.stefan_oltmann.kim.format.png
 
 import de.stefan_oltmann.kim.common.toFourCCTypeString
-import de.stefan_oltmann.kim.format.png.PngConstants.TPYE_LENGTH
+import de.stefan_oltmann.kim.format.png.PngConstants.TYPE_LENGTH
 
 /**
  * Type of a PNG chunk.
@@ -80,7 +80,7 @@ public data class PngChunkType(
         @Suppress("MagicNumber")
         public fun of(typeBytes: ByteArray): PngChunkType {
 
-            require(typeBytes.size == TPYE_LENGTH) {
+            require(typeBytes.size == TYPE_LENGTH) {
                 "ChunkType must be always 4 bytes, but got ${typeBytes.size} bytes!"
             }
 

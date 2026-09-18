@@ -64,7 +64,7 @@ public data class WebPChunkType(
         @Suppress("MagicNumber")
         public fun of(typeBytes: ByteArray): WebPChunkType {
 
-            require(typeBytes.size == WebPConstants.TPYE_LENGTH) {
+            require(typeBytes.size == WebPConstants.TYPE_LENGTH) {
                 "ChunkType must be always 4 bytes, but got ${typeBytes.size} bytes!"
             }
 

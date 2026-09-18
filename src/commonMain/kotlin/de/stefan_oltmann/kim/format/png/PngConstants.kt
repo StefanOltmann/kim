@@ -27,7 +27,7 @@ public object PngConstants {
     public val PNG_BYTE_ORDER: ByteOrder = ByteOrder.BIG_ENDIAN
 
     /* ChunkType is a FourCC, so it's 4 bytes. */
-    public const val TPYE_LENGTH: Int = 4
+    public const val TYPE_LENGTH: Int = 4
 
     public const val COMPRESSION_DEFLATE_INFLATE: Int = 0
 

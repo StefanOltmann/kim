@@ -42,7 +42,7 @@ import de.stefan_oltmann.kim.output.writeInt
 public object PngWriter {
 
     /* A chunk header consists of the 4-byte data length and the 4-byte type. */
-    private const val CHUNK_HEADER_LENGTH: Int = 2 * PngConstants.TPYE_LENGTH
+    private const val CHUNK_HEADER_LENGTH: Int = 2 * PngConstants.TYPE_LENGTH
 
     private const val CRC_LENGTH: Long = 4L
 
@@ -224,7 +224,7 @@ public object PngWriter {
                 throw ImageReadException("Invalid PNG chunk length: $dataLength")
 
             val chunkType = PngChunkType.of(
-                header.copyOfRange(PngConstants.TPYE_LENGTH, CHUNK_HEADER_LENGTH)
+                header.copyOfRange(PngConstants.TYPE_LENGTH, CHUNK_HEADER_LENGTH)
             )
 
             if (StaleChunkFilter.isMetadataChunkType(chunkType)) {

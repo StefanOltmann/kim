@@ -311,7 +311,7 @@ public object PngImageParser : ImageParser {
                 throw ImageReadException("Invalid PNG chunk length: $length")
 
             val chunkType = PngChunkType.of(
-                byteReader.readBytes("chunk type", PngConstants.TPYE_LENGTH)
+                byteReader.readBytes("chunk type", PngConstants.TYPE_LENGTH)
             )
 
             val keep = chunkTypeFilter?.contains(chunkType) ?: true
@@ -380,7 +380,7 @@ public object PngImageParser : ImageParser {
                 throw ImageReadException("Invalid PNG chunk length: $length")
 
             val chunkType = PngChunkType.of(
-                byteReader.readBytes("chunk type", PngConstants.TPYE_LENGTH)
+                byteReader.readBytes("chunk type", PngConstants.TYPE_LENGTH)
             )
 
             if (chunkType == PngChunkType.IDAT) {
