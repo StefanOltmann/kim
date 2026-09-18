@@ -311,10 +311,5 @@ public object KimValueFormatter {
      * measurement, and no symbol is more honest than a fake one.
      */
     private fun nonFiniteSymbol(value: Double): String? =
-        when {
-            value.isNaN() -> ""
-            value == Double.POSITIVE_INFINITY -> ""
-            value == Double.NEGATIVE_INFINITY -> ""
-            else -> null
-        }
+        if (!value.isFinite()) "" else null
 }
