@@ -150,10 +150,7 @@ internal object JpegUpdater : MetadataUpdater {
             val updatedSegments =
                 JpegRewriter.applyMetadataUpdates(segments, updatedXmp, outputSet, iptcWithDigest ?: iptc)
 
-            outputWriter.write(JpegConstants.SOI)
-
-            for (segment in updatedSegments)
-                segment.write(outputWriter)
+            JpegRewriter.writeSegments(outputWriter, updatedSegments)
         }
     }
 
@@ -174,10 +171,7 @@ internal object JpegUpdater : MetadataUpdater {
                     segment.marker == JpegConstants.COM_MARKER_1
             }
 
-            outputWriter.write(JpegConstants.SOI)
-
-            for (segment in segmentsWithoutMetadata)
-                segment.write(outputWriter)
+            JpegRewriter.writeSegments(outputWriter, segmentsWithoutMetadata)
         }
     }
 

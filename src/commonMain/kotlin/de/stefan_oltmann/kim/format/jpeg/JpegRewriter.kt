@@ -199,7 +199,7 @@ public object JpegRewriter {
     /**
      * Writes the given segments prefixed with the JPEG start-of-image marker (SOI).
      */
-    private fun writeSegments(byteWriter: ByteWriter, segments: List<JFIFPiece>) {
+    internal fun writeSegments(byteWriter: ByteWriter, segments: List<JFIFPiece>) {
 
         byteWriter.write(JpegConstants.SOI)
 
