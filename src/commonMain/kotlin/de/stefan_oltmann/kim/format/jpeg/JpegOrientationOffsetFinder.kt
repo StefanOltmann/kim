@@ -64,7 +64,7 @@ public object JpegOrientationOffsetFinder {
             if (scan.marker == JpegConstants.SOS_MARKER || scan.marker == JpegConstants.EOI_MARKER)
                 break
 
-            /* If we don't have anough bytes for the segment count we are done reading. */
+            /* If we don't have enough bytes for the segment count we are done reading. */
             if (byteReader.contentLength - positionCounter < 2)
                 break
 

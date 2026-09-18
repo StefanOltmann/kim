@@ -87,7 +87,7 @@ public object JpegImageParser : ImageParser {
             if (scan.marker == JpegConstants.SOS_MARKER || scan.marker == JpegConstants.EOI_MARKER)
                 break
 
-            /* If we don't have anough bytes for the segment count we are done reading. */
+            /* If we don't have enough bytes for the segment count we are done reading. */
             if (byteReader.contentLength - readBytesCount < 2)
                 break
 
