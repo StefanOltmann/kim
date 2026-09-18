@@ -22,6 +22,9 @@ import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.quadsToByteArray
 import de.stefan_oltmann.kim.common.toHex
+import de.stefan_oltmann.kim.common.toInt
+import de.stefan_oltmann.kim.common.toLong
+import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
@@ -74,66 +77,16 @@ internal fun ByteReader.readByteAsInt(): Int =
     readByte()?.toUInt8() ?: -1
 
 /** Reads 2 bytes as unsigned number, also known as "short" or "UInt16". */
-internal fun ByteReader.read2BytesAsInt(fieldName: String, byteOrder: ByteOrder): Int {
-
-    val byte0 = readByteAsInt()
-    val byte1 = readByteAsInt()
-
-    /* readByteAsInt() returns -1 at the end of the stream. */
-    if (byte0 < 0 || byte1 < 0)
-        throw ImageReadException("Couldn't read two bytes for $fieldName")
-
-    return if (byteOrder == ByteOrder.BIG_ENDIAN)
-        byte0 shl Byte.SIZE_BITS or byte1
-    else
-        byte1 shl Byte.SIZE_BITS or byte0
-}
+internal fun ByteReader.read2BytesAsInt(fieldName: String, byteOrder: ByteOrder): Int =
+    readBytes(fieldName, Short.SIZE_BYTES).toUInt16(0, byteOrder)
 
 /** Reads 4 bytes as unsigned number, also known as "int" or "UInt32". */
-internal fun ByteReader.read4BytesAsInt(fieldName: String, byteOrder: ByteOrder): Int {
-
-    val byte0 = readByteAsInt()
-    val byte1 = readByteAsInt()
-    val byte2 = readByteAsInt()
-    val byte3 = readByteAsInt()
-
-    if (byte0 < 0 || byte1 < 0 || byte2 < 0 || byte3 < 0)
-        throw ImageReadException("Couldn't read 4 bytes for $fieldName")
-
-    val result: Int = if (byteOrder == ByteOrder.BIG_ENDIAN)
-        byte0 shl 24 or (byte1 shl 16) or (byte2 shl 8) or (byte3 shl 0)
-    else
-        byte3 shl 24 or (byte2 shl 16) or (byte1 shl 8) or (byte0 shl 0)
-
-    return result
-}
+internal fun ByteReader.read4BytesAsInt(fieldName: String, byteOrder: ByteOrder): Int =
+    readBytes(fieldName, Int.SIZE_BYTES).toInt(0, byteOrder)
 
 /** Reads 8 bytes as unsigned number, also known as "long" or "UInt64". */
-internal fun ByteReader.read8BytesAsLong(fieldName: String, byteOrder: ByteOrder): Long {
-
-    val byte0 = readByteAsInt()
-    val byte1 = readByteAsInt()
-    val byte2 = readByteAsInt()
-    val byte3 = readByteAsInt()
-    val byte4 = readByteAsInt()
-    val byte5 = readByteAsInt()
-    val byte6 = readByteAsInt()
-    val byte7 = readByteAsInt()
-
-    if (byte0 < 0 || byte1 < 0 || byte2 < 0 || byte3 < 0 ||
-        byte4 < 0 || byte5 < 0 || byte6 < 0 || byte7 < 0
-    )
-        throw ImageReadException("Couldn't read 8 bytes for $fieldName")
-
-    val result: Long = if (byteOrder == ByteOrder.BIG_ENDIAN)
-        byte0.toLong() shl 56 or (byte1.toLong() shl 48) or (byte2.toLong() shl 40) or (byte3.toLong() shl 32) or
-            (byte4.toLong() shl 24) or (byte5.toLong() shl 16) or (byte6.toLong() shl 8) or (byte7.toLong() shl 0)
-    else
-        byte7.toLong() shl 56 or (byte6.toLong() shl 48) or (byte5.toLong() shl 40) or (byte4.toLong() shl 32) or
-            (byte3.toLong() shl 24) or (byte2.toLong() shl 16) or (byte1.toLong() shl 8) or (byte0.toLong() shl 0)
-
-    return result
-}
+internal fun ByteReader.read8BytesAsLong(fieldName: String, byteOrder: ByteOrder): Long =
+    readBytes(fieldName, Long.SIZE_BYTES).toLong(0, byteOrder)
 
 internal fun ByteReader.readXBytesAtInt(fieldName: String, count: Int, byteOrder: ByteOrder): Long =
     when (count) {
