@@ -26,6 +26,7 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.writeBox
+import de.stefan_oltmann.kim.testdata.countOccurrences
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.writeInt
 import kotlin.test.Test
