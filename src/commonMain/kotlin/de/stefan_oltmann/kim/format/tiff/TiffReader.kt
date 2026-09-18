@@ -65,13 +65,6 @@ import kotlin.jvm.JvmStatic
 @Suppress("TooManyFunctions", "LargeClass")
 public object TiffReader {
 
-    private val offsetFields = listOf(
-        ExifTag.EXIF_TAG_EXIF_OFFSET,
-        ExifTag.EXIF_TAG_GPSINFO,
-        ExifTag.EXIF_TAG_INTEROP_OFFSET,
-        ExifTag.EXIF_TAG_SUB_IFDS_OFFSET
-    )
-
     /*
      * Real files nest directories at most a few levels deep (IFD0,
      * ExifIFD, InteropIFD), so this limit only rejects hostile input.
@@ -88,13 +81,8 @@ public object TiffReader {
     private const val PANASONIC_RAW_TIFF_VERSION: Int = 0x55
 
     /**
-     * A sub-directory of a MakerNote that is stored as a binary blob.
-     *
-     * The fields are stored at tag * byteOffsetMultiplier within the
-     * blob, where the multiplier is the size of the data type that the
-     * vendor stores the fields in. firstTag and offsetBase shift the
-     * field positions for tables whose entries do not start at the
-     * beginning of the blob.
+     * The offset fields of a directory that point to a sub-directory,
+     * mapped to the directory type that sub-directory is read as.
      */
     private val directoryTypeMap = mapOf(
         ExifTag.EXIF_TAG_EXIF_OFFSET to TiffConstants.TIFF_DIRECTORY_EXIF,
@@ -347,10 +335,14 @@ public object TiffReader {
      * The Exif, GPS and Interop offset fields point to sub-IFDs whose
      * content is user-visible metadata that must survive updates.
      */
+    private val metadataBearingOffsetFields = listOf(
+        ExifTag.EXIF_TAG_EXIF_OFFSET,
+        ExifTag.EXIF_TAG_GPSINFO,
+        ExifTag.EXIF_TAG_INTEROP_OFFSET
+    )
+
     private fun isMetadataBearingOffsetField(offsetField: TagInfo): Boolean =
-        offsetField == ExifTag.EXIF_TAG_EXIF_OFFSET ||
-            offsetField == ExifTag.EXIF_TAG_GPSINFO ||
-            offsetField == ExifTag.EXIF_TAG_INTEROP_OFFSET
+        offsetField in metadataBearingOffsetFields
 
     private fun readOffsetDirectories(
         byteReader: RandomAccessByteReader,
@@ -364,7 +356,7 @@ public object TiffReader {
         depth: Int
     ) {
 
-        for (offsetField in offsetFields) {
+        for (offsetField in directoryTypeMap.keys) {
 
             val field = directory.findField(offsetField) ?: continue
 
@@ -498,10 +490,7 @@ public object TiffReader {
          * not be dropped silently either: a rewrite would remove the
          * whole Exif, GPS or Interop sub-IFD from the file.
          */
-        if (tag == ExifTag.EXIF_TAG_EXIF_OFFSET.tag ||
-            tag == ExifTag.EXIF_TAG_GPSINFO.tag ||
-            tag == ExifTag.EXIF_TAG_INTEROP_OFFSET.tag
-        )
+        if (metadataBearingOffsetFields.any { it.tag == tag })
             throw ImageReadException(
                 "Failed to read a metadata-bearing offset field (tag ${tag.toUInt()})."
             )
