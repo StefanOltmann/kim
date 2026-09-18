@@ -24,11 +24,11 @@ internal abstract class GenericSegment : Segment {
 
     val segmentBytes: ByteArray
 
-    constructor(marker: Int, markerLength: Int, byteReader: ByteReader) : super(marker, markerLength) {
+    constructor(marker: Int, markerLength: Int, byteReader: ByteReader) : super(marker) {
         segmentBytes = byteReader.readBytes("segmentBytes", markerLength)
     }
 
-    constructor(marker: Int, bytes: ByteArray) : super(marker, bytes.size) {
+    constructor(marker: Int, bytes: ByteArray) : super(marker) {
         segmentBytes = bytes
     }
 }

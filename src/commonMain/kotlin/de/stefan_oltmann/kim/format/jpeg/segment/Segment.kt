@@ -17,7 +17,7 @@
  */
 package de.stefan_oltmann.kim.format.jpeg.segment
 
-internal abstract class Segment(val marker: Int, val length: Int) {
+internal abstract class Segment(val marker: Int) {
 
     abstract fun getDescription(): String
 

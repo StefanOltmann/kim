@@ -24,7 +24,7 @@ import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.read2BytesAsInt
 import de.stefan_oltmann.kim.input.skipBytes
 
-internal class SofnSegment(marker: Int, markerLength: Int, byteReader: ByteReader) : Segment(marker, markerLength) {
+internal class SofnSegment(marker: Int, markerLength: Int, byteReader: ByteReader) : Segment(marker) {
 
     val width: Int
     val height: Int
