@@ -283,59 +283,44 @@ public class TiffOutputSet(
         gpsDirectory.add(GpsTag.GPS_TAG_GPS_LONGITUDE_REF, longitudeRef)
         gpsDirectory.add(GpsTag.GPS_TAG_GPS_LATITUDE_REF, latitudeRef)
 
-        run {
+        gpsDirectory.add(
+            GpsTag.GPS_TAG_GPS_LONGITUDE,
+            toDegreeMinuteSeconds(abs(gpsCoordinates.longitude))
+        )
 
-            var value = abs(gpsCoordinates.longitude)
+        gpsDirectory.add(
+            GpsTag.GPS_TAG_GPS_LATITUDE,
+            toDegreeMinuteSeconds(abs(gpsCoordinates.latitude))
+        )
+    }
 
-            val longitudeDegrees = value.toLong().toDouble()
-            value %= 1.0
-            value *= MINUTES_PER_HOUR
+    /*
+     * Converts a decimal degree value into the EXIF GPS rationals triple
+     * of degrees, minutes and seconds.
+     */
+    private fun toDegreeMinuteSeconds(degrees: Double): RationalNumbers {
 
-            val longitudeMinutes = value.toLong().toDouble()
-            value %= 1.0
-            value *= MINUTES_PER_HOUR
+        var value = degrees
 
-            val longitudeSeconds = value
+        val wholeDegrees = value.toLong().toDouble()
 
-            gpsDirectory.add(
-                GpsTag.GPS_TAG_GPS_LONGITUDE,
-                RationalNumbers(
-                    arrayOf(
-                        valueOf(longitudeDegrees),
-                        valueOf(longitudeMinutes),
-                        valueOf(longitudeSeconds)
-                    )
-                )
+        value %= 1.0
+        value *= MINUTES_PER_HOUR
+
+        val minutes = value.toLong().toDouble()
+
+        value %= 1.0
+        value *= MINUTES_PER_HOUR
+
+        val seconds = value
+
+        return RationalNumbers(
+            arrayOf(
+                valueOf(wholeDegrees),
+                valueOf(minutes),
+                valueOf(seconds)
             )
-        }
-
-        run {
-
-            var value = abs(gpsCoordinates.latitude)
-
-            val latitudeDegrees = value.toLong().toDouble()
-
-            value %= 1.0
-            value *= MINUTES_PER_HOUR
-
-            val latitudeMinutes = value.toLong().toDouble()
-
-            value %= 1.0
-            value *= MINUTES_PER_HOUR
-
-            val latitudeSeconds = value
-
-            gpsDirectory.add(
-                GpsTag.GPS_TAG_GPS_LATITUDE,
-                RationalNumbers(
-                    arrayOf(
-                        valueOf(latitudeDegrees),
-                        valueOf(latitudeMinutes),
-                        valueOf(latitudeSeconds)
-                    )
-                )
-            )
-        }
+        )
     }
 
     public fun findMakerNoteField(): TiffOutputField? =
