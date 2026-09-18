@@ -27,6 +27,7 @@ import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcConstants.IPTC_WORD_SIZE
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcTypes.Companion.getIptcType
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
@@ -41,9 +42,6 @@ import kotlin.jvm.JvmStatic
  * Parses IPTC data from JPEG APP13 segments.
  */
 public object IptcParser {
-
-    /** IPTC data consists of 32-bit words. */
-    private const val IPTC_WORD_SIZE = 4
 
     /** An 8BIM resource block signature is a 4-byte word. */
     private const val BLOCK_SIGNATURE_LENGTH = 4
@@ -204,7 +202,7 @@ public object IptcParser {
                  * exactly 0x8000 is the legacy variant written by older Kim
                  * versions with a 4-byte length field behind it.
                  */
-                val lengthFieldSize = (recordSize and 0x7FFF)
+                val lengthFieldSize = (recordSize and IptcConstants.IPTC_EXTENDED_LENGTH_SIZE_MASK)
                     .takeIf { it != 0 }
                     ?: IptcConstants.IPTC_EXTENDED_LENGTH_FIELD_SIZE
 
