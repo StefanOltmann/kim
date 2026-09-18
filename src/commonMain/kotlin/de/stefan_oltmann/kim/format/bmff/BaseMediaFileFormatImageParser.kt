@@ -254,7 +254,7 @@ public object BaseMediaFileFormatImageParser : ImageParser {
         val tiffHeaderOffset =
             byteReader.read4BytesAsInt("tiffHeaderOffset", BMFF_BYTE_ORDER)
 
-        /* Usualy there are 6 bytes skipped, which are the EXIF header. ("Exif.."). */
+        /* Usually 6 bytes are skipped here: the EXIF header. ("Exif.."). */
         byteReader.skipBytes("offset to TIFF header", tiffHeaderOffset)
 
         val exifBytesWriter = ByteArrayByteWriter()
