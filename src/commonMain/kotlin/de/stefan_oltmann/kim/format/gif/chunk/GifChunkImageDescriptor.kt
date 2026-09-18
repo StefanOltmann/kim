@@ -38,12 +38,23 @@ public class GifChunkImageDescriptor(
     bytes
 ) {
 
+    /** Position of the frame inside the logical screen. */
     public val leftPosition: Int
     public val topPosition: Int
+
+    /** Size of this frame, which can be smaller than the logical screen. */
     public val imageSize: ImageSize
+
+    /** Whether the frame carries its own color table instead of the global one. */
     public val localColorTableFlag: Boolean
+
+    /** Whether the frame pixels are stored interlaced. */
     public val interlaceFlag: Boolean
+
+    /** Whether the color table is sorted by decreasing importance. */
     public val sortFlag: Boolean
+
+    /** Size of the local color table in entries, or zero without one. */
     public val localColorTableSize: Int
 
     init {

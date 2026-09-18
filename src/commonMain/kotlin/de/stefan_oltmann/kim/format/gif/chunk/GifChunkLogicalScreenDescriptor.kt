@@ -39,12 +39,25 @@ public class GifChunkLogicalScreenDescriptor(
     bytes
 ) {
 
+    /** The size of the logical screen all frames are placed into. */
     public val canvasSize: ImageSize
+
+    /** Whether the file carries a global color table. */
     public val globalColorTableFlag: Boolean
+
+    /** The color depth the source device used, in bits per primary color. */
     public val colorResolution: Int
+
+    /** Whether the global color table is sorted by decreasing importance. */
     public val sortFlag: Boolean
+
+    /** Size of the global color table in entries, or zero without one. */
     public val globalColorTableSize: Int
+
+    /** Index of the default background color in the global color table. */
     public val backgroundColorIndex: Int
+
+    /** Factor and divisor to derive the pixel aspect ratio, zero meaning square. */
     public val pixelAspectRatio: Int
 
     init {

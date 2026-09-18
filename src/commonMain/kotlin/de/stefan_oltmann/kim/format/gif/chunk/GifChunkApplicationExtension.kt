@@ -41,7 +41,10 @@ public class GifChunkApplicationExtension(
 
     private val xmpMetaTag: String = "x:xmpmeta"
 
+    /** The 8-byte identifier that names the application, or NULL when the extension is too short to carry one. */
     public val applicationIdentifier: String?
+
+    /** The authentication code that follows the identifier, or NULL when absent. */
     public val applicationCode: String?
 
     /**
