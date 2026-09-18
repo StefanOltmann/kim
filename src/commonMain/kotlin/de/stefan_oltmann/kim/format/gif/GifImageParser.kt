@@ -138,29 +138,7 @@ public object GifImageParser : ImageParser {
 
         val chunks = mutableListOf<GifChunk>()
 
-        /* Read header chunk */
-        val headerBytes = byteReader.readBytes(6)
-
-        if (chunkTypeFilter?.contains(GifChunkType.HEADER) != false)
-            chunks.add(GifChunkHeader(headerBytes))
-
-        /* Read logical screen descriptor chunk */
-        val logicalScreenDescriptorBytes = byteReader.readBytes(7)
-        val logicalScreenDescriptorChunk = GifChunkLogicalScreenDescriptor(logicalScreenDescriptorBytes)
-
-        if (chunkTypeFilter?.contains(GifChunkType.LOGICAL_SCREEN_DESCRIPTOR) != false)
-            chunks.add(logicalScreenDescriptorChunk)
-
-        /* Read global color table chunk if present */
-        if (logicalScreenDescriptorChunk.globalColorTableFlag) {
-
-            val globalColorTableSize = gifColorTableSizeBytes(logicalScreenDescriptorChunk.globalColorTableSize)
-
-            val globalColorTableBytes = byteReader.readBytes(globalColorTableSize)
-
-            if (chunkTypeFilter?.contains(GifChunkType.GLOBAL_COLOR_TABLE) != false)
-                chunks.add(GifChunk(GifChunkType.GLOBAL_COLOR_TABLE, globalColorTableBytes))
-        }
+        readHeaderChunks(byteReader, chunks, chunkTypeFilter)
 
         /* Read remaining chunks */
         byteReader.walkGifBlocks(
@@ -197,26 +175,7 @@ public object GifImageParser : ImageParser {
 
         val chunks = mutableListOf<GifChunk>()
 
-        /* Read header chunk */
-        val headerBytes = byteReader.readBytes(6)
-
-        chunks.add(GifChunkHeader(headerBytes))
-
-        /* Read logical screen descriptor chunk */
-        val logicalScreenDescriptorBytes = byteReader.readBytes(7)
-        val logicalScreenDescriptorChunk = GifChunkLogicalScreenDescriptor(logicalScreenDescriptorBytes)
-
-        chunks.add(logicalScreenDescriptorChunk)
-
-        /* Read global color table chunk if present */
-        if (logicalScreenDescriptorChunk.globalColorTableFlag) {
-
-            val globalColorTableSize = gifColorTableSizeBytes(logicalScreenDescriptorChunk.globalColorTableSize)
-
-            val globalColorTableBytes = byteReader.readBytes(globalColorTableSize)
-
-            chunks.add(GifChunk(GifChunkType.GLOBAL_COLOR_TABLE, globalColorTableBytes))
-        }
+        readHeaderChunks(byteReader, chunks, chunkTypeFilter = null)
 
         /* Read extension chunks until the first image starts. */
         var foundImage = false
@@ -237,6 +196,41 @@ public object GifImageParser : ImageParser {
         )
 
         return chunks to foundImage
+    }
+
+    /**
+     * Reads the mandatory GIF header and logical screen descriptor plus
+     * the optional global color table, adding each to [chunks].
+     */
+    private fun readHeaderChunks(
+        byteReader: ByteReader,
+        chunks: MutableList<GifChunk>,
+        chunkTypeFilter: List<GifChunkType>?
+    ) {
+
+        /* Read header chunk */
+        val headerBytes = byteReader.readBytes(6)
+
+        if (chunkTypeFilter?.contains(GifChunkType.HEADER) != false)
+            chunks.add(GifChunkHeader(headerBytes))
+
+        /* Read logical screen descriptor chunk */
+        val logicalScreenDescriptorBytes = byteReader.readBytes(7)
+        val logicalScreenDescriptorChunk = GifChunkLogicalScreenDescriptor(logicalScreenDescriptorBytes)
+
+        if (chunkTypeFilter?.contains(GifChunkType.LOGICAL_SCREEN_DESCRIPTOR) != false)
+            chunks.add(logicalScreenDescriptorChunk)
+
+        /* Read global color table chunk if present */
+        if (logicalScreenDescriptorChunk.globalColorTableFlag) {
+
+            val globalColorTableSize = gifColorTableSizeBytes(logicalScreenDescriptorChunk.globalColorTableSize)
+
+            val globalColorTableBytes = byteReader.readBytes(globalColorTableSize)
+
+            if (chunkTypeFilter?.contains(GifChunkType.GLOBAL_COLOR_TABLE) != false)
+                chunks.add(GifChunk(GifChunkType.GLOBAL_COLOR_TABLE, globalColorTableBytes))
+        }
     }
 
     private fun readImageChunks(
@@ -277,7 +271,7 @@ public object GifImageParser : ImageParser {
         return chunks
     }
 
-    private fun readExtensionChunk(
+    internal fun readExtensionChunk(
         byteReader: ByteReader,
         extensionLabel: Byte,
         chunkTypeFilter: List<GifChunkType>?

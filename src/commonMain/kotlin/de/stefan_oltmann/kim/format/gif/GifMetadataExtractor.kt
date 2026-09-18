@@ -97,7 +97,8 @@ public object GifMetadataExtractor : MetadataExtractor {
                 false
             },
             onExtensionBlock = { extensionLabel ->
-                copyExtensionChunk(byteReader, bytes, extensionLabel)
+                GifImageParser.readExtensionChunk(byteReader, extensionLabel, chunkTypeFilter = null)
+                    ?.let { chunk -> bytes.addAll(chunk.bytes.toList()) }
                 false
             },
             onTrailerBlock = {
@@ -149,54 +150,5 @@ public object GifMetadataExtractor : MetadataExtractor {
         outputBytes.add(FAKE_IMAGE_DATA_LENGTH)
         outputBytes.add(FAKE_IMAGE_DATA)
         outputBytes.add(0x00)
-    }
-
-    private fun copyExtensionChunk(
-        byteReader: ByteReader,
-        outputBytes: MutableList<Byte>,
-        extensionLabel: Byte
-    ) {
-
-        when (extensionLabel) {
-
-            GifConstants.GRAPHICS_CONTROL_EXTENSION_LABEL -> {
-
-                outputBytes.addAll(listOf(GifConstants.EXTENSION_INTRODUCER, extensionLabel))
-
-                val graphicsControlExtensionBytes = byteReader.readBytes("graphics control extension", 6)
-
-                outputBytes.addAll(graphicsControlExtensionBytes.toList())
-            }
-
-            GifConstants.APPLICATION_EXTENSION_LABEL,
-            GifConstants.COMMENT_EXTENSION_LABEL,
-            GifConstants.PLAIN_TEXT_EXTENSION_LABEL -> {
-
-                outputBytes.addAll(listOf(GifConstants.EXTENSION_INTRODUCER, extensionLabel))
-
-                val subChunks = byteReader.parseGifSubChunksUntilEmpty("plain text extension")
-
-                subChunks.forEach { outputBytes.addAll(it.toList()) }
-
-                outputBytes.add(0x00)
-            }
-
-            /*
-             * Unknown labels are copied verbatim, so their data is neither
-             * destroyed nor left unconsumed - an unread chain would desync
-             * the stream and misinterpret following blocks.
-             */
-            else -> {
-
-                outputBytes.addAll(listOf(GifConstants.EXTENSION_INTRODUCER, extensionLabel))
-
-                val subChunks = byteReader.parseGifSubChunksUntilEmpty("unknown extension")
-
-                for (subChunk in subChunks)
-                    outputBytes.addAll(subChunk.toList())
-
-                outputBytes.add(0x00)
-            }
-        }
     }
 }
