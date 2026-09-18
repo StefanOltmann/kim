@@ -285,24 +285,13 @@ public object JpegImageParser : ImageParser {
 
             /*
              * EXIF larger than the ~64 KB limit of one APP1 segment is
-             * split across consecutive APP1 segments: every part repeats
-             * the "Exif\0\0" header, but only the first part starts with
-             * a TIFF byte order marker. ExifTool stitches those parts and
-             * warns "File contains multi-segment EXIF".
-             *
-             * A second, independent EXIF block does start with a byte
-             * order marker, so the stitch ends there - mixing separate
-             * EXIF blocks would lead to inconsistencies.
+             * split across consecutive APP1 segments. A second, independent
+             * EXIF block does start with a byte order marker, so the stitch
+             * must end there - see
+             * [JpegUtils.findExifContinuationHeaderEnd].
              */
-            val headerEnd = JpegUtils.findExifHeaderEnd(segmentBytes)
-
-            val isContinuation =
-                segment.marker == JpegConstants.JPEG_APP1_MARKER &&
-                    headerEnd != null &&
-                    !JpegUtils.startsWithTiffByteOrderMarker(segmentBytes, headerEnd)
-
-            if (!isContinuation)
-                break
+            val headerEnd = JpegUtils.findExifContinuationHeaderEnd(segment.marker, segmentBytes)
+                ?: break
 
             exifBytes.write(segmentBytes.getRemainingBytes(headerEnd))
         }

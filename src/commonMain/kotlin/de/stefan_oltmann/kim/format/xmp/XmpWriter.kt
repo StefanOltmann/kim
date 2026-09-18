@@ -162,20 +162,13 @@ public object XmpWriter {
      * Note: Parameter 'writePackageWrapper' should be "true" for embedded XMP.
      */
     @Throws(XMPException::class)
-    @Suppress("LoopWithTooManyJumpStatements")
     @JvmStatic
     public fun updateXmp(
         xmpMeta: XMPMeta,
         update: MetadataUpdate,
         writePackageWrapper: Boolean
-    ): String {
-
-        xmpMeta.applyUpdate(update)
-
-        deleteStaleExtendedXmpReference(xmpMeta)
-
-        return xmpMeta.serializeToString(writePackageWrapper)
-    }
+    ): String =
+        updateXmp(xmpMeta, setOf(update), writePackageWrapper)
 
     /**
      * Removes a stale "xmpNote:HasExtendedXMP" reference that was read from

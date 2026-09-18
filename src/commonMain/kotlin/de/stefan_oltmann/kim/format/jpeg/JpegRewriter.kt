@@ -137,10 +137,13 @@ public object JpegRewriter {
             if (piece !is JFIFPieceSegment || !piece.isExifSegment())
                 return@filterNot false
 
-            val headerEnd = JpegUtils.findExifHeaderEnd(piece.segmentBytes)
-
-            val isContinuation = headerEnd != null &&
-                !JpegUtils.startsWithTiffByteOrderMarker(piece.segmentBytes, headerEnd)
+            /*
+             * Continuation parts of a multi-segment EXIF block are removed
+             * together with the first block they belong to; the start of a
+             * second, independent EXIF block stops the removal.
+             */
+            val isContinuation =
+                JpegUtils.findExifContinuationHeaderEnd(piece.marker, piece.segmentBytes) != null
 
             if (removedFirstExif && !isContinuation)
                 return@filterNot false
