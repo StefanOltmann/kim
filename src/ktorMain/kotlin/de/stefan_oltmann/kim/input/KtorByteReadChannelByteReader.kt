@@ -43,7 +43,7 @@ import kotlinx.io.readByteArray
 public class KtorByteReadChannelByteReader(
     private val channel: ByteReadChannel,
     override val contentLength: Long,
-    private val bufferSize: Long = DEFAULT_BUFFER_SIZE
+    private val bufferSize: Long = READ_CHANNEL_BUFFER_SIZE
 ) : ByteReader {
 
     private var buffer: ByteArray = byteArrayOf()
@@ -52,26 +52,8 @@ public class KtorByteReadChannelByteReader(
 
     override fun readByte(): Byte? {
 
-        if (bufferOffset >= bufferLimit) {
-
-            if (channel.isClosedForRead)
-                return null
-
-            buffer = runBlocking {
-                channel.readRemaining(max = bufferSize).readByteArray()
-            }
-            bufferLimit = buffer.size
-            bufferOffset = 0
-
-            /*
-             * A zero-byte refill means the channel delivered no data even
-             * though it was not flagged closed before the read (premature
-             * server close or a race). Treat that as end-of-data instead of
-             * indexing an empty buffer.
-             */
-            if (bufferLimit == 0)
-                return null
-        }
+        if (!ensureBuffered())
+            return null
 
         return buffer[bufferOffset++]
     }
@@ -79,33 +61,14 @@ public class KtorByteReadChannelByteReader(
     override fun readBytes(count: Int): ByteArray {
         require(count >= 0) { "Count must not be negative: $count" }
 
-
         val result = ByteArray(count)
         var remaining = count
         var offset = 0
 
         while (remaining > 0) {
 
-            if (bufferOffset >= bufferLimit) {
-
-                if (channel.isClosedForRead)
-                    break
-
-                buffer = runBlocking {
-                    channel.readRemaining(max = bufferSize).readByteArray()
-                }
-                bufferLimit = buffer.size
-                bufferOffset = 0
-
-                /*
-                 * A zero-byte refill means the channel delivered no data
-                 * despite not being flagged closed before the read (premature
-                 * server close or a race). Treat that as end-of-data instead
-                 * of looping forever on an empty buffer.
-                 */
-                if (bufferLimit == 0)
-                    break
-            }
+            if (!ensureBuffered())
+                break
 
             val bytesToCopy = minOf(remaining, bufferLimit - bufferOffset)
 
@@ -129,7 +92,32 @@ public class KtorByteReadChannelByteReader(
         }
     }
 
+    /*
+     * Refills the buffer from the channel when it is exhausted.
+     *
+     * A zero-byte refill means the channel delivered no data even though
+     * it was not flagged closed before the read (premature server close
+     * or a race). Both cases are treated as end-of-data, reported as
+     * false, instead of serving an empty buffer.
+     */
+    private fun ensureBuffered(): Boolean {
+
+        if (bufferOffset < bufferLimit)
+            return true
+
+        if (channel.isClosedForRead)
+            return false
+
+        buffer = runBlocking {
+            channel.readRemaining(max = bufferSize).readByteArray()
+        }
+        bufferLimit = buffer.size
+        bufferOffset = 0
+
+        return bufferLimit > 0
+    }
+
     public companion object {
-        private const val DEFAULT_BUFFER_SIZE: Long = 32 * 1024
+        private const val READ_CHANNEL_BUFFER_SIZE: Long = 32 * 1024
     }
 }
