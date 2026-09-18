@@ -443,6 +443,45 @@ public class TiffOutputDirectory(
     private fun removeFieldIfPresent(tagInfo: TagInfo) =
         findField(tagInfo)?.let { field -> fields.remove(field) }
 
+    /**
+     * Adds the field pair that points at a separate byte block: an
+     * offset field with a placeholder value that the writer fills in
+     * once the position of the data is known, and the length field with
+     * the block size.
+     *
+     * Returns the offset field, so the caller can register the block
+     * with it later.
+     */
+    private fun addOffsetAndLengthFields(
+        offsetTag: Int,
+        lengthTag: Int,
+        byteCount: Int,
+        byteOrder: ByteOrder
+    ): TiffOutputField {
+
+        val offsetField = TiffOutputField(
+            offsetTag,
+            FieldTypeLong, 1,
+            ByteArray(TIFF_ENTRY_MAX_VALUE_LENGTH)
+        )
+
+        add(offsetField)
+
+        val lengthValue = FieldTypeLong.writeData(
+            byteCount,
+            byteOrder
+        )
+
+        add(
+            TiffOutputField(
+                lengthTag,
+                FieldTypeLong, 1, lengthValue
+            )
+        )
+
+        return offsetField
+    }
+
     internal fun getOutputItems(tiffOffsetItems: TiffOffsetItems): List<TiffOutputItem> {
 
         /* First remove old fields */
@@ -455,25 +494,12 @@ public class TiffOutputDirectory(
 
         if (thumbnailBytes != null) {
 
-            thumbnailOffsetField = TiffOutputField(
-                TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT.tag,
-                FieldTypeLong, 1,
-                ByteArray(TIFF_ENTRY_MAX_VALUE_LENGTH)
+            thumbnailOffsetField = addOffsetAndLengthFields(
+                offsetTag = TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT.tag,
+                lengthTag = TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT_LENGTH.tag,
+                byteCount = thumbnailBytes.size,
+                byteOrder = tiffOffsetItems.byteOrder
             )
-
-            add(thumbnailOffsetField)
-
-            val lengthValue = FieldTypeLong.writeData(
-                thumbnailBytes.size,
-                tiffOffsetItems.byteOrder
-            )
-
-            val jpegLengthField = TiffOutputField(
-                TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT_LENGTH.tag,
-                FieldTypeLong, 1, lengthValue
-            )
-
-            add(jpegLengthField)
         }
 
         var stripOffsetField: TiffOutputField? = null
@@ -486,38 +512,24 @@ public class TiffOutputDirectory(
             removeFieldIfPresent(TiffTag.TIFF_TAG_ROWS_PER_STRIP)
             removeFieldIfPresent(TiffTag.TIFF_TAG_STRIP_BYTE_COUNTS)
 
-            stripOffsetField = TiffOutputField(
-                TiffTag.TIFF_TAG_STRIP_OFFSETS.tag,
-                FieldTypeLong, 1,
-                ByteArray(TIFF_ENTRY_MAX_VALUE_LENGTH)
+            stripOffsetField = addOffsetAndLengthFields(
+                offsetTag = TiffTag.TIFF_TAG_STRIP_OFFSETS.tag,
+                lengthTag = TiffTag.TIFF_TAG_STRIP_BYTE_COUNTS.tag,
+                byteCount = tiffImageBytes.size,
+                byteOrder = tiffOffsetItems.byteOrder
             )
-
-            add(stripOffsetField)
-
-            val lengthValue = FieldTypeLong.writeData(
-                tiffImageBytes.size,
-                tiffOffsetItems.byteOrder
-            )
-
-            val stripByteCountsField = TiffOutputField(
-                TiffTag.TIFF_TAG_STRIP_BYTE_COUNTS.tag,
-                FieldTypeLong, 1, lengthValue
-            )
-
-            add(stripByteCountsField)
 
             /* Set to MAX value. We combine all strips into one block. */
-            val rowsPerStripValue = FieldTypeLong.writeData(
-                Int.MAX_VALUE,
-                tiffOffsetItems.byteOrder
+            add(
+                TiffOutputField(
+                    TiffTag.TIFF_TAG_ROWS_PER_STRIP.tag,
+                    FieldTypeLong, 1,
+                    FieldTypeLong.writeData(
+                        Int.MAX_VALUE,
+                        tiffOffsetItems.byteOrder
+                    )
+                )
             )
-
-            val rowsPerStripField = TiffOutputField(
-                TiffTag.TIFF_TAG_ROWS_PER_STRIP.tag,
-                FieldTypeLong, 1, rowsPerStripValue
-            )
-
-            add(rowsPerStripField)
         }
 
         removeFieldIfPresent(TiffTag.TIFF_TAG_TILE_OFFSETS)
