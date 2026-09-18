@@ -151,7 +151,7 @@ public object GifImageParser : ImageParser {
                 false
             },
             onTrailerBlock = {
-                if (chunkTypeFilter?.contains(GifChunkType.TERMINATOR) != false)
+                if (keepChunk(chunkTypeFilter, GifChunkType.TERMINATOR))
                     chunks.add(GifChunkTerminator(byteArrayOf(GifConstants.GIF_TERMINATOR)))
                 true
             }
@@ -211,14 +211,14 @@ public object GifImageParser : ImageParser {
         /* Read header chunk */
         val headerBytes = byteReader.readBytes(6)
 
-        if (chunkTypeFilter?.contains(GifChunkType.HEADER) != false)
+        if (keepChunk(chunkTypeFilter, GifChunkType.HEADER))
             chunks.add(GifChunkHeader(headerBytes))
 
         /* Read logical screen descriptor chunk */
         val logicalScreenDescriptorBytes = byteReader.readBytes(7)
         val logicalScreenDescriptorChunk = GifChunkLogicalScreenDescriptor(logicalScreenDescriptorBytes)
 
-        if (chunkTypeFilter?.contains(GifChunkType.LOGICAL_SCREEN_DESCRIPTOR) != false)
+        if (keepChunk(chunkTypeFilter, GifChunkType.LOGICAL_SCREEN_DESCRIPTOR))
             chunks.add(logicalScreenDescriptorChunk)
 
         /* Read global color table chunk if present */
@@ -228,10 +228,20 @@ public object GifImageParser : ImageParser {
 
             val globalColorTableBytes = byteReader.readBytes(globalColorTableSize)
 
-            if (chunkTypeFilter?.contains(GifChunkType.GLOBAL_COLOR_TABLE) != false)
+            if (keepChunk(chunkTypeFilter, GifChunkType.GLOBAL_COLOR_TABLE))
                 chunks.add(GifChunk(GifChunkType.GLOBAL_COLOR_TABLE, globalColorTableBytes))
         }
     }
+
+    /**
+     * Whether a chunk of the given type passes the filter. A NULL filter
+     * keeps every chunk.
+     */
+    private fun keepChunk(
+        chunkTypeFilter: List<GifChunkType>?,
+        type: GifChunkType
+    ): Boolean =
+        chunkTypeFilter?.contains(type) ?: true
 
     private fun readImageChunks(
         byteReader: ByteReader,
@@ -247,7 +257,7 @@ public object GifImageParser : ImageParser {
             byteArrayOf(GifConstants.IMAGE_SEPARATOR) + imageDescriptorBytes
         )
 
-        if (chunkTypeFilter?.contains(GifChunkType.IMAGE_DESCRIPTOR) != false)
+        if (keepChunk(chunkTypeFilter, GifChunkType.IMAGE_DESCRIPTOR))
             chunks.add(imageDescriptorChunk)
 
         /* Read local color table if present */
@@ -257,7 +267,7 @@ public object GifImageParser : ImageParser {
 
             val localColorTableBytes = byteReader.readBytes("local color table", localColorTableSize)
 
-            if (chunkTypeFilter?.contains(GifChunkType.LOCAL_COLOR_TABLE) != false)
+            if (keepChunk(chunkTypeFilter, GifChunkType.LOCAL_COLOR_TABLE))
                 chunks.add(GifChunk(GifChunkType.LOCAL_COLOR_TABLE, localColorTableBytes))
         }
 
@@ -265,7 +275,7 @@ public object GifImageParser : ImageParser {
         val lzwMinimumCodeSize = byteReader.readByte("LZW minimum code size")
         val subChunks = byteReader.parseGifSubChunksUntilEmpty("image data")
 
-        if (chunkTypeFilter?.contains(GifChunkType.IMAGE_DATA) != false)
+        if (keepChunk(chunkTypeFilter, GifChunkType.IMAGE_DATA))
             chunks.add(GifChunkImageData(lzwMinimumCodeSize, subChunks))
 
         return chunks
@@ -290,7 +300,7 @@ public object GifImageParser : ImageParser {
                     ) + graphicsControlExtensionBytes
                 )
 
-                if (chunkTypeFilter?.contains(GifChunkType.GRAPHICS_CONTROL_EXTENSION) != false)
+                if (keepChunk(chunkTypeFilter, GifChunkType.GRAPHICS_CONTROL_EXTENSION))
                     graphicsControlExtensionChunk
                 else
                     null
@@ -300,7 +310,7 @@ public object GifImageParser : ImageParser {
 
                 val subChunks = byteReader.parseGifSubChunksUntilEmpty("application extension")
 
-                if (chunkTypeFilter?.contains(GifChunkType.APPLICATION_EXTENSION) != false)
+                if (keepChunk(chunkTypeFilter, GifChunkType.APPLICATION_EXTENSION))
                     GifChunkApplicationExtension(
                         byteArrayOf(
                             GifConstants.EXTENSION_INTRODUCER,
@@ -316,7 +326,7 @@ public object GifImageParser : ImageParser {
 
                 val subChunks = byteReader.parseGifSubChunksUntilEmpty("comment extension")
 
-                if (chunkTypeFilter?.contains(GifChunkType.COMMENT_EXTENSION) != false)
+                if (keepChunk(chunkTypeFilter, GifChunkType.COMMENT_EXTENSION))
                     GifChunkCommentExtension(
                         byteArrayOf(GifConstants.EXTENSION_INTRODUCER, GifConstants.COMMENT_EXTENSION_LABEL),
                         subChunks
@@ -329,7 +339,7 @@ public object GifImageParser : ImageParser {
 
                 val subChunks = byteReader.parseGifSubChunksUntilEmpty("plain text extension")
 
-                if (chunkTypeFilter?.contains(GifChunkType.PLAIN_TEXT_EXTENSION) != false)
+                if (keepChunk(chunkTypeFilter, GifChunkType.PLAIN_TEXT_EXTENSION))
                     GifChunkPlainTextExtension(
                         byteArrayOf(GifConstants.EXTENSION_INTRODUCER, GifConstants.PLAIN_TEXT_EXTENSION_LABEL),
                         subChunks
@@ -350,7 +360,7 @@ public object GifImageParser : ImageParser {
 
                 val subChunks = byteReader.parseGifSubChunksUntilEmpty("unknown extension")
 
-                if (chunkTypeFilter?.contains(GifChunkType.UNKNOWN_EXTENSION) != false) {
+                if (keepChunk(chunkTypeFilter, GifChunkType.UNKNOWN_EXTENSION)) {
 
                     val bytes = mutableListOf<Byte>()
 
