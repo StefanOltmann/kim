@@ -26,7 +26,7 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 /**
  * Double precision (8-byte) IEEE format.
  */
-public object FieldTypeDouble : FieldType<DoubleArray> {
+public data object FieldTypeDouble : FieldType<DoubleArray> {
 
     override val type: Int = TiffConstants.FIELD_TYPE_DOUBLE_INDEX
 

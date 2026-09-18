@@ -19,6 +19,7 @@ import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.indexOfNullTerminator
 import de.stefan_oltmann.kim.common.slice
+import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 
 /**
  * UTF-8 string that is terminated with NUL, added by the EXIF 3.0
@@ -26,7 +27,7 @@ import de.stefan_oltmann.kim.common.slice
  */
 public data object FieldTypeUtf8 : FieldType<String> {
 
-    override val type: Int = 129
+    override val type: Int = TiffConstants.FIELD_TYPE_UTF8_INDEX
 
     override val name: String = "UTF8"
 
