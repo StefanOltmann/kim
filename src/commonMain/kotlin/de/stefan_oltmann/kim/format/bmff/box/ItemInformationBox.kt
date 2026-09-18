@@ -30,7 +30,7 @@ import de.stefan_oltmann.kim.input.readByteAsInt
 import de.stefan_oltmann.kim.input.readBytes
 
 /**
- * EIC/ISO 14496-12 iinf box.
+ * ISO/IEC 14496-12 iinf box.
  */
 public class ItemInformationBox(
     offset: Long,

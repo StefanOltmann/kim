@@ -25,7 +25,7 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.readRemainingBytes
 
 /**
- * EIC/ISO 14496-12 UUID box
+ * ISO/IEC 14496-12 UUID box
  *
  * The UUID box is a container for several sub boxes.
  */

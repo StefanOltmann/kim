@@ -30,7 +30,7 @@ import de.stefan_oltmann.kim.input.readBytes
 import de.stefan_oltmann.kim.input.readNullTerminatedString
 
 /**
- * EIC/ISO 14496-12 infe box.
+ * ISO/IEC 14496-12 infe box.
  */
 public class ItemInfoEntryBox(
     offset: Long,

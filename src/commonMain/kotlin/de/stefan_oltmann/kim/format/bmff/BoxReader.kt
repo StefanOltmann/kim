@@ -389,7 +389,7 @@ public object BoxReader {
             val globalOffset = offset + offsetShift
 
             val box = when (type) {
-                /* Generic EIC/ISO 14496-12 boxes. */
+                /* Generic ISO/IEC 14496-12 boxes. */
                 BoxType.FTYP -> FileTypeBox(globalOffset, size, largeSize, bytes)
                 BoxType.META -> if (parentBoxType == null) {
                     MetaBoxTopLevel(globalOffset, size, largeSize, bytes, depth + 1)

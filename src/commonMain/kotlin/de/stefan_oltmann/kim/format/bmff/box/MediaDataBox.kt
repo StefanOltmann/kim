@@ -20,7 +20,7 @@ package de.stefan_oltmann.kim.format.bmff.box
 import de.stefan_oltmann.kim.format.bmff.BoxType
 
 /**
- * EIC/ISO 14496-12 mdat box
+ * ISO/IEC 14496-12 mdat box
  *
  * The Media Data Box contains all the actual data.
  * This includes the EXIF bytes.

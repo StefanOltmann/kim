@@ -26,7 +26,7 @@ import de.stefan_oltmann.kim.input.readXBytesAtInt
 import de.stefan_oltmann.kim.input.skipBytes
 
 /**
- * EIC/ISO 14496-12 track header box.
+ * ISO/IEC 14496-12 track header box.
  *
  * The Track Header Box appears within a Track Box and contains track
  * metadata, including the display size of a video track.

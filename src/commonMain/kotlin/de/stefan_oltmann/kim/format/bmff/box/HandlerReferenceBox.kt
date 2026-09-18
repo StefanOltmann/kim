@@ -27,7 +27,7 @@ import de.stefan_oltmann.kim.input.readNullTerminatedString
 import de.stefan_oltmann.kim.input.skipBytes
 
 /**
- * EIC/ISO 14496-12 hdlr box.
+ * ISO/IEC 14496-12 hdlr box.
  */
 public class HandlerReferenceBox(
     offset: Long,
