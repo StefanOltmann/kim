@@ -32,6 +32,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import de.stefan_oltmann.kim.testdata.containsBytes
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.test.fail
@@ -200,7 +201,7 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
             updates = setOf(MetadataUpdate.Title(title))
         )
 
-        assertTrue(newBytes.containsSegment(jfxxSegmentBytes))
+        assertTrue(newBytes.containsBytes(jfxxSegmentBytes))
     }
 
     /**
@@ -228,7 +229,7 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
             updates = setOf(MetadataUpdate.Title(title))
         )
 
-        assertTrue(newBytes.containsSegment(emptyCom))
+        assertTrue(newBytes.containsBytes(emptyCom))
 
         /*
          * The lossless orientation patch rebuilds the header through the
@@ -240,7 +241,7 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
             updates = setOf(MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT))
         )
 
-        assertTrue(orientedBytes.containsSegment(emptyCom))
+        assertTrue(orientedBytes.containsBytes(emptyCom))
     }
 
     /**
@@ -359,18 +360,6 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
         return jpegBytes.copyOfRange(0, insertIndex) +
             segment +
             jpegBytes.copyOfRange(insertIndex, jpegBytes.size)
-    }
-
-    /**
-     * Returns whether the given segment bytes appear anywhere in the JPEG bytes.
-     */
-    private fun ByteArray.containsSegment(segment: ByteArray): Boolean {
-
-        for (offset in 0..size - segment.size)
-            if (copyOfRange(offset, offset + segment.size).contentEquals(segment))
-                return true
-
-        return false
     }
 
     /**

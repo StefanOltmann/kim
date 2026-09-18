@@ -15,31 +15,60 @@
  */
 package de.stefan_oltmann.kim.testdata
 
-/**
- * Counts how often the needle bytes occur in the array. Overlapping
- * matches are not counted twice.
- */
-internal fun ByteArray.countOccurrences(needle: String): Int {
+    /**
+     * Counts how often the needle bytes occur in the array. Overlapping
+     * matches are not counted twice.
+     */
+    internal fun ByteArray.countOccurrences(needle: String): Int {
 
-    val needleBytes = needle.encodeToByteArray()
+        val needleBytes = needle.encodeToByteArray()
 
-    var count = 0
+        var count = 0
 
-    for (index in 0..size - needleBytes.size) {
+        for (index in 0..size - needleBytes.size) {
 
-        var matches = true
+            var matches = true
 
-        for (needleIndex in needleBytes.indices)
-            if (this[index + needleIndex] != needleBytes[needleIndex]) {
+            for (needleIndex in needleBytes.indices)
+                if (this[index + needleIndex] != needleBytes[needleIndex]) {
 
-                matches = false
+                    matches = false
 
-                break
-            }
+                    break
+                }
 
-        if (matches)
-            count++
+            if (matches)
+                count++
+        }
+
+        return count
     }
 
-    return count
-}
+    /**
+     * Returns the index of the first occurrence of the needle bytes, or
+     * -1 when the array does not contain them.
+     */
+    internal fun ByteArray.indexOfBytes(needle: ByteArray): Int {
+
+        for (offset in 0..size - needle.size) {
+
+            var matches = true
+
+            for (needleIndex in needle.indices)
+                if (this[offset + needleIndex] != needle[needleIndex]) {
+
+                    matches = false
+
+                    break
+                }
+
+            if (matches)
+                return offset
+        }
+
+        return -1
+    }
+
+    /** Whether the needle bytes occur anywhere in the array. */
+    internal fun ByteArray.containsBytes(needle: ByteArray): Boolean =
+        indexOfBytes(needle) >= 0

@@ -26,6 +26,7 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
 import de.stefan_oltmann.kim.testdata.ModifiedBytesVerifier
+import de.stefan_oltmann.kim.testdata.indexOfBytes
 import kotlinx.datetime.TimeZone
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -192,18 +193,6 @@ class WebPWriterTest {
             exifIndex in 0 until xmpIndex,
             "Expected EXIF before XMP, but was EXIF at $exifIndex and XMP at $xmpIndex"
         )
-    }
-
-    /**
-     * Returns the first index of the needle bytes, or -1.
-     */
-    private fun ByteArray.indexOfBytes(needle: ByteArray): Int {
-
-        for (offset in 0..size - needle.size)
-            if (copyOfRange(offset, offset + needle.size).contentEquals(needle))
-                return offset
-
-        return -1
     }
 
     /**
