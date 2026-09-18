@@ -126,13 +126,4 @@ class JpegTrailerMetadataTest {
 
         assertContains(exception.message ?: "", "exceeds")
     }
-
-    private fun writeSegment(out: ByteArrayByteWriter, marker: Int, payload: ByteArray) {
-
-        out.write(byteArrayOf(0xFF.toByte(), marker.toByte()))
-
-        out.write2BytesAsInt(payload.size + 2, JpegConstants.JPEG_BYTE_ORDER)
-
-        out.write(payload)
-    }
 }

@@ -600,16 +600,6 @@ class ExtendedXmpTest {
         return bytes.toByteArray()
     }
 
-    private fun writeSegment(writer: ByteArrayByteWriter, marker: Int, payload: ByteArray) {
-
-        writer.write(byteArrayOf(0xFF.toByte(), marker.toByte()))
-
-        val length = payload.size + 2
-
-        writer.write(byteArrayOf((length ushr 8).toByte(), length.toByte()))
-        writer.write(payload)
-    }
-
     private fun digestAsGuid(text: String): String =
         Md5.digest(text.encodeToByteArray()).toHexString(HexFormat.UpperCase)
 
