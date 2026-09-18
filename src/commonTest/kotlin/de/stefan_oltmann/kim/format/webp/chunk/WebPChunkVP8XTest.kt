@@ -44,9 +44,6 @@ class WebPChunkVP8XTest {
         )
     }
 
-    /**
-     *
-     */
     @Test
     fun testCreateBytes() {
 

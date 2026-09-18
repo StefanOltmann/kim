@@ -20,7 +20,6 @@ package de.stefan_oltmann.kim.format.jpeg.iptc
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser.APP13_BYTE_ORDER
-import de.stefan_oltmann.kim.output.BigEndianBinaryByteWriter
 import de.stefan_oltmann.kim.output.BinaryByteWriter
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.jvm.JvmStatic
@@ -39,7 +38,7 @@ public object IptcWriter {
 
         val os = ByteArrayByteWriter()
 
-        val bos: BinaryByteWriter = BigEndianBinaryByteWriter(os)
+        val bos: BinaryByteWriter = BinaryByteWriter.createBinaryByteWriter(os, APP13_BYTE_ORDER)
 
         if (includeApp13Identifier)
             bos.write(JpegConstants.APP13_IDENTIFIER)
@@ -106,9 +105,7 @@ public object IptcWriter {
         binaryWriter.write2Bytes(2) // record version record size
         binaryWriter.write2Bytes(IptcConstants.IPTC_RECORD_VERSION_VALUE)
 
-        /**
-         * Write the IPTC records in order.
-         */
+        /* Write the IPTC records in order. */
         for ((iptcType, value) in records.sorted()) {
 
             /* Ignore the record version, because we already wrote it. */
