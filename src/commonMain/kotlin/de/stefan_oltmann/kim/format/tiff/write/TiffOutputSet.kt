@@ -87,7 +87,11 @@ public class TiffOutputSet(
         return directory
     }
 
-    public fun getDirectories(): List<TiffOutputDirectory> = directories
+    /**
+     * Returns a snapshot of the directories of this set, so callers can
+     * inspect them without holding the live list the writer mutates.
+     */
+    public fun getDirectories(): List<TiffOutputDirectory> = directories.toList()
 
     public fun getOrCreateRootDirectory(): TiffOutputDirectory =
         findDirectory(TiffConstants.TIFF_DIRECTORY_TYPE_IFD0) ?: addRootDirectory()

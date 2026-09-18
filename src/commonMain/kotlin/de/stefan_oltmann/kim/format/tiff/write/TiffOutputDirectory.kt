@@ -391,8 +391,12 @@ public class TiffOutputDirectory(
     public fun add(field: TiffOutputField): Boolean =
         fields.add(field)
 
+    /**
+     * Returns a snapshot of the fields of this directory, so callers can
+     * inspect them without holding the live set the writer mutates.
+     */
     public fun getFields(): Set<TiffOutputField> =
-        fields
+        fields.toSet()
 
     public fun removeField(tagInfo: TagInfo): Boolean =
         removeField(tagInfo.tag)
