@@ -89,20 +89,7 @@ public class DefaultRandomAccessByteReader(
             limit = Int.MAX_VALUE.toLong()
         )
 
-        /*
-         * Grow the buffer in bounded steps, so a declared content length
-         * beyond the actual data cannot drive a huge up-front allocation.
-         */
-        while (bufferPosition < targetIndex) {
-
-            val stepEnd = minOf(targetIndex.toLong(), buffer.size.toLong() + BUFFER_EXPANSION).toInt()
-
-            readToIndex(stepEnd)
-
-            /* The delegate delivered fewer bytes than declared: end of data. */
-            if (bufferPosition < stepEnd)
-                break
-        }
+        ensureBufferedUpTo(targetIndex)
 
         /* The position can be past the delivered data after a moveTo. */
         if (currentPosition >= bufferPosition)
@@ -151,20 +138,7 @@ public class DefaultRandomAccessByteReader(
             limit = Int.MAX_VALUE.toLong()
         )
 
-        /*
-         * Grow the buffer in bounded steps, so a hostile offset or length
-         * cannot drive a huge up-front allocation. The delegate's end of
-         * data ends the loop early.
-         */
-        while (bufferPosition < endIndex) {
-
-            val stepEnd = minOf(endIndex.toLong(), buffer.size.toLong() + BUFFER_EXPANSION).toInt()
-
-            readToIndex(stepEnd)
-
-            if (bufferPosition < stepEnd)
-                break
-        }
+        ensureBufferedUpTo(endIndex)
 
         if (offset >= bufferPosition)
             return byteArrayOf()
@@ -178,6 +152,25 @@ public class DefaultRandomAccessByteReader(
         buffer = ByteArray(0)
 
         byteReader.close()
+    }
+
+    /**
+     * Grows the buffer in bounded steps until [endIndex] is buffered or
+     * the delegate's end of data is reached, so a declared content length
+     * or a hostile offset cannot drive a huge up-front allocation.
+     */
+    private fun ensureBufferedUpTo(endIndex: Int) {
+
+        while (bufferPosition < endIndex) {
+
+            val stepEnd = minOf(endIndex.toLong(), buffer.size.toLong() + BUFFER_EXPANSION).toInt()
+
+            readToIndex(stepEnd)
+
+            /* The delegate delivered fewer bytes than requested: end of data. */
+            if (bufferPosition < stepEnd)
+                break
+        }
     }
 
     private fun readToIndex(index: Int) {

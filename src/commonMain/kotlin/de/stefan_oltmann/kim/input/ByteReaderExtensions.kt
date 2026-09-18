@@ -79,7 +79,8 @@ internal fun ByteReader.read2BytesAsInt(fieldName: String, byteOrder: ByteOrder)
     val byte0 = readByteAsInt()
     val byte1 = readByteAsInt()
 
-    if (byte0 or byte1 < 0)
+    /* readByteAsInt() returns -1 at the end of the stream. */
+    if (byte0 < 0 || byte1 < 0)
         throw ImageReadException("Couldn't read two bytes for $fieldName")
 
     return if (byteOrder == ByteOrder.BIG_ENDIAN)
@@ -96,7 +97,7 @@ internal fun ByteReader.read4BytesAsInt(fieldName: String, byteOrder: ByteOrder)
     val byte2 = readByteAsInt()
     val byte3 = readByteAsInt()
 
-    if (byte0 or byte1 or byte2 or byte3 < 0)
+    if (byte0 < 0 || byte1 < 0 || byte2 < 0 || byte3 < 0)
         throw ImageReadException("Couldn't read 4 bytes for $fieldName")
 
     val result: Int = if (byteOrder == ByteOrder.BIG_ENDIAN)
@@ -119,7 +120,9 @@ internal fun ByteReader.read8BytesAsLong(fieldName: String, byteOrder: ByteOrder
     val byte6 = readByteAsInt()
     val byte7 = readByteAsInt()
 
-    if (byte0 or byte1 or byte2 or byte3 or byte4 or byte5 or byte6 or byte7 < 0)
+    if (byte0 < 0 || byte1 < 0 || byte2 < 0 || byte3 < 0 ||
+        byte4 < 0 || byte5 < 0 || byte6 < 0 || byte7 < 0
+    )
         throw ImageReadException("Couldn't read 8 bytes for $fieldName")
 
     val result: Long = if (byteOrder == ByteOrder.BIG_ENDIAN)
@@ -165,19 +168,11 @@ internal fun ByteReader.readAndVerifyBytes(fieldName: String, expectedBytes: Byt
 
 internal fun ByteReader.readRemainingBytes(): ByteArray {
 
-    val os = ByteArrayByteWriter()
+    val byteWriter = ByteArrayByteWriter()
 
-    while (true) {
+    copyRemainingTo(byteWriter)
 
-        val bytes = readBytes(DEFAULT_BUFFER_SIZE)
-
-        if (bytes.isEmpty())
-            break
-
-        os.write(bytes)
-    }
-
-    return os.toByteArray()
+    return byteWriter.toByteArray()
 }
 
 /**
