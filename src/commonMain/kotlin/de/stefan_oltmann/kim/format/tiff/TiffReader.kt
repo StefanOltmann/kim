@@ -84,6 +84,16 @@ public object TiffReader {
      * The offset fields of a directory that point to a sub-directory,
      * mapped to the directory type that sub-directory is read as.
      */
+    /**
+     * The Exif, GPS and Interop offset fields point to sub-IFDs whose
+     * content is user-visible metadata that must survive updates.
+     */
+    private val metadataBearingOffsetFields = listOf(
+        ExifTag.EXIF_TAG_EXIF_OFFSET,
+        ExifTag.EXIF_TAG_GPSINFO,
+        ExifTag.EXIF_TAG_INTEROP_OFFSET
+    )
+
     private val directoryTypeMap = mapOf(
         ExifTag.EXIF_TAG_EXIF_OFFSET to TiffConstants.TIFF_DIRECTORY_EXIF,
         ExifTag.EXIF_TAG_GPSINFO to TiffConstants.TIFF_DIRECTORY_GPS,
@@ -330,16 +340,6 @@ public object TiffReader {
             currentType += 1
         }
     }
-
-    /**
-     * The Exif, GPS and Interop offset fields point to sub-IFDs whose
-     * content is user-visible metadata that must survive updates.
-     */
-    private val metadataBearingOffsetFields = listOf(
-        ExifTag.EXIF_TAG_EXIF_OFFSET,
-        ExifTag.EXIF_TAG_GPSINFO,
-        ExifTag.EXIF_TAG_INTEROP_OFFSET
-    )
 
     private fun isMetadataBearingOffsetField(offsetField: TagInfo): Boolean =
         offsetField in metadataBearingOffsetFields

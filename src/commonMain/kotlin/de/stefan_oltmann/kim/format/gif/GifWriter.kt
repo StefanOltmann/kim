@@ -272,10 +272,7 @@ public object GifWriter {
         /* Delete old chunks that are going to be replaced */
         if (xmp != null) {
 
-            modifiedChunks.removeAll {
-                it is GifChunkApplicationExtension &&
-                    it.applicationIdentifier == GifConstants.XMP_APPLICATION_IDENTIFIER
-            }
+            modifiedChunks.removeAll { it is GifChunkApplicationExtension && it.isXmpExtension }
 
             upgradeGif87aHeader(modifiedChunks)
         }
