@@ -369,7 +369,6 @@ public object PngWriter {
      * Note that a lot of tools like Apple Preview will not be able to read this,
      * but at least ExifTool and GIMP will.
      */
-    @Suppress("UnusedPrivateMember", "kotlin:S1144")
     private fun writeIptcChunk(byteWriter: ByteWriter, iptcBytes: ByteArray) {
 
         /*

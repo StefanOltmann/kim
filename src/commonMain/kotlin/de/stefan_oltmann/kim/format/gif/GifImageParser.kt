@@ -79,8 +79,6 @@ public object GifImageParser : ImageParser {
                 "Found chunk types: ${chunks.map { it.type }}"
         }
 
-        val version = headerChunk.version
-
         val firstImageDescriptorChunk = chunks.filterIsInstance<GifChunkImageDescriptor>().firstOrNull()
 
         checkNotNull(firstImageDescriptorChunk) {
@@ -99,11 +97,7 @@ public object GifImageParser : ImageParser {
             ?.canvasSize
             ?: firstImageDescriptorChunk.imageSize
 
-        /* Only GIF89A supports XMP metadata */
-        val xmp = if (version == GifVersion.GIF89A)
-            getXmpXml(chunks)
-        else
-            null
+        val xmp = parseXmp(chunks)
 
         return@tryWithImageReadException MediaMetadata(
             mediaFormat = MediaFormat.GIF,
