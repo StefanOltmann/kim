@@ -50,6 +50,7 @@ public data class GpsCoordinates(
     val latLongString: String =
         "${invariantPlain(roundPrecise(latitude))}, ${invariantPlain(roundPrecise(longitude))}"
 
+    /** Returns a copy rounded to the given number of decimal places. */
     public fun toRoundedCoordinates(
         precision: Precision
     ): GpsCoordinates = GpsCoordinates(
@@ -57,15 +58,24 @@ public data class GpsCoordinates(
         longitude = round(longitude, precision)
     )
 
+    /**
+     * Whether both coordinates are exactly zero - the location apps write
+     * when they have no fix, and which points at the Gulf of Guinea.
+     */
     public fun isNullIsland(): Boolean =
         latitude == 0.0 && longitude == 0.0
 
+    /** Whether both coordinates lie inside the ranges the format allows. */
     public fun isValid(): Boolean =
         latitude in MIN_LATITUDE..MAX_LATITUDE &&
             longitude in MIN_LONGITUDE..MAX_LONGITUDE
 
     public companion object {
 
+        /**
+         * Parses the "lat, long" decimal degree text form, or returns NULL
+         * for blank or malformed input.
+         */
         public fun parse(latLongString: String?): GpsCoordinates? {
 
             if (latLongString.isNullOrBlank())

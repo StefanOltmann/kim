@@ -39,6 +39,10 @@ public fun interface ImageParser {
 
     public companion object {
 
+        /**
+         * Returns the parser for the given format, or NULL for formats
+         * without a metadata parser.
+         */
         @JvmStatic
         public fun forFormat(mediaFormat: MediaFormat): ImageParser? =
             when (mediaFormat) {
