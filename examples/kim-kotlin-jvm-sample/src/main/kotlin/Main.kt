@@ -88,14 +88,10 @@ fun updateTakenDateLowLevelApi() {
     }
 }
 
-fun setGeoTiffToJpeg() {
-
-    val inputFile = File("testphoto.jpg")
-    val outputFile = File("testphoto_mod3.jpg")
-
-    val metadata = Kim.readMetadata(inputFile) ?: return
-
-    val outputSet: TiffOutputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
+/**
+ * Adds the GeoTiff sample tags to the root directory of the given output set.
+ */
+fun addGeoTiffTags(outputSet: TiffOutputSet) {
 
     val rootDirectory = outputSet.getOrCreateRootDirectory()
 
@@ -113,6 +109,18 @@ fun setGeoTiffToJpeg() {
         GeoTiffTag.EXIF_TAG_GEO_KEY_DIRECTORY_TAG,
         shortArrayOf(1, 0, 2, 3, 1024, 0, 1, 2, 2048, 0, 1, 4326, 1025, 0, 1, 2)
     )
+}
+
+fun setGeoTiffToJpeg() {
+
+    val inputFile = File("testphoto.jpg")
+    val outputFile = File("testphoto_mod3.jpg")
+
+    val metadata = Kim.readMetadata(inputFile) ?: return
+
+    val outputSet: TiffOutputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
+
+    addGeoTiffTags(outputSet)
 
     JvmInputStreamByteReader(inputFile.inputStream(), inputFile.length()).use { byteReader ->
 
@@ -158,22 +166,7 @@ fun setGeoTiffToTiff() {
 
     val outputSet: TiffOutputSet = tiffContents.createOutputSet()
 
-    val rootDirectory = outputSet.getOrCreateRootDirectory()
-
-    rootDirectory.add(
-        GeoTiffTag.EXIF_TAG_MODEL_PIXEL_SCALE_TAG,
-        doubleArrayOf(0.0002303616678184751, -0.0001521606816798535, 0.0)
-    )
-
-    rootDirectory.add(
-        GeoTiffTag.EXIF_TAG_MODEL_TIEPOINT_TAG,
-        doubleArrayOf(0.0, 0.0, 0.0, 8.915687629578438, 48.92432542097789, 0.0)
-    )
-
-    rootDirectory.add(
-        GeoTiffTag.EXIF_TAG_GEO_KEY_DIRECTORY_TAG,
-        shortArrayOf(1, 0, 2, 3, 1024, 0, 1, 2, 2048, 0, 1, 4326, 1025, 0, 1, 2)
-    )
+    addGeoTiffTags(outputSet)
 
     OutputStreamByteWriter(outputFile.outputStream()).use { outputStreamByteWriter ->
 
@@ -215,22 +208,7 @@ fun setGeoTiffToTiffUsingKotlinx() {
 
     val outputSet: TiffOutputSet = tiffContents?.createOutputSet() ?: TiffOutputSet()
 
-    val rootDirectory = outputSet.getOrCreateRootDirectory()
-
-    rootDirectory.add(
-        GeoTiffTag.EXIF_TAG_MODEL_PIXEL_SCALE_TAG,
-        doubleArrayOf(0.0002303616678184751, -0.0001521606816798535, 0.0)
-    )
-
-    rootDirectory.add(
-        GeoTiffTag.EXIF_TAG_MODEL_TIEPOINT_TAG,
-        doubleArrayOf(0.0, 0.0, 0.0, 8.915687629578438, 48.92432542097789, 0.0)
-    )
-
-    rootDirectory.add(
-        GeoTiffTag.EXIF_TAG_GEO_KEY_DIRECTORY_TAG,
-        shortArrayOf(1, 0, 2, 3, 1024, 0, 1, 2, 2048, 0, 1, 4326, 1025, 0, 1, 2)
-    )
+    addGeoTiffTags(outputSet)
 
     val byteArrayByteWriter = ByteArrayByteWriter()
 
@@ -245,4 +223,3 @@ fun setGeoTiffToTiffUsingKotlinx() {
 
     outputPath.writeBytes(updatedBytes)
 }
-
