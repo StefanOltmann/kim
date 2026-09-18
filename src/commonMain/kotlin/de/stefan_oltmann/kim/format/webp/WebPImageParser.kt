@@ -32,6 +32,7 @@ import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8L
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8X
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkXmp
+import de.stefan_oltmann.kim.format.xmp.requireValidXmpPacket
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.read4BytesAsInt
 import de.stefan_oltmann.kim.input.readAndVerifyBytes
@@ -93,10 +94,10 @@ public object WebPImageParser : ImageParser {
              * so it must fail the read as well (read/update symmetry),
              * like the GIF chunk validation.
              */
-            val xmp = xmpChunk?.xmp?.takeIf { it.contains("<x:xmpmeta") }
-
-            if (xmpChunk != null && xmp == null)
-                throw ImageReadException("The WebP XMP chunk has no <x:xmpmeta> element.")
+            val xmp = requireValidXmpPacket(
+                xmp = xmpChunk?.xmp,
+                sourceDescription = "The WebP XMP chunk"
+            )
 
             return@tryWithImageReadException MediaMetadata(
                 mediaFormat = MediaFormat.WEBP,

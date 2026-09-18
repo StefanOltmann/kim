@@ -33,6 +33,7 @@ import de.stefan_oltmann.kim.format.cr3.Cr3Reader
 import de.stefan_oltmann.kim.format.jxl.JxlReader
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffReader
+import de.stefan_oltmann.kim.format.xmp.requireValidXmpPacket
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.PrePendingByteReader
 import de.stefan_oltmann.kim.input.read4BytesAsInt
@@ -209,20 +210,13 @@ public object BaseMediaFileFormatImageParser : ImageParser {
             }
         }
 
-        /* XMP data can also be found in a UUID box, if we didn't find it in the metadata offsets. */
-        if (xmp == null) {
-            xmp = uuidBoxes.firstOrNull { it.isXmp }?.data?.decodeToString()
-        }
-
         /*
-         * Like WebP, JXL and CR3, corrupt XMP must fail the read instead
-         * of being handed to sidecar writers as a corrupt packet
-         * (read/update symmetry: an update would embed the broken bytes
-         * as-is). This holds even though HEIC and AVIF have no write
-         * path.
+         * XMP data can also be found in a UUID box, if we didn't find it in the metadata offsets.
          */
-        if (xmp != null && !xmp.contains("<x:xmpmeta"))
-            throw ImageReadException("The XMP data has no <x:xmpmeta> element.")
+        if (xmp == null)
+            xmp = uuidBoxes.firstOrNull { it.isXmp }?.data?.decodeToString()
+
+        xmp = requireValidXmpPacket(xmp, "The XMP data")
 
         return MediaMetadata(
             mediaFormat = null, // could be any ISO BMFF

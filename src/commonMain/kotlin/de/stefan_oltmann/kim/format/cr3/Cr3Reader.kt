@@ -29,6 +29,7 @@ import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.makernote.canon.CanonMakerNoteHandler
+import de.stefan_oltmann.kim.format.xmp.requireValidXmpPacket
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.ImageSize
 import de.stefan_oltmann.kim.model.MediaFormat
@@ -52,17 +53,12 @@ internal object Cr3Reader {
          */
         val subBoxes = findMetadataSubBoxes(allBoxes)
 
-        val xmpFromUuidBox = allBoxes.filterIsInstance<UuidBox>().find {
-            it.uuidAsHex == CR3_XMP_UUID
-        }?.data?.decodeToString()
-
-        /*
-         * Like WebP and JXL, corrupt XMP must fail the read instead of
-         * being handed to sidecar writers as a corrupt packet (read/update
-         * symmetry: an update would embed the broken bytes as-is).
-         */
-        if (xmpFromUuidBox != null && !xmpFromUuidBox.contains("<x:xmpmeta"))
-            throw ImageReadException("The CR3 XMP UUID box has no <x:xmpmeta> element.")
+        val xmpFromUuidBox = requireValidXmpPacket(
+            xmp = allBoxes.filterIsInstance<UuidBox>().find {
+                it.uuidAsHex == CR3_XMP_UUID
+            }?.data?.decodeToString(),
+            sourceDescription = "The CR3 XMP UUID box"
+        )
 
         val idf0: TiffContents? = readTiffContents(
             boxes = subBoxes,

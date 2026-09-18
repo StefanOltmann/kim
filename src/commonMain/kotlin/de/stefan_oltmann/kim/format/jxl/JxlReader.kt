@@ -21,6 +21,7 @@ import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.bmff.box.Box
 import de.stefan_oltmann.kim.format.jxl.box.ExifBox
 import de.stefan_oltmann.kim.format.jxl.box.XmlBox
+import de.stefan_oltmann.kim.format.xmp.requireValidXmpPacket
 import de.stefan_oltmann.kim.model.MediaFormat
 
 internal object JxlReader {
@@ -46,10 +47,7 @@ internal object JxlReader {
          * Corrupt XMP fails the update path in XMPMetaFactory anyway, so
          * it must fail the read as well (read/update symmetry).
          */
-        val xmp = xmlBox?.xmp
-
-        if (xmlBox != null && xmp?.contains("<x:xmpmeta") != true)
-            throw ImageReadException("The JXL XML box has no <x:xmpmeta> element.")
+        val xmp = requireValidXmpPacket(xmlBox?.xmp, "The JXL XML box")
 
         return MediaMetadata(
             mediaFormat = MediaFormat.JXL,
