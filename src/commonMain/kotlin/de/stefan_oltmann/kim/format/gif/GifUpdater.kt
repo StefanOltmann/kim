@@ -54,10 +54,7 @@ internal object GifUpdater : MetadataUpdater {
 
             val modifiedChunks = chunks.toMutableList()
 
-            modifiedChunks.removeAll { chunk ->
-                chunk is GifChunkApplicationExtension &&
-                    chunk.applicationIdentifier == GifConstants.XMP_APPLICATION_IDENTIFIER
-            }
+            modifiedChunks.removeAll { it is GifChunkApplicationExtension && it.isXmpExtension }
 
             GifWriter.upgradeGif87aHeader(modifiedChunks)
 
@@ -81,8 +78,7 @@ internal object GifUpdater : MetadataUpdater {
              * controls the animation loop.
              */
             val chunksWithoutMetadata = chunks.filterNot { chunk ->
-                chunk is GifChunkApplicationExtension &&
-                    chunk.applicationIdentifier == GifConstants.XMP_APPLICATION_IDENTIFIER ||
+                chunk is GifChunkApplicationExtension && chunk.isXmpExtension ||
                     chunk is GifChunkCommentExtension
             }
 

@@ -127,7 +127,7 @@ public object GifImageParser : ImageParser {
 
     private fun getXmpXml(chunks: List<GifChunk>): String? = chunks
         .filterIsInstance<GifChunkApplicationExtension>()
-        .firstOrNull { it.applicationIdentifier == GifConstants.XMP_APPLICATION_IDENTIFIER }
+        .firstOrNull { it.isXmpExtension }
         ?.parseAsXmpOrThrow()
 
     @JvmStatic

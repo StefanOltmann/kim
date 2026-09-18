@@ -20,6 +20,7 @@ package de.stefan_oltmann.kim.format.gif.chunk
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.format.gif.GifChunkType
+import de.stefan_oltmann.kim.format.gif.GifConstants
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.readBytes
 
@@ -42,6 +43,13 @@ public class GifChunkApplicationExtension(
 
     public val applicationIdentifier: String?
     public val applicationCode: String?
+
+    /**
+     * Whether this extension carries an XMP packet, matched by the
+     * well-known "XMP DataXMP" application identifier.
+     */
+    public val isXmpExtension: Boolean
+        get() = applicationIdentifier == GifConstants.XMP_APPLICATION_IDENTIFIER
 
     init {
 
