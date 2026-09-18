@@ -246,7 +246,6 @@ public object MetadataSummaryConverter {
         return trimEnd(' ', '\u0000').ifEmpty { null }
     }
 
-    @JvmStatic
     private fun extractTakenDateAsIsoString(metadata: MediaMetadata): String? {
 
         val takenDateField = metadata.findTiffField(ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL)
@@ -266,7 +265,6 @@ public object MetadataSummaryConverter {
         return convertExifDateToIso8601Date(takenDate)
     }
 
-    @JvmStatic
     private fun extractTakenDateMillisFromExif(
         metadata: MediaMetadata
     ): Long? {
@@ -338,7 +336,6 @@ public object MetadataSummaryConverter {
         }
     }
 
-    @JvmStatic
     private fun extractGpsCoordinatesFromExif(
         metadata: MediaMetadata
     ): GpsCoordinates? {
@@ -374,7 +371,6 @@ public object MetadataSummaryConverter {
         }
     }
 
-    @JvmStatic
     private fun extractKeywordsFromIptc(
         metadata: MediaMetadata
     ): Set<String> {
@@ -386,7 +382,6 @@ public object MetadataSummaryConverter {
             ?: emptySet()
     }
 
-    @JvmStatic
     private fun extractLocationFromIptc(
         metadata: MediaMetadata
     ): LocationShown? {
@@ -419,7 +414,6 @@ public object MetadataSummaryConverter {
         )
     }
 
-    @JvmStatic
     private fun extractFilmSimulation(metadata: MediaMetadata): String? {
 
         /* Only check for Fujifilm cameras */
