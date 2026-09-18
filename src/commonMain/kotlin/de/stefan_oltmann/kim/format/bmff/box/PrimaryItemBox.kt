@@ -37,10 +37,13 @@ public class PrimaryItemBox(
     payload: ByteArray
 ) : Box(BoxType.PITM, offset, size, largeSize, payload) {
 
+    /** The box version. */
     public val version: Int
 
+    /** The box flags. */
     public val flags: ByteArray
 
+    /** The id of the item the file designates as its primary item. */
     public val itemId: Int
 
     init {

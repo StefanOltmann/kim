@@ -40,12 +40,16 @@ public class ItemInformationBox(
     depth: Int = 0
 ) : Box(BoxType.IINF, offset, size, largeSize, payload), BoxContainer {
 
+    /** The box version. */
     public val version: Int
 
+    /** The box flags. */
     public val flags: ByteArray
 
+    /** The number of item information entries the box declares. */
     public val entryCount: Int
 
+    /** The item entries keyed by their item id. */
     public val map: Map<Int, ItemInfoEntryBox>
 
     override val boxes: List<Box>

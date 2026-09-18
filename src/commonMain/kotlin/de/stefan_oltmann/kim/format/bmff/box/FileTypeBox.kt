@@ -34,10 +34,13 @@ public class FileTypeBox(
     payload: ByteArray
 ) : Box(BoxType.FTYP, offset, size, largeSize, payload) {
 
+    /** The primary brand code that identifies the file variant, like "heic". */
     public val majorBrand: String
 
+    /** The four version bytes behind the major brand, as stored. */
     public val minorBrand: String
 
+    /** All brands the file declares compatibility with, including the major brand. */
     public val compatibleBrands: List<String>
 
     init {

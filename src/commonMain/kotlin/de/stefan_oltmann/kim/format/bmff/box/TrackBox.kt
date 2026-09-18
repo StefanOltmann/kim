@@ -38,7 +38,10 @@ public class TrackBox(
 
     override val boxes: List<Box>
 
+    /** The header describing the track, including the display width and height. */
     public val trackHeaderBox: TrackHeaderBox
+
+    /** The media container holding the track's content. */
     public val mediaBox: MediaBox
 
     init {

@@ -39,16 +39,22 @@ public class ItemInfoEntryBox(
     payload: ByteArray
 ) : Box(BoxType.INFE, offset, size, largeSize, payload) {
 
+    /** The box version. */
     public val version: Int
 
+    /** The box flags. */
     public val flags: ByteArray
 
+    /** The id that item location entries reference. */
     public val itemId: Int
 
+    /** Zero-based index into the protection scheme box; zero means unprotected. */
     public val itemProtectionIndex: Int
 
+    /** The four-character item type, like "Exif" or "mime". */
     public val itemType: Int
 
+    /** A free-text name of the item, often empty in real files. */
     public val itemName: String
 
     init {

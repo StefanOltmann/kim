@@ -40,8 +40,10 @@ public open class MetaBox(
     depth: Int = 0
 ) : Box(BoxType.META, offset, size, largeSize, payload), BoxContainer {
 
+    /** The box version. */
     public val version: Int
 
+    /** The box flags. */
     public val flags: ByteArray
 
     /* Mandatory boxes in META */

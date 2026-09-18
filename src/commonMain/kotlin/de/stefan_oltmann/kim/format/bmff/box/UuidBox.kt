@@ -36,10 +36,13 @@ public class UuidBox(
     payload: ByteArray
 ) : Box(BoxType.UUID, offset, size, largeSize, payload) {
 
+    /** The 16 vendor UUID bytes of the box. */
     public val uuid: ByteArray
 
+    /** The UUID bytes rendered as a lowercase hex string. */
     public val uuidAsHex: String
 
+    /** The payload behind the UUID, whose meaning depends on the UUID. */
     public val data: ByteArray
 
     init {

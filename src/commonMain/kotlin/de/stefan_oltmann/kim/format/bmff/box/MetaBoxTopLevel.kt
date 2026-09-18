@@ -113,6 +113,10 @@ public class MetaBoxTopLevel(
         }.sortedBy { item -> item.extents.first().offset }
     }
 
+    /**
+     * The file positions of all metadata extents, sorted by position,
+     * regardless of which item they belong to.
+     */
     public fun findMetadataOffsets(): List<MetadataOffset> =
         findMetadataItems().flatMap { item -> item.extents }.sortedBy { it.offset }
 
