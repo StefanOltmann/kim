@@ -278,13 +278,13 @@ public object Kim {
 
             val prePendingByteReader = PrePendingByteReader(it, headerBytes.toList())
 
-            if (mediaFormat == MediaFormat.RAF)
-                return@use RafPreviewExtractor.extractPreviewImage(prePendingByteReader)
-
-            if (mediaFormat == MediaFormat.CR3)
-                return@use Cr3PreviewExtractor.extractPreviewImage(prePendingByteReader)
-
             return@use when (mediaFormat) {
+
+                MediaFormat.RAF ->
+                    RafPreviewExtractor.extractPreviewImage(prePendingByteReader)
+
+                MediaFormat.CR3 ->
+                    Cr3PreviewExtractor.extractPreviewImage(prePendingByteReader)
 
                 MediaFormat.CR2,
                 MediaFormat.RW2,
