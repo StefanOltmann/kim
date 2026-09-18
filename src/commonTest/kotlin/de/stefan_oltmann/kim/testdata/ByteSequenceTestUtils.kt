@@ -15,60 +15,60 @@
  */
 package de.stefan_oltmann.kim.testdata
 
-    /**
-     * Counts how often the needle bytes occur in the array. Overlapping
-     * matches are not counted twice.
-     */
-    internal fun ByteArray.countOccurrences(needle: String): Int {
+/**
+ * Counts how often the needle bytes occur in the array. Overlapping
+ * matches are not counted twice.
+ */
+internal fun ByteArray.countOccurrences(needle: String): Int {
 
-        val needleBytes = needle.encodeToByteArray()
+    val needleBytes = needle.encodeToByteArray()
 
-        var count = 0
+    var count = 0
 
-        for (index in 0..size - needleBytes.size) {
+    for (index in 0..size - needleBytes.size) {
 
-            var matches = true
+        var matches = true
 
-            for (needleIndex in needleBytes.indices)
-                if (this[index + needleIndex] != needleBytes[needleIndex]) {
+        for (needleIndex in needleBytes.indices)
+            if (this[index + needleIndex] != needleBytes[needleIndex]) {
 
-                    matches = false
+                matches = false
 
-                    break
-                }
+                break
+            }
 
-            if (matches)
-                count++
-        }
-
-        return count
+        if (matches)
+            count++
     }
 
-    /**
-     * Returns the index of the first occurrence of the needle bytes, or
-     * -1 when the array does not contain them.
-     */
-    internal fun ByteArray.indexOfBytes(needle: ByteArray): Int {
+    return count
+}
 
-        for (offset in 0..size - needle.size) {
+/**
+ * Returns the index of the first occurrence of the needle bytes, or
+ * -1 when the array does not contain them.
+ */
+internal fun ByteArray.indexOfBytes(needle: ByteArray): Int {
 
-            var matches = true
+    for (offset in 0..size - needle.size) {
 
-            for (needleIndex in needle.indices)
-                if (this[offset + needleIndex] != needle[needleIndex]) {
+        var matches = true
 
-                    matches = false
+        for (needleIndex in needle.indices)
+            if (this[offset + needleIndex] != needle[needleIndex]) {
 
-                    break
-                }
+                matches = false
 
-            if (matches)
-                return offset
-        }
+                break
+            }
 
-        return -1
+        if (matches)
+            return offset
     }
 
-    /** Whether the needle bytes occur anywhere in the array. */
-    internal fun ByteArray.containsBytes(needle: ByteArray): Boolean =
-        indexOfBytes(needle) >= 0
+    return -1
+}
+
+/** Whether the needle bytes occur anywhere in the array. */
+internal fun ByteArray.containsBytes(needle: ByteArray): Boolean =
+    indexOfBytes(needle) >= 0
