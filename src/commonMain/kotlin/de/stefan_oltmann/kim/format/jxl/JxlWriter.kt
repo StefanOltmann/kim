@@ -286,6 +286,10 @@ public object JxlWriter {
         }
     }
 
+    /**
+     * Writes the boxes as a complete JPEG XL file, replacing EXIF and XMP
+     * with the given data. NULL removes that kind of metadata.
+     */
     @JvmStatic
     public fun writeImage(
         boxes: List<Box>,

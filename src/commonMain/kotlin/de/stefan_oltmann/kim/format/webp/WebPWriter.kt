@@ -32,6 +32,10 @@ import kotlin.jvm.JvmStatic
  */
 public object WebPWriter {
 
+    /**
+     * Reads the whole WebP from the reader and rewrites it with the given
+     * EXIF and XMP data. NULL leaves that kind of metadata out.
+     */
     @JvmStatic
     public fun writeImage(
         byteReader: ByteReader,
@@ -45,6 +49,11 @@ public object WebPWriter {
         xmp = xmp
     )
 
+    /**
+     * Writes the chunks as a complete WebP file, replacing EXIF and XMP
+     * with the given data. NULL leaves that kind of metadata out. The
+     * VP8X header flags are corrected to match what is actually written.
+     */
     @JvmStatic
     public fun writeImage(
         chunks: List<WebPChunk>,

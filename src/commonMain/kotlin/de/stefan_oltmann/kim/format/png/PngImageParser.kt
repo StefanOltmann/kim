@@ -78,6 +78,9 @@ public object PngImageParser : ImageParser {
             return@tryWithImageReadException parseMetadataFromChunks(chunks)
         }
 
+    /**
+     * Assembles the metadata from the chunks of a PNG file.
+     */
     @Throws(ImageReadException::class)
     @JvmStatic
     public fun parseMetadataFromChunks(chunks: List<PngChunk>): MediaMetadata =

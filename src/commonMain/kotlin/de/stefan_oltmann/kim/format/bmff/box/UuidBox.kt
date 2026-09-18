@@ -55,6 +55,7 @@ public class UuidBox(
         data = byteReader.readRemainingBytes()
     }
 
+    /** Whether the UUID is the Adobe XMP identifier. */
     public val isXmp: Boolean get() = uuidAsHex == BMFFConstants.XMP_UUID
 
     override fun toString(): String =

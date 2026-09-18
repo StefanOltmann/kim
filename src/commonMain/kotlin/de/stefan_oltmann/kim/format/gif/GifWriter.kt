@@ -260,6 +260,11 @@ public object GifWriter {
         }
     }
 
+    /**
+     * Writes the chunks as a complete GIF file, replacing the XMP when a
+     * packet is given. A GIF87a header is upgraded to GIF89a, which the
+     * XMP extension requires.
+     */
     public fun writeImage(
         chunks: List<GifChunk>,
         byteWriter: ByteWriter,

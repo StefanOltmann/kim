@@ -72,6 +72,9 @@ public object WebPImageParser : ImageParser {
             parseMetadataFromChunks(chunks)
         }
 
+    /**
+     * Assembles the metadata from the chunks of a WebP file.
+     */
     @Throws(ImageReadException::class)
     @JvmStatic
     public fun parseMetadataFromChunks(chunks: List<WebPChunk>): MediaMetadata =

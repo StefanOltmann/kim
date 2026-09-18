@@ -29,9 +29,16 @@ public open class PngChunk(
     public val crc: Int
 ) {
 
+    /** Whether the chunk is ancillary - ignorable - instead of critical to decode the image. */
     public val ancillary: Boolean
+
+    /** Whether the chunk is private to an application instead of part of the specification. */
     public val isPrivate: Boolean
+
+    /** Whether the reserved bit of the chunk type is set, which the spec forbids. */
     public val reserved: Boolean
+
+    /** Whether the chunk may be copied by tools that do not understand it. */
     public val safeToCopy: Boolean
 
     init {
