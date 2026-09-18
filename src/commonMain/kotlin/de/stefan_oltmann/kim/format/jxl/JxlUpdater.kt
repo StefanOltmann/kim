@@ -64,17 +64,11 @@ internal object JxlUpdater : MetadataUpdater {
 
             val outputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
 
-            val exifBytes: ByteArray? = if (outputSet.applyUpdates(updates)) {
-
-                val exifBytesWriter = ByteArrayByteWriter()
-
-                TiffWriter(byteOrder = outputSet.byteOrder).write(exifBytesWriter, outputSet)
-
-                exifBytesWriter.toByteArray()
-
-            } else {
-                null
-            }
+            val exifBytes: ByteArray? =
+                if (outputSet.applyUpdates(updates))
+                    writeExifBytes(outputSet)
+                else
+                    null
 
             JxlWriter.writeImage(
                 boxes = boxes,
@@ -139,11 +133,7 @@ internal object JxlUpdater : MetadataUpdater {
 
         outputSet.setThumbnailBytes(thumbnailBytes)
 
-        val exifBytesWriter = ByteArrayByteWriter()
-
-        TiffWriter(byteOrder = outputSet.byteOrder).write(exifBytesWriter, outputSet)
-
-        val exifBytes = exifBytesWriter.toByteArray()
+        val exifBytes = writeExifBytes(outputSet)
 
         val byteWriter = ByteArrayByteWriter()
 
@@ -155,5 +145,17 @@ internal object JxlUpdater : MetadataUpdater {
         )
 
         return@tryWithImageWriteException byteWriter.toByteArray()
+    }
+
+    /*
+     * Serializes the output set into the bytes of the EXIF box.
+     */
+    private fun writeExifBytes(outputSet: TiffOutputSet): ByteArray {
+
+        val exifBytesWriter = ByteArrayByteWriter()
+
+        TiffWriter(byteOrder = outputSet.byteOrder).write(exifBytesWriter, outputSet)
+
+        return exifBytesWriter.toByteArray()
     }
 }
