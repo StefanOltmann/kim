@@ -40,7 +40,7 @@ public object DngPreviewExtractor : TiffPreviewExtractor {
         val ifd0 = tiffContents.directories.first()
 
         /* Ensure that the file is a DNG by checking the required tag. */
-        if (ifd0.getFieldValue(TiffTag.TIFF_TAG_DNG_VERSION, false) == null)
+        if (ifd0.getFieldValue(TiffTag.TIFF_TAG_DNG_VERSION) == null)
             return@extractPreviewImage null
 
         previewFromTags(

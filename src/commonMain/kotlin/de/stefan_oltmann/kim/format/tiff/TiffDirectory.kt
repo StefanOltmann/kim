@@ -85,7 +85,14 @@ public class TiffDirectory(
         return null
     }
 
-    public fun getFieldValue(tag: TagInfoBytes, mustExist: Boolean): ByteArray? {
+    /**
+     * Returns the value bytes of the given byte-array field, or NULL when
+     * the directory does not carry it.
+     *
+     * @param mustExist Set to fail the read instead of returning NULL when
+     *        the field is absent.
+     */
+    public fun getFieldValue(tag: TagInfoBytes, mustExist: Boolean = false): ByteArray? {
 
         val field = findField(tag)
 

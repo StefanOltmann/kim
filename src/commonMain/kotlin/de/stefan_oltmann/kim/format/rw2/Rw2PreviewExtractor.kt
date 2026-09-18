@@ -40,7 +40,7 @@ public object Rw2PreviewExtractor : TiffPreviewExtractor {
          * Some files carry random garbage here, so only data with the
          * JPEG signature is returned.
          */
-        val previewBytes = ifd0.getFieldValue(TiffTag.TIFF_TAG_JPG_FROM_RAW, false)
+        val previewBytes = ifd0.getFieldValue(TiffTag.TIFF_TAG_JPG_FROM_RAW)
             ?: return@extractPreviewImage null
 
         return@extractPreviewImage if (previewBytes.startsWith(MediaFormatMagicNumbers.jpeg))
