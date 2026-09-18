@@ -22,7 +22,7 @@ import de.stefan_oltmann.kim.format.bmff.box.Box
 /**
  * JPEG XL jxlp box.
  */
-public class JxlParticalCodestreamBox(
+public class JxlPartialCodestreamBox(
     offset: Long,
     size: Long,
     largeSize: Long?,
@@ -30,11 +30,11 @@ public class JxlParticalCodestreamBox(
 ) : Box(BoxType.JXLP, offset, size, largeSize, payload) {
 
     public val isHeader: Boolean =
-        jxlCodeStreamSignaure == payload.take(jxlCodeStreamSignaure.size)
+        jxlCodeStreamSignature == payload.take(jxlCodeStreamSignature.size)
 
     private companion object {
 
-        private val jxlCodeStreamSignaure = listOf(
+        private val jxlCodeStreamSignature = listOf(
             0x00, 0x00, 0x00, 0x00, 0xFF.toByte(), 0x0A
         )
     }

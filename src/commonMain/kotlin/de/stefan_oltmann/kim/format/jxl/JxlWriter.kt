@@ -25,7 +25,7 @@ import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.bmff.box.Box
 import de.stefan_oltmann.kim.format.jxl.box.CompressedBox
-import de.stefan_oltmann.kim.format.jxl.box.JxlParticalCodestreamBox
+import de.stefan_oltmann.kim.format.jxl.box.JxlPartialCodestreamBox
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.copyRemainingTo
 import de.stefan_oltmann.kim.input.transferExactly
@@ -331,7 +331,7 @@ public object JxlWriter {
          * Otherwise we insert right after FTYP.
          */
         val jxlpHeaderBox =
-            modifiedBoxes.filterIsInstance<JxlParticalCodestreamBox>().firstOrNull { it.isHeader }
+            modifiedBoxes.filterIsInstance<JxlPartialCodestreamBox>().firstOrNull { it.isHeader }
 
         var metadataAnchorIndex =
             if (jxlpHeaderBox != null)

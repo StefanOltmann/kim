@@ -38,7 +38,7 @@ import de.stefan_oltmann.kim.format.bmff.box.UserDataBox
 import de.stefan_oltmann.kim.format.bmff.box.UuidBox
 import de.stefan_oltmann.kim.format.jxl.box.CompressedBox
 import de.stefan_oltmann.kim.format.jxl.box.ExifBox
-import de.stefan_oltmann.kim.format.jxl.box.JxlParticalCodestreamBox
+import de.stefan_oltmann.kim.format.jxl.box.JxlPartialCodestreamBox
 import de.stefan_oltmann.kim.format.jxl.box.XmlBox
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.read4BytesAsInt
@@ -412,7 +412,7 @@ public object BoxReader {
                 /* JXL boxes */
                 BoxType.EXIF -> ExifBox(globalOffset, size, largeSize, bytes)
                 BoxType.XML -> XmlBox(globalOffset, size, largeSize, bytes)
-                BoxType.JXLP -> JxlParticalCodestreamBox(globalOffset, size, largeSize, bytes)
+                BoxType.JXLP -> JxlPartialCodestreamBox(globalOffset, size, largeSize, bytes)
                 BoxType.BROB -> CompressedBox(globalOffset, size, largeSize, bytes)
                 /* Unknown box */
                 else -> Box(type, globalOffset, size, largeSize, bytes)
@@ -471,7 +471,7 @@ public object BoxReader {
                  */
                 if (type == BoxType.JXLP) {
 
-                    box as JxlParticalCodestreamBox
+                    box as JxlPartialCodestreamBox
 
                     if (box.isHeader)
                         haveSeenJxlHeaderBox = true
