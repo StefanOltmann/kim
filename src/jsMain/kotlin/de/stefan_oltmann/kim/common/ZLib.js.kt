@@ -116,9 +116,9 @@ internal actual fun decompressBytes(
     } catch (ex: Throwable) {
 
         /*
-         * Kotlin-thrown errors carry their cause, while foreign JS
-         * throwables are not Throwable instances (the instanceof check
-         * above rethrows them) and are handled by the dynamic catch.
+         * Kotlin-thrown errors are Throwable instances and carry their
+         * cause. Foreign JS throwables are not, so they fall through to
+         * the dynamic catch below.
          */
         throw ImageReadException("Failed to decompress the data.", ex)
 
