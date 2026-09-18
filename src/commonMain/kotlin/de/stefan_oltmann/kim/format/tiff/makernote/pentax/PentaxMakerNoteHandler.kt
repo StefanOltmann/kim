@@ -25,6 +25,10 @@ import de.stefan_oltmann.kim.input.RandomAccessByteReader
  */
 internal object PentaxMakerNoteHandler : MakerNoteHandler() {
 
+    /*
+     * Both signatures must keep the same length: the IFD offset below is
+     * always computed from the Pentax signature, no matter which one matched.
+     */
     private const val PENTAX_MAKER_NOTE_SIGNATURE = "PENTAX \u0000"
     private const val SAMSUNG_MAKER_NOTE_SIGNATURE = "SAMSUNG\u0000"
 

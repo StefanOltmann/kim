@@ -15,6 +15,7 @@
  */
 package de.stefan_oltmann.kim.format.tiff.makernote.sigma
 
+import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.format.tiff.TiffDirectory
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.makernote.MakerNoteHandler
@@ -48,7 +49,7 @@ internal object SigmaMakerNoteHandler : MakerNoteHandler() {
             byteReader = byteReader,
             directoryOffset = makerNoteValueOffset + ifdOffset,
             valueOffsetBase = makerNoteValueOffset,
-            byteOrder = de.stefan_oltmann.kim.common.ByteOrder.LITTLE_ENDIAN,
+            byteOrder = ByteOrder.LITTLE_ENDIAN,
             directoryType = TiffConstants.TIFF_MAKER_NOTE_SIGMA,
             addDirectory = addDirectory
         )
