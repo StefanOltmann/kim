@@ -306,6 +306,9 @@ public object JpegRewriter {
         return segments
     }
 
+    /**
+     * Replaces the XMP of the file with the given packet.
+     */
     @JvmStatic
     public fun updateXmpXml(
         byteReader: ByteReader,

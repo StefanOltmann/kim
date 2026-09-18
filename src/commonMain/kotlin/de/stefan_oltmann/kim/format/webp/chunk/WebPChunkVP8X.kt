@@ -33,10 +33,19 @@ public class WebPChunkVP8X(
     bytes: ByteArray
 ) : WebPChunk(WebPChunkType.VP8X, bytes), ImageSizeAware {
 
+    /** Whether the file carries an ICC color profile chunk. */
     public val hasIcc: Boolean
+
+    /** Whether the image carries an alpha channel. */
     public val hasAlpha: Boolean
+
+    /** Whether the file carries an EXIF chunk. */
     public val hasExif: Boolean
+
+    /** Whether the file carries an XMP chunk. */
     public val hasXmp: Boolean
+
+    /** Whether the image is an animation of multiple frames. */
     public val hasAnimation: Boolean
 
     override val imageSize: ImageSize
@@ -79,6 +88,10 @@ public class WebPChunkVP8X(
 
     public companion object {
 
+        /**
+         * Builds the 10-byte VP8X payload with the given format flags
+         * and the canvas size.
+         */
         public fun createBytes(
             hasIcc: Boolean,
             hasAlpha: Boolean,

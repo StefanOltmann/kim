@@ -37,11 +37,17 @@ public class TiffOutputField(
     private var bytes: ByteArray
 ) : Comparable<TiffOutputField> {
 
+    /** The hex-rendered tag id, like "0x8769". */
     public val tagFormatted: String =
         "0x" + tag.toString(HEX_RADIX).padStart(4, '0')
 
+    /**
+     * Whether the value is small enough to be stored inside the 12-byte
+     * directory entry itself instead of behind an offset.
+     */
     public val isLocalValue: Boolean = bytes.size <= TIFF_ENTRY_MAX_VALUE_LENGTH
 
+    /** The separate value block, or NULL when the value is stored locally. */
     public val separateValue: TiffOutputValue? =
         if (isLocalValue) null else TiffOutputValue("Value of $this", bytes)
 

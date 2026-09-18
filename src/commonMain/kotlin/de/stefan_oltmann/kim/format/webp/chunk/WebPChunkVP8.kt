@@ -35,6 +35,7 @@ public class WebPChunkVP8(
 
     override val imageSize: ImageSize
 
+    /** Scale factors the decoder applies to the base dimensions. */
     public val horizontalScale: Int
     public val verticalScale: Int
 

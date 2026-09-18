@@ -407,6 +407,7 @@ public class TiffOutputDirectory(
     public fun findField(tagInfo: TagInfo): TiffOutputField? =
         findField(tagInfo.tag)
 
+    /** Returns the field with the given tag id, or NULL when it is absent. */
     public fun findField(tag: Int): TiffOutputField? =
         fields.find { it.tag == tag }
 

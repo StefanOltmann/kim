@@ -47,6 +47,9 @@ public object XmpWriter {
             .setUseCanonicalFormat(false)
             .setSort(true)
 
+    /**
+     * Applies a single metadata update to this XMP packet.
+     */
     @JvmStatic
     public fun XMPMeta.applyUpdate(update: MetadataUpdate) {
 

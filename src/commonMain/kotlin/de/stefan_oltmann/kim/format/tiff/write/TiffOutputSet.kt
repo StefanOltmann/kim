@@ -60,6 +60,13 @@ public class TiffOutputSet(
         return outputItems
     }
 
+    /**
+     * Adds the directory to the set.
+     *
+     * Sub-directories are inserted before the thumbnail directory, so the
+     * embedded thumbnail stays the last block of the EXIF data. Only one
+     * directory per type is allowed.
+     */
     public fun addDirectory(directory: TiffOutputDirectory): TiffOutputDirectory {
 
         if (findDirectory(directory.type) != null)
@@ -123,6 +130,10 @@ public class TiffOutputSet(
     public fun findDirectory(directoryType: Int): TiffOutputDirectory? =
         directories.find { it.type == directoryType }
 
+    /**
+     * Applies a single update to the output directories, creating the
+     * directories the update needs on the way.
+     */
     public fun applyUpdate(update: MetadataUpdate) {
 
         val rootDirectory = getOrCreateRootDirectory()
@@ -327,21 +338,27 @@ public class TiffOutputSet(
         )
     }
 
+    /** Returns the MakerNote output field, or NULL when none was added. */
     public fun findMakerNoteField(): TiffOutputField? =
         findField(ExifTag.EXIF_TAG_MAKER_NOTE.tag)
 
+    /** Returns the output field with the given tag id, searching all directories. */
     public fun findField(tag: Int): TiffOutputField? =
         directories.firstNotNullOfOrNull { directory -> directory.findField(tag) }
 
+    /** Adds an empty root directory (IFD0) and returns it. */
     public fun addRootDirectory(): TiffOutputDirectory =
         addDirectory(TiffOutputDirectory(TiffConstants.TIFF_DIRECTORY_TYPE_IFD0, byteOrder))
 
+    /** Adds an empty EXIF sub-directory and returns it. */
     public fun addExifDirectory(): TiffOutputDirectory =
         addDirectory(TiffOutputDirectory(TiffConstants.TIFF_DIRECTORY_EXIF, byteOrder))
 
+    /** Adds an empty thumbnail directory (IFD1) and returns it. */
     public fun addThumbnailDirectory(): TiffOutputDirectory =
         addDirectory(TiffOutputDirectory(TiffConstants.TIFF_DIRECTORY_TYPE_IFD1, byteOrder))
 
+    /** Adds an empty GPS sub-directory and returns it. */
     public fun addGPSDirectory(): TiffOutputDirectory =
         addDirectory(TiffOutputDirectory(TiffConstants.TIFF_DIRECTORY_GPS, byteOrder))
 

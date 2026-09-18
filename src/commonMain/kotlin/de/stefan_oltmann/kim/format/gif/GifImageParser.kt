@@ -64,6 +64,9 @@ public object GifImageParser : ImageParser {
             return@tryWithImageReadException parseMetadataFromChunks(chunks)
         }
 
+    /**
+     * Assembles the metadata from the chunks of a GIF file.
+     */
     @Throws(ImageReadException::class)
     @JvmStatic
     public fun parseMetadataFromChunks(chunks: List<GifChunk>): MediaMetadata = tryWithImageReadException {
@@ -130,6 +133,12 @@ public object GifImageParser : ImageParser {
         .firstOrNull { it.isXmpExtension }
         ?.parseAsXmpOrThrow()
 
+    /**
+     * Reads the chunks of a whole GIF file.
+     *
+     * With a non-NULL filter only chunks of the listed types are returned;
+     * skipped chunks are still consumed, so the reader stays in sync.
+     */
     @JvmStatic
     public fun readChunks(
         byteReader: ByteReader,
