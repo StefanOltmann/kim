@@ -143,7 +143,6 @@ public object XmpWriter {
      * Note: Parameter 'writePackageWrapper' should be "true" for embedded XMP.
      */
     @Throws(XMPException::class)
-    @Suppress("LoopWithTooManyJumpStatements")
     @JvmStatic
     public fun updateXmp(
         xmpMeta: XMPMeta,
