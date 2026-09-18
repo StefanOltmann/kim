@@ -175,11 +175,11 @@ public object JpegImageParser : ImageParser {
      * metadata without a second traversal of the file.
      */
     internal fun parseMetadata(segments: List<JFIFPieceSegment>): MediaMetadata =
-        parseMetadata(segments.mapNotNull { segment ->
+        assembleMetadata(segments.mapNotNull { segment ->
             toSegment(segment.marker, segment.segmentBytes)
         })
 
-    private fun parseMetadata(segments: List<Segment>): MediaMetadata {
+    private fun assembleMetadata(segments: List<Segment>): MediaMetadata {
 
         val imageSize = getImageSize(segments)
 
@@ -226,7 +226,7 @@ public object JpegImageParser : ImageParser {
             else ->
                 when {
 
-                    JpegConstants.SOFN_MARKERS.binarySearch(marker) >= 0 ->
+                    marker in JpegConstants.SOFN_MARKERS ->
                         SofnSegment(marker, segmentBytes)
 
                     marker >= JpegConstants.JPEG_APP1_MARKER &&
@@ -555,9 +555,4 @@ public object JpegImageParser : ImageParser {
 
         return trailerSegments
     }
-    /*
-     * The header segments are read through JpegUtils.readSegments
-     * directly by the callers, so a marker-filtered wrapper would be
-     * dead code.
-     */
 }
