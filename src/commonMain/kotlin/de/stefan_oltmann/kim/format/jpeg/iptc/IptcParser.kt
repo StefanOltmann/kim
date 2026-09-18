@@ -290,59 +290,32 @@ public object IptcParser {
             if (!byteReader.skipToNextResourceBlock())
                 break
 
-            /*
-             * The data can end anywhere, e.g. after a truncated write.
-             * Like the tolerated EOF inside the block data, every header
-             * read ends the parse gracefully and keeps the blocks found
-             * so far.
-             */
-            val blockType = try {
-                byteReader.readNextNonIgnoredBlockType()
-            } catch (_: ImageReadException) {
-                break
-            } ?: break
+            val blockType = readTolerantly { byteReader.readNextNonIgnoredBlockType() } ?: break
 
-            val blockNameLength = try {
-                byteReader.readByte("block name length").toUInt8()
-            } catch (_: ImageReadException) {
-                break
-            }
+            val blockNameLength = readTolerantly { byteReader.readByte("block name length").toUInt8() }
+                ?: break
 
             val blockNameBytes: ByteArray
 
             if (blockNameLength == 0) {
 
-                try {
-                    byteReader.readByte("empty name")
-                } catch (_: ImageReadException) {
-                    break
-                }
+                readTolerantly { byteReader.readByte("empty name") } ?: break
 
                 blockNameBytes = EMPTY_BYTE_ARRAY
 
             } else {
 
-                blockNameBytes = try {
-                    byteReader.readBytes("block name bytes", blockNameLength)
-                } catch (_: ImageReadException) {
-                    break
-                }
+                blockNameBytes = readTolerantly { byteReader.readBytes("block name bytes", blockNameLength) }
+                    ?: break
 
                 if (blockNameLength % 2 == 0) {
 
-                    try {
-                        byteReader.readByte("block name padding byte")
-                    } catch (_: ImageReadException) {
-                        break
-                    }
+                    readTolerantly { byteReader.readByte("block name padding byte") } ?: break
                 }
             }
 
-            val blockSize = try {
-                byteReader.read4BytesAsInt("block size", APP13_BYTE_ORDER)
-            } catch (_: ImageReadException) {
-                break
-            }
+            val blockSize = readTolerantly { byteReader.read4BytesAsInt("block size", APP13_BYTE_ORDER) }
+                ?: break
 
             /*
              * Note: This doesn't catch cases where blocksize is invalid but is still less
@@ -351,11 +324,8 @@ public object IptcParser {
             if (blockSize > bytes.size)
                 throw ImageReadException("Invalid Block Size : " + blockSize + " > " + bytes.size)
 
-            val blockData: ByteArray = try {
-                byteReader.readBytes("block data", blockSize)
-            } catch (_: ImageReadException) {
-                break
-            }
+            val blockData: ByteArray = readTolerantly { byteReader.readBytes("block data", blockSize) }
+                ?: break
 
             blocks.add(IptcBlock(blockType, blockNameBytes, blockData))
 
@@ -366,16 +336,26 @@ public object IptcParser {
              */
             if (blockSize % 2 != 0) {
 
-                try {
-                    byteReader.readByte("block data padding byte")
-                } catch (_: ImageReadException) {
-                    break
-                }
+                readTolerantly { byteReader.readByte("block data padding byte") } ?: break
             }
         }
 
         return blocks
     }
+
+    /**
+     * Runs one read of the tolerant APP13 block walk.
+     *
+     * The data can end anywhere, e.g. after a truncated write. Like the
+     * tolerated EOF inside the block data, every read that hits the end
+     * stops the parse gracefully and keeps the blocks found so far.
+     */
+    private inline fun <T> readTolerantly(read: () -> T): T? =
+        try {
+            read()
+        } catch (_: ImageReadException) {
+            null
+        }
 
     /**
      * Positions the reader right after the next 8BIM resource block
