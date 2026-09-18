@@ -89,6 +89,7 @@ public class TiffDirectory(
      * Returns the value bytes of the given byte-array field, or NULL when
      * the directory does not carry it.
      *
+     * @param tag The field to look up.
      * @param mustExist Set to fail the read instead of returning NULL when
      *        the field is absent.
      */

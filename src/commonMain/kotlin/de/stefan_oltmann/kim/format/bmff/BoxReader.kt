@@ -226,7 +226,7 @@ public object BoxReader {
 
             /*
              * If we read an JXL file and we already have seen the header,
-             * all reamining JXLP boxes are image data that we can skip.
+             * all remaining JXLP boxes are image data that we can skip.
              */
             if (stopAfterMetadataRead && type == BoxType.JXLP && haveSeenJxlHeaderBox)
                 break
@@ -235,7 +235,7 @@ public object BoxReader {
 
             val actualLength: Long = when (size) {
 
-                /* A vaule of zero indicates that it's the last box. */
+                /* A value of zero indicates that it's the last box. */
                 0L -> available
 
                 /* A length of 1 indicates that we should read the next 8 bytes to get a long value. */
