@@ -70,24 +70,15 @@ internal class JpegMarkerScanner(
 
                 val markerBytes = byteArrayOf(previous, current)
 
-                return if (keepConsumedBytes) {
+                val consumedBytes =
+                    if (keepConsumedBytes) consumed.toByteArray() else ByteArray(0)
 
-                    Scan(
-                        marker = marker,
-                        markerBytes = markerBytes,
-                        consumedBytes = consumed.toByteArray(),
-                        consumedCount = consumed.size
-                    )
-
-                } else {
-
-                    Scan(
-                        marker = marker,
-                        markerBytes = markerBytes,
-                        consumedBytes = ByteArray(0),
-                        consumedCount = consumedCount
-                    )
-                }
+                return Scan(
+                    marker = marker,
+                    markerBytes = markerBytes,
+                    consumedBytes = consumedBytes,
+                    consumedCount = consumedCount
+                )
             }
 
             previous = current

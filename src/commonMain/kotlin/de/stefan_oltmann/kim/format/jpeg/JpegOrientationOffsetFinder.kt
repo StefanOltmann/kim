@@ -52,14 +52,14 @@ public object JpegOrientationOffsetFinder {
 
         var positionCounter: Long = MediaFormatMagicNumbers.jpeg.size.toLong()
 
-        val scanner = JpegMarkerScanner(byteReader)
+        val scanner = JpegMarkerScanner(byteReader, keepConsumedBytes = false)
 
         @Suppress("LoopWithTooManyJumpStatements")
         do {
 
             val scan = scanner.nextMarker(zeroIsFillByte = true) ?: break
 
-            positionCounter += scan.consumedBytes.size
+            positionCounter += scan.consumedCount
 
             if (scan.marker == JpegConstants.SOS_MARKER || scan.marker == JpegConstants.EOI_MARKER)
                 break
