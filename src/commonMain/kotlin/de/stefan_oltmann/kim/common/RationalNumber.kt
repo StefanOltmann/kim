@@ -277,10 +277,9 @@ public class RationalNumber {
          */
         public fun valueOf(value: Double): RationalNumber {
 
-            if (value.isNaN() || value.isInfinite())
-                throw IllegalArgumentException(
-                    "Cannot convert non-finite value to rational: $value"
-                )
+            require(!value.isNaN() && !value.isInfinite()) {
+                "Cannot convert non-finite value to rational: $value"
+            }
 
             if (value >= Int.MAX_VALUE)
                 return RationalNumber(Int.MAX_VALUE, 1)
