@@ -19,6 +19,7 @@ package de.stefan_oltmann.kim.format.arw
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.TiffPreviewExtractor
+import de.stefan_oltmann.kim.format.TiffPreviewExtractor.Companion.previewFromTags
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.input.RandomAccessByteReader
@@ -34,21 +35,11 @@ public object ArwPreviewExtractor : TiffPreviewExtractor {
         randomAccessByteReader: RandomAccessByteReader
     ): ByteArray? = tryWithImageReadException {
 
-        val ifd0 = tiffContents.directories.first()
-
-        val previewImageStart = ifd0.getFieldValue(TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT)
-            ?: return@extractPreviewImage null
-
-        val previewLength = ifd0.getFieldValue(TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT_LENGTH)
-            ?: return@extractPreviewImage null
-
-        if (previewLength == 0)
-            return@extractPreviewImage null
-
-        return@tryWithImageReadException TiffPreviewExtractor.readValidatedPreviewBytes(
+        previewFromTags(
+            directory = tiffContents.directories.first(),
             randomAccessByteReader = randomAccessByteReader,
-            start = previewImageStart,
-            length = previewLength
+            startTag = TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT,
+            lengthTag = TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT_LENGTH
         )
     }
 }

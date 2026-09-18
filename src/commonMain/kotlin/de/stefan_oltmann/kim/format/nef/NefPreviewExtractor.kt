@@ -19,6 +19,7 @@ package de.stefan_oltmann.kim.format.nef
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.TiffPreviewExtractor
+import de.stefan_oltmann.kim.format.TiffPreviewExtractor.Companion.previewFromTags
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
@@ -35,23 +36,13 @@ public object NefPreviewExtractor : TiffPreviewExtractor {
         randomAccessByteReader: RandomAccessByteReader
     ): ByteArray? = tryWithImageReadException {
 
-        val ifd1 = tiffContents.directories.find {
-            it.type == TiffConstants.TIFF_DIRECTORY_TYPE_IFD1
-        } ?: return@extractPreviewImage null
-
-        val previewImageStart = ifd1.getFieldValue(TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT)
-            ?: return@extractPreviewImage null
-
-        val previewLength = ifd1.getFieldValue(TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT_LENGTH)
-            ?: return@extractPreviewImage null
-
-        if (previewLength == 0)
-            return@extractPreviewImage null
-
-        return@tryWithImageReadException TiffPreviewExtractor.readValidatedPreviewBytes(
+        previewFromTags(
+            directory = tiffContents.directories.find {
+                it.type == TiffConstants.TIFF_DIRECTORY_TYPE_IFD1
+            },
             randomAccessByteReader = randomAccessByteReader,
-            start = previewImageStart,
-            length = previewLength
+            startTag = TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT,
+            lengthTag = TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT_LENGTH
         )
     }
 }
