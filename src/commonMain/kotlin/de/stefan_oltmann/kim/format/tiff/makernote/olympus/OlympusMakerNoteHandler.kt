@@ -79,7 +79,7 @@ internal object OlympusMakerNoteHandler : MakerNoteHandler() {
             addDirectory = addDirectory
         ) ?: return
 
-        readMakerNoteSubDirectories(
+        readMakerNoteIfdSubDirectories(
             byteReader = byteReader,
             directory = makerNoteDirectory,
             valueOffsetBase = makerNoteValueOffset,

@@ -237,7 +237,7 @@ internal object NikonMakerNoteHandler : MakerNoteHandler() {
             addDirectory = addDirectory
         ) ?: return
 
-        readMakerNoteSubDirectories(
+        readMakerNoteIfdSubDirectories(
             byteReader = byteReader,
             directory = makerNoteDirectory,
             valueOffsetBase = tiffHeaderOffset,
