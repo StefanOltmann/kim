@@ -50,12 +50,7 @@ internal object GifUpdater : MetadataUpdater {
 
             val xmp = GifImageParser.parseXmp(chunks)
 
-            val xmpMeta: XMPMeta = if (xmp != null)
-                XMPMetaFactory.parseFromString(xmp)
-            else
-                XMPMetaFactory.create()
-
-            val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
+            val updatedXmp = XmpWriter.updateXmp(xmp, updates, true)
 
             val modifiedChunks = chunks.toMutableList()
 

@@ -157,6 +157,28 @@ public object XmpWriter {
     }
 
     /**
+     * Applies the updates to the given packet, or to a newly created
+     * packet when the file has no XMP yet.
+     *
+     * Note: Parameter 'writePackageWrapper' should be "true" for embedded XMP.
+     */
+    @Throws(XMPException::class)
+    @JvmStatic
+    public fun updateXmp(
+        existingXmp: String?,
+        updates: Set<MetadataUpdate>,
+        writePackageWrapper: Boolean
+    ): String {
+
+        val xmpMeta = if (existingXmp != null)
+            XMPMetaFactory.parseFromString(existingXmp)
+        else
+            XMPMetaFactory.create()
+
+        return updateXmp(xmpMeta, updates, writePackageWrapper)
+    }
+
+    /**
      * Convenience overload for applying a single update.
      *
      * Note: Parameter 'writePackageWrapper' should be "true" for embedded XMP.

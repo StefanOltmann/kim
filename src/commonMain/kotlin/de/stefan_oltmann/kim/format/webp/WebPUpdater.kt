@@ -46,12 +46,7 @@ internal object WebPUpdater : MetadataUpdater {
 
         val metadata = WebPImageParser.parseMetadataFromChunks(chunks)
 
-        val xmpMeta: XMPMeta = if (metadata.xmp != null)
-            XMPMetaFactory.parseFromString(metadata.xmp)
-        else
-            XMPMetaFactory.create()
-
-        val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
+        val updatedXmp = XmpWriter.updateXmp(metadata.xmp, updates, true)
 
         val outputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
 
