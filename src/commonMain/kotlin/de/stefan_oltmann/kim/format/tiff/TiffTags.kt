@@ -300,9 +300,6 @@ internal object TiffTags {
 
         val tables = tagTablesByDirectoryType[directoryType]
 
-        /*
-         * GPS and Maker Notes should be exact matches.
-         */
         val possibleMatches: List<TagInfo>? = when {
             preferPanasonicRawTags && directoryType == TiffConstants.TIFF_DIRECTORY_TYPE_IFD0 ->
                 PANASONIC_RAW_TAGS_MAP[tag] ?: TIFF_AND_EXIF_TAGS_MAP[tag]
@@ -323,6 +320,7 @@ internal object TiffTags {
     @Suppress("UnnecessaryParentheses")
     private fun getTag(directoryType: Int, possibleMatches: List<TagInfo>): TagInfo? {
 
+        /* GPS and Maker Notes should be exact matches. */
         val exactMatch = possibleMatches.firstOrNull { tagInfo ->
             tagInfo.directoryType?.typeId == directoryType &&
                 tagInfo.directoryType != EXIF_DIRECTORY_UNKNOWN
