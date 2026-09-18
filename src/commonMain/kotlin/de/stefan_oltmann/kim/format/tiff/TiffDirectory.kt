@@ -291,24 +291,18 @@ public class TiffDirectory(
         @kotlin.jvm.JvmStatic
         public fun description(type: Int): String {
             return when (type) {
-                TiffConstants.DIRECTORY_TYPE_UNKNOWN -> "Unknown"
-                TiffConstants.TIFF_DIRECTORY_TYPE_IFD0 -> "IFD0"
-                TiffConstants.TIFF_DIRECTORY_TYPE_IFD1 -> "IFD1"
+
+                /*
+                 * The SubIFD labels differ from the enum's IFD2/IFD3/IFD4
+                 * display names on purpose: in the EXIF context these ids
+                 * are read as Kodak/DCP sub-IFDs, not as chain IFDs.
+                 */
                 TiffConstants.EXIF_SUB_IFD1 -> "SubIFD1"
                 TiffConstants.EXIF_SUB_IFD2 -> "SubIFD2"
                 TiffConstants.EXIF_SUB_IFD3 -> "SubIFD3"
-                TiffConstants.TIFF_DIRECTORY_EXIF -> "ExifIFD"
-                TiffConstants.TIFF_DIRECTORY_GPS -> "GPS"
-                TiffConstants.TIFF_DIRECTORY_INTEROP -> "InteropIFD"
-                TiffConstants.TIFF_MAKER_NOTE_CANON -> "MakerNoteCanon"
-                TiffConstants.TIFF_MAKER_NOTE_NIKON -> "MakerNoteNikon"
-                TiffConstants.TIFF_MAKER_NOTE_FUJIFILM -> "MakerNoteFujiFilm"
-                TiffConstants.TIFF_MAKER_NOTE_APPLE -> "MakerNoteApple"
-                TiffConstants.TIFF_MAKER_NOTE_OLYMPUS -> "MakerNoteOlympus"
-                TiffConstants.TIFF_MAKER_NOTE_PANASONIC -> "MakerNotePanasonic"
-                TiffConstants.TIFF_MAKER_NOTE_SONY -> "MakerNoteSony"
-                TiffConstants.TIFF_MAKER_NOTE_SONY5 -> "MakerNoteSony5"
-                TiffConstants.TIFF_MAKER_NOTE_SONY_ERICSSON -> "MakerNoteSonyEricsson"
+
+                TiffConstants.DIRECTORY_TYPE_UNKNOWN -> "Unknown"
+
                 else -> TiffDirectoryType.entries
                     .firstOrNull { it.typeId == type }
                     ?.displayName
