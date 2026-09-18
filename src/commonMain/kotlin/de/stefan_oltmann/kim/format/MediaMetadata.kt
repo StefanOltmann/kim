@@ -55,9 +55,11 @@ public class MediaMetadata internal constructor(
     public fun findDoubleValue(tagInfo: TagInfo): Double? =
         findTiffField(tagInfo)?.toDouble()
 
+    /** Returns the raw TIFF field of the given tag, or NULL when absent. */
     public fun findTiffField(tagInfo: TagInfo): TiffField? =
         exif?.findTiffField(tagInfo)
 
+    /** Returns the TIFF directory with the given type, or NULL when absent. */
     public fun findTiffDirectory(directoryType: Int): TiffDirectory? =
         exif?.findTiffDirectory(directoryType)
 

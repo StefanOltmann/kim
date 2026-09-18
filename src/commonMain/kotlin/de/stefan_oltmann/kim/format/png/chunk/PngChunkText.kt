@@ -31,9 +31,11 @@ public class PngChunkText(
     crc: Int
 ) : PngTextChunk(chunkType, bytes, crc) {
 
+    /** The field name of the key/value pair, like "Comment". */
     @kotlin.jvm.JvmField
     public val keyword: String
 
+    /** The value of the key/value pair. */
     @kotlin.jvm.JvmField
     public val text: String
 

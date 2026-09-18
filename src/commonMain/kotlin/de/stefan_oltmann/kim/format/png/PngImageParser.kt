@@ -273,6 +273,12 @@ public object PngImageParser : ImageParser {
     private fun readAndVerifySignature(byteReader: ByteReader) =
         byteReader.readAndVerifyBytes("PNG signature", PngConstants.PNG_SIGNATURE)
 
+    /**
+     * Reads the chunks of a whole PNG file.
+     *
+     * With a non-NULL filter only chunks of the listed types are returned;
+     * skipped chunks are still consumed, so the reader stays in sync.
+     */
     @JvmStatic
     public fun readChunks(
         byteReader: ByteReader,

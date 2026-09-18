@@ -33,14 +33,18 @@ public class PngChunkItxt(
     crc: Int
 ) : PngTextChunk(PngChunkType.ITXT, bytes, crc) {
 
+    /** The field name of the key/value pair, like "Comment". */
     @kotlin.jvm.JvmField
     public val keyword: String
 
+    /** The value of the key/value pair, decoded as UTF-8. */
     @kotlin.jvm.JvmField
     public var text: String
 
+    /** The language of the text, like "de" - empty when unspecified. */
     public val languageTag: String
 
+    /** The keyword translated into the language of the text. */
     public val translatedKeyword: String
 
     init {

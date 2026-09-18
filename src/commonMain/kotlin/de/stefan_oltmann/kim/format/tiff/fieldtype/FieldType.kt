@@ -40,14 +40,19 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.FIELD_TYPE_UTF8_
  */
 public interface FieldType<T> {
 
+    /** The spec index of the type, as stored in the directory entry. */
     public val type: Int
 
+    /** The spec name of the type, like "Long". */
     public val name: String
 
+    /** The byte size of a single value of this type. */
     public val size: Int
 
+    /** Decodes the raw value bytes of the field into its values. */
     public fun getValue(bytes: ByteArray, byteOrder: ByteOrder): T
 
+    /** Encodes the given data into raw bytes in the given byte order. */
     public fun writeData(data: Any, byteOrder: ByteOrder): ByteArray
 
     public companion object {
