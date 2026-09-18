@@ -79,16 +79,7 @@ public object PngMetadataCopyUtil {
                 }
             } ?: throw ImageReadException("Failed to read destination chunks: $destination")
 
-        val filteredDestinationChunks = destinationChunks.filterNot {
-            chunkTypesToCopy.contains(it.type)
-        }
-
-        val newChunks = filteredDestinationChunks.toMutableList().apply {
-            addAll(
-                index = insertionIndexAfterIhdr(),
-                elements = sourceMetadataChunks
-            )
-        }
+        val newChunks = mergeChunks(sourceMetadataChunks, destinationChunks)
 
         val tempFilePath = tempFilePathFor(destination)
 
@@ -136,6 +127,25 @@ public object PngMetadataCopyUtil {
         return ihdrIndex + 1
     }
 
+    /*
+     * Merges the metadata chunks of the source into the chunk list of
+     * the destination: the destination chunks of the copied types are
+     * dropped and the source chunks are inserted right behind the IHDR.
+     */
+    private fun mergeChunks(
+        sourceMetadataChunks: List<PngChunk>,
+        destinationChunks: List<PngChunk>
+    ): List<PngChunk> =
+        destinationChunks
+            .filterNot { chunkTypesToCopy.contains(it.type) }
+            .toMutableList()
+            .apply {
+                addAll(
+                    index = insertionIndexAfterIhdr(),
+                    elements = sourceMetadataChunks
+                )
+            }
+
     /**
      * Builds the path of the temporary file for the given destination.
      *
@@ -174,16 +184,7 @@ public object PngMetadataCopyUtil {
                 chunkTypeFilter = null // = All of them
             )
 
-        val filteredDestinationChunks = destinationChunks.filterNot {
-            chunkTypesToCopy.contains(it.type)
-        }
-
-        val newChunks = filteredDestinationChunks.toMutableList().apply {
-            addAll(
-                index = insertionIndexAfterIhdr(),
-                elements = sourceMetadataChunks
-            )
-        }
+        val newChunks = mergeChunks(sourceMetadataChunks, destinationChunks)
 
         val byteWriter = ByteArrayByteWriter()
 
