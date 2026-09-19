@@ -167,38 +167,11 @@ public object KimValueFormatter {
      */
     public fun createCameraOrLensName(make: String?, model: String?): String? {
 
+        var makeMod = applyMakerNameReplacements(make)
+
+        val modelMod = applyMakerNameReplacements(model)
+
         /*
-         * Apparently real EXIF data has surprisingly a lot of
-         * trailing white spaces we want to get rid of.
-         */
-        var makeMod = make?.trim()
-        var modelMod = model?.trim()
-
-        if (makeMod?.isEmpty() == true)
-            makeMod = null
-
-        if (modelMod?.isEmpty() == true)
-            modelMod = null
-
-        if (makeMod != null) {
-
-            for ((make, replacement) in makerNameReplacements)
-                makeMod = makeMod?.replace(make, replacement, ignoreCase = false)
-
-            /* Trim again, just to be safe. */
-            makeMod = makeMod?.trim()
-        }
-
-        if (modelMod != null) {
-
-            for ((make, replacement) in makerNameReplacements)
-                modelMod = modelMod?.replace(make, replacement, ignoreCase = false)
-
-            /* Trim again, just to be safe. */
-            modelMod = modelMod?.trim()
-        }
-
-        /**
          * If the name of the manufacturer/make is repeated in the model name
          * we don't want to double it. This is a typical issue with "Canon".
          */
@@ -212,6 +185,30 @@ public object KimValueFormatter {
     }
 
     /**
+     * Applies the maker name replacements to the given name and trims it.
+     * NULL and blank names yield NULL.
+     */
+    private fun applyMakerNameReplacements(name: String?): String? {
+
+        /*
+         * Apparently real EXIF data has surprisingly a lot of
+         * trailing white spaces we want to get rid of.
+         */
+        val trimmed = name?.trim()
+
+        if (trimmed.isNullOrEmpty())
+            return null
+
+        var mod: String = trimmed
+
+        for ((make, replacement) in makerNameReplacements)
+            mod = mod.replace(make, replacement, ignoreCase = false)
+
+        /* Trim again, just to be safe. */
+        return mod.trim()
+    }
+
+    /**
      * Shortens the lens name by the camera name prefix, or returns the
      * lens name unchanged when one of the two is missing.
      */
@@ -220,17 +217,14 @@ public object KimValueFormatter {
         lensName: String?
     ): String? {
 
-        return if (cameraName != null && lensName != null) {
+        if (cameraName == null || lensName == null)
+            return lensName
 
-            /**
-             * iPhone Lens Names start with the full camera name.
-             * This takes a lot of space.
-             */
-            lensName.replaceFirst(cameraName, "").trim()
-
-        } else {
-            lensName
-        }
+        /*
+         * iPhone Lens Names start with the full camera name.
+         * This takes a lot of space.
+         */
+        return lensName.replaceFirst(cameraName, "").trim()
     }
 
     public fun createCameraAndLensName(
@@ -238,19 +232,10 @@ public object KimValueFormatter {
         lensName: String?
     ): String? {
 
-        return if (cameraName != null && lensName != null) {
+        if (cameraName == null || lensName == null)
+            return cameraName ?: lensName
 
-            /**
-             * iPhone Lens Names start with the full camera name.
-             * This takes a lot of space.
-             */
-            val modLensName = lensName.replaceFirst(cameraName, "").trim()
-
-            "$cameraName | $modLensName"
-
-        } else {
-            cameraName ?: lensName
-        }
+        return "$cameraName | ${createModifiedLensName(cameraName, lensName)}"
     }
 
     /** Formats the ISO value for display, like "ISO 400". */
@@ -292,12 +277,13 @@ public object KimValueFormatter {
         else
             "ƒ$fNumber"
 
-    /*
-     * Focal length is almost every time a round integer
-     * number like "18mm" and should be formatted like that,
-     * but in case of an iPhone is actually can be "4.2mm".
+    /**
+     * Formats the focal length for display, like "18 mm".
+     *
+     * Focal length is almost every time a round integer number like
+     * "18mm" and should be formatted like that, but in case of an iPhone
+     * is actually can be "4.2mm".
      */
-    /** Formats the focal length for display, like "18 mm". */
     public fun formatFocalLength(focalLength: Double): String =
 
         nonFiniteSymbol(focalLength) ?: if (focalLength % 1.0 == 0.0)
