@@ -28,14 +28,13 @@ import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
-import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeAscii
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeRational
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeShort
 import de.stefan_oltmann.kim.format.tiff.makernote.nikon.NikonTag
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.model.TiffOrientation
-import de.stefan_oltmann.kim.testdata.tiffDirectory
 import de.stefan_oltmann.kim.testdata.tiffContents
+import de.stefan_oltmann.kim.testdata.tiffDirectory
 import de.stefan_oltmann.kim.testdata.tiffField
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone

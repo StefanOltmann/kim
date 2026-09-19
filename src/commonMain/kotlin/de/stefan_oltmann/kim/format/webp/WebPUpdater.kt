@@ -30,8 +30,6 @@ import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
-import de.stefan_oltmann.xmp.XMPMeta
-import de.stefan_oltmann.xmp.XMPMetaFactory
 
 internal object WebPUpdater : MetadataUpdater {
 

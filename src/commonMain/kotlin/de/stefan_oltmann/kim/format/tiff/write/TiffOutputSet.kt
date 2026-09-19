@@ -30,8 +30,8 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.DEFAULT_TIFF_BYT
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeUndefined
 import de.stefan_oltmann.kim.model.GpsCoordinates
-import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.model.MetadataUpdate
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.abs
 import kotlin.time.Instant

@@ -20,15 +20,13 @@ import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.format.AbstractUpdaterTest
-import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.writeBox
 import de.stefan_oltmann.kim.testdata.countOccurrences
-import de.stefan_oltmann.kim.output.ByteArrayByteWriter
-import de.stefan_oltmann.kim.output.writeInt
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals

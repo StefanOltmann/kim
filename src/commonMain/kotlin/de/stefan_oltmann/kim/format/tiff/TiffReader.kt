@@ -23,6 +23,7 @@ import de.stefan_oltmann.kim.common.head
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toInt
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
+import de.stefan_oltmann.kim.format.tiff.TiffReader.directoryTypeMap
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.GeoTiffTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants

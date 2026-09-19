@@ -15,12 +15,11 @@
  */
 package de.stefan_oltmann.kim.testdata
 
-import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
-import de.stefan_oltmann.kim.output.writeInt
 import de.stefan_oltmann.kim.output.write2BytesAsInt
+import de.stefan_oltmann.kim.output.writeInt
 
 /**
  * Builds ISOBMFF test boxes, so the container tests assemble synthetic

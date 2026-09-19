@@ -28,12 +28,11 @@ import de.stefan_oltmann.kim.format.bmff.box.MetaBoxTopLevel
 import de.stefan_oltmann.kim.format.bmff.box.MovieBox
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
-import de.stefan_oltmann.kim.output.write2BytesAsInt
 import de.stefan_oltmann.kim.output.writeInt
+import de.stefan_oltmann.kim.testdata.BmffTestBoxes
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.box
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.hdlrBox
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.iinfBox
-import de.stefan_oltmann.kim.testdata.BmffTestBoxes
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals

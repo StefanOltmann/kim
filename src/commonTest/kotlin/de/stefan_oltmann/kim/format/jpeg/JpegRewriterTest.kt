@@ -38,8 +38,8 @@ import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
-import de.stefan_oltmann.kim.testdata.countOccurrences
 import de.stefan_oltmann.kim.testdata.ModifiedBytesVerifier
+import de.stefan_oltmann.kim.testdata.countOccurrences
 import de.stefan_oltmann.xmp.XMPMetaFactory
 import kotlinx.datetime.TimeZone
 import kotlin.test.AfterTest

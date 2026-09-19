@@ -19,7 +19,6 @@ package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.getRemainingBytes
-import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toInt
 import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.common.tryWithImageReadException

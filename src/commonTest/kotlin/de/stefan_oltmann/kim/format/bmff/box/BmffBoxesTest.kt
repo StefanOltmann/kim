@@ -16,8 +16,8 @@
 package de.stefan_oltmann.kim.format.bmff.box
 
 import de.stefan_oltmann.kim.common.ImageReadException
-import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants
+import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.bmff.Extent
 import de.stefan_oltmann.kim.input.ByteArrayByteReader

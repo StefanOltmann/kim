@@ -22,7 +22,6 @@ import de.stefan_oltmann.kim.common.toSingleNumberHexes
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataExtractor
-import de.stefan_oltmann.kim.format.png.chunk.PngChunkExif
 import de.stefan_oltmann.kim.input.ByteReader
 
 /**

@@ -27,12 +27,12 @@ import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.testdata.KimTestData
+import de.stefan_oltmann.kim.testdata.containsBytes
 import de.stefan_oltmann.xmp.XMPMetaFactory
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import de.stefan_oltmann.kim.testdata.containsBytes
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.test.fail

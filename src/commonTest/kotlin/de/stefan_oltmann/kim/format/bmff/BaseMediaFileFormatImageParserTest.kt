@@ -20,14 +20,14 @@ import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.ITEM_TYPE_MIME
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
+import de.stefan_oltmann.kim.output.write2BytesAsInt
+import de.stefan_oltmann.kim.output.writeInt
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.box
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.hdlrBox
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.iinfBox
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.pitmBox
-import de.stefan_oltmann.kim.output.ByteArrayByteWriter
-import de.stefan_oltmann.kim.output.write2BytesAsInt
-import de.stefan_oltmann.kim.output.writeInt
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

@@ -22,7 +22,6 @@ import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
 import de.stefan_oltmann.kim.format.exifBytesWithThumbnail
-import de.stefan_oltmann.kim.format.png.chunk.PngTextChunk
 import de.stefan_oltmann.kim.format.updatedExifBytes
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
@@ -30,8 +29,6 @@ import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
-import de.stefan_oltmann.xmp.XMPMeta
-import de.stefan_oltmann.xmp.XMPMetaFactory
 
 internal object PngUpdater : MetadataUpdater {
 

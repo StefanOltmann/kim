@@ -21,10 +21,10 @@ import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.HEX_RADIX
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
-import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.TIFF_HEADER_SIZE
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.TIFF_VERSION
+import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.output.BinaryByteWriter
 import de.stefan_oltmann.kim.output.BinaryByteWriter.Companion.createBinaryByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter

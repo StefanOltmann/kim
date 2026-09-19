@@ -24,11 +24,11 @@ import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.ImageSize
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
+import de.stefan_oltmann.kim.testdata.containsBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
-import de.stefan_oltmann.kim.testdata.containsBytes
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
