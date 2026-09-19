@@ -22,27 +22,23 @@ import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaMetadata
+import de.stefan_oltmann.kim.format.MetadataUpdater
 import de.stefan_oltmann.kim.format.TiffPreviewExtractor
 import de.stefan_oltmann.kim.format.arw.ArwPreviewExtractor
 import de.stefan_oltmann.kim.format.cr2.Cr2PreviewExtractor
 import de.stefan_oltmann.kim.format.cr3.Cr3PreviewExtractor
 import de.stefan_oltmann.kim.format.dng.DngPreviewExtractor
 import de.stefan_oltmann.kim.format.gif.GifMetadataExtractor
-import de.stefan_oltmann.kim.format.gif.GifUpdater
 import de.stefan_oltmann.kim.format.jpeg.JpegImageParser
 import de.stefan_oltmann.kim.format.jpeg.JpegMetadataExtractor
-import de.stefan_oltmann.kim.format.jpeg.JpegUpdater
-import de.stefan_oltmann.kim.format.jxl.JxlUpdater
 import de.stefan_oltmann.kim.format.nef.NefPreviewExtractor
 import de.stefan_oltmann.kim.format.orf.OrfPreviewExtractor
 import de.stefan_oltmann.kim.format.png.PngMetadataExtractor
-import de.stefan_oltmann.kim.format.png.PngUpdater
 import de.stefan_oltmann.kim.format.raf.RafMetadataExtractor
 import de.stefan_oltmann.kim.format.raf.RafPreviewExtractor
 import de.stefan_oltmann.kim.format.rw2.Rw2PreviewExtractor
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffReader
-import de.stefan_oltmann.kim.format.webp.WebPUpdater
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.DefaultRandomAccessByteReader
@@ -198,14 +194,13 @@ public object Kim {
 
         byteReader.use {
 
-            val headerBytes = it.readBytes(MediaFormat.REQUIRED_HEADER_BYTE_COUNT_FOR_DETECTION)
+            val (mediaFormat, newReader) = detectFormatAndReplayHeader(it)
 
-            val mediaFormat = MediaFormat.detect(headerBytes) ?: return@use null
+            if (mediaFormat == null)
+                return@use null
 
             val imageParser = ImageParser.forFormat(mediaFormat)
                 ?: return@use MediaMetadata.createEmpty(mediaFormat)
-
-            val newReader = PrePendingByteReader(it, headerBytes.toList())
 
             /*
              * We re-apply the MediaFormat here, because we don't want to report
@@ -242,11 +237,7 @@ public object Kim {
 
         byteReader.use {
 
-            val headerBytes = it.readBytes(MediaFormat.REQUIRED_HEADER_BYTE_COUNT_FOR_DETECTION)
-
-            val mediaFormat = MediaFormat.detect(headerBytes)
-
-            val newReader = PrePendingByteReader(it, headerBytes.toList())
+            val (mediaFormat, newReader) = detectFormatAndReplayHeader(it)
 
             return@use when (mediaFormat) {
                 MediaFormat.JPEG -> mediaFormat to JpegMetadataExtractor.extractMetadataBytes(newReader)
@@ -272,11 +263,7 @@ public object Kim {
 
         byteReader.use {
 
-            val headerBytes = it.readBytes(MediaFormat.REQUIRED_HEADER_BYTE_COUNT_FOR_DETECTION)
-
-            val mediaFormat = MediaFormat.detect(headerBytes)
-
-            val prePendingByteReader = PrePendingByteReader(it, headerBytes.toList())
+            val (mediaFormat, prePendingByteReader) = detectFormatAndReplayHeader(it)
 
             return@use when (mediaFormat) {
 
@@ -417,21 +404,19 @@ public object Kim {
         if (updates.isEmpty())
             throw ImageWriteException("You did not specify any updates.")
 
-        val headerBytes = byteReader.readBytes(MediaFormat.REQUIRED_HEADER_BYTE_COUNT_FOR_DETECTION)
+        val (mediaFormat, prePendingByteReader) = detectFormatAndReplayHeader(byteReader)
 
-        val mediaFormat = MediaFormat.detect(headerBytes)
+        if (mediaFormat == null)
+            throw ImageWriteException("Unknown or unsupported file format.")
 
-        val prePendingByteReader = PrePendingByteReader(byteReader, headerBytes.toList())
+        /*
+         * GIF can carry XMP but has no EXIF, IPTC or thumbnail concept, so
+         * its updater answers those calls itself with a targeted error.
+         */
+        val updater = MetadataUpdater.forFormat(mediaFormat)
+            ?: throw ImageWriteException("Can't embed metadata into $mediaFormat.")
 
-        return@tryWithImageWriteException when (mediaFormat) {
-            MediaFormat.JPEG -> JpegUpdater.update(prePendingByteReader, byteWriter, updates)
-            MediaFormat.PNG -> PngUpdater.update(prePendingByteReader, byteWriter, updates)
-            MediaFormat.WEBP -> WebPUpdater.update(prePendingByteReader, byteWriter, updates)
-            MediaFormat.JXL -> JxlUpdater.update(prePendingByteReader, byteWriter, updates)
-            MediaFormat.GIF -> GifUpdater.update(prePendingByteReader, byteWriter, updates)
-            null -> throw ImageWriteException("Unknown or unsupported file format.")
-            else -> throw ImageWriteException("Can't embed metadata into $mediaFormat.")
-        }
+        updater.update(prePendingByteReader, byteWriter, updates)
     }
 
     /**
@@ -474,21 +459,15 @@ public object Kim {
         byteWriter: ByteWriter
     ): Unit = tryWithImageWriteException {
 
-        val headerBytes = byteReader.readBytes(MediaFormat.REQUIRED_HEADER_BYTE_COUNT_FOR_DETECTION)
+        val (mediaFormat, prePendingByteReader) = detectFormatAndReplayHeader(byteReader)
 
-        val mediaFormat = MediaFormat.detect(headerBytes)
+        if (mediaFormat == null)
+            throw ImageWriteException("Unknown or unsupported file format.")
 
-        val prePendingByteReader = PrePendingByteReader(byteReader, headerBytes.toList())
+        val updater = MetadataUpdater.forFormat(mediaFormat)
+            ?: throw ImageWriteException("Can't delete metadata of $mediaFormat.")
 
-        return@tryWithImageWriteException when (mediaFormat) {
-            MediaFormat.JPEG -> JpegUpdater.deleteMetadata(prePendingByteReader, byteWriter)
-            MediaFormat.PNG -> PngUpdater.deleteMetadata(prePendingByteReader, byteWriter)
-            MediaFormat.WEBP -> WebPUpdater.deleteMetadata(prePendingByteReader, byteWriter)
-            MediaFormat.JXL -> JxlUpdater.deleteMetadata(prePendingByteReader, byteWriter)
-            MediaFormat.GIF -> GifUpdater.deleteMetadata(prePendingByteReader, byteWriter)
-            null -> throw ImageWriteException("Unknown or unsupported file format.")
-            else -> throw ImageWriteException("Can't delete metadata of $mediaFormat.")
-        }
+        updater.deleteMetadata(prePendingByteReader, byteWriter)
     }
 
     /**
@@ -505,14 +484,15 @@ public object Kim {
         thumbnailBytes: ByteArray
     ): ByteArray = tryWithImageWriteException {
 
-        return@tryWithImageWriteException when (val mediaFormat = MediaFormat.detect(bytes)) {
-            MediaFormat.JPEG -> JpegUpdater.updateThumbnail(bytes, thumbnailBytes)
-            MediaFormat.PNG -> PngUpdater.updateThumbnail(bytes, thumbnailBytes)
-            MediaFormat.WEBP -> WebPUpdater.updateThumbnail(bytes, thumbnailBytes)
-            MediaFormat.JXL -> JxlUpdater.updateThumbnail(bytes, thumbnailBytes)
-            null -> throw ImageWriteException("Unknown or unsupported file format.")
-            else -> throw ImageWriteException("Can't embed thumbnail into $mediaFormat.")
-        }
+        val mediaFormat = MediaFormat.detect(bytes)
+
+        if (mediaFormat == null)
+            throw ImageWriteException("Unknown or unsupported file format.")
+
+        val updater = MetadataUpdater.forFormat(mediaFormat)
+            ?: throw ImageWriteException("Can't embed thumbnail into $mediaFormat.")
+
+        return@tryWithImageWriteException updater.updateThumbnail(bytes, thumbnailBytes)
     }
 
     /*
@@ -529,4 +509,22 @@ public object Kim {
         } catch (_: Exception) {
             null
         }
+
+    /**
+     * Reads the head of the stream and detects the media format from it.
+     *
+     * Returns the detected format - NULL for unknown bytes - together
+     * with a reader that replays the consumed header bytes, so the
+     * format parsers see the complete stream again.
+     */
+    private fun detectFormatAndReplayHeader(
+        byteReader: ByteReader
+    ): Pair<MediaFormat?, ByteReader> {
+
+        val headerBytes = byteReader.readBytes(MediaFormat.REQUIRED_HEADER_BYTE_COUNT_FOR_DETECTION)
+
+        val mediaFormat = MediaFormat.detect(headerBytes)
+
+        return mediaFormat to PrePendingByteReader(byteReader, headerBytes.toList())
+    }
 }

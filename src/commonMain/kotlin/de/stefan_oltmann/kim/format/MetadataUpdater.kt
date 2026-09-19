@@ -17,8 +17,14 @@
 package de.stefan_oltmann.kim.format
 
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.format.gif.GifUpdater
+import de.stefan_oltmann.kim.format.jpeg.JpegUpdater
+import de.stefan_oltmann.kim.format.jxl.JxlUpdater
+import de.stefan_oltmann.kim.format.png.PngUpdater
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
+import de.stefan_oltmann.kim.format.webp.WebPUpdater
 import de.stefan_oltmann.kim.input.ByteReader
+import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteWriter
 
@@ -64,6 +70,23 @@ public interface MetadataUpdater {
         bytes: ByteArray,
         thumbnailBytes: ByteArray
     ): ByteArray
+
+    public companion object {
+
+        /**
+         * Returns the updater that can rewrite the given media format,
+         * or NULL for formats without a write path.
+         */
+        public fun forFormat(mediaFormat: MediaFormat): MetadataUpdater? =
+            when (mediaFormat) {
+                MediaFormat.JPEG -> JpegUpdater
+                MediaFormat.PNG -> PngUpdater
+                MediaFormat.WEBP -> WebPUpdater
+                MediaFormat.JXL -> JxlUpdater
+                MediaFormat.GIF -> GifUpdater
+                else -> null
+            }
+    }
 
 }
 
