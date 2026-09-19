@@ -131,6 +131,37 @@ public object TiffReader {
 
         byteReader.reset()
 
+        return readDirectoryTree(
+            byteReader = byteReader,
+            tiffHeader = tiffHeader,
+            readTiffImageBytes = readTiffImageBytes,
+            directoryType = directoryType,
+            preferPanasonicRawTags = tiffHeader.tiffVersion == PANASONIC_RAW_TIFF_VERSION
+        )
+    }
+
+    /**
+     * Reads the directory tree behind a TIFF header and assembles the
+     * contents, including MakerNote and GeoTIFF handling.
+     *
+     * This is the shared body of [read] for formats that are TIFF
+     * structures under a foreign header, like the Fujifilm MVTG box,
+     * whose offsets are relative to their own structure start.
+     *
+     * @param byteReader Positioned behind the TIFF header
+     * @param tiffHeader The header whose byte order and IFD offset apply
+     * @param readTiffImageBytes Flag to include strip bytes
+     * @param directoryType The type of the first directory to read
+     * @param preferPanasonicRawTags Whether IFD0 uses the Panasonic tag namespace
+     */
+    internal fun readDirectoryTree(
+        byteReader: RandomAccessByteReader,
+        tiffHeader: TiffHeader,
+        readTiffImageBytes: Boolean = false,
+        directoryType: Int = TiffConstants.TIFF_DIRECTORY_TYPE_IFD0,
+        preferPanasonicRawTags: Boolean = false
+    ): TiffContents {
+
         val directories = mutableListOf<TiffDirectory>()
 
         readDirectory(
@@ -140,7 +171,7 @@ public object TiffReader {
             directoryType = directoryType,
             visitedOffsets = hashSetOf(),
             readTiffImageBytes = readTiffImageBytes,
-            preferPanasonicRawTags = tiffHeader.tiffVersion == PANASONIC_RAW_TIFF_VERSION,
+            preferPanasonicRawTags = preferPanasonicRawTags,
             addDirectory = {
                 directories.add(it)
             }

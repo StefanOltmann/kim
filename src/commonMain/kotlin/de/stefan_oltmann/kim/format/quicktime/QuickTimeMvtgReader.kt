@@ -18,7 +18,6 @@ package de.stefan_oltmann.kim.format.quicktime
 import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.tiff.TiffContents
-import de.stefan_oltmann.kim.format.tiff.TiffDirectory
 import de.stefan_oltmann.kim.format.tiff.TiffHeader
 import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
@@ -84,34 +83,18 @@ internal object QuickTimeMvtgReader {
 
         val byteReader = ByteArrayByteReader(ifdBytes)
 
-        val directories = mutableListOf<TiffDirectory>()
-
-        TiffReader.readDirectory(
+        /*
+         * The MVTG offsets are relative to the structure start, so the
+         * IFD tree is read like the body of a TIFF file whose header
+         * points at offset zero.
+         */
+        return TiffReader.readDirectoryTree(
             byteReader = byteReader,
-            byteOrder = byteOrder,
-            directoryOffset = 0,
-            directoryType = TiffConstants.TIFF_DIRECTORY_TYPE_IFD0,
-            visitedOffsets = hashSetOf(),
-            readTiffImageBytes = false,
-            addDirectory = { directories.add(it) }
-        )
-
-        if (directories.isEmpty())
-            throw ImageReadException("The MVTG payload has no TIFF directories.")
-
-        val makerNoteParseResult =
-            TiffReader.tryToParseMakerNote(directories, byteReader, byteOrder)
-
-        return TiffContents(
-            header = TiffHeader(
+            tiffHeader = TiffHeader(
                 byteOrder = byteOrder,
                 tiffVersion = TiffConstants.TIFF_VERSION,
                 offsetToFirstIFD = 0
-            ),
-            directories = directories,
-            makerNoteDirectory = makerNoteParseResult?.makerNoteDirectory,
-            makerNoteSubDirectories = makerNoteParseResult?.subDirectories.orEmpty(),
-            geoTiffDirectory = TiffReader.tryToParseGeoTiff(directories)
+            )
         )
     }
 }
