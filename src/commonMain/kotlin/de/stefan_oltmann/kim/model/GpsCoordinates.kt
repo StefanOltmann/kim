@@ -16,6 +16,7 @@
  */
 package de.stefan_oltmann.kim.model
 
+import de.stefan_oltmann.kim.common.renderPlainNotation
 import de.stefan_oltmann.kim.common.toInvariantString
 import kotlin.math.round
 
@@ -123,48 +124,13 @@ private fun invariantPlain(value: Double): String {
     /* Sign, mantissa digits without the dot, and the decimal exponent. */
     val negative = invariant.startsWith("-")
 
-    val mantissa = if (negative) invariant.substring(1, exponentIndex) else invariant.substring(0, exponentIndex)
+    val digits = invariant.substring(if (negative) 1 else 0, exponentIndex).replace(".", "")
 
     val exponent = invariant.substring(exponentIndex + 1).toInt()
 
-    val digits = mantissa.replace(".", "")
+    val plain = renderPlainNotation(digits, exponent)
 
-    /* The dot in the mantissa sat directly after the first digit. */
-    val decimalPosition = 1 + exponent
-
-    val plain = buildString {
-
-        if (negative)
-            append('-')
-
-        if (decimalPosition <= 0) {
-
-            append("0.")
-
-            repeat(-decimalPosition) { append('0') }
-
-            append(digits)
-        } else {
-
-            if (decimalPosition >= digits.length) {
-
-                append(digits)
-
-                repeat(decimalPosition - digits.length) { append('0') }
-
-                append(".0")
-            } else {
-
-                append(digits.substring(0, decimalPosition))
-
-                append('.')
-
-                append(digits.substring(decimalPosition))
-            }
-        }
-    }
-
-    return plain
+    return if (negative) "-$plain" else plain
 }
 
 private fun roundPrecise(
