@@ -174,16 +174,12 @@ internal object SonyMakerNoteHandler : MakerNoteHandler() {
 
         for ((tag, offset) in entries) {
 
-            val tagTable = when (tag) {
-                0x0001 -> SonyMoreSettingsTag.ALL
-                0x0002 -> SonyFaceInfoATag.ALL
+            /* One dispatch, so a future tag cannot map the table and the directory type apart. */
+            val (directoryType, tagTable) = when (tag) {
+                0x0001 -> TIFF_MAKER_NOTE_SONY_MORE_SETTINGS to SonyMoreSettingsTag.ALL
+                0x0002 -> TIFF_MAKER_NOTE_SONY_FACE_INFO to SonyFaceInfoATag.ALL
                 else -> continue
             }
-
-            val directoryType = if (tag == 0x0001)
-                TIFF_MAKER_NOTE_SONY_MORE_SETTINGS
-            else
-                TIFF_MAKER_NOTE_SONY_FACE_INFO
 
             val nextOffset = sortedOffsets.firstOrNull { it > offset } ?: blob.size
 
