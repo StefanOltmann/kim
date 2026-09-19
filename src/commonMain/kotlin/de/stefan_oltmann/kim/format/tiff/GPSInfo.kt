@@ -32,32 +32,40 @@ internal data class GPSInfo(
     private val longitudeSeconds: Double
 ) {
 
-    fun getLongitudeAsDegreesEast(): Double {
+    fun getLongitudeAsDegreesEast(): Double =
+        dmsToDecimal(longitudeDegrees, longitudeMinutes, longitudeSeconds, longitudeRef, "longitude")
 
-        val result =
-            longitudeDegrees + longitudeMinutes / MINUTES_PER_HOUR + longitudeSeconds / SECONDS_PER_HOUR
+    fun getLatitudeAsDegreesNorth(): Double =
+        dmsToDecimal(latitudeDegrees, latitudeMinutes, latitudeSeconds, latitudeRef, "latitude")
 
-        if (longitudeRef.trim().equals("e", ignoreCase = true))
+    /**
+     * Converts a degrees/minutes/seconds triple to decimal degrees,
+     * applying the sign from the hemisphere reference (`N`/`S` for
+     * latitude, `E`/`W` for longitude).
+     */
+    private fun dmsToDecimal(
+        degrees: Double,
+        minutes: Double,
+        seconds: Double,
+        ref: String,
+        axis: String
+    ): Double {
+
+        val result = degrees + minutes / MINUTES_PER_HOUR + seconds / SECONDS_PER_HOUR
+
+        val positive = if (axis == "longitude") "E" else "N"
+
+        val negative = if (axis == "longitude") "W" else "S"
+
+        val trimmed = ref.trim()
+
+        if (trimmed.equals(positive, ignoreCase = true))
             return result
 
-        if (longitudeRef.trim().equals("w", ignoreCase = true))
+        if (trimmed.equals(negative, ignoreCase = true))
             return -result
 
-        throw ImageReadException("Unknown longitude ref: \"$longitudeRef\"")
-    }
-
-    fun getLatitudeAsDegreesNorth(): Double {
-
-        val result =
-            latitudeDegrees + latitudeMinutes / MINUTES_PER_HOUR + latitudeSeconds / SECONDS_PER_HOUR
-
-        if (latitudeRef.trim().equals("n", ignoreCase = true))
-            return result
-
-        if (latitudeRef.trim().equals("s", ignoreCase = true))
-            return -result
-
-        throw ImageReadException("Unknown latitude ref: \"$latitudeRef\"")
+        throw ImageReadException("Unknown $axis ref: \"$ref\"")
     }
 
     companion object {
