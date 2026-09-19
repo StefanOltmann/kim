@@ -138,6 +138,69 @@ class Cr3PreviewExtractorTest {
         )
     }
 
+    /**
+     * A box whose declared size is smaller than its own header cannot
+     * describe a payload. Like BoxReader, the walk must reject it with
+     * a clear message instead of letting a negative data size flow into
+     * the skip and read calls.
+     */
+    @Test
+    fun testExtractRejectsBoxSmallerThanHeader() {
+
+        /* A box header whose declared size of 4 is smaller than the
+           8-byte header every ISOBMFF box starts with. */
+        val bytes = byteArrayOf(0, 0, 0, 4) + "free".encodeToByteArray()
+
+        val exception = assertFailsWith<ImageReadException> {
+            Cr3PreviewExtractor.extractFullSizePreviewImage(
+                ByteArrayByteReader(bytes)
+            )
+        }
+
+        assertTrue(
+            exception.message?.contains("smaller than its header") == true,
+            "Unexpected message: ${exception.message}"
+        )
+    }
+
+    /**
+     * ISOBMFF sizes are unsigned 32-bit values, so a box of 2 GiB and
+     * above carries its size in the high bit. The size must not be read
+     * as a negative number, which would reject legal boxes of large
+     * video files with a misleading error.
+     */
+    @Test
+    fun testExtractReadsBoxSizeAsUnsigned() {
+
+        /* The size field 0x80000000 declares a 2 GiB box - only the
+           header bytes exist, so the walk fails loudly on the short
+           payload instead of on the size. */
+        val headerBytes = byteArrayOf(0x80.toByte(), 0, 0, 0) + "mdat".encodeToByteArray()
+
+        val reader = FakeLengthByteReader(
+            delegate = ByteArrayByteReader(headerBytes),
+            contentLength = 0x200_000_000L
+        )
+
+        val exception = assertFailsWith<ImageReadException> {
+            Cr3PreviewExtractor.extractFullSizePreviewImage(reader)
+        }
+
+        assertTrue(
+            exception.message?.contains("-2147483648") == false,
+            "The size was read as a negative number: ${exception.message}"
+        )
+    }
+
+    /**
+     * A reader over a small buffer that claims a much larger
+     * contentLength, like a stream that lies about its size.
+     */
+    private class FakeLengthByteReader(
+        private val delegate: ByteArrayByteReader,
+        override val contentLength: Long
+    ) : ByteReader by delegate
+
     @Test
     fun testExtractWithoutMovieBoxReturnsNull() {
 
