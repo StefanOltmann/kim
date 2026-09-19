@@ -39,8 +39,6 @@ public class GifChunkApplicationExtension(
         .plus(0x00)
 ) {
 
-    private val xmpMetaTag: String = "x:xmpmeta"
-
     /** The 8-byte identifier that names the application, or NULL when the extension is too short to carry one. */
     public val applicationIdentifier: String?
 
@@ -100,39 +98,35 @@ public class GifChunkApplicationExtension(
     @Throws(ImageReadException::class)
     public fun parseAsXmpOrThrow(): String {
 
-        val extensionContentAsString = try {
+        /*
+         * The XMP payload is spread over size-prefixed sub-blocks.
+         * Strip the size bytes and search the payload.
+         * Fall back to the raw bytes for files written without
+         * sub-block framing, where the size bytes are part of the data.
+         */
+        val unpackedContent = subChunks
+            .map { subChunk -> subChunk.copyOfRange(1, subChunk.size).decodeToString() }
+            .joinToString("")
 
-            /*
-             * The XMP payload is spread over size-prefixed sub-blocks.
-             * Strip the size bytes and search the payload.
-             * Fall back to the raw bytes for files written without
-             * sub-block framing, where the size bytes are part of the data.
-             */
-            val unpackedContent = subChunks
-                .map { subChunk -> subChunk.copyOfRange(1, subChunk.size).decodeToString() }
-                .joinToString("")
+        val content =
+            if (unpackedContent.contains("<$XMP_META_TAG")) unpackedContent
+            else bytes.decodeToString()
 
-            if (unpackedContent.contains("<x:xmpmeta"))
-                unpackedContent
-            else
-                bytes.decodeToString()
-
-        } catch (ex: CharacterCodingException) {
-            throw ImageReadException("Failed to decode application extension bytes as string.", ex)
-        }
-
-        if (!extensionContentAsString.contains("<x:xmpmeta"))
+        if (!content.contains("<$XMP_META_TAG"))
             throw ImageReadException("No XMP data found in application extension.")
 
-        return "<$xmpMetaTag" + extensionContentAsString
-            .substringAfter("<$xmpMetaTag")
-            .substringBefore("</$xmpMetaTag>")
-            .plus("</$xmpMetaTag>")
+        return "<$XMP_META_TAG" + content
+            .substringAfter("<$XMP_META_TAG")
+            .substringBefore("</$XMP_META_TAG>")
+            .plus("</$XMP_META_TAG>")
     }
 
     private companion object {
 
         /* The application identifier is 8 bytes */
         const val APPLICATION_IDENTIFIER_LENGTH = 8
+
+        /* The opening element of an XMP packet */
+        const val XMP_META_TAG = "x:xmpmeta"
     }
 }
