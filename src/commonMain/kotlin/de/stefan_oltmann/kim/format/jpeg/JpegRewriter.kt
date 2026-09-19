@@ -29,7 +29,7 @@ import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPiece
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
-import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegmentExif
+
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
 import de.stefan_oltmann.kim.input.ByteReader
@@ -190,9 +190,10 @@ public object JpegRewriter {
         if (jfifIndex != -1)
             index = jfifIndex + 1
 
-        val exifSegment = JFIFPieceSegmentExif(JpegConstants.JPEG_APP1_MARKER, markerBytes, markerLengthBytes, newBytes)
-
-        newSegments.add(index, exifSegment)
+        newSegments.add(
+            index,
+            JFIFPieceSegment(JpegConstants.JPEG_APP1_MARKER, markerBytes, markerLengthBytes, newBytes)
+        )
 
         return newSegments
     }
