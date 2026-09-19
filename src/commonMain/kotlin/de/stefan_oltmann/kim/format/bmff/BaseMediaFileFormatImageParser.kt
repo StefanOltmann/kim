@@ -257,10 +257,53 @@ public object BaseMediaFileFormatImageParser : ImageParser {
         /* Usually 6 bytes are skipped here: the EXIF header. ("Exif.."). */
         byteReader.skipBytes("offset to TIFF header", tiffHeaderOffset)
 
-        val exifBytesWriter = ByteArrayByteWriter()
+        return readExtentBytes(
+            byteReader = byteReader,
+            position = firstExtent.offset + TIFF_HEADER_OFFSET_BYTE_COUNT + tiffHeaderOffset,
+            item = item,
+            label = "EXIF",
+            consumedInFirstExtent = TIFF_HEADER_OFFSET_BYTE_COUNT + tiffHeaderOffset
+        )
+    }
 
-        var currentPosition =
-            firstExtent.offset + TIFF_HEADER_OFFSET_BYTE_COUNT + tiffHeaderOffset
+    /**
+     * Reads the XMP string of one item, concatenating all of its extents.
+     */
+    private fun readXmpString(
+        byteReader: ByteReader,
+        position: Long,
+        item: MetadataItem
+    ): String {
+
+        val xmpBytes = readExtentBytes(
+            byteReader = byteReader,
+            position = position,
+            item = item,
+            label = "XMP"
+        )
+
+        return xmpBytes.decodeToString()
+    }
+
+    /**
+     * Concatenates the bytes of all extents, skipping the gaps between
+     * non-adjacent extents without interpreting them.
+     *
+     * [consumedInFirstExtent] bytes at the start of the first extent were
+     * already consumed by the caller (the TIFF header offset field of the
+     * EXIF item), so they are not read again.
+     */
+    private fun readExtentBytes(
+        byteReader: ByteReader,
+        position: Long,
+        item: MetadataItem,
+        label: String,
+        consumedInFirstExtent: Int = 0
+    ): ByteArray {
+
+        val bytesWriter = ByteArrayByteWriter()
+
+        var currentPosition = position
 
         for ((index, extent) in item.extents.withIndex()) {
 
@@ -280,60 +323,22 @@ public object BaseMediaFileFormatImageParser : ImageParser {
              */
             if (extent.length > Int.MAX_VALUE)
                 throw ImageReadException(
-                    "EXIF extent is too large: ${extent.length} bytes."
+                    "$label extent is too large: ${extent.length} bytes."
                 )
 
             val length = if (index == 0)
-                extent.length.toInt() - TIFF_HEADER_OFFSET_BYTE_COUNT - tiffHeaderOffset
+                extent.length.toInt() - consumedInFirstExtent
             else
                 extent.length.toInt()
 
             if (length < 0)
-                throw ImageReadException("Invalid EXIF extent length: $length")
+                throw ImageReadException("Invalid $label extent length: $length")
 
-            exifBytesWriter.write(byteReader.readBytes("EXIF extent data", length))
-
-            currentPosition = extent.offset + extent.length
-        }
-
-        return exifBytesWriter.toByteArray()
-    }
-
-    /**
-     * Reads the XMP string of one item, concatenating all of its extents.
-     */
-    private fun readXmpString(
-        byteReader: ByteReader,
-        position: Long,
-        item: MetadataItem
-    ): String {
-
-        val xmpBytesWriter = ByteArrayByteWriter()
-
-        var currentPosition = position
-
-        for (extent in item.extents) {
-
-            val gapToSkip = extent.offset - currentPosition
-
-            if (gapToSkip > 0)
-                byteReader.skipBytes("gap between extents", gapToSkip)
-
-            /*
-             * A single extent larger than the signed Int range cannot be
-             * read into one array - fail with a clear error instead of
-             * silently truncating the length.
-             */
-            if (extent.length > Int.MAX_VALUE)
-                throw ImageReadException(
-                    "XMP extent is too large: ${extent.length} bytes."
-                )
-
-            xmpBytesWriter.write(byteReader.readBytes("MIME extent data", extent.length.toInt()))
+            bytesWriter.write(byteReader.readBytes("$label extent data", length))
 
             currentPosition = extent.offset + extent.length
         }
 
-        return xmpBytesWriter.toByteArray().decodeToString()
+        return bytesWriter.toByteArray()
     }
 }
