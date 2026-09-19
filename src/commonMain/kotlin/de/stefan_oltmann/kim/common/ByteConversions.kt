@@ -255,15 +255,3 @@ internal fun ByteArray.toRationals(
         this.toRational(8 * index, unsignedType, byteOrder)
     }
 )
-
-internal fun Int.quadsToByteArray(): ByteArray {
-
-    val bytes = ByteArray(4)
-
-    bytes[0] = (this shr 24).toByte()
-    bytes[1] = (this shr 16).toByte()
-    bytes[2] = (this shr 8).toByte()
-    bytes[3] = toByte()
-
-    return bytes
-}
