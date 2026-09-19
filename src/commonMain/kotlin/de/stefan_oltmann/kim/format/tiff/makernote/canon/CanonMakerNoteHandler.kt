@@ -149,25 +149,6 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
     )
 
     /**
-     * The model specific CustomFunctions tables of the Canon MakerNote.
-     */
-    private val CUSTOM_FUNCTIONS_MODELS: Map<String, List<TagInfo>> = mapOf(
-        "EOS-1D" to CanonCustomFunctions1DTag.ALL,
-        "EOS 5D" to CanonCustomFunctions5DTag.ALL,
-        "EOS 10D" to CanonCustomFunctions10DTag.ALL,
-        "EOS 20D" to CanonCustomFunctions20DTag.ALL,
-        "EOS 30D" to CanonCustomFunctions30DTag.ALL,
-        "350D" to CanonCustomFunctions350DTag.ALL,
-        "REBEL XT" to CanonCustomFunctions350DTag.ALL,
-        "Kiss Digital N" to CanonCustomFunctions350DTag.ALL,
-        "400D" to CanonCustomFunctions400DTag.ALL,
-        "REBEL XTi" to CanonCustomFunctions400DTag.ALL,
-        "Kiss Digital X" to CanonCustomFunctions400DTag.ALL,
-        "EOS D30" to CanonCustomFunctionsD30Tag.ALL,
-        "EOS D60" to CanonCustomFunctionsD30Tag.ALL
-    )
-
-    /**
      * A CameraInfo table of the Canon MakerNote.
      */
     private fun canonCameraInfo(tagTable: List<TagInfo>): MakerNoteBlobPointer =
