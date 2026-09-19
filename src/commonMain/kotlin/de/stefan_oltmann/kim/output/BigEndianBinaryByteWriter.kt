@@ -17,18 +17,15 @@
  */
 package de.stefan_oltmann.kim.output
 
-@Suppress("MagicNumber")
+import de.stefan_oltmann.kim.common.ByteOrder
+
 internal class BigEndianBinaryByteWriter(byteWriter: ByteWriter) : BinaryByteWriter(byteWriter) {
 
     override fun write2Bytes(value: Int) {
-        write(0xFF and (value shr 8))
-        write(0xFF and value)
+        write2BytesAsInt(value, ByteOrder.BIG_ENDIAN)
     }
 
     override fun write4Bytes(value: Int) {
-        write(0xFF and (value shr 24))
-        write(0xFF and (value shr 16))
-        write(0xFF and (value shr 8))
-        write(0xFF and value)
+        writeInt(value, ByteOrder.BIG_ENDIAN)
     }
 }
