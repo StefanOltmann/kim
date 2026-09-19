@@ -294,12 +294,44 @@ public object PngImageParser : ImageParser {
 
         readAndVerifySignature(byteReader)
 
-        return readChunksInternal(byteReader, chunkTypeFilter)
+        return readChunksInternal(byteReader, chunkTypeFilter, imageDataHeaderWriter = null)
     }
 
+    /**
+     * Reads the PNG chunks up to the start of the image data, so the image
+     * data can be streamed afterwards without buffering the whole file.
+     *
+     * The length and type field of the first IDAT chunk are written to the
+     * given writer, because they are consumed by the reader but belong to
+     * the streamed image data.
+     */
+    internal fun readChunksUntilImageData(
+        byteReader: ByteReader,
+        imageDataHeaderWriter: ByteWriter
+    ): List<PngChunk> {
+
+        readAndVerifySignature(byteReader)
+
+        return readChunksInternal(byteReader, chunkTypeFilter = null, imageDataHeaderWriter)
+    }
+
+    /**
+     * The single chunk walk of the PNG read: every chunk is framed
+     * (length, type, data, CRC) exactly once, so the strict-read rules
+     * cannot drift between callers.
+     *
+     * With a non-NULL [chunkTypeFilter] the payload of chunks outside the
+     * filter is consumed but not kept, and their CRC is not verified,
+     * because they are neither interpreted nor rewritten by Kim.
+     *
+     * When [imageDataHeaderWriter] is given, the walk stops before the
+     * image data and emits the consumed length and type fields of the
+     * first IDAT chunk to it.
+     */
     private fun readChunksInternal(
         byteReader: ByteReader,
-        chunkTypeFilter: List<PngChunkType>?
+        chunkTypeFilter: List<PngChunkType>?,
+        imageDataHeaderWriter: ByteWriter?
     ): List<PngChunk> {
 
         val chunks = mutableListOf<PngChunk>()
@@ -321,6 +353,14 @@ public object PngImageParser : ImageParser {
                 byteReader.readBytes("chunk type", PngConstants.TYPE_LENGTH)
             )
 
+            if (chunkType == PngChunkType.IDAT && imageDataHeaderWriter != null) {
+
+                imageDataHeaderWriter.writeInt(length, PNG_BYTE_ORDER)
+                imageDataHeaderWriter.write(chunkType.bytes)
+
+                break
+            }
+
             val keep = chunkTypeFilter?.contains(chunkType) ?: true
 
             var bytes: ByteArray? = null
@@ -336,10 +376,6 @@ public object PngImageParser : ImageParser {
 
                 requireNotNull(bytes)
 
-                /*
-                 * Chunks that are not kept are not verified, because they
-                 * are neither interpreted nor rewritten by Kim.
-                 */
                 verifyChunkCrc(chunkType, bytes, crc)
 
                 val parseExif =
@@ -351,67 +387,6 @@ public object PngImageParser : ImageParser {
 
                 chunks.add(createChunk(chunkType, bytes, crc, parseExif))
             }
-
-            if (PngChunkType.IEND == chunkType)
-                break
-        }
-
-        return chunks
-    }
-
-    /**
-     * Reads the PNG chunks up to the start of the image data, so the image
-     * data can be streamed afterwards without buffering the whole file.
-     *
-     * The length and type field of the first IDAT chunk are written to the
-     * given writer, because they are consumed by the reader but belong to
-     * the streamed image data.
-     */
-    internal fun readChunksUntilImageData(
-        byteReader: ByteReader,
-        imageDataHeaderWriter: ByteWriter
-    ): List<PngChunk> {
-
-        readAndVerifySignature(byteReader)
-
-        val chunks = mutableListOf<PngChunk>()
-
-        /* See readChunksInternal: only the first EXIF chunk is parsed. */
-        var haveParsedExifChunk = false
-
-        while (true) {
-
-            val length = byteReader.read4BytesAsInt("chunk length", PNG_BYTE_ORDER)
-
-            if (length < 0)
-                throw ImageReadException("Invalid PNG chunk length: $length")
-
-            val chunkType = PngChunkType.of(
-                byteReader.readBytes("chunk type", PngConstants.TYPE_LENGTH)
-            )
-
-            if (chunkType == PngChunkType.IDAT) {
-
-                imageDataHeaderWriter.writeInt(length, PNG_BYTE_ORDER)
-                imageDataHeaderWriter.write(chunkType.bytes)
-
-                break
-            }
-
-            val bytes = byteReader.readBytes("chunk data", length)
-
-            val crc = byteReader.read4BytesAsInt("crc", PNG_BYTE_ORDER)
-
-            verifyChunkCrc(chunkType, bytes, crc)
-
-            val parseExif =
-                (chunkType == PngChunkType.EXIF || chunkType == PngChunkType.ZXIF) &&
-                    !haveParsedExifChunk
-
-            if (parseExif)
-                haveParsedExifChunk = true
-
-            chunks.add(createChunk(chunkType, bytes, crc, parseExif))
 
             if (PngChunkType.IEND == chunkType)
                 break
