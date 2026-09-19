@@ -21,8 +21,8 @@ import de.stefan_oltmann.kim.common.startsWithNullable
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
-import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
-import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
+import de.stefan_oltmann.kim.format.exifBytesWithThumbnail
+import de.stefan_oltmann.kim.format.updatedExifBytes
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8X
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
@@ -48,12 +48,7 @@ internal object WebPUpdater : MetadataUpdater {
 
         val updatedXmp = XmpWriter.updateXmp(metadata.xmp, updates, true)
 
-        val outputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
-
-        val exifBytes: ByteArray? = if (outputSet.applyUpdates(updates))
-            outputSet.toTiffBytes()
-        else
-            null
+        val exifBytes = metadata.updatedExifBytes(updates)
 
         WebPWriter.writeImage(
             chunks = chunks,
@@ -122,11 +117,7 @@ internal object WebPUpdater : MetadataUpdater {
 
         val metadata = WebPImageParser.parseMetadataFromChunks(chunks)
 
-        val outputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
-
-        outputSet.setThumbnailBytes(thumbnailBytes)
-
-        val exifBytes = outputSet.toTiffBytes()
+        val exifBytes = metadata.exifBytesWithThumbnail(thumbnailBytes)
 
         val byteWriter = ByteArrayByteWriter()
 

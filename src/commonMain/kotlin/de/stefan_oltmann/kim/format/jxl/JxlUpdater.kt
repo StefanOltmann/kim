@@ -23,9 +23,9 @@ import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
 import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BoxType
+import de.stefan_oltmann.kim.format.exifBytesWithThumbnail
 import de.stefan_oltmann.kim.format.jxl.box.CompressedBox
-import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
-
+import de.stefan_oltmann.kim.format.updatedExifBytes
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
@@ -62,13 +62,7 @@ internal object JxlUpdater : MetadataUpdater {
                 XmpWriter.updateXmp(xmpMeta, updates, true)
             }
 
-            val outputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
-
-            val exifBytes: ByteArray? =
-                if (outputSet.applyUpdates(updates))
-                    outputSet.toTiffBytes()
-                else
-                    null
+            val exifBytes = metadata.updatedExifBytes(updates)
 
             JxlWriter.writeImage(
                 boxes = boxes,
@@ -129,11 +123,7 @@ internal object JxlUpdater : MetadataUpdater {
 
         val metadata = JxlReader.createMetadata(allBoxes)
 
-        val outputSet = metadata.exif?.createOutputSet() ?: TiffOutputSet()
-
-        outputSet.setThumbnailBytes(thumbnailBytes)
-
-        val exifBytes = outputSet.toTiffBytes()
+        val exifBytes = metadata.exifBytesWithThumbnail(thumbnailBytes)
 
         val byteWriter = ByteArrayByteWriter()
 
