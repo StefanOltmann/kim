@@ -18,16 +18,10 @@ package de.stefan_oltmann.kim.android
 
 import android.content.ContentResolver
 import android.net.Uri
-import android.provider.MediaStore
 import android.provider.OpenableColumns
 
 private val sizeProjection = arrayOf(
-    MediaStore.Images.Media.SIZE
-)
-
-private val sizeAndDateProjection = arrayOf(
-    MediaStore.Images.Media.SIZE,
-    MediaStore.Images.Media.DATE_MODIFIED
+    OpenableColumns.SIZE
 )
 
 private val emptySelection: String? = null
@@ -59,35 +53,5 @@ public fun ContentResolver.getFileSize(
         val size = it.getLong(sizeIndex)
 
         return size
-    }
-}
-
-public fun ContentResolver.getSizeAndModificationDate(
-    uri: Uri
-): Pair<Long, Long>? {
-
-    val cursor = query(
-        uri,
-        sizeAndDateProjection,
-        emptySelection,
-        emptySelectionArgs,
-        emptySortOrder
-    )
-
-    if (cursor == null)
-        return null
-
-    cursor.use {
-
-        if (!it.moveToFirst())
-            return null
-
-        val sizeIndex = it.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)
-        val dateIndex = it.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_MODIFIED)
-
-        val size = cursor.getLong(sizeIndex)
-        val date = cursor.getLong(dateIndex) * 1000
-
-        return size to date
     }
 }
