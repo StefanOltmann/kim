@@ -86,32 +86,22 @@ internal enum class IptcTypes(
 
     companion object {
 
-        private val iptcTypeMap = mutableMapOf<Int, IptcType>()
-
-        init {
-
-            for (iptcType in IptcTypes.entries)
-                iptcTypeMap[iptcType.type] = iptcType
-        }
+        private val iptcTypeMap = IptcTypes.entries.associateBy(IptcTypes::type)
 
         @kotlin.jvm.JvmStatic
         fun getIptcType(type: Int): IptcType =
-            iptcTypeMap[type] ?: createUnknownIptcType(type)
+            iptcTypeMap[type] ?: UnknownIptcType(type)
+    }
 
-        @kotlin.jvm.JvmStatic
-        private fun createUnknownIptcType(type: Int): IptcType {
+    /** A stand-in for record types this enum does not know. */
+    private class UnknownIptcType(
+        override val type: Int
+    ) : IptcType {
 
-            return object : IptcType {
+        override val fieldName: String
+            get() = "Unknown"
 
-                override val fieldName: String
-                    get() = "Unknown"
-
-                override val type: Int
-                    get() = type
-
-                override fun toString(): String =
-                    "Unknown ($type)"
-            }
-        }
+        override fun toString(): String =
+            "Unknown ($type)"
     }
 }
