@@ -32,7 +32,6 @@ import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
 import de.stefan_oltmann.kim.format.jpeg.segment.App13Segment
 import de.stefan_oltmann.kim.format.jpeg.segment.AppnSegment
 import de.stefan_oltmann.kim.format.jpeg.segment.GenericSegment
-import de.stefan_oltmann.kim.format.jpeg.segment.JfifSegment
 import de.stefan_oltmann.kim.format.jpeg.segment.Segment
 import de.stefan_oltmann.kim.format.jpeg.segment.SofnSegment
 import de.stefan_oltmann.kim.format.jpeg.segment.UnknownSegment
@@ -209,17 +208,11 @@ public object JpegImageParser : ImageParser {
             JpegConstants.JPEG_APP13_MARKER -> App13Segment(marker, segmentBytes)
 
             /*
-             * An APP0 without the JFIF identifier is a spec-legal JFXX
-             * extension or vendor segment. It must be treated as unknown,
-             * so files carrying it stay updatable like they are readable.
+             * The APP0 segment carries the JFIF header, whose density
+             * fields no metadata consumer needs - so like every other
+             * segment without metadata it stays an opaque byte block.
              */
-            JpegConstants.JFIF_MARKER ->
-                if (segmentBytes.startsWith(JpegConstants.JFIF0_SIGNATURE) ||
-                    segmentBytes.startsWith(JpegConstants.JFIF0_SIGNATURE_ALTERNATIVE)
-                )
-                    JfifSegment(marker, segmentBytes)
-                else
-                    UnknownSegment(marker, segmentBytes)
+            JpegConstants.JFIF_MARKER -> UnknownSegment(marker, segmentBytes)
 
             else ->
                 when {
