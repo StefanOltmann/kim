@@ -521,5 +521,3 @@ public object DngTag {
         TIFF_TAG_DNG_NOISE_REDUCTION_APPLIED_2
     )
 }
-
-

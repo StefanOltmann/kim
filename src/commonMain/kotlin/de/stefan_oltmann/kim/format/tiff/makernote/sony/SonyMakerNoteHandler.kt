@@ -219,6 +219,3 @@ internal object SonyMakerNoteHandler : MakerNoteHandler() {
         }
     }
 }
-
-
-

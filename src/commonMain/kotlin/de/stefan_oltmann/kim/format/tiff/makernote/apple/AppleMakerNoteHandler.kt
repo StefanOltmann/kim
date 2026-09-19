@@ -255,6 +255,3 @@ internal object AppleMakerNoteHandler : MakerNoteHandler() {
         )
     }
 }
-
-
-

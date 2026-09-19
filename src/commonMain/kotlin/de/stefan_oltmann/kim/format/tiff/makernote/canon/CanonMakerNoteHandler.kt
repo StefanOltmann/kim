@@ -493,7 +493,3 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
         return fieldOffset + valueLength
     }
 }
-
-
-
-

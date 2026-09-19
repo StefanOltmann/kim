@@ -420,6 +420,3 @@ internal open class MakerNoteHandler {
     protected fun ByteArray.toInt64(offset: Int): Long =
         toLong(offset, ByteOrder.BIG_ENDIAN)
 }
-
-
-
