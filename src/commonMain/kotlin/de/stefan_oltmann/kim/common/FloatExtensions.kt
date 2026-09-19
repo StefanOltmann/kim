@@ -95,25 +95,10 @@ internal fun Float.toInvariantString(): String {
         roundTrips = candidateRoundTrips(resultDigits, originalBits)
     }
 
-    val numberString = renderFloatNotation(resultDigits.first, resultDigits.second)
+    val numberString = renderNotation(resultDigits.first, resultDigits.second)
 
     return if (negative) "-$numberString" else numberString
 }
-
-/**
- * Renders digits and exponent with the JVM float notation: plain notation
- * with at least one fraction digit inside [1.0E-3, 1.0E7) and "d.dddEn"
- * outside of it.
- */
-private fun renderFloatNotation(
-    digits: String,
-    exponent: Int
-): String =
-
-    if (exponent in PLAIN_NOTATION_MIN_EXPONENT..PLAIN_NOTATION_MAX_EXPONENT)
-        renderPlainNotation(digits, exponent)
-    else
-        renderExponentNotation(digits, exponent)
 
 /**
  * Whether the decimal rendering of the candidate digits describes the
@@ -124,7 +109,7 @@ private fun candidateRoundTrips(
     originalBits: Int
 ): Boolean {
 
-    val candidate = renderFloatNotation(digitsWithExponent.first, digitsWithExponent.second)
+    val candidate = renderNotation(digitsWithExponent.first, digitsWithExponent.second)
 
     return candidate.toFloat().toBits() == originalBits
 }
