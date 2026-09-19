@@ -29,6 +29,7 @@ import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.testdata.tiffContents
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertNull
@@ -147,7 +148,7 @@ class PreviewExtractorEdgeCasesTest {
             value = previewLength
         )
 
-        return tiffContentsWithDirectories(startField, lengthField)
+        return tiffContents(startField, lengthField)
     }
 
     private fun longField(
@@ -165,26 +166,4 @@ class PreviewExtractorEdgeCasesTest {
         byteOrder = ByteOrder.LITTLE_ENDIAN,
         sortHint = 0
     )
-
-    private fun tiffContentsWithDirectories(vararg entries: TiffField): TiffContents =
-
-        TiffContents(
-            header = TiffHeader(
-                byteOrder = ByteOrder.BIG_ENDIAN,
-                tiffVersion = 42,
-                offsetToFirstIFD = 8
-            ),
-            directories = listOf(
-                TiffDirectory(
-                    type = TiffConstants.TIFF_DIRECTORY_TYPE_IFD0,
-                    entries = entries.toList(),
-                    offset = 8,
-                    nextDirectoryOffset = 0,
-                    byteOrder = ByteOrder.BIG_ENDIAN
-                )
-            ),
-            makerNoteDirectory = null,
-            makerNoteSubDirectories = emptyList(),
-            geoTiffDirectory = null
-        )
 }

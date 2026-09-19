@@ -16,14 +16,10 @@
 package de.stefan_oltmann.kim.common
 
 import de.stefan_oltmann.kim.format.MediaMetadata
-import de.stefan_oltmann.kim.format.tiff.TiffContents
-import de.stefan_oltmann.kim.format.tiff.TiffDirectory
-import de.stefan_oltmann.kim.format.tiff.TiffField
-import de.stefan_oltmann.kim.format.tiff.TiffHeader
-import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
-import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.model.MediaFormat
+import de.stefan_oltmann.kim.testdata.tiffContents
+import de.stefan_oltmann.kim.testdata.tiffField
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -41,8 +37,8 @@ class MetadataSummaryStringPaddingTest {
             mediaFormat = MediaFormat.TIFF,
             imageSize = null,
             exif = tiffContents(
-                field(TiffTag.TIFF_TAG_MAKE, "OLYMPUS IMAGING CORP.  ".encodeToByteArray()),
-                field(TiffTag.TIFF_TAG_MODEL, "E-M10           ".encodeToByteArray())
+                tiffField(TiffTag.TIFF_TAG_MAKE, "OLYMPUS IMAGING CORP.  ".encodeToByteArray()),
+                tiffField(TiffTag.TIFF_TAG_MODEL, "E-M10           ".encodeToByteArray())
             ),
             exifBytes = null,
             iptc = null,
@@ -68,7 +64,7 @@ class MetadataSummaryStringPaddingTest {
             mediaFormat = MediaFormat.TIFF,
             imageSize = null,
             exif = tiffContents(
-                field(
+                tiffField(
                     TiffTag.TIFF_TAG_IMAGE_DESCRIPTION,
                     "OLYMPUS DIGITAL CAMERA          ".encodeToByteArray()
                 )
@@ -82,42 +78,4 @@ class MetadataSummaryStringPaddingTest {
 
         assertEquals("OLYMPUS DIGITAL CAMERA", summary.description)
     }
-
-    private fun field(
-        tag: TagInfo,
-        bytes: ByteArray
-    ): TiffField = TiffField(
-        offset = 0,
-        tag = tag.tag,
-        directoryType = tag.directoryType?.typeId ?: TiffConstants.TIFF_DIRECTORY_TYPE_IFD0,
-        fieldType = de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeAscii,
-        count = bytes.size,
-        localValue = null,
-        valueOffset = 0,
-        valueBytes = bytes,
-        byteOrder = ByteOrder.BIG_ENDIAN,
-        sortHint = 0
-    )
-
-    private fun tiffContents(vararg entries: TiffField): TiffContents =
-
-        TiffContents(
-            header = TiffHeader(
-                byteOrder = ByteOrder.BIG_ENDIAN,
-                tiffVersion = 42,
-                offsetToFirstIFD = 8
-            ),
-            directories = listOf(
-                TiffDirectory(
-                    type = TiffConstants.TIFF_DIRECTORY_TYPE_IFD0,
-                    entries = entries.toList(),
-                    offset = 8,
-                    nextDirectoryOffset = 0,
-                    byteOrder = ByteOrder.BIG_ENDIAN
-                )
-            ),
-            makerNoteDirectory = null,
-            makerNoteSubDirectories = emptyList(),
-            geoTiffDirectory = null
-        )
 }
