@@ -20,16 +20,23 @@ package de.stefan_oltmann.kim.format.jpeg.segment
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
-import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.read2BytesAsInt
 import de.stefan_oltmann.kim.input.skipBytes
 
-internal class SofnSegment(marker: Int, markerLength: Int, byteReader: ByteReader) : Segment(marker) {
+/**
+ * A SOFn segment, which carries the image width and height.
+ */
+internal class SofnSegment(
+    marker: Int,
+    segmentData: ByteArray
+) : Segment(marker) {
 
     val width: Int
     val height: Int
 
     init {
+
+        val byteReader = ByteArrayByteReader(segmentData)
 
         /* Skip precision */
         byteReader.skipBytes("Precision", 1)
@@ -37,9 +44,6 @@ internal class SofnSegment(marker: Int, markerLength: Int, byteReader: ByteReade
         height = byteReader.read2BytesAsInt("Height", JPEG_BYTE_ORDER)
         width = byteReader.read2BytesAsInt("Width", JPEG_BYTE_ORDER)
     }
-
-    constructor(marker: Int, segmentData: ByteArray) :
-        this(marker, segmentData.size, ByteArrayByteReader(segmentData))
 
     override fun getDescription(): String =
         "SOFN (SOF" + (marker - JpegConstants.SOF0_MARKER) + ") (" + marker + ")"

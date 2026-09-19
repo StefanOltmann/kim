@@ -18,14 +18,11 @@
 package de.stefan_oltmann.kim.format.jpeg.segment
 
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
-import de.stefan_oltmann.kim.input.ByteArrayByteReader
-import de.stefan_oltmann.kim.input.ByteReader
 
-internal class App13Segment(marker: Int, markerLength: Int, byteReader: ByteReader) :
-    AppnSegment(marker, markerLength, byteReader) {
-
-    constructor(marker: Int, segmentData: ByteArray) :
-        this(marker, segmentData.size, ByteArrayByteReader(segmentData))
+internal class App13Segment(
+    marker: Int,
+    segmentData: ByteArray
+) : AppnSegment(marker, segmentData) {
 
     fun isPhotoshopJpegSegment(): Boolean =
         IptcParser.isPhotoshopApp13Segment(segmentBytes)

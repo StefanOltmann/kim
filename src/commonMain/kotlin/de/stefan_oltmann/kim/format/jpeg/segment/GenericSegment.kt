@@ -17,18 +17,10 @@
  */
 package de.stefan_oltmann.kim.format.jpeg.segment
 
-import de.stefan_oltmann.kim.input.ByteReader
-import de.stefan_oltmann.kim.input.readBytes
-
-internal abstract class GenericSegment : Segment {
-
+/**
+ * A segment that keeps its payload bytes.
+ */
+internal abstract class GenericSegment(
+    marker: Int,
     val segmentBytes: ByteArray
-
-    constructor(marker: Int, markerLength: Int, byteReader: ByteReader) : super(marker) {
-        segmentBytes = byteReader.readBytes("segmentBytes", markerLength)
-    }
-
-    constructor(marker: Int, bytes: ByteArray) : super(marker) {
-        segmentBytes = bytes
-    }
-}
+) : Segment(marker)
