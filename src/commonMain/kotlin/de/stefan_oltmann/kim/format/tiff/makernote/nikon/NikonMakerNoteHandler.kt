@@ -61,12 +61,6 @@ internal object NikonMakerNoteHandler : MakerNoteHandler() {
             NikonPictureControlTag.ALL,
             1,
             versionTables = mapOf(
-                "0100" to MakerNoteBlobPointer(
-                    0x0023,
-                    TIFF_MAKER_NOTE_NIKON_PICTURE_CONTROL,
-                    NikonPictureControlTag.ALL,
-                    1
-                ),
                 "0200" to MakerNoteBlobPointer(
                     0x0023,
                     TIFF_MAKER_NOTE_NIKON_PICTURE_CONTROL,
@@ -135,7 +129,6 @@ internal object NikonMakerNoteHandler : MakerNoteHandler() {
             NikonFlashInfo0103Tag.ALL,
             1,
             versionTables = mapOf(
-                "0103" to flashInfo0103(),
                 "0107" to flashInfo0107()
             )
         ),
@@ -166,17 +159,6 @@ internal object NikonMakerNoteHandler : MakerNoteHandler() {
             encrypted = true,
             decryptStart = 4,
             offsetBase = 0x80
-        )
-
-    /**
-     * The flash info layout of cameras with FlashInfoVersion 0103.
-     */
-    private fun flashInfo0103(): MakerNoteBlobPointer =
-        MakerNoteBlobPointer(
-            tagId = 0x00a8,
-            directoryType = TIFF_MAKER_NOTE_NIKON_FLASH_INFO,
-            tagTable = NikonFlashInfo0103Tag.ALL,
-            byteOffsetMultiplier = 1
         )
 
     /**
