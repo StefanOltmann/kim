@@ -16,17 +16,12 @@
  */
 package de.stefan_oltmann.kim.format.raf
 
-import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
-import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.jpeg.JpegImageParser
 import de.stefan_oltmann.kim.input.ByteReader
-import de.stefan_oltmann.kim.input.read4BytesAsInt
-import de.stefan_oltmann.kim.input.readAndVerifyBytes
-import de.stefan_oltmann.kim.input.skipBytes
 import de.stefan_oltmann.kim.model.MediaFormat
 
 /**
@@ -39,32 +34,10 @@ public object RafImageParser : ImageParser {
      * We just have to find it and read the data from there it.
      */
     @Throws(ImageReadException::class)
-    @Suppress("ComplexCondition", "LoopWithTooManyJumpStatements")
     override fun parseMetadata(byteReader: ByteReader): MediaMetadata =
         tryWithImageReadException {
 
-            byteReader.readAndVerifyBytes(
-                "RAF magic number",
-                MediaFormatMagicNumbers.raf.toByteArray()
-            )
-
-            byteReader.skipBytes("68 header bytes", RafMetadataExtractor.REMAINING_HEADER_BYTE_COUNT)
-
-            val offset = byteReader.read4BytesAsInt("JPEG offset", ByteOrder.BIG_ENDIAN)
-
-            /*
-             * A hostile offset cannot point into the file. Rejecting it
-             * here beats the underflowing skip distance (and the wasteful
-             * full-file scan) that the raw subtraction would produce.
-             */
-            if (offset <= 0 || offset > byteReader.contentLength)
-                throw ImageReadException("RAF JPEG offset out of range: $offset")
-
-            @Suppress("MagicNumber")
-            val remainingBytesToOffset = offset -
-                (RafMetadataExtractor.REMAINING_HEADER_BYTE_COUNT + MediaFormatMagicNumbers.raf.size + 4)
-
-            byteReader.skipBytes("Skip JPEG offset", remainingBytesToOffset)
+            RafEmbeddedJpeg.positionReaderAtJpeg(byteReader)
 
             return@tryWithImageReadException JpegImageParser
                 .parseMetadata(byteReader)

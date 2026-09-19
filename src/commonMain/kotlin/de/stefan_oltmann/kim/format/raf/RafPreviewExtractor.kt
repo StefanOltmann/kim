@@ -43,7 +43,7 @@ public object RafPreviewExtractor {
             MediaFormatMagicNumbers.raf.toByteArray()
         )
 
-        reader.skipBytes("68 header bytes", RafMetadataExtractor.REMAINING_HEADER_BYTE_COUNT)
+        reader.skipBytes("68 header bytes", RafEmbeddedJpeg.REMAINING_HEADER_BYTE_COUNT)
 
         val offset = reader.read4BytesAsInt("JPEG offset", ByteOrder.BIG_ENDIAN)
 
@@ -55,7 +55,7 @@ public object RafPreviewExtractor {
 
         @Suppress("MagicNumber")
         val remainingBytesToOffset = offset -
-            (RafMetadataExtractor.REMAINING_HEADER_BYTE_COUNT + MediaFormatMagicNumbers.raf.size + 8)
+            (RafEmbeddedJpeg.REMAINING_HEADER_BYTE_COUNT + MediaFormatMagicNumbers.raf.size + 8)
 
         if (remainingBytesToOffset < 0)
             return@extractPreviewImage null
