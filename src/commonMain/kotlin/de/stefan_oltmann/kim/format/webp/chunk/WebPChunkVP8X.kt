@@ -57,11 +57,11 @@ public class WebPChunkVP8X(
 
         val mark: Int = bytes[0].toInt() and 0xFF
 
-        hasIcc = mark and 32 != 0
-        hasAlpha = mark and 16 != 0
-        hasExif = mark and 8 != 0
-        hasXmp = mark and 4 != 0
-        hasAnimation = mark and 2 != 0
+        hasIcc = mark and ICC_FLAG != 0
+        hasAlpha = mark and ALPHA_FLAG != 0
+        hasExif = mark and EXIF_FLAG != 0
+        hasXmp = mark and XMP_FLAG != 0
+        hasAnimation = mark and ANIMATION_FLAG != 0
 
         val canvasWidth = (bytes[4].toInt() and 0xFF) +
             (bytes[5].toInt() and 0xFF shl 8) +
@@ -88,6 +88,13 @@ public class WebPChunkVP8X(
 
     public companion object {
 
+        /* The flag bits of the mark byte, per the RIFF container spec. */
+        private const val ICC_FLAG: Int = 32
+        private const val ALPHA_FLAG: Int = 16
+        private const val EXIF_FLAG: Int = 8
+        private const val XMP_FLAG: Int = 4
+        private const val ANIMATION_FLAG: Int = 2
+
         /**
          * Builds the 10-byte VP8X payload with the given format flags
          * and the canvas size.
@@ -110,19 +117,19 @@ public class WebPChunkVP8X(
             var mark = 0
 
             if (hasIcc)
-                mark = mark or 32
+                mark = mark or ICC_FLAG
 
             if (hasAlpha)
-                mark = mark or 16
+                mark = mark or ALPHA_FLAG
 
             if (hasExif)
-                mark = mark or 8
+                mark = mark or EXIF_FLAG
 
             if (hasXmp)
-                mark = mark or 4
+                mark = mark or XMP_FLAG
 
             if (hasAnimation)
-                mark = mark or 2
+                mark = mark or ANIMATION_FLAG
 
             byteArray[0] = mark.toByte()
 
