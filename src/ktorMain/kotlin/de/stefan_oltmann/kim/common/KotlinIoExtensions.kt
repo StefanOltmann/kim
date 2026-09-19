@@ -51,6 +51,3 @@ public fun Path.readBytes(): ByteArray =
 
 public fun Path.exists(): Boolean =
     SystemFileSystem.exists(this)
-
-public fun Path.list(): Collection<Path> =
-    SystemFileSystem.list(this)

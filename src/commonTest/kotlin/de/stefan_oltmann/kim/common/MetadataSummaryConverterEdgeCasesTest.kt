@@ -28,12 +28,14 @@ import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
-import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeAscii
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeRational
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeShort
 import de.stefan_oltmann.kim.format.tiff.makernote.nikon.NikonTag
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.model.TiffOrientation
+import de.stefan_oltmann.kim.testdata.tiffContents
+import de.stefan_oltmann.kim.testdata.tiffDirectory
+import de.stefan_oltmann.kim.testdata.tiffField
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
@@ -57,83 +59,21 @@ class MetadataSummaryConverterEdgeCasesTest {
         Kim.defaultTimeZone = null
     }
 
-    private fun field(
-        tag: de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo,
-        bytes: ByteArray,
-        fieldType: de.stefan_oltmann.kim.format.tiff.fieldtype.FieldType<out Any> = FieldTypeAscii,
-        count: Int = bytes.size,
-        directoryType: Int = tag.directoryType?.typeId ?: TiffConstants.TIFF_DIRECTORY_TYPE_IFD0
-    ): TiffField = TiffField(
-        offset = 0,
-        tag = tag.tag,
-        directoryType = directoryType,
-        fieldType = fieldType,
-        count = count,
-        localValue = null,
-        valueOffset = 0,
-        valueBytes = bytes,
-        byteOrder = ByteOrder.BIG_ENDIAN,
-        sortHint = 0
-    )
+    private fun gpsContents(vararg entries: TiffField): TiffContents =
 
-    private fun tiffContents(vararg entries: TiffField): TiffContents {
-
-        val directory = TiffDirectory(
-            type = TiffConstants.TIFF_DIRECTORY_TYPE_IFD0,
-            entries = entries.toList(),
-            offset = 8,
-            nextDirectoryOffset = 0,
-            byteOrder = ByteOrder.BIG_ENDIAN
-        )
-
-        val exifDirectory = TiffDirectory(
-            type = TiffConstants.TIFF_DIRECTORY_EXIF,
-            entries = entries.filter { it.directoryType == TiffConstants.TIFF_DIRECTORY_EXIF },
-            offset = 100,
-            nextDirectoryOffset = 0,
-            byteOrder = ByteOrder.BIG_ENDIAN
-        )
-
-        val directories = mutableListOf(directory)
-
-        if (exifDirectory.entries.isNotEmpty())
-            directories.add(exifDirectory)
-
-        return TiffContents(
+        TiffContents(
             header = TiffHeader(
                 byteOrder = ByteOrder.BIG_ENDIAN,
                 tiffVersion = 42,
                 offsetToFirstIFD = 8
             ),
-            directories = directories,
-            makerNoteDirectory = null,
-            makerNoteSubDirectories = emptyList(),
-            geoTiffDirectory = null
-        )
-    }
-
-    private fun gpsContents(vararg entries: TiffField): TiffContents {
-
-        val gpsDirectory = TiffDirectory(
-            type = TiffConstants.TIFF_DIRECTORY_GPS,
-            entries = entries.toList(),
-            offset = 8,
-            nextDirectoryOffset = 0,
-            byteOrder = ByteOrder.BIG_ENDIAN
-        )
-
-        return TiffContents(
-            header = TiffHeader(
-                byteOrder = ByteOrder.BIG_ENDIAN,
-                tiffVersion = 42,
-                offsetToFirstIFD = 8
+            directories = listOf(
+                tiffDirectory(TiffConstants.TIFF_DIRECTORY_GPS, entries.toList())
             ),
-            directories = listOf(gpsDirectory),
             makerNoteDirectory = null,
             makerNoteSubDirectories = emptyList(),
             geoTiffDirectory = null
         )
-    }
 
     private fun gpsRationalsBytes(): ByteArray =
         RationalNumbers(
@@ -146,13 +86,7 @@ class MetadataSummaryConverterEdgeCasesTest {
 
     private fun tiffContentsWithThumbnail(thumbnailBytes: ByteArray): TiffContents {
 
-        val thumbnailDirectory = TiffDirectory(
-            type = TiffConstants.TIFF_DIRECTORY_TYPE_IFD1,
-            entries = emptyList(),
-            offset = 8,
-            nextDirectoryOffset = 0,
-            byteOrder = ByteOrder.BIG_ENDIAN
-        ).apply {
+        val thumbnailDirectory = tiffDirectory(TiffConstants.TIFF_DIRECTORY_TYPE_IFD1, emptyList()).apply {
             this.thumbnailBytes = thumbnailBytes
         }
 
@@ -181,13 +115,13 @@ class MetadataSummaryConverterEdgeCasesTest {
             mediaFormat = MediaFormat.JPEG,
             imageSize = null,
             exif = tiffContents(
-                field(
+                tiffField(
                     ExifTag.EXIF_TAG_EXPOSURE_TIME,
                     byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0),
                     fieldType = FieldTypeRational,
                     count = 1
                 ),
-                field(
+                tiffField(
                     ExifTag.EXIF_TAG_FNUMBER,
                     byteArrayOf(0, 0, 0, 1),
                     fieldType = FieldTypeRational,
@@ -212,7 +146,7 @@ class MetadataSummaryConverterEdgeCasesTest {
             mediaFormat = MediaFormat.JPEG,
             imageSize = null,
             exif = tiffContents(
-                field(
+                tiffField(
                     TiffTag.TIFF_TAG_ORIENTATION,
                     TiffOrientation.ROTATE_RIGHT.value.toShort().toBytes(ByteOrder.BIG_ENDIAN),
                     FieldTypeShort,
@@ -286,7 +220,7 @@ class MetadataSummaryConverterEdgeCasesTest {
             mediaFormat = MediaFormat.JPEG,
             imageSize = null,
             exif = tiffContents(
-                field(
+                tiffField(
                     ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL,
                     "2020:08:30 18:43:00.5\u0000".encodeToByteArray()
                 )
@@ -306,11 +240,11 @@ class MetadataSummaryConverterEdgeCasesTest {
             mediaFormat = MediaFormat.JPEG,
             imageSize = null,
             exif = tiffContents(
-                field(
+                tiffField(
                     ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL,
                     "2020:08:30 18:43:00\u0000".encodeToByteArray()
                 ),
-                field(
+                tiffField(
                     ExifTag.EXIF_TAG_SUB_SEC_TIME_ORIGINAL,
                     "500\u0000".encodeToByteArray()
                 )
@@ -336,7 +270,7 @@ class MetadataSummaryConverterEdgeCasesTest {
             mediaFormat = MediaFormat.JPEG,
             imageSize = null,
             exif = tiffContents(
-                field(
+                tiffField(
                     ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL,
                     "2021:12:06\u0000".encodeToByteArray()
                 )
@@ -365,11 +299,11 @@ class MetadataSummaryConverterEdgeCasesTest {
             mediaFormat = MediaFormat.JPEG,
             imageSize = null,
             exif = tiffContents(
-                field(
+                tiffField(
                     ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL,
                     "2020:08:30 18:43:00\u0000".encodeToByteArray()
                 ),
-                field(
+                tiffField(
                     ExifTag.EXIF_TAG_SUB_SEC_TIME_ORIGINAL,
                     "05\u0000".encodeToByteArray()
                 )
@@ -394,7 +328,7 @@ class MetadataSummaryConverterEdgeCasesTest {
             mediaFormat = MediaFormat.JPEG,
             imageSize = null,
             exif = tiffContents(
-                field(
+                tiffField(
                     ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL,
                     "not a date\u0000".encodeToByteArray()
                 )
@@ -482,7 +416,7 @@ class MetadataSummaryConverterEdgeCasesTest {
             mediaFormat = MediaFormat.JPEG,
             imageSize = null,
             exif = tiffContents(
-                field(
+                tiffField(
                     ExifTag.EXIF_TAG_ISO,
                     byteArrayOf(0xC8.toByte(), 0x00), // ISO 51200, big-endian
                     FieldTypeShort,
@@ -508,7 +442,7 @@ class MetadataSummaryConverterEdgeCasesTest {
             mediaFormat = MediaFormat.JPEG,
             imageSize = null,
             exif = tiffContents(
-                field(
+                tiffField(
                     ExifTag.EXIF_TAG_ISO_PANASONIC,
                     byteArrayOf(0xC8.toByte(), 0x00), // ISO 51200, big-endian
                     FieldTypeShort,
@@ -533,10 +467,10 @@ class MetadataSummaryConverterEdgeCasesTest {
             mediaFormat = MediaFormat.JPEG,
             imageSize = null,
             exif = gpsContents(
-                field(GpsTag.GPS_TAG_GPS_LATITUDE_REF, "N".encodeToByteArray()),
-                field(GpsTag.GPS_TAG_GPS_LONGITUDE_REF, "E".encodeToByteArray()),
+                tiffField(GpsTag.GPS_TAG_GPS_LATITUDE_REF, "N".encodeToByteArray()),
+                tiffField(GpsTag.GPS_TAG_GPS_LONGITUDE_REF, "E".encodeToByteArray()),
                 /* Wrong type: SHORT instead of RATIONAL. */
-                field(
+                tiffField(
                     GpsTag.GPS_TAG_GPS_LATITUDE,
                     shortArrayOf(1, 2, 3).toBytes(ByteOrder.BIG_ENDIAN),
                     FieldTypeShort,
@@ -558,10 +492,10 @@ class MetadataSummaryConverterEdgeCasesTest {
             mediaFormat = MediaFormat.JPEG,
             imageSize = null,
             exif = gpsContents(
-                field(GpsTag.GPS_TAG_GPS_LATITUDE_REF, "North".encodeToByteArray()),
-                field(GpsTag.GPS_TAG_GPS_LONGITUDE_REF, "E".encodeToByteArray()),
-                field(GpsTag.GPS_TAG_GPS_LATITUDE, gpsRationalsBytes(), FieldTypeRational, 3),
-                field(GpsTag.GPS_TAG_GPS_LONGITUDE, gpsRationalsBytes(), FieldTypeRational, 3)
+                tiffField(GpsTag.GPS_TAG_GPS_LATITUDE_REF, "North".encodeToByteArray()),
+                tiffField(GpsTag.GPS_TAG_GPS_LONGITUDE_REF, "E".encodeToByteArray()),
+                tiffField(GpsTag.GPS_TAG_GPS_LATITUDE, gpsRationalsBytes(), FieldTypeRational, 3),
+                tiffField(GpsTag.GPS_TAG_GPS_LONGITUDE, gpsRationalsBytes(), FieldTypeRational, 3)
             ),
             exifBytes = null,
             iptc = null,
@@ -578,10 +512,10 @@ class MetadataSummaryConverterEdgeCasesTest {
             mediaFormat = MediaFormat.JPEG,
             imageSize = null,
             exif = gpsContents(
-                field(GpsTag.GPS_TAG_GPS_LATITUDE_REF, "N".encodeToByteArray()),
-                field(GpsTag.GPS_TAG_GPS_LONGITUDE_REF, "E".encodeToByteArray()),
+                tiffField(GpsTag.GPS_TAG_GPS_LATITUDE_REF, "N".encodeToByteArray()),
+                tiffField(GpsTag.GPS_TAG_GPS_LONGITUDE_REF, "E".encodeToByteArray()),
                 /* Only two of the required three values. */
-                field(
+                tiffField(
                     GpsTag.GPS_TAG_GPS_LATITUDE,
                     RationalNumbers(
                         arrayOf(RationalNumber(1, 1), RationalNumber(2, 1))
@@ -589,7 +523,7 @@ class MetadataSummaryConverterEdgeCasesTest {
                     FieldTypeRational,
                     2
                 ),
-                field(GpsTag.GPS_TAG_GPS_LONGITUDE, gpsRationalsBytes(), FieldTypeRational, 3)
+                tiffField(GpsTag.GPS_TAG_GPS_LONGITUDE, gpsRationalsBytes(), FieldTypeRational, 3)
             ),
             exifBytes = null,
             iptc = null,
@@ -606,10 +540,10 @@ class MetadataSummaryConverterEdgeCasesTest {
             mediaFormat = MediaFormat.JPEG,
             imageSize = null,
             exif = gpsContents(
-                field(GpsTag.GPS_TAG_GPS_LATITUDE_REF, "N".encodeToByteArray()),
-                field(GpsTag.GPS_TAG_GPS_LONGITUDE_REF, "E".encodeToByteArray()),
-                field(GpsTag.GPS_TAG_GPS_LATITUDE, gpsRationalsBytes(), FieldTypeRational, 3),
-                field(GpsTag.GPS_TAG_GPS_LONGITUDE, gpsRationalsBytes(), FieldTypeRational, 3)
+                tiffField(GpsTag.GPS_TAG_GPS_LATITUDE_REF, "N".encodeToByteArray()),
+                tiffField(GpsTag.GPS_TAG_GPS_LONGITUDE_REF, "E".encodeToByteArray()),
+                tiffField(GpsTag.GPS_TAG_GPS_LATITUDE, gpsRationalsBytes(), FieldTypeRational, 3),
+                tiffField(GpsTag.GPS_TAG_GPS_LONGITUDE, gpsRationalsBytes(), FieldTypeRational, 3)
             ),
             exifBytes = null,
             iptc = null,
@@ -677,7 +611,7 @@ class MetadataSummaryConverterEdgeCasesTest {
                 mediaFormat = MediaFormat.JPEG,
                 imageSize = null,
                 exif = tiffContents(
-                    field(
+                    tiffField(
                         ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL,
                         "2020:08:30 18:43:00\u0000".encodeToByteArray()
                     )
@@ -756,11 +690,9 @@ class MetadataSummaryConverterEdgeCasesTest {
                 offsetToFirstIFD = 8
             ),
             directories = listOf(
-                TiffDirectory(
+                tiffDirectory(
                     type = TiffConstants.TIFF_DIRECTORY_TYPE_IFD0,
                     entries = emptyList(),
-                    offset = 8,
-                    nextDirectoryOffset = 0,
                     byteOrder = ByteOrder.LITTLE_ENDIAN
                 )
             ),

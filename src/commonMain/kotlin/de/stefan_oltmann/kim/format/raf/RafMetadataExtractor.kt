@@ -16,23 +16,16 @@
  */
 package de.stefan_oltmann.kim.format.raf
 
-import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.tryWithImageReadException
-import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataExtractor
 import de.stefan_oltmann.kim.format.jpeg.JpegMetadataExtractor
 import de.stefan_oltmann.kim.input.ByteReader
-import de.stefan_oltmann.kim.input.read4BytesAsInt
-import de.stefan_oltmann.kim.input.readAndVerifyBytes
-import de.stefan_oltmann.kim.input.skipBytes
 
 /**
  * Extracts the metadata bytes of Fuji RAF files.
  */
 public object RafMetadataExtractor : MetadataExtractor {
-
-    internal const val REMAINING_HEADER_BYTE_COUNT = 68
 
     /**
      * The RAF file contains a JPEG with EXIF metadata.
@@ -44,28 +37,7 @@ public object RafMetadataExtractor : MetadataExtractor {
         byteReader: ByteReader
     ): ByteArray = tryWithImageReadException {
 
-        byteReader.readAndVerifyBytes(
-            "RAF magic number",
-            MediaFormatMagicNumbers.raf.toByteArray()
-        )
-
-        byteReader.skipBytes("68 header bytes", REMAINING_HEADER_BYTE_COUNT)
-
-        val offset = byteReader.read4BytesAsInt("JPEG offset", ByteOrder.BIG_ENDIAN)
-
-        /*
-         * A hostile offset cannot point into the file. Rejecting it here
-         * beats the underflowing skip distance (and the wasteful full-file
-         * scan) that the raw subtraction would produce.
-         */
-        if (offset <= 0 || offset > byteReader.contentLength)
-            throw ImageReadException("RAF JPEG offset out of range: $offset")
-
-        @Suppress("MagicNumber")
-        val remainingBytesToOffset = offset -
-            (REMAINING_HEADER_BYTE_COUNT + MediaFormatMagicNumbers.raf.size + 4)
-
-        byteReader.skipBytes("Skip JPEG offset", remainingBytesToOffset)
+        RafEmbeddedJpeg.positionReaderAtJpeg(byteReader)
 
         return@tryWithImageReadException JpegMetadataExtractor.extractMetadataBytes(byteReader)
     }

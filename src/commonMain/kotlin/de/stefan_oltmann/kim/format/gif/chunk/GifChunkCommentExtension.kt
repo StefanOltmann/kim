@@ -27,9 +27,5 @@ public class GifChunkCommentExtension(
     subChunks: List<ByteArray>
 ) : GifChunk(
     GifChunkType.COMMENT_EXTENSION,
-    subChunks
-        .fold(header) { acc, subChunk ->
-            acc + subChunk
-        }
-        .plus(0x00)
+    joinGifSubChunks(header, subChunks)
 )

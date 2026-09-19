@@ -27,9 +27,5 @@ public class GifChunkImageData(
     subChunks: List<ByteArray>
 ) : GifChunk(
     GifChunkType.IMAGE_DATA,
-    subChunks
-        .fold(byteArrayOf(lzwMinimumCodeSize)) { acc, subChunk ->
-            acc + subChunk
-        }
-        .plus(0x00)
+    joinGifSubChunks(byteArrayOf(lzwMinimumCodeSize), subChunks)
 )

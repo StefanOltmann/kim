@@ -27,7 +27,7 @@ public data class LocationShown(
     val name: String?,
 
     /**
-     * Often a street adress like "Schafjückenweg 2"
+     * Often a street address like "Schafjückenweg 2".
      *
      * Also known as "Sublocation".
      */
@@ -44,7 +44,7 @@ public data class LocationShown(
     val state: String?,
 
     /**
-     * The city, for example "Deutschland".
+     * The country, for example "Deutschland".
      */
     val country: String?
 ) {

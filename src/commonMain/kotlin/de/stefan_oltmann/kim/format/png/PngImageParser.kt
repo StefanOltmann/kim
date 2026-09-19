@@ -125,52 +125,27 @@ public object PngImageParser : ImageParser {
             )
         }
 
-    /*
-     * According to https://dev.exiv2.org/projects/exiv2/wiki/The_Metadata_in_PNG_files
-     * Exiv2 saves EXIF & IPTC in zTXT chunks. This library is widely used and therefore
-     * we can expect a lot of files storing the information in that way.
-     * According to https://exiftool.sourceforge.net/TagNames/PNG.html it may even be in uncompressed text.
-     * So we look for all PNG text chunk types and take the first one that matches the keyword.
+    /**
+     * Reads the hex encoded EXIF profile from the text chunk that carries
+     * [PngConstants.EXIF_KEYWORD], or returns NULL when no chunk holds it.
      */
     private fun getExifFromTextChunk(chunks: List<PngChunk>): Pair<ByteArray, TiffContents>? {
 
-        val chunkText = getTextChunkWithKeyword(chunks, PngConstants.EXIF_KEYWORD) ?: return null
-
-        /*
-         * Before the EXIF block starts there are some characters before that.
-         * How these look seems to depend on the tool writing it. There may be no standard.
-         */
-        val index = chunkText.indexOf(JpegConstants.EXIF_IDENTIFIER_CODE_HEX)
-
-        /* If we did not find the identifier we may have invalid data. */
-        if (index == -1)
-            return null
-
-        /*
-         * This should be a text starting with EXIF identifier code "45786966"
-         * and ending with the regular "ffd9". It's HEX encoded and contains
-         * control chars. We need to remove them and convert it to a ByteArray.
-         */
-        val exifText = chunkText
-            .substring(startIndex = index)
-            .replace(controlCharRegex, "")
-            .trim()
-
-        /*
-         * The chunk content is file-controlled and may be garbage, which
-         * is ignored instead of failing the read.
-         */
-        if (!exifText.isValidHexString())
-            return null
+        val exifText = extractHexEncodedProfile(
+            chunks = chunks,
+            keyword = PngConstants.EXIF_KEYWORD,
+            identifierHex = JpegConstants.EXIF_IDENTIFIER_CODE_HEX,
+            profileName = "EXIF"
+        ) ?: return null
 
         /*
          * A hex encoded profile that claims to be EXIF but does not end
-         * at the JPEG EOI marker on an even boundary is a truncated
-         * record. Per the strict read policy the read fails instead of
-         * silently dropping the EXIF content. The marker check ignores
-         * the case, because the hex encoding itself is case insensitive.
+         * at the JPEG EOI marker is a truncated record. Per the strict
+         * read policy the read fails instead of silently dropping the
+         * EXIF content. The marker check ignores the case, because the
+         * hex encoding itself is case insensitive.
          */
-        if (!exifText.endsWith("ffd9", ignoreCase = true) || exifText.length % 2 != 0)
+        if (!exifText.endsWith("ffd9", ignoreCase = true))
             throw ImageReadException("The EXIF text chunk of the PNG is truncated.")
 
         /*
@@ -189,44 +164,18 @@ public object PngImageParser : ImageParser {
             TiffReader.read(exifBytesWithoutIdentifier)
     }
 
+    /**
+     * Reads the hex encoded IPTC profile from the text chunk that carries
+     * [PngConstants.IPTC_KEYWORD], or returns NULL when no chunk holds it.
+     */
     private fun getIptcFromTextChunk(chunks: List<PngChunk>): IptcMetadata? {
 
-        val chunkText = getTextChunkWithKeyword(chunks, PngConstants.IPTC_KEYWORD) ?: return null
-
-        /*
-         * Before the IPTC block starts there are some characters before that.
-         * How these look seems to depend on the tool writing it. There may be no standard.
-         */
-        val index = chunkText.indexOf(JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_HEX)
-
-        /* If we did not find the identifier we may have invalid data. */
-        if (index == -1)
-            return null
-
-        /*
-         * This text is HEX encoded and contains control chars.
-         * We need to remove them and convert it to a ByteArray.
-         */
-        val iptcText = chunkText
-            .substring(startIndex = index)
-            .replace(controlCharRegex, "")
-            .trim()
-
-        /*
-         * The chunk content is file-controlled and may be garbage, which
-         * is ignored instead of failing the read.
-         */
-        if (!iptcText.isValidHexString())
-            return null
-
-        /*
-         * An odd number of hex digits cannot be converted to bytes
-         * completely - the record is truncated. Per the strict read
-         * policy the read fails instead of silently dropping the IPTC
-         * content.
-         */
-        if (iptcText.length % 2 != 0)
-            throw ImageReadException("The IPTC text chunk of the PNG is truncated.")
+        val iptcText = extractHexEncodedProfile(
+            chunks = chunks,
+            keyword = PngConstants.IPTC_KEYWORD,
+            identifierHex = JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_HEX,
+            profileName = "IPTC"
+        ) ?: return null
 
         /*
          * Convert it to bytes.
@@ -241,6 +190,64 @@ public object PngImageParser : ImageParser {
             bytes = iptcBytes,
             startsWithApp13Header = false
         )
+    }
+
+    /**
+     * Finds the text chunk with the given keyword, strips the tool
+     * specific prefix in front of the given identifier and decodes the
+     * remaining hex text, or returns NULL when no chunk carries the
+     * identifier or the text is not hex encoded.
+     *
+     * The identifier marks where the profile starts: how the characters
+     * before it look seems to depend on the tool writing it, there may
+     * be no standard.
+     *
+     * According to https://dev.exiv2.org/projects/exiv2/wiki/The_Metadata_in_PNG_files
+     * Exiv2 saves EXIF & IPTC in zTXT chunks. This library is widely used
+     * and therefore we can expect a lot of files storing the information
+     * in that way. According to https://exiftool.sourceforge.net/TagNames/PNG.html
+     * it may even be in uncompressed text, so all PNG text chunk types
+     * are searched for the keyword.
+     *
+     * An odd number of hex digits cannot be converted to bytes
+     * completely - the record is truncated. Per the strict read policy
+     * the read fails instead of silently dropping the content.
+     */
+    private fun extractHexEncodedProfile(
+        chunks: List<PngChunk>,
+        keyword: String,
+        identifierHex: String,
+        profileName: String
+    ): String? {
+
+        val chunkText = getTextChunkWithKeyword(chunks, keyword) ?: return null
+
+        val index = chunkText.indexOf(identifierHex)
+
+        /* If we did not find the identifier we may have invalid data. */
+        if (index == -1)
+            return null
+
+        /*
+         * The profile text is HEX encoded and contains control chars.
+         * We need to remove them before the conversion to bytes.
+         */
+        val profileText = chunkText
+            .substring(startIndex = index)
+            .replace(controlCharRegex, "")
+            .trim()
+
+        /*
+         * The chunk content is file-controlled and may be garbage, which
+         * is ignored instead of failing the read.
+         */
+        if (!profileText.isValidHexString())
+            return null
+
+        if (profileText.length % 2 != 0)
+            throw ImageReadException("The $profileName text chunk of the PNG is truncated.")
+
+        return profileText
     }
 
     private fun getXmpXml(chunks: List<PngChunk>): String? =
@@ -287,12 +294,44 @@ public object PngImageParser : ImageParser {
 
         readAndVerifySignature(byteReader)
 
-        return readChunksInternal(byteReader, chunkTypeFilter)
+        return readChunksInternal(byteReader, chunkTypeFilter, imageDataHeaderWriter = null)
     }
 
+    /**
+     * Reads the PNG chunks up to the start of the image data, so the image
+     * data can be streamed afterwards without buffering the whole file.
+     *
+     * The length and type field of the first IDAT chunk are written to the
+     * given writer, because they are consumed by the reader but belong to
+     * the streamed image data.
+     */
+    internal fun readChunksUntilImageData(
+        byteReader: ByteReader,
+        imageDataHeaderWriter: ByteWriter
+    ): List<PngChunk> {
+
+        readAndVerifySignature(byteReader)
+
+        return readChunksInternal(byteReader, chunkTypeFilter = null, imageDataHeaderWriter)
+    }
+
+    /**
+     * The single chunk walk of the PNG read: every chunk is framed
+     * (length, type, data, CRC) exactly once, so the strict-read rules
+     * cannot drift between callers.
+     *
+     * With a non-NULL [chunkTypeFilter] the payload of chunks outside the
+     * filter is consumed but not kept, and their CRC is not verified,
+     * because they are neither interpreted nor rewritten by Kim.
+     *
+     * When [imageDataHeaderWriter] is given, the walk stops before the
+     * image data and emits the consumed length and type fields of the
+     * first IDAT chunk to it.
+     */
     private fun readChunksInternal(
         byteReader: ByteReader,
-        chunkTypeFilter: List<PngChunkType>?
+        chunkTypeFilter: List<PngChunkType>?,
+        imageDataHeaderWriter: ByteWriter?
     ): List<PngChunk> {
 
         val chunks = mutableListOf<PngChunk>()
@@ -314,6 +353,14 @@ public object PngImageParser : ImageParser {
                 byteReader.readBytes("chunk type", PngConstants.TYPE_LENGTH)
             )
 
+            if (chunkType == PngChunkType.IDAT && imageDataHeaderWriter != null) {
+
+                imageDataHeaderWriter.writeInt(length, PNG_BYTE_ORDER)
+                imageDataHeaderWriter.write(chunkType.bytes)
+
+                break
+            }
+
             val keep = chunkTypeFilter?.contains(chunkType) ?: true
 
             var bytes: ByteArray? = null
@@ -329,10 +376,6 @@ public object PngImageParser : ImageParser {
 
                 requireNotNull(bytes)
 
-                /*
-                 * Chunks that are not kept are not verified, because they
-                 * are neither interpreted nor rewritten by Kim.
-                 */
                 verifyChunkCrc(chunkType, bytes, crc)
 
                 val parseExif =
@@ -344,67 +387,6 @@ public object PngImageParser : ImageParser {
 
                 chunks.add(createChunk(chunkType, bytes, crc, parseExif))
             }
-
-            if (PngChunkType.IEND == chunkType)
-                break
-        }
-
-        return chunks
-    }
-
-    /**
-     * Reads the PNG chunks up to the start of the image data, so the image
-     * data can be streamed afterwards without buffering the whole file.
-     *
-     * The length and type field of the first IDAT chunk are written to the
-     * given writer, because they are consumed by the reader but belong to
-     * the streamed image data.
-     */
-    internal fun readChunksUntilImageData(
-        byteReader: ByteReader,
-        imageDataHeaderWriter: ByteWriter
-    ): List<PngChunk> {
-
-        readAndVerifySignature(byteReader)
-
-        val chunks = mutableListOf<PngChunk>()
-
-        /* See readChunksInternal: only the first EXIF chunk is parsed. */
-        var haveParsedExifChunk = false
-
-        while (true) {
-
-            val length = byteReader.read4BytesAsInt("chunk length", PNG_BYTE_ORDER)
-
-            if (length < 0)
-                throw ImageReadException("Invalid PNG chunk length: $length")
-
-            val chunkType = PngChunkType.of(
-                byteReader.readBytes("chunk type", PngConstants.TYPE_LENGTH)
-            )
-
-            if (chunkType == PngChunkType.IDAT) {
-
-                imageDataHeaderWriter.writeInt(length, PNG_BYTE_ORDER)
-                imageDataHeaderWriter.write(chunkType.bytes)
-
-                break
-            }
-
-            val bytes = byteReader.readBytes("chunk data", length)
-
-            val crc = byteReader.read4BytesAsInt("crc", PNG_BYTE_ORDER)
-
-            verifyChunkCrc(chunkType, bytes, crc)
-
-            val parseExif =
-                (chunkType == PngChunkType.EXIF || chunkType == PngChunkType.ZXIF) &&
-                    !haveParsedExifChunk
-
-            if (parseExif)
-                haveParsedExifChunk = true
-
-            chunks.add(createChunk(chunkType, bytes, crc, parseExif))
 
             if (PngChunkType.IEND == chunkType)
                 break

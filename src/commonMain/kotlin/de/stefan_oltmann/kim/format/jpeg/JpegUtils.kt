@@ -50,6 +50,24 @@ internal object JpegUtils {
     private const val EXIF_HEADER_LENGTH: Int = 6
 
     /**
+     * Fails the read when the segment length field of a JPEG segment
+     * cannot describe the content bytes behind it.
+     *
+     * A zero content length is an empty segment, which is spec-legal.
+     * A negative length is a corrupt field; a length reaching past the
+     * end of the reader would shorten the segment silently, so both
+     * fail the read instead.
+     */
+    internal fun validateSegmentContentLength(
+        segmentContentLength: Int,
+        remainingByteCount: Long
+    ) {
+
+        if (segmentContentLength < 0 || segmentContentLength > remainingByteCount)
+            throw ImageReadException("Illegal JPEG segment length: $segmentContentLength")
+    }
+
+    /**
      * Returns the end of the "Exif\0?" header within the given segment
      * bytes, or NULL when the segment does not carry an EXIF header.
      *
@@ -58,7 +76,7 @@ internal object JpegUtils {
      * behind the NUL, because those variants occur in files of real
      * cameras.
      */
-    fun findExifHeaderEnd(segmentBytes: ByteArray): Int? {
+    internal fun findExifHeaderEnd(segmentBytes: ByteArray): Int? {
 
         for (prefixLength in 0..MAX_GARBAGE_PREFIX_LENGTH) {
 
@@ -155,7 +173,7 @@ internal object JpegUtils {
      * them per the spec - and buffering arbitrary inter-marker junk is
      * exactly the unbounded growth the scanner must not do.
      */
-    fun readSegments(
+    internal fun readSegments(
         byteReader: ByteReader,
         keepMarker: (Int) -> Boolean = { true }
     ): Pair<List<JFIFPieceSegment>, ByteArray?> {
@@ -210,10 +228,7 @@ internal object JpegUtils {
 
             val remainingByteCount = byteReader.contentLength - readBytesCount
 
-            /* A zero content length is an empty segment, which is spec-legal. */
-            if (segmentContentLength !in 0..remainingByteCount)
-                throw ImageReadException("Illegal JPEG segment length: $segmentContentLength")
-
+            validateSegmentContentLength(segmentContentLength, remainingByteCount)
             val segmentData = byteReader.readBytes("segmentData", segmentContentLength)
 
             readBytesCount += segmentContentLength.toLong()

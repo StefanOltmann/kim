@@ -18,14 +18,11 @@
 package de.stefan_oltmann.kim.format.jpeg.segment
 
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
-import de.stefan_oltmann.kim.input.ByteArrayByteReader
-import de.stefan_oltmann.kim.input.ByteReader
 
-internal open class AppnSegment(marker: Int, markerLength: Int, byteReader: ByteReader) :
-    GenericSegment(marker, markerLength, byteReader) {
-
-    constructor(marker: Int, segmentData: ByteArray) :
-        this(marker, segmentData.size, ByteArrayByteReader(segmentData))
+internal open class AppnSegment(
+    marker: Int,
+    segmentData: ByteArray
+) : GenericSegment(marker, segmentData) {
 
     override fun getDescription(): String =
         "APPN (APP" + (marker - JpegConstants.JPEG_APP0_MARKER) + ") (" + marker + ")"

@@ -38,8 +38,8 @@ import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
-import de.stefan_oltmann.kim.testdata.countOccurrences
 import de.stefan_oltmann.kim.testdata.ModifiedBytesVerifier
+import de.stefan_oltmann.kim.testdata.countOccurrences
 import de.stefan_oltmann.xmp.XMPMetaFactory
 import kotlinx.datetime.TimeZone
 import kotlin.test.AfterTest
@@ -756,7 +756,7 @@ class JpegRewriterTest {
         val outputWriter = ByteArrayByteWriter()
 
         JpegRewriter.updateXmpXml(
-            byteReader = ByteArrayByteReader(createBareJpeg()),
+            byteReader = ByteArrayByteReader(bareJpeg()),
             byteWriter = outputWriter,
             xmpXml = "<x:xmpmeta/>"
         )
@@ -767,7 +767,7 @@ class JpegRewriterTest {
         assertEquals("ffd8ffe1", updatedBytes.copyOfRange(0, 4).toHex())
 
         /* ... and the image data must still be present behind it. */
-        assertTrue(updatedBytes.size > createBareJpeg().size)
+        assertTrue(updatedBytes.size > bareJpeg().size)
 
         assertEquals(true, Kim.readMetadata(updatedBytes)?.xmp?.contains("x:xmpmeta"))
     }
@@ -788,7 +788,7 @@ class JpegRewriterTest {
         val outputWriter = ByteArrayByteWriter()
 
         JpegRewriter.updateExifMetadata(
-            byteReader = ByteArrayByteReader(createBareJpeg()),
+            byteReader = ByteArrayByteReader(bareJpeg()),
             byteWriter = outputWriter,
             outputSet = outputSet
         )
@@ -810,7 +810,7 @@ class JpegRewriterTest {
     fun testUpdateTitleOnJpegWithoutHeaderSegmentsSucceeds() {
 
         val updatedBytes = Kim.update(
-            bytes = createBareJpeg(),
+            bytes = bareJpeg(),
             update = MetadataUpdate.Title("Bare")
         )
 
@@ -844,28 +844,6 @@ class JpegRewriterTest {
         val com1End = 2 + 7
 
         assertEquals("ffe1", updatedBytes.copyOfRange(com1End, com1End + 2).toHex())
-    }
-
-    private fun createBareJpeg(): ByteArray {
-
-        val writer = ByteArrayByteWriter()
-
-        writer.write(byteArrayOf(0xFF.toByte(), 0xD8.toByte())) // SOI
-
-        /* SOS with minimal parameters and entropy-coded data. */
-        writer.write(
-            byteArrayOf(
-                0xFF.toByte(), 0xDA.toByte(), 0x00, 0x08,
-                0x01, 0x01, 0x00, 0x00, 0x3F, 0x00
-            )
-        )
-
-        /* Entropy-coded image data. */
-        writer.write(byteArrayOf(0x12, 0x34, 0x56, 0x78, 0x9A.toByte(), 0xBC.toByte()))
-
-        writer.write(byteArrayOf(0xFF.toByte(), 0xD9.toByte())) // EOI
-
-        return writer.toByteArray()
     }
 
     /**
@@ -1022,31 +1000,6 @@ class JpegRewriterTest {
 
         fun toByteArray(): ByteArray =
             delegate.toByteArray()
-    }
-
-    private fun ByteArray.countOccurrences(needle: String): Int {
-
-        val needleBytes = needle.encodeToByteArray()
-
-        var count = 0
-
-        for (index in 0..size - needleBytes.size) {
-
-            var matches = true
-
-            for (needleIndex in needleBytes.indices)
-                if (this[index + needleIndex] != needleBytes[needleIndex]) {
-
-                    matches = false
-
-                    break
-                }
-
-            if (matches)
-                count++
-        }
-
-        return count
     }
 
     companion object {

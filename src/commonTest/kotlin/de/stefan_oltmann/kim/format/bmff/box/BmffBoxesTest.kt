@@ -16,11 +16,16 @@
 package de.stefan_oltmann.kim.format.bmff.box
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.format.bmff.BMFFConstants
 import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.bmff.Extent
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.testdata.BmffTestBoxes
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.box
+import de.stefan_oltmann.kim.testdata.BmffTestBoxes.hdlrBox
+import de.stefan_oltmann.kim.testdata.BmffTestBoxes.iinfBox
+import de.stefan_oltmann.kim.testdata.BmffTestBoxes.pitmBox
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -375,9 +380,10 @@ class BmffBoxesTest {
     @Test
     fun testMetaBoxTopLevelSkipsIdatRelativeExtents() {
 
-        val hdlrBox = createHdlrBox()
-        val pitmBox = createPitmBox(itemId = 1)
-        val iinfBox = createIinfBoxWithExifEntry(itemId = 1)
+        val hdlr = hdlrBox(name = "Main Image")
+        val pitm = pitmBox(itemId = 1)
+        val exifEntry = BmffTestBoxes.InfeEntry(itemId = 1, itemType = BMFFConstants.ITEM_TYPE_EXIF)
+        val iinf = iinfBox(entries = listOf(exifEntry))
 
         /*
          * One EXIF item whose only extent uses construction method 1.
@@ -398,7 +404,7 @@ class BmffBoxesTest {
         val ilocBox = box(BoxType.ILOC, ilocPayload)
 
         val metaPayload =
-            byteArrayOf(0, 0, 0, 0) + hdlrBox + pitmBox + iinfBox + ilocBox
+            byteArrayOf(0, 0, 0, 0) + hdlr + pitm + iinf + ilocBox
 
         val metaBox = MetaBoxTopLevel(
             offset = 0,
@@ -570,21 +576,11 @@ class BmffBoxesTest {
     @Test
     fun testMetaBox() {
 
-        val hdlrPayload = byteArrayOf(
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            'p'.code.toByte(), 'i'.code.toByte(), 'c'.code.toByte(), 't'.code.toByte(),
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        ) + "Main Image\u0000".encodeToByteArray()
-
-        val hdlrBox = byteArrayOf(
-            0, 0, 0, (hdlrPayload.size + 8).toByte(),
-            'h'.code.toByte(), 'd'.code.toByte(), 'l'.code.toByte(), 'r'.code.toByte()
-        ) + hdlrPayload
+        val hdlr = hdlrBox(name = "Main Image")
 
         val payload = byteArrayOf(
             0, 0, 0, 0
-        ) + hdlrBox
+        ) + hdlr
 
         val box = MetaBox(
             offset = 0,
@@ -610,22 +606,12 @@ class BmffBoxesTest {
             't'.code.toByte(), 'k'.code.toByte(), 'h'.code.toByte(), 'd'.code.toByte()
         ) + tkhdPayload
 
-        val hdlrPayload = byteArrayOf(
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            'v'.code.toByte(), 'i'.code.toByte(), 'd'.code.toByte(), 'e'.code.toByte(),
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        ) + "\u0000".encodeToByteArray()
-
-        val hdlrBox = byteArrayOf(
-            0, 0, 0, (hdlrPayload.size + 8).toByte(),
-            'h'.code.toByte(), 'd'.code.toByte(), 'l'.code.toByte(), 'r'.code.toByte()
-        ) + hdlrPayload
+        val hdlr = hdlrBox(handlerType = "vide")
 
         val mdiaBox = byteArrayOf(
-            0, 0, 0, (hdlrBox.size + 8).toByte(),
+            0, 0, 0, (hdlr.size + 8).toByte(),
             'm'.code.toByte(), 'd'.code.toByte(), 'i'.code.toByte(), 'a'.code.toByte()
-        ) + hdlrBox
+        ) + hdlr
 
         /* The payload contains the sub-boxes with their headers. */
         val trackPayload = tkhdBox + mdiaBox
@@ -700,7 +686,7 @@ class BmffBoxesTest {
     @Test
     fun testMetaBoxTopLevelRejectsMissingMandatoryBoxes() {
 
-        val metaPayload = byteArrayOf(0, 0, 0, 0) + createHdlrBox()
+        val metaPayload = byteArrayOf(0, 0, 0, 0) + hdlrBox(name = "Main Image")
 
         assertFailsWith<ImageReadException> {
             MetaBoxTopLevel(
@@ -801,44 +787,5 @@ class BmffBoxesTest {
         val unknown = boxes.first { it.type == BoxType.of("UNKN".encodeToByteArray()) }
 
         assertTrue(unknown.payload.isEmpty())
-    }
-
-
-    private fun createHdlrBox(): ByteArray {
-
-        val hdlrPayload = byteArrayOf(
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            'p'.code.toByte(), 'i'.code.toByte(), 'c'.code.toByte(), 't'.code.toByte(),
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        ) + "Main Image\u0000".encodeToByteArray()
-
-        return box(BoxType.HDLR, hdlrPayload)
-    }
-
-    private fun createPitmBox(itemId: Int): ByteArray =
-
-        box(
-            BoxType.PITM,
-            byteArrayOf(0, 0, 0, 0, 0, itemId.toByte())
-        )
-
-    /**
-     * Builds an iinf box (version 0) with one infe entry of the given
-     * item id and the "Exif" item type.
-     */
-    private fun createIinfBoxWithExifEntry(itemId: Int): ByteArray {
-
-        val infePayload = byteArrayOf(
-            2, 0, 0, 0,
-            0, itemId.toByte(),
-            0, 0,
-            'E'.code.toByte(), 'x'.code.toByte(), 'i'.code.toByte(), 'f'.code.toByte()
-        ) + "\u0000".encodeToByteArray()
-
-        return box(
-            BoxType.IINF,
-            byteArrayOf(0, 0, 0, 0, 0, 1) + box(BoxType.INFE, infePayload)
-        )
     }
 }

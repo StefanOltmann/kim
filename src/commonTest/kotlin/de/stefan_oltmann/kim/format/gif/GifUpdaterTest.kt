@@ -24,11 +24,11 @@ import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.ImageSize
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
+import de.stefan_oltmann.kim.testdata.containsBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
-import de.stefan_oltmann.kim.testdata.containsBytes
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -257,7 +257,7 @@ class GifUpdaterTest : AbstractUpdaterTest(
     fun testUpdatePreservesUnknownExtensionBeforeFirstFrame() {
 
         val updatedBytes = Kim.update(
-            bytes = createGif89aWithUnknownExtension(),
+            bytes = gif89aWithUnknownExtension(withXmp = false),
             update = MetadataUpdate.Title("New title")
         )
 
@@ -277,7 +277,7 @@ class GifUpdaterTest : AbstractUpdaterTest(
     @Test
     fun testDeleteMetadataPreservesUnknownExtensionBeforeFirstFrame() {
 
-        val deletedBytes = Kim.deleteMetadata(createGif89aWithUnknownExtension())
+        val deletedBytes = Kim.deleteMetadata(gif89aWithUnknownExtension(withXmp = false))
 
         assertTrue(deletedBytes.containsBytes(UNKNOWN_EXTENSION_BYTES))
 
@@ -287,46 +287,8 @@ class GifUpdaterTest : AbstractUpdaterTest(
         assertEquals(null, metadata.xmp)
     }
 
-    /**
-     * Builds a GIF89a file with an extension of an unknown private label
-     * before the first 1x1 frame. The payload deliberately contains the
-     * image separator byte, which exposed the stream desync.
-     */
-    private fun createGif89aWithUnknownExtension(): ByteArray {
-
-        val byteWriter = ByteArrayByteWriter()
-
-        byteWriter.write("GIF89a".encodeToByteArray())
-        byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0)) /* Logical screen descriptor, no color table */
-        byteWriter.write(UNKNOWN_EXTENSION_BYTES)
-
-        byteWriter.write(byteArrayOf(GifConstants.IMAGE_SEPARATOR))
-        byteWriter.write(byteArrayOf(0, 0, 0, 0, 1, 0, 1, 0, 0)) /* 1x1 image descriptor, no color table */
-        byteWriter.write(byteArrayOf(2)) /* LZW minimum code size */
-        byteWriter.write(byteArrayOf(2, 2, 0x44, 0)) /* Image data sub-chunks */
-        byteWriter.write(byteArrayOf(GifConstants.GIF_TERMINATOR))
-
-        return byteWriter.toByteArray()
-    }
-
     private companion object {
 
         const val STALE_COMMENT: String = "stale comment"
-
-        /*
-         * Extension introducer, unknown private label 0x99, one sub-block
-         * of four bytes containing the image separator, block terminator.
-         */
-        val UNKNOWN_EXTENSION_BYTES: ByteArray =
-            byteArrayOf(
-                GifConstants.EXTENSION_INTRODUCER,
-                0x99.toByte(),
-                4,
-                GifConstants.IMAGE_SEPARATOR,
-                0x41,
-                0x42,
-                0x43,
-                GifConstants.BLOCK_TERMINATOR
-            )
     }
 }

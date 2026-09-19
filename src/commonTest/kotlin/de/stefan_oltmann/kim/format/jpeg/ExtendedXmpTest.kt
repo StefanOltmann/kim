@@ -485,30 +485,12 @@ class ExtendedXmpTest {
         val byteWriter = ByteArrayByteWriter()
 
         JpegRewriter.updateXmpXml(
-            byteReader = ByteArrayByteReader(createBareJpeg()),
+            byteReader = ByteArrayByteReader(bareJpeg()),
             byteWriter = byteWriter,
             xmpXml = xmpXml
         )
 
         return byteWriter.toByteArray()
-    }
-
-    /**
-     * Builds a minimal JPEG with SOI, a minimal scan and no header
-     * segments, used as base for XMP rewrites.
-     */
-    private fun createBareJpeg(): ByteArray {
-
-        val bytes = ByteArrayByteWriter()
-
-        bytes.write(byteArrayOf(0xFF.toByte(), 0xD8.toByte())) /* SOI */
-
-        /* SOS with minimal scan data. */
-        bytes.write(byteArrayOf(0xFF.toByte(), 0xDA.toByte(), 0, 8, 1, 1, 0, 0, 63.toByte(), 0))
-        bytes.write(byteArrayOf(0x11, 0x22, 0x33, 0x44))
-        bytes.write(byteArrayOf(0xFF.toByte(), 0xD9.toByte())) /* EOI */
-
-        return bytes.toByteArray()
     }
 
     private fun buildMainPacket(guid: String): String {

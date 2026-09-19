@@ -355,7 +355,7 @@ public object BoxReader {
 
                 type == BoxType.MDAT &&
                     stopAfterMetadataRead &&
-                    byteReader is SelfRetainingByteReader -> {
+                    byteReader is CopyByteReader -> {
 
                     val retained = readPayloadUpToEof(
                         byteReader,

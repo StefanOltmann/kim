@@ -23,6 +23,7 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoGpsText
+import de.stefan_oltmann.kim.testdata.tiffField
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -299,18 +300,13 @@ class TiffFieldTypesAndTagInfoTest {
     private fun createGpsTextField(
         tagInfo: TagInfoGpsText,
         bytes: ByteArray
-    ): TiffField = TiffField(
-        offset = 0,
-        tag = tagInfo.tag,
-        directoryType = TiffConstants.TIFF_DIRECTORY_GPS,
-        fieldType = FieldTypeUndefined,
-        count = bytes.size,
-        localValue = null,
-        valueOffset = 0,
-        valueBytes = bytes,
-        byteOrder = ByteOrder.BIG_ENDIAN,
-        sortHint = 0
-    )
+    ): TiffField =
+        tiffField(
+            tag = tagInfo,
+            bytes = bytes,
+            fieldType = FieldTypeUndefined,
+            directoryType = TiffConstants.TIFF_DIRECTORY_GPS
+        )
 
     /**
      * EXIF 3.0 adds the UTF-8 type (129) for string fields. ExifTool reads

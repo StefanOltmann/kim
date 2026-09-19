@@ -32,6 +32,7 @@ import de.stefan_oltmann.kim.format.gif.chunk.GifChunkImageDescriptor
 import de.stefan_oltmann.kim.format.gif.chunk.GifChunkLogicalScreenDescriptor
 import de.stefan_oltmann.kim.format.gif.chunk.GifChunkPlainTextExtension
 import de.stefan_oltmann.kim.format.gif.chunk.GifChunkTerminator
+import de.stefan_oltmann.kim.format.gif.chunk.joinGifSubChunks
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.readByte
 import de.stefan_oltmann.kim.input.readByteAsInt
@@ -157,7 +158,9 @@ public object GifImageParser : ImageParser {
                 false
             },
             onExtensionBlock = { extensionLabel ->
-                readExtensionChunk(byteReader, extensionLabel, chunkTypeFilter)?.also(chunks::add)
+                val chunk = readExtensionChunk(byteReader, extensionLabel)
+                if (keepChunk(chunkTypeFilter, chunk.type))
+                    chunks.add(chunk)
                 false
             },
             onTrailerBlock = {
@@ -196,7 +199,7 @@ public object GifImageParser : ImageParser {
                 true
             },
             onExtensionBlock = { extensionLabel ->
-                readExtensionChunk(byteReader, extensionLabel, chunkTypeFilter = null)?.let(chunks::add)
+                chunks.add(readExtensionChunk(byteReader, extensionLabel))
                 false
             },
             onTrailerBlock = {
@@ -291,102 +294,63 @@ public object GifImageParser : ImageParser {
         return chunks
     }
 
+    /**
+     * Reads the extension chunk at the given label. The complete
+     * sub-block chain is consumed in any case, otherwise the stream
+     * position desyncs and payload bytes are later misinterpreted as
+     * top-level blocks - which can silently corrupt rewritten files.
+     *
+     * Unknown labels are kept as an opaque block, so their content is
+     * never destroyed by a rewrite.
+     */
     internal fun readExtensionChunk(
         byteReader: ByteReader,
-        extensionLabel: Byte,
-        chunkTypeFilter: List<GifChunkType>?
-    ): GifChunk? =
+        extensionLabel: Byte
+    ): GifChunk =
         when (extensionLabel) {
 
             GifConstants.GRAPHICS_CONTROL_EXTENSION_LABEL -> {
 
                 val graphicsControlExtensionBytes = byteReader.readBytes("graphics control extension", 6)
 
-                val graphicsControlExtensionChunk = GifChunk(
+                GifChunk(
                     GifChunkType.GRAPHICS_CONTROL_EXTENSION,
                     byteArrayOf(
                         GifConstants.EXTENSION_INTRODUCER,
                         GifConstants.GRAPHICS_CONTROL_EXTENSION_LABEL
                     ) + graphicsControlExtensionBytes
                 )
-
-                if (keepChunk(chunkTypeFilter, GifChunkType.GRAPHICS_CONTROL_EXTENSION))
-                    graphicsControlExtensionChunk
-                else
-                    null
             }
 
-            GifConstants.APPLICATION_EXTENSION_LABEL -> {
+            GifConstants.APPLICATION_EXTENSION_LABEL ->
+                GifChunkApplicationExtension(
+                    byteArrayOf(
+                        GifConstants.EXTENSION_INTRODUCER,
+                        GifConstants.APPLICATION_EXTENSION_LABEL
+                    ),
+                    byteReader.parseGifSubChunksUntilEmpty("application extension")
+                )
 
-                val subChunks = byteReader.parseGifSubChunksUntilEmpty("application extension")
+            GifConstants.COMMENT_EXTENSION_LABEL ->
+                GifChunkCommentExtension(
+                    byteArrayOf(GifConstants.EXTENSION_INTRODUCER, GifConstants.COMMENT_EXTENSION_LABEL),
+                    byteReader.parseGifSubChunksUntilEmpty("comment extension")
+                )
 
-                if (keepChunk(chunkTypeFilter, GifChunkType.APPLICATION_EXTENSION))
-                    GifChunkApplicationExtension(
-                        byteArrayOf(
-                            GifConstants.EXTENSION_INTRODUCER,
-                            GifConstants.APPLICATION_EXTENSION_LABEL
-                        ),
-                        subChunks
+            GifConstants.PLAIN_TEXT_EXTENSION_LABEL ->
+                GifChunkPlainTextExtension(
+                    byteArrayOf(GifConstants.EXTENSION_INTRODUCER, GifConstants.PLAIN_TEXT_EXTENSION_LABEL),
+                    byteReader.parseGifSubChunksUntilEmpty("plain text extension")
+                )
+
+            else ->
+                GifChunk(
+                    GifChunkType.UNKNOWN_EXTENSION,
+                    joinGifSubChunks(
+                        byteArrayOf(GifConstants.EXTENSION_INTRODUCER, extensionLabel),
+                        byteReader.parseGifSubChunksUntilEmpty("unknown extension")
                     )
-                else
-                    null
-            }
-
-            GifConstants.COMMENT_EXTENSION_LABEL -> {
-
-                val subChunks = byteReader.parseGifSubChunksUntilEmpty("comment extension")
-
-                if (keepChunk(chunkTypeFilter, GifChunkType.COMMENT_EXTENSION))
-                    GifChunkCommentExtension(
-                        byteArrayOf(GifConstants.EXTENSION_INTRODUCER, GifConstants.COMMENT_EXTENSION_LABEL),
-                        subChunks
-                    )
-                else
-                    null
-            }
-
-            GifConstants.PLAIN_TEXT_EXTENSION_LABEL -> {
-
-                val subChunks = byteReader.parseGifSubChunksUntilEmpty("plain text extension")
-
-                if (keepChunk(chunkTypeFilter, GifChunkType.PLAIN_TEXT_EXTENSION))
-                    GifChunkPlainTextExtension(
-                        byteArrayOf(GifConstants.EXTENSION_INTRODUCER, GifConstants.PLAIN_TEXT_EXTENSION_LABEL),
-                        subChunks
-                    )
-                else
-                    null
-            }
-
-            /*
-             * Unknown labels are kept as an opaque block, so their content
-             * is never destroyed by a rewrite. The complete sub-block chain
-             * must be consumed in any case, otherwise the stream position
-             * desyncs and payload bytes are later misinterpreted as
-             * top-level blocks - which can silently corrupt rewritten
-             * files.
-             */
-            else -> {
-
-                val subChunks = byteReader.parseGifSubChunksUntilEmpty("unknown extension")
-
-                if (keepChunk(chunkTypeFilter, GifChunkType.UNKNOWN_EXTENSION)) {
-
-                    val bytes = mutableListOf<Byte>()
-
-                    bytes.add(GifConstants.EXTENSION_INTRODUCER)
-                    bytes.add(extensionLabel)
-
-                    for (subChunk in subChunks)
-                        bytes.addAll(subChunk.toList())
-
-                    bytes.add(GifConstants.BLOCK_TERMINATOR)
-
-                    GifChunk(GifChunkType.UNKNOWN_EXTENSION, bytes.toByteArray())
-                } else {
-                    null
-                }
-            }
+                )
         }
 
     internal fun ByteReader.parseGifSubChunksUntilEmpty(

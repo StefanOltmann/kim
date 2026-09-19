@@ -445,9 +445,6 @@ public class TiffOutputDirectory(
     override fun getItemLength(): Int =
         TIFF_ENTRY_LENGTH * fields.size + TIFF_DIRECTORY_HEADER_LENGTH + TIFF_DIRECTORY_FOOTER_LENGTH
 
-    private fun removeFieldIfPresent(tagInfo: TagInfo) =
-        findField(tagInfo)?.let { field -> fields.remove(field) }
-
     /**
      * Adds the field pair that points at a separate byte block: an
      * offset field with a placeholder value that the writer fills in
@@ -490,8 +487,8 @@ public class TiffOutputDirectory(
     internal fun getOutputItems(tiffOffsetItems: TiffOffsetItems): List<TiffOutputItem> {
 
         /* First remove old fields */
-        removeFieldIfPresent(TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT)
-        removeFieldIfPresent(TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT_LENGTH)
+        removeField(TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT)
+        removeField(TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT_LENGTH)
 
         var thumbnailOffsetField: TiffOutputField? = null
 
@@ -513,9 +510,9 @@ public class TiffOutputDirectory(
 
         if (tiffImageBytes != null) {
 
-            removeFieldIfPresent(TiffTag.TIFF_TAG_STRIP_OFFSETS)
-            removeFieldIfPresent(TiffTag.TIFF_TAG_ROWS_PER_STRIP)
-            removeFieldIfPresent(TiffTag.TIFF_TAG_STRIP_BYTE_COUNTS)
+            removeField(TiffTag.TIFF_TAG_STRIP_OFFSETS)
+            removeField(TiffTag.TIFF_TAG_ROWS_PER_STRIP)
+            removeField(TiffTag.TIFF_TAG_STRIP_BYTE_COUNTS)
 
             stripOffsetField = addOffsetAndLengthFields(
                 offsetTag = TiffTag.TIFF_TAG_STRIP_OFFSETS.tag,
@@ -537,8 +534,8 @@ public class TiffOutputDirectory(
             )
         }
 
-        removeFieldIfPresent(TiffTag.TIFF_TAG_TILE_OFFSETS)
-        removeFieldIfPresent(TiffTag.TIFF_TAG_TILE_BYTE_COUNTS)
+        removeField(TiffTag.TIFF_TAG_TILE_OFFSETS)
+        removeField(TiffTag.TIFF_TAG_TILE_BYTE_COUNTS)
 
         val result = mutableListOf<TiffOutputItem>()
 

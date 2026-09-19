@@ -23,6 +23,7 @@ import de.stefan_oltmann.kim.common.head
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toInt
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
+import de.stefan_oltmann.kim.format.tiff.TiffReader.directoryTypeMap
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.GeoTiffTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
@@ -80,26 +81,24 @@ public object TiffReader {
      */
     private const val PANASONIC_RAW_TIFF_VERSION: Int = 0x55
 
-    /**
-     * The offset fields of a directory that point to a sub-directory,
-     * mapped to the directory type that sub-directory is read as.
-     */
-    /**
-     * The Exif, GPS and Interop offset fields point to sub-IFDs whose
-     * content is user-visible metadata that must survive updates.
-     */
-    private val metadataBearingOffsetFields = listOf(
-        ExifTag.EXIF_TAG_EXIF_OFFSET,
-        ExifTag.EXIF_TAG_GPSINFO,
-        ExifTag.EXIF_TAG_INTEROP_OFFSET
-    )
-
     private val directoryTypeMap = mapOf(
         ExifTag.EXIF_TAG_EXIF_OFFSET to TiffConstants.TIFF_DIRECTORY_EXIF,
         ExifTag.EXIF_TAG_GPSINFO to TiffConstants.TIFF_DIRECTORY_GPS,
         ExifTag.EXIF_TAG_INTEROP_OFFSET to TiffConstants.TIFF_DIRECTORY_INTEROP,
         ExifTag.EXIF_TAG_SUB_IFDS_OFFSET to TIFF_DIRECTORY_TYPE_IFD1
     )
+
+    /**
+     * The Exif, GPS and Interop offset fields point to sub-IFDs whose
+     * content is user-visible metadata that must survive updates.
+     *
+     * Derived from the [directoryTypeMap], so the strict read policy
+     * for those fields cannot fall out of sync with the sub-IFD
+     * handling: the thumbnail strip offset is the one entry that is
+     * not metadata-bearing.
+     */
+    private val metadataBearingOffsetFields =
+        directoryTypeMap.keys - ExifTag.EXIF_TAG_SUB_IFDS_OFFSET
 
     /**
      * Convenience method for calls with short byte array like
@@ -133,6 +132,37 @@ public object TiffReader {
 
         byteReader.reset()
 
+        return readDirectoryTree(
+            byteReader = byteReader,
+            tiffHeader = tiffHeader,
+            readTiffImageBytes = readTiffImageBytes,
+            directoryType = directoryType,
+            preferPanasonicRawTags = tiffHeader.tiffVersion == PANASONIC_RAW_TIFF_VERSION
+        )
+    }
+
+    /**
+     * Reads the directory tree behind a TIFF header and assembles the
+     * contents, including MakerNote and GeoTIFF handling.
+     *
+     * This is the shared body of [read] for formats that are TIFF
+     * structures under a foreign header, like the Fujifilm MVTG box,
+     * whose offsets are relative to their own structure start.
+     *
+     * @param byteReader Positioned behind the TIFF header
+     * @param tiffHeader The header whose byte order and IFD offset apply
+     * @param readTiffImageBytes Flag to include strip bytes
+     * @param directoryType The type of the first directory to read
+     * @param preferPanasonicRawTags Whether IFD0 uses the Panasonic tag namespace
+     */
+    internal fun readDirectoryTree(
+        byteReader: RandomAccessByteReader,
+        tiffHeader: TiffHeader,
+        readTiffImageBytes: Boolean = false,
+        directoryType: Int = TiffConstants.TIFF_DIRECTORY_TYPE_IFD0,
+        preferPanasonicRawTags: Boolean = false
+    ): TiffContents {
+
         val directories = mutableListOf<TiffDirectory>()
 
         readDirectory(
@@ -142,7 +172,7 @@ public object TiffReader {
             directoryType = directoryType,
             visitedOffsets = hashSetOf(),
             readTiffImageBytes = readTiffImageBytes,
-            preferPanasonicRawTags = tiffHeader.tiffVersion == PANASONIC_RAW_TIFF_VERSION,
+            preferPanasonicRawTags = preferPanasonicRawTags,
             addDirectory = {
                 directories.add(it)
             }

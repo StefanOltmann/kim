@@ -28,9 +28,11 @@ import de.stefan_oltmann.kim.format.bmff.box.MetaBoxTopLevel
 import de.stefan_oltmann.kim.format.bmff.box.MovieBox
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
-import de.stefan_oltmann.kim.output.write2BytesAsInt
 import de.stefan_oltmann.kim.output.writeInt
+import de.stefan_oltmann.kim.testdata.BmffTestBoxes
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.box
+import de.stefan_oltmann.kim.testdata.BmffTestBoxes.hdlrBox
+import de.stefan_oltmann.kim.testdata.BmffTestBoxes.iinfBox
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -167,8 +169,10 @@ class BoxReaderTest {
     @Test
     fun reportsInfeOffsetForIinfVersionZero() {
 
+        val mimeEntry = BmffTestBoxes.InfeEntry(itemId = 1, itemType = BMFFConstants.ITEM_TYPE_MIME)
+
         val boxes = BoxReader.readAllBoxes(
-            byteReader = ByteArrayByteReader(createIinfBox(version = 0))
+            byteReader = ByteArrayByteReader(iinfBox(version = 0, entries = listOf(mimeEntry)))
         )
 
         val iinf = boxes.first() as ItemInformationBox
@@ -184,8 +188,10 @@ class BoxReaderTest {
     @Test
     fun reportsInfeOffsetForIinfVersionOne() {
 
+        val mimeEntry = BmffTestBoxes.InfeEntry(itemId = 1, itemType = BMFFConstants.ITEM_TYPE_MIME)
+
         val boxes = BoxReader.readAllBoxes(
-            byteReader = ByteArrayByteReader(createIinfBox(version = 1))
+            byteReader = ByteArrayByteReader(iinfBox(version = 1, entries = listOf(mimeEntry)))
         )
 
         val iinf = boxes.first() as ItemInformationBox
@@ -281,10 +287,10 @@ class BoxReaderTest {
     @Test
     fun testNestedMetaBoxesArePlainContainers() {
 
-        val innerMeta = box(BoxType.META, VERSION_AND_FLAGS + createHdlrBox())
+        val innerMeta = box(BoxType.META, VERSION_AND_FLAGS + hdlrBox())
 
         val outerMeta =
-            box(BoxType.META, VERSION_AND_FLAGS + createHdlrBox() + innerMeta)
+            box(BoxType.META, VERSION_AND_FLAGS + hdlrBox() + innerMeta)
 
         val bytes = box(BoxType.MOOV, outerMeta)
 
@@ -302,66 +308,6 @@ class BoxReaderTest {
         val innerMetaBox = outerMetaBox.boxes.filterIsInstance<MetaBox>().single()
 
         assertFalse(innerMetaBox is MetaBoxTopLevel)
-    }
-
-    /**
-     * Builds a standalone iinf box of the given version containing one
-     * version-2 infe entry with item type "mime".
-     */
-    private fun createIinfBox(version: Int): ByteArray {
-
-        val infePayload = ByteArrayByteWriter()
-
-        infePayload.write(2) /* The only supported infe version. */
-        infePayload.write(byteArrayOf(0, 0, 0)) /* flags */
-        infePayload.write2BytesAsInt(1, BMFF_BYTE_ORDER) /* itemId */
-        infePayload.write2BytesAsInt(0, BMFF_BYTE_ORDER) /* itemProtectionIndex */
-        infePayload.writeInt(0x6D696D65, BMFF_BYTE_ORDER) /* "mime" */
-        infePayload.write(0) /* empty item name */
-
-        val infeBytes = infePayload.toByteArray()
-
-        val iinfPayload = ByteArrayByteWriter()
-
-        iinfPayload.write(version)
-        iinfPayload.write(byteArrayOf(0, 0, 0)) /* flags */
-
-        if (version == 0)
-            iinfPayload.write2BytesAsInt(1, BMFF_BYTE_ORDER)
-        else
-            iinfPayload.writeInt(1, BMFF_BYTE_ORDER)
-
-        /* The infe box with its 8-byte header. */
-        iinfPayload.writeInt(infeBytes.size + 8, BMFF_BYTE_ORDER)
-        iinfPayload.write(BoxType.INFE.bytes)
-        iinfPayload.write(infeBytes)
-
-        val payloadBytes = iinfPayload.toByteArray()
-
-        val box = ByteArrayByteWriter()
-
-        box.writeInt(payloadBytes.size + 8, BMFF_BYTE_ORDER)
-        box.write(BoxType.IINF.bytes)
-        box.write(payloadBytes)
-
-        return box.toByteArray()
-    }
-
-    /**
-     * Builds a hdlr box with an empty name and the "pict" handler type,
-     * the mandatory child of a meta box.
-     */
-    private fun createHdlrBox(): ByteArray {
-
-        val payload = ByteArrayByteWriter()
-
-        payload.write(VERSION_AND_FLAGS) /* version & flags */
-        payload.write(byteArrayOf(0, 0, 0, 0)) /* pre-defined */
-        payload.write("pict".encodeToByteArray()) /* handler type */
-        payload.write(ByteArray(12)) /* reserved */
-        payload.write(0) /* empty name terminator */
-
-        return box(BoxType.HDLR, payload.toByteArray())
     }
 
     private companion object {

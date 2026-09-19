@@ -21,7 +21,6 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
-import de.stefan_oltmann.kim.output.write2BytesAsInt
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals

@@ -19,7 +19,6 @@ package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.getRemainingBytes
-import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toInt
 import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.common.tryWithImageReadException
@@ -32,7 +31,6 @@ import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
 import de.stefan_oltmann.kim.format.jpeg.segment.App13Segment
 import de.stefan_oltmann.kim.format.jpeg.segment.AppnSegment
 import de.stefan_oltmann.kim.format.jpeg.segment.GenericSegment
-import de.stefan_oltmann.kim.format.jpeg.segment.JfifSegment
 import de.stefan_oltmann.kim.format.jpeg.segment.Segment
 import de.stefan_oltmann.kim.format.jpeg.segment.SofnSegment
 import de.stefan_oltmann.kim.format.jpeg.segment.UnknownSegment
@@ -99,9 +97,7 @@ public object JpegImageParser : ImageParser {
 
             val remainingByteCount = byteReader.contentLength - readBytesCount
 
-            /* A zero content length is an empty segment, which is spec-legal. */
-            if (segmentLength !in 0..remainingByteCount)
-                throw ImageReadException("Illegal JPEG segment length: $segmentLength")
+            JpegUtils.validateSegmentContentLength(segmentLength, remainingByteCount)
 
             /* We are only looking for a SOF segment. */
             if (!JpegConstants.SOFN_MARKERS.contains(scan.marker)) {
@@ -211,17 +207,11 @@ public object JpegImageParser : ImageParser {
             JpegConstants.JPEG_APP13_MARKER -> App13Segment(marker, segmentBytes)
 
             /*
-             * An APP0 without the JFIF identifier is a spec-legal JFXX
-             * extension or vendor segment. It must be treated as unknown,
-             * so files carrying it stay updatable like they are readable.
+             * The APP0 segment carries the JFIF header, whose density
+             * fields no metadata consumer needs - so like every other
+             * segment without metadata it stays an opaque byte block.
              */
-            JpegConstants.JFIF_MARKER ->
-                if (segmentBytes.startsWith(JpegConstants.JFIF0_SIGNATURE) ||
-                    segmentBytes.startsWith(JpegConstants.JFIF0_SIGNATURE_ALTERNATIVE)
-                )
-                    JfifSegment(marker, segmentBytes)
-                else
-                    UnknownSegment(marker, segmentBytes)
+            JpegConstants.JFIF_MARKER -> UnknownSegment(marker, segmentBytes)
 
             else ->
                 when {

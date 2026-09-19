@@ -234,12 +234,7 @@ internal open class MakerNoteHandler {
                     blobOffset = getAbsoluteValueOffset(field),
                     blobLength = blobLength,
                     byteOrder = byteOrder,
-                    directoryType = effectivePointer.directoryType,
-                    tagTable = effectivePointer.tagTable,
-                    firstTag = effectivePointer.firstTag,
-                    offsetBase = effectivePointer.offsetBase,
-                    byteOffsetMultiplier = effectivePointer.byteOffsetMultiplier,
-                    fieldFilter = effectivePointer.fieldFilter,
+                    pointer = effectivePointer,
                     addDirectory = addDirectory
                 )
 
@@ -303,12 +298,7 @@ internal open class MakerNoteHandler {
                         ?: (parentDirectory.offset + nestedPointer.tagId),
                     blobLength = nestedBlobLength,
                     byteOrder = byteOrder,
-                    directoryType = nestedPointer.directoryType,
-                    tagTable = nestedPointer.tagTable,
-                    firstTag = nestedPointer.firstTag,
-                    offsetBase = nestedPointer.offsetBase,
-                    byteOffsetMultiplier = nestedPointer.byteOffsetMultiplier,
-                    fieldFilter = nestedPointer.fieldFilter,
+                    pointer = nestedPointer,
                     addDirectory = addDirectory
                 )
 
@@ -325,6 +315,34 @@ internal open class MakerNoteHandler {
             }
         }
     }
+
+    /**
+     * Reads a MakerNote sub-directory that is stored as a binary blob
+     * with the fields at fixed offsets, for example the Canon and
+     * Nikon sub-directories. The directory layout is taken from the
+     * given blob pointer.
+     */
+    protected fun readMakerNoteBlobSubDirectory(
+        blobBytes: ByteArray,
+        blobOffset: Int,
+        blobLength: Int,
+        byteOrder: ByteOrder,
+        pointer: MakerNoteBlobPointer,
+        addDirectory: (TiffDirectory) -> Unit
+    ): TiffDirectory =
+        readMakerNoteBlobSubDirectory(
+            blobBytes = blobBytes,
+            blobOffset = blobOffset,
+            blobLength = blobLength,
+            byteOrder = byteOrder,
+            directoryType = pointer.directoryType,
+            tagTable = pointer.tagTable,
+            firstTag = pointer.firstTag,
+            offsetBase = pointer.offsetBase,
+            byteOffsetMultiplier = pointer.byteOffsetMultiplier,
+            fieldFilter = pointer.fieldFilter,
+            addDirectory = addDirectory
+        )
 
     /**
      * Reads a MakerNote sub-directory that is stored as a binary blob
@@ -420,6 +438,3 @@ internal open class MakerNoteHandler {
     protected fun ByteArray.toInt64(offset: Int): Long =
         toLong(offset, ByteOrder.BIG_ENDIAN)
 }
-
-
-

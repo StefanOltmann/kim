@@ -20,20 +20,19 @@ import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.format.AbstractUpdaterTest
-import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.writeBox
 import de.stefan_oltmann.kim.testdata.countOccurrences
-import de.stefan_oltmann.kim.output.ByteArrayByteWriter
-import de.stefan_oltmann.kim.output.writeInt
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class JxlUpdaterTest : AbstractUpdaterTest("jxl") {
@@ -181,6 +180,39 @@ class JxlUpdaterTest : AbstractUpdaterTest("jxl") {
         )
 
         assertContentEquals(firstUpdate, secondUpdate)
+    }
+
+    /**
+     * Regression test: an update whose XMP round-trip is unchanged must
+     * keep the original xml box untouched. Writing a fresh packet instead
+     * dropped every field the update did not touch.
+     */
+    @Test
+    fun testRepeatedUpdateKeepsOtherXmpFields() {
+
+        /* First update writes a Kim-serialized packet with both fields. */
+        val firstUpdate = Kim.update(
+            bytes = createJxlpFileWithTrailingMetadata(),
+            updates = setOf(
+                MetadataUpdate.Title("stable"),
+                MetadataUpdate.Description("kept")
+            )
+        )
+
+        /* Re-applying only the title must preserve the description. */
+        val secondUpdate = Kim.update(
+            bytes = firstUpdate,
+            update = MetadataUpdate.Title("stable")
+        )
+
+        val xmp = Kim.readMetadata(secondUpdate)?.xmp
+
+        assertNotNull(xmp)
+
+        assertTrue(
+            xmp.contains("kept"),
+            "The description was dropped from the XMP: $xmp"
+        )
     }
 
     /**
@@ -482,31 +514,6 @@ class JxlUpdaterTest : AbstractUpdaterTest("jxl") {
         assertFailsWith<ImageReadException> {
             Kim.readMetadata(byteWriter.toByteArray())
         }
-    }
-
-    private fun ByteArray.countOccurrences(needle: String): Int {
-
-        val needleBytes = needle.encodeToByteArray()
-
-        var count = 0
-
-        for (index in 0..size - needleBytes.size) {
-
-            var matches = true
-
-            for (needleIndex in needleBytes.indices)
-                if (this[index + needleIndex] != needleBytes[needleIndex]) {
-
-                    matches = false
-
-                    break
-                }
-
-            if (matches)
-                count++
-        }
-
-        return count
     }
 
     private companion object {

@@ -97,8 +97,8 @@ public object GifMetadataExtractor : MetadataExtractor {
                 false
             },
             onExtensionBlock = { extensionLabel ->
-                GifImageParser.readExtensionChunk(byteReader, extensionLabel, chunkTypeFilter = null)
-                    ?.let { chunk -> bytes.addAll(chunk.bytes.toList()) }
+                val chunk = GifImageParser.readExtensionChunk(byteReader, extensionLabel)
+                bytes.addAll(chunk.bytes.toList())
                 false
             },
             onTrailerBlock = {

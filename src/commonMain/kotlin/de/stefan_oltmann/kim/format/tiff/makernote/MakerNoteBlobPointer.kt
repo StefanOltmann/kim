@@ -28,6 +28,12 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
  * beginning of the blob.
  */
 public data class MakerNoteBlobPointer(
+    /**
+     * The tag whose value holds this blob - either as the offset to it
+     * or, when the blob is stored inline, directly as its bytes. When no
+     * such field exists, the value doubles as the byte offset into the
+     * parent blob for nested pointers.
+     */
     public val tagId: Int,
     public val directoryType: Int,
     public val tagTable: List<TagInfo>,

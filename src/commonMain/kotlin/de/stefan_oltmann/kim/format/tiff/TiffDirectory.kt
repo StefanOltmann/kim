@@ -58,8 +58,6 @@ public class TiffDirectory(
     internal var thumbnailBytes: ByteArray? = null
     internal var tiffImageBytes: ByteArray? = null
 
-    public fun getDirectoryEntries(): List<TiffField> = entries
-
     public fun hasJpegImageData(): Boolean =
         null != findField(TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT)
 

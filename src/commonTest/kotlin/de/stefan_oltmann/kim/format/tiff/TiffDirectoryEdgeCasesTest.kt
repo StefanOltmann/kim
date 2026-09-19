@@ -28,6 +28,8 @@ import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.ImageSize
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
+import de.stefan_oltmann.kim.testdata.tiffDirectory
+import de.stefan_oltmann.kim.testdata.tiffField
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -36,31 +38,8 @@ import kotlin.test.assertNull
 
 class TiffDirectoryEdgeCasesTest {
 
-    private fun field(
-        tag: Int,
-        fieldType: de.stefan_oltmann.kim.format.tiff.fieldtype.FieldType<out Any>,
-        bytes: ByteArray,
-        count: Int = bytes.size / fieldType.size
-    ): TiffField = TiffField(
-        offset = 0,
-        tag = tag,
-        directoryType = TiffConstants.TIFF_DIRECTORY_TYPE_IFD0,
-        fieldType = fieldType,
-        count = count,
-        localValue = null,
-        valueOffset = 0,
-        valueBytes = bytes,
-        byteOrder = ByteOrder.BIG_ENDIAN,
-        sortHint = 0
-    )
-
-    private fun directory(vararg entries: TiffField): TiffDirectory = TiffDirectory(
-        type = TiffConstants.TIFF_DIRECTORY_TYPE_IFD0,
-        entries = entries.toList(),
-        offset = 8,
-        nextDirectoryOffset = 0,
-        byteOrder = ByteOrder.BIG_ENDIAN
-    )
+    private fun directory(vararg entries: TiffField): TiffDirectory =
+        tiffDirectory(TiffConstants.TIFF_DIRECTORY_TYPE_IFD0, entries.toList())
 
     @Test
     fun testFindFieldWithFailIfMissing() {
@@ -92,7 +71,7 @@ class TiffDirectoryEdgeCasesTest {
 
         /* The field exists but has the wrong type. */
         val tiffDirectory = directory(
-            field(
+            tiffField(
                 TiffTag.TIFF_TAG_IMAGE_WIDTH.tag,
                 FieldTypeShort,
                 shortArrayOf(100).toBytes(ByteOrder.BIG_ENDIAN),
@@ -110,7 +89,7 @@ class TiffDirectoryEdgeCasesTest {
 
         /* The field has more than one value. */
         val tiffDirectory = directory(
-            field(
+            tiffField(
                 TiffTag.TIFF_TAG_IMAGE_WIDTH.tag,
                 FieldTypeLong,
                 intArrayOf(100, 200).toBytes(ByteOrder.BIG_ENDIAN),
@@ -135,7 +114,7 @@ class TiffDirectoryEdgeCasesTest {
     fun testGetFieldValueLongsRejectsWrongType() {
 
         val tiffDirectory = directory(
-            field(
+            tiffField(
                 TiffTag.TIFF_TAG_FREE_OFFSETS.tag,
                 FieldTypeByte,
                 byteArrayOf(1, 2, 3, 4)
@@ -152,13 +131,13 @@ class TiffDirectoryEdgeCasesTest {
 
         /* Two offsets but only one length. */
         val tiffDirectory = directory(
-            field(
+            tiffField(
                 TiffTag.TIFF_TAG_STRIP_OFFSETS.tag,
                 FieldTypeLong,
                 intArrayOf(100, 200).toBytes(ByteOrder.BIG_ENDIAN),
                 2
             ),
-            field(
+            tiffField(
                 TiffTag.TIFF_TAG_STRIP_BYTE_COUNTS.tag,
                 FieldTypeLong,
                 intArrayOf(50).toBytes(ByteOrder.BIG_ENDIAN),

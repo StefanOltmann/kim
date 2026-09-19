@@ -240,15 +240,6 @@ class ByteConversionsTest {
     }
 
     @Test
-    fun testQuadsToByteArray() {
-
-        assertContentEquals(
-            expected = byteArrayOf(0x01, 0x02, 0x03, 0x04),
-            actual = 0x01020304.toInt().quadsToByteArray()
-        )
-    }
-
-    @Test
     fun testReadXBytesAtInt() {
 
         val reader = de.stefan_oltmann.kim.input.ByteArrayByteReader(

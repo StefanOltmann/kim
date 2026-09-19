@@ -16,7 +16,6 @@
  */
 package de.stefan_oltmann.kim.format.cr3
 
-import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BoxType

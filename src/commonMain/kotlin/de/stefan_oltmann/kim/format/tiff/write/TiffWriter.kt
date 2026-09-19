@@ -24,6 +24,7 @@ import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.TIFF_HEADER_SIZE
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.TIFF_VERSION
+import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.output.BinaryByteWriter
 import de.stefan_oltmann.kim.output.BinaryByteWriter.Companion.createBinaryByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
@@ -87,6 +88,22 @@ public class TiffWriter(
 
         var makerNotePending = makerNoteItem != null
 
+        /*
+         * Keep the MakerNote at its original offset at all costs. Some
+         * MakerNotes store absolute offsets inside their data - a moved
+         * MakerNote means corrupted vendor data. If the original offset
+         * can no longer be honored, fail the write instead of writing a
+         * corrupt file.
+         */
+        fun requireMakerNotePlaceable(anchor: Int, currentOffset: Int) {
+            if (currentOffset > anchor)
+                throw ImageWriteException(
+                    "The MakerNote would have to move from 0x" +
+                        anchor.toString(HEX_RADIX) + " to 0x" + currentOffset.toString(HEX_RADIX) +
+                        "; rewriting would corrupt vendor-specific offsets."
+                )
+        }
+
         var offset: Int = TIFF_HEADER_SIZE
 
         for (outputItem in outputItems) {
@@ -95,23 +112,10 @@ public class TiffWriter(
 
                 if (makerNotePending) {
 
-                    /*
-                     * Keep the MakerNote at its original offset at all
-                     * costs. Some MakerNotes store absolute offsets inside
-                     * their data - a moved MakerNote means corrupted
-                     * vendor data. If the original offset can no longer
-                     * be honored, fail the write instead of writing a
-                     * corrupt file.
-                     */
-                    if (makerNoteAnchor > offset) {
+                    if (makerNoteAnchor > offset)
                         offset = makerNoteAnchor
-                    } else if (offset > makerNoteAnchor) {
-                        throw ImageWriteException(
-                            "The MakerNote would have to move from 0x" +
-                                makerNoteAnchor.toString(HEX_RADIX) + " to 0x" + offset.toString(HEX_RADIX) +
-                                "; rewriting would corrupt vendor-specific offsets."
-                        )
-                    }
+
+                    requireMakerNotePlaceable(makerNoteAnchor, offset)
 
                     /*
                      * The offset is assigned here, so a MakerNote that is
@@ -139,12 +143,7 @@ public class TiffWriter(
 
             if (overlapsMakerNoteRegion && makerNoteItem != null) {
 
-                if (offset > makerNoteAnchor)
-                    throw ImageWriteException(
-                        "The MakerNote would have to move from 0x" +
-                            makerNoteAnchor.toString(HEX_RADIX) + " to 0x" + offset.toString(HEX_RADIX) +
-                            "; rewriting would corrupt vendor-specific offsets."
-                    )
+                requireMakerNotePlaceable(makerNoteAnchor, offset)
 
                 makerNoteItem.offset = makerNoteAnchor
 
@@ -346,68 +345,84 @@ public class TiffWriter(
         val rootDirectory = directoryTypeMap[TiffConstants.TIFF_DIRECTORY_TYPE_IFD0]
             ?: throw ImageWriteException("Root directory is missing.")
 
-        if (interoperabilityDirectory == null && interoperabilityDirectoryOffsetField != null)
-            throw ImageWriteException(
-                "Output set has interoperability dir offset field, but no interoperability dir"
-            )
-
         val tiffOffsetItems = TiffOffsetItems(byteOrder)
+
+        /*
+         * A linked directory without its offset field, or an offset field
+         * without its directory, would produce a dangling pointer in the
+         * written TIFF, so both must correspond.
+         */
+        fun checkOffsetFieldCorrespondence(
+            directory: TiffOutputDirectory?,
+            offsetField: TiffOutputField?,
+            label: String
+        ) {
+            if (directory == null && offsetField != null)
+                throw ImageWriteException("Output set has $label directory offset field, but no $label directory")
+        }
+
+        /*
+         * Wires one linked directory: creates the offset field in the host
+         * directory when missing and registers the offset item that patches
+         * the field once all offsets are known.
+         */
+        fun registerLinkedDirectory(
+            directory: TiffOutputDirectory,
+            offsetField: TiffOutputField?,
+            offsetTag: TagInfo,
+            hostDirectory: TiffOutputDirectory
+        ) {
+            val resolvedOffsetField = offsetField
+                ?: TiffOutputField.createOffsetField(offsetTag, byteOrder)
+                    .also(hostDirectory::add)
+
+            tiffOffsetItems.addOffsetItem(TiffOffsetItem(directory, resolvedOffsetField))
+        }
+
+        checkOffsetFieldCorrespondence(
+            interoperabilityDirectory,
+            interoperabilityDirectoryOffsetField,
+            "interoperability"
+        )
 
         if (interoperabilityDirectory != null) {
 
-            if (exifDirectory == null)
-                exifDirectory = outputSet.addExifDirectory()
+            /*
+             * The Interoperability directory is referenced from the EXIF
+             * directory, which must exist for it.
+             */
+            val exifHost = exifDirectory ?: outputSet.addExifDirectory()
 
-            /* Create offset if missing */
-            if (interoperabilityDirectoryOffsetField == null) {
+            exifDirectory = exifHost
 
-                interoperabilityDirectoryOffsetField =
-                    TiffOutputField.createOffsetField(ExifTag.EXIF_TAG_INTEROP_OFFSET, byteOrder)
-
-                exifDirectory.add(interoperabilityDirectoryOffsetField)
-            }
-
-            tiffOffsetItems.addOffsetItem(
-                TiffOffsetItem(
-                    interoperabilityDirectory,
-                    interoperabilityDirectoryOffsetField
-                )
+            registerLinkedDirectory(
+                directory = interoperabilityDirectory,
+                offsetField = interoperabilityDirectoryOffsetField,
+                offsetTag = ExifTag.EXIF_TAG_INTEROP_OFFSET,
+                hostDirectory = exifHost
             )
         }
 
-        /* Make sure offset fields and offset directories correspond. */
-        if (exifDirectory == null && exifDirectoryOffsetField != null)
-            throw ImageWriteException("Output set has EXIF directory offset field, but no EXIF directory")
+        checkOffsetFieldCorrespondence(exifDirectory, exifDirectoryOffsetField, "EXIF")
 
         if (exifDirectory != null) {
-
-            /* Create offset if missing */
-            if (exifDirectoryOffsetField == null) {
-
-                exifDirectoryOffsetField =
-                    TiffOutputField.createOffsetField(ExifTag.EXIF_TAG_EXIF_OFFSET, byteOrder)
-
-                rootDirectory.add(exifDirectoryOffsetField)
-            }
-
-            tiffOffsetItems.addOffsetItem(TiffOffsetItem(exifDirectory, exifDirectoryOffsetField))
+            registerLinkedDirectory(
+                directory = exifDirectory,
+                offsetField = exifDirectoryOffsetField,
+                offsetTag = ExifTag.EXIF_TAG_EXIF_OFFSET,
+                hostDirectory = rootDirectory
+            )
         }
 
-        if (gpsDirectory == null && gpsDirectoryOffsetField != null)
-            throw ImageWriteException("Output set has GPS directory offset field, but no GPS directory")
+        checkOffsetFieldCorrespondence(gpsDirectory, gpsDirectoryOffsetField, "GPS")
 
         if (gpsDirectory != null) {
-
-            /* Create offset if missing */
-            if (gpsDirectoryOffsetField == null) {
-
-                gpsDirectoryOffsetField =
-                    TiffOutputField.createOffsetField(ExifTag.EXIF_TAG_GPSINFO, byteOrder)
-
-                rootDirectory.add(gpsDirectoryOffsetField)
-            }
-
-            tiffOffsetItems.addOffsetItem(TiffOffsetItem(gpsDirectory, gpsDirectoryOffsetField))
+            registerLinkedDirectory(
+                directory = gpsDirectory,
+                offsetField = gpsDirectoryOffsetField,
+                offsetTag = ExifTag.EXIF_TAG_GPSINFO,
+                hostDirectory = rootDirectory
+            )
         }
 
         return tiffOffsetItems

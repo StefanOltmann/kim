@@ -59,7 +59,7 @@ internal fun Double.toInvariantString(): String {
 
     var resultDigits = roundToSignificantDigits(shortestDigits, precision)
 
-    var roundTrips = renderCandidate(resultDigits).toDouble() == absoluteValue
+    var roundTrips = renderNotation(resultDigits.first, resultDigits.second).toDouble() == absoluteValue
 
     while (!roundTrips && precision < DOUBLE_MAX_SIGNIFICANT_DIGITS) {
 
@@ -67,28 +67,28 @@ internal fun Double.toInvariantString(): String {
 
         resultDigits = roundToSignificantDigits(shortestDigits, precision)
 
-        roundTrips = renderCandidate(resultDigits).toDouble() == absoluteValue
+        roundTrips = renderNotation(resultDigits.first, resultDigits.second).toDouble() == absoluteValue
     }
 
-    val numberString = renderCandidate(resultDigits)
+    val numberString = renderNotation(resultDigits.first, resultDigits.second)
 
     return if (this < 0) "-$numberString" else numberString
 }
 
 /**
  * Renders digits with exponent using the notation rules of the JVM's
- * shortest rendering.
+ * shortest rendering: plain notation with at least one fraction digit
+ * inside [1.0E-3, 1.0E7) and "d.dddEn" outside of it.
  */
-private fun renderCandidate(digitsWithExponent: Pair<String, Int>): String {
+internal fun renderNotation(
+    digits: String,
+    exponent: Int
+): String =
 
-    val digits = digitsWithExponent.first
-    val exponent = digitsWithExponent.second
-
-    return if (exponent in PLAIN_NOTATION_MIN_EXPONENT..PLAIN_NOTATION_MAX_EXPONENT)
+    if (exponent in PLAIN_NOTATION_MIN_EXPONENT..PLAIN_NOTATION_MAX_EXPONENT)
         renderPlainNotation(digits, exponent)
     else
         renderExponentNotation(digits, exponent)
-}
 
 /**
  * The smallest exponent the JVM renders in plain notation.

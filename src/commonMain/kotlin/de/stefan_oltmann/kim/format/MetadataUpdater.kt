@@ -17,7 +17,14 @@
 package de.stefan_oltmann.kim.format
 
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.format.gif.GifUpdater
+import de.stefan_oltmann.kim.format.jpeg.JpegUpdater
+import de.stefan_oltmann.kim.format.jxl.JxlUpdater
+import de.stefan_oltmann.kim.format.png.PngUpdater
+import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
+import de.stefan_oltmann.kim.format.webp.WebPUpdater
 import de.stefan_oltmann.kim.input.ByteReader
+import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteWriter
 
@@ -64,4 +71,59 @@ public interface MetadataUpdater {
         thumbnailBytes: ByteArray
     ): ByteArray
 
+    public companion object {
+
+        /**
+         * Returns the updater that can rewrite the given media format,
+         * or NULL for formats without a write path.
+         */
+        public fun forFormat(mediaFormat: MediaFormat): MetadataUpdater? =
+            when (mediaFormat) {
+                MediaFormat.JPEG -> JpegUpdater
+                MediaFormat.PNG -> PngUpdater
+                MediaFormat.WEBP -> WebPUpdater
+                MediaFormat.JXL -> JxlUpdater
+                MediaFormat.GIF -> GifUpdater
+                else -> null
+            }
+    }
+
+}
+
+/**
+ * Applies the updates to the EXIF of the metadata and returns the new
+ * EXIF bytes, or NULL when no update changed the EXIF content - the
+ * caller then leaves the stored EXIF bytes untouched.
+ *
+ * The EXIF read from the file is the starting point, so fields Kim does
+ * not model survive the rewrite; a file without EXIF starts from an
+ * empty set.
+ */
+internal fun MediaMetadata.updatedExifBytes(
+    updates: Set<MetadataUpdate>
+): ByteArray? {
+
+    val outputSet = exif?.createOutputSet() ?: TiffOutputSet()
+
+    return if (outputSet.applyUpdates(updates))
+        outputSet.toTiffBytes()
+    else
+        null
+}
+
+/**
+ * Replaces the embedded JPEG thumbnail of the EXIF and returns the new
+ * EXIF bytes. The EXIF read from the file is the starting point, so
+ * fields Kim does not model survive the rewrite; a file without EXIF
+ * starts from an empty set.
+ */
+internal fun MediaMetadata.exifBytesWithThumbnail(
+    thumbnailBytes: ByteArray
+): ByteArray {
+
+    val outputSet = exif?.createOutputSet() ?: TiffOutputSet()
+
+    outputSet.setThumbnailBytes(thumbnailBytes)
+
+    return outputSet.toTiffBytes()
 }

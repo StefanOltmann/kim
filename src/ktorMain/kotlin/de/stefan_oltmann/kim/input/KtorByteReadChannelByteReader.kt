@@ -18,7 +18,7 @@ package de.stefan_oltmann.kim.input
 
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.cancel
-import io.ktor.utils.io.readRemaining
+import io.ktor.utils.io.readBuffer
 import kotlinx.coroutines.runBlocking
 import kotlinx.io.readByteArray
 
@@ -109,7 +109,7 @@ public class KtorByteReadChannelByteReader(
             return false
 
         buffer = runBlocking {
-            channel.readRemaining(max = bufferSize).readByteArray()
+            channel.readBuffer(max = bufferSize).readByteArray()
         }
         bufferLimit = buffer.size
         bufferOffset = 0

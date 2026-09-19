@@ -30,14 +30,10 @@ public class KotlinIoSourceByteReader(
     override val contentLength: Long
 ) : ByteReader {
 
-    private var position: Long = 0
-
     override fun readByte(): Byte? {
 
         if (source.exhausted())
             return null
-
-        position++
 
         return source.readByte()
     }
@@ -65,8 +61,6 @@ public class KotlinIoSourceByteReader(
 
             result[filled++] = source.readByte()
         }
-
-        position += filled
 
         return if (filled == count) result else result.copyOf(filled)
     }

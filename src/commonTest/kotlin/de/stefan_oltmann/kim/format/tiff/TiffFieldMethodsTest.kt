@@ -20,7 +20,6 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.RationalNumber
 import de.stefan_oltmann.kim.common.RationalNumbers
 import de.stefan_oltmann.kim.common.toBytes
-import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeAscii
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeByte
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeDouble
@@ -30,6 +29,7 @@ import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeRational
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeSByte
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeSShort
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeShort
+import de.stefan_oltmann.kim.testdata.tiffField
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -39,31 +39,13 @@ import kotlin.test.assertTrue
 
 class TiffFieldMethodsTest {
 
-    private fun field(
-        tag: Int,
-        fieldType: de.stefan_oltmann.kim.format.tiff.fieldtype.FieldType<out Any>,
-        valueBytes: ByteArray,
-        count: Int = valueBytes.size / fieldType.size
-    ): TiffField = TiffField(
-        offset = 0,
-        tag = tag,
-        directoryType = TiffConstants.TIFF_DIRECTORY_TYPE_IFD0,
-        fieldType = fieldType,
-        count = count,
-        localValue = null,
-        valueOffset = 0,
-        valueBytes = valueBytes,
-        byteOrder = ByteOrder.BIG_ENDIAN,
-        sortHint = 0
-    )
-
     @Test
     fun testOffsetAndTagFormatted() {
 
-        val tiffField = field(0x0100, FieldTypeLong, byteArrayOf(0, 0, 0, 1))
+        val field = tiffField(0x0100, FieldTypeLong, byteArrayOf(0, 0, 0, 1))
 
-        assertEquals("0000000000", tiffField.offsetFormatted)
-        assertEquals("0x0100", tiffField.tagFormatted)
+        assertEquals("0000000000", field.offsetFormatted)
+        assertEquals("0x0100", field.tagFormatted)
     }
 
     /**
@@ -75,13 +57,13 @@ class TiffFieldMethodsTest {
     @Test
     fun testToShortAndToDoubleWidenByteUnsigned() {
 
-        val byteField = field(0x0158, FieldTypeByte, byteArrayOf(0xF0.toByte()))
+        val byteField = tiffField(0x0158, FieldTypeByte, byteArrayOf(0xF0.toByte()))
 
         assertEquals(240, byteField.toInt())
         assertEquals(240.toShort(), byteField.toShort())
         assertEquals(240.0, byteField.toDouble())
 
-        val sbyteField = field(0x0159, FieldTypeSByte, byteArrayOf(0x90.toByte()))
+        val sbyteField = tiffField(0x0159, FieldTypeSByte, byteArrayOf(0x90.toByte()))
 
         assertEquals(-112, sbyteField.toInt())
         assertEquals((-112).toShort(), sbyteField.toShort())
@@ -94,19 +76,19 @@ class TiffFieldMethodsTest {
         /* Single byte. */
         assertEquals(
             expected = "-5",
-            actual = field(0x0100, FieldTypeByte, byteArrayOf(-5)).valueDescription
+            actual = tiffField(0x0100, FieldTypeByte, byteArrayOf(-5)).valueDescription
         )
 
         /* Small array as hex. */
         assertEquals(
             expected = "[0x01, 0x02]",
-            actual = field(0x0100, FieldTypeByte, byteArrayOf(1, 2)).valueDescription
+            actual = tiffField(0x0100, FieldTypeByte, byteArrayOf(1, 2)).valueDescription
         )
 
         /* Large array shows the size. */
         assertEquals(
             expected = "[20 bytes]",
-            actual = field(0x0100, FieldTypeByte, ByteArray(20)).valueDescription
+            actual = tiffField(0x0100, FieldTypeByte, ByteArray(20)).valueDescription
         )
     }
 
@@ -115,7 +97,7 @@ class TiffFieldMethodsTest {
 
         assertEquals(
             expected = "5",
-            actual = field(
+            actual = tiffField(
                 0x0100,
                 FieldTypeLong,
                 intArrayOf(5).toBytes(ByteOrder.BIG_ENDIAN)
@@ -124,7 +106,7 @@ class TiffFieldMethodsTest {
 
         assertEquals(
             expected = "[1, 2]",
-            actual = field(
+            actual = tiffField(
                 0x0100,
                 FieldTypeLong,
                 intArrayOf(1, 2).toBytes(ByteOrder.BIG_ENDIAN)
@@ -136,7 +118,7 @@ class TiffFieldMethodsTest {
 
         assertEquals(
             expected = "[17 ints]",
-            actual = field(
+            actual = tiffField(
                 0x0100,
                 FieldTypeLong,
                 manyInts.toBytes(ByteOrder.BIG_ENDIAN)
@@ -149,7 +131,7 @@ class TiffFieldMethodsTest {
 
         assertEquals(
             expected = "7",
-            actual = field(
+            actual = tiffField(
                 0x0100,
                 FieldTypeShort,
                 shortArrayOf(7).toBytes(ByteOrder.BIG_ENDIAN)
@@ -162,7 +144,7 @@ class TiffFieldMethodsTest {
 
         assertEquals(
             expected = "1.5",
-            actual = field(
+            actual = tiffField(
                 0x0100,
                 FieldTypeDouble,
                 doubleArrayOf(1.5).toBytes(ByteOrder.BIG_ENDIAN)
@@ -172,7 +154,7 @@ class TiffFieldMethodsTest {
         /* More than 16 values show the size. */
         assertEquals(
             expected = "[17 doubles]",
-            actual = field(
+            actual = tiffField(
                 0x0100,
                 FieldTypeDouble,
                 DoubleArray(17) { it.toDouble() }.toBytes(ByteOrder.BIG_ENDIAN)
@@ -185,7 +167,7 @@ class TiffFieldMethodsTest {
 
         assertEquals(
             expected = "1.5",
-            actual = field(
+            actual = tiffField(
                 0x0100,
                 FieldTypeFloat,
                 floatArrayOf(1.5f).toBytes(ByteOrder.BIG_ENDIAN)
@@ -198,7 +180,7 @@ class TiffFieldMethodsTest {
 
         assertEquals(
             expected = "1/2 (0.5)",
-            actual = field(
+            actual = tiffField(
                 0x0100,
                 FieldTypeRational,
                 RationalNumber(1, 2).toBytes(ByteOrder.BIG_ENDIAN)
@@ -214,7 +196,7 @@ class TiffFieldMethodsTest {
 
         assertEquals(
             expected = "[17 rationals]",
-            actual = field(
+            actual = tiffField(
                 0x0100,
                 FieldTypeRational,
                 manyRationals.toBytes(ByteOrder.BIG_ENDIAN)
@@ -227,7 +209,7 @@ class TiffFieldMethodsTest {
 
         assertEquals(
             expected = "Hello",
-            actual = field(
+            actual = tiffField(
                 0x0100,
                 FieldTypeAscii,
                 "Hello\u0000".encodeToByteArray()
@@ -238,25 +220,25 @@ class TiffFieldMethodsTest {
     @Test
     fun testToStringWithUnknownTag() {
 
-        val tiffField = field(0x9999, FieldTypeLong, byteArrayOf(0, 0, 0, 1))
+        val field = tiffField(0x9999, FieldTypeLong, byteArrayOf(0, 0, 0, 1))
 
-        assertNull(tiffField.tagInfo)
-        assertTrue(tiffField.toString().contains("Unknown"))
+        assertNull(field.tagInfo)
+        assertTrue(field.toString().contains("Unknown"))
     }
 
     @Test
     fun testToStringValue() {
 
         /* List values return the first element. */
-        val listField = field(0x0100, FieldTypeLong, byteArrayOf(0, 0, 0, 1))
+        val listField = tiffField(0x0100, FieldTypeLong, byteArrayOf(0, 0, 0, 1))
         assertEquals("1", listField.toInt().toString())
 
-        val stringField = field(0x0100, FieldTypeAscii, "Hi\u0000".encodeToByteArray())
+        val stringField = tiffField(0x0100, FieldTypeAscii, "Hi\u0000".encodeToByteArray())
         assertEquals("Hi", stringField.toStringValue())
 
         /* Non-string values fail. */
         assertFailsWith<ImageReadException> {
-            field(0x0100, FieldTypeLong, byteArrayOf(0, 0, 0, 1)).toStringValue()
+            tiffField(0x0100, FieldTypeLong, byteArrayOf(0, 0, 0, 1)).toStringValue()
         }
     }
 
@@ -266,13 +248,13 @@ class TiffFieldMethodsTest {
         /* Numbers. */
         assertContentEquals(
             expected = intArrayOf(5),
-            actual = field(0x0100, FieldTypeLong, byteArrayOf(0, 0, 0, 5)).toIntArray()
+            actual = tiffField(0x0100, FieldTypeLong, byteArrayOf(0, 0, 0, 5)).toIntArray()
         )
 
         /* Int arrays. */
         assertContentEquals(
             expected = intArrayOf(1, 2),
-            actual = field(
+            actual = tiffField(
                 0x0100,
                 FieldTypeLong,
                 intArrayOf(1, 2).toBytes(ByteOrder.BIG_ENDIAN)
@@ -282,7 +264,7 @@ class TiffFieldMethodsTest {
         /* Short arrays are converted as unsigned. */
         assertContentEquals(
             expected = intArrayOf(65535),
-            actual = field(
+            actual = tiffField(
                 0x0100,
                 FieldTypeShort,
                 shortArrayOf(-1).toBytes(ByteOrder.BIG_ENDIAN)
@@ -291,7 +273,7 @@ class TiffFieldMethodsTest {
 
         /* Strings fail. */
         assertFailsWith<ImageReadException> {
-            field(0x0100, FieldTypeAscii, "Hi\u0000".encodeToByteArray()).toIntArray()
+            tiffField(0x0100, FieldTypeAscii, "Hi\u0000".encodeToByteArray()).toIntArray()
         }
     }
 
@@ -300,23 +282,23 @@ class TiffFieldMethodsTest {
 
         assertEquals(
             expected = 5,
-            actual = field(0x0100, FieldTypeByte, byteArrayOf(5)).toInt()
+            actual = tiffField(0x0100, FieldTypeByte, byteArrayOf(5)).toInt()
         )
 
         assertEquals(
             expected = 6,
-            actual = field(0x0100, FieldTypeShort, shortArrayOf(6).toBytes(ByteOrder.BIG_ENDIAN)).toInt()
+            actual = tiffField(0x0100, FieldTypeShort, shortArrayOf(6).toBytes(ByteOrder.BIG_ENDIAN)).toInt()
         )
 
         assertEquals(
             expected = 7,
-            actual = field(0x0100, FieldTypeLong, byteArrayOf(0, 0, 0, 7)).toInt()
+            actual = tiffField(0x0100, FieldTypeLong, byteArrayOf(0, 0, 0, 7)).toInt()
         )
 
         /* The SHORT type is unsigned, values above 32767 are not negative. */
         assertEquals(
             expected = 51200,
-            actual = field(
+            actual = tiffField(
                 0x0100,
                 FieldTypeShort,
                 shortArrayOf(51200.toShort()).toBytes(ByteOrder.BIG_ENDIAN)
@@ -326,7 +308,7 @@ class TiffFieldMethodsTest {
         /* The SSHORT type is signed, negative values must stay negative. */
         assertEquals(
             expected = -300,
-            actual = field(
+            actual = tiffField(
                 0x0100,
                 FieldTypeSShort,
                 shortArrayOf((-300).toShort()).toBytes(ByteOrder.BIG_ENDIAN)
@@ -343,13 +325,13 @@ class TiffFieldMethodsTest {
     @Test
     fun testZeroCountFieldConvertsToNull() {
 
-        val longField = field(0x0100, FieldTypeLong, byteArrayOf(), count = 0)
+        val longField = tiffField(0x0100, FieldTypeLong, byteArrayOf(), count = 0)
 
         assertEquals(null, longField.toInt())
         assertEquals(null, longField.toShort())
         assertEquals(null, longField.toDouble())
 
-        val rationalField = field(0x0100, FieldTypeRational, byteArrayOf(), count = 0)
+        val rationalField = tiffField(0x0100, FieldTypeRational, byteArrayOf(), count = 0)
 
         assertEquals(null, rationalField.toDouble())
     }
@@ -364,13 +346,13 @@ class TiffFieldMethodsTest {
 
         assertEquals(
             expected = 0x90,
-            actual = field(0x0100, FieldTypeByte, byteArrayOf(0x90.toByte())).toInt()
+            actual = tiffField(0x0100, FieldTypeByte, byteArrayOf(0x90.toByte())).toInt()
         )
 
         /* The SBYTE type stays signed by definition. */
         assertEquals(
             expected = -112,
-            actual = field(0x0100, FieldTypeSByte, byteArrayOf(0x90.toByte())).toInt()
+            actual = tiffField(0x0100, FieldTypeSByte, byteArrayOf(0x90.toByte())).toInt()
         )
     }
 
@@ -379,7 +361,7 @@ class TiffFieldMethodsTest {
 
         assertEquals(
             expected = 0.5,
-            actual = field(
+            actual = tiffField(
                 0x0100,
                 FieldTypeRational,
                 RationalNumber(1, 2).toBytes(ByteOrder.BIG_ENDIAN)
@@ -388,23 +370,23 @@ class TiffFieldMethodsTest {
 
         assertEquals(
             expected = 1.0,
-            actual = field(0x0100, FieldTypeFloat, floatArrayOf(1.0f).toBytes(ByteOrder.BIG_ENDIAN)).toDouble()
+            actual = tiffField(0x0100, FieldTypeFloat, floatArrayOf(1.0f).toBytes(ByteOrder.BIG_ENDIAN)).toDouble()
         )
 
         assertEquals(
             expected = 2.0,
-            actual = field(0x0100, FieldTypeDouble, doubleArrayOf(2.0).toBytes(ByteOrder.BIG_ENDIAN)).toDouble()
+            actual = tiffField(0x0100, FieldTypeDouble, doubleArrayOf(2.0).toBytes(ByteOrder.BIG_ENDIAN)).toDouble()
         )
 
         assertEquals(
             expected = 3.0,
-            actual = field(0x0100, FieldTypeLong, byteArrayOf(0, 0, 0, 3)).toDouble()
+            actual = tiffField(0x0100, FieldTypeLong, byteArrayOf(0, 0, 0, 3)).toDouble()
         )
 
         /* The SHORT type is unsigned, values above 32767 are not negative. */
         assertEquals(
             expected = 51200.0,
-            actual = field(
+            actual = tiffField(
                 0x0100,
                 FieldTypeShort,
                 shortArrayOf(51200.toShort()).toBytes(ByteOrder.BIG_ENDIAN)

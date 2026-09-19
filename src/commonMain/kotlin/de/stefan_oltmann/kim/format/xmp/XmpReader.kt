@@ -25,7 +25,6 @@ import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.xmp.XMPException
 import de.stefan_oltmann.xmp.XMPMetaFactory
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlin.jvm.JvmStatic
 import kotlin.time.Instant
@@ -56,7 +55,7 @@ public object XmpReader {
 
         val takenDateIsoString = xmpMeta.getDateTimeOriginal()
 
-        val timeZone = Kim.defaultTimeZone ?: TimeZone.currentSystemDefault()
+        val timeZone = Kim.effectiveTimeZone
 
         val takenDate = takenDateIsoString?.let {
 

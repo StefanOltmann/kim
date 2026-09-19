@@ -132,9 +132,10 @@ public object JpegSegmentAnalyzer {
 
             positionCounter += 2
 
-            /* A zero content length is an empty segment, which is spec-legal. */
-            if (remainingSegmentLength < 0)
-                throw ImageReadException("Illegal JPEG segment length: $remainingSegmentLength")
+            JpegUtils.validateSegmentContentLength(
+                remainingSegmentLength,
+                byteReader.contentLength - positionCounter
+            )
 
             byteReader.skipBytes("skip segment", remainingSegmentLength)
 

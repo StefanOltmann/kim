@@ -20,7 +20,7 @@ package de.stefan_oltmann.kim.input
 
 import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
-import de.stefan_oltmann.kim.common.quadsToByteArray
+import de.stefan_oltmann.kim.common.toBytes
 import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.common.toInt
 import de.stefan_oltmann.kim.common.toLong
@@ -229,7 +229,7 @@ internal fun ByteReader.skipBytes(fieldName: String, count: Long) {
 }
 
 internal fun ByteReader.skipToQuad(quad: Int): Boolean =
-    skipToBytes(quad.quadsToByteArray())
+    skipToBytes(quad.toBytes(ByteOrder.BIG_ENDIAN))
 
 internal fun ByteReader.skipToBytes(needle: ByteArray): Boolean {
 

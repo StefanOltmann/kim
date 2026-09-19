@@ -37,7 +37,6 @@ import de.stefan_oltmann.kim.model.MetadataSummary
 import de.stefan_oltmann.kim.model.TiffOrientation
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toInstant
@@ -150,9 +149,8 @@ public object MetadataSummaryConverter {
         /* Extract Fujifilm film simulation from MakerNote */
         val filmSimulation = extractFilmSimulation(mediaMetadata)
 
-        val keywords = xmpMetadata?.keywords?.ifEmpty {
-            extractKeywordsFromIptc(mediaMetadata)
-        } ?: extractKeywordsFromIptc(mediaMetadata)
+        val keywords = xmpMetadata?.keywords?.takeIf { it.isNotEmpty() }
+            ?: extractKeywordsFromIptc(mediaMetadata)
 
         val iptcRecords = mediaMetadata.iptc?.records
 
@@ -298,7 +296,7 @@ public object MetadataSummaryConverter {
              */
             val offset = extractUtcOffset(metadata)
 
-            val timeZone = Kim.defaultTimeZone ?: TimeZone.currentSystemDefault()
+            val timeZone = Kim.effectiveTimeZone
 
             /*
              * Date-only values ("2021-12-06") have no time part to which a

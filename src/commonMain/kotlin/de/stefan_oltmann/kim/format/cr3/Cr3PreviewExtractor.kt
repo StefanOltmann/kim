@@ -69,6 +69,10 @@ public object Cr3PreviewExtractor {
     /* The vendor UUID at the start of every UUID box payload. */
     private const val UUID_LENGTH_BYTES = 16
 
+    /* Masks a 4-byte size field to its unsigned 32-bit range. */
+    @Suppress("MagicNumber")
+    private const val UINT32_MASK: Long = 0xFFFF_FFFFL
+
     /* Skip not interesting bytes */
     private const val PRVW_HEADER_BYTES = 12
 
@@ -284,7 +288,7 @@ public object Cr3PreviewExtractor {
 
         var largeSize: Long? = null
 
-        var size = byteReader.read4BytesAsInt("length", BMFF_BYTE_ORDER).toLong()
+        var size = byteReader.read4BytesAsInt("length", BMFF_BYTE_ORDER).toLong() and UINT32_MASK
 
         val typeBytes = byteReader.readBytes("type", TYPE_LENGTH)
 
@@ -303,7 +307,15 @@ public object Cr3PreviewExtractor {
             }
         }
 
-        if (size !in 1..available)
+        /*
+         * A box smaller than its own header cannot describe a payload.
+         * Rejecting it here keeps a negative data size from flowing into
+         * the skip and read calls, like BoxReader rejects the same input.
+         */
+        if (size < BOX_HEADER_LENGTH)
+            throw ImageReadException("Box $type declares a size smaller than its header: $size.")
+
+        if (size > available)
             throw ImageReadException("Box $type has an invalid size: $size.")
 
         return TopLevelBoxHeader(

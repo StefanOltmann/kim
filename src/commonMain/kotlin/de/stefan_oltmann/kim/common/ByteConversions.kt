@@ -27,11 +27,54 @@ package de.stefan_oltmann.kim.common
 @Suppress("MagicNumber")
 internal fun Byte.toUInt8(): Int = 0xFF and toInt()
 
+/*
+ * The byte-order primitives all conversions below build on: a value is
+ * split into or assembled from its bytes, most significant byte first
+ * for big endian and least significant byte first for little endian.
+ *
+ * All arithmetic runs on the 64-bit bit pattern of the value, so the
+ * low byte of a shift is identical for signed and unsigned readings.
+ */
+private fun writeBytes(
+    dest: ByteArray,
+    offset: Int,
+    bits: Long,
+    byteCount: Int,
+    byteOrder: ByteOrder
+) {
+
+    for (index in 0 until byteCount) {
+
+        val shift = 8 * (if (byteOrder == ByteOrder.BIG_ENDIAN) byteCount - 1 - index else index)
+
+        dest[offset + index] = (bits shr shift).toByte()
+    }
+}
+
+private fun readBytes(
+    source: ByteArray,
+    offset: Int,
+    byteCount: Int,
+    byteOrder: ByteOrder
+): Long {
+
+    var bits = 0L
+
+    for (index in 0 until byteCount) {
+
+        val shift = 8 * (if (byteOrder == ByteOrder.BIG_ENDIAN) byteCount - 1 - index else index)
+
+        bits = bits or (0xFFL and source[offset + index].toLong() shl shift)
+    }
+
+    return bits
+}
+
 internal fun Short.toBytes(byteOrder: ByteOrder): ByteArray {
 
     val result = ByteArray(2)
 
-    this.toBytes(result, 0, byteOrder)
+    writeBytes(result, 0, toInt().toLong(), 2, byteOrder)
 
     return result
 }
@@ -41,27 +84,16 @@ internal fun ShortArray.toBytes(byteOrder: ByteOrder): ByteArray {
     val result = ByteArray(size * 2)
 
     for (index in indices)
-        this[index].toBytes(result, index * 2, byteOrder)
+        writeBytes(result, index * 2, this[index].toInt().toLong(), 2, byteOrder)
 
     return result
-}
-
-private fun Short.toBytes(result: ByteArray, offset: Int, byteOrder: ByteOrder) {
-
-    if (byteOrder == ByteOrder.BIG_ENDIAN) {
-        result[offset + 0] = (toInt() shr 8).toByte()
-        result[offset + 1] = (toInt() shr 0).toByte()
-    } else {
-        result[offset + 1] = (toInt() shr 8).toByte()
-        result[offset + 0] = (toInt() shr 0).toByte()
-    }
 }
 
 internal fun Int.toBytes(byteOrder: ByteOrder): ByteArray {
 
     val result = ByteArray(4)
 
-    this.toBytes(result, 0, byteOrder)
+    writeBytes(result, 0, toLong(), 4, byteOrder)
 
     return result
 }
@@ -71,31 +103,16 @@ internal fun IntArray.toBytes(byteOrder: ByteOrder): ByteArray {
     val result = ByteArray(size * 4)
 
     for (i in indices)
-        this[i].toBytes(result, i * 4, byteOrder)
+        writeBytes(result, i * 4, this[i].toLong(), 4, byteOrder)
 
     return result
-}
-
-private fun Int.toBytes(result: ByteArray, offset: Int, byteOrder: ByteOrder) {
-
-    if (byteOrder == ByteOrder.BIG_ENDIAN) {
-        result[offset + 0] = (this shr 24).toByte()
-        result[offset + 1] = (this shr 16).toByte()
-        result[offset + 2] = (this shr 8).toByte()
-        result[offset + 3] = (this shr 0).toByte()
-    } else {
-        result[offset + 3] = (this shr 24).toByte()
-        result[offset + 2] = (this shr 16).toByte()
-        result[offset + 1] = (this shr 8).toByte()
-        result[offset + 0] = (this shr 0).toByte()
-    }
 }
 
 internal fun Long.toBytes(byteOrder: ByteOrder): ByteArray {
 
     val result = ByteArray(8)
 
-    this.toBytes(result, 0, byteOrder)
+    writeBytes(result, 0, this, 8, byteOrder)
 
     return result
 }
@@ -105,39 +122,16 @@ internal fun LongArray.toBytes(byteOrder: ByteOrder): ByteArray {
     val result = ByteArray(size * 8)
 
     for (i in indices)
-        this[i].toBytes(result, i * 8, byteOrder)
+        writeBytes(result, i * 8, this[i], 8, byteOrder)
 
     return result
-}
-
-private fun Long.toBytes(result: ByteArray, offset: Int, byteOrder: ByteOrder) {
-
-    if (byteOrder == ByteOrder.BIG_ENDIAN) {
-        result[offset + 0] = (this shr 56).toByte()
-        result[offset + 1] = (this shr 48).toByte()
-        result[offset + 2] = (this shr 40).toByte()
-        result[offset + 3] = (this shr 32).toByte()
-        result[offset + 4] = (this shr 24).toByte()
-        result[offset + 5] = (this shr 16).toByte()
-        result[offset + 6] = (this shr 8).toByte()
-        result[offset + 7] = (this shr 0).toByte()
-    } else {
-        result[offset + 7] = (this shr 56).toByte()
-        result[offset + 6] = (this shr 48).toByte()
-        result[offset + 5] = (this shr 40).toByte()
-        result[offset + 4] = (this shr 32).toByte()
-        result[offset + 3] = (this shr 24).toByte()
-        result[offset + 2] = (this shr 16).toByte()
-        result[offset + 1] = (this shr 8).toByte()
-        result[offset + 0] = (this shr 0).toByte()
-    }
 }
 
 internal fun Float.toBytes(byteOrder: ByteOrder): ByteArray {
 
     val result = ByteArray(4)
 
-    this.toBytes(result, 0, byteOrder)
+    writeBytes(result, 0, toRawBits().toLong(), 4, byteOrder)
 
     return result
 }
@@ -147,33 +141,16 @@ internal fun FloatArray.toBytes(byteOrder: ByteOrder): ByteArray {
     val result = ByteArray(size * 4)
 
     for (i in indices)
-        this[i].toBytes(result, i * 4, byteOrder)
+        writeBytes(result, i * 4, this[i].toRawBits().toLong(), 4, byteOrder)
 
     return result
-}
-
-private fun Float.toBytes(result: ByteArray, offset: Int, byteOrder: ByteOrder) {
-
-    val bits = toRawBits()
-
-    if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
-        result[offset + 0] = (0xFF and (bits shr 0)).toByte()
-        result[offset + 1] = (0xFF and (bits shr 8)).toByte()
-        result[offset + 2] = (0xFF and (bits shr 16)).toByte()
-        result[offset + 3] = (0xFF and (bits shr 24)).toByte()
-    } else {
-        result[offset + 3] = (0xFF and (bits shr 0)).toByte()
-        result[offset + 2] = (0xFF and (bits shr 8)).toByte()
-        result[offset + 1] = (0xFF and (bits shr 16)).toByte()
-        result[offset + 0] = (0xFF and (bits shr 24)).toByte()
-    }
 }
 
 internal fun Double.toBytes(byteOrder: ByteOrder): ByteArray {
 
     val result = ByteArray(8)
 
-    this.toBytes(result, 0, byteOrder)
+    writeBytes(result, 0, toRawBits(), 8, byteOrder)
 
     return result
 }
@@ -183,41 +160,17 @@ internal fun DoubleArray.toBytes(byteOrder: ByteOrder): ByteArray {
     val result = ByteArray(size * 8)
 
     for (i in indices)
-        this[i].toBytes(result, i * 8, byteOrder)
+        writeBytes(result, i * 8, this[i].toRawBits(), 8, byteOrder)
 
     return result
-}
-
-private fun Double.toBytes(result: ByteArray, offset: Int, byteOrder: ByteOrder) {
-
-    val bits = toRawBits()
-
-    if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
-        result[offset + 0] = (0xFFL and (bits shr 0)).toByte()
-        result[offset + 1] = (0xFFL and (bits shr 8)).toByte()
-        result[offset + 2] = (0xFFL and (bits shr 16)).toByte()
-        result[offset + 3] = (0xFFL and (bits shr 24)).toByte()
-        result[offset + 4] = (0xFFL and (bits shr 32)).toByte()
-        result[offset + 5] = (0xFFL and (bits shr 40)).toByte()
-        result[offset + 6] = (0xFFL and (bits shr 48)).toByte()
-        result[offset + 7] = (0xFFL and (bits shr 56)).toByte()
-    } else {
-        result[offset + 7] = (0xFFL and (bits shr 0)).toByte()
-        result[offset + 6] = (0xFFL and (bits shr 8)).toByte()
-        result[offset + 5] = (0xFFL and (bits shr 16)).toByte()
-        result[offset + 4] = (0xFFL and (bits shr 24)).toByte()
-        result[offset + 3] = (0xFFL and (bits shr 32)).toByte()
-        result[offset + 2] = (0xFFL and (bits shr 40)).toByte()
-        result[offset + 1] = (0xFFL and (bits shr 48)).toByte()
-        result[offset + 0] = (0xFFL and (bits shr 56)).toByte()
-    }
 }
 
 internal fun RationalNumber.toBytes(byteOrder: ByteOrder): ByteArray {
 
     val result = ByteArray(8)
 
-    this.toBytes(result, 0, byteOrder)
+    writeBytes(result, 0, numerator, 4, byteOrder)
+    writeBytes(result, 4, divisor, 4, byteOrder)
 
     return result
 }
@@ -240,25 +193,8 @@ private fun RationalNumber.toBytes(
     byteOrder: ByteOrder
 ) {
 
-    if (byteOrder == ByteOrder.BIG_ENDIAN) {
-        result[offset + 0] = (numerator shr 24).toByte()
-        result[offset + 1] = (numerator shr 16).toByte()
-        result[offset + 2] = (numerator shr 8).toByte()
-        result[offset + 3] = (numerator shr 0).toByte()
-        result[offset + 4] = (divisor shr 24).toByte()
-        result[offset + 5] = (divisor shr 16).toByte()
-        result[offset + 6] = (divisor shr 8).toByte()
-        result[offset + 7] = (divisor shr 0).toByte()
-    } else {
-        result[offset + 3] = (numerator shr 24).toByte()
-        result[offset + 2] = (numerator shr 16).toByte()
-        result[offset + 1] = (numerator shr 8).toByte()
-        result[offset + 0] = (numerator shr 0).toByte()
-        result[offset + 7] = (divisor shr 24).toByte()
-        result[offset + 6] = (divisor shr 16).toByte()
-        result[offset + 5] = (divisor shr 8).toByte()
-        result[offset + 4] = (divisor shr 0).toByte()
-    }
+    writeBytes(result, offset, numerator, 4, byteOrder)
+    writeBytes(result, offset + 4, divisor, 4, byteOrder)
 }
 
 internal fun ByteArray.toShorts(byteOrder: ByteOrder): ShortArray =
@@ -267,66 +203,20 @@ internal fun ByteArray.toShorts(byteOrder: ByteOrder): ShortArray =
 internal fun ByteArray.toUInt16(byteOrder: ByteOrder): Int =
     toUInt16(0, byteOrder)
 
-internal fun ByteArray.toUInt16(offset: Int, byteOrder: ByteOrder): Int {
-
-    val byte0 = 0xFF and this[offset + 0].toInt()
-    val byte1 = 0xFF and this[offset + 1].toInt()
-
-    return if (byteOrder == ByteOrder.BIG_ENDIAN)
-        byte0 shl 8 or byte1
-    else
-        byte1 shl 8 or byte0
-}
+internal fun ByteArray.toUInt16(offset: Int, byteOrder: ByteOrder): Int =
+    readBytes(this, offset, 2, byteOrder).toInt()
 
 internal fun ByteArray.toInt(byteOrder: ByteOrder): Int =
     this.toInt(0, byteOrder)
 
-internal fun ByteArray.toInt(offset: Int, byteOrder: ByteOrder): Int {
-
-    val byte0 = 0xFF and this[offset + 0].toInt()
-    val byte1 = 0xFF and this[offset + 1].toInt()
-    val byte2 = 0xFF and this[offset + 2].toInt()
-    val byte3 = 0xFF and this[offset + 3].toInt()
-
-    return if (byteOrder == ByteOrder.BIG_ENDIAN)
-        byte0 shl 24 or (byte1 shl 16) or (byte2 shl 8) or byte3
-    else
-        byte3 shl 24 or (byte2 shl 16) or (byte1 shl 8) or byte0
-}
+internal fun ByteArray.toInt(offset: Int, byteOrder: ByteOrder): Int =
+    readBytes(this, offset, 4, byteOrder).toInt()
 
 internal fun ByteArray.toInts(byteOrder: ByteOrder): IntArray =
-    this.toInts(0, size, byteOrder)
+    IntArray(size / 4) { index -> toInt(4 * index, byteOrder) }
 
-private fun ByteArray.toInts(offset: Int, length: Int, byteOrder: ByteOrder): IntArray =
-    IntArray(length / 4) { index -> toInt(offset + 4 * index, byteOrder) }
-
-internal fun ByteArray.toLong(offset: Int, byteOrder: ByteOrder): Long {
-
-    val byte0 = 0xFFL and this[offset + 0].toLong()
-    val byte1 = 0xFFL and this[offset + 1].toLong()
-    val byte2 = 0xFFL and this[offset + 2].toLong()
-    val byte3 = 0xFFL and this[offset + 3].toLong()
-    val byte4 = 0xFFL and this[offset + 4].toLong()
-    val byte5 = 0xFFL and this[offset + 5].toLong()
-    val byte6 = 0xFFL and this[offset + 6].toLong()
-    val byte7 = 0xFFL and this[offset + 7].toLong()
-
-    val bits: Long = if (byteOrder == ByteOrder.BIG_ENDIAN) {
-        (
-            byte0 shl 56 or (byte1 shl 48) or (byte2 shl 40)
-                or (byte3 shl 32) or (byte4 shl 24) or (byte5 shl 16)
-                or (byte6 shl 8) or (byte7 shl 0)
-            )
-    } else {
-        (
-            byte7 shl 56 or (byte6 shl 48) or (byte5 shl 40)
-                or (byte4 shl 32) or (byte3 shl 24) or (byte2 shl 16)
-                or (byte1 shl 8) or (byte0 shl 0)
-            )
-    }
-
-    return bits
-}
+internal fun ByteArray.toLong(offset: Int, byteOrder: ByteOrder): Long =
+    readBytes(this, offset, 8, byteOrder)
 
 internal fun ByteArray.toLongs(byteOrder: ByteOrder): LongArray =
     LongArray(size / 8) { index -> toLong(8 * index, byteOrder) }
@@ -334,54 +224,15 @@ internal fun ByteArray.toLongs(byteOrder: ByteOrder): LongArray =
 private fun ByteArray.toFloat(
     offset: Int,
     byteOrder: ByteOrder
-): Float {
-
-    val byte0 = 0xFF and this[offset + 0].toInt()
-    val byte1 = 0xFF and this[offset + 1].toInt()
-    val byte2 = 0xFF and this[offset + 2].toInt()
-    val byte3 = 0xFF and this[offset + 3].toInt()
-
-    val bits = if (byteOrder == ByteOrder.BIG_ENDIAN)
-        byte0 shl 24 or (byte1 shl 16) or (byte2 shl 8) or (byte3 shl 0)
-    else
-        byte3 shl 24 or (byte2 shl 16) or (byte1 shl 8) or (byte0 shl 0)
-
-    return Float.fromBits(bits)
-}
+): Float = Float.fromBits(readBytes(this, offset, 4, byteOrder).toInt())
 
 internal fun ByteArray.toFloats(byteOrder: ByteOrder): FloatArray =
     FloatArray(size / 4) { index -> toFloat(4 * index, byteOrder) }
 
 private fun ByteArray.toDouble(
-    offset: Int = 0,
+    offset: Int,
     byteOrder: ByteOrder
-): Double {
-
-    val byte0 = 0xFFL and this[offset + 0].toLong()
-    val byte1 = 0xFFL and this[offset + 1].toLong()
-    val byte2 = 0xFFL and this[offset + 2].toLong()
-    val byte3 = 0xFFL and this[offset + 3].toLong()
-    val byte4 = 0xFFL and this[offset + 4].toLong()
-    val byte5 = 0xFFL and this[offset + 5].toLong()
-    val byte6 = 0xFFL and this[offset + 6].toLong()
-    val byte7 = 0xFFL and this[offset + 7].toLong()
-
-    val bits: Long = if (byteOrder == ByteOrder.BIG_ENDIAN) {
-        (
-            byte0 shl 56 or (byte1 shl 48) or (byte2 shl 40)
-                or (byte3 shl 32) or (byte4 shl 24) or (byte5 shl 16)
-                or (byte6 shl 8) or (byte7 shl 0)
-            )
-    } else {
-        (
-            byte7 shl 56 or (byte6 shl 48) or (byte5 shl 40)
-                or (byte4 shl 32) or (byte3 shl 24) or (byte2 shl 16)
-                or (byte1 shl 8) or (byte0 shl 0)
-            )
-    }
-
-    return Double.fromBits(bits)
-}
+): Double = Double.fromBits(readBytes(this, offset, 8, byteOrder))
 
 internal fun ByteArray.toDoubles(byteOrder: ByteOrder): DoubleArray =
     DoubleArray(size / 8) { index -> toDouble(8 * index, byteOrder) }
@@ -390,30 +241,11 @@ private fun ByteArray.toRational(
     offset: Int,
     unsignedType: Boolean,
     byteOrder: ByteOrder
-): RationalNumber {
-
-    val byte0 = 0xFF and this[offset + 0].toInt()
-    val byte1 = 0xFF and this[offset + 1].toInt()
-    val byte2 = 0xFF and this[offset + 2].toInt()
-    val byte3 = 0xFF and this[offset + 3].toInt()
-    val byte4 = 0xFF and this[offset + 4].toInt()
-    val byte5 = 0xFF and this[offset + 5].toInt()
-    val byte6 = 0xFF and this[offset + 6].toInt()
-    val byte7 = 0xFF and this[offset + 7].toInt()
-
-    val numerator: Int
-    val divisor: Int
-
-    if (byteOrder == ByteOrder.BIG_ENDIAN) {
-        numerator = byte0 shl 24 or (byte1 shl 16) or (byte2 shl 8) or byte3
-        divisor = byte4 shl 24 or (byte5 shl 16) or (byte6 shl 8) or byte7
-    } else {
-        numerator = byte3 shl 24 or (byte2 shl 16) or (byte1 shl 8) or byte0
-        divisor = byte7 shl 24 or (byte6 shl 16) or (byte5 shl 8) or byte4
-    }
-
-    return RationalNumber(numerator, divisor, unsignedType)
-}
+): RationalNumber = RationalNumber(
+    numerator = readBytes(this, offset, 4, byteOrder).toInt(),
+    divisor = readBytes(this, offset + 4, 4, byteOrder).toInt(),
+    unsignedType = unsignedType
+)
 
 internal fun ByteArray.toRationals(
     unsignedType: Boolean,
@@ -423,15 +255,3 @@ internal fun ByteArray.toRationals(
         this.toRational(8 * index, unsignedType, byteOrder)
     }
 )
-
-internal fun Int.quadsToByteArray(): ByteArray {
-
-    val bytes = ByteArray(4)
-
-    bytes[0] = (this shr 24).toByte()
-    bytes[1] = (this shr 16).toByte()
-    bytes[2] = (this shr 8).toByte()
-    bytes[3] = toByte()
-
-    return bytes
-}

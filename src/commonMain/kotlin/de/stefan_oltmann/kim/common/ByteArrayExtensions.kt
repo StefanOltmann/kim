@@ -61,30 +61,17 @@ internal fun ByteArray.indexOfNullTerminator(start: Int): Int {
     return -1
 }
 
-internal fun ByteArray.startsWith(bytes: ByteArray): Boolean {
+internal fun ByteArray.startsWith(bytes: ByteArray): Boolean =
+    startsWithNullable(bytes.toList())
 
-    if (bytes.size > size)
-        return false
+internal fun ByteArray.startsWith(bytes: List<Byte>): Boolean =
+    startsWithNullable(bytes)
 
-    for (index in bytes.indices)
-        if (this[index] != bytes[index])
-            return false
-
-    return true
-}
-
-internal fun ByteArray.startsWith(bytes: List<Byte>): Boolean {
-
-    if (bytes.size > size)
-        return false
-
-    for (index in bytes.indices)
-        if (this[index] != bytes[index])
-            return false
-
-    return true
-}
-
+/**
+ * Whether the receiver starts with the given bytes. A NULL element in
+ * [bytes] is a wildcard that matches any byte, which magic numbers like
+ * the WebP one need for their partially defined bytes.
+ */
 internal fun ByteArray.startsWithNullable(bytes: List<Byte?>): Boolean {
 
     if (bytes.size > size)
