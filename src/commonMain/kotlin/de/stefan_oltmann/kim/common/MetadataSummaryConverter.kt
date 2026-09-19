@@ -150,9 +150,8 @@ public object MetadataSummaryConverter {
         /* Extract Fujifilm film simulation from MakerNote */
         val filmSimulation = extractFilmSimulation(mediaMetadata)
 
-        val keywords = xmpMetadata?.keywords?.ifEmpty {
-            extractKeywordsFromIptc(mediaMetadata)
-        } ?: extractKeywordsFromIptc(mediaMetadata)
+        val keywords = xmpMetadata?.keywords?.takeIf { it.isNotEmpty() }
+            ?: extractKeywordsFromIptc(mediaMetadata)
 
         val iptcRecords = mediaMetadata.iptc?.records
 
