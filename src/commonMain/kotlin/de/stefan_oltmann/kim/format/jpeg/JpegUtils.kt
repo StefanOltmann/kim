@@ -76,7 +76,7 @@ internal object JpegUtils {
      * behind the NUL, because those variants occur in files of real
      * cameras.
      */
-    fun findExifHeaderEnd(segmentBytes: ByteArray): Int? {
+    internal fun findExifHeaderEnd(segmentBytes: ByteArray): Int? {
 
         for (prefixLength in 0..MAX_GARBAGE_PREFIX_LENGTH) {
 
@@ -173,7 +173,7 @@ internal object JpegUtils {
      * them per the spec - and buffering arbitrary inter-marker junk is
      * exactly the unbounded growth the scanner must not do.
      */
-    fun readSegments(
+    internal fun readSegments(
         byteReader: ByteReader,
         keepMarker: (Int) -> Boolean = { true }
     ): Pair<List<JFIFPieceSegment>, ByteArray?> {
