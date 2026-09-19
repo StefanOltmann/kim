@@ -80,26 +80,24 @@ public object TiffReader {
      */
     private const val PANASONIC_RAW_TIFF_VERSION: Int = 0x55
 
-    /**
-     * The offset fields of a directory that point to a sub-directory,
-     * mapped to the directory type that sub-directory is read as.
-     */
-    /**
-     * The Exif, GPS and Interop offset fields point to sub-IFDs whose
-     * content is user-visible metadata that must survive updates.
-     */
-    private val metadataBearingOffsetFields = listOf(
-        ExifTag.EXIF_TAG_EXIF_OFFSET,
-        ExifTag.EXIF_TAG_GPSINFO,
-        ExifTag.EXIF_TAG_INTEROP_OFFSET
-    )
-
     private val directoryTypeMap = mapOf(
         ExifTag.EXIF_TAG_EXIF_OFFSET to TiffConstants.TIFF_DIRECTORY_EXIF,
         ExifTag.EXIF_TAG_GPSINFO to TiffConstants.TIFF_DIRECTORY_GPS,
         ExifTag.EXIF_TAG_INTEROP_OFFSET to TiffConstants.TIFF_DIRECTORY_INTEROP,
         ExifTag.EXIF_TAG_SUB_IFDS_OFFSET to TIFF_DIRECTORY_TYPE_IFD1
     )
+
+    /**
+     * The Exif, GPS and Interop offset fields point to sub-IFDs whose
+     * content is user-visible metadata that must survive updates.
+     *
+     * Derived from the [directoryTypeMap], so the strict read policy
+     * for those fields cannot fall out of sync with the sub-IFD
+     * handling: the thumbnail strip offset is the one entry that is
+     * not metadata-bearing.
+     */
+    private val metadataBearingOffsetFields =
+        directoryTypeMap.keys - ExifTag.EXIF_TAG_SUB_IFDS_OFFSET
 
     /**
      * Convenience method for calls with short byte array like
