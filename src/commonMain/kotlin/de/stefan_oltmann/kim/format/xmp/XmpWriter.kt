@@ -29,7 +29,6 @@ import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
 import de.stefan_oltmann.xmp.XmpGps
 import de.stefan_oltmann.xmp.options.SerializeOptions
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.jvm.JvmStatic
 import kotlin.time.Instant
@@ -62,7 +61,7 @@ public object XmpWriter {
 
                 if (update.takenDate != null) {
 
-                    val timeZone = Kim.defaultTimeZone ?: TimeZone.currentSystemDefault()
+                    val timeZone = Kim.effectiveTimeZone
 
                     val isoDate = Instant
                         .fromEpochMilliseconds(update.takenDate)

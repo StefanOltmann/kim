@@ -32,7 +32,6 @@ import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeUndefined
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.model.MetadataUpdate
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.abs
 import kotlin.time.Instant
@@ -178,7 +177,7 @@ public class TiffOutputSet(
 
                 if (update.takenDate != null) {
 
-                    val timeZone = Kim.defaultTimeZone ?: TimeZone.currentSystemDefault()
+                    val timeZone = Kim.effectiveTimeZone
 
                     val exifDateString = Instant
                         .fromEpochMilliseconds(update.takenDate)

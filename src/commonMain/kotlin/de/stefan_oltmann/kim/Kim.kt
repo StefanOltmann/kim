@@ -133,6 +133,14 @@ public object Kim {
      */
     public var defaultTimeZone: TimeZone? = null
 
+    /**
+     * The time zone all date and time conversions use: the explicitly
+     * pinned [defaultTimeZone], or the platform default when none was
+     * set.
+     */
+    internal val effectiveTimeZone: TimeZone
+        get() = defaultTimeZone ?: TimeZone.currentSystemDefault()
+
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
     public fun readMetadata(bytes: ByteArray): MediaMetadata? =
