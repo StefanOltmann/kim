@@ -16,12 +16,17 @@
  */
 package de.stefan_oltmann.kim.format.raf
 
+import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
+import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.jpeg.JpegImageParser
 import de.stefan_oltmann.kim.input.ByteReader
+import de.stefan_oltmann.kim.input.read4BytesAsInt
+import de.stefan_oltmann.kim.input.readAndVerifyBytes
+import de.stefan_oltmann.kim.input.skipBytes
 import de.stefan_oltmann.kim.model.MediaFormat
 
 /**
@@ -43,4 +48,59 @@ public object RafImageParser : ImageParser {
                 .parseMetadata(byteReader)
                 .withMediaFormat(mediaFormat = MediaFormat.RAF)
         }
+
+    /**
+     * Reads the section directory of the RAF header, so callers can locate
+     * the embedded JPEG, the CFA header and the CFA raw data block inside
+     * the file.
+     *
+     * **Attention:** Must be public API as this is used by https://stefan-oltmann.de/exif-viewer
+     */
+    @Throws(ImageReadException::class)
+    public fun readDirectory(byteReader: ByteReader): RafDirectory =
+        tryWithImageReadException {
+
+            with(byteReader) {
+
+                readAndVerifyBytes(
+                    "RAF magic number",
+                    MediaFormatMagicNumbers.raf.toByteArray()
+                )
+
+                skipBytes("68 header bytes", RafEmbeddedJpeg.REMAINING_HEADER_BYTE_COUNT)
+
+                val directory = RafDirectory(
+                    jpegImageOffset = read4BytesAsInt("JPEG image offset", ByteOrder.BIG_ENDIAN).toLong(),
+                    jpegImageLength = read4BytesAsInt("JPEG image length", ByteOrder.BIG_ENDIAN).toLong(),
+                    cfaHeaderOffset = read4BytesAsInt("CFA header offset", ByteOrder.BIG_ENDIAN).toLong(),
+                    cfaHeaderLength = read4BytesAsInt("CFA header length", ByteOrder.BIG_ENDIAN).toLong(),
+                    cfaOffset = read4BytesAsInt("CFA offset", ByteOrder.BIG_ENDIAN).toLong(),
+                    cfaLength = read4BytesAsInt("CFA length", ByteOrder.BIG_ENDIAN).toLong()
+                )
+
+                requireSectionInRange("JPEG image", directory.jpegImageOffset, directory.jpegImageLength, contentLength)
+                requireSectionInRange("CFA header", directory.cfaHeaderOffset, directory.cfaHeaderLength, contentLength)
+                requireSectionInRange("CFA", directory.cfaOffset, directory.cfaLength, contentLength)
+
+                return@tryWithImageReadException directory
+            }
+        }
+}
+
+/**
+ * Rejects a directory entry that cannot point into the file. All three
+ * sections are mandatory parts of the format, so a length of zero is a
+ * defect as well.
+ */
+private fun requireSectionInRange(
+    name: String,
+    offset: Long,
+    length: Long,
+    contentLength: Long
+) {
+
+    if (offset <= 0 || length <= 0 || offset + length > contentLength)
+        throw ImageReadException(
+            "The RAF $name section is out of range: offset $offset, length $length, file size $contentLength."
+        )
 }

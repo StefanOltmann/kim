@@ -35,14 +35,22 @@ import de.stefan_oltmann.kim.model.MediaFormat
 
 /**
  * Parses CR3 as documented on https://github.com/lclevy/canon_cr3
+ *
+ * **Attention:** The structure-reading members must stay public API as
+ * they are used by https://stefan-oltmann.de/exif-viewer
  */
-internal object Cr3Reader {
+public object Cr3Reader {
 
-    const val CR3_EXIF_UUID = "85c0b687820f11e08111f4ce462b6a48"
-    const val CR3_XMP_UUID = "be7acfcb97a942e89c71999491e3afac"
-    const val CR3_PREVIEW_UUID = "eaf42b5e1c984b88b9fbb7dc406e4d16"
+    /** The UUID of the box inside "moov" that holds the CMT metadata boxes. */
+    public const val CR3_EXIF_UUID: String = "85c0b687820f11e08111f4ce462b6a48"
 
-    fun createMetadata(allBoxes: List<Box>): MediaMetadata {
+    /** The UUID of the box that holds the XMP packet. */
+    public const val CR3_XMP_UUID: String = "be7acfcb97a942e89c71999491e3afac"
+
+    /** The UUID of the box that holds the preview JPEG. */
+    public const val CR3_PREVIEW_UUID: String = "eaf42b5e1c984b88b9fbb7dc406e4d16"
+
+    internal fun createMetadata(allBoxes: List<Box>): MediaMetadata {
 
         /*
          * Metadata that exists in the file but cannot be read cleanly fails
@@ -161,7 +169,7 @@ internal object Cr3Reader {
 
     /**
      * Returns the sub-boxes of the Canon metadata UUID box inside the
-     * moov box.
+     * "moov" box, with offsets that are absolute file positions.
      *
      * A CR3 without a moov box or without the EXIF metadata UUID box
      * simply has no EXIF metadata - an empty list is the correct result,
@@ -173,7 +181,7 @@ internal object Cr3Reader {
      * this result, so silently
      * returning only part of the existing metadata would lose data.
      */
-    fun findMetadataSubBoxes(allBoxes: List<Box>): List<Box> {
+    public fun findMetadataSubBoxes(allBoxes: List<Box>): List<Box> {
 
         val moovBox = allBoxes.filterIsInstance<MovieBox>().firstOrNull()
             ?: return emptyList()
