@@ -86,11 +86,10 @@ private fun Uint8Array.toByteArray(): ByteArray =
 @JsNonModule
 private external object Pako {
     fun deflate(data: String): Uint8Array
-    fun inflate(data: Uint8Array): Uint8Array
 
     /**
      * The incremental stream interface. The accumulated output is visible
-     * in [chunks] between pushes, which is what the decompression budget
+     * in [result] between pushes, which is what the decompression budget
      * checks against.
      */
     class Inflate(options: Any = definedExternally) {
