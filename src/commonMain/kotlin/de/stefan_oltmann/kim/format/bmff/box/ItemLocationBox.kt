@@ -99,12 +99,11 @@ public class ItemLocationBox(
         else
             0 // Unused
 
+        /* The version check above limits the field width to 2 or 4 bytes. */
         itemCount = if (version < 2)
             byteReader.read2BytesAsInt("itemCount", BMFF_BYTE_ORDER)
-        else if (version == 2)
-            byteReader.read4BytesAsInt("itemCount", BMFF_BYTE_ORDER)
         else
-            error("Unknown version $version")
+            byteReader.read4BytesAsInt("itemCount", BMFF_BYTE_ORDER)
 
         /*
          * A hostile 32-bit count reads as a negative Int and would turn
@@ -121,10 +120,8 @@ public class ItemLocationBox(
 
             val itemId: Int = if (version < 2)
                 byteReader.read2BytesAsInt("itemId", BMFF_BYTE_ORDER)
-            else if (version == 2)
-                byteReader.read4BytesAsInt("itemId", BMFF_BYTE_ORDER)
             else
-                error("Unknown version $version")
+                byteReader.read4BytesAsInt("itemId", BMFF_BYTE_ORDER)
 
             /*
              * 0 means the offsets are absolute file positions, 1 means
