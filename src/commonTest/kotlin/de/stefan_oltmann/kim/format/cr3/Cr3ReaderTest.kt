@@ -17,10 +17,14 @@ package de.stefan_oltmann.kim.format.cr3
 
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.bmff.BaseMediaFileFormatImageParser
+import de.stefan_oltmann.kim.format.bmff.BoxReader
+import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.box
+import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class Cr3ReaderTest {
 
@@ -110,5 +114,49 @@ class Cr3ReaderTest {
         assertFailsWith<ImageReadException> {
             BaseMediaFileFormatImageParser.parseMetadata(ByteArrayByteReader(bytes))
         }
+    }
+
+    /**
+     * The metadata sub-boxes must carry absolute file positions, so a
+     * caller can map every box back to its bytes inside the CR3 file.
+     */
+    @Test
+    fun testFindMetadataSubBoxesLocatesTheCmtBoxes() {
+
+        val bytes = KimTestData.getBytesOf(KimTestData.CR3_TEST_IMAGE_INDEX)
+
+        val allBoxes = BoxReader.readAllBoxes(ByteArrayByteReader(bytes))
+
+        val subBoxes = Cr3Reader.findMetadataSubBoxes(allBoxes)
+
+        val subBoxTypes = subBoxes.map { it.type }
+
+        assertTrue(
+            BoxType.CMT1 in subBoxTypes && BoxType.CMT2 in subBoxTypes,
+            "Unexpected sub-boxes: $subBoxTypes"
+        )
+
+        for (subBox in subBoxes) {
+
+            assertTrue(
+                subBox.offset > 0 && subBox.offset + subBox.actualLength <= bytes.size,
+                "Sub-box $subBox is not within the file."
+            )
+        }
+
+        /* CMT1 holds IFD0 as a plain TIFF structure. */
+        val cmt1 = subBoxes.first { it.type == BoxType.CMT1 }
+
+        val tiffMagic = cmt1.payload.copyOf(TIFF_MAGIC_LENGTH)
+
+        assertTrue(
+            tiffMagic.contentEquals(byteArrayOf(0x49, 0x49, 0x2A, 0)) ||
+                tiffMagic.contentEquals(byteArrayOf(0x4D, 0x4D, 0, 0x2A)),
+            "CMT1 does not start with a TIFF magic number."
+        )
+    }
+
+    private companion object {
+        const val TIFF_MAGIC_LENGTH = 4
     }
 }
