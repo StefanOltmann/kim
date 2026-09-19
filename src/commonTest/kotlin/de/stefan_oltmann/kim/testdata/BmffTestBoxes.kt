@@ -15,10 +15,12 @@
  */
 package de.stefan_oltmann.kim.testdata
 
+import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.writeInt
+import de.stefan_oltmann.kim.output.write2BytesAsInt
 
 /**
  * Builds ISOBMFF test boxes, so the container tests assemble synthetic
@@ -65,5 +67,89 @@ internal object BmffTestBoxes {
         byteWriter.writeInt(payload.size + 8, BMFFConstants.BMFF_BYTE_ORDER)
         byteWriter.write(type)
         byteWriter.write(payload)
+    }
+
+    /**
+     * Builds a hdlr box - the mandatory child of a meta box, or part of
+     * a media box for the "vide" handler. The name is empty unless
+     * given.
+     */
+    fun hdlrBox(
+        name: String = "",
+        handlerType: String = "pict"
+    ): ByteArray {
+
+        val payload = ByteArrayByteWriter()
+
+        payload.write(byteArrayOf(0, 0, 0, 0)) /* Version & flags */
+        payload.write(byteArrayOf(0, 0, 0, 0)) /* Pre-defined */
+        payload.write(handlerType.encodeToByteArray()) /* Handler type */
+        payload.write(ByteArray(12)) /* Reserved */
+        payload.write(name.encodeToByteArray())
+        payload.write(0) /* Name terminator */
+
+        return box(BoxType.HDLR, payload.toByteArray())
+    }
+
+    /** Builds a pitm box of version 0 with the given 2-byte item id. */
+    fun pitmBox(itemId: Int): ByteArray {
+
+        val payload = ByteArrayByteWriter()
+
+        payload.write(byteArrayOf(0, 0, 0, 0)) /* Version & flags */
+        payload.write2BytesAsInt(itemId, BMFFConstants.BMFF_BYTE_ORDER)
+
+        return box(BoxType.PITM, payload.toByteArray())
+    }
+
+    /**
+     * One item declaration for the [iinfBox] builder. The infe entry is
+     * always version 2 with an empty item name - the only form the
+     * parser supports.
+     */
+    data class InfeEntry(
+        val itemId: Int,
+        val itemType: Int
+    )
+
+    /**
+     * Builds an iinf box of the given version with one version-2 infe
+     * box per entry. Version 0 writes a 2-byte entry count, every other
+     * version the 4-byte one.
+     */
+    fun iinfBox(
+        version: Int = 0,
+        entries: List<InfeEntry>
+    ): ByteArray {
+
+        val payload = ByteArrayByteWriter()
+
+        payload.write(version)
+        payload.write(byteArrayOf(0, 0, 0)) /* Flags */
+
+        if (version == 0)
+            payload.write2BytesAsInt(entries.size, BMFFConstants.BMFF_BYTE_ORDER)
+        else
+            payload.writeInt(entries.size, BMFFConstants.BMFF_BYTE_ORDER)
+
+        for (entry in entries) {
+
+            val infePayload = ByteArrayByteWriter()
+
+            infePayload.write(2) /* The only supported infe version. */
+            infePayload.write(byteArrayOf(0, 0, 0)) /* Flags */
+            infePayload.write2BytesAsInt(entry.itemId, BMFFConstants.BMFF_BYTE_ORDER)
+            infePayload.write2BytesAsInt(0, BMFFConstants.BMFF_BYTE_ORDER) /* Item protection index */
+            infePayload.writeInt(entry.itemType, BMFFConstants.BMFF_BYTE_ORDER)
+            infePayload.write(0) /* Empty item name */
+
+            writeBox(payload, BoxType.INFE, infePayload.toByteArray())
+        }
+
+        val bytes = ByteArrayByteWriter()
+
+        writeBox(bytes, BoxType.IINF, payload.toByteArray())
+
+        return bytes.toByteArray()
     }
 }

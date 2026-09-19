@@ -20,7 +20,11 @@ import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.ITEM_TYPE_MIME
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.testdata.BmffTestBoxes
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.box
+import de.stefan_oltmann.kim.testdata.BmffTestBoxes.hdlrBox
+import de.stefan_oltmann.kim.testdata.BmffTestBoxes.iinfBox
+import de.stefan_oltmann.kim.testdata.BmffTestBoxes.pitmBox
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.write2BytesAsInt
 import de.stefan_oltmann.kim.output.writeInt
@@ -57,7 +61,7 @@ class BaseMediaFileFormatImageParserTest {
 
         val meta = box(
             BoxType.META,
-            byteArrayOf(0, 0, 0, 0) + createHdlrBox() + iinf
+            byteArrayOf(0, 0, 0, 0) + hdlrBox() + iinf
         )
 
         val file = box(
@@ -92,10 +96,10 @@ class BaseMediaFileFormatImageParserTest {
          * placeholder build determines the file layout before the real
          * extent offsets are known.
          */
-        val hdlrBox = createHdlrBox()
-        val pitmBox = createPitmBox(itemId = 1)
-        val iinfBox = createIinfBox(
-            entries = listOf(ItemSpec(itemId = 1, itemType = BMFFConstants.ITEM_TYPE_EXIF))
+        val hdlr = hdlrBox()
+        val pitm = pitmBox(itemId = 1)
+        val iinf = iinfBox(
+            entries = listOf(BmffTestBoxes.InfeEntry(itemId = 1, itemType = BMFFConstants.ITEM_TYPE_EXIF))
         )
         val ilocPlaceholder =
             box(
@@ -112,7 +116,7 @@ class BaseMediaFileFormatImageParserTest {
             box(BoxType.FTYP, "heic\u0000\u0000\u0000\u0000mif1".encodeToByteArray())
 
         val metaPayloadSize =
-            VERSION_AND_FLAGS_SIZE + hdlrBox.size + pitmBox.size + iinfBox.size +
+            VERSION_AND_FLAGS_SIZE + hdlr.size + pitm.size + iinf.size +
                 ilocPlaceholder.size
 
         val mdatDataOffset: Long =
@@ -136,7 +140,7 @@ class BaseMediaFileFormatImageParserTest {
 
         val metaBox = box(
             type = BoxType.META,
-            payload = byteArrayOf(0, 0, 0, 0) + hdlrBox + pitmBox + iinfBox + ilocBox
+            payload = byteArrayOf(0, 0, 0, 0) + hdlr + pitm + iinf + ilocBox
         )
 
         /* The mdat payload carries both extents back to back. */
@@ -303,9 +307,9 @@ class BaseMediaFileFormatImageParserTest {
         val metaBox = box(
             type = BoxType.META,
             payload = byteArrayOf(0, 0, 0, 0) +
-                createHdlrBox() +
-                createPitmBox(itemId = 1) +
-                createIinfBox(entries = emptyList()) +
+                hdlrBox() +
+                pitmBox(itemId = 1) +
+                iinfBox(entries = emptyList()) +
                 box(BoxType.ILOC, createIlocPayloadForItems(items = emptyList()))
         )
 
@@ -395,9 +399,11 @@ class BaseMediaFileFormatImageParserTest {
         buildParts: (mdatDataOffset: Long) -> Pair<ByteArray, ByteArray>
     ): ByteArray {
 
-        val hdlrBox = createHdlrBox()
-        val pitmBox = createPitmBox(itemId = 1)
-        val iinfBox = createIinfBox(entries = iinfEntries)
+        val hdlr = hdlrBox()
+        val pitm = pitmBox(itemId = 1)
+        val iinf = iinfBox(
+            entries = iinfEntries.map { BmffTestBoxes.InfeEntry(it.itemId, it.itemType) }
+        )
 
         /*
          * A first pass with a placeholder offset determines the final
@@ -412,7 +418,7 @@ class BaseMediaFileFormatImageParserTest {
 
         val metaBox = box(
             type = BoxType.META,
-            payload = byteArrayOf(0, 0, 0, 0) + hdlrBox + pitmBox + iinfBox + placeholderIloc
+            payload = byteArrayOf(0, 0, 0, 0) + hdlr + pitm + iinf + placeholderIloc
         )
 
         val mdatDataOffset: Long =
@@ -422,62 +428,12 @@ class BaseMediaFileFormatImageParserTest {
 
         val realMetaBox = box(
             type = BoxType.META,
-            payload = byteArrayOf(0, 0, 0, 0) + hdlrBox + pitmBox + iinfBox + ilocBox
+            payload = byteArrayOf(0, 0, 0, 0) + hdlr + pitm + iinf + ilocBox
         )
 
         val mdatBox = box(type = BoxType.MDAT, payload = mdatPayload)
 
         return ftypBox + realMetaBox + mdatBox
-    }
-
-
-    private fun createHdlrBox(): ByteArray {
-
-        val payload = ByteArrayByteWriter()
-
-        payload.write(byteArrayOf(0, 0, 0, 0)) /* Version & flags */
-        payload.write(byteArrayOf(0, 0, 0, 0)) /* Pre-defined */
-        payload.write("pict".encodeToByteArray()) /* Handler type */
-        payload.write(ByteArray(12)) /* Reserved */
-        payload.write(0) /* Empty name terminator */
-
-        return box(BoxType.HDLR, payload.toByteArray())
-    }
-
-    private fun createPitmBox(itemId: Int): ByteArray {
-
-        val payload = ByteArrayByteWriter()
-
-        payload.write(byteArrayOf(0, 0, 0, 0)) /* Version & flags */
-        payload.write2BytesAsInt(itemId, BMFF_BYTE_ORDER)
-
-        return box(BoxType.PITM, payload.toByteArray())
-    }
-
-    /**
-     * Builds an iinf box (version 0) with one infe entry per given item.
-     */
-    private fun createIinfBox(entries: List<ItemSpec>): ByteArray {
-
-        val entryBoxes = entries.map { entry ->
-
-            val entryPayload = ByteArrayByteWriter()
-
-            entryPayload.write(2) /* The only supported infe version. */
-            entryPayload.write(byteArrayOf(0, 0, 0)) /* Flags */
-            entryPayload.write2BytesAsInt(entry.itemId, BMFF_BYTE_ORDER) /* Item id */
-            entryPayload.write2BytesAsInt(0, BMFF_BYTE_ORDER) /* Item protection index */
-            entryPayload.writeInt(entry.itemType, BMFF_BYTE_ORDER) /* Item type */
-            entryPayload.write(0) /* Empty item name */
-
-            box(BoxType.INFE, entryPayload.toByteArray())
-        }
-
-        return box(
-            BoxType.IINF,
-            byteArrayOf(0, 0, 0, 0) + byteArrayOf(0, entries.size.toByte()) +
-                entryBoxes.fold(byteArrayOf()) { a, b -> a + b }
-        )
     }
 
     private companion object {
