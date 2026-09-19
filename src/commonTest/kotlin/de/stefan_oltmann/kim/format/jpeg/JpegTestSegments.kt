@@ -34,3 +34,23 @@ internal fun writeSegment(
     byteWriter.write(byteArrayOf((length ushr 8).toByte(), length.toByte()))
     byteWriter.write(payload)
 }
+
+/**
+ * Builds a minimal JPEG with SOI, one minimal scan and no header
+ * segments, used as the base image for rewriter tests. Every
+ * entropy-coded byte stays below 0x80, so none can be mistaken for a
+ * marker.
+ */
+internal fun bareJpeg(): ByteArray {
+
+    val bytes = ByteArrayByteWriter()
+
+    bytes.write(byteArrayOf(0xFF.toByte(), 0xD8.toByte())) /* SOI */
+
+    /* SOS with minimal scan data. */
+    bytes.write(byteArrayOf(0xFF.toByte(), 0xDA.toByte(), 0, 8, 1, 1, 0, 0, 63.toByte(), 0))
+    bytes.write(byteArrayOf(0x11, 0x22, 0x33, 0x44))
+    bytes.write(byteArrayOf(0xFF.toByte(), 0xD9.toByte())) /* EOI */
+
+    return bytes.toByteArray()
+}
