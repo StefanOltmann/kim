@@ -19,9 +19,16 @@ package de.stefan_oltmann.kim.format.bmff
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 
+/**
+ * A byte reader that retains a copy of every consumed byte, so
+ * already-read regions stay accessible on forward-only streams.
+ *
+ * Boxes parsed from it must not additionally buffer large payloads
+ * themselves, or the data ends up in memory twice.
+ */
 internal class CopyByteReader(
     val byteReader: ByteReader
-) : ByteReader, SelfRetainingByteReader {
+) : ByteReader {
 
     private val byteWriter = ByteArrayByteWriter()
 
