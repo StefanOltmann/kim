@@ -32,7 +32,6 @@ import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
-import de.stefan_oltmann.xmp.XMPMetaFactory
 
 internal object JxlUpdater : MetadataUpdater {
 
@@ -47,20 +46,18 @@ internal object JxlUpdater : MetadataUpdater {
 
             val metadata = JxlReader.createMetadata(boxes)
 
+            val updatedXmp = XmpWriter.updateXmp(metadata.xmp, updates, true)
+
             /*
              * Only rewrite the xml box when the updates actually changed
-             * the XMP content. A parse → apply → serialize round-trip on
+             * the XMP content: a parse → apply → serialize round-trip on
              * unchanged data produces identical output (the serializer is
-             * deterministic), so a string comparison is sufficient.
+             * deterministic), so the string comparison is sufficient.
+             * Writing a fresh packet instead would drop every field the
+             * update did not touch.
              */
-            val updatedXmp: String = metadata.xmp?.let { original ->
-                val xmpMeta = XMPMetaFactory.parseFromString(original)
-                val updated = XmpWriter.updateXmp(xmpMeta, updates, true)
-                if (updated == original) null else updated
-            } ?: run {
-                val xmpMeta = XMPMetaFactory.create()
-                XmpWriter.updateXmp(xmpMeta, updates, true)
-            }
+            val changedXmp: String? =
+                if (metadata.xmp != null && updatedXmp == metadata.xmp) null else updatedXmp
 
             val exifBytes = metadata.updatedExifBytes(updates)
 
@@ -68,7 +65,7 @@ internal object JxlUpdater : MetadataUpdater {
                 boxes = boxes,
                 byteWriter = outputWriter,
                 exifBytes = exifBytes,
-                xmp = updatedXmp
+                xmp = changedXmp
             )
         }
     }

@@ -34,6 +34,7 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class JxlUpdaterTest : AbstractUpdaterTest("jxl") {
@@ -181,6 +182,39 @@ class JxlUpdaterTest : AbstractUpdaterTest("jxl") {
         )
 
         assertContentEquals(firstUpdate, secondUpdate)
+    }
+
+    /**
+     * Regression test: an update whose XMP round-trip is unchanged must
+     * keep the original xml box untouched. Writing a fresh packet instead
+     * dropped every field the update did not touch.
+     */
+    @Test
+    fun testRepeatedUpdateKeepsOtherXmpFields() {
+
+        /* First update writes a Kim-serialized packet with both fields. */
+        val firstUpdate = Kim.update(
+            bytes = createJxlpFileWithTrailingMetadata(),
+            updates = setOf(
+                MetadataUpdate.Title("stable"),
+                MetadataUpdate.Description("kept")
+            )
+        )
+
+        /* Re-applying only the title must preserve the description. */
+        val secondUpdate = Kim.update(
+            bytes = firstUpdate,
+            update = MetadataUpdate.Title("stable")
+        )
+
+        val xmp = Kim.readMetadata(secondUpdate)?.xmp
+
+        assertNotNull(xmp)
+
+        assertTrue(
+            xmp.contains("kept"),
+            "The description was dropped from the XMP: $xmp"
+        )
     }
 
     /**
