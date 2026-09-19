@@ -99,9 +99,7 @@ public object JpegImageParser : ImageParser {
 
             val remainingByteCount = byteReader.contentLength - readBytesCount
 
-            /* A zero content length is an empty segment, which is spec-legal. */
-            if (segmentLength !in 0..remainingByteCount)
-                throw ImageReadException("Illegal JPEG segment length: $segmentLength")
+            JpegUtils.validateSegmentContentLength(segmentLength, remainingByteCount)
 
             /* We are only looking for a SOF segment. */
             if (!JpegConstants.SOFN_MARKERS.contains(scan.marker)) {
