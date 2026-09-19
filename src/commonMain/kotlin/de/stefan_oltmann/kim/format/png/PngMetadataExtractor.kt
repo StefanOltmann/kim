@@ -147,58 +147,6 @@ public object PngMetadataExtractor : MetadataExtractor {
         return@tryWithImageReadException bytes.toByteArray()
     }
 
-    internal fun extractExifBytes(reader: ByteReader): ByteArray? {
-
-        val bytes = mutableListOf<Byte>()
-
-        val magicNumberBytes = reader.readBytes(MediaFormatMagicNumbers.png.size).toList()
-
-        /* Ensure it's actually a PNG. */
-        require(magicNumberBytes == MediaFormatMagicNumbers.png) {
-            "PNG magic number mismatch: ${magicNumberBytes.toSingleNumberHexes()}"
-        }
-
-        bytes.addAll(magicNumberBytes)
-
-        /*
-         * A chunk has this structure:
-         *
-         * 4 bytes - length of chunk data (unsigned, but always within 31 bytes)
-         * 4 bytes - chunk type, ASCII representation like "IHDR" or "IEND"
-         * * bytes - chunk data, variable length (see first 4 bytes)
-         * 4 bytes - CRC calculated from type and data
-         *
-         * Even the file start and end markers are chunks.
-         */
-        while (true) {
-
-            val chunkDataLength = reader.readBytes(INT32_BYTE_SIZE).toInt(0, PngConstants.PNG_BYTE_ORDER)
-
-            /* If the number is negative we have an integer overflow. */
-            if (chunkDataLength < 0)
-                throw ImageReadException("PNG chunk length exceeds maximum")
-
-            val chunkTypeBytes = reader.readBytes(INT32_BYTE_SIZE)
-
-            val chunkType = PngChunkType.of(chunkTypeBytes)
-
-            /* Break if we reached the image data or end marker. */
-            if (chunkType == PngChunkType.IDAT || chunkType == PngChunkType.IEND)
-                return null
-
-            val chunkBytes = reader.readBytes(chunkDataLength)
-
-            if (chunkType == PngChunkType.EXIF)
-                return chunkBytes
-
-            /* The compressed variant is reported as the TIFF bytes it holds. */
-            if (chunkType == PngChunkType.ZXIF)
-                return PngChunkExif.prepareTiffBytes(chunkBytes)
-
-            reader.readBytes(INT32_BYTE_SIZE)
-        }
-    }
-
     private fun ByteReader.readAndAddBytes(
         byteList: MutableList<Byte>,
         count: Int

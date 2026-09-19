@@ -18,6 +18,7 @@ package de.stefan_oltmann.kim.format.png
 
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.toSingleNumberHexes
+import de.stefan_oltmann.kim.format.png.chunk.PngChunkExif
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
@@ -85,7 +86,11 @@ class PngMetadataExtractorTest {
 
             val byteReader = ByteArrayByteReader(bytes)
 
-            val actualExifBytes = PngMetadataExtractor.extractExifBytes(byteReader)
+            val chunks = PngImageParser.readChunks(byteReader, chunkTypeFilter = null)
+
+            val exifChunk = chunks.filterIsInstance<PngChunkExif>().firstOrNull()
+
+            val actualExifBytes = exifChunk?.bytes
 
             val expectedExifBytes = KimTestData.getHeaderExifBytesOf(index)
 
