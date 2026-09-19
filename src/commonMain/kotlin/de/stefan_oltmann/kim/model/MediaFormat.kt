@@ -82,41 +82,13 @@ public enum class MediaFormat(
 
         private val allMediaFormats = MediaFormat.entries
 
-        public val allFileNameExtensions: Set<String> = computeAllFileNameExtensions()
-
-        /*
-         * OneDrive reports RAW files under wrong mime types
-         */
-        private const val CR2_ONEDRIVE_MIME_TYPE = "image/CR2"
-        private const val CR3_ONEDRIVE_MIME_TYPE = "image/CR3"
-        private const val RAF_ONEDRIVE_MIME_TYPE = "image/RAF"
-        private const val NEF_ONEDRIVE_MIME_TYPE = "image/NEF"
-        private const val ARW_ONEDRIVE_MIME_TYPE = "image/ARW"
-        private const val RW2_ONEDRIVE_MIME_TYPE = "image/RW2"
-        private const val ORF_ONEDRIVE_MIME_TYPE = "image/ORF"
-        private const val DNG_ONEDRIVE_MIME_TYPE = "image/DNG"
-
-        private fun computeAllFileNameExtensions(): MutableSet<String> {
-
-            val fileNameExtensions = mutableSetOf<String>()
-
-            for (fileType in allMediaFormats)
-                for (extension in fileType.fileNameExtensions)
-                    fileNameExtensions.add(extension)
-
-            return fileNameExtensions
-        }
+        public val allFileNameExtensions: Set<String> =
+            allMediaFormats.flatMapTo(mutableSetOf()) { it.fileNameExtensions }
 
         /** Whether the file name ends with an extension any known format uses. */
         @JvmStatic
-        public fun hasValidFileNameExtension(fileName: String): Boolean {
-
-            for (extension in allFileNameExtensions)
-                if (fileName.endsWith(".$extension", ignoreCase = true))
-                    return true
-
-            return false
-        }
+        public fun hasValidFileNameExtension(fileName: String): Boolean =
+            byFileNameExtension(fileName) != null
 
         /**
          * Resolves the format by its IANA media type, case-insensitive.
@@ -131,16 +103,13 @@ public enum class MediaFormat(
                 if (mimeType.contentEquals(fileType.mimeType, ignoreCase = true))
                     return fileType
 
-            return when (mimeType) {
-                CR2_ONEDRIVE_MIME_TYPE -> CR2
-                CR3_ONEDRIVE_MIME_TYPE -> CR3
-                RAF_ONEDRIVE_MIME_TYPE -> RAF
-                NEF_ONEDRIVE_MIME_TYPE -> NEF
-                ARW_ONEDRIVE_MIME_TYPE -> ARW
-                RW2_ONEDRIVE_MIME_TYPE -> RW2
-                ORF_ONEDRIVE_MIME_TYPE -> ORF
-                DNG_ONEDRIVE_MIME_TYPE -> DNG
-                else -> null
+            /*
+             * OneDrive reports every format with a preview image under
+             * "image/<FORMAT NAME>", so those formats are matched by
+             * name as a last resort.
+             */
+            return allMediaFormats.firstOrNull { format ->
+                format.hasPreview() && mimeType.equals("image/${format.name}", ignoreCase = true)
             }
         }
 
