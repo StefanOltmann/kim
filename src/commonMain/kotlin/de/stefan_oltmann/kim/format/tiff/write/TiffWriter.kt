@@ -88,6 +88,22 @@ public class TiffWriter(
 
         var makerNotePending = makerNoteItem != null
 
+        /*
+         * Keep the MakerNote at its original offset at all costs. Some
+         * MakerNotes store absolute offsets inside their data - a moved
+         * MakerNote means corrupted vendor data. If the original offset
+         * can no longer be honored, fail the write instead of writing a
+         * corrupt file.
+         */
+        fun requireMakerNotePlaceable(anchor: Int, currentOffset: Int) {
+            if (currentOffset > anchor)
+                throw ImageWriteException(
+                    "The MakerNote would have to move from 0x" +
+                        anchor.toString(HEX_RADIX) + " to 0x" + currentOffset.toString(HEX_RADIX) +
+                        "; rewriting would corrupt vendor-specific offsets."
+                )
+        }
+
         var offset: Int = TIFF_HEADER_SIZE
 
         for (outputItem in outputItems) {
@@ -96,23 +112,10 @@ public class TiffWriter(
 
                 if (makerNotePending) {
 
-                    /*
-                     * Keep the MakerNote at its original offset at all
-                     * costs. Some MakerNotes store absolute offsets inside
-                     * their data - a moved MakerNote means corrupted
-                     * vendor data. If the original offset can no longer
-                     * be honored, fail the write instead of writing a
-                     * corrupt file.
-                     */
-                    if (makerNoteAnchor > offset) {
+                    if (makerNoteAnchor > offset)
                         offset = makerNoteAnchor
-                    } else if (offset > makerNoteAnchor) {
-                        throw ImageWriteException(
-                            "The MakerNote would have to move from 0x" +
-                                makerNoteAnchor.toString(HEX_RADIX) + " to 0x" + offset.toString(HEX_RADIX) +
-                                "; rewriting would corrupt vendor-specific offsets."
-                        )
-                    }
+
+                    requireMakerNotePlaceable(makerNoteAnchor, offset)
 
                     /*
                      * The offset is assigned here, so a MakerNote that is
@@ -140,12 +143,7 @@ public class TiffWriter(
 
             if (overlapsMakerNoteRegion && makerNoteItem != null) {
 
-                if (offset > makerNoteAnchor)
-                    throw ImageWriteException(
-                        "The MakerNote would have to move from 0x" +
-                            makerNoteAnchor.toString(HEX_RADIX) + " to 0x" + offset.toString(HEX_RADIX) +
-                            "; rewriting would corrupt vendor-specific offsets."
-                    )
+                requireMakerNotePlaceable(makerNoteAnchor, offset)
 
                 makerNoteItem.offset = makerNoteAnchor
 
