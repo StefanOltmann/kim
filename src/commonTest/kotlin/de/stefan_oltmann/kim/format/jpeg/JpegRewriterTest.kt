@@ -1024,31 +1024,6 @@ class JpegRewriterTest {
             delegate.toByteArray()
     }
 
-    private fun ByteArray.countOccurrences(needle: String): Int {
-
-        val needleBytes = needle.encodeToByteArray()
-
-        var count = 0
-
-        for (index in 0..size - needleBytes.size) {
-
-            var matches = true
-
-            for (needleIndex in needleBytes.indices)
-                if (this[index + needleIndex] != needleBytes[needleIndex]) {
-
-                    matches = false
-
-                    break
-                }
-
-            if (matches)
-                count++
-        }
-
-        return count
-    }
-
     companion object {
 
         private const val LARGE_XMP_KEYWORD_COUNT = 4000
