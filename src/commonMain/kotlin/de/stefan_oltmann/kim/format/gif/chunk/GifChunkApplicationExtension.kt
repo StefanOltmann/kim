@@ -32,11 +32,7 @@ public class GifChunkApplicationExtension(
     private val subChunks: List<ByteArray>
 ) : GifChunk(
     GifChunkType.APPLICATION_EXTENSION,
-    subChunks
-        .fold(header) { acc, subChunk ->
-            acc + subChunk
-        }
-        .plus(0x00)
+    joinGifSubChunks(header, subChunks)
 ) {
 
     /** The 8-byte identifier that names the application, or NULL when the extension is too short to carry one. */

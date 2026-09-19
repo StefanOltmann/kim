@@ -32,6 +32,7 @@ import de.stefan_oltmann.kim.format.gif.chunk.GifChunkImageDescriptor
 import de.stefan_oltmann.kim.format.gif.chunk.GifChunkLogicalScreenDescriptor
 import de.stefan_oltmann.kim.format.gif.chunk.GifChunkPlainTextExtension
 import de.stefan_oltmann.kim.format.gif.chunk.GifChunkTerminator
+import de.stefan_oltmann.kim.format.gif.chunk.joinGifSubChunks
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.readByte
 import de.stefan_oltmann.kim.input.readByteAsInt
@@ -372,17 +373,13 @@ public object GifImageParser : ImageParser {
 
                 if (keepChunk(chunkTypeFilter, GifChunkType.UNKNOWN_EXTENSION)) {
 
-                    val bytes = mutableListOf<Byte>()
-
-                    bytes.add(GifConstants.EXTENSION_INTRODUCER)
-                    bytes.add(extensionLabel)
-
-                    for (subChunk in subChunks)
-                        bytes.addAll(subChunk.toList())
-
-                    bytes.add(GifConstants.BLOCK_TERMINATOR)
-
-                    GifChunk(GifChunkType.UNKNOWN_EXTENSION, bytes.toByteArray())
+                    GifChunk(
+                        GifChunkType.UNKNOWN_EXTENSION,
+                        joinGifSubChunks(
+                            byteArrayOf(GifConstants.EXTENSION_INTRODUCER, extensionLabel),
+                            subChunks
+                        )
+                    )
                 } else {
                     null
                 }

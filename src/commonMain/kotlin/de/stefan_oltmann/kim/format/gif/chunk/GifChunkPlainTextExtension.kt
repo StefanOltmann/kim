@@ -27,9 +27,5 @@ public class GifChunkPlainTextExtension(
     subChunks: List<ByteArray>
 ) : GifChunk(
     GifChunkType.PLAIN_TEXT_EXTENSION,
-    subChunks
-        .fold(header) { acc, subChunk ->
-            acc + subChunk
-        }
-        .plus(0x00)
+    joinGifSubChunks(header, subChunks)
 )
