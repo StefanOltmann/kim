@@ -29,9 +29,7 @@ import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPiece
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
-
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
-import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.copyRemainingTo
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
@@ -111,7 +109,7 @@ public object JpegRewriter {
      * Returns the payload of the new EXIF APP1 segment for the given output set.
      */
     private fun createExifSegmentBytes(outputSet: TiffOutputSet): ByteArray =
-        writeExifSegment(TiffWriter(outputSet.byteOrder), outputSet)
+        JpegConstants.EXIF_IDENTIFIER_CODE + outputSet.toTiffBytes()
 
     /**
      * Removes the first EXIF block (its own segments plus every
@@ -190,10 +188,9 @@ public object JpegRewriter {
         if (jfifIndex != -1)
             index = jfifIndex + 1
 
-        newSegments.add(
-            index,
-            JFIFPieceSegment(JpegConstants.JPEG_APP1_MARKER, markerBytes, markerLengthBytes, newBytes)
-        )
+        val exifSegment = JFIFPieceSegment(JpegConstants.JPEG_APP1_MARKER, markerBytes, markerLengthBytes, newBytes)
+
+        newSegments.add(index, exifSegment)
 
         return newSegments
     }
@@ -207,21 +204,6 @@ public object JpegRewriter {
 
         for (piece in segments)
             piece.write(byteWriter)
-    }
-
-    private fun writeExifSegment(
-        writer: TiffWriter,
-        outputSet: TiffOutputSet
-    ): ByteArray {
-
-        val byteWriter = ByteArrayByteWriter()
-
-        /* Write prefix */
-        byteWriter.write(JpegConstants.EXIF_IDENTIFIER_CODE)
-
-        writer.write(byteWriter, outputSet)
-
-        return byteWriter.toByteArray()
     }
 
     /**
