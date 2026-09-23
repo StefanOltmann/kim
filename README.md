@@ -13,9 +13,8 @@
 Kim is a Kotlin Multiplatform library for reading and writing image metadata.
 
 This lib is used in production by my online [EXIF Viewer](https://stefan-oltmann.de/exif-viewer),
-[Thumbnail Fixer Pro](https://apps.microsoft.com/detail/9p9hdfltk63l),
-[Quick Metadata Remover](https://apps.microsoft.com/detail/9ngnvr157ztg)
-and [PixelSafe](https://github.com/StefanOltmann/pixelsafe).
+[Thumbnail Fixer Pro](https://apps.microsoft.com/detail/9p9hdfltk63l), and
+[Quick Metadata Remover](https://apps.microsoft.com/detail/9ngnvr157ztg).
 
 ## Features
 
@@ -182,7 +181,7 @@ OutputStreamByteWriter(outputFile.outputStream()).use { outputStreamByteWriter -
 
 See the [example project](examples/kim-kotlin-jvm-sample/src/main/kotlin/Main.kt) for more details.
 
-### Update metadata using Kim.update () API
+### Update metadata using Kim.update() API
 
 `Kim.update()` applies the given updates to all formats that can represent them, so EXIF, IPTC and
 XMP are updated simultaneously in one call. The metadata storages duplicate the same logical values.
@@ -312,7 +311,7 @@ staged.delete()
 Apps that need crash-safe semantics (backups, restore, atomic replacement) implement them on top
 of these building blocks - KIM stays out of the storage policy.
 
-### Update thumbnail using Kim.updateThumbnail () API
+### Update thumbnail using Kim.updateThumbnail() API
 
 ```kotlin
 val bytes: ByteArray = loadBytes()
