@@ -16,7 +16,6 @@
 package de.stefan_oltmann.kim.input
 
 import de.stefan_oltmann.kim.Kim
-import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
