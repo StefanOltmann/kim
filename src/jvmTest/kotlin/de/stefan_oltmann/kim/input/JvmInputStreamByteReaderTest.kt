@@ -15,6 +15,11 @@
  */
 package de.stefan_oltmann.kim.input
 
+import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
+import de.stefan_oltmann.kim.model.MetadataUpdate
+import de.stefan_oltmann.kim.model.TiffOrientation
+import de.stefan_oltmann.kim.output.OutputStreamByteWriter
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.atomic.AtomicBoolean
@@ -95,5 +100,98 @@ class JvmInputStreamByteReaderTest {
         assertContentEquals(byteArrayOf(1, 2, 3, 4), outputStream.toByteArray())
 
         writer.close()
+    }
+
+    /**
+     * A non-positive content length hint means the size is unknown - a
+     * provider that does not report a size commonly delivers zero. The
+     * reader must report such hints as unbounded, so parsers treat the
+     * stream end as the only truncation evidence instead of rejecting
+     * valid content as truncated.
+     */
+    @Test
+    fun testNonPositiveContentLengthHintReportsUnbounded() {
+
+        assertEquals(
+            Long.MAX_VALUE,
+            JvmInputStreamByteReader(ByteArrayInputStream(byteArrayOf(1)), contentLength = 0)
+                .contentLength
+        )
+
+        assertEquals(
+            Long.MAX_VALUE,
+            JvmInputStreamByteReader(ByteArrayInputStream(byteArrayOf(1)), contentLength = -1)
+                .contentLength
+        )
+
+        /* A trustworthy hint passes through unchanged. */
+        assertEquals(
+            2,
+            JvmInputStreamByteReader(ByteArrayInputStream(byteArrayOf(1, 2)), contentLength = 2)
+                .contentLength
+        )
+    }
+
+    /**
+     * A streamed rewrite of a valid photo whose reader reports an unknown
+     * size (hint 0) must succeed - the stream end decides, never the
+     * missing hint.
+     */
+    @Test
+    fun testStreamingUpdateWithUnknownContentLengthSucceeds() {
+
+        val source = ByteArrayInputStream(minimalJpegWithApp0Segment())
+
+        val output = ByteArrayOutputStream()
+
+        Kim.update(
+            byteReader = JvmInputStreamByteReader(source, contentLength = 0),
+            byteWriter = OutputStreamByteWriter(output),
+            updates = setOf(MetadataUpdate.Orientation(TiffOrientation.ROTATE_LEFT))
+        )
+
+        val metadata = Kim.readMetadata(output.toByteArray())
+
+        assertEquals(
+            TiffOrientation.ROTATE_LEFT,
+            TiffOrientation.of(metadata?.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)?.toInt())
+        )
+    }
+
+    /**
+     * Builds a minimal JPEG with a JFIF APP0 segment in front of the SOS
+     * marker and entropy-coded image data whose bytes stay below 0x80, so
+     * no image byte can be mistaken for a marker.
+     */
+    @Suppress("MagicNumber")
+    private fun minimalJpegWithApp0Segment(): ByteArray {
+
+        val imageDataSize = 4096
+
+        val writer = de.stefan_oltmann.kim.output.ByteArrayByteWriter()
+
+        writer.write(byteArrayOf(0xFF.toByte(), 0xD8.toByte())) // SOI
+
+        writer.write(
+            byteArrayOf(
+                0xFF.toByte(), 0xE0.toByte(), 0x00, 0x10,
+                0x4A, 0x46, 0x49, 0x46, 0x00, 0x01,
+                0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00
+            )
+        ) // APP0 JFIF
+
+        /* SOS with minimal parameters and entropy-coded data. */
+        writer.write(
+            byteArrayOf(
+                0xFF.toByte(), 0xDA.toByte(), 0x00, 0x08,
+                0x01, 0x01, 0x00, 0x00, 0x3F, 0x00
+            )
+        )
+
+        writer.write(ByteArray(imageDataSize) { index -> (index % 0x7F).toByte() })
+
+        writer.write(byteArrayOf(0xFF.toByte(), 0xD9.toByte())) // EOI
+
+        return writer.toByteArray()
     }
 }

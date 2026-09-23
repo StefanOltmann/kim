@@ -30,8 +30,17 @@ public open class JvmInputStreamByteReader(
      */
     protected val inputStream: InputStream,
 
-    override val contentLength: Long
+    contentLength: Long
 ) : ByteReader {
+
+    /**
+     * A non-positive hint means the size is unknown, for example when a
+     * content provider does not report one. It is reported as unbounded,
+     * so parsers treat the stream end as the only truncation evidence -
+     * a missing hint would otherwise let them reject valid content.
+     */
+    override val contentLength: Long =
+        if (contentLength > 0) contentLength else Long.MAX_VALUE
 
     override fun readByte(): Byte? {
 
