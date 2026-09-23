@@ -282,6 +282,36 @@ Kim.deleteMetadata(
 )
 ```
 
+### Android (ContentResolver / SAF)
+
+On Android, media is usually addressed by `content://` URIs through the `ContentResolver` instead
+of file paths. KIM deliberately ships no one-liner for writing such URIs: a provider's output
+stream truncates the target on open, so the publishing policy (staging, backups, atomic
+replacement) belongs to the app. The building blocks are the streaming update plus KIM's
+ContentResolver bridges:
+
+```kotlin
+/* Stage the rewrite in the app cache first - publishing opens the output with "wt", which
+   truncates the original, so the staging file must be complete before that starts. */
+val staged = File.createTempFile("media", ".staged", context.cacheDir)
+
+KimAndroid.createByteReader(contentResolver, mediaUri).use { byteReader ->
+    OutputStreamByteWriter(staged.outputStream()).use { byteWriter ->
+        Kim.update(byteReader = byteReader, byteWriter = byteWriter, updates = updates)
+    }
+}
+
+/* Publish the staged content onto the document. */
+contentResolver.openOutputStream(mediaUri, "wt")?.use { output ->
+    staged.inputStream().use { input -> input.copyTo(output) }
+}
+
+staged.delete()
+```
+
+Apps that need crash-safe semantics (backups, restore, atomic replacement) implement them on top
+of these building blocks - KIM stays out of the storage policy.
+
 ### Update thumbnail using Kim.updateThumbnail () API
 
 ```kotlin
