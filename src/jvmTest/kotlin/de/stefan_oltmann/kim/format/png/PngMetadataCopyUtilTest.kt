@@ -27,6 +27,7 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.test.fail
@@ -164,6 +165,49 @@ class PngMetadataCopyUtilTest {
             leakedTempFiles.isEmpty(),
             "Leaked temporary files: $leakedTempFiles"
         )
+    }
+
+    /**
+     * A failure in the write or move step must surface as its own error
+     * type. Labeling it ImageReadException would send callers into their
+     * "bad input file" handling for what is an output problem.
+     */
+    @Test
+    fun testWriteFailureDoesNotSurfaceAsReadException() {
+
+        val destination = Path("build/copy_test.png")
+
+        Path(getFullImageDiskPath(51)).copyTo(destination)
+
+        /* A directory at the temporary file's path makes the write step
+           fail while both files read cleanly. */
+        SystemFileSystem.createDirectories(
+            Path(PngMetadataCopyUtil.tempFilePathFor(destination).toString())
+        )
+
+        try {
+
+            PngMetadataCopyUtil.copy(
+                source = Path(getFullImageDiskPath(52)),
+                destination = destination
+            )
+
+            fail("Expected the copy to fail on the blocked temporary file.")
+
+        } catch (ex: Throwable) {
+
+            assertFalse(
+                ex is ImageReadException,
+                "A write failure surfaced as ImageReadException: $ex"
+            )
+        } finally {
+
+            /* The copy's cleanup may already have removed the directory. */
+            SystemFileSystem.delete(
+                path = Path(PngMetadataCopyUtil.tempFilePathFor(destination).toString()),
+                mustExist = false
+            )
+        }
     }
 
     /**
