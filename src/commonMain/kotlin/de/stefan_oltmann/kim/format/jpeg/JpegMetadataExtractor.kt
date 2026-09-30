@@ -26,6 +26,7 @@ import de.stefan_oltmann.kim.format.MetadataExtractor
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EOI_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOS_MARKER
 import de.stefan_oltmann.kim.input.ByteReader
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 
 /**
  * Extracts the metadata bytes of JPEG files.
@@ -34,13 +35,16 @@ public object JpegMetadataExtractor : MetadataExtractor {
 
     private const val ADDITIONAL_BYTE_COUNT_AFTER_HEADER: Int = 12
 
+    /* The same header budget JpegUtils enforces for the rewriter. */
+    private const val MAX_HEADER_SEGMENT_BUDGET: Int = JpegUtils.MAX_HEADER_SEGMENT_BYTES
+
     @Throws(ImageReadException::class)
     @Suppress("ComplexMethod")
     override fun extractMetadataBytes(
         byteReader: ByteReader
     ): ByteArray = tryWithImageReadException {
 
-        val bytes = mutableListOf<Byte>()
+        val bytes = ByteArrayByteWriter()
 
         val magicNumberBytes = byteReader.readBytes(MediaFormatMagicNumbers.jpeg.size).toList()
 
@@ -49,9 +53,9 @@ public object JpegMetadataExtractor : MetadataExtractor {
             "JPEG magic number mismatch: ${magicNumberBytes.toSingleNumberHexes()}"
         }
 
-        bytes.addAll(magicNumberBytes)
+        bytes.write(magicNumberBytes.toByteArray())
 
-        readSegmentBytesIntoList(byteReader, bytes)
+        readSegmentBytesIntoWriter(byteReader, bytes)
 
         /*
          * Add some more bytes after the header, so it's recognized
@@ -60,16 +64,16 @@ public object JpegMetadataExtractor : MetadataExtractor {
         repeat(ADDITIONAL_BYTE_COUNT_AFTER_HEADER) {
 
             byteReader.readByte()?.let {
-                bytes.add(it)
+                bytes.write(it)
             }
         }
 
         return@tryWithImageReadException bytes.toByteArray()
     }
 
-    private fun readSegmentBytesIntoList(
+    private fun readSegmentBytesIntoWriter(
         byteReader: ByteReader,
-        bytes: MutableList<Byte>
+        bytes: ByteArrayByteWriter
     ) {
 
         val scanner = JpegMarkerScanner(byteReader)
@@ -86,10 +90,19 @@ public object JpegMetadataExtractor : MetadataExtractor {
 
             val scan = scanner.nextMarker(zeroIsFillByte = true) ?: break
 
-            for (consumedByte in scan.consumedBytes)
-                bytes.add(consumedByte)
+            bytes.write(scan.consumedBytes)
 
             readBytesCount += scan.consumedBytes.size
+
+            /*
+             * The header budget bounds hostile files with huge gaps or
+             * oversized segments - the same budget the rewriter's
+             * segment reader enforces.
+             */
+            if (bytes.writtenByteCount > MAX_HEADER_SEGMENT_BUDGET)
+                throw ImageReadException(
+                    "The JPEG header exceeds the $MAX_HEADER_SEGMENT_BUDGET byte budget."
+                )
 
             if (scan.marker == SOS_MARKER || scan.marker == EOI_MARKER)
                 break
@@ -97,8 +110,8 @@ public object JpegMetadataExtractor : MetadataExtractor {
             val segmentLengthFirstByte = byteReader.readByte() ?: break
             val segmentLengthSecondByte = byteReader.readByte() ?: break
 
-            bytes.add(segmentLengthFirstByte)
-            bytes.add(segmentLengthSecondByte)
+            bytes.write(segmentLengthFirstByte)
+            bytes.write(segmentLengthSecondByte)
 
             readBytesCount += 2
 
@@ -118,7 +131,7 @@ public object JpegMetadataExtractor : MetadataExtractor {
             if (segmentBytes.size != segmentLength)
                 throw ImageReadException("Incomplete read: ${segmentBytes.size} != $segmentLength")
 
-            bytes.addAll(segmentBytes.asList())
+            bytes.write(segmentBytes)
 
         } while (true)
     }
