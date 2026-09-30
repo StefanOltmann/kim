@@ -59,4 +59,26 @@ class GifChunkApplicationExtensionTest {
         assertNull(chunk.applicationIdentifier)
         assertNull(chunk.applicationCode)
     }
+
+    /**
+     * A truncated packet is returned exactly as stored. Closing it
+     * synthetically would misrepresent the truncation, and sidecar
+     * writers would embed the fabricated bytes as if the packet were
+     * complete.
+     */
+    @Test
+    fun testTruncatedPacketIsReturnedWithoutFabricatedCloser() {
+
+        val truncatedPacket = "<x:xmpmeta xmlns:x=\"adobe:ns:meta/\"><rdf:RDF"
+
+        val chunk = GifChunkApplicationExtension(
+            header = byteArrayOf(0x21, 0xFF.toByte()),
+            subChunks = listOf(
+                byteArrayOf(truncatedPacket.length.toByte()) +
+                    truncatedPacket.encodeToByteArray()
+            )
+        )
+
+        assertEquals(truncatedPacket, chunk.parseAsXmpOrThrow())
+    }
 }
