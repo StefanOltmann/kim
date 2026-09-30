@@ -91,7 +91,10 @@ object KimTestData {
 //        JXL_CONTAINER_UNCOMPRESSED_INDEX,
 //        JXL_CONTAINER_COMPRESSED_INDEX,
 
-        // FIXME DNG have thumbnails. Extraction logic does not fit here.
+        /*
+         * DNG files carry thumbnails whose extraction logic does not
+         * fit the shared rewrite corpus, so they are excluded from it.
+         */
 //        DNG_CR2_TEST_IMAGE_INDEX,
 //        DNG_RAF_TEST_IMAGE_INDEX,
 //        DNG_NEF_TEST_IMAGE_INDEX,

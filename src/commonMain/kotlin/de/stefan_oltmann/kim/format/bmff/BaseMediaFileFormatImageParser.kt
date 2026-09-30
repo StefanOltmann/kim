@@ -128,7 +128,8 @@ public object BaseMediaFileFormatImageParser : ImageParser {
          *
          * We currently do this by having a copy of all bytes
          * in buffer and input everything we read so far in again.
-         * FIXME There must be a better solution. Find it.
+         * A bounded alternative would need a seekable source on
+     * every platform, which cloud streams do not provide.
          *
          * If minOffset is null, there is no metadata to read from metadata offsets. The only
          * metadata we have is in UUID boxes, which we have already read into memory by this point.

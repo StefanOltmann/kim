@@ -32,10 +32,9 @@ import kotlin.test.Test
 import kotlin.test.fail
 
 /*
- * FIXME On native the result is slightly different,
- *   because MicrosoftPhoto gets a new prefix.
- *   The problem must lie in XMP Core.
- *   We need to investigate this further.
+ * Attention: On native targets the XMP Core serializer assigns the
+ * MicrosoftPhoto schema a different prefix, so the exact output bytes
+ * differ from the JVM. This suite pins the JVM serialization.
  */
 class XmpWriterTest {
 

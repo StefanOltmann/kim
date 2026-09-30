@@ -52,7 +52,8 @@ internal object JxlReader {
         return MediaMetadata(
             mediaFormat = MediaFormat.JXL,
             /*
-             * TODO The image size is not read from the codestream yet.
+             * The image size lives inside the codestream, which the metadata
+ * scan does not parse - see the limitations in the README.
              */
             imageSize = null,
             exif = exifBox?.tiffContents,

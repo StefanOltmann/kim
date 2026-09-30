@@ -243,7 +243,10 @@ class JxlWriterTest {
 
         for (index in KimTestData.jxlPhotoIds) {
 
-            // TODO Support compressed boxes
+            /*
+             * Compressed boxes cannot be rewritten without brotli
+             * support - the updater refuses them instead.
+             */
             if (index == KimTestData.JXL_CONTAINER_COMPRESSED_INDEX)
                 continue
 

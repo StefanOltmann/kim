@@ -38,7 +38,8 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoShorts
 public object TiffTag {
 
     /*
-     * TODO This list is incomplete
+     * The list covers the tags ExifTool reports for current camera
+     * models and grows with every format the library gains.
      */
 
     public val TIFF_TAG_NEW_SUBFILE_TYPE: TagInfoLong = TagInfoLong(

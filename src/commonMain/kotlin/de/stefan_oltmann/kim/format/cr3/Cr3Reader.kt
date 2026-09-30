@@ -164,7 +164,8 @@ public object Cr3Reader {
             mediaFormat = MediaFormat.CR3,
             imageSize = imageSize,
             exif = tiffContents,
-            exifBytes = null, /* TODO Generate bytes? */
+            /* CR3 stores no single EXIF byte block a rewrite could reuse. */
+            exifBytes = null,
             iptc = null, /* Not covered by ISO BMFF. */
             xmp = xmpFromUuidBox
         )
