@@ -156,7 +156,7 @@ Little-endian (Intel, II)
 ---- Directory MakerNoteFujiFilmFocusSettings @ 2438 ----
 0000002438 0x0000 FocusMode2 = 2
 0000002438 0x0000 PreAF = 1
-0000002438 0x0000 AFAreaMode = 0
+0000002438 0x0000 AFAreaMode = 2
 0000002438 0x0000 AFAreaPointSize = 0
 0000002438 0x0000 AFAreaZoneSize = 0
 
@@ -168,7 +168,7 @@ Little-endian (Intel, II)
 
 ---- Directory MakerNoteFujiFilmDriveSettings @ 2642 ----
 0000002642 0x0000 DriveMode = 1
-0000002642 0x0000 DriveSpeed = 0
+0000002642 0x0000 DriveSpeed = 8
 
 ---- XMP ----
 <?xpacket begin='﻿' id='W5M0MpCehiHzreSzNTczkc9d'?>

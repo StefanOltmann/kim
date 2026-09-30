@@ -18,11 +18,12 @@ package de.stefan_oltmann.kim.format.tiff.makernote.fujifilm
 import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoByte
+import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoLong
 
 /**
  * Tags of the FocusSettings maker note sub-directory.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#FocusSettings
+ * See https://exiftool.sourceforge.net/TagNames/FujiFilm.html#FocusSettings
  */
 @Suppress("MagicNumber", "StringLiteralDuplication", "MaxLineLength")
 public object FujiFilmFocusSettingsTag {
@@ -39,19 +40,19 @@ public object FujiFilmFocusSettingsTag {
         mask = 0x00f0.toInt()
     )
 
-    public val AF_AREA_MODE: TagInfoByte = TagInfoByte(
+    public val AF_AREA_MODE: TagInfoLong = TagInfoLong(
         0x0, "AFAreaMode",
         TiffDirectoryType.EXIF_DIRECTORY_MAKER_NOTE_FUJIFILM_FOCUS_SETTINGS,
         mask = 0x0f00.toInt()
     )
 
-    public val AF_AREA_POINT_SIZE: TagInfoByte = TagInfoByte(
+    public val AF_AREA_POINT_SIZE: TagInfoLong = TagInfoLong(
         0x0, "AFAreaPointSize",
         TiffDirectoryType.EXIF_DIRECTORY_MAKER_NOTE_FUJIFILM_FOCUS_SETTINGS,
         mask = 0xf000.toInt()
     )
 
-    public val AF_AREA_ZONE_SIZE: TagInfoByte = TagInfoByte(
+    public val AF_AREA_ZONE_SIZE: TagInfoLong = TagInfoLong(
         0x0, "AFAreaZoneSize",
         TiffDirectoryType.EXIF_DIRECTORY_MAKER_NOTE_FUJIFILM_FOCUS_SETTINGS,
         mask = 0xff0000.toInt()
