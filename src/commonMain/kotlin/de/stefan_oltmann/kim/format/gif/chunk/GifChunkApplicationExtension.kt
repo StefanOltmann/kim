@@ -63,7 +63,7 @@ public class GifChunkApplicationExtension(
             ?.toUInt8()
             ?: 0
 
-        if (firstSubChunk != null && firstSubChunkSize >= APPLICATION_IDENTIFIER_LENGTH) {
+        if (firstSubChunk != null && firstSubChunkSize >= GifConstants.APPLICATION_IDENTIFIER_LENGTH) {
 
             val firstSubChunkByteReader = ByteArrayByteReader(firstSubChunk)
 
@@ -72,12 +72,12 @@ public class GifChunkApplicationExtension(
 
             applicationIdentifier = firstSubChunkByteReader.readBytes(
                 fieldName = "application identifier",
-                count = APPLICATION_IDENTIFIER_LENGTH
+                count = GifConstants.APPLICATION_IDENTIFIER_LENGTH
             ).decodeToString()
 
             applicationCode = firstSubChunkByteReader.readBytes(
                 fieldName = "application code",
-                count = firstSubChunkSize - APPLICATION_IDENTIFIER_LENGTH
+                count = firstSubChunkSize - GifConstants.APPLICATION_IDENTIFIER_LENGTH
             ).decodeToString()
 
         } else {
@@ -126,9 +126,6 @@ public class GifChunkApplicationExtension(
     }
 
     private companion object {
-
-        /* The application identifier is 8 bytes */
-        const val APPLICATION_IDENTIFIER_LENGTH = 8
 
         /* The opening element of an XMP packet */
         const val XMP_META_TAG = "x:xmpmeta"

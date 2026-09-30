@@ -37,9 +37,6 @@ public object GifWriter {
     /* Left, top, width, height and the packed field. */
     private const val IMAGE_DESCRIPTOR_LENGTH: Int = 9
 
-    /* The application identifier of a GIF application extension is 8 bytes. */
-    private const val APPLICATION_IDENTIFIER_LENGTH: Int = 8
-
     @Throws(ImageWriteException::class)
     public fun writeImage(
         byteReader: ByteReader,
@@ -218,10 +215,10 @@ public object GifWriter {
         }
 
         val identifierBytes =
-            byteReader.readBytes(minOf(firstSubBlockSize, APPLICATION_IDENTIFIER_LENGTH))
+            byteReader.readBytes(minOf(firstSubBlockSize, GifConstants.APPLICATION_IDENTIFIER_LENGTH))
 
         val isXmpExtension =
-            identifierBytes.size == APPLICATION_IDENTIFIER_LENGTH &&
+            identifierBytes.size == GifConstants.APPLICATION_IDENTIFIER_LENGTH &&
                 identifierBytes.decodeToString() == GifConstants.XMP_APPLICATION_IDENTIFIER
 
         /*

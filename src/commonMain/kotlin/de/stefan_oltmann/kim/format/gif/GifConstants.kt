@@ -52,6 +52,9 @@ public object GifConstants {
 
     public const val XMP_APPLICATION_CODE: String = "XMP"
 
+    /** The application identifier of a GIF application extension is 8 bytes. */
+    public const val APPLICATION_IDENTIFIER_LENGTH: Int = 8
+
     /** Maximum payload size of a GIF sub-block. */
     public const val GIF_MAX_SUB_BLOCK_SIZE: Int = 255
 }
