@@ -199,7 +199,8 @@ public object TiffReader {
     }
 
     /**
-     * The MakerNote directory and its sub-directories.
+     * Reads the TIFF header: the byte order, the version signature and
+     * the offset to the first IFD.
      */
     internal fun readTiffHeader(byteReader: ByteReader): TiffHeader {
 

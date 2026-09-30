@@ -326,9 +326,11 @@ public object BoxReader {
             }
 
             /*
-             * Sizes of 2^31 bytes and above cannot be represented by the
-             * signed read count, so such boxes must be rejected instead of
-             * producing a corrupted read.
+             * Rejects non-positive sizes, sizes below the box's own
+             * header and largesize values below both headers - see
+             * [validateBoxLength]. The 2^31 rejection for buffered
+             * boxes happens separately below, because skippable boxes
+             * stream through without a signed read count.
              */
             validateBoxLength(type, size, actualLength)
 
