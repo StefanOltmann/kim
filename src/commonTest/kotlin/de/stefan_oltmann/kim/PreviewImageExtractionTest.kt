@@ -1,6 +1,5 @@
 /*
  * Copyright 2026 Stefan Oltmann
- * Copyright 2025 Ashampoo GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +15,15 @@
  */
 package de.stefan_oltmann.kim
 
+import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.common.writeBytes
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlinx.io.files.Path
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.fail
 
@@ -42,9 +45,6 @@ class PreviewImageExtractionTest {
         KimTestData.DNG_ORF_TEST_IMAGE_INDEX
     )
 
-    /**
-     * Regression test based on a fixed small set of test files.
-     */
     @Test
     fun testExtractPreviewImage() {
 
@@ -70,6 +70,79 @@ class PreviewImageExtractionTest {
 
                 fail("Media $index has not the expected bytes!")
             }
+        }
+    }
+
+    /**
+     * The preview fallback chain degrades extractor failures to NULL, so
+     * one broken format does not hide the others. A cancellation is not a
+     * broken format: swallowing it would turn a cancelled call into a
+     * neutral "no preview", so it must propagate.
+     */
+    @Test
+    fun testExtractPreviewPropagatesCancellation() {
+
+        val reader = OverstatedLengthReader(realBytes = tiffWithDngPreview())
+
+        assertFailsWith<CancellationException> {
+            Kim.extractPreviewImage(reader)
+        }
+    }
+
+    /**
+     * DNG fixture: IFD0 carries the DNGVersion tag, and IFD2 carries a
+     * preview start that points beyond the real data, so only the DNG
+     * preview extractor reads there - after the TIFF structure itself
+     * was parsed successfully.
+     */
+    private fun tiffWithDngPreview(): ByteArray = convertHexStringToByteArray(
+        "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
+            "0100" + // IFD0: 1 entry
+            "12c601000400000001040000" + // DNGVersion = 1.4
+            "1a000000" + // Next IFD at offset 26
+            "0000" + // IFD1: no entries
+            "20000000" + // Next IFD at offset 32
+            "0200" + // IFD2: 2 entries
+            "110104000100000064000000" + // PreviewImageStart = 100
+            "170104000100000010000000" + // PreviewImageLength = 16
+            "00000000" // No next directory
+    )
+
+    /**
+     * Serves the real bytes and overstates the content length, so the
+     * preview validation passes and the read behind the real data is the
+     * point where the cancellation is injected.
+     */
+    private class OverstatedLengthReader(
+        private val realBytes: ByteArray
+    ) : ByteReader {
+
+        private var position = 0
+
+        override val contentLength: Long = 1000L
+
+        override fun readByte(): Byte {
+
+            if (position >= realBytes.size)
+                throw CancellationException("Injected cancellation.")
+
+            return realBytes[position++]
+        }
+
+        override fun readBytes(count: Int): ByteArray {
+
+            if (position + count > realBytes.size)
+                throw CancellationException("Injected cancellation.")
+
+            val result = realBytes.copyOfRange(position, position + count)
+
+            position += count
+
+            return result
+        }
+
+        override fun close() {
+            /* Nothing to close. */
         }
     }
 }

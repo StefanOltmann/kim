@@ -48,6 +48,7 @@ import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.datetime.TimeZone
 
 /**
@@ -520,6 +521,8 @@ public object Kim {
     /*
      * A single broken tag must not abort the preview fallback chain of
      * TIFF-family files, so extractor failures degrade to NULL here.
+     * A cancellation is not a broken format: swallowing it would turn a
+     * cancelled call into a neutral "no preview", so it propagates.
      */
     private fun extractPreviewOrNull(
         extractor: TiffPreviewExtractor,
@@ -528,6 +531,8 @@ public object Kim {
     ): ByteArray? =
         try {
             extractor.extractPreviewImage(tiffContents, randomAccessByteReader)
+        } catch (ex: CancellationException) {
+            throw ex
         } catch (_: Exception) {
             null
         }
