@@ -47,6 +47,9 @@ import kotlin.jvm.JvmStatic
  */
 public object GifImageParser : ImageParser {
 
+    /** The graphic control extension has a fixed 4-byte body per spec. */
+    private const val GRAPHIC_CONTROL_EXTENSION_BODY_SIZE: Int = 4
+
     private val metadataChunkTypes = listOf(
         GifChunkType.HEADER,
         GifChunkType.IMAGE_DESCRIPTOR,
@@ -326,7 +329,28 @@ public object GifImageParser : ImageParser {
 
             GifConstants.GRAPHICS_CONTROL_EXTENSION_LABEL -> {
 
-                val graphicsControlExtensionBytes = byteReader.readBytes("graphics control extension", 6)
+                /*
+                 * The graphic control extension has a fixed 4-byte body
+                 * per spec. The declared size is validated, so a
+                 * nonconformant file cannot desync the block walk - the
+                 * writer follows the declared sizes, and a mismatch here
+                 * would shift every following block.
+                 */
+                val declaredBodySize = byteReader.readByteAsInt()
+
+                if (declaredBodySize != GRAPHIC_CONTROL_EXTENSION_BODY_SIZE)
+                    throw ImageReadException(
+                        "The graphic control extension declares $declaredBodySize " +
+                            "bytes, expected $GRAPHIC_CONTROL_EXTENSION_BODY_SIZE."
+                    )
+
+                val graphicsControlExtensionBytes =
+                    byteArrayOf(declaredBodySize.toByte()) +
+                        byteReader.readBytes(
+                            "graphic control extension",
+                            GRAPHIC_CONTROL_EXTENSION_BODY_SIZE
+                        ) +
+                        byteArrayOf(byteReader.readByte("graphic control extension terminator"))
 
                 GifChunk(
                     GifChunkType.GRAPHICS_CONTROL_EXTENSION,

@@ -31,6 +31,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class GifImageParserTest {
 
@@ -114,6 +115,37 @@ class GifImageParserTest {
         assertFailsWith<ImageReadException> {
             GifImageParser.readChunks(ByteArrayByteReader(bytes), null)
         }
+    }
+
+    /**
+     * The graphic control extension has a fixed 4-byte body per spec.
+     * Reading a hard-coded six bytes instead of the declared size
+     * desynced the block walk on a nonconformant file and failed with
+     * an unrelated introducer error - the declared size is validated
+     * with a targeted message instead.
+     */
+    @Test
+    fun testReadChunksRejectsNonStandardGraphicControlExtensionSize() {
+
+        /* Header, logical screen descriptor, a GCE declaring 5 bytes. */
+        val bytes = "GIF89a".encodeToByteArray() +
+            byteArrayOf(1, 0, 1, 0, 0, 0, 0) +
+            byteArrayOf(
+                0x21, 0xF9.toByte(), // Extension introducer, GCE label.
+                5,                   // Declared body size (nonconformant).
+                1, 2, 3, 4, 5,       // Body bytes.
+                0x00                 // Block terminator.
+            ) +
+            byteArrayOf(GifConstants.GIF_TERMINATOR)
+
+        val exception = assertFailsWith<ImageReadException> {
+            GifImageParser.readChunks(ByteArrayByteReader(bytes), null)
+        }
+
+        assertTrue(
+            exception.message?.contains("graphic control extension", ignoreCase = true) == true,
+            "Unexpected message: ${exception.message}"
+        )
     }
 
     /**
