@@ -44,7 +44,8 @@ internal object JxlReader {
 
             val wrappedTypes = unreadableCompressedBoxes
                 .map { it.actualType.toString() }
-                .toSortedSet()
+                .distinct()
+                .sorted()
                 .joinToString(" and ")
 
             throw ImageReadException(
