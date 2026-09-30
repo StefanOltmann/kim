@@ -95,6 +95,85 @@ class TiffReaderTest {
     }
 
     /**
+     * An ExifOffset entry stored with a variant type is readable data:
+     * like ExifTool, the offset is recovered from the value bytes, so
+     * the pointer field - and with it the whole Exif sub-IFD - survives
+     * instead of being dropped, where a rewrite would lose it.
+     */
+    @Test
+    fun testReadPreservesTypeVariantSubIfdOffsetField() {
+
+        /* IFD0 with a single entry: ExifOffset (0x8769), type SLONG. */
+        val bytes = byteArrayOf(
+            0x49, 0x49, 0x2A, 0x00, // TIFF header.
+            8, 0, 0, 0,             // IFD0 offset.
+            1, 0,                   // Entry count.
+            0x69, 0x87.toByte(),    // ExifOffset tag.
+            9, 0,                   // Type SLONG (variant).
+            1, 0, 0, 0,             // Count 1.
+            26, 0, 0, 0,            // Value 26 (inline).
+            0, 0, 0, 0,             // No next IFD.
+            /* The Exif sub-IFD at offset 26. */
+            1, 0,                   // Entry count.
+            0x0E, 0x01,             // ImageDescription tag.
+            2, 0,                   // Type ASCII.
+            2, 0, 0, 0,             // Count 2.
+            0x41, 0, 0, 0,          // "A" + padding.
+            0, 0, 0, 0              // No next IFD.
+        )
+
+        val metadata = TiffReader.read(DefaultRandomAccessByteReader(ByteArrayByteReader(bytes)))
+
+        val ifd0Entries = metadata.directories.first().entries
+
+        /* The variant pointer field survived in IFD0. */
+        assertTrue(
+            ifd0Entries.any { it.tag == 0x8769 },
+            "The ExifOffset field was dropped from IFD0."
+        )
+
+        /* The sub-IFD the variant pointer identifies was read. */
+        assertTrue(
+            metadata.directories.any { directory ->
+                directory.entries.any { it.tag == 0x010E }
+            },
+            "The Exif sub-IFD behind the variant pointer was not read."
+        )
+    }
+
+    /**
+     * A multi-value sub-IFD offset entry cannot identify a single
+     * offset - ExifTool warns "Bad value for ExifOffset" and continues.
+     * The broken pointer is dropped so a rewrite cannot carry it into
+     * the output, while the rest of the file stays readable.
+     */
+    @Test
+    fun testReadDropsMultiValueSubIfdOffsetField() {
+
+        /* Modeled after media_46.jpg: ExifOffset (0x8769) with count 3. */
+        val bytes = byteArrayOf(
+            0x49, 0x49, 0x2A, 0x00, // TIFF header.
+            8, 0, 0, 0,             // IFD0 offset.
+            1, 0,                   // Entry count.
+            0x69, 0x87.toByte(),    // ExifOffset tag.
+            4, 0,                   // Type LONG.
+            3, 0, 0, 0,             // Count 3 (no single offset).
+            26, 0, 0, 0,            // Value offset 26.
+            0, 0, 0, 0,             // No next IFD.
+            1, 0, 0, 0,             // The 12 value bytes.
+            0, 0, 0, 0,
+            2, 0, 0, 0
+        )
+
+        val metadata = TiffReader.read(DefaultRandomAccessByteReader(ByteArrayByteReader(bytes)))
+
+        assertTrue(
+            metadata.directories.first().entries.isEmpty(),
+            "The broken ExifOffset field was not dropped."
+        )
+    }
+
+    /**
      * The GeoKeyDirectory must be stored as SHORT values. A file that
      * stores it with another type carries structured GeoTIFF metadata
      * that cannot be interpreted - per the strict read policy the read
