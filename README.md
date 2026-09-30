@@ -132,6 +132,10 @@ val summary = Kim.readMetadata(bytes).convertToSummary()
 metadata bytes. Cloud services can not reliably tell the mime type, so this can be used to upload
 the metadata alongside the image.
 
+Only JPG, PNG, RAF & GIF provide metadata bytes here. Every other supported format (CR3, HEIC,
+AVIF, JXL, WebP, TIFF-based RAW, ...) yields an empty array; use `readMetadata()` for a format
+independent metadata view.
+
 ```kotlin
 val result = Kim.extractMetadataBytes(byteReader)
 
@@ -350,7 +354,7 @@ Java projects.
 ### Regarding HEIC & AVIF metadata
 
 In the processing of HEIC and AVIF files, we handle them as standard ISOBMFF-based files, adhering
-rigorously to the EIC/ISO 14496-12 specification. To preempt potential legal issues, we
+rigorously to the ISO/IEC 14496-12 specification. To preempt potential legal issues, we
 intentionally omit certain boxes outlined in the HEIC specification, notably the image size ("ispe")
 and image rotation ("irot") boxes. This approach extends to AVIF images, as they repurpose the same
 boxes.
