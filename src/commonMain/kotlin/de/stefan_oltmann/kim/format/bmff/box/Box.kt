@@ -29,7 +29,14 @@ public open class Box(
     public val size: Long,
     public val largeSize: Long?,
     /** Payload bytes, not including type & length bytes. */
-    public val payload: ByteArray
+    public val payload: ByteArray,
+    /**
+     * The true extent of the box. Only the box scanner sets this when
+     * the payload was deliberately dropped during the scan, because the
+     * derived length below would then collapse to the header while the
+     * box really spans to the end of the file.
+     */
+    public val resolvedLength: Long? = null
 ) {
 
     /*
@@ -40,14 +47,15 @@ public open class Box(
      * end of the file (normally only used for a Media Data Box)
      */
     public val actualLength: Long =
-        when (size) {
-            0L -> BOX_HEADER_LENGTH.toLong() + payload.size
+        resolvedLength
+            ?: when (size) {
+                0L -> BOX_HEADER_LENGTH.toLong() + payload.size
 
-            /* A size of 1 means the real size is stored in largesize. */
-            1L -> checkNotNull(largeSize) { "Box $type has size 1, but no largesize." }
+                /* A size of 1 means the real size is stored in largesize. */
+                1L -> checkNotNull(largeSize) { "Box $type has size 1, but no largesize." }
 
-            else -> size
-        }
+                else -> size
+            }
 
     override fun toString(): String =
         "Box '$type' @$offset ($actualLength bytes)"

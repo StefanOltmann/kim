@@ -174,6 +174,38 @@ class BoxReaderTest {
         assertEquals(2, boxes.size)
     }
 
+    /**
+     * The actual length is the declared extent, not the retained
+     * payload: a box whose payload the scanner dropped would otherwise
+     * report only its header while it really spans to the end of the
+     * file, and any consumer doing bounds math computes with a wrong
+     * length.
+     */
+    @Test
+    fun testActualLengthReflectsDeclaredExtentForDroppedPayloads() {
+
+        /* A free box (12 bytes) and a size-0 mdat extending to EOF. */
+        val bytes = byteArrayOf(
+            0, 0, 0, 12,
+            0x66, 0x72, 0x65, 0x65, // "free"
+            1, 2, 3, 4,
+            0, 0, 0, 0,
+            0x6D, 0x64, 0x61, 0x74, // "mdat"
+            1, 2, 3, 4
+        )
+
+        val boxes = BoxReader.scanVideoMetadataBoxes(
+            byteReader = ByteArrayByteReader(bytes)
+        )
+
+        val mdat = boxes.last()
+
+        assertEquals(BoxType.MDAT, mdat.type)
+
+        /* The mdat really spans the remaining 12 bytes of the file. */
+        assertEquals(bytes.size.toLong() - 12, mdat.actualLength)
+    }
+
     @Test
     fun readsBoxesFromHeic() {
 

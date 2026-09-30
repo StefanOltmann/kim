@@ -481,7 +481,7 @@ public object BoxReader {
                 BoxType.INFE -> ItemInfoEntryBox(globalOffset, size, largeSize, bytes)
                 BoxType.ILOC -> ItemLocationBox(globalOffset, size, largeSize, bytes)
                 BoxType.PITM -> PrimaryItemBox(globalOffset, size, largeSize, bytes)
-                BoxType.MDAT -> MediaDataBox(globalOffset, size, largeSize, bytes)
+                BoxType.MDAT -> MediaDataBox(globalOffset, size, largeSize, bytes, resolvedLength = actualLength)
                 BoxType.MOOV -> MovieBox(globalOffset, size, largeSize, bytes, depth + 1)
                 BoxType.TRAK -> TrackBox(globalOffset, size, largeSize, bytes, depth + 1)
                 BoxType.TKHD -> TrackHeaderBox(globalOffset, size, largeSize, bytes)
@@ -493,8 +493,8 @@ public object BoxReader {
                 BoxType.XML -> XmlBox(globalOffset, size, largeSize, bytes)
                 BoxType.JXLP -> JxlPartialCodestreamBox(globalOffset, size, largeSize, bytes)
                 BoxType.BROB -> CompressedBox(globalOffset, size, largeSize, bytes)
-                /* Unknown box */
-                else -> Box(type, globalOffset, size, largeSize, bytes)
+                /* Unknown box; skippable ones stream through with an empty payload. */
+                else -> Box(type, globalOffset, size, largeSize, bytes, resolvedLength = actualLength)
             }
 
             boxes.add(box)
