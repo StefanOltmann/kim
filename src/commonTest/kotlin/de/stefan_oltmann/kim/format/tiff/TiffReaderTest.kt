@@ -25,6 +25,7 @@ import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
+import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.DefaultRandomAccessByteReader
 import de.stefan_oltmann.kim.input.RandomAccessByteReader
@@ -35,6 +36,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class TiffReaderTest {
@@ -430,6 +432,33 @@ class TiffReaderTest {
         )
 
         assertEquals(7, thumbnail.size)
+    }
+
+    /**
+     * A value offset above the signed Int range must take the same
+     * targeted skip path as a negative one. Narrowing it to Int
+     * unchecked wrapped it negative and failed the whole read with an
+     * opaque error instead of skipping the field.
+     */
+    @Test
+    fun testReadSkipsEntryWithValueOffsetAboveIntMax() {
+
+        val bytes = convertHexStringToByteArray(
+            "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
+                "0200" + // 2 entries
+                "0001" + "0100" + "08000000" + "00000090" + // ImageWidth, BYTE[8], value offset 0x90000000
+                "0201" + "0300" + "01000000" + "08000000" + // BitsPerSample = 8
+                "00000000" // No next directory
+        )
+
+        val tiffContents = TiffReader.read(
+            byteReader = DefaultRandomAccessByteReader(ByteArrayByteReader(bytes))
+        )
+
+        /* The hostile field is skipped; the rest of the file reads. */
+        assertNull(tiffContents.directories.first().findField(TiffTag.TIFF_TAG_IMAGE_WIDTH))
+
+        assertNotNull(tiffContents.directories.first().findField(TiffTag.TIFF_TAG_BITS_PER_SAMPLE))
     }
 
     /**
