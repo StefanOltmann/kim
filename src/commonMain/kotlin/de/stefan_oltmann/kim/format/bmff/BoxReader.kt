@@ -79,6 +79,23 @@ public object BoxReader {
         )
 
     /**
+     * Reads all top-level boxes for a rewrite that re-emits only the
+     * parsed boxes, like the JPEG XL writer does.
+     *
+     * Bytes that end inside a box header are a truncated box: the scans
+     * stop there as a clean boundary, but such a rewrite would silently
+     * drop the fragment, and the clean boundary rule requires the raw
+     * bytes to survive a rewrite byte-exact. This read fails instead.
+     *
+     * @param byteReader The reader as source for the bytes
+     */
+    internal fun readAllBoxesForRewrite(byteReader: ByteReader): List<Box> =
+        readBoxes(
+            byteReader = byteReader,
+            rejectTrailingFragment = true
+        )
+
+    /**
      * Scans only the leading metadata boxes of the file top level, so the
      * image data block is not read in. The scan may continue past the meta
      * box while an XMP UUID box is still missing, because Samsung HEIC has
@@ -158,6 +175,57 @@ public object BoxReader {
         )
 
     /**
+     * Validates the declared size of a box before any position math
+     * happens.
+     *
+     * A non-positive size, a size below the box's own 8-byte header and
+     * a largesize below both headers would all rewind the scan position
+     * and re-parse consumed bytes as boxes, or compute a negative
+     * remaining length that the metadata scan would mistake for
+     * truncation and silently stop mid-file. The streaming writer
+     * rejects the same input.
+     */
+    private fun validateBoxLength(
+        type: BoxType,
+        size: Long,
+        actualLength: Long
+    ) {
+
+        if (actualLength <= 0)
+            throw ImageReadException("Box $type has an invalid size: $size.")
+
+        if (actualLength < BMFFConstants.BOX_HEADER_LENGTH)
+            throw ImageReadException(
+                "Box $type declares a size smaller than its header: $size."
+            )
+
+        if (size == 1L && actualLength < 2 * BMFFConstants.BOX_HEADER_LENGTH)
+            throw ImageReadException(
+                "Box $type declares a largesize below its own header: $actualLength."
+            )
+    }
+
+    /**
+     * Ends the box walk at the end of the stream.
+     *
+     * Bytes that end inside a box header are a truncated box: the scans
+     * stop there as a clean boundary, but a rewrite that re-emits only
+     * the parsed boxes would silently drop the fragment - the clean
+     * boundary rule requires the raw bytes to survive a rewrite
+     * byte-exact, so the rewrite-feeding read fails instead.
+     */
+    private fun checkTrailingFragment(
+        available: Long,
+        rejectTrailingFragment: Boolean
+    ) {
+
+        if (available > 0 && rejectTrailingFragment)
+            throw ImageReadException(
+                "$available trailing bytes end inside a box header."
+            )
+    }
+
+    /**
      * The one shared box scan loop. Every entry point passes a fixed,
      * tested combination of the mode flags into it.
      *
@@ -167,6 +235,8 @@ public object BoxReader {
      * @param stopBeforeImageData Stop before the JXL image data starts - see [readBoxesForUpdate]
      * @param skipDataBoxPayloads Skip media data and padding payloads instead of buffering
      * them - see [scanVideoMetadataBoxes]
+     * @param rejectTrailingFragment Fail on bytes that end inside a box header instead of
+     * stopping there as a clean boundary - see [readAllBoxesForRewrite]
      * @param positionOffset The position where to start reading boxes
      * @param offsetShift The shift to apply to the reported box offsets
      * @param updatePosition A callback to report the position when reading has finished
@@ -179,6 +249,7 @@ public object BoxReader {
         stopAfterMetadataRead: Boolean = false,
         stopBeforeImageData: Boolean = false,
         skipDataBoxPayloads: Boolean = false,
+        rejectTrailingFragment: Boolean = false,
         positionOffset: Long = 0,
         offsetShift: Long = 0,
         updatePosition: ((Long) -> Unit)? = null,
@@ -209,8 +280,12 @@ public object BoxReader {
              * Check if there are enough bytes for another box.
              * If so, we at least need the 8 header bytes.
              */
-            if (available < BMFFConstants.BOX_HEADER_LENGTH)
+            if (available < BMFFConstants.BOX_HEADER_LENGTH) {
+
+                checkTrailingFragment(available, rejectTrailingFragment)
+
                 break
+            }
 
             val offset: Long = position
 
@@ -255,18 +330,7 @@ public object BoxReader {
              * signed read count, so such boxes must be rejected instead of
              * producing a corrupted read.
              */
-            if (actualLength <= 0)
-                throw ImageReadException("Box $type has an invalid size: $size.")
-
-            /*
-             * A box smaller than its own header would rewind the metadata
-             * scan position and re-parse consumed bytes as boxes. The
-             * streaming writer rejects the same input.
-             */
-            if (actualLength < BMFFConstants.BOX_HEADER_LENGTH)
-                throw ImageReadException(
-                    "Box $type declares a size smaller than its header: $size."
-                )
+            validateBoxLength(type, size, actualLength)
 
             /*
              * The first JXLP box contains the codestream header, so every

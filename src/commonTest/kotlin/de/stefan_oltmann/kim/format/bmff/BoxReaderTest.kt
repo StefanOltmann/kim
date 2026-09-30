@@ -71,6 +71,88 @@ class BoxReaderTest {
     }
 
     /**
+     * A largesize box stores its size behind a 16-byte header, so a
+     * declared size below both headers cannot hold a payload. It must be
+     * rejected: the metadata scan would otherwise compute a negative
+     * remaining length, treat it as truncation and silently stop in the
+     * middle of the file, losing every box behind the broken one.
+     */
+    @Test
+    fun testLargesizeBelowBothHeadersIsRejected() {
+
+        /* A free box (12 bytes), a largesize box that declares 12, and
+           a box behind it that the broken scan would never reach. */
+        val bytes = byteArrayOf(
+            0, 0, 0, 12,
+            0x66, 0x72, 0x65, 0x65, // "free"
+            1, 2, 3, 4,
+            0, 0, 0, 1, // size 1 -> the real size follows
+            0x66, 0x72, 0x65, 0x65, // "free"
+            0, 0, 0, 0, 0, 0, 0, 12, // largesize 12 < 2 * 8 header bytes
+            0, 0, 0, 12,
+            0x66, 0x72, 0x65, 0x65, // "free"
+            5, 6, 7, 8
+        )
+
+        val exception = assertFailsWith<ImageReadException> {
+            BoxReader.scanMetadataBoxes(
+                byteReader = ByteArrayByteReader(bytes)
+            )
+        }
+
+        assertTrue(exception.message?.contains("largesize") == true)
+    }
+
+    /**
+     * Bytes that end inside a box header are a truncated box. A rewrite
+     * re-emits only the parsed boxes and would silently drop such a
+     * fragment, so the rewrite-feeding read must fail instead of
+     * stopping at the fragment.
+     */
+    @Test
+    fun testReadForRewriteRejectsTruncatedTrailingBoxHeader() {
+
+        /* A free box (12 bytes) followed by 3 bytes of a cut-off box. */
+        val bytes = byteArrayOf(
+            0, 0, 0, 12,
+            0x66, 0x72, 0x65, 0x65, // "free"
+            1, 2, 3, 4,
+            0, 0, 0, // Truncated box header.
+            0x66
+        )
+
+        assertFailsWith<ImageReadException> {
+            BoxReader.readAllBoxesForRewrite(
+                byteReader = ByteArrayByteReader(bytes)
+            )
+        }
+    }
+
+    /**
+     * Reads that do not feed a rewrite treat the fragment as a clean
+     * boundary: the raw bytes are never re-emitted, so nothing is lost.
+     * The CR3 metadata walk and the external viewer rely on this.
+     */
+    @Test
+    fun testReadAllBoxesToleratesTruncatedTrailingBoxHeader() {
+
+        /* A free box (12 bytes) followed by 3 bytes of a cut-off box. */
+        val bytes = byteArrayOf(
+            0, 0, 0, 12,
+            0x66, 0x72, 0x65, 0x65, // "free"
+            1, 2, 3, 4,
+            0, 0, 0, // Truncated box header.
+            0x66
+        )
+
+        val boxes = BoxReader.readAllBoxes(
+            byteReader = ByteArrayByteReader(bytes)
+        )
+
+        assertEquals(1, boxes.size)
+    }
+
+    /**
      * A box with size 0 extends to the end of the file per ISOBMFF.
      */
     @Test

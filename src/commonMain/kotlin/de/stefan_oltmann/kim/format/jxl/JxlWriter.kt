@@ -56,7 +56,7 @@ public object JxlWriter {
         exifBytes: ByteArray?,
         xmp: String?
     ): Unit = writeImage(
-        boxes = BoxReader.readAllBoxes(byteReader),
+        boxes = BoxReader.readAllBoxesForRewrite(byteReader),
         byteWriter = byteWriter,
         exifBytes = exifBytes,
         xmp = xmp
