@@ -17,13 +17,14 @@
 package de.stefan_oltmann.kim.format.xmp
 
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.LocationShown
 import de.stefan_oltmann.kim.model.MetadataSummary
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.xmp.XMPConst
-import de.stefan_oltmann.xmp.XMPException
 import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
 import kotlinx.datetime.LocalDateTime
@@ -41,10 +42,12 @@ import kotlin.jvm.JvmStatic
  */
 public object XmpReader {
 
-    @Throws(XMPException::class)
+    @Throws(ImageReadException::class)
     @JvmStatic
     public fun readMetadata(xmp: String): MetadataSummary =
-        buildMetadataSummary(XMPMetaFactory.parseFromString(xmp))
+        tryWithImageReadException {
+            buildMetadataSummary(XMPMetaFactory.parseFromString(xmp))
+        }
 
     /**
      * Reads the packet like [readMetadata] and additionally reports which fields the
@@ -53,29 +56,30 @@ public object XmpReader {
      * The packet is parsed once; the summary and the presence facts are derived from
      * that single parse.
      *
-     * @throws XMPException When the packet cannot be parsed.
+     * @throws ImageReadException When the packet cannot be parsed.
      */
-    @Throws(XMPException::class)
+    @Throws(ImageReadException::class)
     @JvmStatic
-    public fun readMetadataDetails(xmp: String): XmpMetadataDetails {
+    public fun readMetadataDetails(xmp: String): XmpMetadataDetails =
+        tryWithImageReadException {
 
-        val xmpMeta = XMPMetaFactory.parseFromString(xmp)
+            val xmpMeta = XMPMetaFactory.parseFromString(xmp)
 
-        return XmpMetadataDetails(
-            metadata = buildMetadataSummary(xmpMeta),
-            xmpMeta = xmpMeta,
-            carriesFlag = xmpMeta.carriesFlag(),
-            carriesKeywords = xmpMeta.doesPropertyExist(XMPConst.NS_DC, XMPConst.XMP_DC_SUBJECT),
-            carriesPersonsInImage = xmpMeta.doesPropertyExist(
-                XMPConst.NS_IPTC_EXT,
-                XMPConst.XMP_IPTC_EXT_PERSON_IN_IMAGE
-            ),
-            carriesFaces = xmpMeta.doesPropertyExist(
-                XMPConst.NS_MWG_RS,
-                XMPConst.XMP_MWG_RS_REGION_LIST
+            XmpMetadataDetails(
+                metadata = buildMetadataSummary(xmpMeta),
+                xmpMeta = xmpMeta,
+                carriesFlag = xmpMeta.carriesFlag(),
+                carriesKeywords = xmpMeta.doesPropertyExist(XMPConst.NS_DC, XMPConst.XMP_DC_SUBJECT),
+                carriesPersonsInImage = xmpMeta.doesPropertyExist(
+                    XMPConst.NS_IPTC_EXT,
+                    XMPConst.XMP_IPTC_EXT_PERSON_IN_IMAGE
+                ),
+                carriesFaces = xmpMeta.doesPropertyExist(
+                    XMPConst.NS_MWG_RS,
+                    XMPConst.XMP_MWG_RS_REGION_LIST
+                )
             )
-        )
-    }
+        }
 
     /**
      * Whether the packet carries a flag property in any schema [XMPMeta.isFlagged] reads

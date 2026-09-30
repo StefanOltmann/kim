@@ -17,6 +17,7 @@
 package de.stefan_oltmann.kim.format.xmp
 
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.LocationShown
@@ -32,6 +33,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class XmpReaderTest {
@@ -44,6 +46,23 @@ class XmpReaderTest {
     @AfterTest
     fun tearDown() {
         Kim.defaultTimeZone = null
+    }
+
+    /**
+     * A broken packet fails with the documented exception type. The
+     * xmpcore exception must not escape the public Kim API - every read
+     * throws only ImageReadException.
+     */
+    @Test
+    fun testBrokenPacketThrowsImageReadException() {
+
+        assertFailsWith<ImageReadException> {
+            XmpReader.readMetadata("<not-xmp/>")
+        }
+
+        assertFailsWith<ImageReadException> {
+            XmpReader.readMetadataDetails("<not-xmp/>")
+        }
     }
 
     @Test

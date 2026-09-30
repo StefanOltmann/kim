@@ -16,6 +16,7 @@
 package de.stefan_oltmann.kim.format.xmp
 
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.LocationShown
@@ -32,6 +33,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.time.ExperimentalTime
@@ -57,6 +59,23 @@ class XmpWriterEdgeCasesTest {
             update = update,
             writePackageWrapper = false
         )
+    }
+
+    /**
+     * An unparseable existing packet fails with the documented exception
+     * type. The xmpcore exception must not escape the public Kim API -
+     * every write throws only ImageWriteException.
+     */
+    @Test
+    fun testBrokenExistingPacketThrowsImageWriteException() {
+
+        assertFailsWith<ImageWriteException> {
+            XmpWriter.updateXmp(
+                existingXmp = "<not-xmp/>",
+                updates = setOf(MetadataUpdate.Title("x")),
+                writePackageWrapper = true
+            )
+        }
     }
 
     @Test

@@ -18,11 +18,11 @@ package de.stefan_oltmann.kim.format.xmp
 
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.LocationShown
 import de.stefan_oltmann.kim.model.MetadataUpdate
-import de.stefan_oltmann.xmp.XMPException
 import de.stefan_oltmann.xmp.XMPLocation
 import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
@@ -142,7 +142,7 @@ public object XmpWriter {
     /**
      * Note: Parameter 'writePackageWrapper' should be "true" for embedded XMP.
      */
-    @Throws(XMPException::class)
+    @Throws(ImageWriteException::class)
     @JvmStatic
     public fun updateXmp(
         xmpMeta: XMPMeta,
@@ -170,18 +170,20 @@ public object XmpWriter {
      * packet when the file has no XMP yet.
      *
      * Note: Parameter 'writePackageWrapper' should be "true" for embedded XMP.
+     *
+     * @throws ImageWriteException When the existing packet cannot be parsed.
      */
-    @Throws(XMPException::class)
+    @Throws(ImageWriteException::class)
     @JvmStatic
     public fun updateXmp(
         existingXmp: String?,
         updates: Set<MetadataUpdate>,
         writePackageWrapper: Boolean
-    ): String {
+    ): String = tryWithImageWriteException {
 
         val xmpMeta = XMPMetaFactory.parseOrCreate(existingXmp)
 
-        return updateXmp(xmpMeta, updates, writePackageWrapper)
+        updateXmp(xmpMeta, updates, writePackageWrapper)
     }
 
     /**
@@ -189,7 +191,7 @@ public object XmpWriter {
      *
      * Note: Parameter 'writePackageWrapper' should be "true" for embedded XMP.
      */
-    @Throws(XMPException::class)
+    @Throws(ImageWriteException::class)
     @JvmStatic
     public fun updateXmp(
         xmpMeta: XMPMeta,
