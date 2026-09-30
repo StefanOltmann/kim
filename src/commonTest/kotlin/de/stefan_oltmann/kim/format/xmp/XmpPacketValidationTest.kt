@@ -20,6 +20,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 /**
  * Tests the shared enforcement point of the strict read policy for
@@ -57,11 +58,30 @@ class XmpPacketValidationTest {
     }
 
     /**
+     * A packet must carry both the opening and the closing element. A
+     * packet cut off between them is incomplete: silently returning it
+     * would hand sidecar writers metadata that only looks complete.
+     */
+    @Test
+    fun testTruncatedPacketIsRejected() {
+
+        val truncated = "<x:xmpmeta xmlns:x=\"adobe:ns:meta/\"><rdf:RDF"
+
+        val exception = assertFailsWith<ImageReadException> {
+            requireValidXmpPacket(truncated, "The CR3 XMP UUID box")
+        }
+
+        assertTrue(
+            exception.message?.contains("closing", ignoreCase = true) == true,
+            "Unexpected message: ${exception.message}"
+        )
+    }
+
+    /**
      * The container check is deliberately shape-based: a minimal XMP
-     * envelope like the one a truncated recording survives with passes
-     * the container read, because terminating the parse at the file
-     * boundary must return the metadata that survived. Whether the
-     * packet parses is decided by the conversion and update layers.
+     * envelope passes as long as both elements are present. Whether the
+     * packet parses as full XMP is decided by the conversion and update
+     * layers.
      */
     @Test
     fun testMinimalEnvelopePassesContainerCheck() {

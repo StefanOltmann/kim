@@ -15,9 +15,12 @@
  */
 package de.stefan_oltmann.kim.format.gif.chunk
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class GifChunkApplicationExtensionTest {
 
@@ -61,13 +64,13 @@ class GifChunkApplicationExtensionTest {
     }
 
     /**
-     * A truncated packet is returned exactly as stored. Closing it
-     * synthetically would misrepresent the truncation, and sidecar
-     * writers would embed the fabricated bytes as if the packet were
-     * complete.
+     * A packet cut off between the opening and the closing element is
+     * incomplete. Returning it would hand sidecar writers metadata that
+     * only looks complete, so the parse fails instead - no synthetic
+     * closer is fabricated to disguise the truncation either.
      */
     @Test
-    fun testTruncatedPacketIsReturnedWithoutFabricatedCloser() {
+    fun testTruncatedPacketIsRejected() {
 
         val truncatedPacket = "<x:xmpmeta xmlns:x=\"adobe:ns:meta/\"><rdf:RDF"
 
@@ -79,6 +82,13 @@ class GifChunkApplicationExtensionTest {
             )
         )
 
-        assertEquals(truncatedPacket, chunk.parseAsXmpOrThrow())
+        val exception = assertFailsWith<ImageReadException> {
+            chunk.parseAsXmpOrThrow()
+        }
+
+        assertTrue(
+            exception.message?.contains("truncated", ignoreCase = true) == true,
+            "Unexpected message: ${exception.message}"
+        )
     }
 }

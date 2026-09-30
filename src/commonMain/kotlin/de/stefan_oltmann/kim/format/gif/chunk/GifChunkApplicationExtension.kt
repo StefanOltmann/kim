@@ -112,17 +112,21 @@ public class GifChunkApplicationExtension(
             throw ImageReadException("No XMP data found in application extension.")
 
         /*
-         * The packet is cut to the closing element when it has one. A
-         * truncated packet is returned as-is: closing it synthetically
-         * would misrepresent the truncation, and sidecar writers would
-         * embed the fabricated bytes as if the packet were complete.
+         * A packet cut off between the opening and the closing element is
+         * incomplete. Returning it would hand sidecar writers metadata
+         * that only looks complete while the update path fails on the
+         * broken bytes, so the parse fails instead - no synthetic closer
+         * is fabricated to disguise the truncation either.
          */
         val packetStart = "<$XMP_META_TAG" + content.substringAfter("<$XMP_META_TAG")
 
-        return if (packetStart.contains("</$XMP_META_TAG>"))
-            packetStart.substringBefore("</$XMP_META_TAG>") + "</$XMP_META_TAG>"
-        else
-            packetStart
+        if (!packetStart.contains("</$XMP_META_TAG>"))
+            throw ImageReadException(
+                "The XMP packet in the application extension is truncated - " +
+                    "the closing element is missing."
+            )
+
+        return packetStart.substringBefore("</$XMP_META_TAG>") + "</$XMP_META_TAG>"
     }
 
     private companion object {

@@ -26,14 +26,22 @@ import de.stefan_oltmann.kim.common.ImageReadException
 private const val XMP_PACKET_START_TAG = "<x:xmpmeta"
 
 /**
- * Fails the read when a chunk claims to carry XMP but holds no packet.
+ * The element every complete XMP packet ends with. A packet that has the
+ * opening element but not the closing one is truncated.
+ */
+private const val XMP_PACKET_END_TAG = "</x:xmpmeta>"
+
+/**
+ * Fails the read when a chunk carries no packet or a truncated one.
  *
- * A packet that starts correctly is accepted here even when it is
- * truncated or otherwise corrupt: the raw bytes stay fully available on
- * the metadata object by design (see the derived-projections section in
- * the [de.stefan_oltmann.kim.Kim] documentation), the update path fails
- * loudly when it cannot parse them, and the summary conversion decides
- * per call whether broken XMP is an error or an omission.
+ * A packet must contain both the opening and the closing element: a
+ * packet cut off between them is incomplete, and silently returning it
+ * would hand sidecar writers metadata that only looks complete while
+ * the update path fails on the broken bytes. Whether a complete packet
+ * parses as full XMP is decided by the conversion and update layers -
+ * the raw bytes stay fully available on the metadata object by design
+ * (see the derived-projections section in the
+ * [de.stefan_oltmann.kim.Kim] documentation).
  *
  * A NULL packet means the file has no XMP at all, which is fine.
  *
@@ -49,6 +57,12 @@ internal fun requireValidXmpPacket(
 
     if (xmp != null && !xmp.contains(XMP_PACKET_START_TAG))
         throw ImageReadException("$sourceDescription has no <x:xmpmeta> element.")
+
+    if (xmp != null && !xmp.contains(XMP_PACKET_END_TAG))
+        throw ImageReadException(
+            "$sourceDescription has a truncated <x:xmpmeta> packet - " +
+                "the closing element is missing."
+        )
 
     return xmp
 }
