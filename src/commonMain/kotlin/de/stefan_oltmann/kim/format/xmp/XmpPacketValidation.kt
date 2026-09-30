@@ -26,14 +26,14 @@ import de.stefan_oltmann.kim.common.ImageReadException
 private const val XMP_PACKET_START_TAG = "<x:xmpmeta"
 
 /**
- * Fails the read when an XMP packet was found but is corrupt.
+ * Fails the read when a chunk claims to carry XMP but holds no packet.
  *
- * Corrupt XMP must fail the read instead of being handed to sidecar
- * writers as a broken packet (read/update symmetry: an update would
- * embed the broken bytes as-is). This is the one shared enforcement
- * point of that policy for every format that embeds XMP - see the
- * "Strict read policy" section in the [de.stefan_oltmann.kim.Kim]
- * documentation.
+ * A packet that starts correctly is accepted here even when it is
+ * truncated or otherwise corrupt: the raw bytes stay fully available on
+ * the metadata object by design (see the derived-projections section in
+ * the [de.stefan_oltmann.kim.Kim] documentation), the update path fails
+ * loudly when it cannot parse them, and the summary conversion decides
+ * per call whether broken XMP is an error or an omission.
  *
  * A NULL packet means the file has no XMP at all, which is fine.
  *
