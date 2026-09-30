@@ -191,6 +191,9 @@ class JxlWriterTest {
             outputWriter.write(jxlpHeader)
 
             assertTrue(boxes.last().payload.isEmpty())
+
+            /* The file carries no metadata, so nothing may be dropped. */
+            emptySet()
         }
 
         val output = byteWriter.toByteArray()

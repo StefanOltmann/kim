@@ -16,6 +16,7 @@
 package de.stefan_oltmann.kim.testdata
 
 import de.stefan_oltmann.kim.common.ByteOrder
+import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffDirectory
 import de.stefan_oltmann.kim.format.tiff.TiffField
@@ -125,3 +126,12 @@ internal fun tiffContents(
         geoTiffDirectory = null
     )
 }
+
+/**
+ * A minimal but completely parseable little-endian TIFF: one IFD0 entry
+ * and no next IFD, for tests that need Exif bytes a reader accepts.
+ */
+internal fun minimalTiffBytes(): ByteArray =
+    convertHexStringToByteArray(
+        "49492a0008000000" + "0100" + "01000100010000002a000000" + "00000000"
+    )
