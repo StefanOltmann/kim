@@ -25,9 +25,10 @@ import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.xmp.XMPException
 import de.stefan_oltmann.xmp.XMPMetaFactory
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.Month
+import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.toInstant
 import kotlin.jvm.JvmStatic
-import kotlin.time.Instant
 
 /**
  * We only read metadata that the user is likely to change/correct
@@ -37,11 +38,6 @@ import kotlin.time.Instant
  * on because we prefer to get that from EXIF.
  */
 public object XmpReader {
-
-    /**
-     * Matches a trailing ISO-8601 timezone, like +05:00, -05:00 or Z.
-     */
-    private val ISO8601_TIMEZONE_REGEX: Regex = Regex("[+-]\\d{2}:\\d{2}$|Z$")
 
     @Throws(XMPException::class)
     @JvmStatic
@@ -53,29 +49,36 @@ public object XmpReader {
          * Read taken date
          */
 
-        val takenDateIsoString = xmpMeta.getDateTimeOriginal()
-
         val timeZone = Kim.effectiveTimeZone
 
-        val takenDate = takenDateIsoString?.let {
+        val takenDate = xmpMeta.getDateTimeOriginal()?.let { date ->
 
             try {
+
+                val localDateTime = LocalDateTime(
+                    year = date.year,
+                    month = Month(date.month),
+                    day = date.day,
+                    hour = date.hour,
+                    minute = date.minute,
+                    second = date.second,
+                    nanosecond = date.nanosecond
+                )
+
                 /*
-                 * An embedded offset (or Z) is authoritative - use it for the
+                 * An embedded offset is authoritative - use it for the
                  * epoch conversion instead of assuming the reader's zone.
                  */
-                Instant.parse(it).toEpochMilliseconds()
-            } catch (_: Exception) {
+                val utcOffset = date.utcOffsetMinutes?.let { UtcOffset(minutes = it) }
 
-                /* No offset embedded: interpret the local time in the configured zone. */
-                try {
-                    LocalDateTime.parse(it.replace(ISO8601_TIMEZONE_REGEX, ""))
-                        .toInstant(timeZone)
-                        .toEpochMilliseconds()
-                } catch (_: Exception) {
-                    /* We ignore invalid XMP DateTimeOriginal values. */
-                    null
-                }
+                val instant = utcOffset
+                    ?.let { localDateTime.toInstant(it) }
+                    ?: localDateTime.toInstant(timeZone)
+
+                instant.toEpochMilliseconds()
+            } catch (_: Exception) {
+                /* We ignore invalid XMP DateTimeOriginal values. */
+                null
             }
         }
 
@@ -106,6 +109,10 @@ public object XmpReader {
          * Compile into MetadataSummary object
          */
 
+        val faces = xmpMeta.getFaceRegions()
+            .mapNotNull { region -> region.name?.let { name -> name to region.area } }
+            .toMap()
+
         return MetadataSummary(
             orientation = TiffOrientation.of(xmpMeta.getOrientation()),
             takenDate = takenDate,
@@ -118,7 +125,7 @@ public object XmpReader {
             keywords = xmpMeta.getKeywords().ifEmpty {
                 xmpMeta.getAcdSeeKeywords()
             },
-            faces = xmpMeta.getFaces(),
+            faces = faces,
             personsInImage = xmpMeta.getPersonsInImage()
         )
     }

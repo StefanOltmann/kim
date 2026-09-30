@@ -23,6 +23,7 @@ import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
+import de.stefan_oltmann.xmp.XmpDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.test.AfterTest
@@ -171,11 +172,16 @@ class XmpWriterEdgeCasesTest {
             /*
              * Epoch 0 must map to 1970-01-01T00:00 in whatever the
              * platform time zone is, so the expected string is computed
-             * from that very zone and asserted exactly.
+             * from that very zone and asserted exactly. XMP Core renders
+             * the canonical form, which always includes the seconds.
              */
-            val expected = kotlin.time.Instant.fromEpochMilliseconds(0)
-                .toLocalDateTime(TimeZone.currentSystemDefault())
-                .toString()
+            val expected = requireNotNull(
+                XmpDate.parse(
+                    kotlin.time.Instant.fromEpochMilliseconds(0)
+                        .toLocalDateTime(TimeZone.currentSystemDefault())
+                        .toString()
+                )
+            ).toString()
 
             val actual: String? = xmpMeta
                 .getPropertyString(XMP_NS_EXIF, "DateTimeOriginal")

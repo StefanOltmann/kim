@@ -42,7 +42,6 @@ import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
-import de.stefan_oltmann.xmp.XMPConst
 import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
 
@@ -89,13 +88,7 @@ internal object JpegUpdater : MetadataUpdater {
 
             val kimMetadata = JpegImageParser.parseMetadata(segments)
 
-            /*
-             * Use existing XMP or create a new block.
-             */
-            val xmpMeta: XMPMeta = if (kimMetadata.xmp != null)
-                XMPMetaFactory.parseFromString(kimMetadata.xmp)
-            else
-                XMPMetaFactory.create()
+            val xmpMeta: XMPMeta = XMPMetaFactory.parseOrCreate(kimMetadata.xmp)
 
             var iptcWithDigest: IptcMetadata? = null
 
@@ -118,7 +111,7 @@ internal object JpegUpdater : MetadataUpdater {
 
                 val digestBytes = Md5.digest(IptcWriter.writeIptcBlockData(iptc.records))
 
-                xmpMeta.setProperty(XMPConst.NS_XMP_NOTE, "IPTCDigest", digestBytes.toHex())
+                xmpMeta.setIptcDigest(digestBytes.toHex())
 
                 iptcWithDigest = iptc.withIptcDigestResource(digestBytes)
             }
