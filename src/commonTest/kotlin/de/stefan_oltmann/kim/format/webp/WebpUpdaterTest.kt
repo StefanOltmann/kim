@@ -205,6 +205,62 @@ class WebpUpdaterTest : AbstractUpdaterTest("webp") {
     }
 
     /**
+     * A VP8X header behind the first chunk belongs to a nonconformant
+     * file. Inserting a fresh header would leave the stale one in place
+     * with undeclared ICC or animation flags, so the rewrite refuses the
+     * file instead of silently falsifying them.
+     */
+    @Test
+    fun testUpdateRejectsVp8xBehindTheFirstChunk() {
+
+        val movedBytes = moveVp8xBehindTheImageData(originalBytes)
+
+        val exception = assertFailsWith<ImageWriteException> {
+            Kim.update(
+                bytes = movedBytes,
+                updates = setOf(MetadataUpdate.Title("test"))
+            )
+        }
+
+        assertTrue(
+            exception.message?.contains("VP8X") == true,
+            "Unexpected message: ${exception.message}"
+        )
+    }
+
+    /**
+     * Moves the VP8X chunk of the file behind the image data chunk, the
+     * nonconformant layout the rejection targets.
+     */
+    private fun moveVp8xBehindTheImageData(webpBytes: ByteArray): ByteArray {
+
+        val vp8xOffset = firstChunkOffset(webpBytes, "VP8X")
+
+        val vp8xSize = readChunkSize(webpBytes, vp8xOffset)
+
+        val vp8xTotalLength = WebPConstants.CHUNK_HEADER_LENGTH + vp8xSize + vp8xSize % 2
+
+        val vp8xChunk = webpBytes.copyOfRange(vp8xOffset, vp8xOffset + vp8xTotalLength)
+
+        val withoutVp8x =
+            webpBytes.copyOfRange(0, vp8xOffset) +
+                webpBytes.copyOfRange(vp8xOffset + vp8xTotalLength, webpBytes.size)
+
+        val imageDataOffset = firstChunkOffset(withoutVp8x, "VP8 ")
+
+        val imageDataSize = readChunkSize(withoutVp8x, imageDataOffset)
+
+        val imageDataTotalLength =
+            WebPConstants.CHUNK_HEADER_LENGTH + imageDataSize + imageDataSize % 2
+
+        val insertIndex = imageDataOffset + imageDataTotalLength
+
+        return withoutVp8x.copyOfRange(0, insertIndex) +
+            vp8xChunk +
+            withoutVp8x.copyOfRange(insertIndex, withoutVp8x.size)
+    }
+
+    /**
      * Verifies that deleting the metadata removes the EXIF and XMP chunks
      * and clears the VP8X flags, but keeps the ICCP chunk that affects how
      * the image is displayed.

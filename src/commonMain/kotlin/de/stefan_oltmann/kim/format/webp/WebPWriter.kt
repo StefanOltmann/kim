@@ -99,7 +99,18 @@ public object WebPWriter {
          *
          * If it already has one, we correct the header.
          * If it's missing the header we add it.
+         *
+         * A VP8X header behind the first chunk belongs to a nonconformant
+         * file. Inserting a fresh header would leave the stale one in
+         * place with undeclared ICC or animation flags, so the rewrite
+         * refuses the file instead of silently falsifying them.
          */
+        if (headerChunk !is WebPChunkVP8X && modifiedChunks.any { it is WebPChunkVP8X })
+            throw ImageWriteException(
+                "The WebP carries a VP8X header behind the first chunk; " +
+                    "the file is nonconformant and is not rewritten."
+            )
+
         if (headerChunk is WebPChunkVP8X) {
 
             val replacementChunk = WebPChunkVP8X(
