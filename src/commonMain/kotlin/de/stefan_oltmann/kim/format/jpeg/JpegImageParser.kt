@@ -323,10 +323,17 @@ public object JpegImageParser : ImageParser {
 
         for (segment in xmpSegments) {
 
-            xmp.append(JpegXmpParser.parseXmpJpegSegment(segment.segmentBytes))
+            val segmentXml = JpegXmpParser.parseXmpJpegSegment(segment.segmentBytes)
 
-            /* Stop when we find the first complete packet. */
-            if (xmp.toString().contains(XMP_META_CLOSE))
+            xmp.append(segmentXml)
+
+            /*
+             * Stop when we find the first complete packet. The segment is
+             * checked instead of the accumulated text, so a hostile file
+             * with many unterminated segments cannot copy and rescan the
+             * whole accumulation per segment.
+             */
+            if (segmentXml.contains(XMP_META_CLOSE))
                 break
         }
 
