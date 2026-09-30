@@ -18,6 +18,7 @@ package de.stefan_oltmann.kim.kotlinx
 
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.exists
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.input.KotlinIoSourceByteReader
@@ -33,8 +34,20 @@ public object KimKotlinx {
     @Throws(ImageReadException::class)
     public fun readMetadata(path: Path): MediaMetadata? = tryWithImageReadException {
 
+        /*
+         * A file that cannot be opened is an error, not "no metadata" -
+         * like the JVM, Android and Apple facades, which throw for a
+         * missing file. Only a readable file with unknown bytes reports
+         * NULL.
+         */
+        if (!path.exists())
+            throw ImageReadException("File does not exist: $path")
+
         KotlinIoSourceByteReader.read(path) { byteReader ->
-            byteReader?.let { Kim.readMetadata(it) }
+
+            Kim.readMetadata(
+                byteReader = checkNotNull(byteReader) { "Not a regular file: $path" }
+            )
         }
     }
 }
