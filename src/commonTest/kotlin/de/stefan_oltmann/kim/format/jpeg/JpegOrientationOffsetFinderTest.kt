@@ -16,8 +16,12 @@
  */
 package de.stefan_oltmann.kim.format.jpeg
 
+import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.model.MetadataUpdate
+import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -82,6 +86,56 @@ class JpegOrientationOffsetFinderTest {
                 actual = orientationOffset
             )
         }
+    }
+
+    /**
+     * Only the spec's SHORT entry with one value can swap losslessly.
+     * A nonconformant LONG-typed Orientation entry must report no
+     * offset, so the update falls back to the rewrite that rebuilds
+     * the entry correctly, instead of patching one byte of a 4-byte
+     * value.
+     */
+    @Test
+    fun testLongTypedOrientationEntryFallsBackToRewrite() {
+
+        /* SOI + APP1 with an EXIF whose Orientation is typed LONG. */
+        val bytes = byteArrayOf(
+            0xFF.toByte(), 0xD8.toByte(), // SOI
+            0xFF.toByte(), 0xE1.toByte(), // APP1
+            0x00, 0x22,                   // Segment length 34.
+            0x45, 0x78, 0x69, 0x66, 0x00, 0x00, // "Exif\0\0"
+            0x49, 0x49, 0x2A, 0x00,       // TIFF header, little-endian.
+            8, 0, 0, 0,                   // IFD0 offset.
+            1, 0,                         // Entry count.
+            0x12, 0x01,                   // Orientation tag.
+            4, 0,                         // Type LONG (nonconformant).
+            1, 0, 0, 0,                   // Count 1.
+            6, 0, 0, 0,                   // Value 6.
+            0, 0, 0, 0,                   // No next IFD.
+            0xFF.toByte(), 0xDA.toByte(), // SOS
+            0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x3F, 0x00,
+            0x12, 0x34,                   // Entropy-coded data.
+            0xFF.toByte(), 0xD9.toByte()  // EOI
+        )
+
+        assertEquals(
+            expected = null,
+            actual = JpegOrientationOffsetFinder.findOrientationOffset(
+                ByteArrayByteReader(bytes)
+            )
+        )
+
+        /* The update still applies the orientation through the rewrite. */
+        val updatedBytes = Kim.update(
+            bytes = bytes,
+            update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT)
+        )
+
+        assertEquals(
+            expected = 6.toShort(),
+            actual = Kim.readMetadata(updatedBytes)
+                ?.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)
+        )
     }
 
     private companion object {

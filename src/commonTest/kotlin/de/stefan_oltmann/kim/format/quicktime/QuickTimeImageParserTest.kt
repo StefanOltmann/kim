@@ -241,6 +241,25 @@ class QuickTimeImageParserTest {
     }
 
     /**
+     * A file-level meta box is legal in a video container per ISO/IEC
+     * 14496-12 and has no item-metadata children there. Its payload
+     * carries nothing the video scan consumes, so it must be skipped
+     * without rejecting the whole read - the video metadata behind it
+     * stays readable.
+     */
+    @Test
+    fun testTopLevelMetaBoxDoesNotAbortVideoRead() {
+
+        val bytes = QuickTimeTestVideos.ftypBox() +
+            QuickTimeTestVideos.box("meta", ByteArray(0)) +
+            QuickTimeTestVideos.movWithXmpInMoov(xmpPacketBytes)
+
+        val metadata = assertNotNull(Kim.readMetadata(bytes))
+
+        assertNotNull(metadata.xmp)
+    }
+
+    /**
      * ExifTool and Adobe write the XMP packet of MOV videos into an "XMP_"
      * box inside the user data. Such packets must be read like the UUID
      * box variants, because dropping them silently would lose them for

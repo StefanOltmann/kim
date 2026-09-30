@@ -16,6 +16,7 @@
 package de.stefan_oltmann.kim.format.xmp
 
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.LocationShown
@@ -23,12 +24,16 @@ import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
+import de.stefan_oltmann.xmp.XMPRegionArea
+import de.stefan_oltmann.xmp.XmpDate
+import de.stefan_oltmann.xmp.XmpFaceRegion
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.time.ExperimentalTime
@@ -54,6 +59,23 @@ class XmpWriterEdgeCasesTest {
             update = update,
             writePackageWrapper = false
         )
+    }
+
+    /**
+     * An unparseable existing packet fails with the documented exception
+     * type. The xmpcore exception must not escape the public Kim API -
+     * every write throws only ImageWriteException.
+     */
+    @Test
+    fun testBrokenExistingPacketThrowsImageWriteException() {
+
+        assertFailsWith<ImageWriteException> {
+            XmpWriter.updateXmp(
+                existingXmp = "<not-xmp/>",
+                updates = setOf(MetadataUpdate.Title("x")),
+                writePackageWrapper = true
+            )
+        }
     }
 
     @Test
@@ -159,6 +181,31 @@ class XmpWriterEdgeCasesTest {
         assertNull(xmpMeta.getPropertyBoolean(XMP_NS_XMP, "Flagged"))
     }
 
+    /**
+     * The XMP region list is an ordered array, so a write must keep regions
+     * without a name and regions that share a name - collapsing them would
+     * silently delete detected faces on the round-trip.
+     */
+    @Test
+    fun testFacesRoundTripPreservesNamelessAndDuplicateRegions() {
+
+        val regions = listOf(
+            XmpFaceRegion("Swiper", XMPRegionArea(0.404336, 0.422313, 0.124503, 0.240097)),
+            XmpFaceRegion("Swiper", XMPRegionArea(0.1, 0.2, 0.3, 0.4)),
+            XmpFaceRegion(null, XMPRegionArea(0.5, 0.5, 0.2, 0.2))
+        )
+
+        apply(MetadataUpdate.Faces(regions, widthPx = 4390, heightPx = 2927))
+
+        val serialized =
+            XmpWriter.updateXmp(xmpMeta, emptySet(), writePackageWrapper = false)
+
+        assertEquals(
+            expected = regions,
+            actual = XmpReader.readMetadata(serialized).faces
+        )
+    }
+
     @OptIn(ExperimentalTime::class)
     @Test
     fun testUpdateWithSystemTimeZone() {
@@ -171,11 +218,16 @@ class XmpWriterEdgeCasesTest {
             /*
              * Epoch 0 must map to 1970-01-01T00:00 in whatever the
              * platform time zone is, so the expected string is computed
-             * from that very zone and asserted exactly.
+             * from that very zone and asserted exactly. XMP Core renders
+             * the canonical form, which always includes the seconds.
              */
-            val expected = kotlin.time.Instant.fromEpochMilliseconds(0)
-                .toLocalDateTime(TimeZone.currentSystemDefault())
-                .toString()
+            val expected = requireNotNull(
+                XmpDate.parse(
+                    kotlin.time.Instant.fromEpochMilliseconds(0)
+                        .toLocalDateTime(TimeZone.currentSystemDefault())
+                        .toString()
+                )
+            ).toString()
 
             val actual: String? = xmpMeta
                 .getPropertyString(XMP_NS_EXIF, "DateTimeOriginal")

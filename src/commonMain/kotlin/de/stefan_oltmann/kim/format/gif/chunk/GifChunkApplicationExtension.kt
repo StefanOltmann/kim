@@ -63,7 +63,7 @@ public class GifChunkApplicationExtension(
             ?.toUInt8()
             ?: 0
 
-        if (firstSubChunk != null && firstSubChunkSize >= APPLICATION_IDENTIFIER_LENGTH) {
+        if (firstSubChunk != null && firstSubChunkSize >= GifConstants.APPLICATION_IDENTIFIER_LENGTH) {
 
             val firstSubChunkByteReader = ByteArrayByteReader(firstSubChunk)
 
@@ -72,12 +72,12 @@ public class GifChunkApplicationExtension(
 
             applicationIdentifier = firstSubChunkByteReader.readBytes(
                 fieldName = "application identifier",
-                count = APPLICATION_IDENTIFIER_LENGTH
+                count = GifConstants.APPLICATION_IDENTIFIER_LENGTH
             ).decodeToString()
 
             applicationCode = firstSubChunkByteReader.readBytes(
                 fieldName = "application code",
-                count = firstSubChunkSize - APPLICATION_IDENTIFIER_LENGTH
+                count = firstSubChunkSize - GifConstants.APPLICATION_IDENTIFIER_LENGTH
             ).decodeToString()
 
         } else {
@@ -111,16 +111,25 @@ public class GifChunkApplicationExtension(
         if (!content.contains("<$XMP_META_TAG"))
             throw ImageReadException("No XMP data found in application extension.")
 
-        return "<$XMP_META_TAG" + content
-            .substringAfter("<$XMP_META_TAG")
-            .substringBefore("</$XMP_META_TAG>")
-            .plus("</$XMP_META_TAG>")
+        /*
+         * A packet cut off between the opening and the closing element is
+         * incomplete. Returning it would hand sidecar writers metadata
+         * that only looks complete while the update path fails on the
+         * broken bytes, so the parse fails instead - no synthetic closer
+         * is fabricated to disguise the truncation either.
+         */
+        val packetStart = "<$XMP_META_TAG" + content.substringAfter("<$XMP_META_TAG")
+
+        if (!packetStart.contains("</$XMP_META_TAG>"))
+            throw ImageReadException(
+                "The XMP packet in the application extension is truncated - " +
+                    "the closing element is missing."
+            )
+
+        return packetStart.substringBefore("</$XMP_META_TAG>") + "</$XMP_META_TAG>"
     }
 
     private companion object {
-
-        /* The application identifier is 8 bytes */
-        const val APPLICATION_IDENTIFIER_LENGTH = 8
 
         /* The opening element of an XMP packet */
         const val XMP_META_TAG = "x:xmpmeta"

@@ -23,6 +23,8 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoGpsText
+import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoSShort
+import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoSShorts
 import de.stefan_oltmann.kim.testdata.tiffField
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -188,6 +190,23 @@ class TiffFieldTypesAndTagInfoTest {
         assertNotEquals(tagInfo, TiffTag.TIFF_TAG_IMAGE_HEIGHT)
         assertNotEquals<Any>(tagInfo, "ImageWidth")
         assertEquals(tagInfo, tagInfo)
+    }
+
+    /**
+     * The signed short tag infos must declare the signed field type.
+     * The writer emits SShort for them, and any typed accessor compares
+     * the declared type against the on-disk type - an unsigned
+     * declaration would misfire on files Kim itself wrote.
+     */
+    @Test
+    fun testTagInfoSShortDeclaresSShortFieldType() {
+
+        assertEquals(FieldTypeSShort, TagInfoSShort(0, "test", null).fieldType)
+
+        assertEquals(
+            FieldTypeSShort,
+            TagInfoSShorts(0, "test", 2, null).fieldType
+        )
     }
 
     @Test

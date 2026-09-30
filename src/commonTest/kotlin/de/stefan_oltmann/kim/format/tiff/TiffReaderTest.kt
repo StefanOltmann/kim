@@ -25,6 +25,7 @@ import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
+import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.DefaultRandomAccessByteReader
 import de.stefan_oltmann.kim.input.RandomAccessByteReader
@@ -35,6 +36,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class TiffReaderTest {
@@ -92,6 +94,85 @@ class TiffReaderTest {
         assertFailsWith<ImageReadException> {
             TiffReader.read(DefaultRandomAccessByteReader(ByteArrayByteReader(bytes)))
         }
+    }
+
+    /**
+     * An ExifOffset entry stored with a variant type is readable data:
+     * like ExifTool, the offset is recovered from the value bytes, so
+     * the pointer field - and with it the whole Exif sub-IFD - survives
+     * instead of being dropped, where a rewrite would lose it.
+     */
+    @Test
+    fun testReadPreservesTypeVariantSubIfdOffsetField() {
+
+        /* IFD0 with a single entry: ExifOffset (0x8769), type SLONG. */
+        val bytes = byteArrayOf(
+            0x49, 0x49, 0x2A, 0x00, // TIFF header.
+            8, 0, 0, 0,             // IFD0 offset.
+            1, 0,                   // Entry count.
+            0x69, 0x87.toByte(),    // ExifOffset tag.
+            9, 0,                   // Type SLONG (variant).
+            1, 0, 0, 0,             // Count 1.
+            26, 0, 0, 0,            // Value 26 (inline).
+            0, 0, 0, 0,             // No next IFD.
+            /* The Exif sub-IFD at offset 26. */
+            1, 0,                   // Entry count.
+            0x0E, 0x01,             // ImageDescription tag.
+            2, 0,                   // Type ASCII.
+            2, 0, 0, 0,             // Count 2.
+            0x41, 0, 0, 0,          // "A" + padding.
+            0, 0, 0, 0              // No next IFD.
+        )
+
+        val metadata = TiffReader.read(DefaultRandomAccessByteReader(ByteArrayByteReader(bytes)))
+
+        val ifd0Entries = metadata.directories.first().entries
+
+        /* The variant pointer field survived in IFD0. */
+        assertTrue(
+            ifd0Entries.any { it.tag == 0x8769 },
+            "The ExifOffset field was dropped from IFD0."
+        )
+
+        /* The sub-IFD the variant pointer identifies was read. */
+        assertTrue(
+            metadata.directories.any { directory ->
+                directory.entries.any { it.tag == 0x010E }
+            },
+            "The Exif sub-IFD behind the variant pointer was not read."
+        )
+    }
+
+    /**
+     * A multi-value sub-IFD offset entry cannot identify a single
+     * offset - ExifTool warns "Bad value for ExifOffset" and continues.
+     * The broken pointer is dropped so a rewrite cannot carry it into
+     * the output, while the rest of the file stays readable.
+     */
+    @Test
+    fun testReadDropsMultiValueSubIfdOffsetField() {
+
+        /* Modeled after media_46.jpg: ExifOffset (0x8769) with count 3. */
+        val bytes = byteArrayOf(
+            0x49, 0x49, 0x2A, 0x00, // TIFF header.
+            8, 0, 0, 0,             // IFD0 offset.
+            1, 0,                   // Entry count.
+            0x69, 0x87.toByte(),    // ExifOffset tag.
+            4, 0,                   // Type LONG.
+            3, 0, 0, 0,             // Count 3 (no single offset).
+            26, 0, 0, 0,            // Value offset 26.
+            0, 0, 0, 0,             // No next IFD.
+            1, 0, 0, 0,             // The 12 value bytes.
+            0, 0, 0, 0,
+            2, 0, 0, 0
+        )
+
+        val metadata = TiffReader.read(DefaultRandomAccessByteReader(ByteArrayByteReader(bytes)))
+
+        assertTrue(
+            metadata.directories.first().entries.isEmpty(),
+            "The broken ExifOffset field was not dropped."
+        )
     }
 
     /**
@@ -315,13 +396,78 @@ class TiffReaderTest {
     }
 
     /**
+     * The content length of a stream source is only a hint and may
+     * understate the real data. Clamping the thumbnail length to the
+     * hint truncated readable thumbnail bytes - the real read must
+     * decide, like it does for the field values.
+     */
+    @Test
+    fun testThumbnailReadIgnoresUnderstatedContentLength() {
+
+        /* IFD0 with a 7-byte JPEG thumbnail at offset 38. */
+        val tiffBytes = convertHexStringToByteArray(
+            "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
+                "0200" + // 2 entries
+                "010204000100000026000000" + // JPEGInterchangeFormat (0x0201) = 38
+                "020204000100000007000000" + // JPEGInterchangeFormatLength (0x0202) = 7
+                "00000000" + // No next directory
+                "ffd8112233" + "ffd9" // The thumbnail bytes at offset 38.
+        )
+
+        val delegate = DefaultRandomAccessByteReader(ByteArrayByteReader(tiffBytes))
+
+        /* The stream source underreports its size by the thumbnail tail. */
+        val understatedReader = object : RandomAccessByteReader by delegate {
+            override val contentLength: Long = tiffBytes.size - 2L
+        }
+
+        val tiffContents = TiffReader.read(
+            byteReader = understatedReader,
+            readTiffImageBytes = true
+        )
+
+        val thumbnail = assertNotNull(
+            tiffContents.directories.first().thumbnailBytes,
+            "The readable thumbnail was truncated by the understated hint."
+        )
+
+        assertEquals(7, thumbnail.size)
+    }
+
+    /**
+     * A value offset above the signed Int range must take the same
+     * targeted skip path as a negative one. Narrowing it to Int
+     * unchecked wrapped it negative and failed the whole read with an
+     * opaque error instead of skipping the field.
+     */
+    @Test
+    fun testReadSkipsEntryWithValueOffsetAboveIntMax() {
+
+        val bytes = convertHexStringToByteArray(
+            "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
+                "0200" + // 2 entries
+                "0001" + "0100" + "08000000" + "00000090" + // ImageWidth, BYTE[8], value offset 0x90000000
+                "0201" + "0300" + "01000000" + "08000000" + // BitsPerSample = 8
+                "00000000" // No next directory
+        )
+
+        val tiffContents = TiffReader.read(
+            byteReader = DefaultRandomAccessByteReader(ByteArrayByteReader(bytes))
+        )
+
+        /* The hostile field is skipped; the rest of the file reads. */
+        assertNull(tiffContents.directories.first().findField(TiffTag.TIFF_TAG_IMAGE_WIDTH))
+
+        assertNotNull(tiffContents.directories.first().findField(TiffTag.TIFF_TAG_BITS_PER_SAMPLE))
+    }
+
+    /**
      * Regression test: strip offsets come from unsigned LONGs and can
      * resolve beyond the signed Int range in hostile files. Reading the
      * image data must degrade to NULL instead of crashing.
      */
     @Test
     fun testReadSkipsStripWithNegativeResolvedOffset() {
-
         val bytes = convertHexStringToByteArray(
             "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
                 "0200" + // 2 entries

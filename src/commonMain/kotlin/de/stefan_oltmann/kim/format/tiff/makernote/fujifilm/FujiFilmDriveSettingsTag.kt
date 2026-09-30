@@ -18,11 +18,12 @@ package de.stefan_oltmann.kim.format.tiff.makernote.fujifilm
 import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoByte
+import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoLong
 
 /**
  * Tags of the DriveSettings maker note sub-directory.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#DriveSettings
+ * See https://exiftool.sourceforge.net/TagNames/FujiFilm.html#DriveSettings
  */
 @Suppress("MagicNumber", "StringLiteralDuplication", "MaxLineLength")
 public object FujiFilmDriveSettingsTag {
@@ -33,7 +34,8 @@ public object FujiFilmDriveSettingsTag {
         mask = 0x000000ff.toInt()
     )
 
-    public val DRIVE_SPEED: TagInfoByte = TagInfoByte(
+    /* The ExifTool mask spans one int32u, so the entry reads four bytes. */
+    public val DRIVE_SPEED: TagInfoLong = TagInfoLong(
         0x0, "DriveSpeed",
         TiffDirectoryType.EXIF_DIRECTORY_MAKER_NOTE_FUJIFILM_DRIVE_SETTINGS,
         mask = 0xff000000.toInt()

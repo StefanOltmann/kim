@@ -16,6 +16,7 @@
  */
 package de.stefan_oltmann.kim.format.cr3
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BoxType
@@ -74,6 +75,25 @@ public object Cr3Reader {
         )
 
         if (idf0 == null) {
+
+            /*
+             * The CMT boxes are independent TIFF structures, so CMT2,
+             * CMT3 and CMT4 can exist without a readable CMT1 - for
+             * example after the first box was damaged. Their content is
+             * metadata that the empty result would silently drop, so
+             * like a corrupt CMT1 this fails the read per the strict
+             * read policy.
+             */
+            val hasMetadataWithoutCmt1 = subBoxes.any { box ->
+                box.type == BoxType.CMT2 ||
+                    box.type == BoxType.CMT3 ||
+                    box.type == BoxType.CMT4
+            }
+
+            if (hasMetadataWithoutCmt1)
+                throw ImageReadException(
+                    "The CR3 carries metadata boxes without a readable CMT1 box."
+                )
 
             return MediaMetadata(
                 mediaFormat = MediaFormat.CR3,
@@ -144,7 +164,8 @@ public object Cr3Reader {
             mediaFormat = MediaFormat.CR3,
             imageSize = imageSize,
             exif = tiffContents,
-            exifBytes = null, /* TODO Generate bytes? */
+            /* CR3 stores no single EXIF byte block a rewrite could reuse. */
+            exifBytes = null,
             iptc = null, /* Not covered by ISO BMFF. */
             xmp = xmpFromUuidBox
         )

@@ -191,6 +191,9 @@ class JxlWriterTest {
             outputWriter.write(jxlpHeader)
 
             assertTrue(boxes.last().payload.isEmpty())
+
+            /* The file carries no metadata, so nothing may be dropped. */
+            emptySet()
         }
 
         val output = byteWriter.toByteArray()
@@ -240,7 +243,10 @@ class JxlWriterTest {
 
         for (index in KimTestData.jxlPhotoIds) {
 
-            // TODO Support compressed boxes
+            /*
+             * Compressed boxes cannot be rewritten without brotli
+             * support - the updater refuses them instead.
+             */
             if (index == KimTestData.JXL_CONTAINER_COMPRESSED_INDEX)
                 continue
 

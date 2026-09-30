@@ -323,10 +323,17 @@ public object JpegImageParser : ImageParser {
 
         for (segment in xmpSegments) {
 
-            xmp.append(JpegXmpParser.parseXmpJpegSegment(segment.segmentBytes))
+            val segmentXml = JpegXmpParser.parseXmpJpegSegment(segment.segmentBytes)
 
-            /* Stop when we find the first complete packet. */
-            if (xmp.toString().contains(XMP_META_CLOSE))
+            xmp.append(segmentXml)
+
+            /*
+             * Stop when we find the first complete packet. The segment is
+             * checked instead of the accumulated text, so a hostile file
+             * with many unterminated segments cannot copy and rescan the
+             * whole accumulation per segment.
+             */
+            if (segmentXml.contains(XMP_META_CLOSE))
                 break
         }
 
@@ -371,6 +378,14 @@ public object JpegImageParser : ImageParser {
          */
         var photoshopData = ByteArrayByteWriter()
 
+        /*
+         * The payloads of the segments that formed the current stream.
+         * They identify the stream on the write side, so a rewrite
+         * removes exactly these segments and keeps other Photoshop
+         * streams of the file byte-exact.
+         */
+        var photoshopSegments = mutableListOf<ByteArray>()
+
         for (segment in segments.filterIsInstance<App13Segment>()) {
 
             if (!segment.isPhotoshopJpegSegment())
@@ -388,15 +403,19 @@ public object JpegImageParser : ImageParser {
                  * later, real IPTC stream of the same file.
                  */
                 if (parsed != null && parsed.records.isNotEmpty())
-                    return parsed
+                    return parsed.copy(sourceSegmentBytes = photoshopSegments)
 
                 photoshopData = ByteArrayByteWriter()
+                photoshopSegments = mutableListOf()
             }
 
             photoshopData.write(segmentData)
+            photoshopSegments.add(segment.segmentBytes)
         }
 
-        return parsePhotoshopData(photoshopData.toByteArray())
+        val parsed = parsePhotoshopData(photoshopData.toByteArray()) ?: return null
+
+        return parsed.copy(sourceSegmentBytes = photoshopSegments)
     }
 
     /**

@@ -20,9 +20,6 @@ import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.get
 import org.khronos.webgl.set
 
-internal actual fun compress(input: String): ByteArray =
-    Pako.deflate(input).toByteArray()
-
 @OptIn(ExperimentalWasmJsInterop::class)
 internal actual fun decompressBytes(
     byteArray: ByteArray,
@@ -82,8 +79,6 @@ private fun ByteArray.toUint8Array(): Uint8Array {
 @Suppress("UnusedPrivateMember", "UnusedParameter") // False positive
 @JsModule("pako")
 private external object Pako {
-    fun deflate(data: String): Uint8Array
-
     /**
      * The incremental stream interface. The accumulated output is visible
      * in [result] between pushes, which is what the decompression budget

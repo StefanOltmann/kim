@@ -74,6 +74,9 @@ public object TiffReader {
 
     private const val BIGTIFF_VERSION: Int = 43
 
+    /* The sub-IFD pointers are LONGs, so a recoverable value holds 4 bytes. */
+    private const val SUB_IFD_OFFSET_BYTE_COUNT: Int = 4
+
     /**
      * Panasonic RW2 and RWL files are TIFF variants whose header
      * carries 0x55 as the version, and whose IFD0 uses the Panasonic
@@ -196,7 +199,8 @@ public object TiffReader {
     }
 
     /**
-     * The MakerNote directory and its sub-directories.
+     * Reads the TIFF header: the byte order, the version signature and
+     * the offset to the first IFD.
      */
     internal fun readTiffHeader(byteReader: ByteReader): TiffHeader {
 
@@ -374,6 +378,26 @@ public object TiffReader {
     private fun isMetadataBearingOffsetField(offsetField: TagInfo): Boolean =
         offsetField in metadataBearingOffsetFields
 
+    /**
+     * Recovers the sub-IFD offset from an entry whose declared type does
+     * not match the single LONG the sub-IFD pointers use, mirroring
+     * ExifTool, which reads the offset from the value bytes in that
+     * situation. Returns NULL when the value cannot identify a single
+     * offset at all.
+     */
+    private fun interpretSubDirectoryOffset(field: TiffField): Int? {
+
+        if (field.count != 1)
+            return null
+
+        val valueBytes = field.valueBytes
+
+        if (valueBytes.size < SUB_IFD_OFFSET_BYTE_COUNT)
+            return null
+
+        return valueBytes.toInt(field.byteOrder)
+    }
+
     private fun readOffsetDirectories(
         byteReader: RandomAccessByteReader,
         byteOrder: ByteOrder,
@@ -408,21 +432,33 @@ public object TiffReader {
             } catch (_: ImageReadException) {
 
                 /*
-                 * If the offset field is broken we don't try
-                 * to read the sub directory.
-                 *
-                 * We need to remove the field pointing to wrong
-                 * data or else we won't be able to update the file.
-                 *
-                 * This only ever happens for data that is certainly
-                 * unreadable (the value cannot even be parsed), never
-                 * for data that might be valid. See "Never destroy
-                 * metadata" in the [Kim] documentation.
+                 * The entry's declared type or count does not match the
+                 * single LONG the sub-IFD pointers use. A readable single
+                 * value still identifies the sub-IFD: ExifTool reads the
+                 * offset from the value bytes in that situation, so the
+                 * pointer - and with it the whole sub-IFD - survives
+                 * instead of being dropped. See "Never destroy metadata"
+                 * in the [Kim] documentation.
                  */
+                val recoveredOffset = interpretSubDirectoryOffset(field)
 
-                fields.remove(field)
+                if (recoveredOffset == null) {
 
-                continue
+                    /*
+                     * A count of zero is a dangling reference: the value
+                     * is gone entirely, the sub-IFD is unreachable and
+                     * there is nothing readable to preserve. A multi-
+                     * value count cannot identify a single offset either
+                     * - ExifTool warns "Bad value for ExifOffset" and
+                     * continues. The field is dropped so a rewrite
+                     * cannot carry the broken pointer into the output.
+                     */
+                    fields.remove(field)
+
+                    continue
+                }
+
+                intArrayOf(recoveredOffset)
             }
 
             for ((index, subDirOffset) in subDirOffsets.withIndex()) {
@@ -728,21 +764,20 @@ public object TiffReader {
             return null
 
         val offset = element.offset
-        var length = element.length
+        val length = element.length
 
         /*
-         * If the length is not correct (going beyond the file size) we need to adjust it.
-         * Computed in Long space, so a hostile length cannot wrap around.
-         */
-        if (offset.toLong() + length > byteReader.contentLength)
-            length = (byteReader.contentLength - offset).toInt()
-
-        /*
-         * If the new length is 0 or negative, ignore this element.
+         * If the length is not positive, ignore this element.
          */
         if (length <= 0)
             return null
 
+        /*
+         * The content length is only a hint for stream sources, so the
+         * real read decides how much of the thumbnail exists - exactly
+         * like the field value reads above. A short read is rejected by
+         * the size check below.
+         */
         val bytes = byteReader.readBytes(offset, length)
 
         if (bytes.size != length)
@@ -786,21 +821,19 @@ public object TiffReader {
                 return null
 
             val offset = element.offset
-            var length = element.length
+            val length = element.length
 
             /*
-             * If the length is not correct (going beyond the file size) we need to adjust it.
-             * Computed in Long space, so a hostile length cannot wrap around.
-             */
-            if (offset.toLong() + length > byteReader.contentLength)
-                length = (byteReader.contentLength - offset).toInt()
-
-            /*
-             * If the new length is 0 or negative, ignore this element.
+             * If the length is not positive, skip this element.
              */
             if (length <= 0)
                 continue
 
+            /*
+             * The content length is only a hint for stream sources, so
+             * the real read decides how much of the strip exists - the
+             * short-read check below rejects an incomplete strip.
+             */
             val bytes = byteReader.readBytes(offset, length)
 
             /*

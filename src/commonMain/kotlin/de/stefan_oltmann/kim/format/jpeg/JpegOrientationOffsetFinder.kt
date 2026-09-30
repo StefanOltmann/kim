@@ -27,8 +27,10 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.TIFF_ENTRY_LENGT
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.TIFF_ENTRY_MAX_VALUE_LENGTH
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.TIFF_HEADER_SIZE
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeShort
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.read2BytesAsInt
+import de.stefan_oltmann.kim.input.read4BytesAsInt
 import de.stefan_oltmann.kim.input.readBytes
 import de.stefan_oltmann.kim.input.skipBytes
 
@@ -146,6 +148,22 @@ public object JpegOrientationOffsetFinder {
                 val tag = byteReader.read2BytesAsInt("Entry $entryIndex: 'tag'", exifByteOrder)
 
                 if (tag == TiffTag.TIFF_TAG_ORIENTATION.tag) {
+
+                    /*
+                     * Only the spec's SHORT entry with one value can swap
+                     * losslessly. Anything else takes the rewrite path,
+                     * which rebuilds the entry correctly - patching a
+                     * byte into a foreign layout would silently corrupt
+                     * the value.
+                     */
+                    val fieldType =
+                        byteReader.read2BytesAsInt("Entry $entryIndex: 'type'", exifByteOrder)
+
+                    val fieldCount =
+                        byteReader.read4BytesAsInt("Entry $entryIndex: 'count'", exifByteOrder)
+
+                    if (fieldType != FieldTypeShort.type || fieldCount != 1)
+                        return null
 
                     positionCounter += TIFF_ENTRY_LENGTH - TIFF_ENTRY_MAX_VALUE_LENGTH
 

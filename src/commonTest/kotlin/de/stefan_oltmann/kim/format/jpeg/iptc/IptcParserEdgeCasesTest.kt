@@ -407,6 +407,32 @@ class IptcParserEdgeCasesTest {
         }
     }
 
+    /**
+     * A block size with the sign bit set is read as a negative number.
+     * It must fail like an oversized size instead of slipping past the
+     * size check and silently truncating the parse - a rewrite would
+     * then destroy the unparsed tail.
+     */
+    @Test
+    fun testParseRejectsNegativeBlockSize() {
+
+        /* Block size field 0x80000000, read as a negative Int. */
+        val block = byteArrayOf(
+            0x38, 0x42, 0x49, 0x4D,
+            0x04, 0x04,
+            0,
+            0,
+            0x80.toByte(), 0, 0, 0
+        )
+
+        assertFailsWith<ImageReadException> {
+            IptcParser.parseIptc(
+                bytes = block,
+                startsWithApp13Header = false
+            )
+        }
+    }
+
     @Test
     fun testIptcTypes() {
 

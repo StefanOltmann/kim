@@ -17,17 +17,22 @@
 package de.stefan_oltmann.kim.format.xmp
 
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.LocationShown
 import de.stefan_oltmann.kim.model.MetadataSummary
 import de.stefan_oltmann.kim.model.TiffOrientation
-import de.stefan_oltmann.xmp.XMPException
+import de.stefan_oltmann.xmp.XMPConst
+import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.Month
+import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.toInstant
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.jvm.JvmStatic
-import kotlin.time.Instant
 
 /**
  * We only read metadata that the user is likely to change/correct
@@ -38,44 +43,95 @@ import kotlin.time.Instant
  */
 public object XmpReader {
 
-    /**
-     * Matches a trailing ISO-8601 timezone, like +05:00, -05:00 or Z.
-     */
-    private val ISO8601_TIMEZONE_REGEX: Regex = Regex("[+-]\\d{2}:\\d{2}$|Z$")
-
-    @Throws(XMPException::class)
+    @Throws(ImageReadException::class)
     @JvmStatic
-    public fun readMetadata(xmp: String): MetadataSummary {
+    public fun readMetadata(xmp: String): MetadataSummary =
+        tryWithImageReadException {
+            buildMetadataSummary(XMPMetaFactory.parseFromString(xmp))
+        }
 
-        val xmpMeta = XMPMetaFactory.parseFromString(xmp)
+    /**
+     * Reads the packet like [readMetadata] and additionally reports which fields the
+     * packet carries, independently of their value, plus the parsed packet itself.
+     *
+     * The packet is parsed once; the summary and the presence facts are derived from
+     * that single parse.
+     *
+     * @throws ImageReadException When the packet cannot be parsed.
+     */
+    @Throws(ImageReadException::class)
+    @JvmStatic
+    public fun readMetadataDetails(xmp: String): XmpMetadataDetails =
+        tryWithImageReadException {
+
+            val xmpMeta = XMPMetaFactory.parseFromString(xmp)
+
+            XmpMetadataDetails(
+                metadata = buildMetadataSummary(xmpMeta),
+                xmpMeta = xmpMeta,
+                carriesFlag = xmpMeta.carriesFlag(),
+                carriesKeywords = xmpMeta.doesPropertyExist(XMPConst.NS_DC, XMPConst.XMP_DC_SUBJECT),
+                carriesPersonsInImage = xmpMeta.doesPropertyExist(
+                    XMPConst.NS_IPTC_EXT,
+                    XMPConst.XMP_IPTC_EXT_PERSON_IN_IMAGE
+                ),
+                carriesFaces = xmpMeta.doesPropertyExist(
+                    XMPConst.NS_MWG_RS,
+                    XMPConst.XMP_MWG_RS_REGION_LIST
+                )
+            )
+        }
+
+    /**
+     * Whether the packet carries a flag property in any schema [XMPMeta.isFlagged] reads
+     * the flag value from - an explicit "not flagged" counts as carried, like silence
+     * counts as not carried.
+     */
+    private fun XMPMeta.carriesFlag(): Boolean =
+        doesPropertyExist(XMPConst.NS_DM, XMPConst.FLAGGED_TAG_ADOBE_NAME) ||
+            doesPropertyExist(XMPConst.NS_DM, XMPConst.FLAGGED_TAG_ADOBE_GOOD_NAME) ||
+            doesPropertyExist(XMPConst.NS_ACDSEE, XMPConst.FLAGGED_TAG_ACDSEE_NAME) ||
+            doesPropertyExist(XMPConst.NS_MYLIO, XMPConst.FLAGGED_TAG_MYLIO_NAME) ||
+            doesPropertyExist(XMPConst.NS_NARRATIVE, XMPConst.FLAGGED_TAG_NARRATIVE_NAME)
+
+    private fun buildMetadataSummary(xmpMeta: XMPMeta): MetadataSummary {
 
         /*
          * Read taken date
          */
 
-        val takenDateIsoString = xmpMeta.getDateTimeOriginal()
-
         val timeZone = Kim.effectiveTimeZone
 
-        val takenDate = takenDateIsoString?.let {
+        val takenDate = xmpMeta.getDateTimeOriginal()?.let { date ->
 
             try {
+
+                val localDateTime = LocalDateTime(
+                    year = date.year,
+                    month = Month(date.month),
+                    day = date.day,
+                    hour = date.hour,
+                    minute = date.minute,
+                    second = date.second,
+                    nanosecond = date.nanosecond
+                )
+
                 /*
-                 * An embedded offset (or Z) is authoritative - use it for the
+                 * An embedded offset is authoritative - use it for the
                  * epoch conversion instead of assuming the reader's zone.
                  */
-                Instant.parse(it).toEpochMilliseconds()
-            } catch (_: Exception) {
+                val utcOffset = date.utcOffsetMinutes?.let { UtcOffset(minutes = it) }
 
-                /* No offset embedded: interpret the local time in the configured zone. */
-                try {
-                    LocalDateTime.parse(it.replace(ISO8601_TIMEZONE_REGEX, ""))
-                        .toInstant(timeZone)
-                        .toEpochMilliseconds()
-                } catch (_: Exception) {
-                    /* We ignore invalid XMP DateTimeOriginal values. */
-                    null
-                }
+                val instant = utcOffset
+                    ?.let { localDateTime.toInstant(it) }
+                    ?: localDateTime.toInstant(timeZone)
+
+                instant.toEpochMilliseconds()
+            } catch (ex: CancellationException) {
+                throw ex
+            } catch (_: Exception) {
+                /* We ignore invalid XMP DateTimeOriginal values. */
+                null
             }
         }
 
@@ -118,7 +174,7 @@ public object XmpReader {
             keywords = xmpMeta.getKeywords().ifEmpty {
                 xmpMeta.getAcdSeeKeywords()
             },
-            faces = xmpMeta.getFaces(),
+            faces = xmpMeta.getFaceRegions(),
             personsInImage = xmpMeta.getPersonsInImage()
         )
     }

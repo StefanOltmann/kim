@@ -151,18 +151,19 @@ class GifUpdaterTest : AbstractUpdaterTest(
     }
 
     /**
-     * A comment extension behind the first frame must not survive an
-     * update either, otherwise the file ends up with stale duplicates.
+     * A comment extension behind the first frame is data the update does
+     * not touch: like unknown extensions it streams through untouched.
+     * Only deleteMetadata removes comments.
      */
     @Test
-    fun testUpdateStripsTrailingCommentExtension() {
+    fun testUpdatePreservesTrailingCommentExtension() {
 
         val updatedBytes = Kim.update(
             bytes = createGif89aWithTrailingCommentExtension(),
             update = MetadataUpdate.Title("New title")
         )
 
-        assertFalse(updatedBytes.decodeToString().contains(STALE_COMMENT))
+        assertTrue(updatedBytes.decodeToString().contains(STALE_COMMENT))
 
         /* The new XMP metadata and the image must be present. */
         assertTrue(updatedBytes.decodeToString().contains("<x:xmpmeta"))

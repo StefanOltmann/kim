@@ -61,7 +61,9 @@ internal object NikonMakerNoteHandler : MakerNoteHandler() {
             NikonPictureControlTag.ALL,
             1,
             versionTables = mapOf(
-                "0200" to MakerNoteBlobPointer(
+                /* Like ExifTool, the version dispatch matches the prefix, so
+                   versions 0201 to 0204 use the PictureControl2 layout. */
+                "02" to MakerNoteBlobPointer(
                     0x0023,
                     TIFF_MAKER_NOTE_NIKON_PICTURE_CONTROL,
                     NikonPictureControl2Tag.ALL,

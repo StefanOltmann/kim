@@ -209,15 +209,24 @@ internal open class MakerNoteHandler {
 
             try {
 
-                /* The blob layout may depend on the version bytes or the camera model. */
+                /*
+                 * The blob layout may depend on the version bytes or the camera model.
+                 * Like ExifTool, the version tables dispatch on the version
+                 * PREFIX, because vendors extend the minor digits while the
+                 * layout stays the same - an exact match would route the
+                 * newer blobs to the fallback layout.
+                 */
                 val version = field.valueBytes.copyOfRange(0, minOf(4, field.valueBytes.size))
                     .decodeToString()
 
-                val effectivePointer = pointer.versionTables[version]
-                    ?: pointer.modelTables.entries.firstOrNull { (key, _) ->
-                        model?.contains(key) == true
+                val effectivePointer =
+                    pointer.versionTables.entries.firstOrNull { (key, _) ->
+                        version.startsWith(key)
                     }?.value
-                    ?: pointer
+                        ?: pointer.modelTables.entries.firstOrNull { (key, _) ->
+                            model?.contains(key) == true
+                        }?.value
+                        ?: pointer
 
                 val blobBytes = if (effectivePointer.encrypted)
                     NikonDecryptor.decrypt(

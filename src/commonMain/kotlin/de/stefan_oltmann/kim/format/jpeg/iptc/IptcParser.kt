@@ -320,8 +320,10 @@ public object IptcParser {
             /*
              * Note: This doesn't catch cases where blocksize is invalid but is still less
              * than "bytes.size", but will at least prevent OutOfMemory errors.
+             * A size with the sign bit set is negative and must fail like an
+             * oversized size, or it would silently truncate the parse below.
              */
-            if (blockSize > bytes.size)
+            if (blockSize < 0 || blockSize > bytes.size)
                 throw ImageReadException("Invalid Block Size : " + blockSize + " > " + bytes.size)
 
             val blockData: ByteArray = readTolerantly { byteReader.readBytes("block data", blockSize) }

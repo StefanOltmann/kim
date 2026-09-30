@@ -22,7 +22,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoByte
 /**
  * Tags of the PrioritySettings maker note sub-directory.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#PrioritySettings
+ * See https://exiftool.sourceforge.net/TagNames/FujiFilm.html#PrioritySettings
  */
 @Suppress("MagicNumber", "StringLiteralDuplication", "MaxLineLength")
 public object FujiFilmPrioritySettingsTag {

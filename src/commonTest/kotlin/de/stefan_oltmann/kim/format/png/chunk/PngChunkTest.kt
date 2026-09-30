@@ -15,9 +15,9 @@
  */
 package de.stefan_oltmann.kim.format.png.chunk
 
+import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.common.ImageReadException
-import de.stefan_oltmann.kim.common.MAX_DECOMPRESSED_BYTE_COUNT
-import de.stefan_oltmann.kim.common.compress
+import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.png.PngChunkType
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -123,7 +123,7 @@ class PngChunkTest {
             byteArrayOf(0) +
             byteArrayOf(0) +
             byteArrayOf(0) +
-            compress(text)
+            compressedItxtText
 
         val chunk = PngChunkItxt(bytes, 0)
 
@@ -164,7 +164,7 @@ class PngChunkTest {
         val bytes = keyword.encodeToByteArray() +
             byteArrayOf(0) +
             byteArrayOf(0) +
-            compress(text)
+            compressedZtxtText
 
         val chunk = PngChunkZtxt(bytes, 0)
 
@@ -206,9 +206,7 @@ class PngChunkTest {
     @Test
     fun testZtxtChunkRejectsDecompressionBomb() {
 
-        val text = "A".repeat(MAX_DECOMPRESSED_BYTE_COUNT + 1)
-
-        val bytes = "Comment\u0000\u0000".encodeToByteArray() + compress(text)
+        val bytes = "Comment\u0000\u0000".encodeToByteArray() + compressedBomb
 
         assertFailsWith<ImageReadException> {
             PngChunkZtxt(bytes, 0)
@@ -238,5 +236,28 @@ class PngChunkTest {
         assertFailsWith<ImageReadException> {
             PngChunkItxt("Keyword\u0000\u0000\u0000".encodeToByteArray(), 0)
         }
+    }
+
+    private companion object {
+
+        /*
+         * Compressed payload goldens produced by the reference zlib:
+         * the chunk text tests pin the decompression path with real
+         * zlib streams instead of generating them in the test.
+         */
+        private val compressedItxtText = convertHexStringToByteArray(
+            "789c7354284b2daa54c8c9cf4b5748cecfcd4dcd2b5128c9482c51484f2d2906891414a51617a7a6e80100391d0f32"
+        )
+
+        private val compressedZtxtText = convertHexStringToByteArray(
+            "789c73cecf2d284a2d2e4e4d5148cecfcd4dcd2b512849ad2801006c22090e"
+        )
+
+        /* Decompresses to one byte beyond the decompression budget. */
+        private val compressedBomb =
+            Resource(
+                "de/stefan_oltmann/kim/testdata/decompression_bomb.zlib"
+            ).readBytes()
+
     }
 }

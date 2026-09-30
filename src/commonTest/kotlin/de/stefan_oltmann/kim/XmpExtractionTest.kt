@@ -37,15 +37,20 @@ class XmpExtractionTest {
         KimTestData.GEOTIFF_PIXEL_SCALING_INDEX,
         KimTestData.GEOTIFF_AFFINE_TRANSFORM_INDEX,
 
-        // TODO Support XMP extraction for these files
+        /*
+         * Videos report their XMP through the QuickTime boxes, which
+         * the shared XMP extraction under test does not cover yet.
+         */
         KimTestData.MP4_TEST_VIDEO_INDEX,
         KimTestData.MOV_TEST_VIDEO_INDEX
     )
 
-    // TODO Support these files as they have XMP
-    val indicesUnsupported: Set<Int> = setOf(
-        59, 78, 79, 80
-    )
+    /*
+     * media_80 stores its Exif and XMP in brob containers, which cannot
+     * be read without brotli support - the read fails per the strict
+     * read policy (see the limitations in the README).
+     */
+    val indicesUnsupported: Set<Int> = setOf(80)
 
     /**
      * Regression test based on a fixed small set of test files.

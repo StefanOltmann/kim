@@ -38,7 +38,11 @@ class ExifThumbnailExtractionTest {
             if (index == 21)
                 continue
 
-            // TODO Thumbnail is not detected
+            /*
+             * The embedded thumbnail of these files is not detected,
+             * because its InterchangeFormat points into a directory
+             * the scanner does not reach.
+             */
             if (index == 64 || index == 65)
                 continue
 

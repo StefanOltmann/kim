@@ -56,7 +56,7 @@ public object JxlWriter {
         exifBytes: ByteArray?,
         xmp: String?
     ): Unit = writeImage(
-        boxes = BoxReader.readAllBoxes(byteReader),
+        boxes = BoxReader.readAllBoxesForRewrite(byteReader),
         byteWriter = byteWriter,
         exifBytes = exifBytes,
         xmp = xmp
@@ -68,23 +68,29 @@ public object JxlWriter {
      * starts.
      *
      * The updateComputer receives the boxes before the image data and the
-     * output writer, and must write the complete header (all boxes) to it.
+     * output writer, must write the complete header (all boxes) to it, and
+     * returns the metadata kinds it saw there. Only those kinds may be
+     * dropped behind the cut box as stale duplicates.
+     *
      * The image data behind the cut box is then streamed in bounded chunks,
      * so the whole file never has to be buffered in memory.
      *
-     * Exif and xml boxes behind the cut box are dropped, because the
-     * updateComputer cannot see them. Keeping them would leave stale
-     * metadata in the file after an update or a metadata deletion.
+     * A metadata box behind the cut box whose kind the updateComputer did
+     * not see would be silently destroyed by the drop - its content was
+     * never read, so no replacement was written. Like PNG and GIF, the
+     * write fails instead. The failure happens after the image data was
+     * written: byte-array callers simply discard their buffered output;
+     * streaming callers must discard what was written so far.
      */
     internal fun writeImageStreaming(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
-        updateComputer: (List<Box>, ByteWriter) -> Unit
+        updateComputer: (List<Box>, ByteWriter) -> Set<BoxType>
     ) {
 
         val boxes = BoxReader.readBoxesForUpdate(byteReader)
 
-        updateComputer(boxes, byteWriter)
+        val droppableMetadataKinds = updateComputer(boxes, byteWriter)
 
         val cutBox = boxes.lastOrNull()
 
@@ -117,7 +123,7 @@ public object JxlWriter {
 
                 byteReader.transferExactly(byteWriter, remainingPayloadLength)
 
-                copyBoxesSkippingMetadata(byteReader, byteWriter)
+                copyBoxesSkippingMetadata(byteReader, byteWriter, droppableMetadataKinds)
             }
 
         } else {
@@ -128,16 +134,18 @@ public object JxlWriter {
 
     /**
      * Streams the remaining boxes to the given writer, dropping Exif and
-     * xml boxes, so stale metadata behind the codestream cannot survive an
-     * update or a metadata deletion.
+     * xml boxes of the kinds the caller confirmed it saw before the cut
+     * box, so stale duplicates cannot survive behind the codestream.
      *
-     * Only these recognized metadata types are dropped, because the
-     * caller asked for their replacement or removal. All other boxes,
-     * including unknown ones, stream through untouched.
+     * A metadata box of any other kind was never read by the caller, so
+     * dropping it would silently destroy metadata and the write fails
+     * instead. All other boxes, including unknown ones, stream through
+     * untouched.
      */
     private fun copyBoxesSkippingMetadata(
         byteReader: ByteReader,
-        byteWriter: ByteWriter
+        byteWriter: ByteWriter,
+        droppableMetadataKinds: Set<BoxType>
     ) {
 
         while (true) {
@@ -247,6 +255,21 @@ public object JxlWriter {
 
             if (isMetadataBox) {
 
+                val metadataKind = wrappedType ?: boxType
+
+                /*
+                 * The caller never saw this box before the cut, so it
+                 * wrote no replacement: dropping it would destroy its
+                 * content silently.
+                 */
+                if (metadataKind !in droppableMetadataKinds)
+                    throw ImageWriteException(
+                        "The update cannot merge the $metadataKind box " +
+                            "behind the codestream. The source file was not " +
+                            "modified, but the output written so far is " +
+                            "incomplete and must be discarded."
+                    )
+
                 /* A metadata box that extends to the end of the stream. */
                 if (payloadLength == null)
                     return
@@ -305,7 +328,7 @@ public object JxlWriter {
         /*
          * Security check first
          *
-         * TODO Remove this once we have brotli support.
+         * Attention: Remove this guard once brotli support exists.
          */
 
         val compressedBoxes = modifiedBoxes.filterIsInstance<CompressedBox>()

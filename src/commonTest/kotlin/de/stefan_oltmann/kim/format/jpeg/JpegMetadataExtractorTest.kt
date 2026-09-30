@@ -67,6 +67,30 @@ class JpegMetadataExtractorTest {
         }
     }
 
+    /**
+     * The extraction buffers the whole header before the image data. A
+     * hostile file with a huge junk gap between the markers must hit the
+     * same budget the rewriter's segment reader enforces, instead of
+     * buffering without a bound.
+     */
+    @Test
+    fun testExtractMetadataBytesRejectsUnboundedHeader() {
+
+        val budget = JpegUtils.MAX_HEADER_SEGMENT_BYTES
+
+        /* SOI, a large junk gap, then the end of the file. */
+        val bytes = byteArrayOf(
+            0xFF.toByte(), 0xD8.toByte(), // SOI
+            0xFF.toByte(), 0x00.toByte()  // Fill byte, treated as a marker.
+        ) + ByteArray(budget) + byteArrayOf(
+            0xFF.toByte(), 0xD9.toByte() // EOI
+        )
+
+        assertFailsWith<ImageReadException> {
+            JpegMetadataExtractor.extractMetadataBytes(ByteArrayByteReader(bytes))
+        }
+    }
+
     private companion object {
 
         /* Media 45 and 47 contain invalid segment lengths. */

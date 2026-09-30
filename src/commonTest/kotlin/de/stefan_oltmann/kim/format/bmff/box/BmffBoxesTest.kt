@@ -428,7 +428,7 @@ class BmffBoxesTest {
             0, 1
         )
 
-        assertFailsWith<IllegalStateException> {
+        assertFailsWith<ImageReadException> {
             ItemLocationBox(
                 offset = 0,
                 size = payload.size.toLong() + 8,
@@ -499,7 +499,7 @@ class BmffBoxesTest {
     @Test
     fun testItemInfoEntryBoxRejectsUnsupportedVersion() {
 
-        assertFailsWith<IllegalStateException> {
+        assertFailsWith<ImageReadException> {
             ItemInfoEntryBox(
                 offset = 0,
                 size = 10,

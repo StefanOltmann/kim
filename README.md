@@ -132,6 +132,10 @@ val summary = Kim.readMetadata(bytes).convertToSummary()
 metadata bytes. Cloud services can not reliably tell the mime type, so this can be used to upload
 the metadata alongside the image.
 
+Only JPG, PNG, RAF & GIF provide metadata bytes here. Every other supported format (CR3, HEIC,
+AVIF, JXL, WebP, TIFF-based RAW, ...) yields an empty array; use `readMetadata()` for a format
+independent metadata view.
+
 ```kotlin
 val result = Kim.extractMetadataBytes(byteReader)
 
@@ -181,7 +185,7 @@ OutputStreamByteWriter(outputFile.outputStream()).use { outputStreamByteWriter -
 
 See the [example project](examples/kim-kotlin-jvm-sample/src/main/kotlin/Main.kt) for more details.
 
-### Update metadata using Kim.update() API
+### Update metadata using `Kim.update()` API
 
 `Kim.update()` applies the given updates to all formats that can represent them, so EXIF, IPTC and
 XMP are updated simultaneously in one call. The metadata storages duplicate the same logical values.
@@ -252,7 +256,7 @@ OutputStreamByteWriter(outputFile.outputStream()).use { outputStreamByteWriter -
 }
 ```
 
-### Delete metadata using Kim.deleteMetadata () API
+### Delete metadata using `Kim.deleteMetadata()` API
 
 `Kim.deleteMetadata()` removes all metadata of a file, but keeps the ICC chunks, because they would
 change how the image is displayed.
@@ -311,7 +315,7 @@ staged.delete()
 Apps that need crash-safe semantics (backups, restore, atomic replacement) implement them on top
 of these building blocks - KIM stays out of the storage policy.
 
-### Update thumbnail using Kim.updateThumbnail() API
+### Update thumbnail using `Kim.updateThumbnail()` API
 
 ```kotlin
 val bytes: ByteArray = loadBytes()
@@ -338,7 +342,9 @@ Java projects.
 * Updates buffer the file content in memory for WebP files and for JPEG XL files with a single
   codestream box (`jxlc`). JPEG, PNG, GIF and JPEG XL files with split codestream boxes (`jxlp`) are
   streamed in bounded chunks.
-* Does not read brotli compressed metadata of JPEG XL due to missing brotli KMP libs.
+* JPEG XL files whose EXIF or XMP is stored in brotli-compressed (`brob`) boxes
+  are rejected with an `ImageReadException`, because brotli decompression is
+  not available. `deleteMetadata` can still remove the compressed boxes.
 * The MakerNotes of GoPro cameras and the undocumented records of the oldest Canon and Sony models
   are not interpreted.
 * There is right now no convenient tooling for GeoTiff like there is for GPS.
@@ -350,7 +356,7 @@ Java projects.
 ### Regarding HEIC & AVIF metadata
 
 In the processing of HEIC and AVIF files, we handle them as standard ISOBMFF-based files, adhering
-rigorously to the EIC/ISO 14496-12 specification. To preempt potential legal issues, we
+rigorously to the ISO/IEC 14496-12 specification. To preempt potential legal issues, we
 intentionally omit certain boxes outlined in the HEIC specification, notably the image size ("ispe")
 and image rotation ("irot") boxes. This approach extends to AVIF images, as they repurpose the same
 boxes.

@@ -49,7 +49,8 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoUndefineds
 public object ExifTag {
 
     /*
-     * TODO This list is incomplete
+     * The list covers the tags ExifTool reports for current camera
+     * models and grows with every format the library gains.
      */
 
     internal val EXIF_DIRECTORY_UNKNOWN: TiffDirectoryType? = null

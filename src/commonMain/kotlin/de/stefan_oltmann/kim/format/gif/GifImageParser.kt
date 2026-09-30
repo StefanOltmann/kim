@@ -47,6 +47,9 @@ import kotlin.jvm.JvmStatic
  */
 public object GifImageParser : ImageParser {
 
+    /** The graphic control extension has a fixed 4-byte body per spec. */
+    private const val GRAPHIC_CONTROL_EXTENSION_BODY_SIZE: Int = 4
+
     private val metadataChunkTypes = listOf(
         GifChunkType.HEADER,
         GifChunkType.IMAGE_DESCRIPTOR,
@@ -286,10 +289,25 @@ public object GifImageParser : ImageParser {
 
         /* Read image data */
         val lzwMinimumCodeSize = byteReader.readByte("LZW minimum code size")
-        val subChunks = byteReader.parseGifSubChunksUntilEmpty("image data")
 
-        if (keepChunk(chunkTypeFilter, GifChunkType.IMAGE_DATA))
-            chunks.add(GifChunkImageData(lzwMinimumCodeSize, subChunks))
+        if (keepChunk(chunkTypeFilter, GifChunkType.IMAGE_DATA)) {
+
+            chunks.add(
+                GifChunkImageData(
+                    lzwMinimumCodeSize,
+                    byteReader.parseGifSubChunksUntilEmpty("image data")
+                )
+            )
+        } else {
+
+            /*
+             * Skipped image data is transferred in bounded chunks instead
+             * of being buffered: a large animation would otherwise
+             * allocate its whole LZW stream in per-sub-block arrays only
+             * to discard it.
+             */
+            byteReader.transferGifSubBlocks(byteWriter = null)
+        }
 
         return chunks
     }
@@ -311,7 +329,28 @@ public object GifImageParser : ImageParser {
 
             GifConstants.GRAPHICS_CONTROL_EXTENSION_LABEL -> {
 
-                val graphicsControlExtensionBytes = byteReader.readBytes("graphics control extension", 6)
+                /*
+                 * The graphic control extension has a fixed 4-byte body
+                 * per spec. The declared size is validated, so a
+                 * nonconformant file cannot desync the block walk - the
+                 * writer follows the declared sizes, and a mismatch here
+                 * would shift every following block.
+                 */
+                val declaredBodySize = byteReader.readByteAsInt()
+
+                if (declaredBodySize != GRAPHIC_CONTROL_EXTENSION_BODY_SIZE)
+                    throw ImageReadException(
+                        "The graphic control extension declares $declaredBodySize " +
+                            "bytes, expected $GRAPHIC_CONTROL_EXTENSION_BODY_SIZE."
+                    )
+
+                val graphicsControlExtensionBytes =
+                    byteArrayOf(declaredBodySize.toByte()) +
+                        byteReader.readBytes(
+                            "graphic control extension",
+                            GRAPHIC_CONTROL_EXTENSION_BODY_SIZE
+                        ) +
+                        byteArrayOf(byteReader.readByte("graphic control extension terminator"))
 
                 GifChunk(
                     GifChunkType.GRAPHICS_CONTROL_EXTENSION,

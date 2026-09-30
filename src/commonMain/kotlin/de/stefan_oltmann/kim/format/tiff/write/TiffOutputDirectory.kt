@@ -536,6 +536,8 @@ public class TiffOutputDirectory(
 
         removeField(TiffTag.TIFF_TAG_TILE_OFFSETS)
         removeField(TiffTag.TIFF_TAG_TILE_BYTE_COUNTS)
+        removeField(TiffTag.TIFF_TAG_TILE_WIDTH)
+        removeField(TiffTag.TIFF_TAG_TILE_LENGTH)
 
         val result = mutableListOf<TiffOutputItem>()
 

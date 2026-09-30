@@ -80,10 +80,15 @@ public class ItemLocationBox(
 
         version = byteReader.readByteAsInt()
 
-        /* Fail fast if the code needs to be updated for a newer version. */
-        check(version in 0..2) {
-            "Unsupported ILOC version: $version"
-        }
+        /*
+         * Fail fast if the code needs to be updated for a newer version.
+         * The version is file-controlled data, so this is a corrupt-box
+         * error, not an internal invariant - it must surface as the
+         * documented ImageReadException even when the box is constructed
+         * outside the wrapped parse paths.
+         */
+        if (version !in 0..2)
+            throw ImageReadException("Unsupported ILOC version: $version")
 
         flags = byteReader.readBytes("flags", FLAGS_LENGTH)
 

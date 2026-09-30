@@ -17,6 +17,7 @@
 package de.stefan_oltmann.kim.format.png
 
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcBlock
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcConstants
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
@@ -36,8 +37,10 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class PngWriterTest {
 
@@ -97,6 +100,62 @@ class PngWriterTest {
             assertContentEquals(
                 expected = bytes,
                 actual = newBytes
+            )
+        }
+    }
+
+    /**
+     * The new metadata chunks are inserted behind the mandatory IHDR
+     * chunk. A chunk list without an IHDR would complete the write
+     * without emitting the requested metadata - a silent no-op of the
+     * caller's request - so the write is refused instead.
+     */
+    @Test
+    fun testWriteImageRejectsMissingIhdr() {
+
+        val bytes = KimTestData.getBytesOf(KimTestData.pngPhotoIds.first())
+
+        val chunksWithoutIhdr = PngImageParser.readChunks(
+            byteReader = ByteArrayByteReader(bytes),
+            chunkTypeFilter = null
+        ).filterNot { it.type == PngChunkType.IHDR }
+
+        val exception = assertFailsWith<ImageWriteException> {
+            PngWriter.writeImage(
+                chunks = chunksWithoutIhdr,
+                byteWriter = ByteArrayByteWriter(),
+                exifBytes = null,
+                iptcBytes = null,
+                xmp = null
+            )
+        }
+
+        assertTrue(exception.message?.contains("IHDR") == true)
+    }
+
+    /**
+     * A chunk list with two IHDR chunks would emit the new metadata
+     * twice. The duplicate is rejected like the missing header.
+     */
+    @Test
+    fun testWriteImageRejectsDuplicateIhdr() {
+
+        val bytes = KimTestData.getBytesOf(KimTestData.pngPhotoIds.first())
+
+        val chunks = PngImageParser.readChunks(
+            byteReader = ByteArrayByteReader(bytes),
+            chunkTypeFilter = null
+        )
+
+        val duplicated = chunks.take(1) + chunks
+
+        assertFailsWith<ImageWriteException> {
+            PngWriter.writeImage(
+                chunks = duplicated,
+                byteWriter = ByteArrayByteWriter(),
+                exifBytes = null,
+                iptcBytes = null,
+                xmp = null
             )
         }
     }

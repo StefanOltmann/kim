@@ -52,32 +52,46 @@ public object PngMetadataCopyUtil {
     /**
      * Copies the metadata chunks from the source file to the destination file.
      *
+     * The output is written through a temporary file and moved atomically,
+     * so the destination is never left half-written.
+     *
      * @throws ImageReadException if the source or destination file could not be read
+     * @throws ImageWriteException if the output could not be written
+     * @throws IOException if the temporary file or the atomic move failed
      */
     public fun copy(
         source: Path,
         destination: Path
-    ): Unit = tryWithImageReadException {
+    ) {
 
+        /*
+         * Only the read steps run inside the read wrapper: a failure of
+         * the write or the move must surface as its own error type, not
+         * as a read failure of the input files.
+         */
         val sourceMetadataChunks: List<PngChunk> =
-            KotlinIoSourceByteReader.read(source) { byteReader ->
-                byteReader?.let {
-                    PngImageParser.readChunks(
-                        byteReader = byteReader,
-                        chunkTypeFilter = chunkTypesToCopy
-                    )
-                }
-            } ?: throw ImageReadException("Failed to read source chunks: $source")
+            tryWithImageReadException {
+                KotlinIoSourceByteReader.read(source) { byteReader ->
+                    byteReader?.let {
+                        PngImageParser.readChunks(
+                            byteReader = byteReader,
+                            chunkTypeFilter = chunkTypesToCopy
+                        )
+                    }
+                } ?: throw ImageReadException("Failed to read source chunks: $source")
+            }
 
         val destinationChunks: List<PngChunk> =
-            KotlinIoSourceByteReader.read(destination) { byteReader ->
-                byteReader?.let {
-                    PngImageParser.readChunks(
-                        byteReader = byteReader,
-                        chunkTypeFilter = null // = All of them
-                    )
-                }
-            } ?: throw ImageReadException("Failed to read destination chunks: $destination")
+            tryWithImageReadException {
+                KotlinIoSourceByteReader.read(destination) { byteReader ->
+                    byteReader?.let {
+                        PngImageParser.readChunks(
+                            byteReader = byteReader,
+                            chunkTypeFilter = null // = All of them
+                        )
+                    }
+                } ?: throw ImageReadException("Failed to read destination chunks: $destination")
+            }
 
         val newChunks = mergeChunks(sourceMetadataChunks, destinationChunks)
 
@@ -166,6 +180,7 @@ public object PngMetadataCopyUtil {
      * Copies the metadata chunks from the source bytes to the destination bytes.
      *
      * @throws ImageReadException if the source or destination bytes could not be read
+     * @throws ImageWriteException if the output could not be written
      */
     public fun copy(
         source: ByteArray,

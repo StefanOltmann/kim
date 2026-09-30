@@ -18,7 +18,9 @@ package de.stefan_oltmann.kim.format.jxl
 
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.MediaMetadata
+import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.bmff.box.Box
+import de.stefan_oltmann.kim.format.jxl.box.CompressedBox
 import de.stefan_oltmann.kim.format.jxl.box.ExifBox
 import de.stefan_oltmann.kim.format.jxl.box.XmlBox
 import de.stefan_oltmann.kim.format.xmp.requireValidXmpPacket
@@ -27,6 +29,30 @@ import de.stefan_oltmann.kim.model.MediaFormat
 internal object JxlReader {
 
     fun createMetadata(allBoxes: List<Box>): MediaMetadata {
+
+        /*
+         * EXIF and XMP wrapped in brob boxes cannot be read without
+         * brotli support. Per the strict read policy the read fails
+         * instead of silently reporting the file without its metadata -
+         * a sidecar writer would lose it. deleteMetadata stays possible:
+         * removing the unreadable boxes is what deletion means.
+         */
+        val unreadableCompressedBoxes = allBoxes.filterIsInstance<CompressedBox>()
+            .filter { it.actualType == BoxType.EXIF || it.actualType == BoxType.XML }
+
+        if (unreadableCompressedBoxes.isNotEmpty()) {
+
+            val wrappedTypes = unreadableCompressedBoxes
+                .map { it.actualType.toString().trim() }
+                .distinct()
+                .sorted()
+                .joinToString(" and ")
+
+            throw ImageReadException(
+                "The file stores its $wrappedTypes metadata in brotli-compressed " +
+                    "(brob) boxes, which cannot be read without brotli support."
+            )
+        }
 
         val exifBox = allBoxes.filterIsInstance<ExifBox>().firstOrNull()
         val xmlBox = allBoxes.filterIsInstance<XmlBox>().firstOrNull()
@@ -52,7 +78,8 @@ internal object JxlReader {
         return MediaMetadata(
             mediaFormat = MediaFormat.JXL,
             /*
-             * TODO The image size is not read from the codestream yet.
+             * The image size lives inside the codestream, which the metadata
+ * scan does not parse - see the limitations in the README.
              */
             imageSize = null,
             exif = exifBox?.tiffContents,

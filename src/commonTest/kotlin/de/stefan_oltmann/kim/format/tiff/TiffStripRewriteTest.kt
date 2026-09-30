@@ -83,4 +83,53 @@ class TiffStripRewriteTest {
         assertNull(ifd0.findField(TiffTag.TIFF_TAG_STRIP_BYTE_COUNTS))
         assertNull(ifd0.findField(TiffTag.TIFF_TAG_ROWS_PER_STRIP))
     }
+
+    /**
+     * Regression test: like the strip group, the tile group must be
+     * dropped as a whole when the tile data was not captured. Leaving
+     * TileWidth and TileLength behind is the same hollow reference the
+     * RowsPerStrip fix eliminated.
+     */
+    @Test
+    fun testRewriteDropsTileGeometryWithUnresolvedTileData() {
+
+        val tiffBytes = convertHexStringToByteArray(
+            "49492a00" + // TIFF header, little endian
+                "08000000" + // IFD0 offset
+
+                /* IFD0 with the minimal tile image field set. */
+                "0a00" + // entry count
+                "0001" + "0400" + "01000000" + "04000000" + // ImageWidth = 4
+                "0101" + "0400" + "01000000" + "04000000" + // ImageLength = 4
+                "0201" + "0300" + "01000000" + "08000000" + // BitsPerSample = 8
+                "0301" + "0300" + "01000000" + "01000000" + // Compression = none
+                "0601" + "0300" + "01000000" + "01000000" + // Photometric = black is zero
+                "4201" + "0400" + "01000000" + "04000000" + // TileWidth = 4
+                "4301" + "0400" + "01000000" + "04000000" + // TileLength = 4
+                "4401" + "0400" + "01000000" + "7a000000" + // TileOffsets = 122
+                "4501" + "0400" + "01000000" + "10000000" + // TileByteCounts = 16
+                "5101" + "0300" + "01000000" + "01000000" + // SamplesPerPixel = 1
+                "00000000" + // next IFD
+
+                "00112233445566778899aabbccddeeff" // tile bytes, never captured
+        )
+
+        val tiffContents = TiffReader.read(ByteArrayByteReader(tiffBytes))
+
+        val outputSet = tiffContents.createOutputSet()
+
+        val byteWriter = ByteArrayByteWriter()
+
+        TiffWriter(ByteOrder.LITTLE_ENDIAN).write(byteWriter, outputSet)
+
+        val rewritten = TiffReader.read(ByteArrayByteReader(byteWriter.toByteArray()))
+
+        val ifd0 = rewritten.directories.first()
+
+        /* Assert: the tile group is gone as a whole. */
+        assertNull(ifd0.findField(TiffTag.TIFF_TAG_TILE_OFFSETS))
+        assertNull(ifd0.findField(TiffTag.TIFF_TAG_TILE_BYTE_COUNTS))
+        assertNull(ifd0.findField(TiffTag.TIFF_TAG_TILE_WIDTH))
+        assertNull(ifd0.findField(TiffTag.TIFF_TAG_TILE_LENGTH))
+    }
 }

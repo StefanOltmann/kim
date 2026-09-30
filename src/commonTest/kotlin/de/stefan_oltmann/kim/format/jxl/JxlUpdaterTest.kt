@@ -26,7 +26,9 @@ import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.writeBox
+import de.stefan_oltmann.kim.testdata.KimTestData
 import de.stefan_oltmann.kim.testdata.countOccurrences
+import de.stefan_oltmann.kim.testdata.minimalTiffBytes
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -52,6 +54,58 @@ class JxlUpdaterTest : AbstractUpdaterTest("jxl") {
         /* The new Exif box is written, the stale ones behind the codestream are dropped. */
         assertEquals(1, updatedBytes.countOccurrences("Exif"))
         assertFalse(updatedBytes.decodeToString().contains(STALE_XMP))
+    }
+
+    /**
+     * Exif that exists only behind the codestream is never seen by the
+     * update: dropping it would silently destroy it, exactly like the
+     * PNG case, so the update must be refused instead.
+     */
+    @Test
+    fun testUpdateFailsWhenExifExistsOnlyBehindCodestream() {
+
+        val bytes = createJxlcFileWithExifOnlyBehindCodestream()
+
+        /* Sanity: the trailing Exif is the only Exif and parses cleanly. */
+        assertNotNull(Kim.readMetadata(bytes)?.exif)
+
+        val exception = assertFailsWith<ImageWriteException> {
+            Kim.update(
+                bytes = bytes,
+                update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT)
+            )
+        }
+
+        /*
+         * The source file was not modified, but streaming callers hold
+         * incomplete output - the message must say so instead of claiming
+         * nothing changed at all.
+         */
+        assertTrue(
+            exception.message?.contains("must be discarded") == true,
+            "Unexpected message: ${exception.message}"
+        )
+    }
+
+    /**
+     * XMP that exists only behind the codestream would be replaced by a
+     * freshly created packet holding just the update, so the update must
+     * be refused instead of destroying the original fields.
+     */
+    @Test
+    fun testUpdateFailsWhenXmpExistsOnlyBehindCodestream() {
+
+        val bytes = createJxlcFileWithXmpOnlyBehindCodestream()
+
+        /* Sanity: the trailing XMP is the only XMP. */
+        assertNotNull(Kim.readMetadata(bytes)?.xmp)
+
+        assertFailsWith<ImageWriteException> {
+            Kim.update(
+                bytes = bytes,
+                update = MetadataUpdate.Title("new title")
+            )
+        }
     }
 
     /**
@@ -145,18 +199,22 @@ class JxlUpdaterTest : AbstractUpdaterTest("jxl") {
     }
 
     /**
-     * A compressed metadata box behind the codestream must not survive an
-     * update either, otherwise the file ends up with stale duplicates.
+     * A compressed metadata box behind the codestream cannot be read and
+     * cannot be checked for staleness, so an update must refuse the file
+     * like the pre-cut brob guard does - silently dropping it would
+     * destroy unknown content.
      */
     @Test
-    fun testUpdateJxlpTrailingCompressedMetadataIsStripped() {
+    fun testUpdateRejectsTrailingCompressedMetadata() {
 
-        val updatedBytes = Kim.update(
-            bytes = createJxlpFileWithTrailingBrobBox(),
-            update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT)
-        )
+        val bytes = createJxlpFileWithTrailingBrobBox()
 
-        assertFalse(updatedBytes.decodeToString().contains(STALE_BROB))
+        assertFailsWith<ImageWriteException> {
+            Kim.update(
+                bytes = bytes,
+                update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT)
+            )
+        }
     }
 
     /**
@@ -217,7 +275,9 @@ class JxlUpdaterTest : AbstractUpdaterTest("jxl") {
 
     /**
      * Builds a jxlp file whose Exif and xml boxes come after the codestream
-     * boxes, the layout the spec recommends.
+     * boxes, the layout the spec recommends. Parseable duplicates of both
+     * boxes exist before the codestream, so the trailing ones are stale
+     * copies the update may strip.
      */
     private fun createJxlpFileWithTrailingMetadata(): ByteArray {
 
@@ -234,6 +294,19 @@ class JxlUpdaterTest : AbstractUpdaterTest("jxl") {
             payload = "jxl ".encodeToByteArray() + byteArrayOf(0, 0, 0, 0) + "jxl ".encodeToByteArray()
         )
 
+        /* Parseable metadata before the codestream, seen by the update. */
+        writeBox(
+            byteWriter = byteWriter,
+            type = BoxType.EXIF,
+            payload = byteArrayOf(0, 0, 0, 0) + minimalTiffBytes()
+        )
+
+        writeBox(
+            byteWriter = byteWriter,
+            type = BoxType.XML,
+            payload = DUPLICATE_XMP.encodeToByteArray()
+        )
+
         /* The header box with index zero and the codestream signature. */
         writeBox(
             byteWriter = byteWriter,
@@ -248,11 +321,11 @@ class JxlUpdaterTest : AbstractUpdaterTest("jxl") {
             payload = byteArrayOf(0, 0, 0, 1, 1, 2, 3, 4)
         )
 
-        /* Metadata behind the codestream. */
+        /* Stale metadata duplicates behind the codestream. */
         writeBox(
             byteWriter = byteWriter,
             type = BoxType.EXIF,
-            payload = byteArrayOf(0, 0, 0, 0) + byteArrayOf(0x49, 0x49, 0x2A, 0, 8, 0, 0, 0)
+            payload = byteArrayOf(0, 0, 0, 0) + minimalTiffBytes()
         )
 
         writeBox(
@@ -383,8 +456,8 @@ class JxlUpdaterTest : AbstractUpdaterTest("jxl") {
     }
 
     /**
-     * Builds a single-box jxlc file with a stale xml box behind the
-     * codestream.
+     * Builds a single-box jxlc file with a parseable xml box before the
+     * codestream and a stale duplicate behind it.
      */
     private fun createJxlcFileWithTrailingMetadata(): ByteArray {
 
@@ -401,6 +474,13 @@ class JxlUpdaterTest : AbstractUpdaterTest("jxl") {
             payload = "jxl ".encodeToByteArray() + byteArrayOf(0, 0, 0, 0) + "jxl ".encodeToByteArray()
         )
 
+        /* Parseable xml before the codestream, seen by the update. */
+        writeBox(
+            byteWriter = byteWriter,
+            type = BoxType.XML,
+            payload = DUPLICATE_XMP.encodeToByteArray()
+        )
+
         /* The complete codestream in one box. */
         writeBox(
             byteWriter = byteWriter,
@@ -408,7 +488,7 @@ class JxlUpdaterTest : AbstractUpdaterTest("jxl") {
             payload = byteArrayOf(0xFF.toByte(), 0x0A, 1, 2, 3, 4)
         )
 
-        /* Metadata behind the codestream. */
+        /* The stale xml duplicate behind the codestream. */
         writeBox(
             byteWriter = byteWriter,
             type = BoxType.XML,
@@ -516,6 +596,106 @@ class JxlUpdaterTest : AbstractUpdaterTest("jxl") {
         }
     }
 
+    /**
+     * A JXL whose EXIF and XMP are stored in brob containers carries
+     * metadata that cannot be read without brotli support. Per the
+     * strict read policy the read must fail instead of silently
+     * reporting the file without its metadata - a sidecar writer would
+     * lose it. deleteMetadata stays possible: removing the unreadable
+     * boxes is what deletion means.
+     */
+    @Test
+    fun testReadFailsWhenExifIsBrobCompressed() {
+
+        val bytes = KimTestData.getBytesOf(KimTestData.JXL_CONTAINER_COMPRESSED_INDEX)
+
+        val exception = assertFailsWith<ImageReadException> {
+            Kim.readMetadata(bytes)
+        }
+
+        assertTrue(
+            exception.message?.contains("brotli", ignoreCase = true) == true,
+            "Unexpected message: ${exception.message}"
+        )
+
+        /* The escape hatch stays: deleting the unreadable boxes works. */
+        val deletedBytes = Kim.deleteMetadata(bytes)
+
+        assertFalse(deletedBytes.decodeToString().contains("brob"))
+    }
+
+    /**
+     * Builds a single-box jxlc file whose only Exif box sits behind the
+     * codestream, the layout darktable and other real writers produce.
+     */
+    private fun createJxlcFileWithExifOnlyBehindCodestream(): ByteArray {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        /* JXL file signature. */
+        byteWriter.write(
+            byteArrayOf(0, 0, 0, 0x0C, 0x4A, 0x58, 0x4C, 0x20, 0x0D, 0x0A, 0x87.toByte(), 0x0A)
+        )
+
+        writeBox(
+            byteWriter = byteWriter,
+            type = BoxType.FTYP,
+            payload = "jxl ".encodeToByteArray() + byteArrayOf(0, 0, 0, 0) + "jxl ".encodeToByteArray()
+        )
+
+        /* The complete codestream in one box. */
+        writeBox(
+            byteWriter = byteWriter,
+            type = BoxType.JXLC,
+            payload = byteArrayOf(0xFF.toByte(), 0x0A, 1, 2, 3, 4)
+        )
+
+        /* The only Exif of the file, behind the codestream. */
+        writeBox(
+            byteWriter = byteWriter,
+            type = BoxType.EXIF,
+            payload = byteArrayOf(0, 0, 0, 0) + minimalTiffBytes()
+        )
+
+        return byteWriter.toByteArray()
+    }
+
+    /**
+     * Builds a single-box jxlc file whose only xml box sits behind the
+     * codestream.
+     */
+    private fun createJxlcFileWithXmpOnlyBehindCodestream(): ByteArray {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        /* JXL file signature. */
+        byteWriter.write(
+            byteArrayOf(0, 0, 0, 0x0C, 0x4A, 0x58, 0x4C, 0x20, 0x0D, 0x0A, 0x87.toByte(), 0x0A)
+        )
+
+        writeBox(
+            byteWriter = byteWriter,
+            type = BoxType.FTYP,
+            payload = "jxl ".encodeToByteArray() + byteArrayOf(0, 0, 0, 0) + "jxl ".encodeToByteArray()
+        )
+
+        /* The complete codestream in one box. */
+        writeBox(
+            byteWriter = byteWriter,
+            type = BoxType.JXLC,
+            payload = byteArrayOf(0xFF.toByte(), 0x0A, 1, 2, 3, 4)
+        )
+
+        /* The only XMP of the file, behind the codestream. */
+        writeBox(
+            byteWriter = byteWriter,
+            type = BoxType.XML,
+            payload = DUPLICATE_XMP.encodeToByteArray()
+        )
+
+        return byteWriter.toByteArray()
+    }
+
     private companion object {
 
         const val STALE_XMP: String = "stale xmp"
@@ -523,5 +703,14 @@ class JxlUpdaterTest : AbstractUpdaterTest("jxl") {
         const val STALE_BROB: String = "stale brob metadata"
 
         const val GOOD_XMP: String = "<xmp/>"
+
+        /**
+         * A minimal packet a real XMP parser accepts, used where the
+         * update path parses the file's XMP.
+         */
+        const val DUPLICATE_XMP: String =
+            """<x:xmpmeta xmlns:x="adobe:ns:meta/">""" +
+                """<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">""" +
+                """<rdf:Description rdf:about=""/></rdf:RDF></x:xmpmeta>"""
     }
 }

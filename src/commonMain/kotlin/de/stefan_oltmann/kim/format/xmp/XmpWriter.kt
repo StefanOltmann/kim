@@ -18,17 +18,19 @@ package de.stefan_oltmann.kim.format.xmp
 
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.LocationShown
 import de.stefan_oltmann.kim.model.MetadataUpdate
-import de.stefan_oltmann.xmp.XMPConst
-import de.stefan_oltmann.xmp.XMPException
 import de.stefan_oltmann.xmp.XMPLocation
 import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
+import de.stefan_oltmann.xmp.XmpDate
 import de.stefan_oltmann.xmp.XmpGps
 import de.stefan_oltmann.xmp.options.SerializeOptions
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import kotlin.jvm.JvmStatic
 import kotlin.time.Instant
@@ -63,12 +65,11 @@ public object XmpWriter {
 
                     val timeZone = Kim.effectiveTimeZone
 
-                    val isoDate = Instant
+                    val localDateTime = Instant
                         .fromEpochMilliseconds(update.takenDate)
                         .toLocalDateTime(timeZone)
-                        .toString()
 
-                    setDateTimeOriginal(isoDate)
+                    setDateTimeOriginal(localDateTime.toXmpDate())
 
                 } else {
 
@@ -80,7 +81,7 @@ public object XmpWriter {
                      * contradict the deletion on the sidecar and embedded
                      * XMP.
                      */
-                    deleteProperty(XMPConst.NS_EXIF, "DateTimeDigitized")
+                    deleteDateTimeDigitized()
                 }
             }
 
@@ -131,7 +132,7 @@ public object XmpWriter {
                 setKeywords(update.keywords)
 
             is MetadataUpdate.Faces ->
-                setFaces(update.faces, update.widthPx, update.heightPx)
+                setFaceRegions(update.faces, update.widthPx, update.heightPx)
 
             is MetadataUpdate.Persons ->
                 setPersonsInImage(update.personsInImage)
@@ -141,7 +142,7 @@ public object XmpWriter {
     /**
      * Note: Parameter 'writePackageWrapper' should be "true" for embedded XMP.
      */
-    @Throws(XMPException::class)
+    @Throws(ImageWriteException::class)
     @JvmStatic
     public fun updateXmp(
         xmpMeta: XMPMeta,
@@ -152,7 +153,14 @@ public object XmpWriter {
         for (update in updates)
             xmpMeta.applyUpdate(update)
 
-        deleteStaleExtendedXmpReference(xmpMeta)
+        /*
+         * Kim regenerates the extended XMP reference automatically when
+         * oversized XMP is written, exactly like ExifTool, which deletes
+         * the tag because "we create it as needed". A stale reference
+         * would point at extension segments that no longer exist after a
+         * rewrite.
+         */
+        xmpMeta.deleteHasExtendedXmp()
 
         return xmpMeta.serializeToString(writePackageWrapper)
     }
@@ -162,21 +170,20 @@ public object XmpWriter {
      * packet when the file has no XMP yet.
      *
      * Note: Parameter 'writePackageWrapper' should be "true" for embedded XMP.
+     *
+     * @throws ImageWriteException When the existing packet cannot be parsed.
      */
-    @Throws(XMPException::class)
+    @Throws(ImageWriteException::class)
     @JvmStatic
     public fun updateXmp(
         existingXmp: String?,
         updates: Set<MetadataUpdate>,
         writePackageWrapper: Boolean
-    ): String {
+    ): String = tryWithImageWriteException {
 
-        val xmpMeta = if (existingXmp != null)
-            XMPMetaFactory.parseFromString(existingXmp)
-        else
-            XMPMetaFactory.create()
+        val xmpMeta = XMPMetaFactory.parseOrCreate(existingXmp)
 
-        return updateXmp(xmpMeta, updates, writePackageWrapper)
+        updateXmp(xmpMeta, updates, writePackageWrapper)
     }
 
     /**
@@ -184,7 +191,7 @@ public object XmpWriter {
      *
      * Note: Parameter 'writePackageWrapper' should be "true" for embedded XMP.
      */
-    @Throws(XMPException::class)
+    @Throws(ImageWriteException::class)
     @JvmStatic
     public fun updateXmp(
         xmpMeta: XMPMeta,
@@ -192,17 +199,6 @@ public object XmpWriter {
         writePackageWrapper: Boolean
     ): String =
         updateXmp(xmpMeta, setOf(update), writePackageWrapper)
-
-    /**
-     * Removes a stale "xmpNote:HasExtendedXMP" reference that was read from
-     * the file. Kim regenerates the reference automatically when oversized
-     * XMP is written, exactly like ExifTool, which deletes the tag because
-     * "we create it as needed". A stale reference would point at extension
-     * segments that no longer exist after a rewrite.
-     */
-    private fun deleteStaleExtendedXmpReference(xmpMeta: XMPMeta) {
-        xmpMeta.deleteProperty(XMPConst.NS_XMP_NOTE, "HasExtendedXMP")
-    }
 
     /**
      * Writes the GPS coordinates, or deletes them for NULL. Coordinates
@@ -264,10 +260,30 @@ public object XmpWriter {
         writePackageWrapper: Boolean
     ): String {
 
-        /* We clone and modify the clone to prevent concurrency issues. */
+        /*
+         * The option setters return copies, so the shared base options
+         * stay untouched and concurrent writes cannot interfere.
+         */
         val options =
-            xmpSerializeOptions.clone().setOmitPacketWrapper(!writePackageWrapper)
+            xmpSerializeOptions.setOmitPacketWrapper(!writePackageWrapper)
 
         return XMPMetaFactory.serializeToString(this, options)
     }
+
+    /**
+     * Builds the XMP date for the wall-clock time in the effective zone. The
+     * UTC offset is omitted, so the written value stays offset-less, like
+     * ExifTool's default XMP dates.
+     */
+    private fun LocalDateTime.toXmpDate(): XmpDate =
+        XmpDate(
+            year = year,
+            month = month.number,
+            day = day,
+            hour = hour,
+            minute = minute,
+            second = second,
+            nanosecond = nanosecond,
+            utcOffsetMinutes = null
+        )
 }

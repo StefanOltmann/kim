@@ -29,8 +29,9 @@ public class MediaDataBox(
     offset: Long,
     size: Long,
     largeSize: Long?,
-    payload: ByteArray
-) : Box(BoxType.MDAT, offset, size, largeSize, payload) {
+    payload: ByteArray,
+    resolvedLength: Long? = null
+) : Box(BoxType.MDAT, offset, size, largeSize, payload, resolvedLength) {
 
     override fun toString(): String =
         "mdat Box @$offset ($actualLength bytes)"

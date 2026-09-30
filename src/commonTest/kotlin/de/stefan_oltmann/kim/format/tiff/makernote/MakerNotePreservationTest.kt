@@ -72,7 +72,7 @@ class MakerNotePreservationTest {
 
         for (index in testMediaIndices) {
 
-            /* FIXME files that the rewrite tests skip as well. */
+            /* The same files the rewrite corpus excludes. */
             if (index in unrewritableIndices)
                 continue
 

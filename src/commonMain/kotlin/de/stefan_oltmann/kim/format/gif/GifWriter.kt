@@ -37,9 +37,6 @@ public object GifWriter {
     /* Left, top, width, height and the packed field. */
     private const val IMAGE_DESCRIPTOR_LENGTH: Int = 9
 
-    /* The application identifier of a GIF application extension is 8 bytes. */
-    private const val APPLICATION_IDENTIFIER_LENGTH: Int = 8
-
     @Throws(ImageWriteException::class)
     public fun writeImage(
         byteReader: ByteReader,
@@ -65,6 +62,7 @@ public object GifWriter {
         byteReader: ByteReader,
         byteWriter: ByteWriter,
         failOnTrailingXmp: Boolean = false,
+        stripCommentExtensions: Boolean = false,
         updateComputer: (List<GifChunk>, ByteWriter) -> Unit
     ) {
 
@@ -102,7 +100,7 @@ public object GifWriter {
                 false
             },
             onExtensionBlock = { extensionLabel ->
-                copyExtensionBlock(byteReader, byteWriter, extensionLabel, failOnTrailingXmp)
+                copyExtensionBlock(byteReader, byteWriter, extensionLabel, failOnTrailingXmp, stripCommentExtensions)
                 false
             },
             onTrailerBlock = {
@@ -159,22 +157,32 @@ public object GifWriter {
     }
 
     /**
-     * Copies an extension block, dropping comment extensions and XMP
-     * application extensions, which carry user-editable metadata. All
-     * other blocks, including unknown extensions, stream through
-     * untouched, so stale metadata cannot survive an update or deletion
-     * while nothing the caller asked to keep is destroyed.
+     * Copies an extension block, dropping the XMP application extension,
+     * which carries user-editable metadata, and - when the caller strips
+     * comments - the comment extension. All other blocks, including
+     * unknown extensions, stream through untouched, so stale metadata
+     * cannot survive an update or deletion while nothing the caller
+     * asked to keep is destroyed.
      */
     private fun copyExtensionBlock(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
         extensionLabel: Byte,
-        failOnTrailingXmp: Boolean
+        failOnTrailingXmp: Boolean,
+        stripCommentExtensions: Boolean
     ) {
 
         when (extensionLabel) {
 
-            GifConstants.COMMENT_EXTENSION_LABEL -> byteReader.transferGifSubBlocks(byteWriter = null)
+            /*
+             * Comments stream through unless the caller strips them:
+             * an update preserves data it does not touch, while
+             * deleteMetadata removes it.
+             */
+            GifConstants.COMMENT_EXTENSION_LABEL ->
+                byteReader.transferGifSubBlocks(
+                    byteWriter = if (stripCommentExtensions) null else byteWriter
+                )
 
             GifConstants.APPLICATION_EXTENSION_LABEL ->
                 copyApplicationExtensionBlock(byteReader, byteWriter, failOnTrailingXmp)
@@ -218,10 +226,10 @@ public object GifWriter {
         }
 
         val identifierBytes =
-            byteReader.readBytes(minOf(firstSubBlockSize, APPLICATION_IDENTIFIER_LENGTH))
+            byteReader.readBytes(minOf(firstSubBlockSize, GifConstants.APPLICATION_IDENTIFIER_LENGTH))
 
         val isXmpExtension =
-            identifierBytes.size == APPLICATION_IDENTIFIER_LENGTH &&
+            identifierBytes.size == GifConstants.APPLICATION_IDENTIFIER_LENGTH &&
                 identifierBytes.decodeToString() == GifConstants.XMP_APPLICATION_IDENTIFIER
 
         /*

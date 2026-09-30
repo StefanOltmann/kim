@@ -3,6 +3,10 @@ kotlin = "2.4.20"
 android-gradle = "9.4.0"
 android-compile-sdk = "37"
 android-min-sdk = "21"
+# Detekt 2 is pinned to an exact alpha on purpose: the config layout
+# (detekt.yml) and rule behavior change between alphas, so each bump is
+# a deliberate upgrade that reviews its changelog and re-runs the full
+# gate - never a silent version drift.
 detekt = "2.0.0-alpha.6"
 kover = "0.9.9"
 build-time-tracker = "5.0.2"
@@ -11,7 +15,7 @@ resources = "0.16.2"
 versions-plugin = "0.60.0"
 maven-publish = "0.37.0"
 ktor = "3.6.0"
-xmpcore = "1.8.1"
+xmpcore = "2.0.0"
 kotlinx-datetime = "0.8.0"
 kotlinx-io = "0.9.1"
 kotlinx-browser = "0.5.0"

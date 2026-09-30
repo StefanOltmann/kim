@@ -18,7 +18,7 @@
 package de.stefan_oltmann.kim.format.tiff.taginfo
 
 import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
-import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeShort
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeSShort
 
 /**
  * Tag info for multiple signed short values.
@@ -28,4 +28,4 @@ public class TagInfoSShorts(
     name: String,
     length: Int,
     directoryType: TiffDirectoryType?
-) : TagInfo(tag, name, FieldTypeShort, length, directoryType)
+) : TagInfo(tag, name, FieldTypeSShort, length, directoryType)

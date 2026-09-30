@@ -225,11 +225,36 @@ public object JpegRewriter {
                 writeSegments(
                     byteWriter = outputWriter,
                     segments = insertAfterLastAppSegments(
-                        segments = segments.filterNot { piece -> piece.isIptcSegment() },
+                        segments = segments.filterNot { piece ->
+                            isReplacedIptcSegment(piece, metadata)
+                        },
                         newSegments = createIptcSegments(metadata)
                     )
                 )
             }
+        }
+    }
+
+    /**
+     * Decides whether an IPTC rewrite removes the given APP13 segment.
+     *
+     * Only the segments the parsed metadata came from are removed; other
+     * Photoshop streams of the file belong to other tools and survive
+     * byte-exact. The segments are identified by content, because the
+     * rewrite parses the file again. Metadata that was not parsed from
+     * the file carries no identity, so every Photoshop stream is
+     * replaced, which keeps the documented contract of [writeIPTC].
+     */
+    private fun isReplacedIptcSegment(piece: JFIFPiece, metadata: IptcMetadata): Boolean {
+
+        if (piece !is JFIFPieceSegment || !piece.isIptcSegment())
+            return false
+
+        if (metadata.sourceSegmentBytes.isEmpty())
+            return true
+
+        return metadata.sourceSegmentBytes.any { sourceBytes ->
+            sourceBytes.contentEquals(piece.segmentBytes)
         }
     }
 
@@ -406,7 +431,7 @@ public object JpegRewriter {
         if (iptc != null) {
 
             updatedSegments = insertAfterLastAppSegments(
-                updatedSegments.filterNot { piece -> piece is JFIFPieceSegment && piece.isIptcSegment() },
+                updatedSegments.filterNot { piece -> isReplacedIptcSegment(piece, iptc) },
                 createIptcSegments(iptc)
             )
         }

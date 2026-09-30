@@ -281,6 +281,59 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
     }
 
     /**
+     * A Photoshop APP13 stream that carries no IPTC records belongs to
+     * another tool. An update must keep it byte-exact and replace only
+     * the stream the IPTC was parsed from, not drop it together with
+     * the IPTC rewrite.
+     */
+    @Test
+    fun testUpdateKeepsNonIptcPhotoshopStream() {
+
+        /* A Photoshop stream whose only block carries no IPTC records. */
+        val resolutionInfoBlock = byteArrayOf(
+            0x38, 0x42, 0x49, 0x4D, // "8BIM"
+            0x03, 0xED.toByte(), // Resolution info, no IPTC records
+            0x00, // Empty name
+            0x00, // Name padding
+            0x00, 0x00, 0x00, 0x04, // Block size 4
+            0x00, 0x00, 0x01, 0x00 // Block data
+        )
+
+        val app13Payload = "Photoshop 3.0\u0000".encodeToByteArray() + resolutionInfoBlock
+
+        val fakeStreamSegment = byteArrayOf(
+            0xFF.toByte(), 0xED.toByte(),
+            0x00, (app13Payload.size + 2).toByte()
+        ) + app13Payload
+
+        val bytesWithFakeStream = insertSegmentAfterJfif(
+            KimTestData.getBytesOf(1),
+            fakeStreamSegment
+        )
+
+        /* Keywords force the IPTC rewrite path. */
+        val updatedBytes = Kim.update(
+            bytes = bytesWithFakeStream,
+            update = MetadataUpdate.Keywords(setOf("kept"))
+        )
+
+        assertTrue(
+            updatedBytes.containsBytes(resolutionInfoBlock),
+            "The non-IPTC Photoshop stream was dropped by the update."
+        )
+
+        /* The IPTC itself was still rewritten with the keyword. */
+        val metadata = assertNotNull(Kim.readMetadata(updatedBytes))
+
+        assertTrue(
+            metadata.iptc?.records
+                ?.filter { record -> record.iptcType == IptcTypes.KEYWORDS }
+                ?.any { record -> record.value == "kept" } == true,
+            "The keyword update was not applied to the IPTC."
+        )
+    }
+
+    /**
      * A short non-EXIF APP1 segment before the EXIF segment must be
      * skipped without a desynced read past its end, so the update still
      * succeeds and applies the orientation.

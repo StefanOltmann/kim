@@ -22,6 +22,7 @@ import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.box
 import de.stefan_oltmann.kim.testdata.KimTestData
+import de.stefan_oltmann.kim.testdata.minimalTiffBytes
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -48,6 +49,34 @@ class Cr3ReaderTest {
         val exifUuidBox = box(
             "uuid",
             uuidBytes(Cr3Reader.CR3_EXIF_UUID) + corruptCmt1
+        )
+
+        val moovBox = box("moov", exifUuidBox)
+
+        val ftypBox = box("ftyp", "crx ".encodeToByteArray() + "0000".encodeToByteArray())
+
+        val bytes = ftypBox + moovBox
+
+        assertFailsWith<ImageReadException> {
+            BaseMediaFileFormatImageParser.parseMetadata(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /**
+     * CMT metadata boxes without a readable CMT1 carry metadata that the
+     * empty-result path would silently drop - for example after a damaged
+     * first box. Per the strict read policy the read must fail like it
+     * does for a corrupt CMT1.
+     */
+    @Test
+    fun testCmt2WithoutCmt1FailsTheRead() {
+
+        /* A complete TIFF structure, but no CMT1 box in the file. */
+        val cmt2 = box("CMT2", minimalTiffBytes())
+
+        val exifUuidBox = box(
+            "uuid",
+            uuidBytes(Cr3Reader.CR3_EXIF_UUID) + cmt2
         )
 
         val moovBox = box("moov", exifUuidBox)

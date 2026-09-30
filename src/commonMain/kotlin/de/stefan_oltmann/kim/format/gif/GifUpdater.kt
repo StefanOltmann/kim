@@ -68,7 +68,11 @@ internal object GifUpdater : MetadataUpdater {
         byteWriter: ByteWriter
     ) = tryWithImageWriteException {
 
-        GifWriter.writeImageStreaming(byteReader, byteWriter) { chunks, outputWriter ->
+        GifWriter.writeImageStreaming(
+            byteReader = byteReader,
+            byteWriter = byteWriter,
+            stripCommentExtensions = true
+        ) { chunks, outputWriter ->
 
             /*
              * Remove the XMP application extension and all comment

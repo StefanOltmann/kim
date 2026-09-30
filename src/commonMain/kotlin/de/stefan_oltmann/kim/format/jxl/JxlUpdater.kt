@@ -67,6 +67,17 @@ internal object JxlUpdater : MetadataUpdater {
                 exifBytes = exifBytes,
                 xmp = changedXmp
             )
+
+            /*
+             * Only the metadata kinds the update saw before the codestream
+             * may be dropped behind it as stale duplicates. An unseen kind
+             * has no replacement - the writer refuses the file instead of
+             * destroying its content.
+             */
+            setOfNotNull(
+                if (metadata.exif != null) BoxType.EXIF else null,
+                if (metadata.xmp != null) BoxType.XML else null
+            )
         }
     }
 
@@ -102,6 +113,9 @@ internal object JxlUpdater : MetadataUpdater {
                 exifBytes = null,
                 xmp = null
             )
+
+            /* Deleting metadata drops both kinds behind the codestream. */
+            setOf(BoxType.EXIF, BoxType.XML)
         }
     }
 
@@ -116,7 +130,7 @@ internal object JxlUpdater : MetadataUpdater {
 
         val byteReader = ByteArrayByteReader(bytes)
 
-        val allBoxes = BoxReader.readAllBoxes(byteReader = byteReader)
+        val allBoxes = BoxReader.readAllBoxesForRewrite(byteReader)
 
         val metadata = JxlReader.createMetadata(allBoxes)
 

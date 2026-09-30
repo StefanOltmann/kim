@@ -49,6 +49,7 @@ import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
 import kotlinx.datetime.TimeZone
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Main entry point for reading and writing image metadata.
@@ -74,7 +75,7 @@ import kotlinx.datetime.TimeZone
  * sidecars (XMP, JSON) from the read result, so a silent partial read loses
  * data anyway.
  *
- * There are exactly two kinds of garbage that may be dropped silently:
+ * There are exactly three kinds of garbage that may be dropped silently:
  *
  * 1. Corrupt embedded thumbnails and preview images: they are always
  *    restorable from the primary image data, so dropping them is not real
@@ -82,6 +83,13 @@ import kotlinx.datetime.TimeZone
  *
  * 2. GPS coordinates that were read cleanly but lie outside the valid
  *    range: they are physically meaningless.
+ *
+ * 3. Illegal EXIF date/time values and GPS data with a wrong type or
+ *    unknown references: the values exist but are unusable, so the derived
+ *    summary omits them instead of failing the whole read. This drop
+ *    happens at summary level only - the raw values stay untouched on the
+ *    metadata object, so nothing is lost for tools that parse them
+ *    themselves.
  *
  * Dropping a MakerNote, EXIF, IPTC, or XMP content is real data loss and
  * must fail the read instead. Stopping a parse at the exact boundary where
@@ -396,6 +404,13 @@ public object Kim {
      *
      * Attention: The given [ByteReader] and [ByteWriter] are not closed by
      * this call; the caller owns and closes both.
+     *
+     * Attention: The source file is always left untouched, but some
+     * formats stream their image data to the [ByteWriter] before the
+     * write is known to succeed. When this call throws
+     * [ImageWriteException], any bytes already written are incomplete
+     * and must be discarded - stage the output in a temporary buffer or
+     * file and publish it only after the call returned normally.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -459,6 +474,13 @@ public object Kim {
      *
      * Attention: The given [ByteReader] and [ByteWriter] are not closed by
      * this call; the caller owns and closes both.
+     *
+     * Attention: The source file is always left untouched, but some
+     * formats stream their image data to the [ByteWriter] before the
+     * write is known to succeed. When this call throws
+     * [ImageWriteException], any bytes already written are incomplete
+     * and must be discarded - stage the output in a temporary buffer or
+     * file and publish it only after the call returned normally.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -506,6 +528,8 @@ public object Kim {
     /*
      * A single broken tag must not abort the preview fallback chain of
      * TIFF-family files, so extractor failures degrade to NULL here.
+     * A cancellation is not a broken format: swallowing it would turn a
+     * cancelled call into a neutral "no preview", so it propagates.
      */
     private fun extractPreviewOrNull(
         extractor: TiffPreviewExtractor,
@@ -514,6 +538,8 @@ public object Kim {
     ): ByteArray? =
         try {
             extractor.extractPreviewImage(tiffContents, randomAccessByteReader)
+        } catch (ex: CancellationException) {
+            throw ex
         } catch (_: Exception) {
             null
         }

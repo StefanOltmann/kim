@@ -24,6 +24,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 /**
  * Host tests for the KimAndroid API, which must only throw
@@ -67,5 +68,28 @@ class KimAndroidHostTest {
         assertFailsWith<ImageReadException> {
             KimAndroid.readMetadata(checkNotNull(tempDirectory))
         }
+    }
+
+    /**
+     * The read closes the given stream, like the core Kim API documents.
+     * Callers relying on the opposite contract would reuse a closed
+     * stream and fail with unexpected IOExceptions.
+     */
+    @Test
+    fun testReadMetadataClosesTheProvidedStream() {
+
+        val stream = object : java.io.ByteArrayInputStream(byteArrayOf(1, 2, 3)) {
+            var closed = false
+
+            override fun close() {
+                closed = true
+                super.close()
+            }
+        }
+
+        /* Unknown bytes report no metadata, but the stream is consumed. */
+        KimAndroid.readMetadata(stream, length = 3)
+
+        assertTrue(stream.closed)
     }
 }
