@@ -25,15 +25,9 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.refTo
 import kotlinx.cinterop.reinterpret
-import platform.zlib.Z_DEFAULT_COMPRESSION
-import platform.zlib.Z_FINISH
 import platform.zlib.Z_NO_FLUSH
 import platform.zlib.Z_OK
 import platform.zlib.Z_STREAM_END
-import platform.zlib.deflate
-import platform.zlib.deflateBound
-import platform.zlib.deflateEnd
-import platform.zlib.deflateInit
 import platform.zlib.inflate
 import platform.zlib.inflateEnd
 import platform.zlib.inflateInit
@@ -41,64 +35,6 @@ import platform.zlib.inflateReset
 import platform.zlib.z_stream
 
 private const val OUTPUT_BUFFER_LENGTH = 4096
-
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
-internal actual fun compress(input: String): ByteArray {
-
-    memScoped {
-
-        /* Create a zlib stream structure */
-        val stream = alloc<z_stream>()
-
-        val inputBuffer = input.encodeToByteArray()
-
-        /* Initialize the zlib stream and check the return code. */
-        val initResult = deflateInit(stream.ptr, Z_DEFAULT_COMPRESSION)
-
-        if (initResult != Z_OK)
-            throw ImageReadException("deflateInit failed: $initResult")
-
-        try {
-
-            val inputBufferLength = inputBuffer.size
-            val outputBufferLength = deflateBound(stream.ptr, inputBufferLength.convert())
-
-            val outputBuffer = ByteArray(outputBufferLength.toInt())
-
-            /* Set the input buffer and its length. */
-            if (inputBuffer.isNotEmpty())
-                stream.next_in = inputBuffer.refTo(0).getPointer(this).reinterpret()
-            else
-                stream.next_in = null
-
-            stream.avail_in = inputBufferLength.toUInt()
-
-            /* Set the output buffer and its length. */
-            if (outputBuffer.isNotEmpty())
-                stream.next_out = outputBuffer.refTo(0).getPointer(this).reinterpret()
-            else
-                stream.next_out = null
-
-            stream.avail_out = outputBufferLength.convert()
-
-            /* Compress the data and check the return code. */
-            val deflateResult = deflate(stream.ptr, Z_FINISH)
-
-            if (deflateResult != Z_OK && deflateResult != Z_STREAM_END)
-                throw ImageReadException("deflate failed: $deflateResult")
-
-            /* Get the compressed data length. */
-            val compressedDataLength = outputBufferLength - stream.avail_out
-
-            /* Return the compressed data as a ByteArray. */
-            return@compress outputBuffer.copyOf(compressedDataLength.toInt())
-
-        } finally {
-            /* Clean up the zlib stream. */
-            deflateEnd(stream.ptr)
-        }
-    }
-}
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun decompressBytes(

@@ -24,8 +24,6 @@ package de.stefan_oltmann.kim.common
  */
 internal const val MAX_DECOMPRESSED_BYTE_COUNT: Int = 8 * 1024 * 1024
 
-internal expect fun compress(input: String): ByteArray
-
 /**
  * Decompresses the given zlib data into raw bytes.
  *

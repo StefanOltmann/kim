@@ -18,40 +18,9 @@ package de.stefan_oltmann.kim.common
 
 import java.io.ByteArrayOutputStream
 import java.util.zip.DataFormatException
-import java.util.zip.Deflater
 import java.util.zip.Inflater
 
 private const val ZLIB_BUFFER_SIZE: Int = 1024
-
-internal actual fun compress(input: String): ByteArray {
-
-    val deflater = Deflater()
-    val inputBytes = input.encodeToByteArray()
-
-    deflater.setInput(inputBytes)
-    deflater.finish()
-
-    val outputStream = ByteArrayOutputStream(inputBytes.size)
-
-    val buffer = ByteArray(ZLIB_BUFFER_SIZE)
-
-    try {
-
-        while (!deflater.finished()) {
-
-            val count = deflater.deflate(buffer)
-
-            outputStream.write(buffer, 0, count)
-        }
-
-        return outputStream.toByteArray()
-
-    } finally {
-
-        /* Releases the native zip structure, also when deflating throws. */
-        deflater.end()
-    }
-}
 
 internal actual fun decompressBytes(
     byteArray: ByteArray,
