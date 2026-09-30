@@ -140,6 +140,7 @@ class ApiContractFuzzTest {
      * type itself only exists on the JVM target - deeply nested hostile
      * input must fail the read there, never blow the stack.
      */
+    @Suppress("SwallowedException") /* Accepting the image exceptions is the oracle's purpose. */
     private inline fun checkedCall(context: String, call: () -> Unit) {
 
         try {
