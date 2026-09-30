@@ -763,21 +763,20 @@ public object TiffReader {
             return null
 
         val offset = element.offset
-        var length = element.length
+        val length = element.length
 
         /*
-         * If the length is not correct (going beyond the file size) we need to adjust it.
-         * Computed in Long space, so a hostile length cannot wrap around.
-         */
-        if (offset.toLong() + length > byteReader.contentLength)
-            length = (byteReader.contentLength - offset).toInt()
-
-        /*
-         * If the new length is 0 or negative, ignore this element.
+         * If the length is not positive, ignore this element.
          */
         if (length <= 0)
             return null
 
+        /*
+         * The content length is only a hint for stream sources, so the
+         * real read decides how much of the thumbnail exists - exactly
+         * like the field value reads above. A short read is rejected by
+         * the size check below.
+         */
         val bytes = byteReader.readBytes(offset, length)
 
         if (bytes.size != length)
@@ -821,21 +820,19 @@ public object TiffReader {
                 return null
 
             val offset = element.offset
-            var length = element.length
+            val length = element.length
 
             /*
-             * If the length is not correct (going beyond the file size) we need to adjust it.
-             * Computed in Long space, so a hostile length cannot wrap around.
-             */
-            if (offset.toLong() + length > byteReader.contentLength)
-                length = (byteReader.contentLength - offset).toInt()
-
-            /*
-             * If the new length is 0 or negative, ignore this element.
+             * If the length is not positive, skip this element.
              */
             if (length <= 0)
                 continue
 
+            /*
+             * The content length is only a hint for stream sources, so
+             * the real read decides how much of the strip exists - the
+             * short-read check below rejects an incomplete strip.
+             */
             val bytes = byteReader.readBytes(offset, length)
 
             /*

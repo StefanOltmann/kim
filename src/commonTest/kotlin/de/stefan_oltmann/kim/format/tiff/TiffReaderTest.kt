@@ -394,14 +394,51 @@ class TiffReaderTest {
     }
 
     /**
+     * The content length of a stream source is only a hint and may
+     * understate the real data. Clamping the thumbnail length to the
+     * hint truncated readable thumbnail bytes - the real read must
+     * decide, like it does for the field values.
+     */
+    @Test
+    fun testThumbnailReadIgnoresUnderstatedContentLength() {
+
+        /* IFD0 with a 7-byte JPEG thumbnail at offset 38. */
+        val tiffBytes = convertHexStringToByteArray(
+            "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
+                "0200" + // 2 entries
+                "010204000100000026000000" + // JPEGInterchangeFormat (0x0201) = 38
+                "020204000100000007000000" + // JPEGInterchangeFormatLength (0x0202) = 7
+                "00000000" + // No next directory
+                "ffd8112233" + "ffd9" // The thumbnail bytes at offset 38.
+        )
+
+        val delegate = DefaultRandomAccessByteReader(ByteArrayByteReader(tiffBytes))
+
+        /* The stream source underreports its size by the thumbnail tail. */
+        val understatedReader = object : RandomAccessByteReader by delegate {
+            override val contentLength: Long = tiffBytes.size - 2L
+        }
+
+        val tiffContents = TiffReader.read(
+            byteReader = understatedReader,
+            readTiffImageBytes = true
+        )
+
+        val thumbnail = assertNotNull(
+            tiffContents.directories.first().thumbnailBytes,
+            "The readable thumbnail was truncated by the understated hint."
+        )
+
+        assertEquals(7, thumbnail.size)
+    }
+
+    /**
      * Regression test: strip offsets come from unsigned LONGs and can
      * resolve beyond the signed Int range in hostile files. Reading the
      * image data must degrade to NULL instead of crashing.
      */
     @Test
-    fun testReadSkipsStripWithNegativeResolvedOffset() {
-
-        val bytes = convertHexStringToByteArray(
+    fun testReadSkipsStripWithNegativeResolvedOffset() {        val bytes = convertHexStringToByteArray(
             "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
                 "0200" + // 2 entries
                 "1101040001000000ffffffff" + // StripOffsets (0x0111), LONG, 0xFFFFFFFF
