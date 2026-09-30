@@ -26,6 +26,7 @@ import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.writeBox
+import de.stefan_oltmann.kim.testdata.KimTestData
 import de.stefan_oltmann.kim.testdata.countOccurrences
 import de.stefan_oltmann.kim.testdata.minimalTiffBytes
 import kotlin.test.Test
@@ -593,6 +594,34 @@ class JxlUpdaterTest : AbstractUpdaterTest("jxl") {
         assertFailsWith<ImageReadException> {
             Kim.readMetadata(byteWriter.toByteArray())
         }
+    }
+
+    /**
+     * A JXL whose EXIF and XMP are stored in brob containers carries
+     * metadata that cannot be read without brotli support. Per the
+     * strict read policy the read must fail instead of silently
+     * reporting the file without its metadata - a sidecar writer would
+     * lose it. deleteMetadata stays possible: removing the unreadable
+     * boxes is what deletion means.
+     */
+    @Test
+    fun testReadFailsWhenExifIsBrobCompressed() {
+
+        val bytes = KimTestData.getBytesOf(KimTestData.JXL_CONTAINER_COMPRESSED_INDEX)
+
+        val exception = assertFailsWith<ImageReadException> {
+            Kim.readMetadata(bytes)
+        }
+
+        assertTrue(
+            exception.message?.contains("brotli", ignoreCase = true) == true,
+            "Unexpected message: ${exception.message}"
+        )
+
+        /* The escape hatch stays: deleting the unreadable boxes works. */
+        val deletedBytes = Kim.deleteMetadata(bytes)
+
+        assertFalse(deletedBytes.decodeToString().contains("brob"))
     }
 
     /**

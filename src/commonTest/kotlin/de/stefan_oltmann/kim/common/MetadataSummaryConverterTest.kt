@@ -64,6 +64,20 @@ class MetadataSummaryConverterTest {
                 continue
             }
 
+            /*
+             * media_80 stores its Exif and XMP in brob containers, which
+             * cannot be read without brotli support - the read fails per
+             * the strict read policy.
+             */
+            if (index == KimTestData.JXL_CONTAINER_COMPRESSED_INDEX) {
+
+                assertFailsWith<ImageReadException> {
+                    Kim.readMetadata(bytes)
+                }
+
+                continue
+            }
+
             val summary = Kim.readMetadata(bytes)?.convertToSummary()
 
             assertNotNull(summary)

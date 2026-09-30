@@ -342,7 +342,9 @@ Java projects.
 * Updates buffer the file content in memory for WebP files and for JPEG XL files with a single
   codestream box (`jxlc`). JPEG, PNG, GIF and JPEG XL files with split codestream boxes (`jxlp`) are
   streamed in bounded chunks.
-* Does not read brotli compressed metadata of JPEG XL due to missing brotli KMP libs.
+* JPEG XL files whose EXIF or XMP is stored in brotli-compressed (`brob`) boxes
+  are rejected with an `ImageReadException`, because brotli decompression is
+  not available. `deleteMetadata` can still remove the compressed boxes.
 * The MakerNotes of GoPro cameras and the undocumented records of the oldest Canon and Sony models
   are not interpreted.
 * There is right now no convenient tooling for GeoTiff like there is for GPS.

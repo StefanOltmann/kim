@@ -45,10 +45,12 @@ class XmpExtractionTest {
         KimTestData.MOV_TEST_VIDEO_INDEX
     )
 
-    /* These files carry XMP in a container the extraction does not read yet. */
-    val indicesUnsupported: Set<Int> = setOf(
-        59, 78, 79, 80
-    )
+    /*
+     * media_80 stores its Exif and XMP in brob containers, which cannot
+     * be read without brotli support - the read fails per the strict
+     * read policy (see the limitations in the README).
+     */
+    val indicesUnsupported: Set<Int> = setOf(80)
 
     /**
      * Regression test based on a fixed small set of test files.
