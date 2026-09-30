@@ -27,6 +27,7 @@ import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.xmp.XMPConst
 import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
 import kotlinx.datetime.UtcOffset
@@ -126,6 +127,8 @@ public object XmpReader {
                     ?: localDateTime.toInstant(timeZone)
 
                 instant.toEpochMilliseconds()
+            } catch (ex: CancellationException) {
+                throw ex
             } catch (_: Exception) {
                 /* We ignore invalid XMP DateTimeOriginal values. */
                 null
