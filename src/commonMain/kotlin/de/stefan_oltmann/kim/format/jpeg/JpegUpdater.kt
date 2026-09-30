@@ -74,7 +74,7 @@ internal object JpegUpdater : MetadataUpdater {
                 block
         }
 
-        return IptcMetadata(records, blocks)
+        return IptcMetadata(records, blocks, sourceSegmentBytes)
     }
 
     @Throws(ImageWriteException::class)
@@ -345,7 +345,15 @@ internal object JpegUpdater : MetadataUpdater {
 
         val remainingRecords = oldRecords.filter { record -> record.iptcType !in removedIptcTypes }
 
-        return IptcMetadata(remainingRecords + newRecords, newBlocks)
+        /*
+         * The rewrite must remove the segments the parsed stream came
+         * from, so its identity is carried through the update.
+         */
+        return IptcMetadata(
+            remainingRecords + newRecords,
+            newBlocks,
+            iptc?.sourceSegmentBytes ?: emptyList()
+        )
     }
 
     private fun createLocationShownRecords(locationShown: LocationShown): List<IptcRecord> {

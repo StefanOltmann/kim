@@ -19,10 +19,17 @@ package de.stefan_oltmann.kim.format.jpeg.iptc
 
 /**
  * IPTC as located in JPEG APP13 segments.
+ *
+ * [sourceSegmentBytes] identifies the APP13 payloads the metadata was
+ * parsed from, so a rewrite removes exactly those segments and keeps
+ * other Photoshop streams byte-exact. It is empty for metadata that was
+ * not parsed from a file; a rewrite then replaces every Photoshop
+ * stream.
  */
 public data class IptcMetadata(
     val records: List<IptcRecord>,
-    val rawBlocks: List<IptcBlock>
+    val rawBlocks: List<IptcBlock>,
+    val sourceSegmentBytes: List<ByteArray> = emptyList()
 ) {
 
     val nonIptcBlocks: List<IptcBlock> by lazy {

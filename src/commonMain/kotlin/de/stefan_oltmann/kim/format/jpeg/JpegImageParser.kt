@@ -371,6 +371,14 @@ public object JpegImageParser : ImageParser {
          */
         var photoshopData = ByteArrayByteWriter()
 
+        /*
+         * The payloads of the segments that formed the current stream.
+         * They identify the stream on the write side, so a rewrite
+         * removes exactly these segments and keeps other Photoshop
+         * streams of the file byte-exact.
+         */
+        var photoshopSegments = mutableListOf<ByteArray>()
+
         for (segment in segments.filterIsInstance<App13Segment>()) {
 
             if (!segment.isPhotoshopJpegSegment())
@@ -388,15 +396,19 @@ public object JpegImageParser : ImageParser {
                  * later, real IPTC stream of the same file.
                  */
                 if (parsed != null && parsed.records.isNotEmpty())
-                    return parsed
+                    return parsed.copy(sourceSegmentBytes = photoshopSegments)
 
                 photoshopData = ByteArrayByteWriter()
+                photoshopSegments = mutableListOf()
             }
 
             photoshopData.write(segmentData)
+            photoshopSegments.add(segment.segmentBytes)
         }
 
-        return parsePhotoshopData(photoshopData.toByteArray())
+        val parsed = parsePhotoshopData(photoshopData.toByteArray()) ?: return null
+
+        return parsed.copy(sourceSegmentBytes = photoshopSegments)
     }
 
     /**
