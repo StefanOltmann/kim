@@ -22,7 +22,6 @@ import de.stefan_oltmann.kim.format.tiff.TiffField
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
-import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeSShort
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoGpsText
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoSShort
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoSShorts

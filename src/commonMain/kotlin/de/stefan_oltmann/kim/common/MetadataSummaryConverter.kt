@@ -37,10 +37,10 @@ import de.stefan_oltmann.kim.model.MetadataSummary
 import de.stefan_oltmann.kim.model.TiffOrientation
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
-import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toInstant
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
 

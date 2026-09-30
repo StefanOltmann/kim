@@ -22,7 +22,6 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeUndefined
 import de.stefan_oltmann.kim.format.tiff.makernote.nikon.NikonPictureControl2Tag
 import de.stefan_oltmann.kim.format.tiff.makernote.nikon.NikonPictureControlTag
-import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

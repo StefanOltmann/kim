@@ -27,11 +27,11 @@ import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.xmp.XMPConst
 import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
-import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
 import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.toInstant
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.jvm.JvmStatic
 
 /**

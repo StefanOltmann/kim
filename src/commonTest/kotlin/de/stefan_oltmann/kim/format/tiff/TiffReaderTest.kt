@@ -467,7 +467,8 @@ class TiffReaderTest {
      * image data must degrade to NULL instead of crashing.
      */
     @Test
-    fun testReadSkipsStripWithNegativeResolvedOffset() {        val bytes = convertHexStringToByteArray(
+    fun testReadSkipsStripWithNegativeResolvedOffset() {
+        val bytes = convertHexStringToByteArray(
             "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
                 "0200" + // 2 entries
                 "1101040001000000ffffffff" + // StripOffsets (0x0111), LONG, 0xFFFFFFFF

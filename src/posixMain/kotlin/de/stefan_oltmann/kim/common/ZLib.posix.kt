@@ -18,9 +18,7 @@ package de.stefan_oltmann.kim.common
 
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.UnsafeNumber
 import kotlinx.cinterop.alloc
-import kotlinx.cinterop.convert
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.refTo

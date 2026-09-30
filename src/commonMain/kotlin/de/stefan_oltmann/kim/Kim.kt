@@ -48,8 +48,8 @@ import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
-import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.datetime.TimeZone
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Main entry point for reading and writing image metadata.

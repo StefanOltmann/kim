@@ -16,8 +16,8 @@
 package de.stefan_oltmann.kim.format.png.chunk
 
 import com.goncalossilva.resources.Resource
-import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.png.PngChunkType
 import kotlin.test.Test
 import kotlin.test.assertEquals
