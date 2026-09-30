@@ -37,6 +37,7 @@ import de.stefan_oltmann.kim.model.MetadataSummary
 import de.stefan_oltmann.kim.model.TiffOrientation
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toInstant
@@ -324,11 +325,16 @@ public object MetadataSummaryConverter {
             else
                 localDateTime.toInstant(timeZone).toEpochMilliseconds()
 
+        } catch (ex: CancellationException) {
+            throw ex
         } catch (_: Exception) {
 
             /*
-             * Many photos contain wrong values here. We ignore this problem and hope
-             * that another taken date source like embedded XMP has a valid date instead.
+             * Many photos contain wrong values here. Dropping the unusable
+             * value is sanctioned garbage category 3 in the [Kim] policy -
+             * the raw string stays untouched on the metadata object. We
+             * hope that another taken date source like embedded XMP has a
+             * valid date instead.
              */
 
             return null
@@ -360,6 +366,8 @@ public object MetadataSummaryConverter {
                 longitude = longitude
             ).takeIf(GpsCoordinates::isValid)
 
+        } catch (ex: CancellationException) {
+            throw ex
         } catch (_: Exception) {
             /*
              * Some files contain invalid GPS data, for example fields with
@@ -511,7 +519,13 @@ public object MetadataSummaryConverter {
         if (!UTC_OFFSET_REGEX.matches(offsetString))
             return null
 
-        return runCatching { UtcOffset.parse(offsetString) }.getOrNull()
+        return try {
+            UtcOffset.parse(offsetString)
+        } catch (ex: CancellationException) {
+            throw ex
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private fun formatLensValue(value: Double): String {

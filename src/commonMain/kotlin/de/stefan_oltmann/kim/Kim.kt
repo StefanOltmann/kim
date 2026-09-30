@@ -75,7 +75,7 @@ import kotlinx.datetime.TimeZone
  * sidecars (XMP, JSON) from the read result, so a silent partial read loses
  * data anyway.
  *
- * There are exactly two kinds of garbage that may be dropped silently:
+ * There are exactly three kinds of garbage that may be dropped silently:
  *
  * 1. Corrupt embedded thumbnails and preview images: they are always
  *    restorable from the primary image data, so dropping them is not real
@@ -83,6 +83,13 @@ import kotlinx.datetime.TimeZone
  *
  * 2. GPS coordinates that were read cleanly but lie outside the valid
  *    range: they are physically meaningless.
+ *
+ * 3. Illegal EXIF date/time values and GPS data with a wrong type or
+ *    unknown references: the values exist but are unusable, so the derived
+ *    summary omits them instead of failing the whole read. This drop
+ *    happens at summary level only - the raw values stay untouched on the
+ *    metadata object, so nothing is lost for tools that parse them
+ *    themselves.
  *
  * Dropping a MakerNote, EXIF, IPTC, or XMP content is real data loss and
  * must fail the read instead. Stopping a parse at the exact boundary where
