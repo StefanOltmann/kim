@@ -24,6 +24,7 @@ import de.stefan_oltmann.kim.model.MetadataSummary
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.testdata.KimTestData
 import de.stefan_oltmann.xmp.XMPRegionArea
+import de.stefan_oltmann.xmp.XmpFaceRegion
 import kotlinx.datetime.TimeZone
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -82,8 +83,8 @@ class XmpReaderTest {
                 ),
                 rating = ExifRating.FOUR_STARS,
                 keywords = setOf("Pflanze", "Ecke", "MacBook"),
-                faces = mapOf(
-                    "MacBook" to XMPRegionArea(0.581172, 0.66247, 0.583093, 0.502398)
+                faces = listOf(
+                    XmpFaceRegion("MacBook", XMPRegionArea(0.581172, 0.66247, 0.583093, 0.502398))
                 )
             ),
             actual = XmpReader.readMetadata(xmp)
@@ -109,8 +110,8 @@ class XmpReaderTest {
                     "süßer fuchs",
                     "was solls"
                 ),
-                faces = mapOf(
-                    "Swiper" to XMPRegionArea(0.404336, 0.422313, 0.124503, 0.240097)
+                faces = listOf(
+                    XmpFaceRegion("Swiper", XMPRegionArea(0.404336, 0.422313, 0.124503, 0.240097))
                 ),
                 personsInImage = setOf("Swiper")
             ),
@@ -135,10 +136,10 @@ class XmpReaderTest {
                 description = "This is the description",
                 rating = ExifRating.REJECTED,
                 keywords = setOf("animal", "bird"),
-                faces = mapOf(
-                    "Eye Left" to XMPRegionArea(0.295179, 0.278880, 0.033245, 0.05),
-                    "Eye Right" to XMPRegionArea(0.814990, 0.472579, 0.033245, 0.05),
-                    "Nothing" to XMPRegionArea(0.501552, 0.905484, 0.033245, 0.05)
+                faces = listOf(
+                    XmpFaceRegion("Eye Left", XMPRegionArea(0.295179, 0.278880, 0.033245, 0.05)),
+                    XmpFaceRegion("Eye Right", XMPRegionArea(0.814990, 0.472579, 0.033245, 0.05)),
+                    XmpFaceRegion("Nothing", XMPRegionArea(0.501552, 0.905484, 0.033245, 0.05))
                 ),
                 personsInImage = setOf("Eye Left", "Eye Right", "Nothing")
             ),
@@ -156,7 +157,7 @@ class XmpReaderTest {
                 orientation = TiffOrientation.ROTATE_RIGHT,
                 rating = ExifRating.FOUR_STARS,
                 keywords = emptySet(),
-                faces = emptyMap(),
+                faces = emptyList(),
                 personsInImage = emptySet()
             ),
             actual = XmpReader.readMetadata(xmp)
@@ -182,12 +183,35 @@ class XmpReaderTest {
                     "süßer fuchs",
                     "was solls"
                 ),
-                faces = mapOf(
-                    "Swiper" to XMPRegionArea(0.404336, 0.422313, 0.124503, 0.240097)
+                faces = listOf(
+                    XmpFaceRegion("Swiper", XMPRegionArea(0.404336, 0.422313, 0.124503, 0.240097))
                 ),
                 personsInImage = setOf("Swiper")
             ),
             actual = XmpReader.readMetadata(xmp)
+        )
+    }
+
+    /**
+     * The XMP region list is an ordered array, not a name-keyed map: several
+     * regions may share one name and a region may carry no name at all. The
+     * summary must preserve them all in stored order - the fixture is written
+     * and validated by ExifTool.
+     */
+    @Test
+    fun testReadDuplicateAndNamelessFaceRegions() {
+
+        val xmp = KimTestData.getXmp("exiftool_face_region_variants.xmp")
+
+        val summary = XmpReader.readMetadata(xmp)
+
+        assertEquals(
+            expected = listOf(
+                XmpFaceRegion("Swiper", XMPRegionArea(0.404336, 0.422313, 0.124503, 0.240097)),
+                XmpFaceRegion("Swiper", XMPRegionArea(0.1, 0.2, 0.3, 0.4)),
+                XmpFaceRegion(null, XMPRegionArea(0.5, 0.5, 0.2, 0.2))
+            ),
+            actual = summary.faces
         )
     }
 

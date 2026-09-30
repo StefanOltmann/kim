@@ -23,7 +23,9 @@ import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
+import de.stefan_oltmann.xmp.XMPRegionArea
 import de.stefan_oltmann.xmp.XmpDate
+import de.stefan_oltmann.xmp.XmpFaceRegion
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.test.AfterTest
@@ -158,6 +160,31 @@ class XmpWriterEdgeCasesTest {
         apply(MetadataUpdate.Rating(ExifRating.REJECTED))
 
         assertNull(xmpMeta.getPropertyBoolean(XMP_NS_XMP, "Flagged"))
+    }
+
+    /**
+     * The XMP region list is an ordered array, so a write must keep regions
+     * without a name and regions that share a name - collapsing them would
+     * silently delete detected faces on the round-trip.
+     */
+    @Test
+    fun testFacesRoundTripPreservesNamelessAndDuplicateRegions() {
+
+        val regions = listOf(
+            XmpFaceRegion("Swiper", XMPRegionArea(0.404336, 0.422313, 0.124503, 0.240097)),
+            XmpFaceRegion("Swiper", XMPRegionArea(0.1, 0.2, 0.3, 0.4)),
+            XmpFaceRegion(null, XMPRegionArea(0.5, 0.5, 0.2, 0.2))
+        )
+
+        apply(MetadataUpdate.Faces(regions, widthPx = 4390, heightPx = 2927))
+
+        val serialized =
+            XmpWriter.updateXmp(xmpMeta, emptySet(), writePackageWrapper = false)
+
+        assertEquals(
+            expected = regions,
+            actual = XmpReader.readMetadata(serialized).faces
+        )
     }
 
     @OptIn(ExperimentalTime::class)

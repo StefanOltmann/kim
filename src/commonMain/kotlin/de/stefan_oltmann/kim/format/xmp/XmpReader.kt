@@ -109,10 +109,6 @@ public object XmpReader {
          * Compile into MetadataSummary object
          */
 
-        val faces = xmpMeta.getFaceRegions()
-            .mapNotNull { region -> region.name?.let { name -> name to region.area } }
-            .toMap()
-
         return MetadataSummary(
             orientation = TiffOrientation.of(xmpMeta.getOrientation()),
             takenDate = takenDate,
@@ -125,7 +121,7 @@ public object XmpReader {
             keywords = xmpMeta.getKeywords().ifEmpty {
                 xmpMeta.getAcdSeeKeywords()
             },
-            faces = faces,
+            faces = xmpMeta.getFaceRegions(),
             personsInImage = xmpMeta.getPersonsInImage()
         )
     }

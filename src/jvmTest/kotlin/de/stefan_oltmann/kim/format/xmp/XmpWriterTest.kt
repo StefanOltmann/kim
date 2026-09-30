@@ -45,7 +45,7 @@ class XmpWriterTest {
         MetadataUpdate.GpsCoordinates(GpsCoordinates(53.219391, 8.239661)),
         MetadataUpdate.Rating(ExifRating.THREE_STARS),
         MetadataUpdate.Keywords(setOf("fox", "fuchs", "<swiper>")),
-        // MetadataUpdate.Faces(mapOf("John" to RegionArea(0.2, 0.3, 0.4, 0.5))),
+        // MetadataUpdate.Faces(listOf(XmpFaceRegion("John", XMPRegionArea(0.2, 0.3, 0.4, 0.5))), 100, 100),
         MetadataUpdate.Persons(setOf("John"))
     )
 

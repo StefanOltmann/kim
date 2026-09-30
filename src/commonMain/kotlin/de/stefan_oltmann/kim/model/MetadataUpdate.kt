@@ -16,7 +16,7 @@
  */
 package de.stefan_oltmann.kim.model
 
-import de.stefan_oltmann.xmp.XMPRegionArea
+import de.stefan_oltmann.xmp.XmpFaceRegion
 
 /**
  * Represents possible updates that can be performed.
@@ -108,10 +108,12 @@ public sealed interface MetadataUpdate {
     ) : MetadataUpdate
 
     /**
-     * List of new faces to set. An empty map removes all faces.
+     * List of new face regions to set, in the order they are written. Regions without
+     * a name and several regions sharing one name are preserved, like the XMP region
+     * list carries them. An empty list removes all faces.
      */
     public data class Faces(
-        val faces: Map<String, XMPRegionArea>,
+        val faces: List<XmpFaceRegion>,
         val widthPx: Int,
         val heightPx: Int
     ) : MetadataUpdate

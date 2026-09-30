@@ -17,7 +17,7 @@
 package de.stefan_oltmann.kim.model
 
 import de.stefan_oltmann.kim.common.KimValueFormatter
-import de.stefan_oltmann.xmp.XMPRegionArea
+import de.stefan_oltmann.xmp.XmpFaceRegion
 
 /**
  * Represents a high-level summary of image metadata extracted from raw MediaMetadata.
@@ -59,7 +59,7 @@ public data class MetadataSummary(
     val keywords: Set<String> = emptySet(),
 
     /* Persons */
-    val faces: Map<String, XMPRegionArea> = emptyMap(),
+    val faces: List<XmpFaceRegion> = emptyList(),
     val personsInImage: Set<String> = emptySet(),
 
     /* EXIF Thumbnail (IFD1) */

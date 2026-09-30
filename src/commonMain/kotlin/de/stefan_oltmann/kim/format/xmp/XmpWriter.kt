@@ -27,7 +27,6 @@ import de.stefan_oltmann.xmp.XMPLocation
 import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
 import de.stefan_oltmann.xmp.XmpDate
-import de.stefan_oltmann.xmp.XmpFaceRegion
 import de.stefan_oltmann.xmp.XmpGps
 import de.stefan_oltmann.xmp.options.SerializeOptions
 import kotlinx.datetime.LocalDateTime
@@ -133,11 +132,7 @@ public object XmpWriter {
                 setKeywords(update.keywords)
 
             is MetadataUpdate.Faces ->
-                setFaceRegions(
-                    update.faces.map { (name, area) -> XmpFaceRegion(name, area) },
-                    update.widthPx,
-                    update.heightPx
-                )
+                setFaceRegions(update.faces, update.widthPx, update.heightPx)
 
             is MetadataUpdate.Persons ->
                 setPersonsInImage(update.personsInImage)

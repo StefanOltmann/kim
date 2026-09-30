@@ -224,7 +224,7 @@ public object MetadataSummaryConverter {
             flagged = xmpMetadata?.flagged ?: false,
             rating = xmpMetadata?.rating,
             keywords = keywords,
-            faces = xmpMetadata?.faces ?: emptyMap(),
+            faces = xmpMetadata?.faces ?: emptyList(),
             personsInImage = xmpMetadata?.personsInImage ?: emptySet(),
             thumbnailImageSize = thumbnailImageSize,
             thumbnailBytes = thumbnailBytes
