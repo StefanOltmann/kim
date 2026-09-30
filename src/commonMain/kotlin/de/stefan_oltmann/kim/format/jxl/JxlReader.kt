@@ -43,7 +43,7 @@ internal object JxlReader {
         if (unreadableCompressedBoxes.isNotEmpty()) {
 
             val wrappedTypes = unreadableCompressedBoxes
-                .map { it.actualType.toString() }
+                .map { it.actualType.toString().trim() }
                 .distinct()
                 .sorted()
                 .joinToString(" and ")
