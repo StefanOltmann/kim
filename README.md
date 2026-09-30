@@ -185,7 +185,7 @@ OutputStreamByteWriter(outputFile.outputStream()).use { outputStreamByteWriter -
 
 See the [example project](examples/kim-kotlin-jvm-sample/src/main/kotlin/Main.kt) for more details.
 
-### Update metadata using Kim.update () API
+### Update metadata using `Kim.update()` API
 
 `Kim.update()` applies the given updates to all formats that can represent them, so EXIF, IPTC and
 XMP are updated simultaneously in one call. The metadata storages duplicate the same logical values.
@@ -256,7 +256,7 @@ OutputStreamByteWriter(outputFile.outputStream()).use { outputStreamByteWriter -
 }
 ```
 
-### Delete metadata using Kim.deleteMetadata () API
+### Delete metadata using `Kim.deleteMetadata()` API
 
 `Kim.deleteMetadata()` removes all metadata of a file, but keeps the ICC chunks, because they would
 change how the image is displayed.
@@ -315,7 +315,7 @@ staged.delete()
 Apps that need crash-safe semantics (backups, restore, atomic replacement) implement them on top
 of these building blocks - KIM stays out of the storage policy.
 
-### Update thumbnail using Kim.updateThumbnail () API
+### Update thumbnail using `Kim.updateThumbnail()` API
 
 ```kotlin
 val bytes: ByteArray = loadBytes()
