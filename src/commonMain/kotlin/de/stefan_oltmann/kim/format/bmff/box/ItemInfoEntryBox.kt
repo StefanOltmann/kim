@@ -17,6 +17,7 @@
  */
 package de.stefan_oltmann.kim.format.bmff.box
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.toFourCCTypeString
 import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
@@ -67,10 +68,13 @@ public class ItemInfoEntryBox(
          * Version 2 uses a 16-bit item ID; version 3 widened it to 32 bits
          * (ISO/IEC 14496-12, item info entry). Version 3 must not be
          * rejected, or valid modern files would lose all item metadata.
+         *
+         * The version is file-controlled data, so an unsupported value is
+         * a corrupt-box error that must surface as the documented
+         * ImageReadException even outside the wrapped parse paths.
          */
-        check(version == SUPPORTED_MIN_VERSION || version == SUPPORTED_MAX_VERSION) {
-            "Unsupported INFE version: $version"
-        }
+        if (version != SUPPORTED_MIN_VERSION && version != SUPPORTED_MAX_VERSION)
+            throw ImageReadException("Unsupported INFE version: $version")
 
         flags = byteReader.readBytes("flags", FLAGS_LENGTH)
 
