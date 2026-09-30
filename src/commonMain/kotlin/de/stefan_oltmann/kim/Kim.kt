@@ -396,6 +396,13 @@ public object Kim {
      *
      * Attention: The given [ByteReader] and [ByteWriter] are not closed by
      * this call; the caller owns and closes both.
+     *
+     * Attention: The source file is always left untouched, but some
+     * formats stream their image data to the [ByteWriter] before the
+     * write is known to succeed. When this call throws
+     * [ImageWriteException], any bytes already written are incomplete
+     * and must be discarded - stage the output in a temporary buffer or
+     * file and publish it only after the call returned normally.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -459,6 +466,13 @@ public object Kim {
      *
      * Attention: The given [ByteReader] and [ByteWriter] are not closed by
      * this call; the caller owns and closes both.
+     *
+     * Attention: The source file is always left untouched, but some
+     * formats stream their image data to the [ByteWriter] before the
+     * write is known to succeed. When this call throws
+     * [ImageWriteException], any bytes already written are incomplete
+     * and must be discarded - stage the output in a temporary buffer or
+     * file and publish it only after the call returned normally.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
