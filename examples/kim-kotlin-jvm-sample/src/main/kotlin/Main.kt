@@ -1,4 +1,5 @@
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.writeBytes
 import de.stefan_oltmann.kim.format.jpeg.JpegRewriter
 import de.stefan_oltmann.kim.format.tiff.TiffContents
@@ -138,7 +139,9 @@ fun setGeoTiffToJpeg() {
 /**
  * Shows how to update set GeoTiff to a TIF file using JVM API.
  *
- * CAUTION: Writing TIFF is experimental and may corrupt the file!
+ * The write either succeeds with full data integrity or fails with an
+ * [ImageWriteException] before the output is touched - the MakerNote
+ * bytes and their offsets always survive the rewrite byte-exact.
  */
 fun setGeoTiffToTiff() {
 
