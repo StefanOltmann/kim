@@ -81,6 +81,19 @@ public object PngWriter {
         val modifiedChunks = chunks.toMutableList()
 
         /*
+         * The new metadata chunks are inserted behind the mandatory IHDR
+         * chunk. A chunk list without exactly one IHDR would silently
+         * skip the metadata (no header found) or emit it twice (two
+         * headers), so such a list is rejected instead.
+         */
+        val ihdrCount = modifiedChunks.count { it.type == PngChunkType.IHDR }
+
+        if (ihdrCount != 1)
+            throw ImageWriteException(
+                "The PNG chunk list must contain exactly one IHDR chunk, found $ihdrCount."
+            )
+
+        /*
          * Delete old chunks that are going to be replaced.
          */
 
