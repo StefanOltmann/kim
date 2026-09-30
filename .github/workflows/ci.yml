@@ -56,6 +56,19 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew build check assembleXCFramework --parallel
+      - name: Verify the samples pin the released version
+        run: |
+          RELEASE_VERSION=$(cat build/version.txt)
+
+          for build_file in \
+            examples/kim-kotlin-jvm-sample/build.gradle.kts \
+            examples/kim-java-sample/build.gradle
+          do
+            grep -F "de.stefan-oltmann:kim:$RELEASE_VERSION" "$build_file" || {
+              echo "::error::$build_file does not pin de.stefan-oltmann:kim:$RELEASE_VERSION - the samples must build against the last release."
+              exit 1
+            }
+          done
       - name: Build Kotlin JVM sample against the last release
         run: |
           chmod +x ./examples/kim-kotlin-jvm-sample/gradlew
