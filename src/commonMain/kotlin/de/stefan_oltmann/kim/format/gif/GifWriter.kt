@@ -62,6 +62,7 @@ public object GifWriter {
         byteReader: ByteReader,
         byteWriter: ByteWriter,
         failOnTrailingXmp: Boolean = false,
+        stripCommentExtensions: Boolean = false,
         updateComputer: (List<GifChunk>, ByteWriter) -> Unit
     ) {
 
@@ -99,7 +100,7 @@ public object GifWriter {
                 false
             },
             onExtensionBlock = { extensionLabel ->
-                copyExtensionBlock(byteReader, byteWriter, extensionLabel, failOnTrailingXmp)
+                copyExtensionBlock(byteReader, byteWriter, extensionLabel, failOnTrailingXmp, stripCommentExtensions)
                 false
             },
             onTrailerBlock = {
@@ -156,22 +157,32 @@ public object GifWriter {
     }
 
     /**
-     * Copies an extension block, dropping comment extensions and XMP
-     * application extensions, which carry user-editable metadata. All
-     * other blocks, including unknown extensions, stream through
-     * untouched, so stale metadata cannot survive an update or deletion
-     * while nothing the caller asked to keep is destroyed.
+     * Copies an extension block, dropping the XMP application extension,
+     * which carries user-editable metadata, and - when the caller strips
+     * comments - the comment extension. All other blocks, including
+     * unknown extensions, stream through untouched, so stale metadata
+     * cannot survive an update or deletion while nothing the caller
+     * asked to keep is destroyed.
      */
     private fun copyExtensionBlock(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
         extensionLabel: Byte,
-        failOnTrailingXmp: Boolean
+        failOnTrailingXmp: Boolean,
+        stripCommentExtensions: Boolean
     ) {
 
         when (extensionLabel) {
 
-            GifConstants.COMMENT_EXTENSION_LABEL -> byteReader.transferGifSubBlocks(byteWriter = null)
+            /*
+             * Comments stream through unless the caller strips them:
+             * an update preserves data it does not touch, while
+             * deleteMetadata removes it.
+             */
+            GifConstants.COMMENT_EXTENSION_LABEL ->
+                byteReader.transferGifSubBlocks(
+                    byteWriter = if (stripCommentExtensions) null else byteWriter
+                )
 
             GifConstants.APPLICATION_EXTENSION_LABEL ->
                 copyApplicationExtensionBlock(byteReader, byteWriter, failOnTrailingXmp)
