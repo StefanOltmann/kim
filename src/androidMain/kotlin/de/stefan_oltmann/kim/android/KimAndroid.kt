@@ -43,9 +43,10 @@ public object KimAndroid {
     /**
      * Reads the metadata from a stream.
      *
-     * Attention: The stream is read but NOT closed - closing it stays
-     * the caller's responsibility, like the core [Kim] API documents.
-     * The [length] is only a hint and may be 0 for unknown sizes.
+     * Attention: The stream IS closed by this call, including the stream
+     * below it, and must not be used afterwards - like the core [Kim]
+     * API documents. The [length] is only a hint and may be 0 for
+     * unknown sizes.
      */
     @JvmStatic
     @Throws(ImageReadException::class)
