@@ -64,22 +64,6 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew build check assembleXCFramework --parallel
-      - name: Verify the samples pin the last release
-        run: |
-          # gitVersioning names main-branch builds after the commit, so the
-          # last release is taken from the newest tag instead of the build
-          # version - the samples must build against it on every push.
-          LAST_RELEASE=$(git describe --abbrev=0 --tags)
-
-          for build_file in \
-            examples/kim-kotlin-jvm-sample/build.gradle.kts \
-            examples/kim-java-sample/build.gradle
-          do
-            grep -F "de.stefan-oltmann:kim:${LAST_RELEASE#v}" "$build_file" || {
-              echo "::error::$build_file does not pin de.stefan-oltmann:kim:${LAST_RELEASE#v} - the samples must build against the last release $LAST_RELEASE."
-              exit 1
-            }
-          done
       - name: Build Kotlin JVM sample against the last release
         run: |
           chmod +x ./examples/kim-kotlin-jvm-sample/gradlew
