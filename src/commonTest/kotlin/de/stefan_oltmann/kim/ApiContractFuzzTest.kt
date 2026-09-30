@@ -125,6 +125,10 @@ class ApiContractFuzzTest {
                 updates = setOf(MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT))
             )
         }
+
+        checkedCall(context) {
+            Kim.deleteMetadata(bytes)
+        }
     }
 
     /**
