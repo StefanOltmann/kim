@@ -30,7 +30,9 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class XmpReaderTest {
 
@@ -295,5 +297,58 @@ class XmpReaderTest {
         """.trimIndent()
 
         assertNull(XmpReader.readMetadata(xmp).gpsCoordinates)
+    }
+
+    /**
+     * The details carry every field the packet mentions, independently of the value: the
+     * exiftool sample carries keywords, persons and face regions, and no flag property
+     * at all - so neither the summary nor the details report a flag.
+     */
+    @Test
+    fun testReadMetadataDetailsCarriesAllFields() {
+
+        val xmp = KimTestData.getXmp("exiftool_sample.xmp")
+
+        val details = XmpReader.readMetadataDetails(xmp)
+
+        assertFalse(details.carriesFlag)
+        assertFalse(details.metadata.flagged)
+        assertTrue(details.carriesKeywords)
+        assertTrue(details.carriesPersonsInImage)
+        assertTrue(details.carriesFaces)
+        assertEquals(XmpReader.readMetadata(xmp), details.metadata)
+    }
+
+    /**
+     * Presence is not the same as the value: the ACDSee sample carries an explicit
+     * "not flagged" (acdsee:tagged=False) and its keywords live in the ACDSee namespace,
+     * so the summary reports keywords while the packet carries no dc:subject list.
+     */
+    @Test
+    fun testReadMetadataDetailsDistinguishesPresenceFromValue() {
+
+        val details = XmpReader.readMetadataDetails(KimTestData.getXmp("acdsee_sample.xmp"))
+
+        assertTrue(details.carriesFlag)
+        assertFalse(details.metadata.flagged)
+        assertFalse(details.carriesKeywords)
+        assertTrue(details.metadata.keywords.isNotEmpty())
+        assertFalse(details.carriesPersonsInImage)
+        assertFalse(details.carriesFaces)
+    }
+
+    /**
+     * A packet that says nothing about a field reports it as not carried - the narrative
+     * sample carries neither a flag property, nor keywords, persons or regions.
+     */
+    @Test
+    fun testReadMetadataDetailsCarriesNothing() {
+
+        val details = XmpReader.readMetadataDetails(KimTestData.getXmp("narrative_sample.xmp"))
+
+        assertFalse(details.carriesFlag)
+        assertFalse(details.carriesKeywords)
+        assertFalse(details.carriesPersonsInImage)
+        assertFalse(details.carriesFaces)
     }
 }

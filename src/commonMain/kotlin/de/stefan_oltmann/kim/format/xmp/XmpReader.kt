@@ -22,7 +22,9 @@ import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.LocationShown
 import de.stefan_oltmann.kim.model.MetadataSummary
 import de.stefan_oltmann.kim.model.TiffOrientation
+import de.stefan_oltmann.xmp.XMPConst
 import de.stefan_oltmann.xmp.XMPException
+import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
@@ -41,9 +43,53 @@ public object XmpReader {
 
     @Throws(XMPException::class)
     @JvmStatic
-    public fun readMetadata(xmp: String): MetadataSummary {
+    public fun readMetadata(xmp: String): MetadataSummary =
+        buildMetadataSummary(XMPMetaFactory.parseFromString(xmp))
+
+    /**
+     * Reads the packet like [readMetadata] and additionally reports which fields the
+     * packet carries, independently of their value, plus the parsed packet itself.
+     *
+     * The packet is parsed once; the summary and the presence facts are derived from
+     * that single parse.
+     *
+     * @throws XMPException When the packet cannot be parsed.
+     */
+    @Throws(XMPException::class)
+    @JvmStatic
+    public fun readMetadataDetails(xmp: String): XmpMetadataDetails {
 
         val xmpMeta = XMPMetaFactory.parseFromString(xmp)
+
+        return XmpMetadataDetails(
+            metadata = buildMetadataSummary(xmpMeta),
+            xmpMeta = xmpMeta,
+            carriesFlag = xmpMeta.carriesFlag(),
+            carriesKeywords = xmpMeta.doesPropertyExist(XMPConst.NS_DC, XMPConst.XMP_DC_SUBJECT),
+            carriesPersonsInImage = xmpMeta.doesPropertyExist(
+                XMPConst.NS_IPTC_EXT,
+                XMPConst.XMP_IPTC_EXT_PERSON_IN_IMAGE
+            ),
+            carriesFaces = xmpMeta.doesPropertyExist(
+                XMPConst.NS_MWG_RS,
+                XMPConst.XMP_MWG_RS_REGION_LIST
+            )
+        )
+    }
+
+    /**
+     * Whether the packet carries a flag property in any schema [XMPMeta.isFlagged] reads
+     * the flag value from - an explicit "not flagged" counts as carried, like silence
+     * counts as not carried.
+     */
+    private fun XMPMeta.carriesFlag(): Boolean =
+        doesPropertyExist(XMPConst.NS_DM, XMPConst.FLAGGED_TAG_ADOBE_NAME) ||
+            doesPropertyExist(XMPConst.NS_DM, XMPConst.FLAGGED_TAG_ADOBE_GOOD_NAME) ||
+            doesPropertyExist(XMPConst.NS_ACDSEE, XMPConst.FLAGGED_TAG_ACDSEE_NAME) ||
+            doesPropertyExist(XMPConst.NS_MYLIO, XMPConst.FLAGGED_TAG_MYLIO_NAME) ||
+            doesPropertyExist(XMPConst.NS_NARRATIVE, XMPConst.FLAGGED_TAG_NARRATIVE_NAME)
+
+    private fun buildMetadataSummary(xmpMeta: XMPMeta): MetadataSummary {
 
         /*
          * Read taken date
