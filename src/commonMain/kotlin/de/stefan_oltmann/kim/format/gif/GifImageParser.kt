@@ -286,10 +286,25 @@ public object GifImageParser : ImageParser {
 
         /* Read image data */
         val lzwMinimumCodeSize = byteReader.readByte("LZW minimum code size")
-        val subChunks = byteReader.parseGifSubChunksUntilEmpty("image data")
 
-        if (keepChunk(chunkTypeFilter, GifChunkType.IMAGE_DATA))
-            chunks.add(GifChunkImageData(lzwMinimumCodeSize, subChunks))
+        if (keepChunk(chunkTypeFilter, GifChunkType.IMAGE_DATA)) {
+
+            chunks.add(
+                GifChunkImageData(
+                    lzwMinimumCodeSize,
+                    byteReader.parseGifSubChunksUntilEmpty("image data")
+                )
+            )
+        } else {
+
+            /*
+             * Skipped image data is transferred in bounded chunks instead
+             * of being buffered: a large animation would otherwise
+             * allocate its whole LZW stream in per-sub-block arrays only
+             * to discard it.
+             */
+            byteReader.transferGifSubBlocks(byteWriter = null)
+        }
 
         return chunks
     }
