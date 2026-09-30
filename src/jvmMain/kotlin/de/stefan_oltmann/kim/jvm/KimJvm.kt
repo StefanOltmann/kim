@@ -60,9 +60,26 @@ public object KimJvm {
         if (!Files.exists(path))
             throw ImageReadException("File does not exist: $path")
 
-        return@tryWithImageReadException readMetadata(
-            inputStream = Files.newInputStream(path, StandardOpenOption.READ).buffered(),
-            length = Files.size(path)
+        return@tryWithImageReadException readMetadataFrom(
+            sizeLookup = { Files.size(path) },
+            openStream = { Files.newInputStream(path, StandardOpenOption.READ) }
+        )
+    }
+
+    /**
+     * Resolves the length before the stream opens: a failing size lookup
+     * must not leak an already-opened stream.
+     */
+    internal fun readMetadataFrom(
+        sizeLookup: () -> Long,
+        openStream: () -> InputStream
+    ): MediaMetadata? = tryWithImageReadException {
+
+        val length = sizeLookup()
+
+        readMetadata(
+            inputStream = openStream().buffered(),
+            length = length
         )
     }
 }

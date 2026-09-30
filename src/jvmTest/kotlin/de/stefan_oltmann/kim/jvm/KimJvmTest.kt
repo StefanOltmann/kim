@@ -27,6 +27,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -112,6 +113,35 @@ class KimJvmTest {
         assertFailsWith<ImageReadException> {
             KimJvm.readMetadata(directory)
         }
+    }
+
+    /**
+     * The length must be resolved before the stream opens. Opening first
+     * and looking the size up second leaked the already-opened stream
+     * whenever the size lookup failed - for example when the file is
+     * replaced between the existence check and the read.
+     */
+    @Test
+    fun testPathMetadataDoesNotOpenTheStreamWhenTheSizeLookupFails() {
+
+        var streamOpened = false
+
+        val exception = assertFailsWith<ImageReadException> {
+            KimJvm.readMetadataFrom(
+                sizeLookup = { throw java.io.IOException("Size lookup failed.") },
+                openStream = {
+                    streamOpened = true
+                    jpegBytes.inputStream()
+                }
+            )
+        }
+
+        assertNotNull(exception.message)
+
+        assertFalse(
+            streamOpened,
+            "The stream was opened although the size lookup failed - the handle leaked."
+        )
     }
 
     @Test
