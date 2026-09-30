@@ -456,7 +456,22 @@ public object BoxReader {
                 /* Generic ISO/IEC 14496-12 boxes. */
                 BoxType.FTYP -> FileTypeBox(globalOffset, size, largeSize, bytes)
                 BoxType.META -> if (parentBoxType == null) {
-                    MetaBoxTopLevel(globalOffset, size, largeSize, bytes, depth + 1)
+
+                    /*
+                     * The video scan skips payloads that carry nothing it
+                     * consumes, so a file-level meta box arrives with an
+                     * empty payload. Such a meta is legal in a video
+                     * container and has no item-metadata children there -
+                     * the strict container would reject the whole read
+                     * for children it cannot even see, and even the plain
+                     * container cannot parse a payload that was skipped.
+                     * The generic box keeps the (skipped) box available
+                     * instead.
+                     */
+                    if (isSkippableDataBox)
+                        Box(BoxType.META, globalOffset, size, largeSize, bytes)
+                    else
+                        MetaBoxTopLevel(globalOffset, size, largeSize, bytes, depth + 1)
                 } else {
                     MetaBox(globalOffset, size, largeSize, bytes, depth + 1)
                 }
