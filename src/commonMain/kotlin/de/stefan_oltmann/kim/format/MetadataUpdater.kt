@@ -61,9 +61,11 @@ public interface MetadataUpdater {
     /**
      * Replaces the embedded thumbnail of the file with the given JPEG bytes.
      *
-     * Attention: The thumbnail is embedded into the EXIF data, which must
-     * fit into a single JPEG APP1 segment of about 65 KB. Thumbnails that
-     * exceed this limit are rejected with an [ImageWriteException].
+     * Attention: The thumbnail itself must fit the tightest shared
+     * container bound (the JPEG APP1 segment, about 65 KB) and must carry
+     * the JPEG SOI marker. Oversized or non-JPEG bytes are rejected with
+     * an [ImageWriteException] on every format alike. JPEG's writer keeps
+     * its own bound on the total serialized EXIF.
      */
     @Throws(ImageWriteException::class)
     public fun updateThumbnail(
@@ -116,10 +118,27 @@ internal fun MediaMetadata.updatedExifBytes(
  * EXIF bytes. The EXIF read from the file is the starting point, so
  * fields Kim does not model survive the rewrite; a file without EXIF
  * starts from an empty set.
+ *
+ * The thumbnail itself must fit the tightest container bound on every
+ * format, so oversized thumbnails are rejected uniformly instead of
+ * per-format divergence. The total EXIF is deliberately unbounded here:
+ * chunk-based containers (PNG/WebP/JXL) legally embed EXIF blocks
+ * beyond the JPEG APP1 payload limit, and large pre-existing maker
+ * notes must not fail an unrelated thumbnail replacement. JPEG's
+ * segment writer keeps its own total bound.
+ *
+ * @throws ImageWriteException when the thumbnail exceeds the shared
+ *         bound.
  */
 internal fun MediaMetadata.exifBytesWithThumbnail(
     thumbnailBytes: ByteArray
 ): ByteArray {
+
+    if (thumbnailBytes.size > MAX_THUMBNAIL_BYTES_EMBEDDABLE_EVERYWHERE)
+        throw ImageWriteException(
+            "The thumbnail is too large to embed: ${thumbnailBytes.size} bytes " +
+                "(maximum $MAX_THUMBNAIL_BYTES_EMBEDDABLE_EVERYWHERE)."
+        )
 
     val outputSet = exif?.createOutputSet() ?: TiffOutputSet()
 
@@ -127,3 +146,9 @@ internal fun MediaMetadata.exifBytesWithThumbnail(
 
     return outputSet.toTiffBytes()
 }
+
+/**
+ * The largest thumbnail every writable format can embed: the JPEG APP1
+ * payload bound is the tightest container limit.
+ */
+internal const val MAX_THUMBNAIL_BYTES_EMBEDDABLE_EVERYWHERE: Int = 0xFFFF - 2

@@ -506,6 +506,23 @@ abstract class AbstractUpdaterTest(
         compare("new_thumbnail.$format", newBytes)
     }
 
+    /**
+     * The EXIF embeds into bounded containers on every format, so an
+     * oversized thumbnail is rejected uniformly instead of failing only
+     * on the formats with a real container limit.
+     */
+    @Test
+    fun testUpdateThumbnailRejectsOversizedThumbnail() {
+
+        assertFailsWith<ImageWriteException> {
+            Kim.updateThumbnail(
+                bytes = originalBytes,
+                thumbnailBytes = byteArrayOf(0xFF.toByte(), 0xD8.toByte()) +
+                    ByteArray(70_000) { 0x55.toByte() }
+            )
+        }
+    }
+
     @Test
     fun testUpdateThumbnailOnEmptyImage() {
 
