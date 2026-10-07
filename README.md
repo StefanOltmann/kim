@@ -341,7 +341,8 @@ Java projects.
 
 ## Limitations
 
-* Does not read the image size and orientation for HEIC, AVIF, HIF & JPEG XL.
+* The image size of HEIC, AVIF, HIF & JPEG XL files and the rotation of HEIC & AVIF images
+  (the "irot" box) are not read. The EXIF orientation is used when the file carries an EXIF box.
 * JPEG: Metadata that does not fit into a single segment (~64 KB) is written interoperably,
   following ExifTool as the reference implementation:
   oversized XMP uses Adobe Extended XMP (main packet plus GUID-referenced extension segments),
