@@ -1600,6 +1600,7 @@ public final class de/stefan_oltmann/kim/format/tiff/constant/GpsTag {
 	public final fun getGPS_TAG_GPS_DEST_BEARING ()Lde/stefan_oltmann/kim/format/tiff/taginfo/TagInfoRational;
 	public final fun getGPS_TAG_GPS_DEST_BEARING_REF ()Lde/stefan_oltmann/kim/format/tiff/taginfo/TagInfoAscii;
 	public final fun getGPS_TAG_GPS_DEST_DISTANCE ()Lde/stefan_oltmann/kim/format/tiff/taginfo/TagInfoRational;
+	public final fun getGPS_TAG_GPS_DEST_DISTANCE_REF ()Lde/stefan_oltmann/kim/format/tiff/taginfo/TagInfoAscii;
 	public final fun getGPS_TAG_GPS_DEST_LATITUDE ()Lde/stefan_oltmann/kim/format/tiff/taginfo/TagInfoRationals;
 	public final fun getGPS_TAG_GPS_DEST_LATITUDE_REF ()Lde/stefan_oltmann/kim/format/tiff/taginfo/TagInfoAscii;
 	public final fun getGPS_TAG_GPS_DEST_LONGITUDE ()Lde/stefan_oltmann/kim/format/tiff/taginfo/TagInfoRationals;

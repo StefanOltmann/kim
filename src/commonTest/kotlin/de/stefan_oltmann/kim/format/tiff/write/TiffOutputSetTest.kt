@@ -17,11 +17,14 @@ package de.stefan_oltmann.kim.format.tiff.write
 
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.RationalNumber
+import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeAscii
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong
+import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
@@ -117,6 +120,102 @@ class TiffOutputSetTest {
             GpsTag.GPS_TAG_GPS_DATE_STAMP
         ))
             assertNull(gpsDirectory.findField(tag), "Field ${tag.name} survived the removal")
+    }
+
+    /**
+     * GPSDestDistanceRef (0x0019) is a residual GPS companion like every
+     * other ref tag: a position rewrite that removes GPSDestDistance but
+     * leaves its ref behind would let a stale companion describe data
+     * the file no longer carries.
+     */
+    @Test
+    fun testPositionRewriteRemovesDestDistanceRef() {
+
+        val outputSet = TiffOutputSet()
+
+        outputSet.setGpsCoordinates(GpsCoordinates(latitude = 50.0, longitude = 8.0))
+
+        outputSet.getOrCreateGPSDirectory().add(
+            TiffOutputField(
+                tag = 0x0019,
+                fieldType = FieldTypeAscii,
+                count = 2,
+                bytes = "N\u0000".encodeToByteArray()
+            )
+        )
+
+        outputSet.setGpsCoordinates(GpsCoordinates(latitude = 51.0, longitude = 9.0))
+
+        assertNull(
+            outputSet.findField(0x0019),
+            "GPSDestDistanceRef survived the position rewrite"
+        )
+    }
+
+    /**
+     * Removing the position must not leave a GPS structure behind: the
+     * writer registers a GPSInfo pointer for every present GPS directory,
+     * so keeping the emptied directory would emit
+     * IFD0 -> 0x8825 -> an empty GPS IFD - a "has location" signal with
+     * no data, like ExifTool's GPS removal leaves none.
+     */
+    @Test
+    fun testSetGpsCoordinatesNullDropsTheGpsDirectoryAndPointer() {
+
+        val outputSet = TiffOutputSet()
+
+        outputSet.setGpsCoordinates(GpsCoordinates(latitude = 50.0, longitude = 8.0))
+
+        outputSet.setGpsCoordinates(null)
+
+        val tiffBytes = outputSet.toTiffBytes()
+
+        val contents = TiffReader.read(ByteArrayByteReader(tiffBytes))
+
+        val rootDirectory = assertNotNull(
+            contents.directories.find { directory ->
+                directory.type == TiffConstants.TIFF_DIRECTORY_TYPE_IFD0
+            }
+        )
+
+        assertNull(rootDirectory.findField(ExifTag.EXIF_TAG_GPSINFO))
+
+        assertNull(contents.directories.find { directory -> directory.type == TiffConstants.TIFF_DIRECTORY_GPS })
+    }
+
+    /**
+     * A position rewrite yields a fresh GPS state: external writers
+     * keep a fleet of companion properties next to the position, and
+     * mixing the new coordinates with the old altitude, timestamps or
+     * track would misdescribe the new position. The EXIF write path
+     * must therefore clear them exactly like the XMP write path does.
+     */
+    @Test
+    fun testSetGpsCoordinatesClearsResidualCompanions() {
+
+        val outputSet = TiffOutputSet()
+
+        outputSet.setGpsCoordinates(GpsCoordinates(latitude = 50.0, longitude = 8.0))
+
+        val gpsDirectory = outputSet.getOrCreateGPSDirectory()
+
+        gpsDirectory.add(GpsTag.GPS_TAG_GPS_ALTITUDE, RationalNumber(120, 1))
+        gpsDirectory.add(GpsTag.GPS_TAG_GPS_ALTITUDE_REF, 0.toByte())
+        gpsDirectory.add(GpsTag.GPS_TAG_GPS_SATELLITES, "5")
+        gpsDirectory.add(GpsTag.GPS_TAG_GPS_TRACK, RationalNumber(270, 1))
+
+        outputSet.setGpsCoordinates(GpsCoordinates(latitude = 51.0, longitude = 9.0))
+
+        /* The new position must not be paired with the old companions. */
+        for (tag in listOf(
+            GpsTag.GPS_TAG_GPS_ALTITUDE,
+            GpsTag.GPS_TAG_GPS_ALTITUDE_REF,
+            GpsTag.GPS_TAG_GPS_SATELLITES,
+            GpsTag.GPS_TAG_GPS_TRACK
+        ))
+            assertNull(gpsDirectory.findField(tag), "Field ${tag.name} survived the position rewrite")
+
+        assertNotNull(gpsDirectory.findField(GpsTag.GPS_TAG_GPS_LATITUDE))
     }
 
     /**

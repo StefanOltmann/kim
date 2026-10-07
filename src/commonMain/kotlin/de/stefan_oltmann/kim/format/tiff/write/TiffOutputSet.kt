@@ -294,22 +294,28 @@ public class TiffOutputSet(
 
         val gpsDirectory = getOrCreateGPSDirectory()
 
-        /* First delete everything. */
-        gpsDirectory.removeField(GpsTag.GPS_TAG_GPS_VERSION_ID)
-        gpsDirectory.removeField(GpsTag.GPS_TAG_GPS_LONGITUDE_REF)
-        gpsDirectory.removeField(GpsTag.GPS_TAG_GPS_LATITUDE_REF)
-        gpsDirectory.removeField(GpsTag.GPS_TAG_GPS_LONGITUDE)
-        gpsDirectory.removeField(GpsTag.GPS_TAG_GPS_LATITUDE)
-
         /*
-         * NULL means "remove the location". Every residual GPS field -
+         * The position is rewritten fresh: every residual GPS field -
          * altitude, timestamps, satellite data or a free-text processing
-         * method that can name a place - must go as well.
+         * method that can name a place - goes with the old position, so
+         * the new coordinates are never paired with companions that
+         * describe the old one. This matches the XMP write path, which
+         * clears its companions the same way.
          */
+        for (tag in GpsTag.ALL)
+            gpsDirectory.removeField(tag.tag)
+
         if (gpsCoordinates == null) {
 
-            for (tag in GpsTag.ALL)
-                gpsDirectory.removeField(tag.tag)
+            /*
+             * The emptied directory must not survive: the writer registers
+             * a GPSInfo pointer for every present GPS directory, so the
+             * output would advertise a "has location" GPS section with no
+             * data. Drop the directory and the pointer with the fields.
+             */
+            directories.removeAll { directory -> directory.type == TiffConstants.TIFF_DIRECTORY_GPS }
+
+            getOrCreateRootDirectory().removeField(ExifTag.EXIF_TAG_GPSINFO)
 
             return
         }

@@ -190,11 +190,9 @@ class TiffWriterRoundTripTest {
 
         exifDirectory.add(ExifTag.EXIF_TAG_USER_COMMENT, "A comment")
 
-        /* GPS directory. */
+        /* GPS directory. A position rewrite yields a fresh GPS state,
+           so the companion fields are added after the position. */
         val gpsDirectory = outputSet.getOrCreateGPSDirectory()
-
-        gpsDirectory.add(GpsTag.GPS_TAG_GPS_PROCESSING_METHOD, "GPS")
-        gpsDirectory.add(GpsTag.GPS_TAG_GPS_VERSION_ID, byteArrayOf(2, 3, 0, 0))
 
         outputSet.setGpsCoordinates(
             de.stefan_oltmann.kim.model.GpsCoordinates(
@@ -202,6 +200,10 @@ class TiffWriterRoundTripTest {
                 longitude = 8.2396611123
             )
         )
+
+        gpsDirectory.add(GpsTag.GPS_TAG_GPS_PROCESSING_METHOD, "GPS")
+
+        /* The version identifier is already written by setGpsCoordinates. */
 
         val byteWriter = ByteArrayByteWriter()
 

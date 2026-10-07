@@ -143,6 +143,62 @@ class XmpWriterEdgeCasesTest {
         assertNull(xmpMeta.getProperty(XMP_NS_EXIF, "GPSLatitude"))
     }
 
+    /**
+     * A GPS position never travels alone: external writers keep altitude,
+     * timestamps and image direction next to it. A GPS update rewrites
+     * the position, so the companions of the old position must go with
+     * it - the EXIF write path removes every residual GPS field the same
+     * way, and mixing the new coordinates with the old altitude would
+     * drift the storages apart within one update.
+     */
+    @Test
+    fun testUpdateDropsResidualGpsCompanions() {
+
+        xmpMeta.setProperty(XMP_NS_EXIF, "GPSAltitude", "14/1")
+        xmpMeta.setProperty(XMP_NS_EXIF, "GPSImgDirection", "270")
+        xmpMeta.setProperty(XMP_NS_EXIF, "GPSTimeStamp", "12:00:00")
+
+        apply(MetadataUpdate.GpsCoordinates(GpsCoordinates(53.219391, 8.239661)))
+
+        assertNull(xmpMeta.getProperty(XMP_NS_EXIF, "GPSAltitude"))
+        assertNull(xmpMeta.getProperty(XMP_NS_EXIF, "GPSImgDirection"))
+        assertNull(xmpMeta.getProperty(XMP_NS_EXIF, "GPSTimeStamp"))
+
+        assertNotNull(xmpMeta.getProperty(XMP_NS_EXIF, "GPSLatitude"))
+    }
+
+    /**
+     * The companion cleanup must cover every exif:GPS property an
+     * external writer may have set. Track, destination refs and the
+     * measure mode describe the old position or the journey to it and
+     * must not survive the location's removal.
+     */
+    @Test
+    fun testUpdateRemovesEveryResidualGpsCompanion() {
+
+        xmpMeta.setProperty(XMP_NS_EXIF, "GPSTrack", "270")
+        xmpMeta.setProperty(XMP_NS_EXIF, "GPSTrackRef", "T")
+        xmpMeta.setProperty(XMP_NS_EXIF, "GPSDestLatitudeRef", "N")
+        xmpMeta.setProperty(XMP_NS_EXIF, "GPSDestLongitudeRef", "E")
+        xmpMeta.setProperty(XMP_NS_EXIF, "GPSMeasureMode", "3")
+        xmpMeta.setProperty(XMP_NS_EXIF, "GPSVersionID", "2.3.0.0")
+
+        apply(MetadataUpdate.GpsCoordinates(null))
+
+        for (propertyName in listOf(
+            "GPSTrack",
+            "GPSTrackRef",
+            "GPSDestLatitudeRef",
+            "GPSDestLongitudeRef",
+            "GPSMeasureMode",
+            "GPSVersionID"
+        ))
+            assertNull(
+                xmpMeta.getProperty(XMP_NS_EXIF, propertyName),
+                "Property $propertyName survived the removal"
+            )
+    }
+
     @Test
     fun testUpdateRemovesLocationShown() {
 

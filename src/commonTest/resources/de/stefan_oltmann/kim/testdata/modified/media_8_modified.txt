@@ -61,8 +61,6 @@ Little-endian (Intel, II)
 0000002288 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
 0000002300 0x0003 GPSLongitudeRef = E
 0000002312 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
-0000002324 0x0005 GPSAltitudeRef = 0
-0000002336 0x0006 GPSAltitude = 271/10 (27.1)
 
 ---- IPTC ----
 Keywords (25) = 'green'

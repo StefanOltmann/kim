@@ -75,20 +75,14 @@ Big-endian (Motorola, MM)
 0000022330 0x0002 GPSLatitude = [53/1 (53.0), 13/1 (13.0), 24519/2500 (9.8076)]
 0000022342 0x0003 GPSLongitudeRef = E
 0000022354 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
-0000022366 0x0005 GPSAltitudeRef = 0
-0000022378 0x0006 GPSAltitude = 56/1 (56.0)
-0000022390 0x0007 GPSTimeStamp = [9/1 (9.0), 55/1 (55.0), 385/100 (3.85)]
-0000022402 0x0008 GPSSatellites = 00
-0000022414 0x0012 GPSMapDatum = WGS-84
-0000022426 0x001d GPSDateStamp = 2019:10:18
 
----- Directory IFD1 @ 22552 ----
-0000022554 0x0103 Compression = 6
-0000022566 0x011a XResolution = 96/1 (96.0)
-0000022578 0x011b YResolution = 96/1 (96.0)
-0000022590 0x0128 ResolutionUnit = 2
-0000022602 0x0201 JpgFromRawStart = 22646
-0000022614 0x0202 JpgFromRawLength = 13995
+---- Directory IFD1 @ 22418 ----
+0000022420 0x0103 Compression = 6
+0000022432 0x011a XResolution = 96/1 (96.0)
+0000022444 0x011b YResolution = 96/1 (96.0)
+0000022456 0x0128 ResolutionUnit = 2
+0000022468 0x0201 JpgFromRawStart = 22512
+0000022480 0x0202 JpgFromRawLength = 13995
 
 ---- Directory MakerNoteNikon @ 3130 ----
 0000003132 0x0001 MakerNoteVersion = [0x30, 0x32, 0x31, 0x31]
