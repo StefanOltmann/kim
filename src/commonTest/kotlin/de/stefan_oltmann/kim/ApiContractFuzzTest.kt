@@ -18,14 +18,16 @@ package de.stefan_oltmann.kim
 import de.stefan_oltmann.kim.ApiContractFuzzTest.Companion.MUTATIONS_PER_FILE
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.convertToSummary
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.model.MetadataSummary
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.random.Random
 import kotlin.test.Test
-import kotlin.test.assertNotNull
+import kotlin.test.assertEquals
 
 /**
  * Fuzzes the public API with deterministic single-byte mutations of real
@@ -103,24 +105,31 @@ class ApiContractFuzzTest {
         fuzzCandidate(KimTestData.RAF_FUZZ_CANDIDATE_INDEX)
 
     /**
-     * Pins that the small CR3/MOV/RAF derivations parse cleanly, so the
-     * fuzz candidates above exercise the format's real parse chain instead
-     * of uniformly failing the read.
+     * Pins that the small CR3/MOV/RAF derivations parse cleanly and carry
+     * their identifying metadata, so the fuzz candidates above exercise
+     * the format's real parse chain instead of uniformly failing the read
+     * or returning an empty summary.
      */
     @Test
     fun testFuzzCandidatesParseCleanly() {
 
-        for (index in intArrayOf(
-            KimTestData.CR3_FUZZ_CANDIDATE_INDEX,
-            KimTestData.MOV_FUZZ_CANDIDATE_INDEX,
-            KimTestData.RAF_FUZZ_CANDIDATE_INDEX
-        )) {
-            assertNotNull(
-                Kim.readMetadata(ByteArrayByteReader(KimTestData.getBytesOf(index))),
-                "media_$index must parse cleanly to serve as a fuzz candidate."
-            )
-        }
+        val cr3Summary = summaryOf(KimTestData.CR3_FUZZ_CANDIDATE_INDEX)
+
+        assertEquals("Canon", cr3Summary?.cameraMake)
+        assertEquals(1600, cr3Summary?.iso)
+
+        val movSummary = summaryOf(KimTestData.MOV_FUZZ_CANDIDATE_INDEX)
+
+        assertEquals("Fuzz candidate", movSummary?.title)
+
+        val rafSummary = summaryOf(KimTestData.RAF_FUZZ_CANDIDATE_INDEX)
+
+        assertEquals("FUJIFILM", rafSummary?.cameraMake)
+        assertEquals("X-T4", rafSummary?.cameraModel)
     }
+
+    private fun summaryOf(index: Int): MetadataSummary? =
+        Kim.readMetadata(ByteArrayByteReader(KimTestData.getBytesOf(index)))?.convertToSummary()
 
     /**
      * Fuzzes one corpus file with [MUTATIONS_PER_FILE] deterministic
