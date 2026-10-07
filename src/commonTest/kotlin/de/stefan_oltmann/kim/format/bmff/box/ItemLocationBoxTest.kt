@@ -51,6 +51,38 @@ class ItemLocationBoxTest {
     }
 
     /**
+     * The spec allows field sizes of 0, 1, 2, 4 and 8 bytes only. The
+     * nibbles are file-controlled data, so an illegal width must fail
+     * with the documented ImageReadException instead of the internal
+     * error the shared field reader throws.
+     */
+    @Test
+    fun testRejectsIllegalFieldSizeNibbles() {
+
+        /* version 0, offsetSize=3 (illegal), lengthSize=0, baseOffset=0,
+           index=0, one item with one extent (3-byte offset, no length) -
+           the extent read is what the illegal width reaches. */
+        val payload = byteArrayOf(
+            0, 0, 0, 0,
+            0x30,
+            0x00,
+            0, 1,
+            0, 1, 0, 0,
+            0, 1,
+            1, 2, 3
+        )
+
+        assertFailsWith<ImageReadException> {
+            ItemLocationBox(
+                offset = 0,
+                size = payload.size.toLong() + 8,
+                largeSize = null,
+                payload = payload
+            )
+        }
+    }
+
+    /**
      * The spec allows zero-size offset and length fields, in which case
      * an extent consumes no box bytes at all and the extent loop is not
      * terminated by the end of the payload. A hostile file can

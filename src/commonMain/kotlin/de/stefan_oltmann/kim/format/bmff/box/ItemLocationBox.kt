@@ -104,6 +104,21 @@ public class ItemLocationBox(
         else
             0 /*  Unused */
 
+        /*
+         * The spec allows field sizes of 0, 1, 2, 4 and 8 bytes only. The
+         * nibbles are file-controlled data, so any other width must
+         * surface as the documented ImageReadException even when the box
+         * is constructed outside the wrapped parse paths - the shared
+         * field reader signals illegal widths with an internal error.
+         */
+        val fieldSizes = listOf(offsetSize, lengthSize, baseOffsetSize, indexSize)
+
+        if (fieldSizes.any { it !in SPEC_FIELD_SIZES })
+            throw ImageReadException(
+                "Invalid ILOC field sizes: offset=$offsetSize, length=$lengthSize, " +
+                    "baseOffset=$baseOffsetSize, index=$indexSize"
+            )
+
         /* The version check above limits the field width to 2 or 4 bytes. */
         itemCount = if (version < 2)
             byteReader.read2BytesAsInt("itemCount", BMFF_BYTE_ORDER)
@@ -232,5 +247,8 @@ public class ItemLocationBox(
 
         /* Shift to move the upper nibble to the lower position */
         const val NIBBLE_SHIFT = 4
+
+        /* The field widths the ISOBMFF specification defines for ILOC. */
+        val SPEC_FIELD_SIZES = setOf(0, 1, 2, 4, 8)
     }
 }
