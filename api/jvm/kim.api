@@ -376,8 +376,10 @@ public final class de/stefan_oltmann/kim/format/bmff/box/FileTypeBox : de/stefan
 
 public final class de/stefan_oltmann/kim/format/bmff/box/HandlerReferenceBox : de/stefan_oltmann/kim/format/bmff/box/Box {
 	public static final field HANDLER_TYPE_LENGTH I
+	public static final field NAME_FIELD_OFFSET I
 	public static final field PRE_DEFINED_LENGTH I
 	public static final field RESERVED_LENGTH I
+	public static final field UNSIGNED_BYTE_MASK I
 	public fun <init> (JJLjava/lang/Long;[B)V
 	public final fun getFlags ()[B
 	public final fun getHandlerType ()Ljava/lang/String;
@@ -573,6 +575,7 @@ public final class de/stefan_oltmann/kim/format/gif/GifConstants {
 	public static final field IMAGE_SEPARATOR B
 	public static final field INSTANCE Lde/stefan_oltmann/kim/format/gif/GifConstants;
 	public static final field PLAIN_TEXT_EXTENSION_LABEL B
+	public static final field XML_TAG_START B
 	public static final field XMP_APPLICATION_CODE Ljava/lang/String;
 	public static final field XMP_APPLICATION_IDENTIFIER Ljava/lang/String;
 	public final fun getGIF_BYTE_ORDER ()Lde/stefan_oltmann/kim/common/ByteOrder;
@@ -615,7 +618,8 @@ public class de/stefan_oltmann/kim/format/gif/chunk/GifChunk {
 }
 
 public final class de/stefan_oltmann/kim/format/gif/chunk/GifChunkApplicationExtension : de/stefan_oltmann/kim/format/gif/chunk/GifChunk {
-	public fun <init> ([BLjava/util/List;)V
+	public fun <init> ([BLjava/util/List;Z)V
+	public synthetic fun <init> ([BLjava/util/List;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getApplicationCode ()Ljava/lang/String;
 	public final fun getApplicationIdentifier ()Ljava/lang/String;
 	public final fun isXmpExtension ()Z

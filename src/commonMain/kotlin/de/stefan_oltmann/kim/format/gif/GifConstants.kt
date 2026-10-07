@@ -40,6 +40,9 @@ public object GifConstants {
 
     public const val BLOCK_TERMINATOR: Byte = 0x00.toByte()
 
+    /** The first character of every XMP packet form: "<?xpacket" or "<x:xmpmeta". */
+    public const val XML_TAG_START: Byte = '<'.code.toByte()
+
     public const val GRAPHICS_CONTROL_EXTENSION_LABEL: Byte = 0xF9.toByte()
 
     public const val PLAIN_TEXT_EXTENSION_LABEL: Byte = 0x01.toByte()

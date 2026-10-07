@@ -38,7 +38,8 @@ import de.stefan_oltmann.kim.input.readBytes
  */
 public class GifChunkApplicationExtension(
     header: ByteArray,
-    private val subChunks: List<ByteArray>
+    private val subChunks: List<ByteArray>,
+    internal val contiguouslyFramed: Boolean = false
 ) : GifChunk(
     GifChunkType.APPLICATION_EXTENSION,
     joinGifSubChunks(header, subChunks)
@@ -108,16 +109,24 @@ public class GifChunkApplicationExtension(
          * Strip the size bytes and decode the payload as a whole: a
          * multi-byte UTF-8 sequence straddling a sub-block boundary
          * would be corrupted by decoding each block on its own.
-         * Fall back to the raw bytes for files written without
-         * sub-block framing, where the size bytes are part of the data.
+         *
+         * The contiguous Adobe binding stores the packet directly, so
+         * stripping would cut its first byte - the framing decides
+         * which byte stream leads the envelope search, and the other
+         * stream stays as the fallback.
          */
         val strippedPayload = subChunks
             .map { subChunk -> subChunk.copyOfRange(1, subChunk.size) }
             .reduceOrNull(ByteArray::plus)
             ?: ByteArray(0)
 
-        val content = decodePacketBytes(strippedPayload, "The GIF XMP extension payload")
-            ?: decodePacketBytes(bytes, "The GIF XMP extension")
+        val content =
+            if (contiguouslyFramed)
+                decodePacketBytes(bytes, "The GIF XMP extension")
+                    ?: decodePacketBytes(strippedPayload, "The GIF XMP extension payload")
+            else
+                decodePacketBytes(strippedPayload, "The GIF XMP extension payload")
+                    ?: decodePacketBytes(bytes, "The GIF XMP extension")
             ?: throw ImageReadException("No XMP data found in application extension.")
 
         /*
