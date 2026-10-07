@@ -371,13 +371,12 @@ public object PngWriter {
         writer.write(PngConstants.XMP_KEYWORD.encodeToByteArray())
         writer.write(0)
 
-        /* No compression and no language tag */
-        writer.write(0) // No compression
-        writer.write(0) // No compression method
-        writer.write(0) // No language tag
-
-        /* XMP keyword - null-terminated */
-        writer.write(PngConstants.XMP_KEYWORD.encodeToByteArray())
+        /* No compression, no compression method, no language tag and
+           an empty translated keyword - the five NUL bytes every
+           common writer emits (see the ExifTool reference dumps). */
+        writer.write(0)
+        writer.write(0)
+        writer.write(0)
         writer.write(0)
 
         /* XMP bytes */

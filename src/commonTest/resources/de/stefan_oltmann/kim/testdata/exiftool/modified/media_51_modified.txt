@@ -1,9 +1,9 @@
   ExifToolVersion = 13.59
   FileName = media_51_modified.png
   Directory = modified
-  FileSize = 1467861
-  FileModifyDate = 1789668880.61019
-  FileAccessDate = 1791131094.44037
+  FileSize = 1467844
+  FileModifyDate = 1791136001.20065
+  FileAccessDate = 1791136011.77651
   FileCreateDate = 1789668880.60819
   FilePermissions = 33206
   FileType = PNG
@@ -393,40 +393,39 @@ PNG tEXt (141 bytes):
   | | Keywords = ..u..erst sch..n
   | | - Tag 0x0019, IPTCApplication record (16 bytes, string[0,64]):
   | |     0020: c3 84 75 c3 9f 65 72 73 74 20 73 63 68 c3 b6 6e [..u..erst sch..n]
-PNG iTXt (518 bytes):
+PNG iTXt (501 bytes):
       1ee8: 58 4d 4c 3a 63 6f 6d 2e 61 64 6f 62 65 2e 78 6d [XML:com.adobe.xm]
-      1ef8: 70 00 00 00 00 58 4d 4c 3a 63 6f 6d 2e 61 64 6f [p....XML:com.ado]
-      1f08: 62 65 2e 78 6d 70 00 3c 3f 78 70 61 63 6b 65 74 [be.xmp.<?xpacket]
-      1f18: 20 62 65 67 69 6e 3d 22 ef bb bf 22 20 69 64 3d [ begin="..." id=]
-      1f28: 22 57 35 4d 30 4d 70 43 65 68 69 48 7a 72 65 53 ["W5M0MpCehiHzreS]
-      1f38: 7a 4e 54 63 7a 6b 63 39 64 22 3f 3e 0a 20 20 20 [zNTczkc9d"?>.   ]
-      1f48: 20 3c 78 3a 78 6d 70 6d 65 74 61 20 78 6d 6c 6e [ <x:xmpmeta xmln]
-      1f58: 73 3a 78 3d 22 61 64 6f 62 65 3a 6e 73 3a 6d 65 [s:x="adobe:ns:me]
-      1f68: 74 61 2f 22 20 78 3a 78 6d 70 74 6b 3d 22 41 64 [ta/" x:xmptk="Ad]
-      1f78: 6f 62 65 20 58 4d 50 20 43 6f 72 65 20 36 2e 31 [obe XMP Core 6.1]
-      1f88: 2e 31 30 22 3e 0a 20 20 20 20 20 20 3c 72 64 66 [.10">.      <rdf]
-      1f98: 3a 52 44 46 20 78 6d 6c 6e 73 3a 72 64 66 3d 22 [:RDF xmlns:rdf="]
-      1fa8: 68 74 74 70 3a 2f 2f 77 77 77 2e 77 33 2e 6f 72 [http://www.w3.or]
-      1fb8: 67 2f 31 39 39 39 2f 30 32 2f 32 32 2d 72 64 66 [g/1999/02/22-rdf]
-      1fc8: 2d 73 79 6e 74 61 78 2d 6e 73 23 22 3e 0a 20 20 [-syntax-ns#">.  ]
-      1fd8: 20 20 20 20 20 20 3c 72 64 66 3a 44 65 73 63 72 [      <rdf:Descr]
-      1fe8: 69 70 74 69 6f 6e 20 72 64 66 3a 61 62 6f 75 74 [iption rdf:about]
-      1ff8: 3d 22 22 0a 20 20 20 20 20 20 20 20 20 20 20 20 [="".            ]
-      2008: 78 6d 6c 6e 73 3a 78 6d 70 3d 22 68 74 74 70 3a [xmlns:xmp="http:]
-      2018: 2f 2f 6e 73 2e 61 64 6f 62 65 2e 63 6f 6d 2f 78 [//ns.adobe.com/x]
-      2028: 61 70 2f 31 2e 30 2f 22 0a 20 20 20 20 20 20 20 [ap/1.0/".       ]
-      2038: 20 20 20 20 20 78 6d 6c 6e 73 3a 65 78 69 66 3d [     xmlns:exif=]
-      2048: 22 68 74 74 70 3a 2f 2f 6e 73 2e 61 64 6f 62 65 ["http://ns.adobe]
-      2058: 2e 63 6f 6d 2f 65 78 69 66 2f 31 2e 30 2f 22 0a [.com/exif/1.0/".]
-      2068: 20 20 20 20 20 20 20 20 20 20 65 78 69 66 3a 44 [          exif:D]
-      2078: 61 74 65 54 69 6d 65 4f 72 69 67 69 6e 61 6c 3d [ateTimeOriginal=]
-      2088: 22 32 30 32 30 2d 31 30 2d 30 35 54 31 33 3a 33 ["2020-10-05T13:3]
-      2098: 37 3a 34 32 22 0a 20 20 20 20 20 20 20 20 20 20 [7:42".          ]
-      20a8: 78 6d 70 3a 52 61 74 69 6e 67 3d 22 33 22 2f 3e [xmp:Rating="3"/>]
-      20b8: 0a 20 20 20 20 20 20 3c 2f 72 64 66 3a 52 44 46 [.      </rdf:RDF]
-      20c8: 3e 0a 20 20 20 20 3c 2f 78 3a 78 6d 70 6d 65 74 [>.    </x:xmpmet]
-      20d8: 61 3e 0a 3c 3f 78 70 61 63 6b 65 74 20 65 6e 64 [a>.<?xpacket end]
-      20e8: 3d 22 77 22 3f 3e                               [="w"?>]
+      1ef8: 70 00 00 00 00 00 3c 3f 78 70 61 63 6b 65 74 20 [p.....<?xpacket ]
+      1f08: 62 65 67 69 6e 3d 22 ef bb bf 22 20 69 64 3d 22 [begin="..." id="]
+      1f18: 57 35 4d 30 4d 70 43 65 68 69 48 7a 72 65 53 7a [W5M0MpCehiHzreSz]
+      1f28: 4e 54 63 7a 6b 63 39 64 22 3f 3e 0a 20 20 20 20 [NTczkc9d"?>.    ]
+      1f38: 3c 78 3a 78 6d 70 6d 65 74 61 20 78 6d 6c 6e 73 [<x:xmpmeta xmlns]
+      1f48: 3a 78 3d 22 61 64 6f 62 65 3a 6e 73 3a 6d 65 74 [:x="adobe:ns:met]
+      1f58: 61 2f 22 20 78 3a 78 6d 70 74 6b 3d 22 41 64 6f [a/" x:xmptk="Ado]
+      1f68: 62 65 20 58 4d 50 20 43 6f 72 65 20 36 2e 31 2e [be XMP Core 6.1.]
+      1f78: 31 30 22 3e 0a 20 20 20 20 20 20 3c 72 64 66 3a [10">.      <rdf:]
+      1f88: 52 44 46 20 78 6d 6c 6e 73 3a 72 64 66 3d 22 68 [RDF xmlns:rdf="h]
+      1f98: 74 74 70 3a 2f 2f 77 77 77 2e 77 33 2e 6f 72 67 [ttp://www.w3.org]
+      1fa8: 2f 31 39 39 39 2f 30 32 2f 32 32 2d 72 64 66 2d [/1999/02/22-rdf-]
+      1fb8: 73 79 6e 74 61 78 2d 6e 73 23 22 3e 0a 20 20 20 [syntax-ns#">.   ]
+      1fc8: 20 20 20 20 20 3c 72 64 66 3a 44 65 73 63 72 69 [     <rdf:Descri]
+      1fd8: 70 74 69 6f 6e 20 72 64 66 3a 61 62 6f 75 74 3d [ption rdf:about=]
+      1fe8: 22 22 0a 20 20 20 20 20 20 20 20 20 20 20 20 78 ["".            x]
+      1ff8: 6d 6c 6e 73 3a 78 6d 70 3d 22 68 74 74 70 3a 2f [mlns:xmp="http:/]
+      2008: 2f 6e 73 2e 61 64 6f 62 65 2e 63 6f 6d 2f 78 61 [/ns.adobe.com/xa]
+      2018: 70 2f 31 2e 30 2f 22 0a 20 20 20 20 20 20 20 20 [p/1.0/".        ]
+      2028: 20 20 20 20 78 6d 6c 6e 73 3a 65 78 69 66 3d 22 [    xmlns:exif="]
+      2038: 68 74 74 70 3a 2f 2f 6e 73 2e 61 64 6f 62 65 2e [http://ns.adobe.]
+      2048: 63 6f 6d 2f 65 78 69 66 2f 31 2e 30 2f 22 0a 20 [com/exif/1.0/". ]
+      2058: 20 20 20 20 20 20 20 20 20 65 78 69 66 3a 44 61 [         exif:Da]
+      2068: 74 65 54 69 6d 65 4f 72 69 67 69 6e 61 6c 3d 22 [teTimeOriginal="]
+      2078: 32 30 32 30 2d 31 30 2d 30 35 54 31 33 3a 33 37 [2020-10-05T13:37]
+      2088: 3a 34 32 22 0a 20 20 20 20 20 20 20 20 20 20 78 [:42".          x]
+      2098: 6d 70 3a 52 61 74 69 6e 67 3d 22 33 22 2f 3e 0a [mp:Rating="3"/>.]
+      20a8: 20 20 20 20 20 20 3c 2f 72 64 66 3a 52 44 46 3e [      </rdf:RDF>]
+      20b8: 0a 20 20 20 20 3c 2f 78 3a 78 6d 70 6d 65 74 61 [.    </x:xmpmeta]
+      20c8: 3e 0a 3c 3f 78 70 61 63 6b 65 74 20 65 6e 64 3d [>.<?xpacket end=]
+      20d8: 22 77 22 3f 3e                                  ["w"?>]
   + [XMP directory, 479 bytes]
   | XMPToolkit = Adobe XMP Core 6.1.10
   | DateTimeOriginal = 2020-10-05T13:37:42
@@ -434,31 +433,31 @@ PNG iTXt (518 bytes):
   | Rating = 3
   | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmp:Rating'
 PNG iCCP (388 bytes):
-      20fa: 49 43 43 20 70 72 6f 66 69 6c 65 00 00 78 9c 7d [ICC profile..x.}]
-      210a: 91 3d 48 c3 40 1c c5 5f 5b a5 2a 95 0e 76 28 c5 [.=H.@.._[.*..v(.]
-      211a: 21 43 75 b2 20 2a e2 a8 55 28 42 85 50 2b b4 ea [!Cu. *..U(B.P+..]
-      212a: 60 72 e9 17 34 69 48 52 5c 1c 05 d7 82 83 1f 8b [`r..4iHR\.......]
-      213a: 55 07 17 67 5d 1d 5c 05 41 f0 03 c4 d1 c9 49 d1 [U..g].\.A.....I.]
-      214a: 45 4a fc 5f 52 68 11 e3 c1 71 3f de dd 7b dc bd [EJ._Rh...q?..{..]
-      215a: 03 fc cd 2a 53 cd 9e 71 40 d5 2c 23 93 4a 0a b9 [...*S..q@.,#.J..]
-      216a: fc aa 10 7c 45 3f 62 08 21 8c a8 c4 4c 7d 4e 14 [...|E?b.!...L}N.]
-      217a: d3 f0 1c 5f f7 f0 f1 f5 2e c1 b3 bc cf fd 39 06 [..._..........9.]
-      218a: 95 82 c9 00 9f 40 3c cb 74 c3 22 de 20 9e de b4 [.....@<.t.". ...]
-      219a: 74 ce fb c4 11 56 96 14 e2 73 e2 31 83 2e 48 fc [t....V...s.1..H.]
-      21aa: c8 75 d9 e5 37 ce 25 87 fd 3c 33 62 64 33 f3 c4 [.u..7.%..<3bd3..]
-      21ba: 11 62 a1 d4 c5 72 17 b3 b2 a1 12 4f 11 c7 15 55 [.b...r.....O...U]
-      21ca: a3 7c 7f ce 65 85 f3 16 67 b5 5a 67 ed 7b f2 17 [.|..e...g.Zg.{..]
-      21da: 86 0a da ca 32 d7 69 0e 23 85 45 2c 41 84 00 19 [....2.i.#.E,A...]
-      21ea: 75 54 50 85 85 04 ad 1a 29 26 32 b4 9f f4 f0 c7 [uTP.....)&2.....]
-      21fa: 1c bf 48 2e 99 5c 15 30 72 2c a0 06 15 92 e3 07 [..H..\.0r,......]
-      220a: ff 83 df dd 9a c5 c9 09 37 29 94 04 7a 5f 6c fb [........7)..z_l.]
-      221a: 63 04 08 ee 02 ad 86 6d 7f 1f db 76 eb 04 08 3c [c......m...v...<]
-      222a: 03 57 5a c7 5f 6b 02 33 9f a4 37 3a 5a fc 08 08 [.WZ._k.3..7:Z...]
-      223a: 6f 03 17 d7 1d 4d de 03 2e 77 80 e8 93 2e 19 92 [o....M...w......]
-      224a: 23 05 68 fa 8b 45 e0 fd 8c be 29 0f 0c dd 02 03 [#.h..E....).....]
-      225a: 6b 6e 6f ed 7d 9c 3e 00 59 ea 2a 7d 03 1c 1c 02 [kno.}.>.Y.*}....]
-      226a: a3 25 ca 5e f7 78 77 5f 77 6f ff 9e 69 f7 f7 03 [.%.^.xw_wo..i...]
-      227a: 46 5d 72 95                                     [F]r.]
+      20e9: 49 43 43 20 70 72 6f 66 69 6c 65 00 00 78 9c 7d [ICC profile..x.}]
+      20f9: 91 3d 48 c3 40 1c c5 5f 5b a5 2a 95 0e 76 28 c5 [.=H.@.._[.*..v(.]
+      2109: 21 43 75 b2 20 2a e2 a8 55 28 42 85 50 2b b4 ea [!Cu. *..U(B.P+..]
+      2119: 60 72 e9 17 34 69 48 52 5c 1c 05 d7 82 83 1f 8b [`r..4iHR\.......]
+      2129: 55 07 17 67 5d 1d 5c 05 41 f0 03 c4 d1 c9 49 d1 [U..g].\.A.....I.]
+      2139: 45 4a fc 5f 52 68 11 e3 c1 71 3f de dd 7b dc bd [EJ._Rh...q?..{..]
+      2149: 03 fc cd 2a 53 cd 9e 71 40 d5 2c 23 93 4a 0a b9 [...*S..q@.,#.J..]
+      2159: fc aa 10 7c 45 3f 62 08 21 8c a8 c4 4c 7d 4e 14 [...|E?b.!...L}N.]
+      2169: d3 f0 1c 5f f7 f0 f1 f5 2e c1 b3 bc cf fd 39 06 [..._..........9.]
+      2179: 95 82 c9 00 9f 40 3c cb 74 c3 22 de 20 9e de b4 [.....@<.t.". ...]
+      2189: 74 ce fb c4 11 56 96 14 e2 73 e2 31 83 2e 48 fc [t....V...s.1..H.]
+      2199: c8 75 d9 e5 37 ce 25 87 fd 3c 33 62 64 33 f3 c4 [.u..7.%..<3bd3..]
+      21a9: 11 62 a1 d4 c5 72 17 b3 b2 a1 12 4f 11 c7 15 55 [.b...r.....O...U]
+      21b9: a3 7c 7f ce 65 85 f3 16 67 b5 5a 67 ed 7b f2 17 [.|..e...g.Zg.{..]
+      21c9: 86 0a da ca 32 d7 69 0e 23 85 45 2c 41 84 00 19 [....2.i.#.E,A...]
+      21d9: 75 54 50 85 85 04 ad 1a 29 26 32 b4 9f f4 f0 c7 [uTP.....)&2.....]
+      21e9: 1c bf 48 2e 99 5c 15 30 72 2c a0 06 15 92 e3 07 [..H..\.0r,......]
+      21f9: ff 83 df dd 9a c5 c9 09 37 29 94 04 7a 5f 6c fb [........7)..z_l.]
+      2209: 63 04 08 ee 02 ad 86 6d 7f 1f db 76 eb 04 08 3c [c......m...v...<]
+      2219: 03 57 5a c7 5f 6b 02 33 9f a4 37 3a 5a fc 08 08 [.WZ._k.3..7:Z...]
+      2229: 6f 03 17 d7 1d 4d de 03 2e 77 80 e8 93 2e 19 92 [o....M...w......]
+      2239: 23 05 68 fa 8b 45 e0 fd 8c be 29 0f 0c dd 02 03 [#.h..E....).....]
+      2249: 6b 6e 6f ed 7d 9c 3e 00 59 ea 2a 7d 03 1c 1c 02 [kno.}.>.Y.*}....]
+      2259: a3 25 ca 5e f7 78 77 5f 77 6f ff 9e 69 f7 f7 03 [.%.^.xw_wo..i...]
+      2269: 46 5d 72 95                                     [F]r.]
   + [iCCP directory]
   | ProfileName = ICC profile
   | - Tag 'iCCP-name' (11 bytes):
@@ -627,7 +626,7 @@ PNG iCCP (388 bytes):
   |     - Tag 'dmdd' (8 bytes, type 'mluc'):
   |         0298: 00 73 00 52 00 47 00 42                         [.s.R.G.B]
 PNG pHYs (9 bytes):
-      228a: 00 00 2e 23 00 00 2e 23 01                      [...#...#.]
+      2279: 00 00 2e 23 00 00 2e 23 01                      [...#...#.]
   + [BinaryData directory, 9 bytes, Big-endian]
   | PixelsPerUnitX = 11811
   | - Tag 0x0000 (4 bytes, int32u[1]):
@@ -639,7 +638,7 @@ PNG pHYs (9 bytes):
   | - Tag 0x0008 (1 bytes, int8u[1]):
   |     0008: 01                                              [.]
 PNG tIME (7 bytes):
-      229f: 07 e6 09 1a 0c 11 31                            [......1]
+      228e: 07 e6 09 1a 0c 11 31                            [......1]
   ModifyDate = ......1
   - Tag 'tIME' (7 bytes):
       0000: 07 e6 09 1a 0c 11 31                            [......1]
