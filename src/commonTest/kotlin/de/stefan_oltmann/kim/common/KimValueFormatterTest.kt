@@ -375,6 +375,15 @@ class KimValueFormatterTest {
             KimValueFormatter.formatFNumber(2.8)
         )
 
+        /*
+         * The invariant rendering: file-controlled rationals can produce
+         * values whose platform Double renderings diverge.
+         */
+        assertEquals(
+            "ƒ0.003158",
+            KimValueFormatter.formatFNumber(0.003158)
+        )
+
         assertEquals(
             "ƒ8",
             KimValueFormatter.formatFNumber(8.0)
@@ -387,6 +396,11 @@ class KimValueFormatterTest {
         assertEquals(
             "4.2 mm",
             KimValueFormatter.formatFocalLength(4.2)
+        )
+
+        assertEquals(
+            "0.003158 mm",
+            KimValueFormatter.formatFocalLength(0.003158)
         )
 
         assertEquals(

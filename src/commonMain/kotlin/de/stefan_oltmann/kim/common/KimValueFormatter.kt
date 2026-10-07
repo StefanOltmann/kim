@@ -275,7 +275,7 @@ public object KimValueFormatter {
         nonFiniteSymbol(fNumber) ?: if (fNumber % 1.0 == 0.0)
             "ƒ${fNumber.toInt()}"
         else
-            "ƒ$fNumber"
+            "ƒ${fNumber.toInvariantString()}"
 
     /**
      * Formats the focal length for display, like "18 mm".
@@ -289,7 +289,7 @@ public object KimValueFormatter {
         nonFiniteSymbol(focalLength) ?: if (focalLength % 1.0 == 0.0)
             "${focalLength.toInt()} mm"
         else
-            "$focalLength mm"
+            "${focalLength.toInvariantString()} mm"
 
     /**
      * Values that are no real measurements (NaN, infinity) render as an
