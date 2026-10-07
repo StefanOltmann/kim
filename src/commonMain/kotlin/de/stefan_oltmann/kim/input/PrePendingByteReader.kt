@@ -34,6 +34,8 @@ internal class PrePendingByteReader(
 
     override val contentLength: Long = delegate.contentLength
 
+    override val isRetaining: Boolean = delegate.isRetaining
+
     private val prependedBytesBuffer = ArrayDeque(prependedBytes)
 
     override fun readByte(): Byte? {

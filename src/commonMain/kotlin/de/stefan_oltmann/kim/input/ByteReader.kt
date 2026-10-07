@@ -40,6 +40,14 @@ public interface ByteReader : AutoCloseable {
     public val contentLength: Long
 
     /**
+     * Whether this reader retains the bytes it reads for its own later
+     * use. Payload-handling strategies can consult this to avoid
+     * buffering the same bytes a second time.
+     */
+    public val isRetaining: Boolean
+        get() = false
+
+    /**
      * Returns the next Byte, if any.
      */
     public fun readByte(): Byte?

@@ -69,6 +69,9 @@ public object BoxReader {
      */
     private const val MAX_METADATA_BOX_BYTES: Int = 16 * 1024 * 1024
 
+    /* The JXL codestream signature the first JXLP fragment starts with. */
+    private const val JXL_HEADER_SIGNATURE_LENGTH: Int = 6
+
     /* The largesize form stores its 64-bit length behind the type. */
     private const val LARGESIZE_LENGTH: Int = 8
 
@@ -259,7 +262,8 @@ public object BoxReader {
         type: BoxType,
         remainingBytesToReadInThisBox: Long,
         skipDataBoxPayloads: Boolean,
-        stopAfterMetadataRead: Boolean
+        stopAfterMetadataRead: Boolean,
+        haveSeenJxlHeaderBox: Boolean
     ): BoxPayloadResult {
 
         var payloadTruncated = false
@@ -320,7 +324,7 @@ public object BoxReader {
 
                 type == BoxType.MDAT &&
                     stopAfterMetadataRead &&
-                    byteReader is CopyByteReader -> {
+                    byteReader.isRetaining -> {
 
                     val retained = readPayloadUpToEof(
                         byteReader,
@@ -331,6 +335,31 @@ public object BoxReader {
 
                     /* The reader itself retains the bytes. */
                     ByteArray(0)
+                }
+
+                /*
+                 * JXL codestream fragments are image data, not metadata:
+                 * a metadata read must not buffer them a second time. The
+                 * scan reads them through the retaining reader (which
+                 * already holds the bytes) and keeps only the leading
+                 * signature bytes of the first fragment - they decide
+                 * whether the fragment is the codestream header.
+                 */
+                (type == BoxType.JXLC || type == BoxType.JXLP) &&
+                    stopAfterMetadataRead &&
+                    byteReader.isRetaining -> {
+
+                    val retained = readPayloadUpToEof(
+                        byteReader,
+                        remainingBytesToReadInThisBox.toInt()
+                    )
+
+                    payloadTruncated = retained.size < remainingBytesToReadInThisBox
+
+                    if (type == BoxType.JXLP && !haveSeenJxlHeaderBox)
+                        retained.copyOf(minOf(retained.size, JXL_HEADER_SIGNATURE_LENGTH))
+                    else
+                        ByteArray(0)
                 }
 
                 stopAfterMetadataRead -> {
@@ -637,7 +666,8 @@ public object BoxReader {
                 type = type,
                 remainingBytesToReadInThisBox = remainingBytesToReadInThisBox,
                 skipDataBoxPayloads = skipDataBoxPayloads,
-                stopAfterMetadataRead = stopAfterMetadataRead
+                stopAfterMetadataRead = stopAfterMetadataRead,
+                haveSeenJxlHeaderBox = haveSeenJxlHeaderBox
             )
 
             val payloadTruncated = payloadResult.truncated
@@ -827,12 +857,14 @@ public object BoxReader {
         val isImageDataBox =
             type == BoxType.MDAT || type == BoxType.JXLP || type == BoxType.JXLC
 
-        if (enforceBudget && !isImageDataBox && remainingBytesToReadInThisBox > MAX_METADATA_BOX_BYTES)
+        if (enforceBudget && !isImageDataBox && remainingBytesToReadInThisBox > MAX_METADATA_BOX_BYTES) {
+
             throw ImageReadException(
                 "Box $type carries $remainingBytesToReadInThisBox bytes of " +
                     "payload, which exceeds the metadata budget of " +
                     "$MAX_METADATA_BOX_BYTES bytes."
             )
+        }
     }
 
     /**

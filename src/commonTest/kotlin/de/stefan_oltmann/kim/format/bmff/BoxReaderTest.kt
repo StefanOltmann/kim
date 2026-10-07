@@ -23,13 +23,16 @@ import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.bmff.box.BoxContainer
 import de.stefan_oltmann.kim.format.bmff.box.ItemInfoEntryBox
 import de.stefan_oltmann.kim.format.bmff.box.ItemInformationBox
+import de.stefan_oltmann.kim.format.jxl.box.JxlPartialCodestreamBox
 import de.stefan_oltmann.kim.format.bmff.box.MediaDataBox
 import de.stefan_oltmann.kim.format.bmff.box.MetaBox
 import de.stefan_oltmann.kim.format.bmff.box.MetaBoxTopLevel
 import de.stefan_oltmann.kim.format.bmff.box.MovieBox
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
+import de.stefan_oltmann.kim.input.PrePendingByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
+import de.stefan_oltmann.kim.output.writeLong
 import de.stefan_oltmann.kim.output.writeInt
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.box
@@ -499,6 +502,88 @@ class BoxReaderTest {
 
         /* The offset stays intact for extent-based re-reads. */
         assertEquals(0L, mdatBox.offset)
+    }
+
+    /**
+     * The production read wraps the retaining reader in a
+     * PrePendingByteReader (the JXL codestream peek). The mdat payload
+     * must stay un-buffered through that wrapper, too - otherwise every
+     * metadata read holds the image data twice.
+     */
+    @Test
+    fun testMdatPayloadIsNotDuplicatedBehindPrePendingWrapper() {
+
+        val mdatPayload = ByteArray(64)
+
+        val box = ByteArrayByteWriter()
+
+        box.writeInt(mdatPayload.size + 8, BMFF_BYTE_ORDER)
+        box.write(BoxType.MDAT.bytes)
+        box.write(mdatPayload)
+
+        val copyReader = CopyByteReader(ByteArrayByteReader(box.toByteArray()))
+
+        /* Production peeks the codestream signature before wrapping. */
+        val peekedBytes = copyReader.readBytes(2).toList()
+
+        val boxes = BoxReader.scanMetadataBoxes(
+            byteReader = PrePendingByteReader(copyReader, peekedBytes)
+        )
+
+        val mdatBox = boxes.filterIsInstance<MediaDataBox>().firstOrNull()
+
+        assertNotNull(mdatBox)
+        assertEquals(0, mdatBox.payload.size, "The mdat payload must not be buffered twice.")
+        assertEquals(0L, mdatBox.offset)
+    }
+
+    /**
+     * JXL codestream fragments are image data: the metadata scan must
+     * not buffer a fragment beyond its leading signature bytes, and an
+     * oversized fragment must not slip past the metadata budget through
+     * the image-data exemption.
+     */
+    @Test
+    fun testJxlFragmentSignatureIsReadButPayloadIsNotBuffered() {
+
+        val fragmentPayload = ByteArray(17 * 1024 * 1024) { index -> (index % 13).toByte() }
+
+        /* The codestream signature: the first fragment is the header. */
+        fragmentPayload[0] = 0x00.toByte()
+        fragmentPayload[1] = 0x00.toByte()
+        fragmentPayload[2] = 0x00.toByte()
+        fragmentPayload[3] = 0x00.toByte()
+        fragmentPayload[4] = 0xFF.toByte()
+        fragmentPayload[5] = 0x0A.toByte()
+
+        val box = ByteArrayByteWriter()
+
+        box.writeInt(1, BMFF_BYTE_ORDER) /* size 1 = largesize form */
+        box.write(BoxType.JXLP.bytes)
+        box.writeLong(fragmentPayload.size.toLong() + 16L, BMFF_BYTE_ORDER)
+        box.write(fragmentPayload)
+
+        val copyReader = CopyByteReader(ByteArrayByteReader(box.toByteArray()))
+
+        /* Production peeks the codestream signature before wrapping. */
+        val peekedBytes = copyReader.readBytes(2).toList()
+
+        val boxes = BoxReader.scanMetadataBoxes(
+            byteReader = PrePendingByteReader(copyReader, peekedBytes)
+        )
+
+        val fragmentBox = boxes.filterIsInstance<JxlPartialCodestreamBox>().firstOrNull()
+
+        assertNotNull(fragmentBox)
+
+        /* The signature survived for the header decision... */
+        assertTrue(fragmentBox.isHeader)
+
+        /* ... while the 17 MiB payload was not buffered. */
+        assertTrue(
+            fragmentBox.payload.size <= 6,
+            "The codestream fragment must not be buffered: ${fragmentBox.payload.size} bytes."
+        )
     }
 
     /**
