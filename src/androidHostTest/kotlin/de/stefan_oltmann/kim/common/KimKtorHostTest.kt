@@ -15,14 +15,12 @@
  */
 package de.stefan_oltmann.kim.common
 
-import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.ktor.KimKtor
 import de.stefan_oltmann.kim.ktor.readMetadata
+import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.testdata.KimTestData
 import io.ktor.utils.io.ByteReadChannel
-import kotlinx.datetime.TimeZone
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -35,11 +33,6 @@ import kotlin.test.assertNotNull
  * Tests reading metadata via the ktor entry points.
  */
 class KimKtorHostTest {
-
-    @BeforeTest
-    fun setUp() {
-        Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
-    }
 
     @Test
     fun testReadMetadataFromByteReadChannel() {

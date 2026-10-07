@@ -17,14 +17,12 @@ package de.stefan_oltmann.kim.common
 
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.model.MediaFormat
-import kotlinx.datetime.TimeZone
 import kotlinx.io.Buffer
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
 import java.nio.file.Files
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -36,11 +34,6 @@ import kotlin.test.assertTrue
  * The test is placed in jvmTest, because the extensions live in ktorMain.
  */
 class KotlinIoExtensionsTest {
-
-    @BeforeTest
-    fun setUp() {
-        Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
-    }
 
     private fun tempDir(): Path {
         val dir = Files.createTempDirectory("kim-test")
@@ -187,8 +180,8 @@ class KotlinIoExtensionsTest {
 
         writer.close()
 
-        /* Sink close does not throw for a buffer. */
-        assertNotNull(buffer)
+        /* Closing a drained buffer sink a second time must not throw. */
+        writer.close()
     }
 
     private operator fun Path.div(name: String): Path = Path("$this/$name")

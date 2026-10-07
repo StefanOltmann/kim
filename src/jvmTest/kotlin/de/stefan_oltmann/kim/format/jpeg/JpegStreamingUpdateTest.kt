@@ -24,6 +24,7 @@ import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlinx.datetime.TimeZone
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.assertNotNull
 import kotlin.test.Test
@@ -46,6 +47,16 @@ class JpegStreamingUpdateTest {
     @BeforeTest
     fun setUp() {
         Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
+    }
+
+    @AfterTest
+    fun tearDown() {
+
+        /*
+         * Reset the override, so it cannot leak into test classes that
+         * exercise the platform default time zone.
+         */
+        Kim.defaultTimeZone = null
     }
 
     @Test
