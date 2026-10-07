@@ -233,17 +233,20 @@ public object MetadataSummaryConverter {
     }
 
     /**
-     * EXIF and IPTC strings are padded with spaces or NUL bytes to a
-     * fixed length. The padding is not data, so the summary reports
-     * these values like ExifTool does: with the trailing padding
-     * removed. An empty result is reported as NULL.
+     * EXIF strings are NUL-terminated and IPTC strings of fixed-length
+     * datasets are NUL-padded, so the trailing NUL bytes are container
+     * structure and are removed. Trailing SPACES are kept: ExifTool
+     * reports them, and they cannot be told apart from real content - a
+     * variable-length IPTC value whose author ended it with a space must
+     * survive the summary byte-exact. A value that is empty afterwards
+     * is reported as NULL.
      */
     private fun String?.trimTrailingPadding(): String? {
 
         if (this == null)
             return null
 
-        return trimEnd(' ', '\u0000').ifEmpty { null }
+        return trimEnd('\u0000').ifEmpty { null }
     }
 
     private fun extractTakenDateAsIsoString(metadata: MediaMetadata): String? {
