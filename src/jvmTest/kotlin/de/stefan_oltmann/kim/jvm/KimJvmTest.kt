@@ -62,6 +62,30 @@ class KimJvmTest {
         assertEquals(MediaFormat.JPEG, metadata.mediaFormat)
     }
 
+    /**
+     * The documented stream contract: the call closes the stream, so a
+     * subsequent read fails instead of silently working on a stream the
+     * caller believed was still usable. A ByteArrayInputStream ignores
+     * close(), so the pin uses a real file stream.
+     */
+    @Test
+    fun testReadMetadataFromInputStreamClosesTheStream() {
+
+        val file = File.createTempFile("kim-jvm-close-test", ".jpg")
+
+        file.writeBytes(jpegBytes)
+
+        file.deleteOnExit()
+
+        val stream = file.inputStream()
+
+        KimJvm.readMetadata(inputStream = stream, length = jpegBytes.size.toLong())
+
+        assertFailsWith<java.io.IOException> {
+            stream.read()
+        }
+    }
+
     @Test
     fun testReadMetadataFromPathString() {
 

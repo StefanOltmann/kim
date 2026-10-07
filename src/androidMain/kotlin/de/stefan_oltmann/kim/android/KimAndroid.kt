@@ -106,6 +106,7 @@ public object KimAndroid {
             )
         )
 
+    @JvmStatic
     @Throws(ImageReadException::class)
     public fun createByteReader(
         contentResolver: ContentResolver,
@@ -118,6 +119,7 @@ public object KimAndroid {
             length = length
         )
 
+    @JvmStatic
     @Throws(ImageReadException::class)
     public fun createByteReader(
         contentResolver: ContentResolver,
@@ -175,6 +177,7 @@ public object KimAndroid {
      *
      * The caller is responsible for closing the returned writer.
      */
+    @JvmStatic
     @Throws(ImageWriteException::class)
     public fun createByteWriter(
         contentResolver: ContentResolver,
@@ -193,6 +196,7 @@ public object KimAndroid {
      *
      * The caller is responsible for closing the returned writer.
      */
+    @JvmStatic
     @Throws(ImageWriteException::class)
     public fun createByteWriter(
         contentResolver: ContentResolver,
@@ -214,9 +218,12 @@ public object KimAndroid {
 }
 
 /**
- * Reads the metadata from a stream. The stream is read but NOT closed -
- * closing it stays the caller's responsibility. The [length] is only a
- * hint and may be 0 for unknown sizes.
+ * Reads the metadata from a stream.
+ *
+ * Attention: The stream IS closed by this call, including the stream
+ * below it, and must not be used afterwards - like
+ * [KimAndroid.readMetadata] documents. The [length] is only a hint and
+ * may be 0 for unknown sizes.
  */
 @Throws(ImageReadException::class)
 @Suppress("UnusedReceiverParameter")
