@@ -60,6 +60,14 @@ public object BoxReader {
     /** Chunk size for reading possibly-truncated box payloads. */
     private const val READ_CHUNK_SIZE: Long = 64 * 1024
 
+    /*
+     * The payload of every buffered box is held in memory, so like the
+     * JPEG path's header segment budget, a box beyond this limit is
+     * hostile input rather than a legitimate file: no real photo or
+     * video carries metadata-sized boxes anywhere near it.
+     */
+    private const val MAX_METADATA_BOX_BYTES: Int = 16 * 1024 * 1024
+
     /**
      * Reads all top-level boxes of the file completely, including the
      * image data payloads.
@@ -383,15 +391,10 @@ public object BoxReader {
 
             val isSkippableDataBox = skipDataBoxPayloads && !isMetadataPayloadBox
 
-            /*
-             * The payload of every buffered box is read into memory, so
-             * boxes larger than Int.MAX_VALUE bytes must be rejected
-             * instead of overflowing the read count.
-             */
-            if (!isSkippableDataBox && remainingBytesToReadInThisBox > Int.MAX_VALUE)
-                throw ImageReadException(
-                    "Box $type is too large: $remainingBytesToReadInThisBox bytes."
-                )
+            requireBufferSizeAllowed(
+                type, isSkippableDataBox, remainingBytesToReadInThisBox,
+                enforceBudget = stopAfterMetadataRead || skipDataBoxPayloads
+            )
 
             /*
              * Attention: When the reader retains every consumed byte (the
@@ -589,6 +592,45 @@ public object BoxReader {
         }
 
         return count - remaining
+    }
+
+    /**
+     * Rejects a payload that must not be buffered: boxes beyond the
+     * Int range would overflow the read count in every mode, and in the
+     * scan modes every non-image box beyond the metadata budget is
+     * hostile input - a hostile meta, moov or free box must not exhaust
+     * the memory on constrained targets.
+     *
+     * The budget is intentionally not enforced in the full-read modes:
+     * there the caller explicitly asked for the whole file to be
+     * buffered (the JXL rewrite and the public readAllBoxes), and the
+     * JXL image data lives in jxlp/jxlc boxes, which are image data
+     * just like mdat and never budget-bound.
+     */
+    private fun requireBufferSizeAllowed(
+        type: BoxType,
+        isSkippableDataBox: Boolean,
+        remainingBytesToReadInThisBox: Long,
+        enforceBudget: Boolean
+    ) {
+
+        if (isSkippableDataBox)
+            return
+
+        if (remainingBytesToReadInThisBox > Int.MAX_VALUE)
+            throw ImageReadException(
+                "Box $type is too large: $remainingBytesToReadInThisBox bytes."
+            )
+
+        val isImageDataBox =
+            type == BoxType.MDAT || type == BoxType.JXLP || type == BoxType.JXLC
+
+        if (enforceBudget && !isImageDataBox && remainingBytesToReadInThisBox > MAX_METADATA_BOX_BYTES)
+            throw ImageReadException(
+                "Box $type carries $remainingBytesToReadInThisBox bytes of " +
+                    "payload, which exceeds the metadata budget of " +
+                    "$MAX_METADATA_BOX_BYTES bytes."
+            )
     }
 
     /**

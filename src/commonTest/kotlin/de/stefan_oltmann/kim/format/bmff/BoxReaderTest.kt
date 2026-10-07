@@ -44,6 +44,50 @@ import kotlin.test.assertTrue
 class BoxReaderTest {
 
     /**
+     * The payload of every non-media box is buffered during the
+     * metadata scan. A hostile oversized box must fail the read at the
+     * budget instead of allocating unboundedly - the JPEG path enforces
+     * the same budget for its header segments.
+     */
+    @Test
+    fun testOversizedBoxPayloadFailsAtTheBudget() {
+
+        /* One byte beyond the 16 MiB budget, so the box is hostile but
+           still far below the Int range. */
+        val oversizedPayload = ByteArray(17 * 1024 * 1024)
+
+        val bytes =
+            box(BoxType.FTYP, "heic\u0000\u0000\u0000\u0000mif1".encodeToByteArray()) +
+                box(BoxType.FREE, oversizedPayload)
+
+        assertFailsWith<ImageReadException> {
+            BoxReader.scanMetadataBoxes(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /**
+     * The full-read modes buffer the whole file on explicit request - the
+     * JXL rewrite and the public readAllBoxes. The metadata budget of the
+     * scan modes must not apply there, because the JXL image data lives
+     * in jxlp/jxlc boxes and a 45 MP lossless codestream is far beyond
+     * any metadata-sized bound.
+     */
+    @Test
+    fun testFullReadBuffersLargeCodestreamBoxes() {
+
+        val oversizedCodestream = ByteArray(17 * 1024 * 1024)
+
+        val bytes =
+            box(BoxType.FTYP, "jxl \u0000\u0000\u0000\u0000jxl ".encodeToByteArray()) +
+                box(BoxType.JXLP, oversizedCodestream)
+
+        val boxes = BoxReader.readAllBoxes(ByteArrayByteReader(bytes))
+
+        assertEquals(2, boxes.size)
+        assertTrue(boxes[1].payload.isNotEmpty())
+    }
+
+    /**
      * A box that declares a size smaller than its own 8-byte header is
      * corrupt. It must be rejected: the metadata path would otherwise
      * rewind its position and re-parse consumed header bytes as boxes.
