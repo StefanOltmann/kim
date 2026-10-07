@@ -23,6 +23,7 @@ import de.stefan_oltmann.kim.format.AbstractUpdaterTest
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8X
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.model.MetadataUpdate
+import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -105,6 +106,64 @@ class WebpUpdaterTest : AbstractUpdaterTest("webp") {
                 ((declaredSize shr (index * Byte.SIZE_BITS)) and 0xFF).toByte()
 
         return result
+    }
+
+    /**
+     * Regression test: an animated WebP keeps every animation chunk on
+     * a metadata update - a chunk iteration or padding bug would drop
+     * or garble frames silently, and no other test reads animation
+     * chunks at all.
+     */
+    @Test
+    fun testUpdateAnimatedWebpPreservesAllFrameChunks() {
+
+        val animatedBytes = KimTestData.getBytesOf(KimTestData.ANIMATED_WEBP_TEST_IMAGE_INDEX)
+
+        val originalCounts = chunkTypeCounts(animatedBytes)
+
+        assertTrue(originalCounts.getValue("ANMF") >= 2, "The fixture must be animated.")
+
+        val updatedBytes = Kim.update(
+            bytes = animatedBytes,
+            updates = setOf(MetadataUpdate.Title("Animated"))
+        )
+
+        /* Every animation chunk must survive the rewrite unchanged. */
+        assertEquals(originalCounts, chunkTypeCounts(updatedBytes))
+
+        val updatedMetadata = assertNotNull(Kim.readMetadata(updatedBytes))
+
+        assertTrue(
+            updatedMetadata.xmp?.contains("Animated") == true,
+            "The rewritten file must report the new XMP."
+        )
+    }
+
+    /**
+     * Counts the chunks of the given WebP file by type, in file order
+     * independent form - only the counts are compared.
+     */
+    private fun chunkTypeCounts(webpBytes: ByteArray): Map<String, Int> {
+
+        val counts = mutableMapOf<String, Int>()
+
+        var offset = WEBP_SIGNATURE_TOTAL_LENGTH
+
+        while (offset + WebPConstants.CHUNK_HEADER_LENGTH <= webpBytes.size) {
+
+            val type = webpBytes.copyOfRange(
+                offset,
+                offset + WebPConstants.TYPE_LENGTH
+            ).decodeToString()
+
+            counts[type] = (counts[type] ?: 0) + 1
+
+            val size = readChunkSize(webpBytes, offset)
+
+            offset += WebPConstants.CHUNK_HEADER_LENGTH + size + size % 2
+        }
+
+        return counts
     }
 
     /**

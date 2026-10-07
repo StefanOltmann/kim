@@ -81,6 +81,13 @@ object KimTestData {
     const val WEBP_WITH_MAKERNOTE_INDEX: Int = 89
     const val JXL_WITH_MAKERNOTE_INDEX: Int = 90
 
+    /*
+     * Animated WebP, encoded by ffmpeg from two corpus frames and
+     * verified with ExifTool - the only fixture that exercises the
+     * animation chunk pass-through of the WebP rewrite.
+     */
+    const val ANIMATED_WEBP_TEST_IMAGE_INDEX: Int = 91
+
     @Suppress("MagicNumber")
     val mediaIdsWithExifThumbnail: Set<Int> = setOf(
         2, 3, 4, 5, 6, 7, 10, 12, 15, 16, 19, 20, 21,
@@ -139,6 +146,7 @@ object KimTestData {
         GIF_TEST_IMAGE_INDEX -> "gif"
         WEBP_TEST_IMAGE_INDEX -> "webp"
         WEBP_WITH_MAKERNOTE_INDEX -> "webp"
+        ANIMATED_WEBP_TEST_IMAGE_INDEX -> "webp"
         JXL_WITH_MAKERNOTE_INDEX -> "jxl"
         HEIC_TEST_IMAGE_INDEX -> "heic"
         HEIC_TEST_IMAGE_WITH_XMP_INDEX -> "heic"
