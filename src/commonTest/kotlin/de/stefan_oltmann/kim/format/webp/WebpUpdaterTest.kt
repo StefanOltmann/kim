@@ -380,6 +380,118 @@ class WebpUpdaterTest : AbstractUpdaterTest("webp") {
     }
 
     /**
+     * A file whose VP8X denies the ICC profile while carrying an ICCP
+     * chunk is as nonconformant as a stale EXIF flag: the flags must
+     * describe the chunks that are actually written, so the rewrite
+     * declares the profile the chunk list still carries.
+     */
+    @Test
+    fun testUpdateDeclaresIccWhenVp8xFlagIsStaleButChunkIsPresent() {
+
+        /* Sanity: the source carries the profile chunk. */
+        assertTrue("ICCP" in chunkTypes(originalBytes))
+
+        val staleFlagBytes = withVp8xFlags(originalBytes, hasIcc = false)
+
+        /* Sanity: the flag now lies about the chunk. */
+        assertFalse(vp8xChunk(staleFlagBytes).hasIcc)
+
+        val updatedBytes = Kim.update(
+            bytes = staleFlagBytes,
+            updates = setOf(MetadataUpdate.Title("test"))
+        )
+
+        val updatedVp8x = vp8xChunk(updatedBytes)
+
+        assertTrue(updatedVp8x.hasIcc, "The rewritten VP8X must declare the ICCP chunk.")
+
+        assertTrue("ICCP" in chunkTypes(updatedBytes))
+    }
+
+    /**
+     * Returns a copy of the given WebP bytes whose VP8X header is
+     * rebuilt with the given ICC flag, keeping every other flag.
+     */
+    private fun withVp8xFlags(webpBytes: ByteArray, hasIcc: Boolean): ByteArray {
+
+        val vp8xOffset = firstChunkOffset(webpBytes, "VP8X")
+
+        val vp8x = vp8xChunk(webpBytes)
+
+        val replacementPayload = WebPChunkVP8X.createBytes(
+            hasIcc = hasIcc,
+            hasAlpha = vp8x.hasAlpha,
+            hasExif = vp8x.hasExif,
+            hasXmp = vp8x.hasXmp,
+            hasAnimation = vp8x.hasAnimation,
+            imageSize = vp8x.imageSize
+        )
+
+        val vp8xTotalLength = WebPConstants.CHUNK_HEADER_LENGTH + replacementPayload.size
+
+        val sizeBytes = byteArrayOf(
+            (replacementPayload.size and 0xFF).toByte(),
+            ((replacementPayload.size shr 8) and 0xFF).toByte(),
+            ((replacementPayload.size shr 16) and 0xFF).toByte(),
+            ((replacementPayload.size shr 24) and 0xFF).toByte()
+        )
+
+        return webpBytes.copyOfRange(0, vp8xOffset) +
+            "VP8X".encodeToByteArray() +
+            sizeBytes +
+            replacementPayload +
+            webpBytes.copyOfRange(vp8xOffset + vp8xTotalLength, webpBytes.size)
+    }
+
+    /**
+     * A nonconformant legacy file (image chunk without VP8X) can carry an
+     * ICCP chunk. The synthesized VP8X header must declare it - decoders
+     * honor the profile only when the flag is set, so the rewritten file
+     * would render differently from what the read reported.
+     */
+    @Test
+    fun testUpdateLegacyFileWithIccChunkDeclaresIccInSynthesizedVp8x() {
+        /*
+         * The legacy layout the spec grew out of: the image chunk first,
+         * the ICCP chunk behind it. The ICCP chunk moves to the end,
+         * because without a VP8X it has no declared place before the
+         * image data.
+         */
+        val iccpOffset = firstChunkOffset(originalBytes, "ICCP")
+
+        val iccpSize = readChunkSize(originalBytes, iccpOffset)
+
+        val iccpTotalLength = WebPConstants.CHUNK_HEADER_LENGTH + iccpSize + iccpSize % 2
+
+        val iccpChunk = originalBytes.copyOfRange(iccpOffset, iccpOffset + iccpTotalLength)
+
+        val legacyBytes = removeFirstChunk(
+            removeFirstChunk(
+                removeFirstChunk(
+                    removeFirstChunk(originalBytes, "VP8X"),
+                    "EXIF"
+                ),
+                "XMP "
+            ),
+            "ICCP"
+        ) + iccpChunk
+
+        /* Sanity: the image chunk leads, the profile is still carried. */
+        assertEquals(setOf("VP8 ", "ICCP"), chunkTypes(legacyBytes))
+
+        val updatedBytes = Kim.update(
+            bytes = legacyBytes,
+            updates = setOf(MetadataUpdate.Title("test"))
+        )
+
+        val updatedVp8x = vp8xChunk(updatedBytes)
+
+        assertTrue(updatedVp8x.hasIcc, "The synthesized VP8X must declare the ICCP chunk.")
+
+        assertTrue("ICCP" in chunkTypes(updatedBytes))
+    }
+
+    /**
      * Verifies that deleting the metadata removes the EXIF and XMP chunks
      * and clears the VP8X flags, but keeps the ICCP chunk that affects how
      * the image is displayed.
