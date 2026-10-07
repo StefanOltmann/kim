@@ -161,7 +161,7 @@ public object XmpWriter {
         xmpMeta: XMPMeta,
         updates: Set<MetadataUpdate>,
         writePackageWrapper: Boolean
-    ): String {
+    ): String = tryWithImageWriteException {
 
         for (update in updates)
             xmpMeta.applyUpdate(update)
@@ -175,7 +175,7 @@ public object XmpWriter {
          */
         xmpMeta.deleteHasExtendedXmp()
 
-        return xmpMeta.serializeToString(writePackageWrapper)
+        xmpMeta.serializeToString(writePackageWrapper)
     }
 
     /**
