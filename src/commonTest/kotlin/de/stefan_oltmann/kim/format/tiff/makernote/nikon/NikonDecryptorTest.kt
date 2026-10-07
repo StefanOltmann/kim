@@ -38,6 +38,16 @@ class NikonDecryptorTest {
 
         assertEquals(3506117, NikonDecryptor.serialKey("3506117", "NIKON D850"))
         assertEquals(1, NikonDecryptor.serialKey("1", "NIKON Z 9"))
+
+        /*
+         * The decryptor consumes the key modulo 256, so a numeric serial
+         * beyond the Int range must still act as its own key instead of
+         * silently falling back to the model default.
+         */
+        assertEquals(
+            3_000_000_007L,
+            NikonDecryptor.serialKey("3000000007", "NIKON D850")
+        )
     }
 
     /**

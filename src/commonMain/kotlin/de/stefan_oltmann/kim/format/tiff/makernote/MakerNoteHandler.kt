@@ -193,7 +193,7 @@ internal open class MakerNoteHandler {
         byteOrder: ByteOrder,
         blobPointers: List<MakerNoteBlobPointer>,
         addDirectory: (TiffDirectory) -> Unit,
-        serialKey: Int? = null,
+        serialKey: Long? = null,
         countKey: Int? = null,
         model: String? = null
     ) {

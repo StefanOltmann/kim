@@ -103,6 +103,7 @@ class MediaMetadataTest {
      * confirmed by the GPSDateStamp) - like ExifTool. A later XMP date
      * from a re-export must not overwrite it.
      */
+
     @Test
     fun testTakenDatePrefersExifOverXmp() {
 
