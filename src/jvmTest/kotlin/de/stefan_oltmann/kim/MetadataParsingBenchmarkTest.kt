@@ -55,10 +55,12 @@ class MetadataParsingBenchmarkTest {
 
         val photoCount = passes.toLong() * corpus.size
 
-        println("BENCHMARK photos=$photoCount bytes=${totalBytes * passes} " +
-            "totalMs=${elapsed.inWholeMilliseconds} " +
-            "usPerPhoto=${elapsed.inWholeMicroseconds / photoCount} " +
-            "mbytesPerSecond=${totalBytes * passes / 1_048_576.0 / (elapsed.inWholeMilliseconds / 1000.0)}")
+        println(
+            "BENCHMARK photos=$photoCount bytes=${totalBytes * passes} " +
+                "totalMs=${elapsed.inWholeMilliseconds} " +
+                "usPerPhoto=${elapsed.inWholeMicroseconds / photoCount} " +
+                "mbytesPerSecond=${totalBytes * passes / 1_048_576.0 / (elapsed.inWholeMilliseconds / 1000.0)}"
+        )
 
         for ((id, bytes) in corpus.sortedByDescending { it.second.size }.take(5)) {
             val singleStart = TimeSource.Monotonic.markNow()

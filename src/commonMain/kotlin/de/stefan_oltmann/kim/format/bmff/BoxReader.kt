@@ -54,13 +54,13 @@ import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 public object BoxReader {
 
     private val CONTAINER_BOX_TYPES: Set<BoxType> = setOf(
-    BoxType.MOOV,
-    BoxType.TRAK,
-    BoxType.MDIA,
-    BoxType.UDTA,
-    BoxType.IINF,
-    BoxType.META
-)
+        BoxType.MOOV,
+        BoxType.TRAK,
+        BoxType.MDIA,
+        BoxType.UDTA,
+        BoxType.IINF,
+        BoxType.META
+    )
 
     /*
      * Real files nest container boxes only a few levels deep
@@ -130,7 +130,7 @@ public object BoxReader {
      * @param updatePosition A callback to report the position when reading
      * has finished
      */
-internal fun scanMetadataBoxes(
+    internal fun scanMetadataBoxes(
         byteReader: ByteReader,
         updatePosition: ((Long) -> Unit)? = null
     ): List<Box> =
@@ -759,6 +759,7 @@ internal fun scanMetadataBoxes(
                         globalOffset, size, largeSize, payloadSource.bytes(),
                         resolvedLength = actualLength
                     )
+
                 BoxType.MOOV -> MovieBox(globalOffset, size, largeSize, payloadSource, depth + 1)
                 BoxType.TRAK -> TrackBox(globalOffset, size, largeSize, payloadSource, depth + 1)
                 BoxType.TKHD -> TrackHeaderBox(globalOffset, size, largeSize, payloadSource.bytes())

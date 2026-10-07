@@ -69,6 +69,7 @@ public class ByteArrayByteReader(
         this.windowEndField = windowEnd
         this.currentPosition = windowStartField
     }
+
     internal fun moveWindowPositionTo(index: Int) {
 
         require(index in windowStartField..windowEndField) {

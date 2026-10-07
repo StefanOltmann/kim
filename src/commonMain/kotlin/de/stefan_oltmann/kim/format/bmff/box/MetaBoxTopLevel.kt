@@ -78,6 +78,7 @@ public class MetaBoxTopLevel internal constructor(
         payload: ByteArray,
         depth: Int = 0
     ) : this(offset, size, largeSize, PayloadSource.of(payload), depth)
+
     public fun findMetadataItems(): List<MetadataItem> {
 
         /*
