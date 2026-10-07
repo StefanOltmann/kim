@@ -112,8 +112,8 @@ class MediaMetadataTest {
 
         val summary = MetadataSummaryConverter.convertToSummary(metadata)
 
-        /* 2022-09-26T12:38:48Z (14:38:48+02:00) - das EXIF-Datum, das
-         * auch ExifTool als Instant meldet. */
+        /* 2022-09-26T12:38:48Z (14:38:48+02:00) - the EXIF date, which
+         * ExifTool also reports as the instant. */
         assertEquals(1664195928773L, summary.takenDate)
     }
 
