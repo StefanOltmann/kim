@@ -17,6 +17,7 @@
 package de.stefan_oltmann.kim.format.cr3
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.decodeStrictUtf8
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BoxType
@@ -64,7 +65,7 @@ public object Cr3Reader {
         val xmpFromUuidBox = requireValidXmpPacket(
             xmp = allBoxes.filterIsInstance<UuidBox>().find {
                 it.uuidAsHex == CR3_XMP_UUID
-            }?.data?.decodeToString(),
+            }?.data?.decodeStrictUtf8("The CR3 XMP box"),
             sourceDescription = "The CR3 XMP UUID box"
         )
 

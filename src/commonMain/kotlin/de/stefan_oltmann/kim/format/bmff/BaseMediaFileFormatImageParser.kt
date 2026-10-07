@@ -18,6 +18,7 @@
 package de.stefan_oltmann.kim.format.bmff
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.decodeStrictUtf8
 import de.stefan_oltmann.kim.common.MetadataType
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
@@ -234,7 +235,7 @@ public object BaseMediaFileFormatImageParser : ImageParser {
          * XMP data can also be found in a UUID box, if we didn't find it in the metadata offsets.
          */
         if (xmp == null)
-            xmp = uuidBoxes.firstOrNull { it.isXmp }?.data?.decodeToString()
+            xmp = uuidBoxes.firstOrNull { it.isXmp }?.data?.decodeStrictUtf8("The video XMP UUID box")
 
         xmp = requireValidXmpPacket(xmp, "The XMP data")
 
@@ -302,7 +303,7 @@ public object BaseMediaFileFormatImageParser : ImageParser {
             label = "XMP"
         )
 
-        return xmpBytes.decodeToString()
+        return xmpBytes.decodeStrictUtf8("The XMP metadata item")
     }
 
     /**

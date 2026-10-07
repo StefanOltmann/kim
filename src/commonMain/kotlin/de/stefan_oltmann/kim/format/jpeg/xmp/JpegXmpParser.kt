@@ -18,6 +18,7 @@
 package de.stefan_oltmann.kim.format.jpeg.xmp
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.decodeStrictUtf8
 import de.stefan_oltmann.kim.common.slice
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
@@ -45,6 +46,6 @@ internal object JpegXmpParser {
         return segmentData.slice(
             startIndex = index,
             count = segmentData.size - index
-        ).decodeToString()
+        ).decodeStrictUtf8("The JPEG XMP segment")
     }
 }

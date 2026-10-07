@@ -16,6 +16,7 @@
 package de.stefan_oltmann.kim.format.quicktime
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.decodeStrictUtf8
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaMetadata
@@ -54,9 +55,9 @@ public object QuickTimeImageParser : ImageParser {
      */
     private fun extractXmpPacket(box: Box): String? =
         if (box is UuidBox)
-            box.data.decodeToString()
+            box.data.decodeStrictUtf8("The video XMP UUID box")
         else
-            box.payload.decodeToString()
+            box.payload.decodeStrictUtf8("The video XMP_ box")
 
     override fun parseMetadata(byteReader: ByteReader): MediaMetadata =
         tryWithImageReadException {

@@ -20,6 +20,7 @@ package de.stefan_oltmann.kim.format.tiff.taginfo
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.decodeLatin1BytesToString
+import de.stefan_oltmann.kim.common.decodeStrictUtf8
 import de.stefan_oltmann.kim.common.decodeUtf16BytesToString
 import de.stefan_oltmann.kim.common.encodeToLatin1Bytes
 import de.stefan_oltmann.kim.common.isEquals
@@ -109,8 +110,12 @@ public class TagInfoGpsText(
             if (bytesWithoutPrefix.all { it == ZERO_BYTE })
                 return ""
 
-            /* A terminating NUL character cuts the text like in ASCII. */
-            val decodedString = bytesWithoutPrefix.decodeToString()
+            /* A terminating NUL character cuts the text like in ASCII.
+             * Malformed sequences fail the read: replacement decoding
+             * would fabricate U+FFFD into the comment text. */
+            val decodedString = bytesWithoutPrefix.decodeStrictUtf8(
+                "The UTF-8 charset UserComment"
+            )
 
             val terminatorIndex = decodedString.indexOf('\u0000')
 

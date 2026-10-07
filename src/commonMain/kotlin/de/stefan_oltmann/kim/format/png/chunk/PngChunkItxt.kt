@@ -18,6 +18,7 @@
 package de.stefan_oltmann.kim.format.png.chunk
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.decodeStrictUtf8
 import de.stefan_oltmann.kim.common.decodeLatin1BytesToString
 import de.stefan_oltmann.kim.common.decompress
 import de.stefan_oltmann.kim.common.indexOfNullTerminator
@@ -100,7 +101,7 @@ public class PngChunkItxt(
         translatedKeyword = bytes.copyOfRange(
             fromIndex = index,
             toIndex = terminatorIndex
-        ).decodeToString()
+        ).decodeStrictUtf8("The PNG iTXt chunk translated keyword")
 
         index = terminatorIndex + 1
 
@@ -112,7 +113,7 @@ public class PngChunkItxt(
         text = if (compressed)
             decompress(subBytes)
         else
-            subBytes.decodeToString()
+            subBytes.decodeStrictUtf8("The PNG iTXt chunk text")
     }
 
     /**

@@ -18,6 +18,7 @@
 package de.stefan_oltmann.kim.format.tiff
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.decodeStrictUtf8
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
@@ -252,7 +253,7 @@ public object TiffImageParser : ImageParser {
          * update path, instead of reaching sidecar writers.
          */
         return requireValidXmpPacket(
-            xmp = bytes.decodeToString(),
+            xmp = bytes.decodeStrictUtf8("The TIFF XMP tag"),
             sourceDescription = "The TIFF XMP tag"
         )
     }
