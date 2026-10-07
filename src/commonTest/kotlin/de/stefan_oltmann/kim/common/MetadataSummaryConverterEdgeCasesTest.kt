@@ -563,6 +563,40 @@ class MetadataSummaryConverterEdgeCasesTest {
         )
     }
 
+    /**
+     * Coordinates that parse cleanly as rationals but lie outside the
+     * valid range are sanctioned garbage category 2: physically
+     * meaningless, so the summary omits them instead of reporting them
+     * as the photo's location.
+     */
+    @Test
+    fun testOutOfRangeGpsIsOmitted() {
+
+        val outOfRangeLatitude = RationalNumbers(
+            arrayOf(
+                RationalNumber(91, 1),
+                RationalNumber(0, 1),
+                RationalNumber(0, 1)
+            )
+        ).toBytes(ByteOrder.BIG_ENDIAN)
+
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.JPEG,
+            imageSize = null,
+            exif = gpsContents(
+                tiffField(GpsTag.GPS_TAG_GPS_LATITUDE_REF, "N".encodeToByteArray()),
+                tiffField(GpsTag.GPS_TAG_GPS_LONGITUDE_REF, "E".encodeToByteArray()),
+                tiffField(GpsTag.GPS_TAG_GPS_LATITUDE, outOfRangeLatitude, FieldTypeRational, 3),
+                tiffField(GpsTag.GPS_TAG_GPS_LONGITUDE, gpsRationalsBytes(), FieldTypeRational, 3)
+            ),
+            exifBytes = null,
+            iptc = null,
+            xmp = null
+        )
+
+        assertNull(metadata.convertToSummary().gpsCoordinates)
+    }
+
     @Test
     fun testNonJpegThumbnailIsIgnored() {
 
