@@ -53,13 +53,8 @@ public class MetaBoxTopLevel(
 
     /*
      * Extents with an idat-relative construction method cannot be
-     * resolved, because the idat box is not supported.
-     *
-     * Attention: These extents are valid data, not corrupt data. They are
-     * not surfaced as metadata only because interpreting them as absolute
-     * offsets would misread image bytes. The raw payloads are preserved,
-     * so rewrites keep them intact. Supporting the idat box would make
-     * this metadata available again.
+     * resolved, because the idat box is not supported. Interpreting
+     * them as absolute offsets would misread image bytes.
      */
     private val resolvableExtents: List<Extent>
         get() = itemLocationBox.extents.filter { it.constructionMethod == 0 }
@@ -76,6 +71,30 @@ public class MetaBoxTopLevel(
      * the extents of each item are ordered by position as well.
      */
     public fun findMetadataItems(): List<MetadataItem> {
+
+        /*
+         * An infe-declared EXIF or XMP item without resolvable extents
+         * is real metadata in a layout this reader cannot resolve.
+         * Per the strict read policy it must fail the read instead of
+         * silently vanishing from the result - sidecar writers would
+         * otherwise report "no metadata" for files that carry it.
+         */
+        for (itemInfo in itemInfoBox.map.values) {
+
+            val isMetadataType = itemInfo.itemType == BMFFConstants.ITEM_TYPE_EXIF ||
+                itemInfo.itemType == BMFFConstants.ITEM_TYPE_MIME
+
+            if (!isMetadataType)
+                continue
+
+            val hasResolvableExtent = resolvableExtents.any { it.itemId == itemInfo.itemId }
+
+            if (!hasResolvableExtent)
+                throw ImageReadException(
+                    "The ${itemInfo.itemType} item ${itemInfo.itemId} has no " +
+                        "resolvable extents (idat-relative or missing)."
+                )
+        }
 
         /* Preserves the file order of the items. */
         val extentsByItemId = LinkedHashMap<Int, MutableList<MetadataOffset>>()
