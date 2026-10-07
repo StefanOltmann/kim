@@ -42,7 +42,6 @@ import de.stefan_oltmann.kim.format.jxl.box.ExifBox
 import de.stefan_oltmann.kim.format.jxl.box.JxlPartialCodestreamBox
 import de.stefan_oltmann.kim.format.jxl.box.XmlBox
 import de.stefan_oltmann.kim.input.ByteReader
-import de.stefan_oltmann.kim.input.read4BytesAsInt
 import de.stefan_oltmann.kim.input.read8BytesAsLong
 import de.stefan_oltmann.kim.input.readBytes
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
@@ -282,101 +281,101 @@ public object BoxReader {
 
         val bytes: ByteArray = when {
 
-                /*
-                 * The video scan must look inside a file-level meta box:
-                 * the ISO item layout in it carries metadata, and a meta
-                 * bearing it fails the read below instead of being
-                 * skipped. The payload is therefore buffered with the
-                 * metadata budget, like every other box the scan looks
-                 * into.
-                 */
-                type == BoxType.META && skipDataBoxPayloads -> {
+            /*
+             * The video scan must look inside a file-level meta box:
+             * the ISO item layout in it carries metadata, and a meta
+             * bearing it fails the read below instead of being
+             * skipped. The payload is therefore buffered with the
+             * metadata budget, like every other box the scan looks
+             * into.
+             */
+            type == BoxType.META && skipDataBoxPayloads -> {
 
-                    if (remainingBytesToReadInThisBox > MAX_METADATA_BOX_BYTES)
-                        throw ImageReadException(
-                            "Box $type carries $remainingBytesToReadInThisBox bytes of " +
-                                "payload, which exceeds the metadata budget of " +
-                                "$MAX_METADATA_BOX_BYTES bytes."
-                        )
-
-                    val payload = readPayloadUpToEof(
-                        byteReader,
-                        remainingBytesToReadInThisBox.toInt()
+                if (remainingBytesToReadInThisBox > MAX_METADATA_BOX_BYTES)
+                    throw ImageReadException(
+                        "Box $type carries $remainingBytesToReadInThisBox bytes of " +
+                            "payload, which exceeds the metadata budget of " +
+                            "$MAX_METADATA_BOX_BYTES bytes."
                     )
 
-                    payloadTruncated = payload.size < remainingBytesToReadInThisBox
+                val payload = readPayloadUpToEof(
+                    byteReader,
+                    remainingBytesToReadInThisBox.toInt()
+                )
 
-                    payload
-                }
+                payloadTruncated = payload.size < remainingBytesToReadInThisBox
 
-                isSkippableDataBox -> {
+                payload
+            }
 
-                    val skippedByteCount = skipPayloadUpToEof(
-                        byteReader,
-                        remainingBytesToReadInThisBox
-                    )
+            isSkippableDataBox -> {
 
-                    payloadTruncated = skippedByteCount < remainingBytesToReadInThisBox
+                val skippedByteCount = skipPayloadUpToEof(
+                    byteReader,
+                    remainingBytesToReadInThisBox
+                )
 
-                    /* The payload is discarded, not retained. */
+                payloadTruncated = skippedByteCount < remainingBytesToReadInThisBox
+
+                /* The payload is discarded, not retained. */
+                ByteArray(0)
+            }
+
+            type == BoxType.MDAT &&
+                stopAfterMetadataRead &&
+                byteReader.isRetaining -> {
+
+                val retained = readPayloadUpToEof(
+                    byteReader,
+                    remainingBytesToReadInThisBox.toInt()
+                )
+
+                payloadTruncated = retained.size < remainingBytesToReadInThisBox
+
+                /* The reader itself retains the bytes. */
+                ByteArray(0)
+            }
+
+            /*
+             * JXL codestream fragments are image data, not metadata:
+             * a metadata read must not buffer them a second time. The
+             * scan reads them through the retaining reader (which
+             * already holds the bytes) and keeps only the leading
+             * signature bytes of the first fragment - they decide
+             * whether the fragment is the codestream header.
+             */
+            (type == BoxType.JXLC || type == BoxType.JXLP) &&
+                stopAfterMetadataRead &&
+                byteReader.isRetaining -> {
+
+                val retained = readPayloadUpToEof(
+                    byteReader,
+                    remainingBytesToReadInThisBox.toInt()
+                )
+
+                payloadTruncated = retained.size < remainingBytesToReadInThisBox
+
+                if (type == BoxType.JXLP && !haveSeenJxlHeaderBox)
+                    retained.copyOf(minOf(retained.size, JXL_HEADER_SIGNATURE_LENGTH))
+                else
                     ByteArray(0)
-                }
+            }
 
-                type == BoxType.MDAT &&
-                    stopAfterMetadataRead &&
-                    byteReader.isRetaining -> {
+            stopAfterMetadataRead -> {
 
-                    val retained = readPayloadUpToEof(
-                        byteReader,
-                        remainingBytesToReadInThisBox.toInt()
-                    )
+                val payload = readPayloadUpToEof(
+                    byteReader,
+                    remainingBytesToReadInThisBox.toInt()
+                )
 
-                    payloadTruncated = retained.size < remainingBytesToReadInThisBox
+                payloadTruncated = payload.size < remainingBytesToReadInThisBox
 
-                    /* The reader itself retains the bytes. */
-                    ByteArray(0)
-                }
+                payload
+            }
 
-                /*
-                 * JXL codestream fragments are image data, not metadata:
-                 * a metadata read must not buffer them a second time. The
-                 * scan reads them through the retaining reader (which
-                 * already holds the bytes) and keeps only the leading
-                 * signature bytes of the first fragment - they decide
-                 * whether the fragment is the codestream header.
-                 */
-                (type == BoxType.JXLC || type == BoxType.JXLP) &&
-                    stopAfterMetadataRead &&
-                    byteReader.isRetaining -> {
-
-                    val retained = readPayloadUpToEof(
-                        byteReader,
-                        remainingBytesToReadInThisBox.toInt()
-                    )
-
-                    payloadTruncated = retained.size < remainingBytesToReadInThisBox
-
-                    if (type == BoxType.JXLP && !haveSeenJxlHeaderBox)
-                        retained.copyOf(minOf(retained.size, JXL_HEADER_SIGNATURE_LENGTH))
-                    else
-                        ByteArray(0)
-                }
-
-                stopAfterMetadataRead -> {
-
-                    val payload = readPayloadUpToEof(
-                        byteReader,
-                        remainingBytesToReadInThisBox.toInt()
-                    )
-
-                    payloadTruncated = payload.size < remainingBytesToReadInThisBox
-
-                    payload
-                }
-
-                else ->
-                    byteReader.readBytes("data", remainingBytesToReadInThisBox.toInt())
-                    }
+            else ->
+                byteReader.readBytes("data", remainingBytesToReadInThisBox.toInt())
+        }
 
         return BoxPayloadResult(bytes, payloadTruncated)
     }

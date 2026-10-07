@@ -21,7 +21,6 @@ import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.TiffPreviewExtractor
 import de.stefan_oltmann.kim.format.TiffPreviewExtractor.Companion.previewFromTags
 import de.stefan_oltmann.kim.format.tiff.TiffContents
-import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.EXIF_SUB_IFD0
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.input.RandomAccessByteReader

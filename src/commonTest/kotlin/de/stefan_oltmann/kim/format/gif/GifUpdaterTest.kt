@@ -18,8 +18,8 @@
 package de.stefan_oltmann.kim.format.gif
 
 import de.stefan_oltmann.kim.Kim
-import de.stefan_oltmann.kim.common.convertToSummary
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.convertToSummary
 import de.stefan_oltmann.kim.format.AbstractUpdaterTest
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.ImageSize

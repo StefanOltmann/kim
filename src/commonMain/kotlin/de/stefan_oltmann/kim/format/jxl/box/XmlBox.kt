@@ -16,9 +16,9 @@
  */
 package de.stefan_oltmann.kim.format.jxl.box
 
+import de.stefan_oltmann.kim.common.decodeStrictUtf8
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.bmff.box.Box
-import de.stefan_oltmann.kim.common.decodeStrictUtf8
 
 /**
  * JPEG XL XML box.

@@ -16,8 +16,8 @@
  */
 package de.stefan_oltmann.kim
 
-import de.stefan_oltmann.kim.common.convertToSummary
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.convertToSummary
 import de.stefan_oltmann.kim.common.readFileAsByteArray
 
 /**

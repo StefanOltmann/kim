@@ -16,9 +16,8 @@
 package de.stefan_oltmann.kim.format.png.chunk
 
 import de.stefan_oltmann.kim.common.ImageReadException
-import de.stefan_oltmann.kim.common.MAX_DECOMPRESSED_BYTE_COUNT
-import de.stefan_oltmann.kim.common.decompressBytes
 import de.stefan_oltmann.kim.common.decodeLatin1BytesToString
+import de.stefan_oltmann.kim.common.decompressBytes
 import de.stefan_oltmann.kim.common.indexOfNullTerminator
 import de.stefan_oltmann.kim.format.png.PngChunkType
 import de.stefan_oltmann.kim.format.png.PngConstants

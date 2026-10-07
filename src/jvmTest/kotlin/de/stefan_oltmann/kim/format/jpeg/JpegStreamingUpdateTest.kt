@@ -26,10 +26,10 @@ import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlinx.datetime.TimeZone
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
-import kotlin.test.assertNotNull
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 /*
  * The test is placed in jvmTest, because JvmInputStreamByteReader is a

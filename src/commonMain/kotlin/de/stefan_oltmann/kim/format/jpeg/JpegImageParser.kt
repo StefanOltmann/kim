@@ -17,22 +17,19 @@
  */
 package de.stefan_oltmann.kim.format.jpeg
 
-import de.stefan_oltmann.kim.format.icc.IccProfile
-import de.stefan_oltmann.kim.format.icc.IccProfileParser
-import de.stefan_oltmann.kim.common.toUInt8
-import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.getRemainingBytes
+import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toInt
 import de.stefan_oltmann.kim.common.toUInt16
+import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MediaMetadata
+import de.stefan_oltmann.kim.format.icc.IccProfile
+import de.stefan_oltmann.kim.format.icc.IccProfileParser
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
-import de.stefan_oltmann.kim.format.mpf.MpfDirectory
-import de.stefan_oltmann.kim.format.mpf.MpfParser
-import de.stefan_oltmann.kim.format.printim.PrintImParser
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
 import de.stefan_oltmann.kim.format.jpeg.segment.App13Segment
@@ -42,9 +39,12 @@ import de.stefan_oltmann.kim.format.jpeg.segment.Segment
 import de.stefan_oltmann.kim.format.jpeg.segment.SofnSegment
 import de.stefan_oltmann.kim.format.jpeg.segment.UnknownSegment
 import de.stefan_oltmann.kim.format.jpeg.xmp.JpegXmpParser
-import de.stefan_oltmann.kim.format.xmp.requireValidXmpPacket
+import de.stefan_oltmann.kim.format.mpf.MpfDirectory
+import de.stefan_oltmann.kim.format.mpf.MpfParser
+import de.stefan_oltmann.kim.format.printim.PrintImParser
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffReader
+import de.stefan_oltmann.kim.format.xmp.requireValidXmpPacket
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.read2BytesAsInt

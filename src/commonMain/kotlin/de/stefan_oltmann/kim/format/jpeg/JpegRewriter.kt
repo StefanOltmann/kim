@@ -18,10 +18,10 @@
 package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.common.ImageWriteException
-import de.stefan_oltmann.kim.common.startsWith
-import de.stefan_oltmann.kim.common.toBytes
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.common.getRemainingBytes
+import de.stefan_oltmann.kim.common.startsWith
+import de.stefan_oltmann.kim.common.toBytes
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata

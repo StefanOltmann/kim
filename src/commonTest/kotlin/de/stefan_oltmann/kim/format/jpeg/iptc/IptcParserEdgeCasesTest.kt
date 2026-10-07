@@ -18,8 +18,6 @@ package de.stefan_oltmann.kim.format.jpeg.iptc
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
-import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
-import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals

@@ -229,7 +229,7 @@ class PngImageParserTest {
         val iTxtPayload = "XML:com.adobe.xmp".encodeToByteArray() + ByteArray(5) +
             packet.copyOfRange(0, titleStart + 1) + byteArrayOf(0xC3.toByte()) +
             packet.copyOfRange(titleStart + 2, packet.size)
-            packet.copyOfRange(0, titleStart + 1) + byteArrayOf(0xC3.toByte()) +
+        packet.copyOfRange(0, titleStart + 1) + byteArrayOf(0xC3.toByte()) +
             packet.copyOfRange(titleStart + 2, packet.size)
 
         assertFailsWith<ImageReadException> {

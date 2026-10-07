@@ -17,12 +17,12 @@ package de.stefan_oltmann.kim.format.icc
 
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.decodeStrictUtf8
-import de.stefan_oltmann.kim.common.toInvariantString
 import de.stefan_oltmann.kim.common.decodeUtf16BytesToString
+import de.stefan_oltmann.kim.common.slice
+import de.stefan_oltmann.kim.common.toInvariantString
+import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import kotlin.jvm.JvmStatic
-import de.stefan_oltmann.kim.common.slice
-import de.stefan_oltmann.kim.common.toUInt8
 
 /**
  * Parses ICC color profile bytes - the 128-byte profile header followed
@@ -306,7 +306,8 @@ public object IccProfileParser {
         val recordSize = readUInt32AsLong(valueBytes, 3 * FIELD_SIZE)
 
         if (recordSize < MIN_MLUC_RECORD_SIZE ||
-            recordCount > (valueBytes.size - MLUC_HEADER_SIZE) / recordSize)
+            recordCount > (valueBytes.size - MLUC_HEADER_SIZE) / recordSize
+        )
             throw ImageReadException(
                 "The ICC unicode text declares $recordCount records of " +
                     "$recordSize bytes, which exceeds the value."

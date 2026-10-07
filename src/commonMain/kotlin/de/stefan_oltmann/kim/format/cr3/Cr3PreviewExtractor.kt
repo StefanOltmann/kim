@@ -24,9 +24,9 @@ import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BOX_HEADER_LENGTH
-import de.stefan_oltmann.kim.format.bmff.BoxReader.MAX_METADATA_BOX_BYTES
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.TYPE_LENGTH
 import de.stefan_oltmann.kim.format.bmff.BoxReader
+import de.stefan_oltmann.kim.format.bmff.BoxReader.MAX_METADATA_BOX_BYTES
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.bmff.box.MovieBox
 import de.stefan_oltmann.kim.format.bmff.box.TrackBox

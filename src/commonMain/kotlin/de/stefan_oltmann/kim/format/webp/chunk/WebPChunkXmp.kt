@@ -16,8 +16,8 @@
  */
 package de.stefan_oltmann.kim.format.webp.chunk
 
-import de.stefan_oltmann.kim.format.webp.WebPChunkType
 import de.stefan_oltmann.kim.common.decodeStrictUtf8
+import de.stefan_oltmann.kim.format.webp.WebPChunkType
 
 /**
  * The XMP chunk of a WebP file.

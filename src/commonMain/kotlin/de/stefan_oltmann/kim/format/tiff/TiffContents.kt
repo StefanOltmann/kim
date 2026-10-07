@@ -18,7 +18,6 @@
 package de.stefan_oltmann.kim.format.tiff
 
 import de.stefan_oltmann.kim.common.ImageWriteException
-import de.stefan_oltmann.kim.format.tiff.TiffDirectory
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.geotiff.GeoTiffDirectory

@@ -17,12 +17,12 @@ package de.stefan_oltmann.kim.format.printim
 
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.decodeStrictUtf8
-import de.stefan_oltmann.kim.common.tryWithImageReadException
-import de.stefan_oltmann.kim.format.tiff.TiffContents
-import kotlin.jvm.JvmStatic
 import de.stefan_oltmann.kim.common.slice
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toUInt8
+import de.stefan_oltmann.kim.common.tryWithImageReadException
+import de.stefan_oltmann.kim.format.tiff.TiffContents
+import kotlin.jvm.JvmStatic
 
 /**
  * Parses the Print Image Matching block: "PrintIM\0", the 4-character

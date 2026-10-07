@@ -25,6 +25,7 @@ import de.stefan_oltmann.kim.common.toInt
 import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.tiff.TiffReader.directoryTypeMap
+import de.stefan_oltmann.kim.format.tiff.TiffReader.readOffsetDirectories
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.GeoTiffTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
@@ -274,7 +275,8 @@ public object TiffReader {
          * matching endianness. Everything else is not TIFF-family.
          */
         if (byteOrderByte != headerBytes[1] ||
-            (byteOrderByte.toInt() != 'I'.code && byteOrderByte.toInt() != 'M'.code))
+            (byteOrderByte.toInt() != 'I'.code && byteOrderByte.toInt() != 'M'.code)
+        )
             return
 
         val version =

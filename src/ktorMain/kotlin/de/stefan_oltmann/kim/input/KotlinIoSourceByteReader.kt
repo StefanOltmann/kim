@@ -20,9 +20,9 @@ import de.stefan_oltmann.kim.common.exists
 import kotlinx.io.Buffer
 import kotlinx.io.Source
 import kotlinx.io.buffered
-import kotlinx.io.readTo
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
+import kotlinx.io.readTo
 
 /**
  * A ByteReader that reads from a kotlinx.io Source.

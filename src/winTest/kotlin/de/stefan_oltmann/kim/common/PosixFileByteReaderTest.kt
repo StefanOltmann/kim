@@ -21,8 +21,8 @@ import kotlinx.cinterop.toKString
 import kotlinx.cinterop.usePinned
 import platform.posix.fclose
 import platform.posix.fopen
-import platform.posix.getenv
 import platform.posix.fwrite
+import platform.posix.getenv
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals

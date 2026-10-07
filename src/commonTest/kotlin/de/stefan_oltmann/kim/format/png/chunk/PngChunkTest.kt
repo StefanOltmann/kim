@@ -18,10 +18,10 @@ package de.stefan_oltmann.kim.format.png.chunk
 import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
+import de.stefan_oltmann.kim.format.png.PngChunkType
 import de.stefan_oltmann.kim.format.png.PngConstants.PNG_BYTE_ORDER
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.writeInt
-import de.stefan_oltmann.kim.format.png.PngChunkType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

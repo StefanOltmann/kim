@@ -19,12 +19,11 @@ import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.Md5
 import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
-import de.stefan_oltmann.kim.format.jpeg.xmp.JpegXmpParser
-import de.stefan_oltmann.xmp.XMPMetaFactory
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
+import de.stefan_oltmann.xmp.XMPMetaFactory
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

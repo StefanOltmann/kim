@@ -17,7 +17,6 @@
 package de.stefan_oltmann.kim.format.png
 
 import de.stefan_oltmann.kim.Kim
-import de.stefan_oltmann.kim.format.png.PngImageParser
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcBlock
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcConstants

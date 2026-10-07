@@ -15,6 +15,7 @@
  */
 package de.stefan_oltmann.kim
 
+import de.stefan_oltmann.kim.ApiContractFuzzTest.Companion.MUTATIONS_PER_FILE
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.input.ByteArrayByteReader

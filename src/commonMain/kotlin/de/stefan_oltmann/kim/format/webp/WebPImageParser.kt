@@ -19,8 +19,8 @@ package de.stefan_oltmann.kim.format.webp
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
-import de.stefan_oltmann.kim.format.icc.IccProfileParser
 import de.stefan_oltmann.kim.format.MediaMetadata
+import de.stefan_oltmann.kim.format.icc.IccProfileParser
 import de.stefan_oltmann.kim.format.webp.WebPConstants.CHUNK_SIZE_LENGTH
 import de.stefan_oltmann.kim.format.webp.WebPConstants.RIFF_SIGNATURE
 import de.stefan_oltmann.kim.format.webp.WebPConstants.TYPE_LENGTH
