@@ -2,6 +2,8 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
 
@@ -366,6 +368,19 @@ kotlin {
         }
     }
 }
+
+// region JS test reporter
+/*
+ * Kotlin 2.4.20 pins kotlin-web-helpers 3.3.0, whose Node test reporter
+ * always passes its own 'alsoWithHtml' option together with 'Base' and
+ * then warns that the option has no effect (KT-88592, fixed in 3.5.x).
+ * Force the fixed version until the Kotlin upgrade removes the override.
+ */
+rootProject.plugins.withType<YarnPlugin> {
+    rootProject.the<YarnRootExtension>()
+        .resolution("kotlin-web-helpers", "3.5.4")
+}
+// endregion
 
 // region Writing version.txt for GitHub Actions
 val writeVersion: TaskProvider<Task> = tasks.register("writeVersion") {
