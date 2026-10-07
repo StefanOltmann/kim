@@ -7446,7 +7446,7 @@ public final class de/stefan_oltmann/kim/format/tiff/makernote/nikon/NikonCustom
 	public final fun getEXPOSURE_DELAY_MODE ()Lde/stefan_oltmann/kim/format/tiff/taginfo/TagInfoByte;
 	public final fun getFILE_NUMBER_SEQUENCE ()Lde/stefan_oltmann/kim/format/tiff/taginfo/TagInfoByte;
 	public final fun getIMAGE_REVIEW_TIME ()Lde/stefan_oltmann/kim/format/tiff/taginfo/TagInfoByte;
-	public final fun getINTERNAL_FLASH ()Lde/stefan_oltmann/kim/format/tiff/taginfo/TagInfoByte;
+	public final fun getMANUAL_FLASH_OUTPUT ()Lde/stefan_oltmann/kim/format/tiff/taginfo/TagInfoByte;
 	public final fun getMETERING_TIME ()Lde/stefan_oltmann/kim/format/tiff/taginfo/TagInfoByte;
 	public final fun getPLAYBACK_MENUS_TIME ()Lde/stefan_oltmann/kim/format/tiff/taginfo/TagInfoByte;
 	public final fun getRANGE_FINDER ()Lde/stefan_oltmann/kim/format/tiff/taginfo/TagInfoByte;

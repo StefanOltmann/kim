@@ -527,7 +527,7 @@ public object FujiFilmTag {
     /**
      * Film Simulation / Film Mode
      *
-     * See https://exiftool.sourceforge.net/TagNames/FujiFilm.html#FilmMode
+     * See https://exiftool.sourceforge.net/TagNames/FujiFilm.html
      */
     public val FILM_MODE: TagInfoShort = TagInfoShort(
         0x1401, "FilmMode",

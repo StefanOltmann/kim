@@ -223,7 +223,7 @@ Big-endian (Motorola, MM)
 0000004230 0x0013 SelfTimerTime = -127
 0000004231 0x0014 ImageReviewTime = 0
 0000004232 0x0015 PlaybackMenusTime = 68
-0000004234 0x0017 InternalFlash = 0
+0000004234 0x0017 ManualFlashOutput = 0
 
 ---- Directory MakerNoteNikonColorBalance @ 12716 ----
 0000013004 0x0000 WB_GRBGLevels = [256, 541, 340, 256]

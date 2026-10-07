@@ -18,7 +18,7 @@ package de.stefan_oltmann.kim.format.tiff.makernote.sony
 /**
  * Values of the Sony SceneMode tag.
  *
- * See https://exiftool.sourceforge.net/TagNames/Sony.html#SceneMode
+ * See https://exiftool.sourceforge.net/TagNames/Sony.html
  */
 @Suppress("MaxLineLength")
 public enum class SonySceneMode(

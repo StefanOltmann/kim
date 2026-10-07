@@ -18,7 +18,7 @@ package de.stefan_oltmann.kim.format.tiff.makernote.panasonic
 /**
  * Values of the Panasonic ShootingMode tag.
  *
- * See https://exiftool.sourceforge.net/TagNames/Panasonic.html#ShootingMode
+ * See https://exiftool.sourceforge.net/TagNames/Panasonic.html
  */
 @Suppress("MaxLineLength")
 public enum class PanasonicShootingMode(

@@ -18,7 +18,7 @@ package de.stefan_oltmann.kim.format.tiff.makernote.sony
 /**
  * Values of the Sony DynamicRangeOptimizer tag.
  *
- * See https://exiftool.sourceforge.net/TagNames/Sony.html#DynamicRangeOptimizer
+ * See https://exiftool.sourceforge.net/TagNames/Sony.html
  */
 @Suppress("MaxLineLength")
 public enum class SonyDynamicRangeOptimizer(

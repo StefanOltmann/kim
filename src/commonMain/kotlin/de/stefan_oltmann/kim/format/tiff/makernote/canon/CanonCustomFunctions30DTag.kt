@@ -22,7 +22,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoByte
 /**
  * Tags of the Functions30D maker note sub-directory.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#Functions30D
+ * See https://exiftool.sourceforge.net/TagNames/CanonCustom.html#Functions30D
  */
 @Suppress("MagicNumber", "StringLiteralDuplication", "MaxLineLength")
 public object CanonCustomFunctions30DTag {

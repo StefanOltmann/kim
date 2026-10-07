@@ -22,7 +22,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoSLong
 /**
  * Tags of the PictureStyleInfo maker note sub-directory.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#PictureStyleInfo
+ * See https://exiftool.sourceforge.net/TagNames/Canon.html
  */
 @Suppress("MagicNumber", "StringLiteralDuplication", "MaxLineLength")
 public object CanonPictureStyleInfoTag {

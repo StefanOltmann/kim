@@ -176,7 +176,7 @@ Little-endian (Intel, II)
 0000003926 0x0013 SelfTimerTime = -126
 0000003927 0x0014 ImageReviewTime = 0
 0000003928 0x0015 PlaybackMenusTime = 68
-0000003930 0x0017 InternalFlash = 0
+0000003930 0x0017 ManualFlashOutput = 0
 
 ---- Directory MakerNoteNikonColorBalance @ 11784 ----
 0000012072 0x0000 WB_GRBGLevels = [230, 1, 1728, 400]
