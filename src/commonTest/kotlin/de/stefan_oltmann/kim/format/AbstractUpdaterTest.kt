@@ -19,12 +19,15 @@ package de.stefan_oltmann.kim.format
 import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.convertToSummary
 import de.stefan_oltmann.kim.common.writeBytes
 import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.LocationShown
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
+import de.stefan_oltmann.xmp.XMPRegionArea
+import de.stefan_oltmann.xmp.XmpFaceRegion
 import kotlinx.datetime.TimeZone
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
@@ -34,6 +37,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.fail
 
@@ -332,6 +336,51 @@ abstract class AbstractUpdaterTest(
         )
 
         compare("new_persons.no_metadata.$format", newBytes)
+    }
+
+    /**
+     * Faces are documented as supported by [MetadataUpdate.Faces], so
+     * the dispatch through [Kim.update] must carry the regions into the
+     * XMP of every format, and the summary must report them back.
+     */
+    @Test
+    fun testUpdateFaces() {
+
+        val newBytes = Kim.update(
+            bytes = originalBytes,
+            update = MetadataUpdate.Faces(
+                faces = listOf(XmpFaceRegion("Dora", XMPRegionArea(0.1, 0.2, 0.3, 0.4))),
+                widthPx = 4390,
+                heightPx = 2927
+            )
+        )
+
+        compare("new_faces.$format", newBytes)
+
+        val faces = assertNotNull(Kim.readMetadata(newBytes)).convertToSummary().faces
+
+        assertEquals(1, faces.size)
+
+        assertEquals("Dora", faces.first().name)
+    }
+
+    @Test
+    fun testUpdateFacesOnEmptyImage() {
+
+        val newBytes = Kim.update(
+            bytes = noMetadataBytes,
+            update = MetadataUpdate.Faces(
+                faces = listOf(XmpFaceRegion("Dora", XMPRegionArea(0.1, 0.2, 0.3, 0.4))),
+                widthPx = 4390,
+                heightPx = 2927
+            )
+        )
+
+        compare("new_faces.no_metadata.$format", newBytes)
+
+        val faces = assertNotNull(Kim.readMetadata(newBytes)).convertToSummary().faces
+
+        assertEquals("Dora", faces.first().name)
     }
 
     @Test
