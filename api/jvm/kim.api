@@ -7109,6 +7109,9 @@ public final class de/stefan_oltmann/kim/format/tiff/makernote/fujifilm/FujiFilm
 	public static final field FILM_MODE_PRO_NEG_STD I
 	public static final field FILM_MODE_REALA_ACE I
 	public static final field FILM_MODE_STUDIO_PORTRAIT I
+	public static final field FILM_MODE_STUDIO_PORTRAIT_ENHANCED_SATURATION I
+	public static final field FILM_MODE_STUDIO_PORTRAIT_EX I
+	public static final field FILM_MODE_STUDIO_PORTRAIT_INCREASED_SHARPNESS I
 	public static final field FILM_MODE_VELVIA I
 	public static final field FILM_MODE_VELVIA_VIVID I
 	public static final field INSTANCE Lde/stefan_oltmann/kim/format/tiff/makernote/fujifilm/FujiFilmTag;
@@ -13410,6 +13413,7 @@ public final class de/stefan_oltmann/kim/model/MediaFormat : java/lang/Enum {
 	public static final field DNG Lde/stefan_oltmann/kim/model/MediaFormat;
 	public static final field GIF Lde/stefan_oltmann/kim/model/MediaFormat;
 	public static final field HEIC Lde/stefan_oltmann/kim/model/MediaFormat;
+	public static final field HIF Lde/stefan_oltmann/kim/model/MediaFormat;
 	public static final field JPEG Lde/stefan_oltmann/kim/model/MediaFormat;
 	public static final field JXL Lde/stefan_oltmann/kim/model/MediaFormat;
 	public static final field MOV Lde/stefan_oltmann/kim/model/MediaFormat;

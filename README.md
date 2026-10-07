@@ -25,7 +25,7 @@ This lib is used in production by my online [EXIF Viewer](https://stefan-oltmann
     + Also read the compressed `zxIf` chunk variant and non-standard EXIF & IPTC
       from `tEXt`/`zTXt` chunks
 * WebP: Read & Write EXIF & XMP
-* HEIC / AVIF: Read EXIF & XMP
+* HEIC / AVIF / HIF: Read EXIF & XMP
     + Support for animated AVIF files (AV1 Image Sequence)
 * MOV / MP4: Read EXIF & XMP
     + Includes the MakerNote and thumbnail of Fujifilm videos and the display
@@ -341,7 +341,7 @@ Java projects.
 
 ## Limitations
 
-* Does not read the image size and orientation for HEIC, AVIF & JPEG XL.
+* Does not read the image size and orientation for HEIC, AVIF, HIF & JPEG XL.
 * JPEG: Metadata that does not fit into a single segment (~64 KB) is written interoperably,
   following ExifTool as the reference implementation:
   oversized XMP uses Adobe Extended XMP (main packet plus GUID-referenced extension segments),
