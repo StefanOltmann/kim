@@ -22,6 +22,7 @@ import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.LocationShown
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
+
 import de.stefan_oltmann.kim.testdata.KimTestData
 import de.stefan_oltmann.xmp.XMPConst
 import de.stefan_oltmann.xmp.XMPMeta
@@ -35,6 +36,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -299,7 +301,21 @@ class XmpWriterEdgeCasesTest {
         /* Rejecting a flagged photo removes the flag. */
         apply(MetadataUpdate.Rating(ExifRating.REJECTED))
 
-        assertNull(xmpMeta.getPropertyBoolean(XMP_NS_XMP, "Flagged"))
+        /*
+         * The flag markers live in the xmpDM/ACDSee/Mylio/Narrative
+         * namespaces - never in xap/1.0, so asserting there would pass
+         * unconditionally. setFlagged(false) writes the marker
+         * explicitly, so it must read back false.
+         */
+        assertEquals(
+            false,
+            xmpMeta.getPropertyBoolean(XMPConst.NS_DM, XMPConst.FLAGGED_TAG_ADOBE_NAME)
+        )
+
+        /* The summary must report the photo as not flagged. */
+        val serialized = XmpWriter.updateXmp(xmpMeta, emptySet(), writePackageWrapper = false)
+
+        assertFalse(XmpReader.readMetadata(serialized).flagged)
     }
 
     /**
