@@ -19,6 +19,8 @@ package de.stefan_oltmann.kim.format.tiff.write
 
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ByteOrder
+import de.stefan_oltmann.kim.common.startsWith
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.RationalNumber.Companion.valueOf
 import de.stefan_oltmann.kim.common.RationalNumbers
@@ -263,6 +265,17 @@ public class TiffOutputSet(
          */
         if (thumbnailBytes.isEmpty())
             throw ImageWriteException("Thumbnail bytes must not be empty.")
+
+        /*
+         * EXIF thumbnails are JPEG images: the embedded bytes are handed
+         * to consumers verbatim, so anything without the JPEG SOI marker
+         * would silently produce a file whose thumbnail no viewer can
+         * decode.
+         */
+        if (!thumbnailBytes.startsWith(JpegConstants.SOI))
+            throw ImageWriteException(
+                "Thumbnail bytes are not a JPEG image (missing SOI marker)."
+            )
 
         val thumbnailDirectory = getOrCreateThumbnailDirectory()
 
