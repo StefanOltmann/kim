@@ -123,20 +123,44 @@ public object KimAndroid {
         contentResolver: ContentResolver,
         uri: Uri,
         length: Long? = null
-    ): ByteReader = tryWithImageReadException {
+    ): ByteReader {
 
         /*
          * The ContentResolver handles content and file URIs on every API
          * level. The old file-path fallback only worked for URIs whose
          * path happens to be a real filesystem path - MediaStore and SAF
          * URIs failed on older devices.
+         *
+         * The length is resolved before the stream opens, so a failing
+         * provider query cannot leak an already-opened stream - the same
+         * invariant KimJvm.readMetadataFrom documents.
          */
-        val inputStream = contentResolver.openInputStream(uri)
-            ?: throw ImageReadException("Unable to open input stream for URI $uri")
+        return createByteReaderFrom(
+            sizeLookup = {
+                length ?: (contentResolver.getFileSize(uri) ?: 0L)
+            },
+            openStream = {
+                contentResolver.openInputStream(uri)
+                    ?: throw ImageReadException("Unable to open input stream for URI $uri")
+            }
+        )
+    }
 
-        return@tryWithImageReadException AndroidInputStreamByteReader(
-            inputStream = inputStream,
-            contentLength = length ?: (contentResolver.getFileSize(uri) ?: 0L)
+    /**
+     * Assembles the byte reader with the length resolved first: a
+     * failing size lookup must not leak an already-opened stream.
+     * Internal for the host tests, which pin the ordering.
+     */
+    internal fun createByteReaderFrom(
+        sizeLookup: () -> Long,
+        openStream: () -> InputStream
+    ): ByteReader = tryWithImageReadException {
+
+        val length = sizeLookup()
+
+        AndroidInputStreamByteReader(
+            inputStream = openStream().buffered(),
+            contentLength = length
         )
     }
 
