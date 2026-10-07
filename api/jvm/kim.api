@@ -13015,7 +13015,6 @@ public final class de/stefan_oltmann/kim/format/tiff/write/TiffOutputItem$Compan
 }
 
 public final class de/stefan_oltmann/kim/format/tiff/write/TiffOutputSet {
-	public static final field MINUTES_PER_HOUR D
 	public fun <init> ()V
 	public fun <init> (Lde/stefan_oltmann/kim/common/ByteOrder;)V
 	public synthetic fun <init> (Lde/stefan_oltmann/kim/common/ByteOrder;ILkotlin/jvm/internal/DefaultConstructorMarker;)V

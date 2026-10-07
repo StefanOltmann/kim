@@ -357,7 +357,7 @@ public class TiffOutputSet(
         val minutes = value.toLong().toDouble()
 
         value %= 1.0
-        value *= MINUTES_PER_HOUR
+        value *= SECONDS_PER_MINUTE
 
         val seconds = value
 
@@ -396,8 +396,17 @@ public class TiffOutputSet(
 
     private companion object {
 
-        /* The EXIF GPS rationals carry degrees, minutes and seconds */
-        const val MINUTES_PER_HOUR: Double = 60.0
+        /*
+         * The EXIF GPS rationals carry degrees, minutes and seconds.
+         * Deliberately not const: a const in a private companion still
+         * compiles to a public static field, freezing these conversion
+         * internals into the binary API.
+         */
+        @Suppress("MayBeConstant")
+        private val MINUTES_PER_HOUR: Double = 60.0
+
+        @Suppress("MayBeConstant")
+        private val SECONDS_PER_MINUTE: Double = 60.0
     }
 }
 
