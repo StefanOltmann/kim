@@ -64,10 +64,12 @@ implementation(npm("pako", "2.1.0"))
 `kotlinx.io.files.Path`, `kotlinx.io.Source` (for usage with Ktor) & `ByteReadChannel`,
 `java.io.File`, `java.io.InputStream`, `NSData` (iOS) and `String` paths.
 
+Unknown or empty input yields `null`; unreadable files fail with an `ImageReadException`.
+
 ```kotlin
 val bytes: ByteArray = loadBytes()
 
-val metadata = Kim.readMetadata(bytes)
+val metadata = Kim.readMetadata(bytes) ?: error("Not a supported image file.")
 
 /* MediaMetadata has a proper toString() similar to the output of ExifTool */
 println(metadata)
@@ -123,7 +125,7 @@ contains the following:
 ```kotlin
 val bytes: ByteArray = loadBytes()
 
-val summary = Kim.readMetadata(bytes).convertToSummary()
+val summary = Kim.readMetadata(bytes)?.convertToSummary() ?: error("Not a supported image file.")
 ```
 
 ### Extract metadata bytes
