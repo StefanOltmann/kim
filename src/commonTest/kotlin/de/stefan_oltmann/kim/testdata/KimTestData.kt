@@ -72,6 +72,15 @@ object KimTestData {
     const val ANIMATED_AVIF_TEST_IMAGE_WITH_LEGACY_ADOBE_XMP_INDEX: Int = 87
     const val ANIMATED_AVIF_TEST_IMAGE_WITH_ALT_LEGACY_ADOBE_XMP_INDEX: Int = 88
 
+    /*
+     * The MakerNote-bearing rewrite fixtures are outside the generic
+     * 1..TEST_MEDIA_COUNT corpus: only the MakerNote preservation test
+     * reads them, so they need no golden dumps of their own. Their EXIF
+     * was injected from media_1.jpg with ExifTool 13.59.
+     */
+    const val WEBP_WITH_MAKERNOTE_INDEX: Int = 89
+    const val JXL_WITH_MAKERNOTE_INDEX: Int = 90
+
     @Suppress("MagicNumber")
     val mediaIdsWithExifThumbnail: Set<Int> = setOf(
         2, 3, 4, 5, 6, 7, 10, 12, 15, 16, 19, 20, 21,
@@ -129,6 +138,8 @@ object KimTestData {
     private fun getExtension(index: Int) = when (index) {
         GIF_TEST_IMAGE_INDEX -> "gif"
         WEBP_TEST_IMAGE_INDEX -> "webp"
+        WEBP_WITH_MAKERNOTE_INDEX -> "webp"
+        JXL_WITH_MAKERNOTE_INDEX -> "jxl"
         HEIC_TEST_IMAGE_INDEX -> "heic"
         HEIC_TEST_IMAGE_WITH_XMP_INDEX -> "heic"
         AVIF_TEST_IMAGE_FROM_JPG_USING_IMAGEMAGICK_INDEX -> "avif"
@@ -196,6 +207,14 @@ object KimTestData {
 
     fun getExifThumbnailBytesOf(index: Int): ByteArray =
         Resource("$RESOURCE_PATH/exifthumbs/media_${index}_exifthumb.jpg").readBytes()
+
+    /**
+     * A 32x32 JPEG encoded by ffmpeg, usable as thumbnail payload: at
+     * 1 KB it fits into the APP1 segment of every MakerNote-bearing
+     * corpus file, which the full-sized thumbnails do not.
+     */
+    fun getTinyThumbnailBytes(): ByteArray =
+        Resource("$RESOURCE_PATH/exifthumbs/tiny_thumbnail.jpg").readBytes()
 
     fun getPreviewBytesOf(index: Int): ByteArray =
         Resource("$RESOURCE_PATH/previews/media_${index}_preview.jpg").readBytes()
