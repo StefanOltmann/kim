@@ -23,7 +23,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoUndefineds
 /**
  * Tags of the HDRInfo maker note sub-directory.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#HDRInfo
+ * See https://exiftool.sourceforge.net/TagNames/Nikon.html#HDRInfo
  */
 @Suppress("MagicNumber", "StringLiteralDuplication", "MaxLineLength")
 public object NikonHdrInfoTag {

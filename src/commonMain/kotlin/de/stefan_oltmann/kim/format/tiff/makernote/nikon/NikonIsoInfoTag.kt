@@ -23,7 +23,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoShort
 /**
  * Tags of the ISOInfo maker note sub-directory.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#ISOInfo
+ * See https://exiftool.sourceforge.net/TagNames/Nikon.html#ISOInfo
  */
 @Suppress("MagicNumber", "StringLiteralDuplication", "MaxLineLength")
 public object NikonIsoInfoTag {

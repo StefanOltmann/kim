@@ -23,7 +23,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoUndefineds
 /**
  * Tags of the FileInfo maker note sub-directory.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#FileInfo
+ * See https://exiftool.sourceforge.net/TagNames/Nikon.html#FileInfo
  */
 @Suppress("MagicNumber", "StringLiteralDuplication", "MaxLineLength")
 public object NikonFileInfoTag {

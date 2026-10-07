@@ -22,7 +22,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoByte
 /**
  * Tags of the FaceInfoA maker note sub-directory.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#FaceInfoA
+ * See https://exiftool.sourceforge.net/TagNames/Sony.html#FaceInfoA
  */
 @Suppress("MagicNumber", "StringLiteralDuplication", "MaxLineLength")
 public object SonyFaceInfoATag {

@@ -22,7 +22,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoByte
 /**
  * Tags of the CustomSettingsD5100 maker note sub-directory.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#CustomSettingsD5100
+ * See https://exiftool.sourceforge.net/TagNames/NikonCustom.html#CustomSettingsD5100
  */
 @Suppress("MagicNumber", "StringLiteralDuplication", "MaxLineLength")
 public object NikonCustomSettingsD5100Tag {

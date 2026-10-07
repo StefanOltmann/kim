@@ -23,7 +23,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoUndefineds
 /**
  * Tags of the VRInfo maker note sub-directory.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#VRInfo
+ * See https://exiftool.sourceforge.net/TagNames/Nikon.html#VRInfo
  */
 @Suppress("MagicNumber", "StringLiteralDuplication", "MaxLineLength")
 public object NikonVrInfoTag {

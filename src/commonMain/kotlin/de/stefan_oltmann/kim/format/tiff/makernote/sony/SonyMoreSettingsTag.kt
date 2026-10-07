@@ -23,7 +23,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoSByte
 /**
  * Tags of the MoreSettings maker note sub-directory.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#MoreSettings
+ * See https://exiftool.sourceforge.net/TagNames/Sony.html#MoreSettings
  */
 @Suppress("MagicNumber", "StringLiteralDuplication", "MaxLineLength")
 public object SonyMoreSettingsTag {

@@ -24,7 +24,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoUndefineds
 /**
  * Tags of the PictureControl2 maker note sub-directory.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#PictureControl2
+ * See https://exiftool.sourceforge.net/TagNames/Nikon.html#PictureControl2
  */
 @Suppress("MagicNumber", "StringLiteralDuplication", "MaxLineLength")
 public object NikonPictureControl2Tag {

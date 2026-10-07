@@ -24,7 +24,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoShorts
 /**
  * Tags of the FaceRecInfo maker note sub-directory.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#FaceRecInfo
+ * See https://exiftool.sourceforge.net/TagNames/Panasonic.html#FaceRecInfo
  */
 @Suppress("MagicNumber", "StringLiteralDuplication", "MaxLineLength")
 public object PanasonicFaceRecInfoTag {

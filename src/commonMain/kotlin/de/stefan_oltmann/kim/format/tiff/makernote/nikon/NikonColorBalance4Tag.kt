@@ -22,7 +22,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoShorts
 /**
  * Tags of the ColorBalance4 maker note sub-directory.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#ColorBalance4
+ * See https://exiftool.sourceforge.net/TagNames/Nikon.html#ColorBalance4
  */
 @Suppress("MagicNumber", "StringLiteralDuplication", "MaxLineLength")
 public object NikonColorBalance4Tag {
