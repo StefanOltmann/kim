@@ -69,6 +69,9 @@ public object BoxReader {
      */
     private const val MAX_METADATA_BOX_BYTES: Int = 16 * 1024 * 1024
 
+    /* The largesize form stores its 64-bit length behind the type. */
+    private const val LARGESIZE_LENGTH: Int = 8
+
     /**
      * Reads all top-level boxes of the file completely, including the
      * image data payloads.
@@ -235,6 +238,104 @@ public object BoxReader {
     }
 
     /**
+     * The parsed 8-byte box header: the declared size field and the type.
+     */
+    private class BoxHeader(
+        val declaredSize: Long,
+        val type: BoxType
+    )
+
+    /**
+     * Parses the buffered 8-byte box header: the 4-byte size field
+     * followed by the type FourCC.
+     */
+    private fun parseBoxHeader(headerBytes: ByteArray): BoxHeader =
+
+        BoxHeader(
+            declaredSize = headerBytes.readUnsignedInt(
+                0,
+                BMFFConstants.SIZE_LENGTH,
+                BMFF_BYTE_ORDER
+            ),
+            type = BoxType.of(
+                headerBytes.copyOfRange(
+                    BMFFConstants.SIZE_LENGTH,
+                    BMFFConstants.BOX_HEADER_LENGTH
+                )
+            )
+        )
+
+    /**
+     * Whether the direct children of a buffered file-level meta box
+     * contain an item information entry - the marker of the ISO
+     * 14496-12 item layout that carries metadata. The walk is generic on
+     * purpose: only the child's type FourCC is identified, so hostile or
+     * unknown children cannot break the skip semantics of the video
+     * scan, and a meta whose children cannot even be walked keeps the
+     * skip behavior.
+     */
+    private fun hasItemMetadataChildren(payload: ByteArray): Boolean {
+
+        var offset = 0L
+
+        while (offset + BMFFConstants.BOX_HEADER_LENGTH <= payload.size) {
+
+            val type = payload.decodeToString(
+                offset.toInt() + BMFFConstants.SIZE_LENGTH,
+                offset.toInt() + BMFFConstants.BOX_HEADER_LENGTH
+            )
+
+            /*
+             * The item layout's marker at meta child level is "iinf", the
+             * item information box wrapping the infe entries. A bare
+             * "infe" child is malformed but seen in the wild and
+             * identifies the layout just the same.
+             */
+            if (type == "iinf" || type == "infe")
+                return true
+
+            val declaredSize = payload.readUnsignedInt(
+                offset.toInt(),
+                BMFFConstants.SIZE_LENGTH,
+                BMFF_BYTE_ORDER
+            )
+
+            /*
+             * A declared size of 1 announces an 8-byte largesize field
+             * behind the type FourCC; a size below the box header cannot
+             * be walked.
+             */
+            val size =
+                if (declaredSize == 1L) {
+
+                    if (offset + BMFFConstants.BOX_HEADER_LENGTH + LARGESIZE_LENGTH > payload.size)
+                        return false
+
+                    payload.readUnsignedInt(
+                        offset.toInt() + BMFFConstants.BOX_HEADER_LENGTH,
+                        LARGESIZE_LENGTH,
+                        BMFF_BYTE_ORDER
+                    )
+                } else {
+                    declaredSize
+                }
+
+            /*
+             * The lower bound covers both forms: a declared size below the
+             * header and a largesize value below the (larger) header. A
+             * hostile zero or negative largesize must end the walk, or the
+             * same child would be re-read forever.
+             */
+            if (size < BMFFConstants.BOX_HEADER_LENGTH)
+                return false
+
+            offset += size
+        }
+
+        return false
+    }
+
+    /**
      * The one shared box scan loop. Every entry point passes a fixed,
      * tested combination of the mode flags into it.
      *
@@ -303,16 +404,12 @@ public object BoxReader {
 
             val offset: Long = position
 
-            /* Note: The length includes the 8 header bytes. */
-            val size: Long =
-                headerBytes.readUnsignedInt(0, BMFFConstants.SIZE_LENGTH, BMFF_BYTE_ORDER)
+            /* Note: The declared length includes the 8 header bytes. */
+            val header = parseBoxHeader(headerBytes)
 
-            val type = BoxType.of(
-                headerBytes.copyOfRange(
-                    BMFFConstants.SIZE_LENGTH,
-                    BMFFConstants.BOX_HEADER_LENGTH
-                )
-            )
+            val size: Long = header.declaredSize
+
+            val type = header.type
 
             position += BMFFConstants.BOX_HEADER_LENGTH
 
@@ -422,6 +519,33 @@ public object BoxReader {
 
             val bytes: ByteArray = when {
 
+                /*
+                 * The video scan must look inside a file-level meta box:
+                 * the ISO item layout in it carries metadata, and a meta
+                 * bearing it fails the read below instead of being
+                 * skipped. The payload is therefore buffered with the
+                 * metadata budget, like every other box the scan looks
+                 * into.
+                 */
+                type == BoxType.META && skipDataBoxPayloads -> {
+
+                    if (remainingBytesToReadInThisBox > MAX_METADATA_BOX_BYTES)
+                        throw ImageReadException(
+                            "Box $type carries $remainingBytesToReadInThisBox bytes of " +
+                                "payload, which exceeds the metadata budget of " +
+                                "$MAX_METADATA_BOX_BYTES bytes."
+                        )
+
+                    val payload = readPayloadUpToEof(
+                        byteReader,
+                        remainingBytesToReadInThisBox.toInt()
+                    )
+
+                    payloadTruncated = payload.size < remainingBytesToReadInThisBox
+
+                    payload
+                }
+
                 isSkippableDataBox -> {
 
                     val skippedByteCount = skipPayloadUpToEof(
@@ -477,19 +601,30 @@ public object BoxReader {
 
                     /*
                      * The video scan skips payloads that carry nothing it
-                     * consumes, so a file-level meta box arrives with an
-                     * empty payload. Such a meta is legal in a video
-                     * container and has no item-metadata children there -
-                     * the strict container would reject the whole read
-                     * for children it cannot even see, and even the plain
-                     * container cannot parse a payload that was skipped.
-                     * The generic box keeps the (skipped) box available
-                     * instead.
+                     * consumes, so a file-level meta box would arrive with
+                     * an empty payload. Such a meta is legal in a video
+                     * container - but the ISO 14496-12 item layout is legal
+                     * in it too, and muxers write video XMP into that
+                     * layout. Silently skipping a metadata-bearing meta
+                     * would lose it, so a meta carrying item boxes fails
+                     * the read; an unparseable meta keeps the skip
+                     * semantics, because its content cannot be identified
+                     * as metadata. The generic box keeps the (skipped) box
+                     * available instead.
                      */
-                    if (isSkippableDataBox)
+                    if (isSkippableDataBox) {
+
+                        if (hasItemMetadataChildren(bytes))
+                            throw ImageReadException(
+                                "The file-level meta box of the video " +
+                                    "carries item metadata, which is not " +
+                                    "read here."
+                            )
+
                         Box(BoxType.META, globalOffset, size, largeSize, bytes)
-                    else
+                    } else {
                         MetaBoxTopLevel(globalOffset, size, largeSize, bytes, depth + 1)
+                    }
                 } else {
                     MetaBox(globalOffset, size, largeSize, bytes, depth + 1)
                 }
