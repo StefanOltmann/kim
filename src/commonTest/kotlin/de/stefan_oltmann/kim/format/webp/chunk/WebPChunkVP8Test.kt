@@ -77,6 +77,24 @@ class WebPChunkVP8Test {
     }
 
     /**
+     * A crafted VP8 frame with a zero dimension must fail the read like
+     * the VP8X/VP8L equivalents do: a zero size would flow into
+     * MediaMetadata, and a rewrite of it would encode a VP8X canvas of
+     * `0 - 1` that fails Kim's own re-read.
+     */
+    @Test
+    fun testHostileZeroDimensionsFailTheRead() {
+
+        assertFailsWith<ImageReadException> {
+            WebPChunkVP8(createVp8Bytes(width = 0, height = 100))
+        }
+
+        assertFailsWith<ImageReadException> {
+            WebPChunkVP8(createVp8Bytes(width = 100, height = 0))
+        }
+    }
+
+    /**
      * Without scale factors the stored dimension is reported as-is.
      */
     @Test

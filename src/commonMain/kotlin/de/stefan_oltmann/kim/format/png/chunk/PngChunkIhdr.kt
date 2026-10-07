@@ -17,6 +17,7 @@
  */
 package de.stefan_oltmann.kim.format.png.chunk
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.png.PngChunkType
 import de.stefan_oltmann.kim.format.png.PngConstants.PNG_BYTE_ORDER
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
@@ -37,9 +38,20 @@ public class PngChunkIhdr(
 
         val byteReader = ByteArrayByteReader(bytes)
 
+        val width = byteReader.read4BytesAsInt("width", PNG_BYTE_ORDER)
+        val height = byteReader.read4BytesAsInt("height", PNG_BYTE_ORDER)
+
+        /*
+         * The dimensions are attacker-controlled input. Per the PNG
+         * specification both are 1 to 2^31-1; the unsigned read maps
+         * every value beyond that range to a negative Int.
+         */
+        if (width < 1 || height < 1)
+            throw ImageReadException("Illegal IHDR dimensions: $width x $height.")
+
         imageSize = ImageSize(
-            width = byteReader.read4BytesAsInt("width", PNG_BYTE_ORDER),
-            height = byteReader.read4BytesAsInt("height", PNG_BYTE_ORDER)
+            width = width,
+            height = height
         )
     }
 }

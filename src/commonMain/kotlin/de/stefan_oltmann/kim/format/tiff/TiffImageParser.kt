@@ -211,6 +211,15 @@ public object TiffImageParser : ImageParser {
         val width = widthField.toInt() ?: return null
         val height = heightField.toInt() ?: return null
 
+        /*
+         * The dimensions are attacker-controlled input. A hostile
+         * 0xFFFFFFFF LONG reads as a negative Int; like the WebP
+         * readers, an unusable size fails the read instead of flowing
+         * into MediaMetadata.
+         */
+        if (width < 1 || height < 1)
+            throw ImageReadException("Illegal image dimensions: $width x $height.")
+
         return ImageSize(width, height)
     }
 

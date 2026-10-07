@@ -18,6 +18,9 @@ package de.stefan_oltmann.kim.format.png.chunk
 import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
+import de.stefan_oltmann.kim.format.png.PngConstants.PNG_BYTE_ORDER
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
+import de.stefan_oltmann.kim.output.writeInt
 import de.stefan_oltmann.kim.format.png.PngChunkType
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -27,6 +30,45 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class PngChunkTest {
+
+    /**
+     * The IHDR dimensions are attacker-controlled input. Per the PNG
+     * specification both are 1 to 2^31-1, so out-of-range values must
+     * fail the read instead of producing negative or zero sizes in
+     * MediaMetadata.
+     */
+    @Test
+    fun testIhdrRejectsNonPositiveDimensions() {
+
+        fun ihdrBytes(width: Int, height: Int): ByteArray {
+
+            val writer = ByteArrayByteWriter()
+
+            writer.writeInt(width, PNG_BYTE_ORDER)
+            writer.writeInt(height, PNG_BYTE_ORDER)
+
+            /* Bit depth, color type, compression, filter, interlace. */
+            writer.write(8)
+            writer.write(6)
+            writer.write(0)
+            writer.write(0)
+            writer.write(0)
+
+            return writer.toByteArray()
+        }
+
+        assertFailsWith<ImageReadException> {
+            PngChunkIhdr(ihdrBytes(-1, 1), 0)
+        }
+
+        assertFailsWith<ImageReadException> {
+            PngChunkIhdr(ihdrBytes(1, 0), 0)
+        }
+
+        assertFailsWith<ImageReadException> {
+            PngChunkIhdr(ihdrBytes(0, 0), 0)
+        }
+    }
 
     @Test
     fun testChunkTypeOf() {
