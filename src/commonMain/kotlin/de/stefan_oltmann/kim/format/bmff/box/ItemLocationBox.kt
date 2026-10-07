@@ -153,6 +153,21 @@ public class ItemLocationBox(
 
             val extentCount = byteReader.read2BytesAsInt("extentCount", BMFF_BYTE_ORDER)
 
+            /*
+             * The spec allows zero-size offset and length fields, in
+             * which case an extent consumes no box bytes at all and the
+             * loop below is not terminated by the end of the payload -
+             * a hostile file can spin it through billions of
+             * allocation-only iterations. The total extent count is
+             * therefore bounded; a real file never declares more
+             * extents than a single count field can express.
+             */
+            if (extents.size + extentCount > MAX_ILOC_EXTENT_COUNT)
+                throw ImageReadException(
+                    "The ILOC box declares ${extents.size + extentCount} extents, " +
+                        "which exceeds the limit of $MAX_ILOC_EXTENT_COUNT."
+                )
+
             repeat(extentCount) {
 
                 val extentIndex: Long? = if (version in 1..2 && indexSize > 0)
@@ -201,6 +216,13 @@ public class ItemLocationBox(
             "extents=$extents"
 
     private companion object {
+
+        /*
+         * Upper bound for the total extent count of the box, so the
+         * spec-legal zero-size extent fields cannot make the extent
+         * loop unbounded for hostile input.
+         */
+        const val MAX_ILOC_EXTENT_COUNT = 65_535
 
         /* Bit mask for the upper nibble of the size byte */
         const val UPPER_NIBBLE_MASK = 0xF0

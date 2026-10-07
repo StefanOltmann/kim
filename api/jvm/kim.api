@@ -409,6 +409,7 @@ public final class de/stefan_oltmann/kim/format/bmff/box/ItemInformationBox : de
 
 public final class de/stefan_oltmann/kim/format/bmff/box/ItemLocationBox : de/stefan_oltmann/kim/format/bmff/box/Box {
 	public static final field LOWER_NIBBLE_MASK I
+	public static final field MAX_ILOC_EXTENT_COUNT I
 	public static final field NIBBLE_SHIFT I
 	public static final field UPPER_NIBBLE_MASK I
 	public fun <init> (JJLjava/lang/Long;[B)V

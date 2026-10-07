@@ -51,6 +51,38 @@ class ItemLocationBoxTest {
     }
 
     /**
+     * The spec allows zero-size offset and length fields, in which case
+     * an extent consumes no box bytes at all and the extent loop is not
+     * terminated by the end of the payload. A hostile file can
+     * therefore spin the parser through billions of allocation-only
+     * iterations, so the total extent count is bounded. Two items
+     * declaring 40000 field-less extents each exceed that bound.
+     */
+    @Test
+    fun testRejectsTotalExtentCountBeyondTheLimit() {
+
+        /* version 0, zero-size offset/length/baseOffset fields, two
+           items with 40000 extents each. */
+        val payload = byteArrayOf(
+            0, 0, 0, 0,
+            0x00,
+            0x00,
+            0, 2,
+            0, 1, 0, 0, 0x9C.toByte(), 0x40,
+            0, 2, 0, 0, 0x9C.toByte(), 0x40
+        )
+
+        assertFailsWith<ImageReadException> {
+            ItemLocationBox(
+                offset = 0,
+                size = payload.size.toLong() + 8,
+                largeSize = null,
+                payload = payload
+            )
+        }
+    }
+
+    /**
      * ISOBMFF 32-bit extent offsets are unsigned. A spec-legal offset
      * with the high bit set (2 GiB and above) must not sign-extend into
      * a negative offset that silently skips the metadata item.
