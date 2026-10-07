@@ -43,10 +43,12 @@ class PngImageParserTest {
     @Test
     fun testOversizedMetadataChunksFailAtTheBudget() {
 
-        /* A single text chunk whose declared payload exceeds the 16 MiB
-           budget: the metadata-scoped read must reject it before its
-           payload is allocated. The CRC is irrelevant - it is verified
-           only after the budget passes. */
+        /*
+         * A single text chunk whose declared payload exceeds the 16 MiB
+         * budget: the metadata-scoped read must reject it before its
+         * payload is allocated. The CRC is irrelevant - it is verified
+         * only after the budget passes.
+         */
         val chunkType = PngChunkType.TEXT.bytes
 
         val lengthBytes = byteArrayOf(
@@ -70,7 +72,6 @@ class PngImageParserTest {
             )
         }
     }
-
 
     /**
      * Regression test based on a fixed small set of test files.

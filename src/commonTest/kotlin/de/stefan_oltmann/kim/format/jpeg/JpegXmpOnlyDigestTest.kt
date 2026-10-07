@@ -40,9 +40,11 @@ class JpegXmpOnlyDigestTest {
     @Test
     fun testXmpOnlyDigestIsRefreshedOnIptcRewrite() {
 
-        /* Build a JPEG whose XMP declares a digest without any 0x0425
-           resource: media_1's IPTC stays, the Photoshop blocks do not
-           carry a digest resource. */
+        /*
+         * Build a JPEG whose XMP declares a digest without any 0x0425
+         * resource: media_1's IPTC stays, the Photoshop blocks do not
+         * carry a digest resource.
+         */
         val original = KimTestData.getBytesOf(1)
 
         val digestXmp = """
@@ -73,9 +75,11 @@ class JpegXmpOnlyDigestTest {
         /* Read the updated XMP digest and the updated IPTC records. */
         val metadata = assertNotNull(Kim.readMetadata(updated))
 
-        /* The XMP digest must equal the MD5 of the rewritten IPTC
-           records - the stale "AAAA" marker would make digest-aware
-           tools report the stores as out of sync. */
+        /*
+         * The XMP digest must equal the MD5 of the rewritten IPTC
+         * records - the stale "AAAA" marker would make digest-aware
+         * tools report the stores as out of sync.
+         */
         val xmpDigest = assertNotNull(
             XMPMetaFactory.parseFromString(assertNotNull(metadata.xmp)).getIptcDigest()
         )

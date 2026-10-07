@@ -70,14 +70,7 @@ class PngWriterTest {
     }
 
     /**
-     * Tests that there is no loss if writing
-     * the PNG chunks again without any change.
-     *
-     * This basically tests if write order is
-     * kept and CRC calculation is correct.
-     */
-    /**
-     * The iTXt payload layout is keyword, NUL, compression flag,
+     * The iTXt payload is keyword, NUL, compression flag,
      * compression method, empty language tag, empty translated keyword
      * and the text - the layout every common writer emits (verified
      * against the ExifTool reference dumps of media_51 to media_53).
@@ -173,6 +166,13 @@ class PngWriterTest {
         error("No $chunkType chunk found.")
     }
 
+    /**
+     * Tests that there is no loss if writing
+     * the PNG chunks again without any change.
+     *
+     * This basically tests if write order is
+     * kept and CRC calculation is correct.
+     */
     @Test
     fun testNoChange() {
 

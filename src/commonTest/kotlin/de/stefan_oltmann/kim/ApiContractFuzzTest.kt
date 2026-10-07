@@ -89,7 +89,6 @@ class ApiContractFuzzTest {
     fun testFuzzAvif() =
         fuzzCandidate(KimTestData.AVIF_TEST_IMAGE_FROM_JPG_USING_IMAGEMAGICK_INDEX)
 
-
     /**
      * Fuzzes one corpus file with [MUTATIONS_PER_FILE] deterministic
      * mutations of the five public API entry points.

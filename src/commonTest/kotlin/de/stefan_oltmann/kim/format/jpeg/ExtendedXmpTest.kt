@@ -291,8 +291,10 @@ class ExtendedXmpTest {
             extensionPayloads = emptyList()
         )
 
-        /* A packet as a reader round-trips it: it still contains the
-           reference of a previous extended-XMP write. */
+        /*
+         * A packet as a reader round-trips it: it still contains the
+         * reference of a previous extended-XMP write.
+         */
         val packetWithStaleReference = buildMainPacket(GUID)
 
         val byteWriter = ByteArrayByteWriter()
@@ -476,8 +478,10 @@ class ExtendedXmpTest {
 
         val jpegBytes = createJpegWithExtendedXmp(
             mainPacket = buildMainPacket(guid),
-            /* The chunk claims offset 200 behind a 50-byte first chunk,
-               leaving a gap of 150 bytes. */
+            /*
+             * The chunk claims offset 200 behind a 50-byte first chunk,
+             * leaving a gap of 150 bytes.
+             */
             extensionPayloads = listOf(
                 buildExtensionPayload(guid, extendedXml, chunkOffset = 200)
             )
@@ -499,8 +503,10 @@ class ExtendedXmpTest {
 
         val hugeValue = "x".repeat(JpegConstants.MAX_XMP_BYTES_PER_SEGMENT + 100)
 
-        /* One description carries both the stale reference (attribute
-           form) and real properties. */
+        /*
+         * One description carries both the stale reference (attribute
+         * form) and real properties.
+         */
         val hugeXmp =
             """<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>""" +
                 """<x:xmpmeta xmlns:x="adobe:ns:meta/">""" +
@@ -532,8 +538,10 @@ class ExtendedXmpTest {
     @Test
     fun testUpdateXmpXmlKeepsDuplicateDescriptionOccurrences() {
 
-        /* Two byte-identical mid-size blocks, so only the first fits into
-           the main packet and the second must move to the extended data. */
+        /*
+         * Two byte-identical mid-size blocks, so only the first fits into
+         * the main packet and the second must move to the extended data.
+         */
         val duplicateBlock =
             """<rdf:Description rdf:about="" xmlns:custom="http://example.com/custom/">""" +
                 "<custom:Mark>KEEPME</custom:Mark>" +

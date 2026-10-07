@@ -147,8 +147,10 @@ class Cr3PreviewExtractorTest {
     @Test
     fun testExtractRejectsBoxSmallerThanHeader() {
 
-        /* A box header whose declared size of 4 is smaller than the
-           8-byte header every ISOBMFF box starts with. */
+        /*
+         * A box header whose declared size of 4 is smaller than the
+         * 8-byte header every ISOBMFF box starts with.
+         */
         val bytes = byteArrayOf(0, 0, 0, 4) + "free".encodeToByteArray()
 
         val exception = assertFailsWith<ImageReadException> {
@@ -173,9 +175,11 @@ class Cr3PreviewExtractorTest {
     @Test
     fun testExtractRejectsLargesizeBelowItsOwnHeader() {
 
-        /* mdat header: size=1 (largesize form), largesize=12 - below the
-           16-byte header of that form. The largesize read succeeds, so
-           the size validation is what fires. */
+        /*
+         * mdat header: size=1 (largesize form), largesize=12 - below the
+         * 16-byte header of that form. The largesize read succeeds, so
+         * the size validation is what fires.
+         */
         val bytes = byteArrayOf(
             0, 0, 0, 1,
             'm'.code.toByte(), 'd'.code.toByte(), 'a'.code.toByte(), 't'.code.toByte(),
@@ -229,9 +233,11 @@ class Cr3PreviewExtractorTest {
     @Test
     fun testExtractReadsBoxSizeAsUnsigned() {
 
-        /* The size field 0x80000000 declares a 2 GiB box - only the
-           header bytes exist, so the walk fails loudly on the short
-           payload instead of on the size. */
+        /*
+         * The size field 0x80000000 declares a 2 GiB box - only the
+         * header bytes exist, so the walk fails loudly on the short
+         * payload instead of on the size.
+         */
         val headerBytes = byteArrayOf(0x80.toByte(), 0, 0, 0) + "mdat".encodeToByteArray()
 
         val reader = FakeLengthByteReader(

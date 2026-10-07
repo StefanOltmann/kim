@@ -36,8 +36,10 @@ class FujiFilmFocusSettingsTagTest {
     @Test
     fun testMaskedEntriesReadTheFullInt32() {
 
-        /* A FujiFilm MakerNote: signature, version and a little-endian
-           IFD with the FocusSettings and DriveSettings blobs inline. */
+        /*
+         * A FujiFilm MakerNote: signature, version and a little-endian
+         * IFD with the FocusSettings and DriveSettings blobs inline.
+         */
         val makerNoteBytes = byteArrayOf(
             0x46, 0x55, 0x4A, 0x49, 0x46, 0x49, 0x4C, 0x4D, // "FUJIFILM"
             0x01, 0x00, 0x00, 0x00, // Version.

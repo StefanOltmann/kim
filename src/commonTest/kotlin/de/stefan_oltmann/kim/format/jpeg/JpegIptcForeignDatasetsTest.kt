@@ -43,8 +43,10 @@ class JpegIptcForeignDatasetsTest {
 
         val before = assertNotNull(assertNotNull(Kim.readMetadata(original)).iptc)
 
-        /* The ExifTool-written fixture carries the envelope record
-           version dataset (1:0), which must survive as foreign data. */
+        /*
+         * The ExifTool-written fixture carries the envelope record
+         * version dataset (1:0), which must survive as foreign data.
+         */
         assertTrue(before.foreignDatasets.isNotEmpty())
 
         val updated = Kim.update(

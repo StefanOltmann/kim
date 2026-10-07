@@ -105,8 +105,10 @@ class GifImageParserTest {
     @Test
     fun testReadChunksRejectsUnknownBlockIntroducer() {
 
-        /* Header, logical screen descriptor without color table,
-           one stray byte, then the terminator. */
+        /*
+         * Header, logical screen descriptor without color table,
+         * one stray byte, then the terminator.
+         */
         val bytes = "GIF89a".encodeToByteArray() +
             byteArrayOf(1, 0, 1, 0, 0, 0, 0) +
             byteArrayOf(0x55.toByte()) +
@@ -174,8 +176,10 @@ class GifImageParserTest {
     @Test
     fun testReadToleratesShortApplicationExtension() {
 
-        /* Header, logical screen descriptor, app extension with a
-           4-byte first sub-block, a minimal 1x1 image, terminator. */
+        /*
+         * Header, logical screen descriptor, app extension with a
+         * 4-byte first sub-block, a minimal 1x1 image, terminator.
+         */
         val bytes = "GIF89a".encodeToByteArray() +
             byteArrayOf(1, 0, 1, 0, 0, 0, 0) +
             byteArrayOf(0x21.toByte(), 0xFF.toByte(), 4, 1, 2, 3, 4, 0) +

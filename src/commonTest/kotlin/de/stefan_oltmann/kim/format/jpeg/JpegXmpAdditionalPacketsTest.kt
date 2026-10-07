@@ -54,8 +54,10 @@ class JpegXmpAdditionalPacketsTest {
 
         val rewrittenPackets = findXmpPackets(writer.toByteArray())
 
-        /* The new packet replaces the first position; the additional
-           packet survives behind it, byte-exact. */
+        /*
+         * The new packet replaces the first position; the additional
+         * packet survives behind it, byte-exact.
+         */
         assertEquals(2, rewrittenPackets.size)
 
         assertEquals(

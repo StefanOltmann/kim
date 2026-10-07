@@ -55,8 +55,10 @@ class GifMetadataExtractorTest {
     @Test
     fun testExtractMetadataBytesRejectsUnknownBlockIntroducer() {
 
-        /* Header, logical screen descriptor, one stray byte, then the
-           terminator. */
+        /*
+         * Header, logical screen descriptor, one stray byte, then the
+         * terminator.
+         */
         val bytes = "GIF89a".encodeToByteArray() +
             byteArrayOf(1, 0, 1, 0, 0, 0, 0) +
             byteArrayOf(0x55.toByte()) +

@@ -31,8 +31,10 @@ class ItemLocationBoxTest {
     @Test
     fun testRejectsNegativeItemCount() {
 
-        /* version 2, no flags, 4-byte offsets/lengths, no base offset,
-           itemCount 0xFFFFFFFF and no items. */
+        /*
+         * version 2, no flags, 4-byte offsets/lengths, no base offset,
+         * itemCount 0xFFFFFFFF and no items.
+         */
         val payload = byteArrayOf(
             2, 0, 0, 0,
             0x44,
@@ -59,9 +61,11 @@ class ItemLocationBoxTest {
     @Test
     fun testRejectsIllegalFieldSizeNibbles() {
 
-        /* version 0, offsetSize=3 (illegal), lengthSize=0, baseOffset=0,
-           index=0, one item with one extent (3-byte offset, no length) -
-           the extent read is what the illegal width reaches. */
+        /*
+         * version 0, offsetSize=3 (illegal), lengthSize=0, baseOffset=0,
+         * index=0, one item with one extent (3-byte offset, no length) -
+         * the extent read is what the illegal width reaches.
+         */
         val payload = byteArrayOf(
             0, 0, 0, 0,
             0x30,
@@ -93,8 +97,10 @@ class ItemLocationBoxTest {
     @Test
     fun testRejectsTotalExtentCountBeyondTheLimit() {
 
-        /* version 0, zero-size offset/length/baseOffset fields, two
-           items with 40000 extents each. */
+        /*
+         * version 0, zero-size offset/length/baseOffset fields, two
+         * items with 40000 extents each.
+         */
         val payload = byteArrayOf(
             0, 0, 0, 0,
             0x00,
@@ -122,8 +128,10 @@ class ItemLocationBoxTest {
     @Test
     fun testExtentOffsetAboveTwoGigIsReadUnsigned() {
 
-        /* version 2, 4-byte offsets/lengths, one item with one extent
-           at offset 0x90000000. */
+        /*
+         * version 2, 4-byte offsets/lengths, one item with one extent
+         * at offset 0x90000000.
+         */
         val payload = byteArrayOf(
             2, 0, 0, 0,
             0x44,

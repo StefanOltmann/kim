@@ -120,9 +120,11 @@ public class TagInfoGpsText(
             if (bytesWithoutPrefix.all { it == ZERO_BYTE })
                 return ""
 
-            /* A terminating NUL character cuts the text like in ASCII.
+            /*
+             * A terminating NUL character cuts the text like in ASCII.
              * Malformed sequences fail the read: replacement decoding
-             * would fabricate U+FFFD into the comment text. */
+             * would fabricate U+FFFD into the comment text.
+             */
             val decodedString = bytesWithoutPrefix.decodeStrictUtf8(
                 "The UTF-8 charset UserComment"
             )

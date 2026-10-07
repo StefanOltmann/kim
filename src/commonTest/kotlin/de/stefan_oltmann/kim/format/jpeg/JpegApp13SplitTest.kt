@@ -45,8 +45,10 @@ class JpegApp13SplitTest {
     @Test
     fun testSplitApp13SegmentsAvoidBlockAlignedContinuations() {
 
-        /* Two opaque blocks whose combined size lands exactly on the
-           second segment stride: 2 * 65519 = 131038 bytes. */
+        /*
+         * Two opaque blocks whose combined size lands exactly on the
+         * second segment stride: 2 * 65519 = 131038 bytes.
+         */
         val firstBlock = IptcBlock(0x040F, byteArrayOf(), ByteArray(65506))
         val secondBlock = IptcBlock(0x0410, byteArrayOf(), ByteArray(65508))
 

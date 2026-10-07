@@ -243,7 +243,6 @@ public object ExifTag {
         TiffDirectoryType.EXIF_DIRECTORY_EXIF_IFD
     )
 
-
     /**
      * The f-number of the lens.
      */

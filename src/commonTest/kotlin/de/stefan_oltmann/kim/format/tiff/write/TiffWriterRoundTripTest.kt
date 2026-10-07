@@ -190,8 +190,10 @@ class TiffWriterRoundTripTest {
 
         exifDirectory.add(ExifTag.EXIF_TAG_USER_COMMENT, "A comment")
 
-        /* GPS directory. A position rewrite yields a fresh GPS state,
-           so the companion fields are added after the position. */
+        /*
+         * GPS directory. A position rewrite yields a fresh GPS state,
+         * so the companion fields are added after the position.
+         */
         val gpsDirectory = outputSet.getOrCreateGPSDirectory()
 
         outputSet.setGpsCoordinates(

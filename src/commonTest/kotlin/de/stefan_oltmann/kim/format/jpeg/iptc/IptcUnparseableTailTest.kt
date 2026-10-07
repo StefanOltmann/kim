@@ -34,11 +34,12 @@ class IptcUnparseableTailTest {
     @Test
     fun testUnparseableApp13TailFailsTheRead() {
 
-        /* The valid IPTC block followed by a junk word that is not an
-         * 8BIM signature and has no 8BIM behind it either. */
+        /*
+         * The valid IPTC block followed by a junk word that is not an
+         * 8BIM signature and has no 8BIM behind it either.
+         */
         val bytes = convertHexStringToByteArray(IPTC_HEX) +
             convertHexStringToByteArray("CAFE0000")
-
 
         assertFailsWith<ImageReadException> {
             IptcParser.parseIptc(

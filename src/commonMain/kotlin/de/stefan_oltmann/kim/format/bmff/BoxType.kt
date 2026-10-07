@@ -45,17 +45,16 @@ public data class BoxType(
     override fun toString(): String =
         name
 
+    /**
+     * Important: All the box types listed below are integral components of the
+     * ISO base media file format specification. The patent for this specification
+     * was filed over 20 years ago and is expired by now. Please exercise caution
+     * and refrain from adding any new box types that may fall under an active patent!
+     *
+     * For example the HEIC format defines "Image spatial Extents" ("ispe") and
+     * "Image Rotation" ("irot") which are for that reason not part of this implementation.
+     */
     public companion object {
-
-        /*
-         * Important: All the box types listed below are integral components of the
-         * ISO base media file format specification. The patent for this specification
-         * was filed over 20 years ago and is expired by now. Please exercise caution
-         * and refrain from adding any new box types that may fall under an active patent!
-         *
-         * For example the HEIC format defines "Image spatial Extents" ("ispe") and
-         * "Image Rotation" ("irot") which are for that reason not part of this implementation.
-         */
 
         /**
          * ISOBMFF File Type box, the first box.

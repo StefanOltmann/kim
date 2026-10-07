@@ -78,8 +78,10 @@ class TiffReaderTest {
     @Test
     fun testUnreadableExifOffsetValueFailsTheRead() {
 
-        /* IFD0 with a single entry: ExifOffset (0x8769), LONG, count 5,
-         * value offset 1000 - far behind the end of this 26-byte file. */
+        /*
+         * IFD0 with a single entry: ExifOffset (0x8769), LONG, count 5,
+         * value offset 1000 - far behind the end of this 26-byte file.
+         */
         val bytes = byteArrayOf(
             0x49, 0x49, 0x2A, 0x00, // TIFF header.
             8, 0, 0, 0,             // IFD0 offset.
@@ -184,8 +186,10 @@ class TiffReaderTest {
     @Test
     fun testGeoKeyDirectoryWithWrongTypeFailsTheRead() {
 
-        /* IFD0 with a single entry: GeoKeyDirectory (0x87AF), stored as
-         * LONG, count 4, value at offset 24. */
+        /*
+         * IFD0 with a single entry: GeoKeyDirectory (0x87AF), stored as
+         * LONG, count 4, value at offset 24.
+         */
         val bytes = byteArrayOf(
             0x49, 0x49, 0x2A, 0x00, // TIFF header.
             8, 0, 0, 0,             // IFD0 offset.

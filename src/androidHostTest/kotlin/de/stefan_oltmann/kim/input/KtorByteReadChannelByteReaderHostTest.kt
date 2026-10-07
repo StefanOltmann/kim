@@ -20,13 +20,11 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-/*
- * The test is placed in androidHostTest, because the reader lives in ktorMain
- * which is not visible to commonTest.
- */
-
 /**
  * Tests the [KtorByteReadChannelByteReader] against a byte read channel.
+ *
+ * The test is placed in androidHostTest, because the reader lives in ktorMain
+ * which is not visible to commonTest.
  */
 class KtorByteReadChannelByteReaderHostTest {
 

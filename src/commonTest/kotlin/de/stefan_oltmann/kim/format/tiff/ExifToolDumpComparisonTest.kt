@@ -108,7 +108,6 @@ class ExifToolDumpComparisonTest {
         Triple("MakerNote/ImageProcessingIFD", 0x1104, "UnknownBlock4")
     )
 
-
     @Test
     fun testMakerNoteValuesMatchExifToolDumps() {
 
@@ -613,7 +612,6 @@ class ExifToolDumpComparisonTest {
                 fields.add(DumpField(tag, name, bytes))
         }
     }
-
 
     private fun isEntryLine(line: String): Boolean =
         entryLineRegex.containsMatchIn(line)

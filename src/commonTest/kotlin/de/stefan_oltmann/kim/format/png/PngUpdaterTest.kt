@@ -748,8 +748,10 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
 
         val after = assertNotNull(Kim.readMetadata(updatedBytes))
 
-        /* The chunk is rewritten in place, not dropped. The epoch is
-           2023-07-12T12:48:45Z, which is 14:48:45 in GMT+02:00. */
+        /*
+         * The chunk is rewritten in place, not dropped. The epoch is
+         * 2023-07-12T12:48:45Z, which is 14:48:45 in GMT+02:00.
+         */
         val records = assertNotNull(after.iptc, "The IPTC date copy must survive the update.").records
 
         assertEquals(
@@ -820,9 +822,11 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
             update = MetadataUpdate.Keywords(setOf("new"))
         )
 
-        /* The XMP digest must equal the MD5 of the rewritten IPTC
-           records - the stale "AAAA" marker would make digest-aware
-           tools report the stores as out of sync. */
+        /*
+         * The XMP digest must equal the MD5 of the rewritten IPTC
+         * records - the stale "AAAA" marker would make digest-aware
+         * tools report the stores as out of sync.
+         */
         val metadata = assertNotNull(Kim.readMetadata(updatedBytes))
 
         val xmpDigest = assertNotNull(

@@ -217,8 +217,10 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
         /* A COM segment with an empty payload. */
         val emptyCom = byteArrayOf(0xFF.toByte(), 0xFE.toByte(), 0x00, 0x02)
 
-        /* The empty segment sits directly before the EXIF segment, so
-           the lossless orientation path walks over it. */
+        /*
+         * The empty segment sits directly before the EXIF segment, so
+         * the lossless orientation path walks over it.
+         */
         val bytesWithEmptyCom = byteArrayOf(0xFF.toByte(), 0xD8.toByte()) +
             emptyCom +
             originalBytes.copyOfRange(2, originalBytes.size)
