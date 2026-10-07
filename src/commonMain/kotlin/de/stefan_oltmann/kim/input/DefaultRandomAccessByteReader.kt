@@ -168,13 +168,19 @@ public class DefaultRandomAccessByteReader(
     /**
      * Grows the buffer in bounded steps until [endIndex] is buffered or
      * the delegate's end of data is reached, so a declared content length
-     * or a hostile offset cannot drive a huge up-front allocation.
+     * or a hostile offset cannot drive a huge up-front allocation. The
+     * steps grow geometrically: with fixed 64 KB steps, reaching a
+     * file-controlled offset n would re-copy the whole buffer n/64 KB
+     * times - quadratic copy volume on every high-offset read.
      */
     private fun ensureBufferedUpTo(endIndex: Int) {
 
         while (bufferPosition < endIndex) {
 
-            val stepEnd = minOf(endIndex.toLong(), buffer.size.toLong() + BUFFER_EXPANSION).toInt()
+            val stepEnd = minOf(
+                endIndex.toLong(),
+                max(buffer.size.toLong() * 2, buffer.size.toLong() + BUFFER_EXPANSION)
+            ).toInt()
 
             readToIndex(stepEnd)
 
@@ -206,8 +212,7 @@ public class DefaultRandomAccessByteReader(
 
         val bytes = byteReader.readBytes(missingBytesCount)
 
-        for (i in bytes.indices)
-            buffer[bufferPosition + i] = bytes[i]
+        bytes.copyInto(buffer, bufferPosition)
 
         /*
          * Only advance by the bytes that were actually read. At the end of
