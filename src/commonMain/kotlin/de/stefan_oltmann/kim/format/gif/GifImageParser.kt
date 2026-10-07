@@ -117,20 +117,16 @@ public object GifImageParser : ImageParser {
     }
 
     /**
-     * Returns the XMP of the given GIF chunks, or NULL for GIF87A files
-     * that cannot store XMP.
+     * Returns the XMP of the given GIF chunks, or NULL when the file
+     * has none.
+     *
+     * The header version is deliberately not consulted here: a GIF87a
+     * file can carry an XMP application extension, and hiding it would
+     * make the update destroy it unread by writing a fresh packet.
+     * The 89a requirement only applies where a new packet is written.
      */
-    internal fun parseXmp(chunks: List<GifChunk>): String? {
-
-        val headerChunk = chunks.filterIsInstance<GifChunkHeader>().firstOrNull()
-            ?: return null
-
-        /* Only GIF89A supports XMP metadata */
-        if (headerChunk.version != GifVersion.GIF89A)
-            return null
-
-        return getXmpXml(chunks)
-    }
+    internal fun parseXmp(chunks: List<GifChunk>): String? =
+        getXmpXml(chunks)
 
     private fun getXmpXml(chunks: List<GifChunk>): String? = chunks
         .filterIsInstance<GifChunkApplicationExtension>()

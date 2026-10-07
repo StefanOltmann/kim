@@ -18,9 +18,18 @@
 package de.stefan_oltmann.kim.format.gif.chunk
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.decodeStrictUtf8
+import de.stefan_oltmann.kim.common.getRemainingBytes
+import de.stefan_oltmann.kim.common.isEquals
+import de.stefan_oltmann.kim.common.slice
 import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.format.gif.GifChunkType
 import de.stefan_oltmann.kim.format.gif.GifConstants
+import de.stefan_oltmann.kim.format.xmp.RDF_ROOT_END_TAG
+import de.stefan_oltmann.kim.format.xmp.RDF_ROOT_START_TAG
+import de.stefan_oltmann.kim.format.xmp.XMP_PACKET_END_TAG
+import de.stefan_oltmann.kim.format.xmp.XMP_PACKET_START_TAG
+import de.stefan_oltmann.kim.format.xmp.requireValidXmpPacket
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.readBytes
 
@@ -96,42 +105,118 @@ public class GifChunkApplicationExtension(
 
         /*
          * The XMP payload is spread over size-prefixed sub-blocks.
-         * Strip the size bytes and search the payload.
+         * Strip the size bytes and decode the payload as a whole: a
+         * multi-byte UTF-8 sequence straddling a sub-block boundary
+         * would be corrupted by decoding each block on its own.
          * Fall back to the raw bytes for files written without
          * sub-block framing, where the size bytes are part of the data.
          */
-        val unpackedContent = subChunks
-            .map { subChunk -> subChunk.copyOfRange(1, subChunk.size).decodeToString() }
-            .joinToString("")
+        val strippedPayload = subChunks
+            .map { subChunk -> subChunk.copyOfRange(1, subChunk.size) }
+            .reduceOrNull(ByteArray::plus)
+            ?: ByteArray(0)
 
-        val content =
-            if (unpackedContent.contains("<$XMP_META_TAG")) unpackedContent
-            else bytes.decodeToString()
-
-        if (!content.contains("<$XMP_META_TAG"))
-            throw ImageReadException("No XMP data found in application extension.")
+        val content = decodePacketBytes(strippedPayload, "The GIF XMP extension payload")
+            ?: decodePacketBytes(bytes, "The GIF XMP extension")
+            ?: throw ImageReadException("No XMP data found in application extension.")
 
         /*
-         * A packet cut off between the opening and the closing element is
-         * incomplete. Returning it would hand sidecar writers metadata
-         * that only looks complete while the update path fails on the
-         * broken bytes, so the parse fails instead - no synthetic closer
-         * is fabricated to disguise the truncation either.
+         * Completeness and the accepted envelope forms - the recommended
+         * x:xmpmeta wrapper or a bare rdf:RDF root - are decided by the
+         * shared validator, like in every other container. No synthetic
+         * closer is fabricated to disguise a truncation either.
          */
-        val packetStart = "<$XMP_META_TAG" + content.substringAfter("<$XMP_META_TAG")
-
-        if (!packetStart.contains("</$XMP_META_TAG>"))
-            throw ImageReadException(
-                "The XMP packet in the application extension is truncated - " +
-                    "the closing element is missing."
+        return requireNotNull(
+            requireValidXmpPacket(
+                xmp = content,
+                sourceDescription = "The GIF XMP extension"
             )
+        )
+    }
 
-        return packetStart.substringBefore("</$XMP_META_TAG>") + "</$XMP_META_TAG>"
+    /**
+     * Decodes the bytes of the XMP packet, strictly, or NULL when the
+     * payload carries neither the recommended `x:xmpmeta` envelope nor a
+     * complete bare `rdf:RDF` root. Two reasons keep the search in the
+     * byte domain: Adobe's XMP toolkit pads GIF packets to a whole
+     * sub-block with a binary filler sequence behind the closing element
+     * - that filler is container structure and must neither fabricate
+     * replacement characters nor fail the read - and the unframed
+     * fallback blob contains size and header bytes that are not UTF-8 by
+     * structure.
+     */
+    private fun decodePacketBytes(
+        payload: ByteArray,
+        sourceDescription: String
+    ): String? {
+
+        val xmpMetaStart = payload.indexOfSequence(XMP_META_START_TAG_BYTES, 0)
+
+        if (xmpMetaStart >= 0) {
+
+            /*
+             * The recommended envelope wins when both forms appear. An
+             * envelope without its closing element is handed to the
+             * validator, whose truncation error names the missing closer.
+             */
+            val closeTagStart =
+                payload.indexOfSequence(XMP_META_END_TAG_BYTES, xmpMetaStart)
+
+            val packetBytes =
+                if (closeTagStart > -1)
+                    payload.slice(xmpMetaStart, closeTagStart + XMP_META_END_TAG_BYTES.size - xmpMetaStart)
+                else
+                    payload.getRemainingBytes(xmpMetaStart)
+
+            return packetBytes.decodeStrictUtf8(sourceDescription)
+        }
+
+        /*
+         * The bare RDF root is the alternative envelope form. A fragment
+         * without its closing element is not decoded: it must not block
+         * the raw-bytes fallback, whose error then reports no readable
+         * packet.
+         */
+        val rdfRootStart = payload.indexOfSequence(RDF_ROOT_START_TAG_BYTES, 0)
+
+        if (rdfRootStart < 0)
+            return null
+
+        val closeTagStart =
+            payload.indexOfSequence(RDF_ROOT_END_TAG_BYTES, rdfRootStart)
+
+        if (closeTagStart < 0)
+            return null
+
+        return payload.slice(rdfRootStart, closeTagStart + RDF_ROOT_END_TAG_BYTES.size - rdfRootStart)
+            .decodeStrictUtf8(sourceDescription)
+    }
+
+    private fun ByteArray.indexOfSequence(
+        needle: ByteArray,
+        fromIndex: Int
+    ): Int {
+
+        val lastIndex = size - needle.size
+
+        for (start in fromIndex..lastIndex) {
+            if (isEquals(start, needle, 0, needle.size))
+                return start
+        }
+
+        return -1
     }
 
     private companion object {
 
-        /* The opening element of an XMP packet */
-        const val XMP_META_TAG = "x:xmpmeta"
+        /*
+         * The envelope elements as bytes, for the search in the raw
+         * payload. The tag texts live in XmpPacketValidation, so the
+         * accepted forms cannot drift between the containers.
+         */
+        val XMP_META_START_TAG_BYTES = XMP_PACKET_START_TAG.encodeToByteArray()
+        val XMP_META_END_TAG_BYTES = XMP_PACKET_END_TAG.encodeToByteArray()
+        val RDF_ROOT_START_TAG_BYTES = RDF_ROOT_START_TAG.encodeToByteArray()
+        val RDF_ROOT_END_TAG_BYTES = RDF_ROOT_END_TAG.encodeToByteArray()
     }
 }

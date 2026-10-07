@@ -615,7 +615,6 @@ public class de/stefan_oltmann/kim/format/gif/chunk/GifChunk {
 }
 
 public final class de/stefan_oltmann/kim/format/gif/chunk/GifChunkApplicationExtension : de/stefan_oltmann/kim/format/gif/chunk/GifChunk {
-	public static final field XMP_META_TAG Ljava/lang/String;
 	public fun <init> ([BLjava/util/List;)V
 	public final fun getApplicationCode ()Ljava/lang/String;
 	public final fun getApplicationIdentifier ()Ljava/lang/String;

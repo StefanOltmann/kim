@@ -22,24 +22,24 @@ import de.stefan_oltmann.kim.common.ImageReadException
 /**
  * The element the recommended XMP packet envelope starts with.
  */
-private const val XMP_PACKET_START_TAG = "<x:xmpmeta"
+internal const val XMP_PACKET_START_TAG = "<x:xmpmeta"
 
 /**
  * The element the recommended XMP packet envelope ends with.
  */
-private const val XMP_PACKET_END_TAG = "</x:xmpmeta>"
+internal const val XMP_PACKET_END_TAG = "</x:xmpmeta>"
 
 /**
  * A bare RDF root, which the XMP specification allows as an alternative
  * to the recommended envelope. xmpcore parses such packets, so they are
  * complete, readable content.
  */
-private const val RDF_ROOT_START_TAG = "<rdf:RDF"
+internal const val RDF_ROOT_START_TAG = "<rdf:RDF"
 
 /**
  * The element a bare RDF packet ends with.
  */
-private const val RDF_ROOT_END_TAG = "</rdf:RDF>"
+internal const val RDF_ROOT_END_TAG = "</rdf:RDF>"
 
 /**
  * Fails the read when a chunk carries no packet or a truncated one.
