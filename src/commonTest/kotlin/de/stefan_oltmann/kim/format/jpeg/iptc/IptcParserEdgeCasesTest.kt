@@ -19,7 +19,9 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -551,5 +553,49 @@ class IptcParserEdgeCasesTest {
         assertEquals("Unknown", unknown.fieldName)
         assertEquals(999, unknown.type)
         assertEquals("Unknown (999)", unknown.toString())
+    }
+
+    /**
+     * IIM datasets the specification defines as binary (2:125 rasterized
+     * caption, 2:202 objectData preview) have no text form: re-encoding
+     * them through a String would corrupt every byte >= 0x80 and grow
+     * the dataset. They must be carried through as raw bytes so a
+     * rewrite re-emits them exactly.
+     */
+    @Test
+    fun testBinaryRecord2DatasetIsCarriedThroughVerbatim() {
+
+        val binaryDataset = byteArrayOf(
+            0x1C, 0x02, 0xCA.toByte(), 0x00, 0x03, 0x89.toByte(), 0x50.toByte(), 0xFF.toByte()
+        )
+
+        val keywordsDataset = byteArrayOf(
+            0x1C, 0x02, 0x19, 0x00, 0x03, 0x6B, 0x65, 0x79
+        )
+
+        val metadata = IptcParser.parseIptc(
+            bytes = wrapIn8BimBlock(binaryDataset + keywordsDataset),
+            startsWithApp13Header = false
+        )
+
+        /* The keywords decode as text... */
+        assertEquals(1, metadata.records.size)
+
+        /* ... while the binary dataset is carried through verbatim. */
+        assertEquals(1, metadata.foreignDatasets.size)
+
+        val rewritten = IptcWriter.writeIptcBlockData(
+            metadata.records,
+            metadata.foreignDatasets
+        )
+
+        val verbatimBinary = byteArrayOf(
+            0x1C, 0x02, 0xCA.toByte(), 0x00, 0x03, 0x89.toByte(), 0x50.toByte(), 0xFF.toByte()
+        )
+
+        assertContentEquals(verbatimBinary, metadata.foreignDatasets.single())
+
+        /* The rewrite must re-emit the binary dataset byte-exact. */
+        assertTrue(rewritten.toList().containsAll(verbatimBinary.toList()))
     }
 }

@@ -50,10 +50,10 @@ public object IptcParser {
     internal val EMPTY_BYTE_ARRAY = byteArrayOf()
 
     /**
-     * The record header is the record number, the record type and
-     * the 2-byte size field.
+     * The smallest record header after the tag marker: record number,
+     * dataset number and the 2-byte size field.
      */
-    private const val IPTC_RECORD_HEADER_BYTE_COUNT = 4
+    private const val IPTC_MIN_HEADER_TAIL_BYTE_COUNT = 4
 
     /**
      * Block types (or Image Resource IDs) that are not recommended to be
@@ -97,6 +97,7 @@ public object IptcParser {
     ): IptcMetadata = tryWithImageReadException {
 
         val records = mutableListOf<IptcRecord>()
+        val foreignDatasets = mutableListOf<ByteArray>()
 
         val blocks = parseAllIptcBlocks(bytes, startsWithApp13Header)
 
@@ -105,10 +106,13 @@ public object IptcParser {
             if (!block.isIPTCBlock())
                 continue
 
-            records.addAll(parseIPTCBlock(detectWordSwap(block.blockData)))
+            val content = parseIPTCBlock(detectWordSwap(block.blockData))
+
+            records.addAll(content.records)
+            foreignDatasets.addAll(content.foreignDatasets)
         }
 
-        IptcMetadata(records, blocks)
+        IptcMetadata(records, blocks, foreignDatasets = foreignDatasets)
     }
 
     /**
@@ -153,19 +157,33 @@ public object IptcParser {
     @JvmStatic
     public fun parseIptcDataset(bytes: ByteArray): IptcMetadata =
         tryWithImageReadException {
-            IptcMetadata(parseIPTCBlock(detectWordSwap(bytes)), emptyList())
+            val content = parseIPTCBlock(detectWordSwap(bytes))
+
+            IptcMetadata(
+                records = content.records,
+                rawBlocks = emptyList(),
+                foreignDatasets = content.foreignDatasets
+            )
         }
 
-    private fun parseIPTCBlock(bytes: ByteArray): List<IptcRecord> {
+    private class BlockContent(
+        val records: List<IptcRecord>,
+        val foreignDatasets: List<ByteArray>
+    )
+
+    private fun parseIPTCBlock(bytes: ByteArray): BlockContent {
 
         var isUtf8 = false
 
         val records = mutableListOf<IptcRecord>()
+        val foreignDatasets = mutableListOf<ByteArray>()
 
         var index = 0
 
         @Suppress("LoopWithTooManyJumpStatements")
         while (index + 1 < bytes.size) {
+
+            val datasetStartIndex = index
 
             val tagMarker = bytes[index++].toUInt8()
 
@@ -177,7 +195,7 @@ public object IptcParser {
              * The truncated tail of the block may not hold the record
              * number, type and size. Stop instead of reading past the end.
              */
-            if (index + IPTC_RECORD_HEADER_BYTE_COUNT > bytes.size)
+            if (index + IPTC_MIN_HEADER_TAIL_BYTE_COUNT > bytes.size)
                 break
 
             val recordNumber = bytes[index++].toUInt8()
@@ -223,7 +241,7 @@ public object IptcParser {
                  * so far (the clean boundary case).
                  */
                 if (index + lengthFieldSize > bytes.size)
-                    return records
+                    return BlockContent(records, foreignDatasets)
 
                 recordLength = 0
 
@@ -265,11 +283,42 @@ public object IptcParser {
                 continue
             }
 
-            if (recordNumber != IptcConstants.IPTC_APPLICATION_2_RECORD_NUMBER)
+            /*
+             * Datasets outside application record 2 (envelope identifiers,
+             * NewsPhoto data) are kept as raw bytes, so an IPTC rewrite can
+             * carry them through instead of silently dropping them. The
+             * slice spans from the tag marker to the value end, so it is
+             * exact regardless of the length encoding the writer chose.
+             */
+            if (recordNumber != IptcConstants.IPTC_APPLICATION_2_RECORD_NUMBER) {
+
+                foreignDatasets.add(
+                    bytes.slice(datasetStartIndex, index - datasetStartIndex)
+                )
+
                 continue
+            }
 
             if (recordType == 0)
                 continue
+
+            /*
+             * Datasets the IIM specification defines as binary (rasterized
+             * caption, objectData preview) have no text form: re-encoding
+             * them through a String would corrupt every byte >= 0x80 and
+             * grow the dataset, so like the datasets outside record 2 they
+             * are carried through as raw bytes.
+             */
+            if (recordType == IptcTypes.RASTERIZED_CAPTION.type ||
+                recordType == IptcTypes.OBJECT_DATA_PREVIEW_DATA.type
+            ) {
+
+                foreignDatasets.add(
+                    bytes.slice(datasetStartIndex, index - datasetStartIndex)
+                )
+
+                continue
+            }
 
             records.add(
                 IptcRecord(
@@ -282,7 +331,7 @@ public object IptcParser {
             )
         }
 
-        return records
+        return BlockContent(records, foreignDatasets)
     }
 
     private fun parseAllIptcBlocks(

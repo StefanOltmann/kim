@@ -74,7 +74,7 @@ internal object JpegUpdater : MetadataUpdater {
                 block
         }
 
-        return IptcMetadata(records, blocks, sourceSegmentBytes)
+        return IptcMetadata(records, blocks, sourceSegmentBytes, foreignDatasets)
     }
 
     @Throws(ImageWriteException::class)
@@ -120,7 +120,8 @@ internal object JpegUpdater : MetadataUpdater {
 
             if (iptc != null && declaredIptcDigest) {
 
-                val digestBytes = Md5.digest(IptcWriter.writeIptcBlockData(iptc.records))
+                val digestBytes =
+                    Md5.digest(IptcWriter.writeIptcBlockData(iptc.records, iptc.foreignDatasets))
 
                 xmpMeta.setIptcDigest(digestBytes.toHex())
 
@@ -359,12 +360,15 @@ internal object JpegUpdater : MetadataUpdater {
 
         /*
          * The rewrite must remove the segments the parsed stream came
-         * from, so its identity is carried through the update.
+         * from, so its identity is carried through the update. The
+         * foreign datasets are carried so the rewrite re-emits them
+         * instead of silently dropping them.
          */
         return IptcMetadata(
             remainingRecords + newRecords,
             newBlocks,
-            iptc?.sourceSegmentBytes ?: emptyList()
+            iptc?.sourceSegmentBytes ?: emptyList(),
+            iptc?.foreignDatasets ?: emptyList()
         )
     }
 

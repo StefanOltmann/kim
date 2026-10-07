@@ -91,11 +91,20 @@ public object IptcWriter {
      * Encodes the given records into IPTC application record 2 data,
      * written in UTF-8 with the coded-character-set envelope set.
      *
+     * The [foreignDatasets] are re-emitted verbatim after the record 2
+     * datasets in their original order - datasets outside record 2
+     * cannot be regenerated from the model, so dropping them would be
+     * data loss. The IIM stream model does not require ascending
+     * dataset order for readers.
+     *
      * @throws ImageWriteException for record types outside the range the
      *         format defines.
      */
     @Throws(ImageWriteException::class)
-    public fun writeIptcBlockData(records: List<IptcRecord>): ByteArray {
+    public fun writeIptcBlockData(
+        records: List<IptcRecord>,
+        foreignDatasets: List<ByteArray> = emptyList()
+    ): ByteArray {
 
         val byteWriter = ByteArrayByteWriter()
 
@@ -160,6 +169,9 @@ public object IptcWriter {
 
             binaryWriter.write(recordData)
         }
+
+        for (foreignDataset in foreignDatasets)
+            binaryWriter.write(foreignDataset)
 
         return byteWriter.toByteArray()
     }
