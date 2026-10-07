@@ -81,7 +81,21 @@ public object QuickTimeImageParser : ImageParser {
      */
     internal fun createMetadata(allBoxes: List<Box>): MediaMetadata {
 
-        val movieBox = allBoxes.filterIsInstance<MovieBox>().firstOrNull()
+        val movieBoxes = allBoxes.filterIsInstance<MovieBox>()
+
+        /*
+         * A file with two moov boxes can carry metadata in each, so
+         * reporting only the first would present an arbitrary pick as the
+         * metadata of the video - the same ambiguity rule the duplicate
+         * XMP boxes below follow.
+         */
+        if (movieBoxes.size > 1)
+            throw ImageReadException(
+                "The video contains multiple moov boxes, " +
+                    "so the metadata that an update applies to is ambiguous."
+            )
+
+        val movieBox = movieBoxes.firstOrNull()
             ?: throw ImageReadException("Illegal ISOBMFF: Has no 'moov' Box.")
 
         val userDataBox = movieBox.boxes.filterIsInstance<UserDataBox>().firstOrNull()

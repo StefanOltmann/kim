@@ -305,6 +305,25 @@ class QuickTimeImageParserTest {
     }
 
     /**
+     * Two moov boxes can carry metadata in each, so reporting only the
+     * first would present an arbitrary pick as the video's metadata -
+     * the same ambiguity rule the duplicate XMP boxes follow.
+     */
+    @Test
+    fun testRejectsDuplicateMoovBoxes() {
+
+        val xmpBytes = xmpPacketBytes
+
+        val bytes = QuickTimeTestVideos.ftypBox() +
+            QuickTimeTestVideos.box("moov", ByteArray(0)) +
+            QuickTimeTestVideos.movWithXmpInMoov(xmpBytes).removeFtyp()
+
+        assertFailsWith<ImageReadException> {
+            Kim.readMetadata(bytes)
+        }
+    }
+
+    /**
      * Finalized files often place the media data in front of the moov box.
      * The scan must stream past the media data and find the metadata
      * behind it.
@@ -491,4 +510,15 @@ class QuickTimeImageParserTest {
         }
     }
 
+
+    /**
+     * Strips the leading ftyp box, so a built video can be recombined
+     * with an extra moov in front of it.
+     */
+    private fun ByteArray.removeFtyp(): ByteArray {
+
+        val ftypSize = QuickTimeTestVideos.ftypBox().size
+
+        return copyOfRange(ftypSize, size)
+    }
 }
