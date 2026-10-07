@@ -56,6 +56,12 @@ public object TiffConstants {
     public const val EXIF_SUB_IFD2: Int = 3
     public const val EXIF_SUB_IFD3: Int = 4
 
+    /** The raw-image sub-IFD at SubIFDs index 0 of a DNG. */
+    public const val EXIF_SUB_IFD0: Int = 5
+
+    /** The lossy-JPEG preview sub-IFD at SubIFDs index 4 of a DNG. */
+    public const val EXIF_SUB_IFD4: Int = 6
+
     public const val TIFF_DIRECTORY_EXIF: Int = -2
     public const val TIFF_DIRECTORY_GPS: Int = -3
     public const val TIFF_DIRECTORY_INTEROP: Int = -4

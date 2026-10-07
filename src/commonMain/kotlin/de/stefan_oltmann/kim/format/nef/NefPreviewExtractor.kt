@@ -21,6 +21,7 @@ import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.TiffPreviewExtractor
 import de.stefan_oltmann.kim.format.TiffPreviewExtractor.Companion.previewFromTags
 import de.stefan_oltmann.kim.format.tiff.TiffContents
+import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.EXIF_SUB_IFD0
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.input.RandomAccessByteReader
@@ -36,10 +37,33 @@ public object NefPreviewExtractor : TiffPreviewExtractor {
         randomAccessByteReader: RandomAccessByteReader
     ): ByteArray? = tryWithImageReadException {
 
+        /*
+         * The extractor is gated to Nikon: other TIFF-family vendors
+         * (Sony ARW for example) store a small thumbnail in their chain
+         * IFD1 and a much larger preview behind their own tags, and
+         * their own extractors - which run later in the fallback chain -
+         * read that real preview.
+         */
+        val make = tiffContents.directories.firstOrNull()
+            ?.findField(TiffTag.TIFF_TAG_MAKE)
+            ?.value as? String
+
+        if (make?.contains("NIKON", ignoreCase = true) != true)
+            return@tryWithImageReadException null
+
+        /*
+         * Nikon bodies that carry the preview in a SubIFDs entry used to
+         * have that sub-IFD folded into the IFD1 type; it now carries its
+         * own SubIFD0 type, so both locations are checked in order.
+         */
+        val previewDirectory = tiffContents.directories.find {
+            it.type == TiffConstants.TIFF_DIRECTORY_TYPE_IFD1
+        } ?: tiffContents.directories.find {
+            it.type == TiffConstants.EXIF_SUB_IFD0
+        }
+
         previewFromTags(
-            directory = tiffContents.directories.find {
-                it.type == TiffConstants.TIFF_DIRECTORY_TYPE_IFD1
-            },
+            directory = previewDirectory,
             randomAccessByteReader = randomAccessByteReader,
             startTag = TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT,
             lengthTag = TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT_LENGTH

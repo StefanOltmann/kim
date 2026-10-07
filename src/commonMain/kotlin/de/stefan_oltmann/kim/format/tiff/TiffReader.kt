@@ -27,9 +27,11 @@ import de.stefan_oltmann.kim.format.tiff.TiffReader.directoryTypeMap
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.GeoTiffTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
+import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.EXIF_SUB_IFD0
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.EXIF_SUB_IFD1
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.EXIF_SUB_IFD2
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.EXIF_SUB_IFD3
+import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.EXIF_SUB_IFD4
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.TIFF_DIRECTORY_TYPE_IFD1
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldType.Companion.getFieldType
@@ -583,10 +585,17 @@ public object TiffReader {
     private fun getSubDirectoryType(offsetField: TagInfo, index: Int): Int =
         if (offsetField == ExifTag.EXIF_TAG_SUB_IFDS_OFFSET)
             when (index) {
+                0 -> EXIF_SUB_IFD0
                 1 -> EXIF_SUB_IFD1
                 2 -> EXIF_SUB_IFD2
                 3 -> EXIF_SUB_IFD3
-                else -> TIFF_DIRECTORY_TYPE_IFD1
+
+                /*
+                 * The DNG convention places the lossy-JPEG preview at
+                 * index 4; no corpus file or spec reference carries more
+                 * than five SubIFDs, so further indexes share the label.
+                 */
+                else -> EXIF_SUB_IFD4
             }
         else
             directoryTypeMap.getValue(offsetField)
