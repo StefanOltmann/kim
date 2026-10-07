@@ -18,6 +18,7 @@ package de.stefan_oltmann.kim.format
 
 import de.stefan_oltmann.kim.format.icc.IccProfile
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
+import de.stefan_oltmann.kim.format.mpf.MpfDirectory
 import de.stefan_oltmann.kim.format.printim.PrintImDirectory
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffDirectory
@@ -46,7 +47,12 @@ public class MediaMetadata internal constructor(
      * The Print Image Matching block of the file, parsed from the
      * EXIF tag 0xC4A5, or NULL when the file carries none.
      */
-    public val printIm: PrintImDirectory? = null
+    public val printIm: PrintImDirectory? = null,
+    /**
+     * The Multi-Picture Format index of the file, parsed from the
+     * "MPF\u0000" APP2 segment, or NULL when the file carries none.
+     */
+    public val mpf: MpfDirectory? = null
 ) {
 
     /** Returns the string value of the given tag, or NULL when absent. */
@@ -97,6 +103,9 @@ public class MediaMetadata internal constructor(
         if (printIm != null)
             sb.append(printIm)
 
+        if (mpf != null)
+            sb.append(mpf)
+
         if (xmp != null) {
 
             sb.appendLine("---- XMP ----")
@@ -115,7 +124,8 @@ public class MediaMetadata internal constructor(
             iptc = iptc,
             xmp = xmp,
             iccProfile = iccProfile,
-            printIm = printIm
+            printIm = printIm,
+            mpf = mpf
         )
 
     internal companion object {

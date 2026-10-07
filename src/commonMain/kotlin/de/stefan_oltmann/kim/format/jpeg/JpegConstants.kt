@@ -155,6 +155,11 @@ public object JpegConstants {
     /** Byte count of the chunk index and chunk total that follow the identifier. */
     public const val ICC_SEQUENCE_BYTE_COUNT: Int = 2
 
+    /** The identifier the Multi-Picture Format APP2 segment starts with. */
+    public val MPF_IDENTIFIER: ByteArray = byteArrayOf(
+        0x4D, 0x50, 0x46, 0x00
+    )
+
     public const val JPEG_APP3_MARKER: Int = 0xFFE3
     public const val JPEG_APP4_MARKER: Int = 0xFFE4
     public const val JPEG_APP5_MARKER: Int = 0xFFE5

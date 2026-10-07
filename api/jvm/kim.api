@@ -205,6 +205,7 @@ public final class de/stefan_oltmann/kim/format/MediaMetadata {
 	public final fun getImageSize ()Lde/stefan_oltmann/kim/model/ImageSize;
 	public final fun getIptc ()Lde/stefan_oltmann/kim/format/jpeg/iptc/IptcMetadata;
 	public final fun getMediaFormat ()Lde/stefan_oltmann/kim/model/MediaFormat;
+	public final fun getMpf ()Lde/stefan_oltmann/kim/format/mpf/MpfDirectory;
 	public final fun getPrintIm ()Lde/stefan_oltmann/kim/format/printim/PrintImDirectory;
 	public final fun getXmp ()Ljava/lang/String;
 	public fun toString ()Ljava/lang/String;
@@ -804,6 +805,7 @@ public final class de/stefan_oltmann/kim/format/jpeg/JpegConstants {
 	public final fun getMAX_EXTENDED_XMP_BYTES_PER_SEGMENT ()I
 	public final fun getMAX_PHOTOSHOP_BYTES_PER_SEGMENT ()I
 	public final fun getMAX_XMP_BYTES_PER_SEGMENT ()I
+	public final fun getMPF_IDENTIFIER ()[B
 	public final fun getSOFN_MARKERS ()Ljava/util/List;
 	public final fun getSOI ()[B
 	public final fun getXMP_IDENTIFIER ()[B
@@ -947,6 +949,24 @@ public final class de/stefan_oltmann/kim/format/jxl/box/JxlPartialCodestreamBox 
 public final class de/stefan_oltmann/kim/format/jxl/box/XmlBox : de/stefan_oltmann/kim/format/bmff/box/Box {
 	public fun <init> (JJLjava/lang/Long;[B)V
 	public final fun getXmp ()Ljava/lang/String;
+}
+
+public final class de/stefan_oltmann/kim/format/mpf/MpfDirectory {
+	public fun <init> (Ljava/lang/String;I)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun copy (Ljava/lang/String;I)Lde/stefan_oltmann/kim/format/mpf/MpfDirectory;
+	public static synthetic fun copy$default (Lde/stefan_oltmann/kim/format/mpf/MpfDirectory;Ljava/lang/String;IILjava/lang/Object;)Lde/stefan_oltmann/kim/format/mpf/MpfDirectory;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getNumberOfImages ()I
+	public final fun getVersion ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/stefan_oltmann/kim/format/mpf/MpfParser {
+	public static final field INSTANCE Lde/stefan_oltmann/kim/format/mpf/MpfParser;
+	public static final fun parse ([B)Lde/stefan_oltmann/kim/format/mpf/MpfDirectory;
 }
 
 public final class de/stefan_oltmann/kim/format/nef/NefPreviewExtractor : de/stefan_oltmann/kim/format/TiffPreviewExtractor {

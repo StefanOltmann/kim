@@ -267,6 +267,9 @@ Big-endian (Motorola, MM)
 ---- IPTC ----
 Caption/Abstract (120) = 'chameleon perching on tree branch'
 
+---- MPF ----
+MPFVersion      : 0100
+NumberOfImages  : 3
 ---- XMP ----
 <?xpacket begin='﻿' id='W5M0MpCehiHzreSzNTczkc9d'?>
 <x:xmpmeta xmlns:x='adobe:ns:meta/' x:xmptk='Image::ExifTool 12.27'>
