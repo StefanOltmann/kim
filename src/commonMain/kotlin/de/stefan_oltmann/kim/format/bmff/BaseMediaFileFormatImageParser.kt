@@ -233,11 +233,21 @@ public object BaseMediaFileFormatImageParser : ImageParser {
 
         /*
          * XMP data can also be found in a UUID box, if we didn't find it in the metadata offsets.
+         *
+         * When the file declares XMP in BOTH places, the authoritative
+         * packet is ambiguous: picking one would silently drop the other
+         * from every derived view and sidecar export, which the read
+         * policy counts as data loss. The read fails instead.
          */
-        if (xmp == null)
-            xmp = uuidBoxes.firstOrNull { it.isXmp }?.data?.decodeStrictUtf8("The video XMP UUID box")
+        val uuidXmp = uuidBoxes.firstOrNull { it.isXmp }?.data?.decodeStrictUtf8("The video XMP UUID box")
 
-        xmp = requireValidXmpPacket(xmp, "The XMP data")
+        if (xmp != null && uuidXmp != null)
+            throw ImageReadException(
+                "The file declares XMP both as a metadata item and in a " +
+                    "UUID box, so the authoritative packet is ambiguous."
+            )
+
+        xmp = requireValidXmpPacket(uuidXmp ?: xmp, "The XMP data")
 
         return MediaMetadata(
             mediaFormat = null, /*  could be any ISO BMFF */
