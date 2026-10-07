@@ -22,6 +22,8 @@ import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.LocationShown
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
+import de.stefan_oltmann.kim.testdata.KimTestData
+import de.stefan_oltmann.xmp.XMPConst
 import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
 import de.stefan_oltmann.xmp.XMPRegionArea
@@ -89,6 +91,29 @@ class XmpWriterEdgeCasesTest {
         apply(MetadataUpdate.TakenDate(null))
 
         assertNull(xmpMeta.getProperty(XMP_NS_EXIF, "DateTimeOriginal"))
+    }
+
+    /**
+     * The reader treats acdsee:keywords as a first-class keyword source
+     * (fallback when dc:subject is empty), so a keyword deletion must
+     * clear the ACDSee copy too - on ACDSee-processed files whose
+     * keywords live only there, the documented "removes all keywords"
+     * would otherwise change nothing the reader can observe.
+     */
+    @Test
+    fun testKeywordDeletionClearsTheAcdSeeCopy() {
+
+        val updated = XmpWriter.updateXmp(
+            existingXmp = KimTestData.getXmp("acdsee_sample.xmp"),
+            updates = setOf(MetadataUpdate.Keywords(emptySet())),
+            writePackageWrapper = false
+        )
+
+        val updatedMeta = XMPMetaFactory.parseFromString(updated)
+
+        assertNull(updatedMeta.getProperty(XMPConst.NS_ACDSEE, XMPConst.XMP_ACDSEE_KEYWORDS))
+
+        assertTrue(XmpReader.readMetadata(updated).keywords.isEmpty())
     }
 
     /**

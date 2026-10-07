@@ -141,8 +141,19 @@ public object XmpWriter {
                     setFlagged(false)
             }
 
-            is MetadataUpdate.Keywords ->
+            is MetadataUpdate.Keywords -> {
+
+                /*
+                 * The reader treats acdsee:keywords as a first-class
+                 * keyword source, so deleting only dc:subject would leave
+                 * the old keywords readable on ACDSee-processed files -
+                 * the delete must clear the ACDSee copy too.
+                 */
+                if (update.keywords.isEmpty())
+                    deleteProperty(XMPConst.NS_ACDSEE, XMPConst.XMP_ACDSEE_KEYWORDS)
+
                 setKeywords(update.keywords)
+            }
 
             is MetadataUpdate.Faces ->
                 setFaceRegions(update.faces, update.widthPx, update.heightPx)
