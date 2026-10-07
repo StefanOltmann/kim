@@ -141,11 +141,6 @@ public object TiffConstants {
     public const val TIFF_MAKER_NOTE_SONY5: Int = -154
     public const val TIFF_MAKER_NOTE_SONY_ERICSSON: Int = -155
     public const val TIFF_MAKER_NOTE_SONY_CAMERA_INFO3: Int = -156
-    public const val TIFF_MAKER_NOTE_SONY_MORE_INFO: Int = -157
-    public const val TIFF_MAKER_NOTE_SONY_CAMERA_SETTINGS3: Int = -158
-    public const val TIFF_MAKER_NOTE_SONY_EXTRA_INFO3: Int = -159
-    public const val TIFF_MAKER_NOTE_SONY_TAG_900B: Int = -160
-
     public const val FIELD_TYPE_BYTE_INDEX: Int = 1
     public const val FIELD_TYPE_ASCII_INDEX: Int = 2
     public const val FIELD_TYPE_SHORT_INDEX: Int = 3

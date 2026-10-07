@@ -1790,13 +1790,9 @@ public final class de/stefan_oltmann/kim/format/tiff/constant/TiffConstants {
 	public static final field TIFF_MAKER_NOTE_SONY I
 	public static final field TIFF_MAKER_NOTE_SONY5 I
 	public static final field TIFF_MAKER_NOTE_SONY_CAMERA_INFO3 I
-	public static final field TIFF_MAKER_NOTE_SONY_CAMERA_SETTINGS3 I
 	public static final field TIFF_MAKER_NOTE_SONY_ERICSSON I
-	public static final field TIFF_MAKER_NOTE_SONY_EXTRA_INFO3 I
 	public static final field TIFF_MAKER_NOTE_SONY_FACE_INFO I
-	public static final field TIFF_MAKER_NOTE_SONY_MORE_INFO I
 	public static final field TIFF_MAKER_NOTE_SONY_MORE_SETTINGS I
-	public static final field TIFF_MAKER_NOTE_SONY_TAG_900B I
 	public static final field TIFF_VERSION I
 	public final fun getDEFAULT_TIFF_BYTE_ORDER ()Lde/stefan_oltmann/kim/common/ByteOrder;
 }
@@ -1873,13 +1869,9 @@ public final class de/stefan_oltmann/kim/format/tiff/constant/TiffDirectoryType 
 	public static final field EXIF_DIRECTORY_MAKER_NOTE_SONY Lde/stefan_oltmann/kim/format/tiff/constant/TiffDirectoryType;
 	public static final field EXIF_DIRECTORY_MAKER_NOTE_SONY5 Lde/stefan_oltmann/kim/format/tiff/constant/TiffDirectoryType;
 	public static final field EXIF_DIRECTORY_MAKER_NOTE_SONY_CAMERA_INFO3 Lde/stefan_oltmann/kim/format/tiff/constant/TiffDirectoryType;
-	public static final field EXIF_DIRECTORY_MAKER_NOTE_SONY_CAMERA_SETTINGS3 Lde/stefan_oltmann/kim/format/tiff/constant/TiffDirectoryType;
 	public static final field EXIF_DIRECTORY_MAKER_NOTE_SONY_ERICSSON Lde/stefan_oltmann/kim/format/tiff/constant/TiffDirectoryType;
-	public static final field EXIF_DIRECTORY_MAKER_NOTE_SONY_EXTRA_INFO3 Lde/stefan_oltmann/kim/format/tiff/constant/TiffDirectoryType;
 	public static final field EXIF_DIRECTORY_MAKER_NOTE_SONY_FACE_INFO Lde/stefan_oltmann/kim/format/tiff/constant/TiffDirectoryType;
-	public static final field EXIF_DIRECTORY_MAKER_NOTE_SONY_MORE_INFO Lde/stefan_oltmann/kim/format/tiff/constant/TiffDirectoryType;
 	public static final field EXIF_DIRECTORY_MAKER_NOTE_SONY_MORE_SETTINGS Lde/stefan_oltmann/kim/format/tiff/constant/TiffDirectoryType;
-	public static final field EXIF_DIRECTORY_MAKER_NOTE_SONY_TAG_900B Lde/stefan_oltmann/kim/format/tiff/constant/TiffDirectoryType;
 	public static final field TIFF_DIRECTORY_IFD0 Lde/stefan_oltmann/kim/format/tiff/constant/TiffDirectoryType;
 	public static final field TIFF_DIRECTORY_IFD1 Lde/stefan_oltmann/kim/format/tiff/constant/TiffDirectoryType;
 	public static final field TIFF_DIRECTORY_IFD2 Lde/stefan_oltmann/kim/format/tiff/constant/TiffDirectoryType;
