@@ -17,8 +17,11 @@
 package de.stefan_oltmann.kim.input
 
 import de.stefan_oltmann.kim.common.exists
+import kotlinx.io.Buffer
 import kotlinx.io.Source
 import kotlinx.io.buffered
+import kotlinx.io.readAtMostTo
+import kotlinx.io.readTo
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 
@@ -29,6 +32,9 @@ public class KotlinIoSourceByteReader(
     private val source: Source,
     override val contentLength: Long
 ) : ByteReader {
+
+    /** Scratch buffer reused across bulk reads; the reader is not shared between threads. */
+    private val scratchBuffer = Buffer()
 
     override fun readByte(): Byte? {
 
@@ -43,12 +49,14 @@ public class KotlinIoSourceByteReader(
         require(count >= 0) { "Count must not be negative: $count" }
 
         /*
-         * Byte-at-a-time, terminating at the real source EOF: the
+         * Chunked fill, terminating at the real source EOF: the
          * contentLength is a caller-provided hint that must never gate
          * the reads (a hint of 0 would report "no data" for a valid
          * source, an overstated hint would make exact-count reads throw).
-         * Metadata chunks are small, so the per-byte loop cost is
-         * negligible; image data is streamed via transferExactly.
+         * The bulk path matters: transferExactly and copyRemainingTo are
+         * built on this method, so streamed image data is copied here -
+         * a per-byte loop would push every image byte through millions
+         * of virtual calls.
          */
         val result = ByteArray(count)
 
@@ -59,7 +67,15 @@ public class KotlinIoSourceByteReader(
             if (source.exhausted())
                 break
 
-            result[filled++] = source.readByte()
+            val readByteCount = source.readAtMostTo(scratchBuffer, (count - filled).toLong())
+
+            /* The source reports -1 once it is exhausted. */
+            if (readByteCount <= 0L)
+                break
+
+            scratchBuffer.readTo(result, filled, filled + readByteCount.toInt())
+
+            filled += readByteCount.toInt()
         }
 
         return if (filled == count) result else result.copyOf(filled)
