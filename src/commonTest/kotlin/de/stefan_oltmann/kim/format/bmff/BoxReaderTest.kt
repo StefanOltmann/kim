@@ -207,7 +207,7 @@ class BoxReaderTest {
     }
 
     @Test
-    fun readsBoxesFromHeic() {
+    fun testReadsBoxesFromHeic() {
 
         val bytes = KimTestData.getBytesOf(KimTestData.HEIC_TEST_IMAGE_INDEX)
 
@@ -230,7 +230,7 @@ class BoxReaderTest {
     }
 
     @Test
-    fun readsBoxesFromAvif() {
+    fun testReadsBoxesFromAvif() {
 
         val bytes = KimTestData.getBytesOf(KimTestData.AVIF_TEST_IMAGE_FROM_JPG_USING_IMAGEMAGICK_INDEX)
 
@@ -253,7 +253,7 @@ class BoxReaderTest {
     }
 
     @Test
-    fun readsBoxesFromAnimatedAvif() {
+    fun testReadsBoxesFromAnimatedAvif() {
 
         val bytes = KimTestData.getBytesOf(KimTestData.ANIMATED_AVIF_TEST_IMAGE_INDEX)
 
@@ -281,7 +281,7 @@ class BoxReaderTest {
     }
 
     @Test
-    fun reportsInfeOffsetForIinfVersionZero() {
+    fun testReportsInfeOffsetForIinfVersionZero() {
 
         val mimeEntry = BmffTestBoxes.InfeEntry(itemId = 1, itemType = BMFFConstants.ITEM_TYPE_MIME)
 
@@ -300,7 +300,7 @@ class BoxReaderTest {
     }
 
     @Test
-    fun reportsInfeOffsetForIinfVersionOne() {
+    fun testReportsInfeOffsetForIinfVersionOne() {
 
         val mimeEntry = BmffTestBoxes.InfeEntry(itemId = 1, itemType = BMFFConstants.ITEM_TYPE_MIME)
 
@@ -323,7 +323,7 @@ class BoxReaderTest {
      * rejected with a clear error instead of corrupting the read.
      */
     @Test
-    fun rejectsBoxWithSizeOverflowingInt() {
+    fun testRejectsBoxWithSizeOverflowingInt() {
 
         val box = ByteArrayByteWriter()
 
