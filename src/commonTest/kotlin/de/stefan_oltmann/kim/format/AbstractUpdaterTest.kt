@@ -507,6 +507,27 @@ abstract class AbstractUpdaterTest(
     }
 
     /**
+     * A repeated identical update must be byte-identical: repeated saves
+     * that grow headers, drift the IPTC digest or reshuffle chunk and
+     * segment order would degrade the file with every save.
+     */
+    @Test
+    fun testUpdateIsIdempotent() {
+
+        val updates = setOf(
+            MetadataUpdate.TakenDate(timestamp),
+            MetadataUpdate.Title(titleWithUmlauts),
+            MetadataUpdate.Keywords(setOf("hello", "test", keywordWithUmlauts))
+        )
+
+        val once = Kim.update(bytes = originalBytes, updates = updates)
+
+        val twice = Kim.update(bytes = once, updates = updates)
+
+        assertContentEquals(once, twice)
+    }
+
+    /**
      * The EXIF embeds into bounded containers on every format, so an
      * oversized thumbnail is rejected uniformly instead of failing only
      * on the formats with a real container limit.

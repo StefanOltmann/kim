@@ -57,6 +57,13 @@ import kotlin.jvm.JvmStatic
  */
 public object PngImageParser : ImageParser {
 
+    /*
+     * The payload of every kept chunk is buffered, so like the JPEG
+     * path's header segment budget, a hostile file of oversized
+     * metadata chunks must not accumulate unboundedly.
+     */
+    internal const val MAX_RETAINED_CHUNK_BYTES: Int = 16 * 1024 * 1024
+
     /* Note that [\\p{Cntrl}] does not work for Kotlin/JS. */
     private val controlCharRegex = Regex("""[\x00-\x1F\x7F-\x9F]""")
 
@@ -364,6 +371,19 @@ public object PngImageParser : ImageParser {
         val chunks = mutableListOf<PngChunk>()
 
         /*
+         * The budget only guards the metadata-scoped reads: a full-file
+         * rewrite (updateThumbnail, public writeImage) inherently buffers
+         * the whole image, so counting its image data against a metadata
+         * budget would fail legitimate files. The metadata reads
+         * (metadata filter, or the walk that stops at the image data)
+         * buffer only metadata, and that is what the budget protects.
+         */
+        val enforceRetainedBudget =
+            chunkTypeFilter != null || imageDataHeaderWriter != null
+
+        var retainedChunkBytes = 0L
+
+        /*
          * Only the first EXIF chunk is parsed; like ExifTool, later ones
          * are ignored instead of failing or merging the read.
          */
@@ -392,6 +412,18 @@ public object PngImageParser : ImageParser {
 
             var bytes: ByteArray? = null
 
+            /*
+             * Validate before allocating: a single hostile chunk declaring
+             * hundreds of megabytes must fail without materializing its
+             * payload first.
+             */
+            if (keep && enforceRetainedBudget &&
+                retainedChunkBytes + length > MAX_RETAINED_CHUNK_BYTES
+            )
+                throw ImageReadException(
+                    "The PNG metadata chunks exceed $MAX_RETAINED_CHUNK_BYTES bytes."
+                )
+
             if (keep)
                 bytes = byteReader.readBytes("chunk data", length)
             else
@@ -402,6 +434,8 @@ public object PngImageParser : ImageParser {
             if (keep) {
 
                 requireNotNull(bytes)
+
+                retainedChunkBytes += bytes.size
 
                 verifyChunkCrc(chunkType, bytes, crc)
 

@@ -19,6 +19,7 @@ package de.stefan_oltmann.kim.format.png
 import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.png.chunk.PngChunkItxt
 import de.stefan_oltmann.kim.format.png.chunk.PngChunkText
 import de.stefan_oltmann.kim.format.png.chunk.PngChunkZtxt
@@ -33,6 +34,43 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 
 class PngImageParserTest {
+
+    /**
+     * The payload of every kept chunk is buffered, so like the JPEG
+     * header segment budget, a hostile file of oversized metadata chunks
+     * must fail the read instead of accumulating unboundedly in memory.
+     */
+    @Test
+    fun testOversizedMetadataChunksFailAtTheBudget() {
+
+        /* A single text chunk whose declared payload exceeds the 16 MiB
+           budget: the metadata-scoped read must reject it before its
+           payload is allocated. The CRC is irrelevant - it is verified
+           only after the budget passes. */
+        val chunkType = PngChunkType.TEXT.bytes
+
+        val lengthBytes = byteArrayOf(
+            ((17 * 1024 * 1024 shr 24) and 0xFF).toByte(),
+            (((17 * 1024 * 1024 shr 16) and 0xFF)).toByte(),
+            (((17 * 1024 * 1024 shr 8) and 0xFF)).toByte(),
+            ((17 * 1024 * 1024 and 0xFF)).toByte()
+        )
+
+        val pngSignature = MediaFormatMagicNumbers.png.toByteArray()
+
+        val bytes = pngSignature + lengthBytes + chunkType +
+            ByteArray(1024) +
+            byteArrayOf(0, 0, 0, 0) + "IEND".encodeToByteArray() +
+            byteArrayOf(0xAE.toByte(), 0x42.toByte(), 0x60.toByte(), 0x82.toByte())
+
+        assertFailsWith<ImageReadException> {
+            PngImageParser.readChunks(
+                ByteArrayByteReader(bytes),
+                listOf(PngChunkType.TEXT)
+            )
+        }
+    }
+
 
     /**
      * Regression test based on a fixed small set of test files.
