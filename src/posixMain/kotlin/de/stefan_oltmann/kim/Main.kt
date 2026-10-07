@@ -20,6 +20,12 @@ import de.stefan_oltmann.kim.common.convertToSummary
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.readFileAsByteArray
 
+/**
+ * The command line demo entry point of the native targets (Windows,
+ * Linux, macOS, iOS). It compiles into the native executables and is
+ * the one sanctioned exception to the no-println rule: its output is
+ * the demo's purpose, like a CLI tool's.
+ */
 public fun main(args: Array<String>) {
 
     if (args.size != 1) {
