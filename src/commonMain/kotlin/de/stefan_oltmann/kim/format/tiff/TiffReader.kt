@@ -92,11 +92,17 @@ public object TiffReader {
      */
     private const val PANASONIC_RAW_TIFF_VERSION: Int = 0x55
 
-    private val directoryTypeMap = mapOf(
+    /*
+     * The offset fields pointing to a fixed-type sub-IFD, with the
+     * directory type each maps to. The DNG SubIFDs pointer is
+     * deliberately absent: its sub-directories are numbered by their
+     * position in the offset list (see [getSubDirectoryType]), so no
+     * fixed type exists for it.
+     */
+    private val directoryTypeMap: Map<TagInfo, Int> = mapOf(
         ExifTag.EXIF_TAG_EXIF_OFFSET to TiffConstants.TIFF_DIRECTORY_EXIF,
         ExifTag.EXIF_TAG_GPSINFO to TiffConstants.TIFF_DIRECTORY_GPS,
-        ExifTag.EXIF_TAG_INTEROP_OFFSET to TiffConstants.TIFF_DIRECTORY_INTEROP,
-        ExifTag.EXIF_TAG_SUB_IFDS_OFFSET to TIFF_DIRECTORY_TYPE_IFD1
+        ExifTag.EXIF_TAG_INTEROP_OFFSET to TiffConstants.TIFF_DIRECTORY_INTEROP
     )
 
     /**
@@ -108,8 +114,15 @@ public object TiffReader {
      * handling: the thumbnail strip offset is the one entry that is
      * not metadata-bearing.
      */
-    private val metadataBearingOffsetFields =
-        directoryTypeMap.keys - ExifTag.EXIF_TAG_SUB_IFDS_OFFSET
+    private val metadataBearingOffsetFields = directoryTypeMap.keys
+
+    /**
+     * All offset fields [readOffsetDirectories] resolves, in file order:
+     * the fixed-type sub-IFDs first, the DNG SubIFDs pointer last, like
+     * the previous single map carried them.
+     */
+    private val subDirectoryOffsetFields = directoryTypeMap.keys +
+        ExifTag.EXIF_TAG_SUB_IFDS_OFFSET
 
     /**
      * Convenience method for calls with short byte array like
@@ -467,7 +480,7 @@ public object TiffReader {
         depth: Int
     ) {
 
-        for (offsetField in directoryTypeMap.keys) {
+        for (offsetField in subDirectoryOffsetFields) {
 
             val field = directory.findField(offsetField) ?: continue
 
