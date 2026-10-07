@@ -50,35 +50,6 @@ public object XmpWriter {
             .setSort(true)
 
     /**
-     * The exif:GPS companion properties that describe the position's
-     * circumstances and must never outlive a GPS rewrite or deletion.
-     */
-    private val GPS_COMPANION_PROPERTIES = listOf(
-        "GPSAltitude",
-        "GPSAltitudeRef",
-        "GPSTimeStamp",
-        "GPSDateStamp",
-        "GPSSatellites",
-        "GPSStatus",
-        "GPSDOP",
-        "GPSSpeed",
-        "GPSSpeedRef",
-        "GPSImgDirection",
-        "GPSImgDirectionRef",
-        "GPSMapDatum",
-        "GPSProcessingMethod",
-        "GPSAreaInformation",
-        "GPSDestLatitude",
-        "GPSDestLongitude",
-        "GPSDestBearing",
-        "GPSDestBearingRef",
-        "GPSDestDistance",
-        "GPSDestDistanceRef",
-        "GPSDifferential",
-        "GPSHPositioningError"
-    )
-
-    /**
      * Applies a single metadata update to this XMP packet.
      */
     @JvmStatic
@@ -245,24 +216,21 @@ public object XmpWriter {
     /**
      * Writes the GPS coordinates, or deletes them for NULL. Coordinates
      * outside the valid range fail the update instead of being written.
+     *
+     * External writers keep a fleet of companion properties next to the
+     * position: altitude, timestamps, satellite data, image direction.
+     * Every GPS property is removed before the new position is written -
+     * the EXIF write path clears its GPS directory the same way - so
+     * pairing the new position with the old altitude can never drift the
+     * two storages apart within a single update.
      */
     private fun XMPMeta.applyGpsCoordinates(gpsCoordinates: GpsCoordinates?) {
 
-        /*
-         * External writers keep a fleet of companion properties next to
-         * the position: altitude, timestamps, satellite data, image
-         * direction. The EXIF write path removes every residual GPS
-         * field before re-adding its own, and the XMP copy must follow:
-         * pairing the new position with the old altitude would drift the
-         * two storages apart within a single update.
-         */
-        for (propertyName in GPS_COMPANION_PROPERTIES)
-            deleteProperty(XMPConst.NS_EXIF, propertyName)
+        /* Removes every exif:GPS property, companions included. */
+        deleteGpsCoordinates()
 
-        if (gpsCoordinates == null) {
-            deleteGpsCoordinates()
+        if (gpsCoordinates == null)
             return
-        }
 
         requireValidGpsCoordinates(gpsCoordinates)
 
@@ -326,7 +294,9 @@ public object XmpWriter {
     /**
      * Builds the XMP date for the wall-clock time in the effective zone. The
      * UTC offset is omitted, so the written value stays offset-less, like
-     * ExifTool's default XMP dates.
+     * ExifTool's default XMP dates. The time separator is always carried,
+     * so a value at exactly midnight keeps its "T00:00:00" instead of
+     * collapsing into a date-only literal.
      */
     private fun LocalDateTime.toXmpDate(): XmpDate =
         XmpDate(
@@ -337,6 +307,7 @@ public object XmpWriter {
             minute = minute,
             second = second,
             nanosecond = nanosecond,
-            utcOffsetMinutes = null
+            utcOffsetMinutes = null,
+            timeWasPresent = true
         )
 }

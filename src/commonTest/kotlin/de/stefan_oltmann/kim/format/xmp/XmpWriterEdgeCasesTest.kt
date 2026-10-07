@@ -36,6 +36,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.ExperimentalTime
 
 class XmpWriterEdgeCasesTest {
@@ -127,6 +128,23 @@ class XmpWriterEdgeCasesTest {
 
         assertNull(xmpMeta.getProperty(XMP_NS_EXIF, "DateTimeOriginal"))
         assertNull(xmpMeta.getProperty(XMP_NS_EXIF, "DateTimeDigitized"))
+    }
+
+    /**
+     * A taken date at exactly midnight is a complete time, so the written
+     * value must keep its "T00:00:00" like ExifTool's XMP dates - dropping
+     * the time would silently turn the update into a date-only literal.
+     */
+    @Test
+    fun testTakenDateAtMidnightKeepsItsTime() {
+
+        /* 2023-05-11T22:00:00Z is 2023-05-12T00:00:00 at GMT+02:00. */
+        apply(MetadataUpdate.TakenDate(1_683_842_400_000))
+
+        assertEquals(
+            "2023-05-12T00:00:00",
+            xmpMeta.getPropertyString(XMP_NS_EXIF, "DateTimeOriginal")
+        )
     }
 
     @Test
@@ -282,6 +300,27 @@ class XmpWriterEdgeCasesTest {
             expected = regions,
             actual = XmpReader.readMetadata(serialized).faces
         )
+    }
+
+    /**
+     * A face area below the plain-notation range must serialize with the
+     * JVM's double spelling on every platform - plain Double.toString
+     * writes "5.0E-4" on the JVM but "0.0005" on JS and Wasm, which made
+     * written files depend on the platform that ran the write before
+     * XMP Core 2.0.1 fixed it.
+     */
+    @Test
+    fun testFaceAreaBelowPlainNotationRangeSerializesJvmStyle() {
+
+        val regions = listOf(
+            XmpFaceRegion("Face A", XMPRegionArea(5.0E-4, 0.2, 0.3, 0.4))
+        )
+
+        apply(MetadataUpdate.Faces(regions, widthPx = 1500, heightPx = 1000))
+
+        val serialized = XmpWriter.updateXmp(xmpMeta, emptySet(), writePackageWrapper = false)
+
+        assertTrue(serialized.contains("5.0E-4"), "Serialized area: $serialized")
     }
 
     @OptIn(ExperimentalTime::class)
