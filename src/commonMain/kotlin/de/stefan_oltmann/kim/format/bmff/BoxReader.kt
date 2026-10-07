@@ -19,6 +19,7 @@
 package de.stefan_oltmann.kim.format.bmff
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.readUnsignedInt
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.bmff.box.Box
 import de.stefan_oltmann.kim.format.bmff.box.FileTypeBox
@@ -282,15 +283,20 @@ public object BoxReader {
 
         while (true) {
 
-            val available = byteReader.contentLength - position
-
             /*
-             * Check if there are enough bytes for another box.
-             * If so, we at least need the 8 header bytes.
+             * The box walk ends at the delegate's real end of data, never
+             * at the length hint: the hint is caller-supplied and may
+             * understate the content, and boxes behind it would silently
+             * vanish from the parse. The header is read through the raw
+             * short-read contract, because the field-based reads throw on
+             * a short read while the walk needs the boundary decision.
              */
-            if (available < BMFFConstants.BOX_HEADER_LENGTH) {
+            val headerBytes = byteReader.readBytes(BMFFConstants.BOX_HEADER_LENGTH)
 
-                checkTrailingFragment(available, rejectTrailingFragment)
+            if (headerBytes.size < BMFFConstants.BOX_HEADER_LENGTH) {
+
+                /* An empty read is the clean end; a short one a fragment. */
+                checkTrailingFragment(headerBytes.size.toLong(), rejectTrailingFragment)
 
                 break
             }
@@ -299,10 +305,13 @@ public object BoxReader {
 
             /* Note: The length includes the 8 header bytes. */
             val size: Long =
-                byteReader.read4BytesAsInt("length", BMFF_BYTE_ORDER).toLong()
+                headerBytes.readUnsignedInt(0, BMFFConstants.SIZE_LENGTH, BMFF_BYTE_ORDER)
 
             val type = BoxType.of(
-                byteReader.readBytes("type", BMFFConstants.TYPE_LENGTH)
+                headerBytes.copyOfRange(
+                    BMFFConstants.SIZE_LENGTH,
+                    BMFFConstants.BOX_HEADER_LENGTH
+                )
             )
 
             position += BMFFConstants.BOX_HEADER_LENGTH
@@ -318,8 +327,12 @@ public object BoxReader {
 
             val actualLength: Long = when (size) {
 
-                /* A value of zero indicates that it's the last box. */
-                0L -> available
+                /*
+                 * A value of zero indicates that it's the last box, which
+                 * extends to the end of the content. The extent is measured
+                 * from the box start like every declared extent.
+                 */
+                0L -> byteReader.contentLength - offset
 
                 /* A length of 1 indicates that we should read the next 8 bytes to get a long value. */
                 1L -> {

@@ -18,6 +18,7 @@
 package de.stefan_oltmann.kim.format.bmff
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.readUnsignedInt
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.bmff.box.BoxContainer
 import de.stefan_oltmann.kim.format.bmff.box.ItemInfoEntryBox
@@ -27,6 +28,7 @@ import de.stefan_oltmann.kim.format.bmff.box.MetaBox
 import de.stefan_oltmann.kim.format.bmff.box.MetaBoxTopLevel
 import de.stefan_oltmann.kim.format.bmff.box.MovieBox
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.writeInt
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes
@@ -85,6 +87,82 @@ class BoxReaderTest {
 
         assertEquals(2, boxes.size)
         assertTrue(boxes[1].payload.isNotEmpty())
+    }
+
+    /**
+     * The box walk must end at the delegate's real end of data, never at
+     * the length hint: a provider can understate the size, and boxes
+     * behind the hinted boundary would silently vanish from the parse -
+     * the same defect class the WebP walk had.
+     */
+    @Test
+    fun testScanDiscoversBoxesBehindUnderstatedContentLengthHint() {
+
+        val bytes = KimTestData.getBytesOf(KimTestData.HEIC_TEST_IMAGE_INDEX)
+
+        val metaOffset = topLevelBoxOffset(bytes, "meta")
+
+        val reader = UnderstatedHintByteReader(
+            delegate = ByteArrayByteReader(bytes),
+            hintedLength = metaOffset
+        )
+
+        val boxes = BoxReader.scanMetadataBoxes(reader)
+
+        assertTrue(
+            boxes.any { it.type == BoxType.META },
+            "The meta box behind the hinted boundary must be discovered."
+        )
+    }
+
+    /**
+     * Returns the file offset of the top-level box with the given type.
+     */
+    private fun topLevelBoxOffset(bytes: ByteArray, typeName: String): Long {
+
+        var offset = 0L
+
+        while (offset + BMFFConstants.BOX_HEADER_LENGTH <= bytes.size) {
+
+            val type = bytes.decodeToString(
+                offset.toInt() + BMFFConstants.SIZE_LENGTH,
+                offset.toInt() + BMFFConstants.BOX_HEADER_LENGTH
+            )
+
+            if (type == typeName)
+                return offset
+
+            val size = bytes.readUnsignedInt(
+                offset.toInt(),
+                BMFFConstants.SIZE_LENGTH,
+                BMFF_BYTE_ORDER
+            )
+
+            if (size < BMFFConstants.BOX_HEADER_LENGTH)
+                error("Invalid box size $size at offset $offset.")
+
+            offset += size
+        }
+
+        error("No $typeName box found.")
+    }
+
+    /**
+     * A ByteReader whose length hint understates the content while the
+     * delegate delivers every byte.
+     */
+    private class UnderstatedHintByteReader(
+        private val delegate: ByteReader,
+        private val hintedLength: Long
+    ) : ByteReader {
+
+        override val contentLength: Long = hintedLength
+
+        override fun readByte(): Byte? = delegate.readByte()
+
+        override fun readBytes(count: Int): ByteArray = delegate.readBytes(count)
+
+        override fun close() = delegate.close()
     }
 
     /**
