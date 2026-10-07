@@ -55,15 +55,6 @@ public object IptcParser {
      */
     private const val IPTC_MIN_HEADER_TAIL_BYTE_COUNT = 4
 
-    /**
-     * Block types (or Image Resource IDs) that are not recommended to be
-     * interpreted when libraries process Photoshop IPTC metadata.
-     *
-     * See https://www.adobe.com/devnet-apps/photoshop/fileformatashtml/
-     */
-    @Suppress("MagicNumber")
-    private val PHOTOSHOP_IGNORED_BLOCK_TYPE = listOf(1084, 1085, 1086, 1087)
-
     public const val CODED_CHARACTER_SET_IPTC_CODE: Int = 90
 
     /* "ESC % G" as bytes */
@@ -363,7 +354,15 @@ public object IptcParser {
             if (!byteReader.skipToNextResourceBlock())
                 break
 
-            val blockType = readTolerantly { byteReader.readNextNonIgnoredBlockType() } ?: break
+            /*
+             * Block types the Photoshop specification recommends not to
+             * interpret are read like any other block: they stay opaque
+             * byte carriers so an IPTC rewrite re-emits them instead of
+             * silently dropping their bytes.
+             */
+            val blockType =
+                readTolerantly { byteReader.read2BytesAsInt("IPTC block type", APP13_BYTE_ORDER) }
+                    ?: break
 
             val blockNameLength = readTolerantly { byteReader.readByte("block name length").toUInt8() }
                 ?: break
@@ -467,43 +466,6 @@ public object IptcParser {
             throw ImageReadException("Unparseable Photoshop APP13 tail.")
 
         return true
-    }
-
-    /**
-     * Reads the block type of the next 8BIM resource block, skipping
-     * blocks that the photoshop spec recommends to ignore.
-     *
-     * The skip consumes the next block's signature, so the block type
-     * of the following block is read directly here instead of reading
-     * a signature again.
-     *
-     * Returns null at the end of the data.
-     */
-    private fun ByteReader.readNextNonIgnoredBlockType(): Int? {
-
-        var blockType = read2BytesAsInt("IPTC block type", APP13_BYTE_ORDER)
-
-        while (PHOTOSHOP_IGNORED_BLOCK_TYPE.contains(blockType)) {
-
-            /*
-             * If there is still data in this block, before the next image resource block (8BIM),
-             * then we must consume these bytes to leave a pointer ready to read the next block.
-             *
-             * These block types are skipped because the Photoshop
-             * specification classifies them as non-IPTC resources (like
-             * resolution or print flag information). They are never part
-             * of the IPTC metadata this parser is responsible for, and
-             * they remain untouched in the raw block bytes.
-             */
-            val skipSuccessful = skipToQuad(JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_INT)
-
-            if (!skipSuccessful)
-                return null
-
-            blockType = read2BytesAsInt("IPTC block type", APP13_BYTE_ORDER)
-        }
-
-        return blockType
     }
 
     private fun isUtf8(codedCharset: ByteArray): Boolean {

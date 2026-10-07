@@ -61,6 +61,27 @@ class IptcParserEdgeCasesTest {
         ) + textBytes
     }
 
+    /**
+     * Wraps the given data in an 8BIM block of the given type, framed
+     * like Photoshop writes it: empty Pascal name with its padding
+     * byte and a 4-byte data size.
+     */
+    private fun wrapInTyped8BimBlock(
+        blockType: Int,
+        data: ByteArray
+    ): ByteArray {
+
+        val padding = if (data.size % 2 != 0) byteArrayOf(0) else byteArrayOf()
+
+        return byteArrayOf(
+            0x38, 0x42, 0x49, 0x4D,
+            (blockType shr 8).toByte(), (blockType and 0xFF).toByte(),
+            0,
+            0,
+            0, 0, 0, data.size.toByte()
+        ) + data + padding
+    }
+
     @Test
     fun testParseSkipsInvalidSignature() {
 
@@ -79,18 +100,20 @@ class IptcParserEdgeCasesTest {
         )
     }
 
+    /**
+     * Block types the Photoshop specification recommends not to
+     * interpret - like the ICC-untagged flag (0x043C) - are kept as
+     * opaque blocks. They are file content, so dropping them would
+     * destroy their bytes on an IPTC rewrite.
+     */
     @Test
-    fun testParseSkipsIgnoredBlockType() {
+    fun testParseKeepsNonInterpretedBlockTypeOpaque() {
 
-        /* An ignored block type (1084) followed by a valid IPTC block. */
-        val ignoredBlock = byteArrayOf(
-            0x38, 0x42, 0x49, 0x4D,
-            0x04, 0x3C,
-            0
-        )
+        val untaggedFlag = byteArrayOf(0x01)
 
         val metadata = IptcParser.parseIptc(
-            bytes = ignoredBlock + wrapIn8BimBlock(captionRecord("Caption")),
+            bytes = wrapInTyped8BimBlock(0x043C, untaggedFlag) +
+                wrapIn8BimBlock(captionRecord("Caption")),
             startsWithApp13Header = false
         )
 
@@ -98,20 +121,25 @@ class IptcParserEdgeCasesTest {
             expected = "Caption",
             actual = metadata.records.single().value
         )
+
+        val preservedBlock = metadata.rawBlocks.single { block ->
+            block.blockType == 0x043C
+        }
+
+        assertEquals(
+            expected = untaggedFlag.toList(),
+            actual = preservedBlock.blockData.toList()
+        )
     }
 
     @Test
-    fun testParseSkipsConsecutiveIgnoredBlockTypes() {
+    fun testParseKeepsConsecutiveNonInterpretedBlockTypesOpaque() {
 
-        /* Two ignored blocks followed by a valid IPTC block. */
-        val ignoredBlock = byteArrayOf(
-            0x38, 0x42, 0x49, 0x4D,
-            0x04, 0x3C,
-            0
-        )
-
+        /* Two non-interpreted blocks followed by a valid IPTC block. */
         val metadata = IptcParser.parseIptc(
-            bytes = ignoredBlock + ignoredBlock + wrapIn8BimBlock(captionRecord("Caption")),
+            bytes = wrapInTyped8BimBlock(0x043C, byteArrayOf(0x01)) +
+                wrapInTyped8BimBlock(0x043D, byteArrayOf(0x02, 0x03)) +
+                wrapIn8BimBlock(captionRecord("Caption")),
             startsWithApp13Header = false
         )
 
@@ -119,22 +147,24 @@ class IptcParserEdgeCasesTest {
             expected = "Caption",
             actual = metadata.records.single().value
         )
+
+        assertEquals(
+            expected = listOf(0x043C, 0x043D),
+            actual = metadata.rawBlocks
+                .map { it.blockType }
+                .filter { it != 0x0404 }
+        )
     }
 
     @Test
-    fun testParseKeepsBlocksAfterIgnoredBlockType() {
+    fun testParseKeepsBlocksAfterNonInterpretedBlockType() {
 
         /*
-         * The first block after an ignored block must not be swallowed.
+         * The first block after a non-interpreted block must not be
+         * swallowed.
          */
-        val ignoredBlock = byteArrayOf(
-            0x38, 0x42, 0x49, 0x4D,
-            0x04, 0x3C,
-            0
-        )
-
         val metadata = IptcParser.parseIptc(
-            bytes = ignoredBlock +
+            bytes = wrapInTyped8BimBlock(0x043C, byteArrayOf(0x01)) +
                 wrapIn8BimBlock(captionRecord("One")) +
                 wrapIn8BimBlock(captionRecord("Two")),
             startsWithApp13Header = false
