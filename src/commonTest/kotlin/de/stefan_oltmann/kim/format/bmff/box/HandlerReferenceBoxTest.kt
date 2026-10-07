@@ -54,6 +54,35 @@ class HandlerReferenceBoxTest {
     }
 
     @Test
+    fun testLongQuickTimePascalNameIsRead() {
+
+        /*
+         * The Pascal length byte is unsigned and allows 255 bytes. A byte
+         * with the high bit set must not decode as a negative number, or a
+         * long name falls into the NUL-terminated branch and fails the
+         * read although the box is valid.
+         */
+        val name = "VideoHandler".repeat(12) + "V"
+
+        val payload = ByteArray(NAME_FIELD_OFFSET + 1 + name.length)
+
+        putHandlerType(payload, "vide")
+
+        payload[NAME_FIELD_OFFSET] = name.length.toByte()
+
+        name.encodeToByteArray().copyInto(payload, NAME_FIELD_OFFSET + 1)
+
+        val box = HandlerReferenceBox(
+            offset = 0,
+            size = (payload.size + BOX_HEADER_LENGTH).toLong(),
+            largeSize = null,
+            payload = payload
+        )
+
+        assertEquals(name, box.name)
+    }
+
+    @Test
     fun testIsoNullTerminatedNameIsRead() {
 
         /* ISO/IEC 14496-12 writes the name NUL-terminated. */
@@ -113,6 +142,29 @@ class HandlerReferenceBoxTest {
                 largeSize = null,
                 payload = payload
             )
+        }
+    }
+
+    /**
+     * Every payload shorter than the fixed fields fails the read with the
+     * documented exception - the box parses file-controlled data, so no
+     * payload length may escape as a raw platform exception.
+     */
+    @Test
+    fun testTruncatedPayloadFailsTheRead() {
+
+        for (size in 0..NAME_FIELD_OFFSET) {
+
+            assertFailsWith<ImageReadException>(
+                "Payload size $size must fail the read."
+            ) {
+                HandlerReferenceBox(
+                    offset = 0,
+                    size = (size + BOX_HEADER_LENGTH).toLong(),
+                    largeSize = null,
+                    payload = ByteArray(size)
+                )
+            }
         }
     }
 

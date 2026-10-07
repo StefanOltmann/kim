@@ -66,11 +66,13 @@ public class HandlerReferenceBox(
          * ISO/IEC 14496-12 writes the name NUL-terminated, QuickTime
          * writes a Pascal string: one length byte plus that many bytes,
          * without a terminator - the form ffmpeg writes for MOV files.
+         * The length byte is unsigned, so the high bit must not turn it
+         * into a negative number for names longer than 127 bytes.
          */
         val nameField = payload.copyOfRange(NAME_FIELD_OFFSET, payload.size)
 
         name =
-            if (nameField.isNotEmpty() && nameField[0].toInt() == nameField.size - 1)
+            if (nameField.isNotEmpty() && (nameField[0].toInt() and UNSIGNED_BYTE_MASK) == nameField.size - 1)
                 nameField.decodeToString(1, nameField.size)
             else
                 byteReader.readNullTerminatedString("name")
@@ -97,5 +99,8 @@ public class HandlerReferenceBox(
         /* Version, flags, pre-defined, handler type and reserved. */
         const val NAME_FIELD_OFFSET =
             1 + FLAGS_LENGTH + PRE_DEFINED_LENGTH + HANDLER_TYPE_LENGTH + RESERVED_LENGTH
+
+        /* The Pascal length byte is unsigned. */
+        const val UNSIGNED_BYTE_MASK = 0xFF
     }
 }
