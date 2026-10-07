@@ -17,6 +17,7 @@ package de.stefan_oltmann.kim.format.tiff
 
 import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
@@ -84,6 +85,44 @@ class TiffStripRewriteTest {
         assertNull(ifd0.findField(TiffTag.TIFF_TAG_STRIP_OFFSETS))
         assertNull(ifd0.findField(TiffTag.TIFF_TAG_STRIP_BYTE_COUNTS))
         assertNull(ifd0.findField(TiffTag.TIFF_TAG_ROWS_PER_STRIP))
+    }
+
+    /**
+     * A TIFF with a SubIFDs pointer and a chain IFD1 cannot be
+     * restructured faithfully: the writer never re-emits tag 0x014A,
+     * and the sub-IFD occupies the IFD1 directory type, so
+     * createOutputSet silently displaced the real chain IFD1 - its
+     * thumbnail and fields were lost unheard of. The conversion must
+     * refuse the file instead.
+     */
+    @Test
+    fun testSubIfdRewriteFailsInsteadOfRestructuring() {
+
+        /*
+         * IFD0 (ImageWidth, SubIFDs -> 50, ImageLength, next -> 68),
+         * a sub-IFD at 50 and the real chain IFD1 at 68.
+         */
+        val tiffBytes = convertHexStringToByteArray(
+            "49492a00" + // TIFF header, little endian
+                "08000000" + // IFD0 offset
+                "0300" + // IFD0 entry count
+                "0001" + "0400" + "01000000" + "04000000" + // ImageWidth = 4
+                "4a01" + "0400" + "01000000" + "32000000" + // SubIFDs -> 50
+                "0101" + "0400" + "01000000" + "04000000" + // ImageLength = 4
+                "44000000" + // next IFD = 68
+                "0100" + // sub-IFD entry count
+                "0001" + "0400" + "01000000" + "04000000" + // ImageWidth = 4
+                "00000000" + // sub-IFD next
+                "0100" + // IFD1 entry count
+                "0001" + "0400" + "01000000" + "04000000" + // ImageWidth = 4
+                "00000000" // IFD1 next
+        )
+
+        val tiffContents = TiffReader.read(ByteArrayByteReader(tiffBytes))
+
+        assertFailsWith<ImageWriteException> {
+            tiffContents.createOutputSet()
+        }
     }
 
     /**

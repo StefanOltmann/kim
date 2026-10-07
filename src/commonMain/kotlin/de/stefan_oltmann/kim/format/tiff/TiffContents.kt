@@ -17,6 +17,9 @@
  */
 package de.stefan_oltmann.kim.format.tiff
 
+import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.format.tiff.TiffDirectory
+import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.geotiff.GeoTiffDirectory
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
@@ -53,6 +56,19 @@ public data class TiffContents(
         val result = TiffOutputSet(header.byteOrder)
 
         for (directory in directories) {
+
+            /*
+             * The writer never re-emits the SubIFDs pointer, and the
+             * reader folds the sub-IFDs into the chain-IFD number
+             * space - a rewrite would silently restructure the file
+             * and displace the real chain directories. The conversion
+             * refuses the file instead of corrupting it.
+             */
+            if (directory.findField(ExifTag.EXIF_TAG_SUB_IFDS_OFFSET) != null)
+                throw ImageWriteException(
+                    "The directory ${TiffDirectory.description(directory.type)} carries " +
+                        "a SubIFDs pointer, which a rewrite cannot preserve."
+                )
 
             /*
              * Certain cameras write some directories more than once.
