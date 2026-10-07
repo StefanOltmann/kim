@@ -276,10 +276,12 @@ Little-endian (Intel, II)
 0000018402 0x0701 WatercolorFilter = -1
 
 ---- IPTC ----
-Caption/Abstract (120) = 'time lapse photography of fire'
 Keywords (25) = 'human'
 Keywords (25) = 'person'
 Keywords (25) = 'people'
+Date Created (55) = '20230712'
+Time Created (60) = '144845+0200'
+Caption/Abstract (120) = 'time lapse photography of fire'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>

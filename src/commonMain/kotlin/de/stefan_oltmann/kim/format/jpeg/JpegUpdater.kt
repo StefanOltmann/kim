@@ -16,6 +16,7 @@
  */
 package de.stefan_oltmann.kim.format.jpeg
 
+import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.Md5
 import de.stefan_oltmann.kim.common.startsWith
@@ -44,8 +45,24 @@ import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
 import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.UtcOffset
+import kotlinx.datetime.number
+import kotlinx.datetime.offsetAt
+import kotlinx.datetime.toLocalDateTime
+import kotlin.math.abs
+import kotlin.time.Instant
 
 internal object JpegUpdater : MetadataUpdater {
+
+    /* Seconds of one hour, for the UTC offset of the IPTC time */
+    private const val SECONDS_PER_HOUR = 3600
+
+    /* Seconds of one minute, for the UTC offset of the IPTC time */
+    private const val SECONDS_PER_MINUTE = 60
+
+    /* Character count of the year field of the IPTC date */
+    private const val YEAR_STRING_LENGTH = 4
 
     private val LOCATION_SHOWN_IPTC_TYPES: Set<IptcType> = setOf(
         IptcTypes.SUBLOCATION,
@@ -290,6 +307,7 @@ internal object JpegUpdater : MetadataUpdater {
         val iptcUpdates = updates.filter { update ->
             update is MetadataUpdate.Title ||
                 update is MetadataUpdate.Description ||
+                update is MetadataUpdate.TakenDate ||
                 update is MetadataUpdate.LocationShown ||
                 update is MetadataUpdate.GpsCoordinatesAndLocationShown ||
                 update is MetadataUpdate.Keywords
@@ -323,6 +341,43 @@ internal object JpegUpdater : MetadataUpdater {
 
                     update.description?.let { description ->
                         newRecords.add(IptcRecord(IptcTypes.CAPTION_ABSTRACT, description))
+                    }
+                }
+
+                is MetadataUpdate.TakenDate -> {
+
+                    /*
+                     * The IPTC datasets 2:055 and 2:060 represent the
+                     * taken date like EXIF and XMP do - like ExifTool's
+                     * MWG mapping, they are rewritten with the new date
+                     * or removed with it.
+                     */
+                    removedIptcTypes.add(IptcTypes.DATE_CREATED)
+                    removedIptcTypes.add(IptcTypes.TIME_CREATED)
+
+                    val epochMilliseconds = update.takenDate
+
+                    if (epochMilliseconds != null) {
+
+                        val timeZone = Kim.effectiveTimeZone
+
+                        val instant = Instant.fromEpochMilliseconds(epochMilliseconds)
+
+                        val localDateTime = instant.toLocalDateTime(timeZone)
+
+                        newRecords.add(
+                            IptcRecord(
+                                IptcTypes.DATE_CREATED,
+                                localDateTime.toIptcDateString()
+                            )
+                        )
+
+                        newRecords.add(
+                            IptcRecord(
+                                IptcTypes.TIME_CREATED,
+                                localDateTime.toIptcTimeString(timeZone.offsetAt(instant))
+                            )
+                        )
                     }
                 }
 
@@ -372,6 +427,42 @@ internal object JpegUpdater : MetadataUpdater {
         )
     }
 
+    /**
+     * The IPTC dataset 2:055 carries the local date as YYYYMMDD.
+     */
+    private fun LocalDateTime.toIptcDateString(): String {
+
+        val paddedMonth = month.number.toString().padStart(2, '0')
+        val paddedDay = day.toString().padStart(2, '0')
+
+        return "${year.toString().padStart(YEAR_STRING_LENGTH, '0')}$paddedMonth$paddedDay"
+    }
+
+    /**
+     * The IPTC dataset 2:060 carries the local time as HHMMSS followed
+     * by the UTC offset, so the capture time stays unambiguous across
+     * time zones - like ExifTool writes it.
+     */
+    private fun LocalDateTime.toIptcTimeString(offset: UtcOffset): String {
+
+        val totalSeconds = offset.totalSeconds
+
+        val sign = if (totalSeconds < 0) "-" else "+"
+
+        val absoluteSeconds = abs(totalSeconds)
+
+        val offsetHours = absoluteSeconds / SECONDS_PER_HOUR
+        val offsetMinutes = absoluteSeconds % SECONDS_PER_HOUR / SECONDS_PER_MINUTE
+
+        val paddedHour = hour.toString().padStart(2, '0')
+        val paddedSecond = second.toString().padStart(2, '0')
+        val paddedMinute = minute.toString().padStart(2, '0')
+        val paddedOffsetHours = offsetHours.toString().padStart(2, '0')
+        val paddedOffsetMinutes = offsetMinutes.toString().padStart(2, '0')
+
+        return "$paddedHour$paddedMinute$paddedSecond$sign$paddedOffsetHours$paddedOffsetMinutes"
+    }
+
     private fun createLocationShownRecords(locationShown: LocationShown): List<IptcRecord> {
 
         val records = mutableListOf<IptcRecord>()
@@ -394,4 +485,5 @@ internal object JpegUpdater : MetadataUpdater {
 
         return records
     }
+
 }
