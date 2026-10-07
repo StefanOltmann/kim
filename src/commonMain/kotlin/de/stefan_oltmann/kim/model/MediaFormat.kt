@@ -139,7 +139,10 @@ public enum class MediaFormat(
         }
 
         /**
-         * Detects JPEG, GIF, PNG, TIFF & WEBP files based on the header bytes.
+         * Detects the media format of the given file based on its header
+         * magic bytes: every format in this enum that carries header magic
+         * numbers, including the TIFF based RAW formats, JXL, HEIC, AVIF,
+         * CR3 and the MP4/MOV brands.
          *
          * If the byte array is less than REQUIRED_HEADER_BYTE_COUNT_FOR_DETECTION
          * (for example empty) than the detection returns null.

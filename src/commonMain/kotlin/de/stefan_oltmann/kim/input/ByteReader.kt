@@ -30,6 +30,10 @@ package de.stefan_oltmann.kim.input
  * - The field based extensions in `ByteReaderExtensions` throw an
  *   [de.stefan_oltmann.kim.common.ImageReadException] when a requested
  *   structure cannot be read completely.
+ *
+ * A fourth form exists in `ByteReaderExtensions`: [readByteAsInt]
+ * returns the `-1` sentinel at the end of the data, so every caller
+ * must check for it explicitly.
  */
 public interface ByteReader : AutoCloseable {
 
