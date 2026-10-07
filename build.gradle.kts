@@ -16,6 +16,7 @@ plugins {
     alias(libs.plugins.resources)
     alias(libs.plugins.versions)
     alias(libs.plugins.maven.publish)
+    alias(libs.plugins.binary.compatibility.validator)
 }
 
 repositories {
