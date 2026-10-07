@@ -128,8 +128,14 @@ public class RationalNumber {
          */
         if (isUnsignedType && negatedNumerator < 0) {
 
+            /*
+             * Defensive guard of the ported math: with a positive
+             * numerator the gcd is at least 1, so this is unreachable -
+             * and as a contract failure it must fail via error() like the
+             * other guards of this class.
+             */
             if (commonDivisor == 0L)
-                throw NumberFormatException("Unsigned numerator is too large to negate: $numerator")
+                error("Unsigned numerator is too large to negate: $numerator")
 
             return RationalNumber(
                 numerator = -(numerator / commonDivisor),
