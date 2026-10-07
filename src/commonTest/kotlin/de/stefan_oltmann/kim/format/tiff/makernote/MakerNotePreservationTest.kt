@@ -413,13 +413,11 @@ class MakerNotePreservationTest {
             )
 
         /*
-         * Files that contain invalid segment lengths (44, 45, 47) and are
-         * rejected by the rewriter. Keep this set in sync with
-         * KotlinIoPathSourceTest.rejectedJpegIds and KimUpdateSmallFileTest.
-         * If a file becomes parseable, remove it here so the MakerNote
+         * The authoritative set lives in [KimTestData.brokenJpegIds]. If a
+         * file becomes parseable, remove it there so the MakerNote
          * preservation check covers it.
          */
-        val unrewritableIndices: Set<Int> = setOf(44, 45, 47)
+        val unrewritableIndices: Set<Int> = KimTestData.brokenJpegIds
 
         const val TEST_TAKEN_DATE_MILLIS: Long = 1_575_302_400_000
 
