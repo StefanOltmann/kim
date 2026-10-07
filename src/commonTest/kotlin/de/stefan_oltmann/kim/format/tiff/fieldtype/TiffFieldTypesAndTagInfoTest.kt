@@ -58,6 +58,31 @@ class TiffFieldTypesAndTagInfoTest {
         }
     }
 
+    /**
+     * The UTF-8 field type is declared as UTF-8 by EXIF 3.0, so bytes
+     * that are no valid UTF-8 are corrupt content - the strict read
+     * policy forbids fabricating replacement characters from them.
+     */
+    @Test
+    fun testFieldTypeUtf8RejectsInvalidUtf8() {
+
+        assertEquals(TiffConstants.FIELD_TYPE_UTF8_INDEX, FieldTypeUtf8.type)
+        assertEquals("UTF8", FieldTypeUtf8.name)
+        assertEquals(1, FieldTypeUtf8.size)
+
+        val exception = assertFailsWith<ImageReadException> {
+            FieldTypeUtf8.getValue(
+                byteArrayOf('h'.code.toByte(), 0xC3.toByte(), 0x28, 0),
+                ByteOrder.BIG_ENDIAN
+            )
+        }
+
+        assertEquals(
+            "Invalid UTF-8 in The TIFF UTF8 field value.",
+            exception.message
+        )
+    }
+
     @Test
     fun testFieldTypeSByte() {
 
