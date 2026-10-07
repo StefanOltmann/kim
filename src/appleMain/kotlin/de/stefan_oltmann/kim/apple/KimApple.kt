@@ -48,13 +48,13 @@ public object KimApple {
 
         /*
          * A file that cannot be read (missing, no permission, too large)
-         * fails the read instead of silently reporting "no metadata".
-         * Only files Kim can read but does not recognize return null.
+         * fails the read with the concrete reason instead of silently
+         * reporting "no metadata". Only files Kim can read but does not
+         * recognize return null.
          */
-        val fileBytes = readFileAsByteArray(path)
-            ?: throw ImageReadException("Failed to read file: $path")
-
-        return@tryWithImageReadException Kim.readMetadata(ByteArrayByteReader(fileBytes))
+        return@tryWithImageReadException Kim.readMetadata(
+            ByteArrayByteReader(readFileAsByteArray(path))
+        )
     }
 }
 

@@ -115,6 +115,6 @@ internal actual fun decompressBytesPlatform(
             inflateEnd(stream.ptr)
         }
 
-        return@decompressBytes byteWriter.toByteArray()
+        return@decompressBytesPlatform byteWriter.toByteArray()
     }
 }

@@ -22,34 +22,47 @@ import kotlinx.cinterop.UnsafeNumber
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.refTo
+import kotlinx.cinterop.toKString
 import platform.posix.FILE
 import platform.posix.SEEK_END
+import platform.posix.errno
 import platform.posix.fclose
 import platform.posix.fopen
 import platform.posix.fread
 import platform.posix.fseek
 import platform.posix.ftell
-import platform.posix.perror
 import platform.posix.rewind
+import platform.posix.strerror
+
+/**
+ * The human readable message of the current errno value, so file
+ * failures carry their reason instead of reporting it to stderr where
+ * no GUI process looks.
+ */
+@OptIn(ExperimentalForeignApi::class)
+private fun posixErrorMessage(): String {
+
+    val message = strerror(errno)?.toKString()
+
+    return if (message.isNullOrEmpty()) "errno $errno" else message
+}
 
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
-internal fun readFileAsByteArray(filePath: String): ByteArray? = memScoped {
+internal fun readFileAsByteArray(filePath: String): ByteArray = memScoped {
 
     /* Note: Mode "rb" is for reading binary files. */
-    val file: CPointer<FILE>? = fopen(filePath, "rb")
-
-    if (file == null) {
-        perror("Failed to open file: $filePath")
-        return@readFileAsByteArray null
-    }
+    val file: CPointer<FILE> = fopen(filePath, "rb")
+        ?: throw ImageReadException(
+            "Failed to open file: $filePath (${posixErrorMessage()})"
+        )
 
     try {
 
         /* Move the cursor to the end of the file to determine its size. */
-        if (fseek(file, 0, SEEK_END) != 0) {
-            perror("Failed to seek to the end of file: $filePath")
-            return null
-        }
+        if (fseek(file, 0, SEEK_END) != 0)
+            throw ImageReadException(
+                "Failed to seek to the end of file: $filePath (${posixErrorMessage()})"
+            )
 
         val fileSize = ftell(file)
 
@@ -58,10 +71,10 @@ internal fun readFileAsByteArray(filePath: String): ByteArray? = memScoped {
          * and files larger than the array index range cannot be read into
          * a single array anyway.
          */
-        if (fileSize < 0L || fileSize > Int.MAX_VALUE.toLong()) {
-            perror("File is unseekable or too large: $filePath ($fileSize bytes)")
-            return@readFileAsByteArray null
-        }
+        if (fileSize < 0L || fileSize > Int.MAX_VALUE.toLong())
+            throw ImageReadException(
+                "File is unseekable or too large: $filePath ($fileSize bytes)"
+            )
 
         rewind(file)
 
@@ -76,12 +89,12 @@ internal fun readFileAsByteArray(filePath: String): ByteArray? = memScoped {
             file
         )
 
-        if (bytesReadCount != fileSize.toULong()) {
-            perror("Did not read file completely: $bytesReadCount != $fileSize")
-            return@readFileAsByteArray null
-        }
+        if (bytesReadCount != fileSize.toULong())
+            throw ImageReadException(
+                "Did not read file completely: $bytesReadCount != $fileSize ($filePath)"
+            )
 
-        return@readFileAsByteArray buffer
+        return@memScoped buffer
 
     } finally {
         fclose(file)
