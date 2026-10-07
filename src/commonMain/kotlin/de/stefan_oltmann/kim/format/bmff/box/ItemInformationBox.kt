@@ -22,6 +22,7 @@ import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.FLAGS_LENGTH
 import de.stefan_oltmann.kim.format.bmff.BoxReader
+import de.stefan_oltmann.kim.format.bmff.PayloadSource
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.read2BytesAsInt
@@ -32,13 +33,13 @@ import de.stefan_oltmann.kim.input.readBytes
 /**
  * ISO/IEC 14496-12 iinf box.
  */
-public class ItemInformationBox(
+public class ItemInformationBox internal constructor(
     offset: Long,
     size: Long,
     largeSize: Long?,
-    payload: ByteArray,
+    payloadSource: PayloadSource,
     depth: Int = 0
-) : Box(BoxType.IINF, offset, size, largeSize, payload), BoxContainer {
+) : Box(BoxType.IINF, offset, size, largeSize, payloadSource), BoxContainer {
 
     /** The box version. */
     public val version: Int
@@ -56,7 +57,7 @@ public class ItemInformationBox(
 
     init {
 
-        val byteReader = ByteArrayByteReader(payload)
+        val byteReader = payloadSource.reader()
 
         version = byteReader.readByteAsInt()
 
@@ -101,6 +102,14 @@ public class ItemInformationBox(
 
         this.map = map
     }
+
+    public constructor(
+        offset: Long,
+        size: Long,
+        largeSize: Long?,
+        payload: ByteArray,
+        depth: Int = 0
+    ) : this(offset, size, largeSize, PayloadSource.of(payload), depth)
 
     override fun toString(): String =
         "$type Box version=$version flags=${flags.toHex()} ($entryCount entries)"

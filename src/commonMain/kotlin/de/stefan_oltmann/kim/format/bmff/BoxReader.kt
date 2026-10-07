@@ -41,6 +41,8 @@ import de.stefan_oltmann.kim.format.jxl.box.CompressedBox
 import de.stefan_oltmann.kim.format.jxl.box.ExifBox
 import de.stefan_oltmann.kim.format.jxl.box.JxlPartialCodestreamBox
 import de.stefan_oltmann.kim.format.jxl.box.XmlBox
+import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.input.DEFAULT_BUFFER_SIZE
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.read8BytesAsLong
 import de.stefan_oltmann.kim.input.readBytes
@@ -50,6 +52,15 @@ import de.stefan_oltmann.kim.output.ByteArrayByteWriter
  * Reads ISOBMFF boxes.
  */
 public object BoxReader {
+
+    private val CONTAINER_BOX_TYPES: Set<BoxType> = setOf(
+    BoxType.MOOV,
+    BoxType.TRAK,
+    BoxType.MDIA,
+    BoxType.UDTA,
+    BoxType.IINF,
+    BoxType.META
+)
 
     /*
      * Real files nest container boxes only a few levels deep
@@ -119,7 +130,7 @@ public object BoxReader {
      * @param updatePosition A callback to report the position when reading
      * has finished
      */
-    internal fun scanMetadataBoxes(
+internal fun scanMetadataBoxes(
         byteReader: ByteReader,
         updatePosition: ((Long) -> Unit)? = null
     ): List<Box> =
@@ -245,7 +256,7 @@ public object BoxReader {
      * source ended inside the payload.
      */
     private class BoxPayloadResult(
-        val bytes: ByteArray,
+        val source: PayloadSource,
         val truncated: Boolean
     )
 
@@ -265,6 +276,13 @@ public object BoxReader {
         haveSeenJxlHeaderBox: Boolean
     ): BoxPayloadResult {
 
+        /*
+         * Container boxes parse their children from the parent buffer
+         * through a window, so their payload array only materializes
+         * when something reads it.
+         */
+        val isContainerBox = type in CONTAINER_BOX_TYPES
+
         var payloadTruncated = false
 
         /*
@@ -279,7 +297,7 @@ public object BoxReader {
 
         val isSkippableDataBox = skipDataBoxPayloads && !isMetadataPayloadBox
 
-        val bytes: ByteArray = when {
+        val source: PayloadSource = when {
 
             /*
              * The video scan must look inside a file-level meta box:
@@ -305,7 +323,7 @@ public object BoxReader {
 
                 payloadTruncated = payload.size < remainingBytesToReadInThisBox
 
-                payload
+                PayloadSource.of(payload)
             }
 
             isSkippableDataBox -> {
@@ -318,7 +336,7 @@ public object BoxReader {
                 payloadTruncated = skippedByteCount < remainingBytesToReadInThisBox
 
                 /* The payload is discarded, not retained. */
-                ByteArray(0)
+                PayloadSource.of(ByteArray(0))
             }
 
             type == BoxType.MDAT &&
@@ -333,7 +351,7 @@ public object BoxReader {
                 payloadTruncated = retained.size < remainingBytesToReadInThisBox
 
                 /* The reader itself retains the bytes. */
-                ByteArray(0)
+                PayloadSource.of(ByteArray(0))
             }
 
             /*
@@ -356,9 +374,11 @@ public object BoxReader {
                 payloadTruncated = retained.size < remainingBytesToReadInThisBox
 
                 if (type == BoxType.JXLP && !haveSeenJxlHeaderBox)
-                    retained.copyOf(minOf(retained.size, JXL_HEADER_SIGNATURE_LENGTH))
+                    PayloadSource.of(
+                        retained.copyOf(minOf(retained.size, JXL_HEADER_SIGNATURE_LENGTH))
+                    )
                 else
-                    ByteArray(0)
+                    PayloadSource.of(ByteArray(0))
             }
 
             stopAfterMetadataRead -> {
@@ -370,14 +390,31 @@ public object BoxReader {
 
                 payloadTruncated = payload.size < remainingBytesToReadInThisBox
 
-                payload
+                PayloadSource.of(payload)
+            }
+
+            isContainerBox && byteReader is ByteArrayByteReader &&
+                byteReader.windowPosition + remainingBytesToReadInThisBox <=
+                byteReader.windowEnd -> {
+
+                /*
+                 * The payload stays a window into the parent buffer: the
+                 * children parse from it without a copy, and the array
+                 * materializes only if something reads the payload.
+                 */
+                val start = byteReader.windowPosition
+                val length = remainingBytesToReadInThisBox.toInt()
+
+                byteReader.moveWindowPositionTo(start + length)
+
+                PayloadSource.ofWindow(byteReader.windowArray, start, length)
             }
 
             else ->
-                byteReader.readBytes("data", remainingBytesToReadInThisBox.toInt())
+                PayloadSource.of(byteReader.readBytes("data", remainingBytesToReadInThisBox.toInt()))
         }
 
-        return BoxPayloadResult(bytes, payloadTruncated)
+        return BoxPayloadResult(source, payloadTruncated)
     }
 
     /**
@@ -671,7 +708,7 @@ public object BoxReader {
 
             val payloadTruncated = payloadResult.truncated
 
-            val bytes: ByteArray = payloadResult.bytes
+            val payloadSource: PayloadSource = payloadResult.source
 
             position += remainingBytesToReadInThisBox
 
@@ -679,7 +716,7 @@ public object BoxReader {
 
             val box = when (type) {
                 /* Generic ISO/IEC 14496-12 boxes. */
-                BoxType.FTYP -> FileTypeBox(globalOffset, size, largeSize, bytes)
+                BoxType.FTYP -> FileTypeBox(globalOffset, size, largeSize, payloadSource.bytes())
                 BoxType.META -> if (parentBoxType == null) {
 
                     /*
@@ -697,40 +734,44 @@ public object BoxReader {
                      */
                     if (isSkippableDataBox) {
 
-                        if (hasItemMetadataChildren(bytes))
+                        if (hasItemMetadataChildren(payloadSource.bytes()))
                             throw ImageReadException(
                                 "The file-level meta box of the video " +
                                     "carries item metadata, which is not " +
                                     "read here."
                             )
 
-                        Box(BoxType.META, globalOffset, size, largeSize, bytes)
+                        Box(BoxType.META, globalOffset, size, largeSize, payloadSource)
                     } else {
-                        MetaBoxTopLevel(globalOffset, size, largeSize, bytes, depth + 1)
+                        MetaBoxTopLevel(globalOffset, size, largeSize, payloadSource, depth + 1)
                     }
                 } else {
-                    MetaBox(globalOffset, size, largeSize, bytes, depth + 1)
+                    MetaBox(globalOffset, size, largeSize, payloadSource, depth + 1)
                 }
 
-                BoxType.HDLR -> HandlerReferenceBox(globalOffset, size, largeSize, bytes)
-                BoxType.IINF -> ItemInformationBox(globalOffset, size, largeSize, bytes, depth + 1)
-                BoxType.INFE -> ItemInfoEntryBox(globalOffset, size, largeSize, bytes)
-                BoxType.ILOC -> ItemLocationBox(globalOffset, size, largeSize, bytes)
-                BoxType.PITM -> PrimaryItemBox(globalOffset, size, largeSize, bytes)
-                BoxType.MDAT -> MediaDataBox(globalOffset, size, largeSize, bytes, resolvedLength = actualLength)
-                BoxType.MOOV -> MovieBox(globalOffset, size, largeSize, bytes, depth + 1)
-                BoxType.TRAK -> TrackBox(globalOffset, size, largeSize, bytes, depth + 1)
-                BoxType.TKHD -> TrackHeaderBox(globalOffset, size, largeSize, bytes)
-                BoxType.MDIA -> MediaBox(globalOffset, size, largeSize, bytes, depth + 1)
-                BoxType.UUID -> UuidBox(globalOffset, size, largeSize, bytes)
-                BoxType.UDTA -> UserDataBox(globalOffset, size, largeSize, bytes, depth + 1)
+                BoxType.HDLR -> HandlerReferenceBox(globalOffset, size, largeSize, payloadSource.bytes())
+                BoxType.IINF -> ItemInformationBox(globalOffset, size, largeSize, payloadSource, depth + 1)
+                BoxType.INFE -> ItemInfoEntryBox(globalOffset, size, largeSize, payloadSource.bytes())
+                BoxType.ILOC -> ItemLocationBox(globalOffset, size, largeSize, payloadSource.bytes())
+                BoxType.PITM -> PrimaryItemBox(globalOffset, size, largeSize, payloadSource.bytes())
+                BoxType.MDAT ->
+                    MediaDataBox(
+                        globalOffset, size, largeSize, payloadSource.bytes(),
+                        resolvedLength = actualLength
+                    )
+                BoxType.MOOV -> MovieBox(globalOffset, size, largeSize, payloadSource, depth + 1)
+                BoxType.TRAK -> TrackBox(globalOffset, size, largeSize, payloadSource, depth + 1)
+                BoxType.TKHD -> TrackHeaderBox(globalOffset, size, largeSize, payloadSource.bytes())
+                BoxType.MDIA -> MediaBox(globalOffset, size, largeSize, payloadSource, depth + 1)
+                BoxType.UUID -> UuidBox(globalOffset, size, largeSize, payloadSource.bytes())
+                BoxType.UDTA -> UserDataBox(globalOffset, size, largeSize, payloadSource, depth + 1)
                 /* JXL boxes */
-                BoxType.EXIF -> ExifBox(globalOffset, size, largeSize, bytes)
-                BoxType.XML -> XmlBox(globalOffset, size, largeSize, bytes)
-                BoxType.JXLP -> JxlPartialCodestreamBox(globalOffset, size, largeSize, bytes)
-                BoxType.BROB -> CompressedBox(globalOffset, size, largeSize, bytes)
+                BoxType.EXIF -> ExifBox(globalOffset, size, largeSize, payloadSource.bytes())
+                BoxType.XML -> XmlBox(globalOffset, size, largeSize, payloadSource.bytes())
+                BoxType.JXLP -> JxlPartialCodestreamBox(globalOffset, size, largeSize, payloadSource.bytes())
+                BoxType.BROB -> CompressedBox(globalOffset, size, largeSize, payloadSource.bytes())
                 /* Unknown box; skippable ones stream through with an empty payload. */
-                else -> Box(type, globalOffset, size, largeSize, bytes, resolvedLength = actualLength)
+                else -> Box(type, globalOffset, size, largeSize, payloadSource, resolvedLength = actualLength)
             }
 
             boxes.add(box)
@@ -876,7 +917,16 @@ public object BoxReader {
      */
     private fun readPayloadUpToEof(byteReader: ByteReader, count: Int): ByteArray {
 
-        val writer = ByteArrayByteWriter()
+        /*
+         * The expected size is known, so the writer starts at full size
+         * instead of growing over and over - growth copies dominated the
+         * parse time for video containers with large metadata regions.
+         */
+        val writer = ByteArrayByteWriter(
+            minOf(count.toLong(), byteReader.contentLength.coerceAtLeast(0L))
+                .toInt()
+                .coerceAtLeast(DEFAULT_BUFFER_SIZE)
+        )
 
         var remaining = count.toLong()
 

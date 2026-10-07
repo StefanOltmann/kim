@@ -19,6 +19,7 @@
 package de.stefan_oltmann.kim.format.bmff.box
 
 import de.stefan_oltmann.kim.format.bmff.BoxReader
+import de.stefan_oltmann.kim.format.bmff.PayloadSource
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 
@@ -27,19 +28,19 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
  *
  * The Movie Box is a container for several sub boxes.
  */
-public class MovieBox(
+public class MovieBox internal constructor(
     offset: Long,
     size: Long,
     largeSize: Long?,
-    payload: ByteArray,
+    payloadSource: PayloadSource,
     depth: Int = 0
-) : Box(BoxType.MOOV, offset, size, largeSize, payload), BoxContainer {
+) : Box(BoxType.MOOV, offset, size, largeSize, payloadSource), BoxContainer {
 
     override val boxes: List<Box>
 
     init {
 
-        val byteReader = ByteArrayByteReader(payload)
+        val byteReader = payloadSource.reader()
 
         boxes = BoxReader.readChildBoxes(
             byteReader = byteReader,
@@ -48,6 +49,14 @@ public class MovieBox(
             offsetShift = offset + 8
         )
     }
+
+    public constructor(
+        offset: Long,
+        size: Long,
+        largeSize: Long?,
+        payload: ByteArray,
+        depth: Int = 0
+    ) : this(offset, size, largeSize, PayloadSource.of(payload), depth)
 
     override fun toString(): String =
         "$type Box @$offset boxes=${boxes.map { it.type }}"

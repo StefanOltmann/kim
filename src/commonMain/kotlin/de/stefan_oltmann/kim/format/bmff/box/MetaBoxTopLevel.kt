@@ -20,6 +20,7 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.MetadataOffset
 import de.stefan_oltmann.kim.common.MetadataType
 import de.stefan_oltmann.kim.common.toHex
+import de.stefan_oltmann.kim.format.bmff.PayloadSource
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants
 import de.stefan_oltmann.kim.format.bmff.Extent
 import de.stefan_oltmann.kim.format.bmff.MetadataItem
@@ -30,13 +31,13 @@ import de.stefan_oltmann.kim.format.bmff.MetadataItem
  * The Meta Box is a container for several metadata boxes. This class represents a top-level Meta
  * Box that is not a sub-box of some other box.
  */
-public class MetaBoxTopLevel(
+public class MetaBoxTopLevel internal constructor(
     offset: Long,
     size: Long,
     largeSize: Long?,
-    payload: ByteArray,
+    payloadSource: PayloadSource,
     depth: Int = 0
-) : MetaBox(offset, size, largeSize, payload, depth), BoxContainer {
+) : MetaBox(offset, size, largeSize, payloadSource, depth), BoxContainer {
 
     /* Mandatory boxes in top-level META */
     public val primaryItemBox: PrimaryItemBox =
@@ -70,6 +71,13 @@ public class MetaBoxTopLevel(
      * can be parsed as one stream. Items are ordered by position, and
      * the extents of each item are ordered by position as well.
      */
+    public constructor(
+        offset: Long,
+        size: Long,
+        largeSize: Long?,
+        payload: ByteArray,
+        depth: Int = 0
+    ) : this(offset, size, largeSize, PayloadSource.of(payload), depth)
     public fun findMetadataItems(): List<MetadataItem> {
 
         /*
@@ -141,4 +149,5 @@ public class MetaBoxTopLevel(
 
     override fun toString(): String =
         "$type Box version=$version flags=${flags.toHex()} boxes=${boxes.map { it.type }}"
+
 }

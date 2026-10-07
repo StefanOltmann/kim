@@ -1,6 +1,5 @@
 /*
  * Copyright 2026 Stefan Oltmann
- * Copyright 2026 Ramon Bouckaert
  * Copyright 2025 Ashampoo GmbH & Co. KG
  * Copyright 2002-2023 Drew Noakes and contributors
  *
@@ -23,7 +22,7 @@ import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.FLAGS_LENGTH
 import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BoxType
-import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.format.bmff.PayloadSource
 import de.stefan_oltmann.kim.input.readByteAsInt
 import de.stefan_oltmann.kim.input.readBytes
 
@@ -32,13 +31,13 @@ import de.stefan_oltmann.kim.input.readBytes
  *
  * The Meta Box is a container for several metadata boxes.
  */
-public open class MetaBox(
+public open class MetaBox internal constructor(
     offset: Long,
     size: Long,
     largeSize: Long?,
-    payload: ByteArray,
+    payloadSource: PayloadSource,
     depth: Int = 0
-) : Box(BoxType.META, offset, size, largeSize, payload), BoxContainer {
+) : Box(BoxType.META, offset, size, largeSize, payloadSource), BoxContainer {
 
     /** The box version. */
     public val version: Int
@@ -53,7 +52,7 @@ public open class MetaBox(
 
     init {
 
-        val byteReader = ByteArrayByteReader(payload)
+        val byteReader = payloadSource.reader()
 
         version = byteReader.readByteAsInt()
 
@@ -71,6 +70,14 @@ public open class MetaBox(
         handlerReferenceBox = boxes.filterIsInstance<HandlerReferenceBox>().firstOrNull()
             ?: throw ImageReadException("Illegal ISOBMFF: meta has no hdlr box.")
     }
+
+    public constructor(
+        offset: Long,
+        size: Long,
+        largeSize: Long?,
+        payload: ByteArray,
+        depth: Int = 0
+    ) : this(offset, size, largeSize, PayloadSource.of(payload), depth)
 
     override fun toString(): String =
         "$type Box version=$version flags=${flags.toHex()} boxes=${boxes.map { it.type }}"
