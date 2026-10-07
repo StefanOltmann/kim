@@ -70,11 +70,11 @@ class ApiContractFuzzTest {
 
     @Test
     fun testFuzzPng() =
-        fuzzCandidate(KimTestData.PNG_TEST_IMAGE_INDEX)
+        fuzzCandidate(KimTestData.PNG_FUZZ_CANDIDATE_INDEX)
 
     @Test
     fun testFuzzGif() =
-        fuzzCandidate(KimTestData.GIF_TEST_IMAGE_INDEX)
+        fuzzCandidate(KimTestData.GIF_FUZZ_CANDIDATE_INDEX)
 
     @Test
     fun testFuzzWebP() =
@@ -105,10 +105,10 @@ class ApiContractFuzzTest {
         fuzzCandidate(KimTestData.RAF_FUZZ_CANDIDATE_INDEX)
 
     /**
-     * Pins that the small CR3/MOV/RAF derivations parse cleanly and carry
-     * their identifying metadata, so the fuzz candidates above exercise
-     * the format's real parse chain instead of uniformly failing the read
-     * or returning an empty summary.
+     * Pins that the small CR3/MOV/RAF/PNG/GIF derivations parse cleanly
+     * and carry their identifying metadata, so the fuzz candidates above
+     * exercise the format's real parse chain instead of uniformly failing
+     * the read or returning an empty summary.
      */
     @Test
     fun testFuzzCandidatesParseCleanly() {
@@ -126,6 +126,15 @@ class ApiContractFuzzTest {
 
         assertEquals("FUJIFILM", rafSummary?.cameraMake)
         assertEquals("X-T4", rafSummary?.cameraModel)
+
+        val pngSummary = summaryOf(KimTestData.PNG_FUZZ_CANDIDATE_INDEX)
+
+        assertEquals("Canon", pngSummary?.cameraMake)
+        assertEquals("Canon EOS R", pngSummary?.cameraModel)
+
+        val gifSummary = summaryOf(KimTestData.GIF_FUZZ_CANDIDATE_INDEX)
+
+        assertEquals("Sample GIF", gifSummary?.title)
     }
 
     private fun summaryOf(index: Int): MetadataSummary? =

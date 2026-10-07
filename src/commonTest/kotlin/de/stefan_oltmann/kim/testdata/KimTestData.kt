@@ -102,10 +102,22 @@ object KimTestData {
      *   (the existing 78 KB header fixture), the original CFA header block
      *   and a 4 KiB CFA data slice. ExifTool reads it without warnings;
      *   the moved CFA section is reflected in StripOffsets.
+     * - media_95.png is media_51 kept verbatim through its first 8 KiB
+     *   IDAT chunk and closed with IEND, because rewriting the corpus
+     *   PNG's 1.4 MB picture with every mutation exceeds the default
+     *   runner timeout on JavaScript. Every metadata chunk stays
+     *   byte-exact; the image data is an incomplete zlib stream. ExifTool
+     *   reads it without warnings.
+     * - media_96.gif is media_61 kept through 64 KiB of whole image
+     *   sub-blocks and closed with the block terminator and the trailer
+     *   byte, for the same reason. The XMP application extension stays
+     *   byte-exact; ExifTool reads it without warnings.
      */
     const val CR3_FUZZ_CANDIDATE_INDEX: Int = 92
     const val MOV_FUZZ_CANDIDATE_INDEX: Int = 93
     const val RAF_FUZZ_CANDIDATE_INDEX: Int = 94
+    const val PNG_FUZZ_CANDIDATE_INDEX: Int = 95
+    const val GIF_FUZZ_CANDIDATE_INDEX: Int = 96
 
     @Suppress("MagicNumber")
     val mediaIdsWithExifThumbnail: Set<Int> = setOf(
@@ -203,6 +215,8 @@ object KimTestData {
         CR3_FUZZ_CANDIDATE_INDEX -> "cr3"
         MOV_FUZZ_CANDIDATE_INDEX -> "mov"
         RAF_FUZZ_CANDIDATE_INDEX -> "raf"
+        PNG_FUZZ_CANDIDATE_INDEX -> "png"
+        GIF_FUZZ_CANDIDATE_INDEX -> "gif"
         ANIMATED_AVIF_TEST_IMAGE_INDEX -> "avif"
         ANIMATED_AVIF_TEST_IMAGE_WITH_LEGACY_ADOBE_XMP_INDEX -> "avif"
         ANIMATED_AVIF_TEST_IMAGE_WITH_ALT_LEGACY_ADOBE_XMP_INDEX -> "avif"
