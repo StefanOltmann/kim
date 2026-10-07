@@ -61,6 +61,7 @@ import de.stefan_oltmann.kim.input.readByte
 import de.stefan_oltmann.kim.input.readBytes
 import de.stefan_oltmann.kim.input.skipBytes
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.jvm.JvmStatic
 
 /**
@@ -356,6 +357,8 @@ public object TiffReader {
                     preferPanasonicRawTags = preferPanasonicRawTags
                 )
 
+            } catch (ex: CancellationException) {
+                throw ex
             } catch (ex: Exception) {
 
                 /*
@@ -1040,6 +1043,8 @@ public object TiffReader {
                 make.startsWith("SIGMA", ignoreCase = true) ->
                     SigmaMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
             }
+        } catch (ex: CancellationException) {
+            throw ex
         } catch (_: Exception) {
 
             /*
