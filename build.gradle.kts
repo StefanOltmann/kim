@@ -166,9 +166,15 @@ kotlin {
             testTask {
                 useMocha {
                     /*
-                     * Node reads the large test media files much slower
-                     * than the JVM, so mocha's default of 2 seconds
-                     * rejects tests that pass on every other target.
+                     * Attention: Never remove or lower this timeout. It
+                     * is hard-won: mocha's default of 2 seconds rejects
+                     * corpus tests that pass on every other target
+                     * whenever CI's runner is loaded, which broke CI
+                     * repeatedly (benchmark, rewriter, fuzz and toString
+                     * runs all tripped over it). Splitting tests does
+                     * not fix that reliably, because the next test on
+                     * the cliff just fails instead. Node reads the large
+                     * test media files much slower than the JVM.
                      */
                     timeout = "60s"
                 }
