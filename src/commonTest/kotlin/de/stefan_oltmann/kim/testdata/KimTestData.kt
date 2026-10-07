@@ -88,6 +88,25 @@ object KimTestData {
      */
     const val ANIMATED_WEBP_TEST_IMAGE_INDEX: Int = 91
 
+    /*
+     * Small derivations of the CR3, MOV and RAF corpus files, so the API
+     * contract fuzz covers their parse chains under its 2 MB candidate cap:
+     *
+     * - media_92.cr3 is media_83 truncated behind its metadata boxes with a
+     *   64 KiB mdat slice. ExifTool reads the retained EXIF/XMP unchanged
+     *   and only reports the truncated embedded JPEG.
+     * - media_93.mov is an ffmpeg-encoded clip whose XMP was written and
+     *   verified with ExifTool - the corpus MOV's 5.4 MB moov box exceeds
+     *   the cap, so it cannot be truncated instead.
+     * - media_94.raf is media_58 rebuilt around its truncated embedded JPEG
+     *   (the existing 78 KB header fixture), the original CFA header block
+     *   and a 4 KiB CFA data slice. ExifTool reads it without warnings;
+     *   the moved CFA section is reflected in StripOffsets.
+     */
+    const val CR3_FUZZ_CANDIDATE_INDEX: Int = 92
+    const val MOV_FUZZ_CANDIDATE_INDEX: Int = 93
+    const val RAF_FUZZ_CANDIDATE_INDEX: Int = 94
+
     @Suppress("MagicNumber")
     val mediaIdsWithExifThumbnail: Set<Int> = setOf(
         2, 3, 4, 5, 6, 7, 10, 12, 15, 16, 19, 20, 21,
@@ -181,6 +200,9 @@ object KimTestData {
         CR3_TEST_IMAGE_INDEX -> "cr3"
         MP4_TEST_VIDEO_INDEX -> "mp4"
         MOV_TEST_VIDEO_INDEX -> "mov"
+        CR3_FUZZ_CANDIDATE_INDEX -> "cr3"
+        MOV_FUZZ_CANDIDATE_INDEX -> "mov"
+        RAF_FUZZ_CANDIDATE_INDEX -> "raf"
         ANIMATED_AVIF_TEST_IMAGE_INDEX -> "avif"
         ANIMATED_AVIF_TEST_IMAGE_WITH_LEGACY_ADOBE_XMP_INDEX -> "avif"
         ANIMATED_AVIF_TEST_IMAGE_WITH_ALT_LEGACY_ADOBE_XMP_INDEX -> "avif"

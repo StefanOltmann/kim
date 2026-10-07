@@ -25,6 +25,7 @@ import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.random.Random
 import kotlin.test.Test
+import kotlin.test.assertNotNull
 
 /**
  * Fuzzes the public API with deterministic single-byte mutations of real
@@ -88,6 +89,38 @@ class ApiContractFuzzTest {
     @Test
     fun testFuzzAvif() =
         fuzzCandidate(KimTestData.AVIF_TEST_IMAGE_FROM_JPG_USING_IMAGEMAGICK_INDEX)
+
+    @Test
+    fun testFuzzCr3() =
+        fuzzCandidate(KimTestData.CR3_FUZZ_CANDIDATE_INDEX)
+
+    @Test
+    fun testFuzzMov() =
+        fuzzCandidate(KimTestData.MOV_FUZZ_CANDIDATE_INDEX)
+
+    @Test
+    fun testFuzzRaf() =
+        fuzzCandidate(KimTestData.RAF_FUZZ_CANDIDATE_INDEX)
+
+    /**
+     * Pins that the small CR3/MOV/RAF derivations parse cleanly, so the
+     * fuzz candidates above exercise the format's real parse chain instead
+     * of uniformly failing the read.
+     */
+    @Test
+    fun testFuzzCandidatesParseCleanly() {
+
+        for (index in intArrayOf(
+            KimTestData.CR3_FUZZ_CANDIDATE_INDEX,
+            KimTestData.MOV_FUZZ_CANDIDATE_INDEX,
+            KimTestData.RAF_FUZZ_CANDIDATE_INDEX
+        )) {
+            assertNotNull(
+                Kim.readMetadata(ByteArrayByteReader(KimTestData.getBytesOf(index))),
+                "media_$index must parse cleanly to serve as a fuzz candidate."
+            )
+        }
+    }
 
     /**
      * Fuzzes one corpus file with [MUTATIONS_PER_FILE] deterministic
