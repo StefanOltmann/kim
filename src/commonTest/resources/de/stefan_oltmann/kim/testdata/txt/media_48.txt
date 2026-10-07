@@ -111,3 +111,22 @@ Big-endian (Motorola, MM)
 0000001866 0x0003 RunTimeScale = 0
 0000001866 0x0004 RunTimeEpoch = 0
 
+---- ICC ----
+ProfileSize        : 536
+ProfileCMMType     : appl
+ProfileVersion     : 4.0
+ProfileClass       : mntr
+ColorSpaceData     : RGB 
+ProfileConnectionSpace : XYZ 
+PrimaryPlatform    : APPL
+RenderingIntent    : 0
+ProfileDescription = Display P3
+ProfileCopyright = Copyright Apple Inc., 2022
+MediaWhitePoint = 0.9641876220703125 1.0 0.82489013671875
+RedMatrixColumn = 0.5151214599609375 0.2411956787109375 -0.0010528564453125
+GreenMatrixColumn = 0.2919769287109375 0.6922454833984375 0.0418853759765625
+BlueMatrixColumn = 0.1571044921875 0.0665740966796875 0.7840728759765625
+RedTRC (rTRC)
+ChromaticAdaptation = 1.047882080078125 0.022918701171875 -0.050201416015625 0.0295867919921875 0.990478515625 -0.017059326171875 -0.0092315673828125 0.01507568359375 0.751678466796875
+BlueTRC (bTRC)
+GreenTRC (gTRC)

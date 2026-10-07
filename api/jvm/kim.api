@@ -201,6 +201,7 @@ public final class de/stefan_oltmann/kim/format/MediaMetadata {
 	public final fun getExif ()Lde/stefan_oltmann/kim/format/tiff/TiffContents;
 	public final fun getExifBytes ()[B
 	public final fun getExifThumbnailBytes ()[B
+	public final fun getIccProfile ()Lde/stefan_oltmann/kim/format/icc/IccProfile;
 	public final fun getImageSize ()Lde/stefan_oltmann/kim/model/ImageSize;
 	public final fun getIptc ()Lde/stefan_oltmann/kim/format/jpeg/iptc/IptcMetadata;
 	public final fun getMediaFormat ()Lde/stefan_oltmann/kim/model/MediaFormat;
@@ -676,6 +677,55 @@ public final class de/stefan_oltmann/kim/format/gif/chunk/GifChunkTerminator : d
 	public fun <init> ([B)V
 }
 
+public final class de/stefan_oltmann/kim/format/icc/IccEntry {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lde/stefan_oltmann/kim/format/icc/IccEntry;
+	public static synthetic fun copy$default (Lde/stefan_oltmann/kim/format/icc/IccEntry;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lde/stefan_oltmann/kim/format/icc/IccEntry;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getName ()Ljava/lang/String;
+	public final fun getSignature ()Ljava/lang/String;
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/stefan_oltmann/kim/format/icc/IccProfile {
+	public fun <init> (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/util/List;)V
+	public final fun component1 ()I
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()I
+	public final fun component9 ()Ljava/util/List;
+	public final fun copy (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/util/List;)Lde/stefan_oltmann/kim/format/icc/IccProfile;
+	public static synthetic fun copy$default (Lde/stefan_oltmann/kim/format/icc/IccProfile;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/util/List;ILjava/lang/Object;)Lde/stefan_oltmann/kim/format/icc/IccProfile;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun findEntry (Ljava/lang/String;)Lde/stefan_oltmann/kim/format/icc/IccEntry;
+	public final fun getCmmType ()Ljava/lang/String;
+	public final fun getColorSpace ()Ljava/lang/String;
+	public final fun getConnectionSpace ()Ljava/lang/String;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getEntries ()Ljava/util/List;
+	public final fun getPrimaryPlatform ()Ljava/lang/String;
+	public final fun getProfileClass ()Ljava/lang/String;
+	public final fun getRenderingIntent ()I
+	public final fun getSize ()I
+	public final fun getVersion ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/stefan_oltmann/kim/format/icc/IccProfileParser {
+	public static final field INSTANCE Lde/stefan_oltmann/kim/format/icc/IccProfileParser;
+	public static final fun parse ([B)Lde/stefan_oltmann/kim/format/icc/IccProfile;
+}
+
 public final class de/stefan_oltmann/kim/format/jpeg/JpegConstants {
 	public static final field COM_MARKER_1 I
 	public static final field DAC_MARKER I
@@ -690,6 +740,9 @@ public final class de/stefan_oltmann/kim/format/jpeg/JpegConstants {
 	public static final field EXTENDED_XMP_GUID_LENGTH I
 	public static final field EXTENDED_XMP_OFFSET_BYTES I
 	public static final field EXTENDED_XMP_TOTAL_LENGTH_BYTES I
+	public static final field ICC_CHUNK_SEQUENCE_OFFSET I
+	public static final field ICC_IDENTIFIER_LENGTH I
+	public static final field ICC_SEQUENCE_BYTE_COUNT I
 	public static final field INSTANCE Lde/stefan_oltmann/kim/format/jpeg/JpegConstants;
 	public static final field IPTC_MAX_BLOCK_NAME_LENGTH I
 	public static final field IPTC_RESOURCE_BLOCK_SIGNATURE_HEX Ljava/lang/String;
@@ -743,6 +796,7 @@ public final class de/stefan_oltmann/kim/format/jpeg/JpegConstants {
 	public final fun getEOI ()[B
 	public final fun getEXIF_IDENTIFIER_CODE ()[B
 	public final fun getEXTENDED_XMP_IDENTIFIER ()[B
+	public final fun getICC_PROFILE_IDENTIFIER ()[B
 	public final fun getJFIF0_SIGNATURE ()[B
 	public final fun getJFIF0_SIGNATURE_ALTERNATIVE ()[B
 	public final fun getJPEG_BYTE_ORDER ()Lde/stefan_oltmann/kim/common/ByteOrder;

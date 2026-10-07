@@ -140,6 +140,21 @@ public object JpegConstants {
     public const val JPEG_APP0_MARKER: Int = 0xFFE0
     public const val JPEG_APP1_MARKER: Int = 0xFFE1
     public const val JPEG_APP2_MARKER: Int = 0xFFE2
+
+    /** The identifier every ICC APP2 chunk starts with, followed by the chunk sequence bytes. */
+    public val ICC_PROFILE_IDENTIFIER: ByteArray = byteArrayOf(
+        0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45, 0x00
+    )
+
+    /** Byte count of the ICC APP2 identifier including its terminating zero. */
+    public const val ICC_IDENTIFIER_LENGTH: Int = 12
+
+    /** Offset of the chunk sequence bytes behind the ICC APP2 identifier. */
+    public const val ICC_CHUNK_SEQUENCE_OFFSET: Int = 12
+
+    /** Byte count of the chunk index and chunk total that follow the identifier. */
+    public const val ICC_SEQUENCE_BYTE_COUNT: Int = 2
+
     public const val JPEG_APP3_MARKER: Int = 0xFFE3
     public const val JPEG_APP4_MARKER: Int = 0xFFE4
     public const val JPEG_APP5_MARKER: Int = 0xFFE5

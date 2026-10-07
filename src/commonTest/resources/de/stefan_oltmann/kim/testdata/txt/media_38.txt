@@ -65,6 +65,25 @@ Time Created (60) = '164926+0000'
 Caption/Abstract (120) = 'brown horse'
 Keywords (25) = 'foal'
 
+---- ICC ----
+ProfileSize        : 560
+ProfileCMMType     : ADBE
+ProfileVersion     : 2.1
+ProfileClass       : mntr
+ColorSpaceData     : RGB 
+ProfileConnectionSpace : XYZ 
+PrimaryPlatform    : APPL
+RenderingIntent    : 0
+ProfileCopyright = Copyright 1999 Adobe Systems Incorporated
+ProfileDescription = Adobe RGB (1998)
+MediaWhitePoint = 0.9504547119140625 1.0 1.08905029296875
+MediaBlackPoint = 0.0 0.0 0.0
+RedTRC (rTRC)
+GreenTRC (gTRC)
+BlueTRC (bTRC)
+RedMatrixColumn = 0.6097412109375 0.3111114501953125 0.01947021484375
+GreenMatrixColumn = 0.2052764892578125 0.62567138671875 0.0608673095703125
+BlueMatrixColumn = 0.1491851806640625 0.0632171630859375 0.74456787109375
 ---- XMP ----
 <?xpacket begin='﻿' id='W5M0MpCehiHzreSzNTczkc9d'?>
 <x:xmpmeta xmlns:x='adobe:ns:meta/' x:xmptk='Image::ExifTool 12.27'>
