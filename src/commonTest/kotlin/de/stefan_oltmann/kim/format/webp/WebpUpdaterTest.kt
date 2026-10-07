@@ -89,7 +89,7 @@ class WebpUpdaterTest : AbstractUpdaterTest("webp") {
 
         val bogusSizeBytes =
             /* 0xFFFFFFFF */
-withDeclaredRiffSize(originalBytes, -1)
+            withDeclaredRiffSize(originalBytes, -1)
 
         val metadata = Kim.readMetadata(bogusSizeBytes)
 

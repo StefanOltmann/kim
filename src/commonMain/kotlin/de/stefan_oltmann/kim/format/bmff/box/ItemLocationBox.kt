@@ -102,7 +102,7 @@ public class ItemLocationBox(
         indexSize = if (version in 1..2)
             baseOffsetSizeAndIndexSize and LOWER_NIBBLE_MASK
         else
-            /*  Unused */
+        /*  Unused */
             0
 
         /*

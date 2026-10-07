@@ -81,16 +81,16 @@ internal object BmffTestBoxes {
         val payload = ByteArrayByteWriter()
 
         /* Version & flags */
-payload.write(byteArrayOf(0, 0, 0, 0))
+        payload.write(byteArrayOf(0, 0, 0, 0))
         /* Pre-defined */
-payload.write(byteArrayOf(0, 0, 0, 0))
+        payload.write(byteArrayOf(0, 0, 0, 0))
         /* Handler type */
-payload.write(handlerType.encodeToByteArray())
+        payload.write(handlerType.encodeToByteArray())
         /* Reserved */
-payload.write(ByteArray(12))
+        payload.write(ByteArray(12))
         payload.write(name.encodeToByteArray())
         /* Name terminator */
-payload.write(0)
+        payload.write(0)
 
         return box(BoxType.HDLR, payload.toByteArray())
     }
@@ -101,7 +101,7 @@ payload.write(0)
         val payload = ByteArrayByteWriter()
 
         /* Version & flags */
-payload.write(byteArrayOf(0, 0, 0, 0))
+        payload.write(byteArrayOf(0, 0, 0, 0))
         payload.write2BytesAsInt(itemId, BMFFConstants.BMFF_BYTE_ORDER)
 
         return box(BoxType.PITM, payload.toByteArray())
@@ -131,7 +131,7 @@ payload.write(byteArrayOf(0, 0, 0, 0))
 
         payload.write(version)
         /* Flags */
-payload.write(byteArrayOf(0, 0, 0))
+        payload.write(byteArrayOf(0, 0, 0))
 
         if (version == 0)
             payload.write2BytesAsInt(entries.size, BMFFConstants.BMFF_BYTE_ORDER)
@@ -143,15 +143,15 @@ payload.write(byteArrayOf(0, 0, 0))
             val infePayload = ByteArrayByteWriter()
 
             /* The only supported infe version. */
-infePayload.write(2)
+            infePayload.write(2)
             /* Flags */
-infePayload.write(byteArrayOf(0, 0, 0))
+            infePayload.write(byteArrayOf(0, 0, 0))
             infePayload.write2BytesAsInt(entry.itemId, BMFFConstants.BMFF_BYTE_ORDER)
             /* Item protection index */
-infePayload.write2BytesAsInt(0, BMFFConstants.BMFF_BYTE_ORDER)
+            infePayload.write2BytesAsInt(0, BMFFConstants.BMFF_BYTE_ORDER)
             infePayload.writeInt(entry.itemType, BMFFConstants.BMFF_BYTE_ORDER)
             /* Empty item name */
-infePayload.write(0)
+            infePayload.write(0)
 
             writeBox(payload, BoxType.INFE, infePayload.toByteArray())
         }

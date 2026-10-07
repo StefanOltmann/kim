@@ -132,12 +132,12 @@ public object QuickTimeImageParser : ImageParser {
 
         return MediaMetadata(
             /* Set by Kim.readMetadata from the detected format. */
-mediaFormat = null,
+            mediaFormat = null,
             imageSize = findVideoTrackImageSize(movieBox),
             exif = exif,
             exifBytes = mvtgBox?.payload,
             /* Not existent in MOV & MP4. */
-iptc = null,
+            iptc = null,
             xmp = xmp
         )
     }

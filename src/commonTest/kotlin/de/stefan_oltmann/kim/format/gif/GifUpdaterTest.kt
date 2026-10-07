@@ -115,9 +115,9 @@ class GifUpdaterTest : AbstractUpdaterTest(
 
         byteWriter.write("GIF89a".encodeToByteArray())
         /* Logical screen descriptor, no color table */
-byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0))
+        byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0))
         /* Comment extension */
-byteWriter.write(byteArrayOf(0x21, 0xFE.toByte(), 0x02, 0x41, 0x42, 0x00))
+        byteWriter.write(byteArrayOf(0x21, 0xFE.toByte(), 0x02, 0x41, 0x42, 0x00))
         byteWriter.write(byteArrayOf(GifConstants.GIF_TERMINATOR))
 
         return byteWriter.toByteArray()
@@ -132,14 +132,14 @@ byteWriter.write(byteArrayOf(0x21, 0xFE.toByte(), 0x02, 0x41, 0x42, 0x00))
 
         byteWriter.write("GIF87a".encodeToByteArray())
         /* Logical screen descriptor, no color table */
-byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0))
+        byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0))
         byteWriter.write(byteArrayOf(GifConstants.IMAGE_SEPARATOR))
         /* 1x1 image descriptor, no color table */
-byteWriter.write(byteArrayOf(0, 0, 0, 0, 1, 0, 1, 0, 0))
+        byteWriter.write(byteArrayOf(0, 0, 0, 0, 1, 0, 1, 0, 0))
         /* LZW minimum code size */
-byteWriter.write(byteArrayOf(2))
+        byteWriter.write(byteArrayOf(2))
         /* Image data sub-chunks */
-byteWriter.write(byteArrayOf(2, 2, 0x44, 0))
+        byteWriter.write(byteArrayOf(2, 2, 0x44, 0))
         byteWriter.write(byteArrayOf(GifConstants.GIF_TERMINATOR))
 
         return byteWriter.toByteArray()
@@ -186,14 +186,14 @@ byteWriter.write(byteArrayOf(2, 2, 0x44, 0))
 
         byteWriter.write("GIF89a".encodeToByteArray())
         /* Logical screen descriptor, no color table */
-byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0))
+        byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0))
         byteWriter.write(byteArrayOf(GifConstants.IMAGE_SEPARATOR))
         /* 1x1 image descriptor, no color table */
-byteWriter.write(byteArrayOf(0, 0, 0, 0, 1, 0, 1, 0, 0))
+        byteWriter.write(byteArrayOf(0, 0, 0, 0, 1, 0, 1, 0, 0))
         /* LZW minimum code size */
-byteWriter.write(byteArrayOf(2))
+        byteWriter.write(byteArrayOf(2))
         /* Image data sub-chunks */
-byteWriter.write(byteArrayOf(2, 2, 0x44, 0))
+        byteWriter.write(byteArrayOf(2, 2, 0x44, 0))
 
         val commentBytes = STALE_COMMENT.encodeToByteArray()
 

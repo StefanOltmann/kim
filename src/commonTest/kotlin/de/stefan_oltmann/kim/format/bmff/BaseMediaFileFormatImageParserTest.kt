@@ -462,17 +462,17 @@ class BaseMediaFileFormatImageParserTest {
         val writer = ByteArrayByteWriter()
 
         /* Version 0: absolute offsets, 2-byte item ids. */
-            writer.write(0)
+        writer.write(0)
         /* Flags */
-            writer.write(byteArrayOf(0, 0, 0))
+        writer.write(byteArrayOf(0, 0, 0))
 
         /* Offset size 4, length size 4 */
-            writer.write(0x44)
+        writer.write(0x44)
         /* Base offset size 0, no index */
-            writer.write(0x00)
+        writer.write(0x00)
 
         /* Item count */
-            writer.write2BytesAsInt(items.size, BMFF_BYTE_ORDER)
+        writer.write2BytesAsInt(items.size, BMFF_BYTE_ORDER)
 
         for (item in items) {
 

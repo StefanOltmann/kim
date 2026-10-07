@@ -199,7 +199,7 @@ class JvmInputStreamByteReaderTest {
                 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01,
                 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00
             )
-        /* APP0 JFIF */
+            /* APP0 JFIF */
         )
 
         /* SOS with minimal parameters and entropy-coded data. */

@@ -667,7 +667,7 @@ class ExtendedXmpTest {
         val bytes = ByteArrayByteWriter()
 
         /* SOI */
-bytes.write(byteArrayOf(0xFF.toByte(), 0xD8.toByte()))
+        bytes.write(byteArrayOf(0xFF.toByte(), 0xD8.toByte()))
 
         val xmpPayload =
             convertHexStringToByteArray(XMP_IDENTIFIER_HEX) + mainPacket.encodeToByteArray()
@@ -681,7 +681,7 @@ bytes.write(byteArrayOf(0xFF.toByte(), 0xD8.toByte()))
         bytes.write(byteArrayOf(0xFF.toByte(), 0xDA.toByte(), 0, 8, 1, 1, 0, 0, 63.toByte(), 0))
         bytes.write(byteArrayOf(0x11, 0x22, 0x33, 0x44))
         /* EOI */
-bytes.write(byteArrayOf(0xFF.toByte(), 0xD9.toByte()))
+        bytes.write(byteArrayOf(0xFF.toByte(), 0xD9.toByte()))
 
         return bytes.toByteArray()
     }

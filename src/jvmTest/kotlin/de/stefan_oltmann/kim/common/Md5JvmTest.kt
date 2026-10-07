@@ -114,9 +114,9 @@ class Md5JvmTest {
         for (length in boundaryLengths) {
 
             /* All zeros. */
-assertMatchesReference(ByteArray(length))
+            assertMatchesReference(ByteArray(length))
             /* All ones. */
-assertMatchesReference(ByteArray(length) { -1 })
+            assertMatchesReference(ByteArray(length) { -1 })
 
             /* Alternating and incrementing patterns. */
             assertMatchesReference(ByteArray(length) { index -> (index * 7).toByte() })

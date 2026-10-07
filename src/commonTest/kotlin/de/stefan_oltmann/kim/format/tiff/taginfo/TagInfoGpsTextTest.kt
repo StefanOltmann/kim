@@ -109,9 +109,9 @@ class TagInfoGpsTextTest {
         assertContentEquals(
             expected = byteArrayOf(
                 /* "ASCII" */
-0x41, 0x53, 0x43, 0x49, 0x49, 0x00, 0x00, 0x00,
+                0x41, 0x53, 0x43, 0x49, 0x49, 0x00, 0x00, 0x00,
                 /* "café" in Latin-1 */
-0x63, 0x61, 0x66, 0xE9.toByte()
+                0x63, 0x61, 0x66, 0xE9.toByte()
             ),
             actual = GpsTag.GPS_TAG_GPS_PROCESSING_METHOD.encodeValue("café")
         )
