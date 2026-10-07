@@ -20,6 +20,8 @@ package de.stefan_oltmann.kim.format.jpeg
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toBytes
+import de.stefan_oltmann.kim.common.convertHexStringToByteArray
+import de.stefan_oltmann.kim.common.getRemainingBytes
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcBlock
@@ -360,16 +362,32 @@ public object JpegRewriter {
                 photoshopData.size
             )
 
+            /*
+             * A continuation segment that starts exactly on a resource
+             * block boundary begins with the 8BIM signature. Readers
+             * then treat it as an independent Photoshop stream instead
+             * of a continuation - ExifTool skips such a tail entirely -
+             * so the split moves one byte into the previous block's
+             * data, which continuation readers handle by design.
+             */
+            val chunkEndIsBlockBoundary =
+                chunkEnd + JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_LENGTH <= photoshopData.size &&
+                    photoshopData.getRemainingBytes(chunkEnd).startsWith(
+                        convertHexStringToByteArray(JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_HEX)
+                    )
+
+            val effectiveChunkEnd = if (chunkEndIsBlockBoundary) chunkEnd - 1 else chunkEnd
+
             val segmentWriter = ByteArrayByteWriter()
 
             segmentWriter.write(JpegConstants.APP13_IDENTIFIER)
-            segmentWriter.write(photoshopData.copyOfRange(offset, chunkEnd))
+            segmentWriter.write(photoshopData.copyOfRange(offset, effectiveChunkEnd))
 
             segments.add(
                 JFIFPieceSegment(JpegConstants.JPEG_APP13_MARKER, segmentWriter.toByteArray())
             )
 
-            offset = chunkEnd
+            offset = effectiveChunkEnd
         } while (offset < photoshopData.size)
 
         return segments
