@@ -514,11 +514,14 @@ public object Kim {
     }
 
     /**
-     * Replaces the embedded thumbnail of the file with the given JPEG bytes.
+     * Replaces the embedded thumbnail of the file with the given bytes.
      *
-     * Attention: The thumbnail is embedded into the EXIF data, which must
-     * fit into a single JPEG APP1 segment of about 65 KB. Thumbnails that
-     * exceed this limit are rejected with an [ImageWriteException].
+     * Attention: The thumbnail is embedded into the EXIF data. On JPEG
+     * it must fit into a single APP1 segment of about 65 KB; on PNG and
+     * WebP the eXIf chunk bound applies. Thumbnails that exceed the
+     * format's limit are rejected with an [ImageWriteException]. The
+     * bytes are embedded as-is: they should be a JPEG image, since EXIF
+     * thumbnails are JPEG, but only non-emptiness is validated here.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
