@@ -32,6 +32,16 @@ internal fun interface StaleChunkFilter {
      */
     fun isStale(chunkType: PngChunkType, keyword: String?): Boolean
 
+    /**
+     * Whether a stale chunk behind the image data must fail the write.
+     *
+     * The default is true, because the update computer never saw the
+     * trailing chunk - dropping it would silently destroy content.
+     * A filter may return false when the chunk provably carries nothing
+     * beyond what the update already rewrote elsewhere.
+     */
+    fun failWhenStale(chunkType: PngChunkType, keyword: String?): Boolean = true
+
     companion object {
 
         /**

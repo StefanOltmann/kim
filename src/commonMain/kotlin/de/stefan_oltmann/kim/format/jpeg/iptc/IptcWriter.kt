@@ -175,4 +175,30 @@ public object IptcWriter {
 
         return byteWriter.toByteArray()
     }
+
+    /**
+     * Encodes the metadata as the Photoshop image resource block
+     * structure (8BIM) without the APP13 identifier: the form both the
+     * JPEG APP13 segment and the PNG "Raw profile type iptc" text
+     * chunk carry. Non-IPTC resources - the IPTCDigest marker among
+     * them - are re-emitted, so a rewrite never drops them.
+     *
+     * @throws ImageWriteException for record types outside the range the
+     *         format defines.
+     */
+    @JvmStatic
+    @Throws(ImageWriteException::class)
+    public fun writeIptcResourceBlocks(metadata: IptcMetadata): ByteArray {
+
+        val newBlock = IptcBlock(
+            blockType = IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DATA,
+            blockNameBytes = IptcParser.EMPTY_BYTE_ARRAY,
+            blockData = writeIptcBlockData(metadata.records, metadata.foreignDatasets)
+        )
+
+        return writeIptcBlocks(
+            blocks = metadata.nonIptcBlocks + newBlock,
+            includeApp13Identifier = false
+        )
+    }
 }

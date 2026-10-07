@@ -10,12 +10,12 @@ Big-endian (Motorola, MM)
 ---- Directory ExifIFD @ 88 ----
 
 ---- IPTC ----
-Caption/Abstract (120) = 'time lapse photography of fire'
-Date Created (55) = '2023-07-12'
 Keywords (25) = 'human'
 Keywords (25) = 'person'
 Keywords (25) = 'people'
+Date Created (55) = '2023-07-12'
 Time Created (60) = '15:28:58-15:28'
+Caption/Abstract (120) = 'Äußerst süße Vögel fliegen durch die Lüfte.'
 
 ---- ICC ----
 ProfileSize        : 672

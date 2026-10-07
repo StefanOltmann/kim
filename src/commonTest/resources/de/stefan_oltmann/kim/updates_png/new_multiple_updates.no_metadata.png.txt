@@ -22,12 +22,17 @@ Big-endian (Motorola, MM)
 0000000244 0x0004 GPSLongitude = [8/1 (8.0), 14/1 (14.0), 56949/2500 (22.7796)]
 
 ---- IPTC ----
-Caption/Abstract (120) = 'time lapse photography of fire'
-Date Created (55) = '2023-07-12'
-Keywords (25) = 'human'
-Keywords (25) = 'person'
-Keywords (25) = 'people'
-Time Created (60) = '15:28:58-15:28'
+Object Name (5) = 'Süße Vögelchen'
+Keywords (25) = 'hello'
+Keywords (25) = 'test'
+Keywords (25) = 'Äußerst öffentlich'
+Date Created (55) = '20230712'
+Time Created (60) = '144845+0200'
+City (90) = 'Rastede'
+Sublocation (92) = 'Schafjückenweg 2'
+Province/State (95) = 'Niedersachsen'
+Country/Primary Location Name (101) = 'Deutschland'
+Caption/Abstract (120) = 'Äußerst süße Vögel fliegen durch die Lüfte.'
 
 ---- ICC ----
 ProfileSize        : 672

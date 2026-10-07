@@ -24,10 +24,7 @@ import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.common.getRemainingBytes
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
-import de.stefan_oltmann.kim.format.jpeg.iptc.IptcBlock
-import de.stefan_oltmann.kim.format.jpeg.iptc.IptcConstants
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
-import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPiece
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
@@ -323,21 +320,9 @@ public object JpegRewriter {
      * Returns the APP13 segments for the given IPTC metadata, split across
      * multiple segments when the payload exceeds one segment.
      */
-    private fun createIptcSegments(metadata: IptcMetadata): List<JFIFPieceSegment> {
+    private fun createIptcSegments(metadata: IptcMetadata): List<JFIFPieceSegment> =
 
-        val newBlock = IptcBlock(
-            blockType = IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DATA,
-            blockNameBytes = IptcParser.EMPTY_BYTE_ARRAY,
-            blockData =
-                IptcWriter.writeIptcBlockData(metadata.records, metadata.foreignDatasets)
-        )
-
-        val mergedBlocks = metadata.nonIptcBlocks + newBlock
-
-        return createApp13Segments(
-            photoshopData = IptcWriter.writeIptcBlocks(mergedBlocks, includeApp13Identifier = false)
-        )
-    }
+        createApp13Segments(photoshopData = IptcWriter.writeIptcResourceBlocks(metadata))
 
     /**
      * Returns the APP13 segments for the given Photoshop data.

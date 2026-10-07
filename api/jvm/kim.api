@@ -920,6 +920,7 @@ public final class de/stefan_oltmann/kim/format/jpeg/iptc/IptcWriter {
 	public static synthetic fun writeIptcBlockData$default (Lde/stefan_oltmann/kim/format/jpeg/iptc/IptcWriter;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)[B
 	public static final fun writeIptcBlocks (Ljava/util/List;Z)[B
 	public static synthetic fun writeIptcBlocks$default (Ljava/util/List;ZILjava/lang/Object;)[B
+	public static final fun writeIptcResourceBlocks (Lde/stefan_oltmann/kim/format/jpeg/iptc/IptcMetadata;)[B
 }
 
 public final class de/stefan_oltmann/kim/format/jxl/JxlWriter {
@@ -13202,6 +13203,7 @@ public final class de/stefan_oltmann/kim/input/ByteArrayByteReader : de/stefan_o
 	public fun <init> ([B)V
 	public fun close ()V
 	public fun getContentLength ()J
+	public fun isRetaining ()Z
 	public fun moveTo (I)V
 	public fun readByte ()Ljava/lang/Byte;
 	public fun readBytes (I)[B
@@ -13211,8 +13213,13 @@ public final class de/stefan_oltmann/kim/input/ByteArrayByteReader : de/stefan_o
 
 public abstract interface class de/stefan_oltmann/kim/input/ByteReader : java/lang/AutoCloseable {
 	public abstract fun getContentLength ()J
+	public fun isRetaining ()Z
 	public abstract fun readByte ()Ljava/lang/Byte;
 	public abstract fun readBytes (I)[B
+}
+
+public final class de/stefan_oltmann/kim/input/ByteReader$DefaultImpls {
+	public static fun isRetaining (Lde/stefan_oltmann/kim/input/ByteReader;)Z
 }
 
 public final class de/stefan_oltmann/kim/input/DefaultRandomAccessByteReader : de/stefan_oltmann/kim/input/RandomAccessByteReader {
@@ -13220,6 +13227,7 @@ public final class de/stefan_oltmann/kim/input/DefaultRandomAccessByteReader : d
 	public fun close ()V
 	public final fun getByteReader ()Lde/stefan_oltmann/kim/input/ByteReader;
 	public fun getContentLength ()J
+	public fun isRetaining ()Z
 	public fun moveTo (I)V
 	public fun readByte ()Ljava/lang/Byte;
 	public fun readBytes (I)[B
@@ -13232,6 +13240,7 @@ public class de/stefan_oltmann/kim/input/JvmInputStreamByteReader : de/stefan_ol
 	public fun close ()V
 	public fun getContentLength ()J
 	protected final fun getInputStream ()Ljava/io/InputStream;
+	public fun isRetaining ()Z
 	public fun readByte ()Ljava/lang/Byte;
 	public fun readBytes (I)[B
 }
@@ -13241,6 +13250,7 @@ public final class de/stefan_oltmann/kim/input/KotlinIoSourceByteReader : de/ste
 	public fun <init> (Lkotlinx/io/Source;J)V
 	public fun close ()V
 	public fun getContentLength ()J
+	public fun isRetaining ()Z
 	public fun readByte ()Ljava/lang/Byte;
 	public fun readBytes (I)[B
 }
@@ -13255,6 +13265,7 @@ public final class de/stefan_oltmann/kim/input/KtorByteReadChannelByteReader : d
 	public synthetic fun <init> (Lio/ktor/utils/io/ByteReadChannel;JJILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun close ()V
 	public fun getContentLength ()J
+	public fun isRetaining ()Z
 	public fun readByte ()Ljava/lang/Byte;
 	public fun readBytes (I)[B
 }
@@ -13269,6 +13280,7 @@ public abstract interface class de/stefan_oltmann/kim/input/RandomAccessByteRead
 }
 
 public final class de/stefan_oltmann/kim/input/RandomAccessByteReader$DefaultImpls {
+	public static fun isRetaining (Lde/stefan_oltmann/kim/input/RandomAccessByteReader;)Z
 	public static fun reset (Lde/stefan_oltmann/kim/input/RandomAccessByteReader;)V
 }
 

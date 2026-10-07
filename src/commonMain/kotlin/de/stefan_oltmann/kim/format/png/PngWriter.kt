@@ -257,8 +257,10 @@ public object PngWriter {
 
                 byteReader.transferExactly(crcWriter, CRC_LENGTH)
 
+                val keyword = keywordOf(chunkType, payloadWriter.toByteArray())
+
                 val isStale = try {
-                    staleFilter.isStale(chunkType, keywordOf(chunkType, payloadWriter.toByteArray()))
+                    staleFilter.isStale(chunkType, keyword)
                 } catch (_: ImageReadException) {
                     false
                 }
@@ -271,7 +273,7 @@ public object PngWriter {
                  * written so far, because the tail - including IEND - was
                  * never reached.
                  */
-                if (isStale && failOnStaleMetadata)
+                if (isStale && failOnStaleMetadata && staleFilter.failWhenStale(chunkType, keyword))
                     throw ImageWriteException(
                         "The update cannot merge metadata behind the image " +
                             "data. The source file was not modified, but the " +

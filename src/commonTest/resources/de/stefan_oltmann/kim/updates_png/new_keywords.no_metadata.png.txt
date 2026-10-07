@@ -1,12 +1,12 @@
 File format : PNG
 Resolution  : 500 x 333
 ---- IPTC ----
-Caption/Abstract (120) = 'time lapse photography of fire'
+Keywords (25) = 'hello'
+Keywords (25) = 'test'
+Keywords (25) = 'Äußerst öffentlich'
 Date Created (55) = '2023-07-12'
-Keywords (25) = 'human'
-Keywords (25) = 'person'
-Keywords (25) = 'people'
 Time Created (60) = '15:28:58-15:28'
+Caption/Abstract (120) = 'time lapse photography of fire'
 
 ---- ICC ----
 ProfileSize        : 672
