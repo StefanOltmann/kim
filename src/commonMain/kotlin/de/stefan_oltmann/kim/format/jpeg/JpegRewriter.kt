@@ -236,6 +236,65 @@ public object JpegRewriter {
     }
 
     /**
+     * Replaces the XMP segments a rewrite owns with the given new
+     * segments: the first standard packet (the one Kim reads and merges
+     * the update into) is replaced, additional independent packets
+     * belong to other tools and survive byte-exact - Kim keeps reading
+     * only the first packet, so the new segments are inserted ahead of
+     * the survivors when any exist.
+     *
+     * Every extended-XMP segment is removed, including orphans whose
+     * GUID no surviving packet references: their content is
+     * undecodable without the lost main packet (the read already skips
+     * them silently, like ExifTool), so keeping them would preserve
+     * bytes no tool can ever decode.
+     *
+     * Without surviving packets the new segments go behind the last
+     * APP segment, exactly like the single-packet case always did.
+     */
+    private fun List<JFIFPiece>.replaceXmpSegments(
+        newSegments: List<JFIFPieceSegment>
+    ): List<JFIFPiece> {
+
+        val output = mutableListOf<JFIFPiece>()
+
+        var removedFirstXmp = false
+        var firstSurvivingXmpIndex = -1
+
+        for (piece in this) {
+
+            if (piece !is JFIFPieceSegment || !piece.isXmpSegment()) {
+                output.add(piece)
+                continue
+            }
+
+            if (piece.segmentBytes.startsWith(JpegConstants.EXTENDED_XMP_IDENTIFIER))
+                continue
+
+            if (removedFirstXmp) {
+
+                if (firstSurvivingXmpIndex < 0)
+                    firstSurvivingXmpIndex = output.size
+
+                output.add(piece)
+                continue
+            }
+
+            removedFirstXmp = true
+        }
+
+        if (!removedFirstXmp)
+            return insertAfterLastAppSegments(this, newSegments)
+
+        if (firstSurvivingXmpIndex < 0)
+            return insertAfterLastAppSegments(output, newSegments)
+
+        output.addAll(firstSurvivingXmpIndex, newSegments)
+
+        return output
+    }
+
+    /**
      * Decides whether an IPTC rewrite removes the given APP13 segment.
      *
      * Only the segments the parsed metadata came from are removed; other
@@ -338,8 +397,7 @@ public object JpegRewriter {
 
                 writeSegments(
                     byteWriter = outputWriter,
-                    segments = insertAfterLastAppSegments(
-                        segments = segments.filterNot { segment -> segment.isXmpSegment() },
+                    segments = segments.replaceXmpSegments(
                         newSegments = createXmpSegments(xmpXml)
                     )
                 )
@@ -407,25 +465,8 @@ public object JpegRewriter {
              * skips them silently, like ExifTool), so keeping them would
              * preserve bytes no tool can ever decode.
              */
-            var removedFirstXmp = false
-
-            updatedSegments = insertAfterLastAppSegments(
-                updatedSegments.filterNot { segment ->
-
-                    if (segment !is JFIFPieceSegment || !segment.isXmpSegment())
-                        return@filterNot false
-
-                    if (segment.segmentBytes.startsWith(JpegConstants.EXTENDED_XMP_IDENTIFIER))
-                        return@filterNot true
-
-                    if (removedFirstXmp)
-                        return@filterNot false
-
-                    removedFirstXmp = true
-
-                    true
-                },
-                createXmpSegments(xmpXml)
+            updatedSegments = updatedSegments.replaceXmpSegments(
+                newSegments = createXmpSegments(xmpXml)
             )
         }
 
