@@ -164,6 +164,44 @@ class PngImageParserTest {
     }
 
     /**
+     * The iTXt chunk text is UTF-8 by PNG spec: a truncated multi-byte
+     * sequence inside an XMP packet cannot be read cleanly, so the parse
+     * fails instead of fabricating U+FFFD into the title.
+     */
+    @Test
+    fun testTruncatedUtf8InXmpItxtFailsTheRead() {
+
+        val ihdrChunk = readIhdrChunk()
+
+        /*
+         * The packet is structurally complete; only the title's final
+         * character is a 2-byte UTF-8 lead byte without its continuation.
+         */
+        val packet = """
+            <x:xmpmeta xmlns:x="adobe:ns:meta/">
+              <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+                <rdf:Description rdf:about="" dc:title="H">
+                </rdf:Description>
+              </rdf:RDF>
+            </x:xmpmeta>
+        """.trimIndent().encodeToByteArray()
+
+        val titleStart = packet.decodeToString().indexOf("dc:title=\"H>\"") + 11
+
+        val iTxtPayload = "XML:com.adobe.xmp".encodeToByteArray() + ByteArray(5) +
+            packet.copyOfRange(0, titleStart + 1) + byteArrayOf(0xC3.toByte()) +
+            packet.copyOfRange(titleStart + 2, packet.size)
+            packet.copyOfRange(0, titleStart + 1) + byteArrayOf(0xC3.toByte()) +
+            packet.copyOfRange(titleStart + 2, packet.size)
+
+        assertFailsWith<ImageReadException> {
+            val truncatedChunk = PngChunkItxt(iTxtPayload, crc = 0)
+
+            PngImageParser.parseMetadataFromChunks(listOf(ihdrChunk, truncatedChunk))
+        }
+    }
+
+    /**
      * An iTXt chunk with the XMP keyword whose packet is cut between
      * the opening and the closing element is truncated content. Per
      * the strict read policy the read fails instead of returning a

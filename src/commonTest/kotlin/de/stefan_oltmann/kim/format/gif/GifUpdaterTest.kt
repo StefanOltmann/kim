@@ -81,7 +81,7 @@ class GifUpdaterTest : AbstractUpdaterTest(
         assertEquals("GIF89a", header)
 
         /* The image must survive the upgrade. */
-        val metadata = Kim.readMetadata(updatedBytes)!!
+        val metadata = assertNotNull(Kim.readMetadata(updatedBytes))
 
         assertEquals(ImageSize(1, 1), metadata.imageSize)
     }
@@ -265,7 +265,7 @@ class GifUpdaterTest : AbstractUpdaterTest(
         assertTrue(updatedBytes.containsBytes(UNKNOWN_EXTENSION_BYTES))
 
         /* The image data behind the extension must parse at its true position. */
-        val metadata = Kim.readMetadata(updatedBytes)!!
+        val metadata = assertNotNull(Kim.readMetadata(updatedBytes))
 
         assertEquals(ImageSize(1, 1), metadata.imageSize)
         assertNotNull(metadata.xmp)
@@ -282,7 +282,7 @@ class GifUpdaterTest : AbstractUpdaterTest(
 
         assertTrue(deletedBytes.containsBytes(UNKNOWN_EXTENSION_BYTES))
 
-        val metadata = Kim.readMetadata(deletedBytes)!!
+        val metadata = assertNotNull(Kim.readMetadata(deletedBytes))
 
         assertEquals(ImageSize(1, 1), metadata.imageSize)
         assertEquals(null, metadata.xmp)

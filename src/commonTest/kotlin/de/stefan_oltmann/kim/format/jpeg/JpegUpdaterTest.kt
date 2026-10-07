@@ -66,7 +66,7 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
             )
         )
 
-        val metadata = Kim.readMetadata(newBytes)!!
+        val metadata = assertNotNull(Kim.readMetadata(newBytes))
 
         /* EXIF */
 
@@ -109,7 +109,9 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
 
         /* XMP */
 
-        val xmpMeta = XMPMetaFactory.parseFromString(metadata.xmp!!)
+        val xmp = assertNotNull(metadata.xmp)
+
+        val xmpMeta = XMPMetaFactory.parseFromString(xmp)
 
         assertEquals(title, xmpMeta.getTitle())
         assertEquals(description, xmpMeta.getDescription())
@@ -140,7 +142,7 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
 
         assertContentEquals(exifPayload(rotatedRightBytes), exifPayload(combinedBytes))
 
-        val metadata = Kim.readMetadata(combinedBytes)!!
+        val metadata = assertNotNull(Kim.readMetadata(combinedBytes))
 
         assertEquals(
             TiffOrientation.ROTATE_RIGHT.value.toShort(),

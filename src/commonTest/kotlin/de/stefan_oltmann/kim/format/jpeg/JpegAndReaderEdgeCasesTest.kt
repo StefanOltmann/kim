@@ -475,12 +475,12 @@ class JpegAndReaderEdgeCasesTest {
 
         val scanner = JpegMarkerScanner(ByteArrayByteReader(bytes), keepConsumedBytes = false)
 
-        val soi = scanner.nextMarker(zeroIsFillByte = true)!!
+        val soi = assertNotNull(scanner.nextMarker(zeroIsFillByte = true))
 
         assertEquals(JpegConstants.SOI_MARKER, soi.marker)
         assertEquals(2, soi.consumedCount)
 
-        val app1 = scanner.nextMarker(zeroIsFillByte = true)!!
+        val app1 = assertNotNull(scanner.nextMarker(zeroIsFillByte = true))
 
         assertEquals(JpegConstants.JPEG_APP1_MARKER, app1.marker)
         assertEquals(7, app1.consumedCount)

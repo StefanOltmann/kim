@@ -18,6 +18,7 @@ package de.stefan_oltmann.kim.format.jpeg.iptc
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -448,6 +449,44 @@ class IptcParserEdgeCasesTest {
             expected = "Odd",
             actual = metadata.records.single().value
         )
+    }
+
+    /**
+     * A 1:90-flagged keywords record with a malformed UTF-8 sequence
+     * cannot be read cleanly: replacement-mode decoding would fabricate
+     * U+FFFD into the keyword, so the parse fails instead.
+     */
+    @Test
+    fun testUtf8FlaggedRecordWithBrokenSequenceFailsTheRead() {
+
+        /* 1:90 envelope announcing UTF-8 (ESC % G). */
+        val envelope = byteArrayOf(
+            IptcConstants.IPTC_RECORD_TAG_MARKER.toByte(),
+            IptcConstants.IPTC_ENVELOPE_RECORD_NUMBER.toByte(),
+            IptcParser.CODED_CHARACTER_SET_IPTC_CODE.toByte(),
+            0, 3,
+            0x1B, 0x25, 0x47
+        )
+
+        /*
+         * Keywords record whose value ends in a truncated 2-byte UTF-8
+         * lead: the declared length is consistent with the block, so the
+         * failure must come from the strict UTF-8 decode, not the length
+         * guard.
+         */
+        val keywords = byteArrayOf(
+            IptcConstants.IPTC_RECORD_TAG_MARKER.toByte(),
+            IptcConstants.IPTC_APPLICATION_2_RECORD_NUMBER.toByte(),
+            IptcTypes.KEYWORDS.type.toByte(),
+            0, 2
+        ) + "H".encodeToByteArray() + 0xC3.toByte()
+
+        assertFailsWith<ImageReadException> {
+            IptcParser.parseIptc(
+                bytes = wrapIn8BimBlock(envelope + keywords),
+                startsWithApp13Header = false
+            )
+        }
     }
 
     @Test

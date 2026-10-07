@@ -25,6 +25,7 @@ import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlinx.datetime.TimeZone
 import kotlin.test.BeforeTest
+import kotlin.test.assertNotNull
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -85,7 +86,7 @@ class JpegStreamingUpdateTest {
             setOf(MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT))
         )
 
-        val metadata = Kim.readMetadata(result)!!
+        val metadata = assertNotNull(Kim.readMetadata(result))
 
         assertEquals(
             TiffOrientation.ROTATE_RIGHT.value.toShort(),

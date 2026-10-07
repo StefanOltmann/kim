@@ -75,7 +75,7 @@ import kotlin.coroutines.cancellation.CancellationException
  * sidecars (XMP, JSON) from the read result, so a silent partial read loses
  * data anyway.
  *
- * There are exactly three kinds of garbage that may be dropped silently:
+ * There are exactly five kinds of garbage that may be dropped silently:
  *
  * 1. Corrupt embedded thumbnails and preview images: they are always
  *    restorable from the primary image data, so dropping them is not real

@@ -438,7 +438,7 @@ abstract class AbstractUpdaterTest(
 
         val newBytes = Kim.deleteMetadata(originalBytes)
 
-        val metadata = Kim.readMetadata(newBytes)!!
+        val metadata = assertNotNull(Kim.readMetadata(newBytes))
 
         assertNull(metadata.exif)
         assertNull(metadata.exifBytes)
@@ -449,11 +449,11 @@ abstract class AbstractUpdaterTest(
     @Test
     fun testDeleteMetadataKeepsImageSize() {
 
-        val originalMetadata = Kim.readMetadata(originalBytes)!!
+        val originalMetadata = assertNotNull(Kim.readMetadata(originalBytes))
 
         val newBytes = Kim.deleteMetadata(originalBytes)
 
-        val metadata = Kim.readMetadata(newBytes)!!
+        val metadata = assertNotNull(Kim.readMetadata(newBytes))
 
         assertEquals(originalMetadata.imageSize, metadata.imageSize)
     }

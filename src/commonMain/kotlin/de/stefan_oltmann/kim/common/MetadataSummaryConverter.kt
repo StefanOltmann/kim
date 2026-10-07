@@ -519,12 +519,12 @@ public object MetadataSummaryConverter {
         if (!UTC_OFFSET_REGEX.matches(offsetString))
             return null
 
-        return try {
-            UtcOffset.parse(offsetString)
+        try {
+            return UtcOffset.parse(offsetString)
         } catch (ex: CancellationException) {
             throw ex
         } catch (_: Exception) {
-            null
+            return null
         }
     }
 
