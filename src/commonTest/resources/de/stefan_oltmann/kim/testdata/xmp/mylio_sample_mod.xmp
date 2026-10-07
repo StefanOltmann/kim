@@ -21,6 +21,7 @@
       MY:Year="0"
       MY:flag="false"
       MY:processVersion="1"
+      exif:DateTimeDigitized="2023-08-01T13:37:42"
       exif:DateTimeOriginal="2023-08-01T13:37:42"
       exif:GPSLatitude="53,13.1635N"
       exif:GPSLongitude="8,14.3797E"

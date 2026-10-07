@@ -218,6 +218,7 @@ Little-endian (Intel, II)
       crs:WhiteBalance="As Shot"
       crs:Whites2012="-85"
       dc:format="image/jpeg"
+      exif:DateTimeDigitized="2023-07-12T14:48:45.401"
       exif:DateTimeOriginal="2023-07-12T14:48:45.401"
       exif:GPSLatitude="53,13.1635N"
       exif:GPSLongitude="8,14.3797E"

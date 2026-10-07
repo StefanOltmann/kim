@@ -281,6 +281,7 @@ Time Created (60) = '15:28:58-15:28'
       GIMP:Version="2.10.30"
       Iptc4xmpCore:Location="Schafjückenweg 2"
       dc:Format="image/png"
+      exif:DateTimeDigitized="2023-07-12T14:48:45.401"
       exif:DateTimeOriginal="2023-07-12T14:48:45.401"
       exif:GPSLatitude="53,13.1635N"
       exif:GPSLongitude="8,14.3797E"

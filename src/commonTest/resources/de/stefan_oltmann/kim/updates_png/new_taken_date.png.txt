@@ -272,6 +272,7 @@ Time Created (60) = '15:28:58-15:28'
       GIMP:TimeStamp="1689168546958559"
       GIMP:Version="2.10.30"
       dc:Format="image/png"
+      exif:DateTimeDigitized="2023-07-12T14:48:45.401"
       exif:DateTimeOriginal="2023-07-12T14:48:45.401"
       tiff:Orientation="1"
       xmp:CreatorTool="GIMP 2.10"

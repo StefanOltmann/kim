@@ -23,6 +23,7 @@ import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.LocationShown
 import de.stefan_oltmann.kim.model.MetadataUpdate
+import de.stefan_oltmann.xmp.XMPConst
 import de.stefan_oltmann.xmp.XMPLocation
 import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
@@ -70,6 +71,18 @@ public object XmpWriter {
                         .toLocalDateTime(timeZone)
 
                     setDateTimeOriginal(localDateTime.toXmpDate())
+
+                    /*
+                     * External writers store both date properties, and the
+                     * EXIF path rewrites both on a TakenDate update - the
+                     * digitized date follows the new original date instead
+                     * of drifting behind it.
+                     */
+                    setProperty(
+                        XMPConst.NS_EXIF,
+                        "DateTimeDigitized",
+                        localDateTime.toXmpDate().toString()
+                    )
 
                 } else {
 

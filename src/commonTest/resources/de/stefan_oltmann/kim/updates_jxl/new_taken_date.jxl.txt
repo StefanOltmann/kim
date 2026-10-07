@@ -186,6 +186,7 @@ Little-endian (Intel, II)
       crs:WhiteBalance="As Shot"
       crs:Whites2012="0"
       dc:format="image/jpeg"
+      exif:DateTimeDigitized="2023-07-12T14:48:45.401"
       exif:DateTimeOriginal="2023-07-12T14:48:45.401"
       exifEX:LensModel="28-100mm F1.8-4.9"
       photoshop:DateCreated="2019-02-25T06:14:16"

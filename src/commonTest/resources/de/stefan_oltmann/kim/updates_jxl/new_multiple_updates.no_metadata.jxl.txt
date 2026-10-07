@@ -34,6 +34,7 @@ Big-endian (Motorola, MM)
         xmlns:tiff="http://ns.adobe.com/tiff/1.0/"
         xmlns:xmp="http://ns.adobe.com/xap/1.0/"
       Iptc4xmpCore:Location="Schafjückenweg 2"
+      exif:DateTimeDigitized="2023-07-12T14:48:45.401"
       exif:DateTimeOriginal="2023-07-12T14:48:45.401"
       exif:GPSLatitude="53,13.1635N"
       exif:GPSLongitude="8,14.3797E"

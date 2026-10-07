@@ -91,6 +91,28 @@ class XmpWriterEdgeCasesTest {
     }
 
     /**
+     * External writers store both date properties, and the EXIF path
+     * rewrites both on a TakenDate update - the XMP set branch must keep
+     * the digitized date in sync instead of letting it drift behind.
+     */
+    @Test
+    fun testUpdateSetsDateTimeDigitizedWithTakenDate() {
+
+        xmpMeta.setProperty(XMP_NS_EXIF, "DateTimeOriginal", "2020:08:30 18:43:00")
+        xmpMeta.setProperty(XMP_NS_EXIF, "DateTimeDigitized", "2020:08:30 18:43:00")
+
+        apply(MetadataUpdate.TakenDate(1_689_166_125_401))
+
+        /*
+         * Both properties must carry the same rendered instant - the
+         * exact string comes from the xmpcore serializer.
+         */
+        val original = assertNotNull(xmpMeta.getPropertyString(XMP_NS_EXIF, "DateTimeOriginal"))
+
+        assertEquals(original, xmpMeta.getPropertyString(XMP_NS_EXIF, "DateTimeDigitized"))
+    }
+
+    /**
      * External writers store DateTimeOriginal AND DateTimeDigitized.
      * Removing the taken date must clear both, mirroring the EXIF write
      * path - a leftover digitized date contradicts the deletion.
