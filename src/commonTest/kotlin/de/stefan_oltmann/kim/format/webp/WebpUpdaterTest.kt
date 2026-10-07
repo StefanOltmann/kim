@@ -21,8 +21,11 @@ import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.format.AbstractUpdaterTest
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8X
+import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.model.MetadataUpdate
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -137,6 +140,63 @@ class WebpUpdaterTest : AbstractUpdaterTest("webp") {
             updatedMetadata.xmp?.contains("Animated") == true,
             "The rewritten file must report the new XMP."
         )
+    }
+
+    /**
+     * The reader length hint is caller-supplied and may understate the
+     * content - like the RIFF size field, which the parser already
+     * refuses to trust. The chunk walk must end at the delegate's real
+     * end of data: a walk bounded by the hint would drop the metadata
+     * chunks behind it silently on a rewrite.
+     */
+    @Test
+    fun testUpdatePreservesChunksBehindUnderstatedContentLengthHint() {
+
+        /*
+         * The hint ends exactly where the EXIF chunk starts, so a walk
+         * bounded by the hint never starts that chunk - and the EXIF
+         * sits at the end, behind the image data.
+         */
+        val exifOffset = firstChunkOffset(originalBytes, "EXIF")
+
+        val reader = UnderstatedHintByteReader(
+            delegate = ByteArrayByteReader(originalBytes),
+            hintedLength = exifOffset.toLong()
+        )
+
+        val byteWriter = ByteArrayByteWriter()
+
+        Kim.update(
+            byteReader = reader,
+            byteWriter = byteWriter,
+            updates = setOf(MetadataUpdate.Title("test"))
+        )
+
+        val originalMetadata = assertNotNull(Kim.readMetadata(originalBytes))
+        val updatedMetadata = assertNotNull(Kim.readMetadata(byteWriter.toByteArray()))
+
+        assertContentEquals(
+            expected = originalMetadata.exifBytes,
+            actual = updatedMetadata.exifBytes
+        )
+    }
+
+    /**
+     * A ByteReader whose length hint understates the content while the
+     * delegate delivers every byte.
+     */
+    private class UnderstatedHintByteReader(
+        private val delegate: ByteReader,
+        private val hintedLength: Long
+    ) : ByteReader {
+
+        override val contentLength: Long = hintedLength
+
+        override fun readByte(): Byte? = delegate.readByte()
+
+        override fun readBytes(count: Int): ByteArray = delegate.readBytes(count)
+
+        override fun close() = delegate.close()
     }
 
     /**

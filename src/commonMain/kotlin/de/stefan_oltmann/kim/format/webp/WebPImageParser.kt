@@ -52,9 +52,6 @@ public object WebPImageParser : ImageParser {
      */
     private const val SIZE_HEADER_BYTES: Int = 16
 
-    /* The "RIFF" signature plus the 4-byte size field. */
-    private const val RIFF_PREFIX_LENGTH: Int = TYPE_LENGTH + CHUNK_SIZE_LENGTH
-
     /*
      * https://developers.google.com/speed/webp/docs/riff_container
      */
@@ -140,33 +137,38 @@ public object WebPImageParser : ImageParser {
 
         byteReader.readAndVerifyBytes("WEBP signature", WEBP_SIGNATURE)
 
-        val bytesToRead =
-            (byteReader.contentLength - RIFF_PREFIX_LENGTH - WEBP_SIGNATURE.size)
-                .coerceAtLeast(0L)
-
         return readChunksInternal(
             byteReader = byteReader,
-            bytesToRead = bytesToRead,
             stopAfterMetadataRead = stopAfterMetadataRead
         )
     }
 
     private fun readChunksInternal(
         byteReader: ByteReader,
-        bytesToRead: Long,
         stopAfterMetadataRead: Boolean
     ): List<WebPChunk> {
 
         val chunks = mutableListOf<WebPChunk>()
 
-        var bytesReadCount = 0L
-
         @Suppress("LoopWithTooManyJumpStatements")
-        while (bytesReadCount < bytesToRead) {
+        while (true) {
 
-            val chunkType = WebPChunkType.of(
-                byteReader.readBytes("chunk type", TYPE_LENGTH)
-            )
+            /*
+             * The chunk walk ends at the delegate's real end of data,
+             * never at the length hint: the hint is caller-supplied and
+             * may understate the content, and chunks behind it would
+             * silently vanish on a rewrite - the same reason the RIFF
+             * size field above is not trusted.
+             */
+            val chunkTypeBytes = byteReader.readBytes(TYPE_LENGTH)
+
+            if (chunkTypeBytes.isEmpty())
+                break
+
+            if (chunkTypeBytes.size < TYPE_LENGTH)
+                throw ImageReadException("Truncated WebP chunk type.")
+
+            val chunkType = WebPChunkType.of(chunkTypeBytes)
 
             val chunkSize = byteReader.read4BytesAsInt("chunk size", WEBP_BYTE_ORDER)
 
@@ -204,18 +206,8 @@ public object WebPImageParser : ImageParser {
              * encoder may omit the pad byte of the final chunk, which then
              * is the end of the file instead of a parse error.
              */
-            val hasPadding = chunkSize % 2 != 0
-
-            val paddedEndCount =
-                bytesReadCount + TYPE_LENGTH + CHUNK_SIZE_LENGTH + chunkSize + 1
-
-            val hasFinalPadding = hasPadding && paddedEndCount <= bytesToRead
-
-            if (hasFinalPadding)
-                byteReader.skipBytes("padding byte", 1)
-
-            bytesReadCount += TYPE_LENGTH + CHUNK_SIZE_LENGTH + chunkSize +
-                if (hasFinalPadding) 1 else 0
+            if (chunkSize % 2 != 0)
+                byteReader.readByte()
 
             /*
              * Skipped image chunks are not part of the result, because
