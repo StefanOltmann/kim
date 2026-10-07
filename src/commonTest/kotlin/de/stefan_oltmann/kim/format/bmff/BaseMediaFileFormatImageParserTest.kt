@@ -258,6 +258,62 @@ class BaseMediaFileFormatImageParserTest {
     }
 
     /**
+     * Two items of the same metadata type make the authoritative packet
+     * ambiguous: silently letting the last item win would hide the
+     * first item's content from every consumer. Like QuickTime's
+     * duplicate XMP boxes, the read fails instead.
+     */
+    @Test
+    fun testDuplicateMetadataItemsFailTheRead() {
+
+        /* Minimal TIFF: header plus an empty IFD0. */
+        val tiffBytes = convertHexStringToByteArray(
+            "49492A00" + "08000000" + "0000" + "00000000"
+        )
+
+        val exifPayload = ByteArray(TIFF_HEADER_OFFSET_SIZE) + tiffBytes
+
+        val bytes = buildHeicFile(
+            iinfEntries = listOf(
+                ItemSpec(itemId = 1, itemType = BMFFConstants.ITEM_TYPE_EXIF),
+                ItemSpec(itemId = 2, itemType = BMFFConstants.ITEM_TYPE_EXIF)
+            )
+        ) { mdatDataOffset ->
+
+            val ilocBox = box(
+                type = BoxType.ILOC,
+                payload = createIlocPayloadForItems(
+                    items = listOf(
+                        ItemSpec(
+                            itemId = 1,
+                            itemType = BMFFConstants.ITEM_TYPE_EXIF,
+                            extents = listOf(
+                                ExtentSpec(offset = mdatDataOffset, length = exifPayload.size)
+                            )
+                        ),
+                        ItemSpec(
+                            itemId = 2,
+                            itemType = BMFFConstants.ITEM_TYPE_EXIF,
+                            extents = listOf(
+                                ExtentSpec(
+                                    offset = mdatDataOffset + exifPayload.size,
+                                    length = exifPayload.size
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+
+            Pair(ilocBox, exifPayload + exifPayload)
+        }
+
+        assertFailsWith<ImageReadException> {
+            BaseMediaFileFormatImageParser.parseMetadata(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /**
      * Like WebP, JXL and CR3, an XMP item without a `<x:xmpmeta>` element
      * must fail the read instead of being handed to sidecar writers as a
      * corrupt packet.

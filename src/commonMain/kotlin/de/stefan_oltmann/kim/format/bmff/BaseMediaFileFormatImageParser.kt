@@ -114,6 +114,25 @@ public object BaseMediaFileFormatImageParser : ImageParser {
 
         val metadataItems = metaBox.findMetadataItems()
 
+        /*
+         * Multiple items of the same metadata type make the
+         * authoritative packet ambiguous: silently letting the last
+         * item win would hide the first item's content from every
+         * consumer. Like QuickTime's duplicate XMP boxes, the read
+         * fails instead.
+         */
+        val duplicatedType = metadataItems
+            .groupBy { it.type }
+            .entries
+            .firstOrNull { it.value.size > 1 }
+
+        if (duplicatedType != null)
+            throw ImageReadException(
+                "The file declares ${duplicatedType.value.size} items of type " +
+                    "${duplicatedType.key}, so the metadata that an update applies " +
+                    "to is ambiguous."
+            )
+
         /* Return empty object if no metadata is found. */
         if (metadataItems.isEmpty() && uuidBoxes.none { it.isXmp })
             return MediaMetadata.createEmpty(mediaFormat = null)
