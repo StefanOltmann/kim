@@ -38,6 +38,7 @@ import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.test.fail
 
 class TiffEdgeCasesTest {
@@ -79,6 +80,27 @@ class TiffEdgeCasesTest {
         assertFailsWith<ImageWriteException> {
             write(outputSet)
         }
+    }
+
+    /**
+     * SEMInfo is a free-form ASCII string like its sibling string tags:
+     * a declared length of 1 would reject every real value through the
+     * public add API with a confusing length error.
+     */
+    @Test
+    fun testAddSemInfoString() {
+
+        val directory = TiffOutputDirectory(
+            TiffConstants.TIFF_DIRECTORY_TYPE_IFD0,
+            ByteOrder.LITTLE_ENDIAN
+        )
+
+        directory.add(ExifTag.EXIF_TAG_SEMINFO, "MI SPI 1.0")
+
+        val field = assertNotNull(directory.findField(ExifTag.EXIF_TAG_SEMINFO))
+
+        /* The 10 characters plus the ASCII terminating NUL. */
+        assertEquals(11, field.count)
     }
 
     /**

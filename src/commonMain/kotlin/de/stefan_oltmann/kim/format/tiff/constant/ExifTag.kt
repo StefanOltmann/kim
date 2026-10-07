@@ -338,7 +338,7 @@ public object ExifTag {
     )
 
     public val EXIF_TAG_SEMINFO: TagInfoAscii = TagInfoAscii(
-        0x8546, "SEMInfo", 1,
+        0x8546, "SEMInfo", TagInfo.LENGTH_UNKNOWN,
         TIFF_DIRECTORY_IFD0
     )
 
