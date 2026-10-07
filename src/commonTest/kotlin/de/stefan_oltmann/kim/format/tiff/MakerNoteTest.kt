@@ -465,10 +465,11 @@ class MakerNoteTest {
             orfCameraSettings.findField(OlympusCameraSettingsTag.FLASH_EXPOSURE_COMP)?.toDouble()
         )
 
-        /* TagInfoLongs and TagInfoLong already covered in the other tests. */
-
-        /* TagInfoAscii, TagInfoUndefineds and TagInfoInt64 already covered
-         * in the manufacturer specific tests. */
+        /*
+         * TagInfoLongs and TagInfoLong are already covered in the other
+         * tests; TagInfoAscii, TagInfoUndefineds and TagInfoInt64 in the
+         * manufacturer specific tests.
+         */
     }
 
     @Test

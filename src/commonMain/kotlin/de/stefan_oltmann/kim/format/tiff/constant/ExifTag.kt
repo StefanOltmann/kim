@@ -834,7 +834,6 @@ public object ExifTag {
         TiffDirectoryType.EXIF_DIRECTORY_EXIF_IFD
     )
 
-
     /**
      * The image sensor type of the camera.
      */
