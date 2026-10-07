@@ -62,7 +62,18 @@ public class HandlerReferenceBox(
 
         byteReader.skipBytes("reserved", RESERVED_LENGTH)
 
-        name = byteReader.readNullTerminatedString("name")
+        /*
+         * ISO/IEC 14496-12 writes the name NUL-terminated, QuickTime
+         * writes a Pascal string: one length byte plus that many bytes,
+         * without a terminator - the form ffmpeg writes for MOV files.
+         */
+        val nameField = payload.copyOfRange(NAME_FIELD_OFFSET, payload.size)
+
+        name =
+            if (nameField.isNotEmpty() && nameField[0].toInt() == nameField.size - 1)
+                nameField.decodeToString(1, nameField.size)
+            else
+                byteReader.readNullTerminatedString("name")
     }
 
     override fun toString(): String =
@@ -82,5 +93,9 @@ public class HandlerReferenceBox(
 
         /* The reserved field is 12 bytes */
         const val RESERVED_LENGTH = 12
+
+        /* Version, flags, pre-defined, handler type and reserved. */
+        const val NAME_FIELD_OFFSET =
+            1 + FLAGS_LENGTH + PRE_DEFINED_LENGTH + HANDLER_TYPE_LENGTH + RESERVED_LENGTH
     }
 }
