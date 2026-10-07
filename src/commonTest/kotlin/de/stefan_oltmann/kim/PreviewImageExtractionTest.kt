@@ -23,6 +23,7 @@ import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlinx.io.files.Path
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.fail
@@ -87,6 +88,66 @@ class PreviewImageExtractionTest {
         assertFailsWith<CancellationException> {
             Kim.extractPreviewImage(reader)
         }
+    }
+
+    /**
+     * The content length of a stream reader is only a hint that stream
+     * sources may understate. A preview that lies fully within the real
+     * data must still be extracted - the read itself decides, like every
+     * other read in the TIFF family.
+     */
+    @Test
+    fun testExtractPreviewIgnoresUnderstatedContentLengthHint() {
+
+        val bytes = KimTestData.getBytesOf(KimTestData.CR2_TEST_IMAGE_INDEX)
+
+        val honestPreview =
+            assertNotNull(Kim.extractPreviewImage(ByteArrayByteReader(bytes)))
+
+        /* The hint ends exactly where the preview starts. */
+        val previewOffset = indexOf(bytes, honestPreview.copyOfRange(0, 16))
+
+        val reader = UnderstatedHintReader(
+            delegate = ByteArrayByteReader(bytes),
+            hintedLength = previewOffset.toLong()
+        )
+
+        assertContentEquals(
+            expected = honestPreview,
+            actual = assertNotNull(Kim.extractPreviewImage(reader))
+        )
+    }
+
+    /**
+     * Returns the offset of the first occurrence of the needle, or -1.
+     */
+    private fun indexOf(bytes: ByteArray, needle: ByteArray): Int {
+
+        for (index in 0..bytes.size - needle.size) {
+
+            if (bytes.copyOfRange(index, index + needle.size).contentEquals(needle))
+                return index
+        }
+
+        return -1
+    }
+
+    /**
+     * Serves the real bytes and understates the content length, so a
+     * read gated on the hint refuses ranges that are actually readable.
+     */
+    private class UnderstatedHintReader(
+        private val delegate: ByteReader,
+        private val hintedLength: Long
+    ) : ByteReader {
+
+        override val contentLength: Long = hintedLength
+
+        override fun readByte(): Byte? = delegate.readByte()
+
+        override fun readBytes(count: Int): ByteArray = delegate.readBytes(count)
+
+        override fun close() = delegate.close()
     }
 
     /**
