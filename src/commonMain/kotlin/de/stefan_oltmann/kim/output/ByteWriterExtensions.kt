@@ -17,6 +17,8 @@
 package de.stefan_oltmann.kim.output
 
 import de.stefan_oltmann.kim.common.ByteOrder
+import de.stefan_oltmann.kim.common.HEX_RADIX
+import de.stefan_oltmann.kim.common.ImageWriteException
 
 /*
  * For easier implementation of the [ByteWriter] in
@@ -92,8 +94,26 @@ internal fun ByteWriter.writeLong(
     }
 }
 
+/* The highest code point a single Latin-1 byte represents. */
+private const val MAX_LATIN1_CHAR_CODE: Int = 0xFF
+
 internal fun ByteWriter.writeString(
     value: String
 ) {
-    value.forEach { write(it.code.toByte()) }
+    /*
+     * Only Latin-1 maps a character to its own byte. Truncating
+     * anything beyond it to the low byte would silently emit data that
+     * no longer represents the input, so the write fails per the
+     * write policy.
+     */
+    for (char in value) {
+
+        if (char.code > MAX_LATIN1_CHAR_CODE)
+            throw ImageWriteException(
+                "The character U+${char.code.toString(HEX_RADIX).uppercase()} cannot be " +
+                    "written as a single byte."
+            )
+
+        write(char.code)
+    }
 }
