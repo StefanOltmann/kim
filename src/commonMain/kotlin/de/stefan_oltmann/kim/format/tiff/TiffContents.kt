@@ -71,6 +71,19 @@ public data class TiffContents(
                 )
 
             /*
+             * The tile capture was never implemented, so the writer can
+             * only drop the tile field group - a rewrite would emit a
+             * TIFF whose IFD references no image data. Like the SubIFDs
+             * pointer, the conversion refuses the file instead of
+             * corrupting it.
+             */
+            if (directory.hasTileImageData())
+                throw ImageWriteException(
+                    "The directory ${TiffDirectory.description(directory.type)} carries " +
+                        "tiled image data, which a rewrite cannot preserve."
+                )
+
+            /*
              * Certain cameras write some directories more than once.
              * Ignore this bug and just take the first occurrence.
              */

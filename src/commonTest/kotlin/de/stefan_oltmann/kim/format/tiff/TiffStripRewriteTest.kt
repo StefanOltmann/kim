@@ -145,33 +145,22 @@ class TiffStripRewriteTest {
     }
 
     /**
-     * Regression test: like the strip group, the tile group must be
-     * dropped as a whole when the tile data was not captured. Leaving
-     * TileWidth and TileLength behind is the same hollow reference the
-     * RowsPerStrip fix eliminated.
+     * Regression test: the tile capture was never implemented, so the
+     * writer can only drop the tile field group - the rewrite would emit
+     * a structurally valid TIFF whose IFD references no image data at
+     * all. Like the SubIFDs pointer, the conversion refuses the file
+     * instead of corrupting it, no matter which read flag was used.
      */
     @Test
-    fun testRewriteDropsTileGeometryWithUnresolvedTileData() {
+    fun testCreateOutputSetRefusesTiledDirectories() {
 
         val tiffBytes = tiledTiffBytes()
 
         val tiffContents = TiffReader.read(ByteArrayByteReader(tiffBytes))
 
-        val outputSet = tiffContents.createOutputSet()
-
-        val byteWriter = ByteArrayByteWriter()
-
-        TiffWriter(ByteOrder.LITTLE_ENDIAN).write(byteWriter, outputSet)
-
-        val rewritten = TiffReader.read(ByteArrayByteReader(byteWriter.toByteArray()))
-
-        val ifd0 = rewritten.directories.first()
-
-        /* Assert: the tile group is gone as a whole. */
-        assertNull(ifd0.findField(TiffTag.TIFF_TAG_TILE_OFFSETS))
-        assertNull(ifd0.findField(TiffTag.TIFF_TAG_TILE_BYTE_COUNTS))
-        assertNull(ifd0.findField(TiffTag.TIFF_TAG_TILE_WIDTH))
-        assertNull(ifd0.findField(TiffTag.TIFF_TAG_TILE_LENGTH))
+        assertFailsWith<ImageWriteException> {
+            tiffContents.createOutputSet()
+        }
     }
 
     /**
