@@ -24,7 +24,6 @@ import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.random.Random
 import kotlin.test.Test
-import kotlin.test.assertTrue
 
 /**
  * Fuzzes the public API with deterministic single-byte mutations of real
@@ -34,65 +33,91 @@ import kotlin.test.assertTrue
  * and never a [StackOverflowError] from deeply nested hostile input.
  *
  * The seed is fixed, so the mutated inputs are identical on every run
- * and every target: a violation here is always reproducible.
+ * and every target: a violation here is always reproducible. Each
+ * candidate runs in its own test function, because one test covering
+ * all candidates needs more than the default runner timeout on
+ * JavaScript.
  */
 class ApiContractFuzzTest {
 
-    /**
-     * One representative per parser family: the small GeoTIFFs drive the
-     * TiffPreviewExtractor chain, the two JPEGs cover the segment scan
-     * (including an unusual EXIF layout), and the remaining files cover
-     * the PNG, GIF, WebP, JXL, HEIC and AVIF parsers. All candidates are
-     * small, so the fuzz stays fast enough for the slowest target.
+    /*
+     * media_54 (plain TIFF) is not a candidate: at 2.9 MB it exceeds the
+     * size cap, so the old single-test fuzz silently skipped it, too. The
+     * two small GeoTIFFs cover the TIFF parse chain.
      */
-    private val candidateIndices: List<Int> = listOf(
-        KimTestData.TIFF_NONE_TEST_IMAGE_INDEX,
-        KimTestData.GEOTIFF_PIXEL_SCALING_INDEX,
-        KimTestData.GEOTIFF_AFFINE_TRANSFORM_INDEX,
-        46, /* JPEG whose EXIF offset field is stored with a variant type */
-        43, /* JPEG */
-        KimTestData.PNG_TEST_IMAGE_INDEX,
-        KimTestData.GIF_TEST_IMAGE_INDEX,
-        KimTestData.WEBP_TEST_IMAGE_INDEX,
-        KimTestData.JXL_CONTAINER_UNCOMPRESSED_INDEX,
-        KimTestData.HEIC_TEST_IMAGE_FROM_JPG_USING_IMAGEMAGICK_INDEX,
-        KimTestData.AVIF_TEST_IMAGE_FROM_JPG_USING_IMAGEMAGICK_INDEX
-    ).filter { it in 1..KimTestData.TEST_MEDIA_COUNT }
 
     @Test
-    fun testMutatedInputsRespectTheExceptionContract() {
+    fun testFuzzGeoTiffPixelScaling() =
+        fuzzCandidate(KimTestData.GEOTIFF_PIXEL_SCALING_INDEX)
 
-        val rng = Random(FUZZ_SEED)
+    @Test
+    fun testFuzzGeoTiffAffineTransform() =
+        fuzzCandidate(KimTestData.GEOTIFF_AFFINE_TRANSFORM_INDEX)
 
-        var checkedMutations = 0
+    @Test
+    fun testFuzzJpegWithVariantExifLayout() =
 
-        for (index in candidateIndices) {
+        /* JPEG whose EXIF offset field is stored with a variant type. */
+        fuzzCandidate(46)
 
-            val original = KimTestData.getBytesOf(index)
+    @Test
+    fun testFuzzJpeg() =
+        fuzzCandidate(43)
 
-            if (original.size > MAX_CANDIDATE_BYTE_COUNT)
-                continue
+    @Test
+    fun testFuzzPng() =
+        fuzzCandidate(KimTestData.PNG_TEST_IMAGE_INDEX)
 
-            for (mutation in 0 until MUTATIONS_PER_FILE) {
+    @Test
+    fun testFuzzGif() =
+        fuzzCandidate(KimTestData.GIF_TEST_IMAGE_INDEX)
 
-                val mutant = mutate(original, rng)
+    @Test
+    fun testFuzzWebP() =
+        fuzzCandidate(KimTestData.WEBP_TEST_IMAGE_INDEX)
 
-                checkReadContract("media_$index mutation #$mutation", mutant)
+    @Test
+    fun testFuzzJxl() =
+        fuzzCandidate(KimTestData.JXL_CONTAINER_UNCOMPRESSED_INDEX)
 
-                checkedMutations++
-            }
-        }
+    @Test
+    fun testFuzzHeic() =
+        fuzzCandidate(KimTestData.HEIC_TEST_IMAGE_FROM_JPG_USING_IMAGEMAGICK_INDEX)
+
+    @Test
+    fun testFuzzAvif() =
+        fuzzCandidate(KimTestData.AVIF_TEST_IMAGE_FROM_JPG_USING_IMAGEMAGICK_INDEX)
+
+
+    /**
+     * Fuzzes one corpus file with [MUTATIONS_PER_FILE] deterministic
+     * mutations of the five public API entry points.
+     *
+     * One test function per candidate: a single test covering all
+     * candidates needs more than the default runner timeout on
+     * JavaScript, because the mutation loops each rewrite
+     * multi-megabyte files several times.
+     */
+    private fun fuzzCandidate(index: Int) {
+
+        val original = KimTestData.getBytesOf(index)
 
         /*
-         * The corpus is fixed, so the mutation count is deterministic.
-         * This guards against the candidate filter silently excluding
-         * everything and the fuzz degrading to a no-op.
+         * Large files multiply the runtime of every mutation; every
+         * candidate above stays below the cap.
          */
-        assertTrue(
-            checkedMutations >= MIN_MUTATION_COUNT,
-            "The fuzz checked only $checkedMutations mutations - " +
-                "the candidate list did not survive the size filter."
-        )
+        check(original.size <= MAX_CANDIDATE_BYTE_COUNT) {
+            "Fuzz candidate media_$index exceeds the size cap."
+        }
+
+        val rng = Random(FUZZ_SEED + index)
+
+        for (mutation in 0 until MUTATIONS_PER_FILE) {
+
+            val mutant = mutate(original, rng)
+
+            checkReadContract("media_$index mutation #$mutation", mutant)
+        }
     }
 
     /**
@@ -210,8 +235,6 @@ class ApiContractFuzzTest {
         private const val FUZZ_SEED: Int = 0xC0FFEE
 
         private const val MUTATIONS_PER_FILE: Int = 64
-
-        private const val MIN_MUTATION_COUNT: Int = 600
 
         private const val MAX_CANDIDATE_BYTE_COUNT: Int = 2 * 1000 * 1000
     }
