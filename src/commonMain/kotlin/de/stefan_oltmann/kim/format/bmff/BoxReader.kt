@@ -67,7 +67,7 @@ public object BoxReader {
      * hostile input rather than a legitimate file: no real photo or
      * video carries metadata-sized boxes anywhere near it.
      */
-    private const val MAX_METADATA_BOX_BYTES: Int = 16 * 1024 * 1024
+    internal const val MAX_METADATA_BOX_BYTES: Int = 16 * 1024 * 1024
 
     /* The JXL codestream signature the first JXLP fragment starts with. */
     private const val JXL_HEADER_SIGNATURE_LENGTH: Int = 6

@@ -164,6 +164,63 @@ class Cr3PreviewExtractorTest {
     }
 
     /**
+     * The largesize form extends the box header to 16 bytes, so a
+     * declared size between 8 and 15 cannot describe a payload. Like
+     * BoxReader, the walk must reject it with the descriptive box
+     * validation instead of letting a negative data size flow into the
+     * skip and read calls.
+     */
+    @Test
+    fun testExtractRejectsLargesizeBelowItsOwnHeader() {
+
+        /* mdat header: size=1 (largesize form), largesize=12 - below the
+           16-byte header of that form. The largesize read succeeds, so
+           the size validation is what fires. */
+        val bytes = byteArrayOf(
+            0, 0, 0, 1,
+            'm'.code.toByte(), 'd'.code.toByte(), 'a'.code.toByte(), 't'.code.toByte(),
+            0, 0, 0, 0, 0, 0, 0, 12
+        )
+
+        val exception = assertFailsWith<ImageReadException> {
+            Cr3PreviewExtractor.extractFullSizePreviewImage(
+                ByteArrayByteReader(bytes)
+            )
+        }
+
+        assertTrue(
+            exception.message?.contains("smaller than its header") == true,
+            "Unexpected message: ${exception.message}"
+        )
+    }
+
+    /**
+     * A hostile moov declaring more than the metadata budget must not be
+     * buffered on constrained targets - the preview degrades to NULL
+     * instead, exactly like an unparseable moov does.
+     */
+    @Test
+    fun testExtractDegradesToNullOnMoovBeyondTheMetadataBudget() {
+
+        val moovPayload = ByteArray(17 * 1024 * 1024)
+
+        val moovSize = moovPayload.size + 8
+
+        val bytes = byteArrayOf(
+            (moovSize shr 24).toByte(),
+            ((moovSize shr 16) and 0xFF).toByte(),
+            ((moovSize shr 8) and 0xFF).toByte(),
+            (moovSize and 0xFF).toByte()
+        ) + "moov".encodeToByteArray() + moovPayload
+
+        assertNull(
+            Cr3PreviewExtractor.extractFullSizePreviewImage(
+                ByteArrayByteReader(bytes)
+            )
+        )
+    }
+
+    /**
      * ISOBMFF sizes are unsigned 32-bit values, so a box of 2 GiB and
      * above carries its size in the high bit. The size must not be read
      * as a negative number, which would reject legal boxes of large
