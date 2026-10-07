@@ -65,7 +65,8 @@ abstract class AbstractUpdaterTest(
         country = "Deutschland"
     )
 
-    private val timestamp = 1_689_166_125_401 // 2023:07:12 12:48:45
+    /* 2023:07:12 12:48:45 */
+    private val timestamp = 1_689_166_125_401
 
     private val resourcePath: String = "de/stefan_oltmann/kim/updates_$format"
 

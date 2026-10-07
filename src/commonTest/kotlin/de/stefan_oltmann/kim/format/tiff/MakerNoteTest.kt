@@ -162,23 +162,40 @@ class MakerNoteTest {
     fun testPanasonicMakerNoteParsing() {
 
         val bytes = convertHexStringToByteArray(
-            "49492A0008000000" + // Header: II, version 42, IFD0 at offset 8
-                "0300" + // IFD0: 3 entries
-                "0F0102000A00000032000000" + // Make -> 50
-                "10010200080000003C000000" + // Model -> 60
-                "698704000100000044000000" + // ExifOffset -> ExifIFD at 68
-                "00000000" + // No next directory
-                "50616E61736F6E696300" + // "Panasonic\0"
-                "444D432D4C583700" + // "DMC-LX7\0"
-                "0100" + // ExifIFD: 1 entry
-                "7C9207004200000056000000" + // MakerNote -> 86
-                "00000000" + // No next directory
-                "50616E61736F6E6963000000" + // "Panasonic\0\0\0" signature
-                "0300" + // 3 entries
-                "010003000100000007000000" + // ImageQuality = 7
-                "2900040001000000D7200000" + // TimeSincePowerOn = 8407
-                "250007001000000088000000" + // InternalSerialNumber -> offset 136
-                "30313233343536373839414243444546" // "0123456789ABCDEF"
+            /* Header: II, version 42, IFD0 at offset 8 */
+            "49492A0008000000" +
+                /* IFD0: 3 entries */
+                "0300" +
+                /* Make -> 50 */
+                "0F0102000A00000032000000" +
+                /* Model -> 60 */
+                "10010200080000003C000000" +
+                /* ExifOffset -> ExifIFD at 68 */
+                "698704000100000044000000" +
+                /* No next directory */
+                "00000000" +
+                /* "Panasonic\0" */
+                "50616E61736F6E696300" +
+                /* "DMC-LX7\0" */
+                "444D432D4C583700" +
+                /* ExifIFD: 1 entry */
+                "0100" +
+                /* MakerNote -> 86 */
+                "7C9207004200000056000000" +
+                /* No next directory */
+                "00000000" +
+                /* "Panasonic\0\0\0" signature */
+                "50616E61736F6E6963000000" +
+                /* 3 entries */
+                "0300" +
+                /* ImageQuality = 7 */
+                "010003000100000007000000" +
+                /* TimeSincePowerOn = 8407 */
+                "2900040001000000D7200000" +
+                /* InternalSerialNumber -> offset 136 */
+                "250007001000000088000000" +
+                /* "0123456789ABCDEF" */
+                "30313233343536373839414243444546"
         )
 
         val contents = TiffReader.read(ByteArrayByteReader(bytes))
@@ -221,24 +238,42 @@ class MakerNoteTest {
     fun testOmSystemMakerNoteParsing() {
 
         val bytes = convertHexStringToByteArray(
-            "49492A0008000000" + // Header: II, version 42, IFD0 at offset 8
-                "0300" + // IFD0: 3 entries
-                "0F0102001500000032000000" + // Make -> 50
-                "100102000500000047000000" + // Model -> 71
-                "69870400010000004C000000" + // ExifOffset -> ExifIFD at 76
-                "00000000" + // No next directory
-                "4F4D204469676974616C20536F6C7574696F6E7300" + // "OM Digital Solutions\0"
-                "4F4D2D3100" + // "OM-1\0"
-                "0100" + // ExifIFD: 1 entry
-                "7C920700200000005E000000" + // MakerNote -> 94
-                "00000000" + // No next directory
-                "4F4D2053595354454D00" + // "OM SYSTEM\0" signature
-                "4949" + // Byte order
-                "0300" + // Version
-                "0100" + // MakerNote IFD: 1 entry
-                "000007000400000030313030" + // MakerNoteVersion = "0100"
-                "00000000" + // No next directory
-                "00" // Padding to the declared MakerNote length
+            /* Header: II, version 42, IFD0 at offset 8 */
+            "49492A0008000000" +
+                /* IFD0: 3 entries */
+                "0300" +
+                /* Make -> 50 */
+                "0F0102001500000032000000" +
+                /* Model -> 71 */
+                "100102000500000047000000" +
+                /* ExifOffset -> ExifIFD at 76 */
+                "69870400010000004C000000" +
+                /* No next directory */
+                "00000000" +
+                /* "OM Digital Solutions\0" */
+                "4F4D204469676974616C20536F6C7574696F6E7300" +
+                /* "OM-1\0" */
+                "4F4D2D3100" +
+                /* ExifIFD: 1 entry */
+                "0100" +
+                /* MakerNote -> 94 */
+                "7C920700200000005E000000" +
+                /* No next directory */
+                "00000000" +
+                /* "OM SYSTEM\0" signature */
+                "4F4D2053595354454D00" +
+                /* Byte order */
+                "4949" +
+                /* Version */
+                "0300" +
+                /* MakerNote IFD: 1 entry */
+                "0100" +
+                /* MakerNoteVersion = "0100" */
+                "000007000400000030313030" +
+                /* No next directory */
+                "00000000" +
+                /* Padding to the declared MakerNote length */
+                "00"
         )
 
         val contents = TiffReader.read(ByteArrayByteReader(bytes))

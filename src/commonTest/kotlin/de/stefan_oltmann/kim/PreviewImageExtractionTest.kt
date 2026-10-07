@@ -157,16 +157,26 @@ class PreviewImageExtractionTest {
      * was parsed successfully.
      */
     private fun tiffWithDngPreview(): ByteArray = convertHexStringToByteArray(
-        "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
-            "0100" + // IFD0: 1 entry
-            "12c601000400000001040000" + // DNGVersion = 1.4
-            "1a000000" + // Next IFD at offset 26
-            "0000" + // IFD1: no entries
-            "20000000" + // Next IFD at offset 32
-            "0200" + // IFD2: 2 entries
-            "110104000100000064000000" + // PreviewImageStart = 100
-            "170104000100000010000000" + // PreviewImageLength = 16
-            "00000000" // No next directory
+        /* Header: II, version 42, IFD0 at offset 8 */
+        "49492a0008000000" +
+            /* IFD0: 1 entry */
+            "0100" +
+            /* DNGVersion = 1.4 */
+            "12c601000400000001040000" +
+            /* Next IFD at offset 26 */
+            "1a000000" +
+            /* IFD1: no entries */
+            "0000" +
+            /* Next IFD at offset 32 */
+            "20000000" +
+            /* IFD2: 2 entries */
+            "0200" +
+            /* PreviewImageStart = 100 */
+            "110104000100000064000000" +
+            /* PreviewImageLength = 16 */
+            "170104000100000010000000" +
+            /* No next directory */
+            "00000000"
     )
 
     /**

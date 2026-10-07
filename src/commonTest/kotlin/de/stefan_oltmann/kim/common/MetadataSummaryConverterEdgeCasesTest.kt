@@ -418,7 +418,8 @@ class MetadataSummaryConverterEdgeCasesTest {
             exif = tiffContents(
                 tiffField(
                     ExifTag.EXIF_TAG_ISO,
-                    byteArrayOf(0xC8.toByte(), 0x00), // ISO 51200, big-endian
+                    /* ISO 51200, big-endian */
+                    byteArrayOf(0xC8.toByte(), 0x00),
                     FieldTypeShort,
                     1
                 )
@@ -444,7 +445,8 @@ class MetadataSummaryConverterEdgeCasesTest {
             exif = tiffContents(
                 tiffField(
                     ExifTag.EXIF_TAG_ISO_PANASONIC,
-                    byteArrayOf(0xC8.toByte(), 0x00), // ISO 51200, big-endian
+                    /* ISO 51200, big-endian */
+                    byteArrayOf(0xC8.toByte(), 0x00),
                     FieldTypeShort,
                     1
                 )

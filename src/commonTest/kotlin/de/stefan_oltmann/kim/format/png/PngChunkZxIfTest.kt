@@ -114,7 +114,8 @@ class PngChunkZxIfTest {
 
         val reordered = mutableListOf<ByteArray>()
 
-        reordered.add(pngBytes.copyOfRange(0, 8)) // PNG signature
+        /* PNG signature */
+        reordered.add(pngBytes.copyOfRange(0, 8))
 
         for (range in chunkRanges) {
 

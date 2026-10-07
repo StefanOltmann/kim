@@ -863,7 +863,8 @@ class JpegRewriterTest {
 
         val writer = ByteArrayByteWriter()
 
-        writer.write(byteArrayOf(0xFF.toByte(), 0xD8.toByte())) // SOI
+        /* SOI */
+        writer.write(byteArrayOf(0xFF.toByte(), 0xD8.toByte()))
 
         /* COM1 with the payload "abc". */
         writer.write(
@@ -892,7 +893,8 @@ class JpegRewriterTest {
         /* Entropy-coded image data. */
         writer.write(byteArrayOf(0x12, 0x34, 0x56, 0x78, 0x9A.toByte(), 0xBC.toByte()))
 
-        writer.write(byteArrayOf(0xFF.toByte(), 0xD9.toByte())) // EOI
+        /* EOI */
+        writer.write(byteArrayOf(0xFF.toByte(), 0xD9.toByte()))
 
         return writer.toByteArray()
     }
@@ -959,7 +961,8 @@ class JpegRewriterTest {
 
         val writer = ByteArrayByteWriter()
 
-        writer.write(byteArrayOf(0xFF.toByte(), 0xD8.toByte())) // SOI
+        /* SOI */
+        writer.write(byteArrayOf(0xFF.toByte(), 0xD8.toByte()))
 
         /* SOS with minimal parameters and entropy-coded data. */
         writer.write(
@@ -971,7 +974,8 @@ class JpegRewriterTest {
 
         writer.write(imageData)
 
-        writer.write(byteArrayOf(0xFF.toByte(), 0xD9.toByte())) // EOI
+        /* EOI */
+        writer.write(byteArrayOf(0xFF.toByte(), 0xD9.toByte()))
 
         return writer.toByteArray()
     }

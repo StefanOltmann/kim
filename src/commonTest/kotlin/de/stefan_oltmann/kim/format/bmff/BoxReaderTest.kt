@@ -184,10 +184,12 @@ class BoxReaderTest {
          */
         val bytes = byteArrayOf(
             0, 0, 0, 12,
-            0x66, 0x72, 0x65, 0x65, // "free"
+            /* "free" */
+            0x66, 0x72, 0x65, 0x65,
             1, 2, 3, 4,
             0, 0, 0, 6,
-            0x66, 0x72, 0x65, 0x65 // "free"
+            /* "free" */
+            0x66, 0x72, 0x65, 0x65
         )
 
         val exception = assertFailsWith<ImageReadException> {
@@ -215,13 +217,18 @@ class BoxReaderTest {
          */
         val bytes = byteArrayOf(
             0, 0, 0, 12,
-            0x66, 0x72, 0x65, 0x65, // "free"
+            /* "free" */
+            0x66, 0x72, 0x65, 0x65,
             1, 2, 3, 4,
-            0, 0, 0, 1, // size 1 -> the real size follows
-            0x66, 0x72, 0x65, 0x65, // "free"
-            0, 0, 0, 0, 0, 0, 0, 12, // largesize 12 < 2 * 8 header bytes
+            /* size 1 -> the real size follows */
+            0, 0, 0, 1,
+            /* "free" */
+            0x66, 0x72, 0x65, 0x65,
+            /* largesize 12 < 2 * 8 header bytes */
+            0, 0, 0, 0, 0, 0, 0, 12,
             0, 0, 0, 12,
-            0x66, 0x72, 0x65, 0x65, // "free"
+            /* "free" */
+            0x66, 0x72, 0x65, 0x65,
             5, 6, 7, 8
         )
 
@@ -246,9 +253,11 @@ class BoxReaderTest {
         /* A free box (12 bytes) followed by 3 bytes of a cut-off box. */
         val bytes = byteArrayOf(
             0, 0, 0, 12,
-            0x66, 0x72, 0x65, 0x65, // "free"
+            /* "free" */
+            0x66, 0x72, 0x65, 0x65,
             1, 2, 3, 4,
-            0, 0, 0, // Truncated box header.
+            /* Truncated box header. */
+            0, 0, 0,
             0x66
         )
 
@@ -270,9 +279,11 @@ class BoxReaderTest {
         /* A free box (12 bytes) followed by 3 bytes of a cut-off box. */
         val bytes = byteArrayOf(
             0, 0, 0, 12,
-            0x66, 0x72, 0x65, 0x65, // "free"
+            /* "free" */
+            0x66, 0x72, 0x65, 0x65,
             1, 2, 3, 4,
-            0, 0, 0, // Truncated box header.
+            /* Truncated box header. */
+            0, 0, 0,
             0x66
         )
 
@@ -291,10 +302,12 @@ class BoxReaderTest {
 
         val bytes = byteArrayOf(
             0, 0, 0, 12,
-            0x66, 0x72, 0x65, 0x65, // "free"
+            /* "free" */
+            0x66, 0x72, 0x65, 0x65,
             1, 2, 3, 4,
             0, 0, 0, 0,
-            0x66, 0x72, 0x65, 0x65, // "free"
+            /* "free" */
+            0x66, 0x72, 0x65, 0x65,
             9, 9, 9, 9
         )
 
@@ -318,10 +331,12 @@ class BoxReaderTest {
         /* A free box (12 bytes) and a size-0 mdat extending to EOF. */
         val bytes = byteArrayOf(
             0, 0, 0, 12,
-            0x66, 0x72, 0x65, 0x65, // "free"
+            /* "free" */
+            0x66, 0x72, 0x65, 0x65,
             1, 2, 3, 4,
             0, 0, 0, 0,
-            0x6D, 0x64, 0x61, 0x74, // "mdat"
+            /* "mdat" */
+            0x6D, 0x64, 0x61, 0x74,
             1, 2, 3, 4
         )
 

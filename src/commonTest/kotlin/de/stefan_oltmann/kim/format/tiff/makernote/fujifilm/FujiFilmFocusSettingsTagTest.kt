@@ -41,18 +41,30 @@ class FujiFilmFocusSettingsTagTest {
          * IFD with the FocusSettings and DriveSettings blobs inline.
          */
         val makerNoteBytes = byteArrayOf(
-            0x46, 0x55, 0x4A, 0x49, 0x46, 0x49, 0x4C, 0x4D, // "FUJIFILM"
-            0x01, 0x00, 0x00, 0x00, // Version.
-            2, 0,                   // IFD entry count.
-            0x2D, 0x10,             // Tag 0x102D FocusSettings.
-            7, 0,                   // Type UNDEFINED.
-            4, 0, 0, 0,             // Count 4.
-            0x12, 0x02, 0x00, 0x00, // The blob, stored inline.
-            0x03, 0x11,             // Tag 0x1103 DriveSettings.
-            7, 0,                   // Type UNDEFINED.
-            4, 0, 0, 0,             // Count 4.
-            0x01, 0x03, 0x01, 0x08, // The blob, stored inline.
-            0, 0, 0, 0              // No next IFD.
+            /* "FUJIFILM" */
+            0x46, 0x55, 0x4A, 0x49, 0x46, 0x49, 0x4C, 0x4D,
+            /* Version. */
+            0x01, 0x00, 0x00, 0x00,
+            /* IFD entry count. */
+            2, 0,
+            /* Tag 0x102D FocusSettings. */
+            0x2D, 0x10,
+            /* Type UNDEFINED. */
+            7, 0,
+            /* Count 4. */
+            4, 0, 0, 0,
+            /* The blob, stored inline. */
+            0x12, 0x02, 0x00, 0x00,
+            /* Tag 0x1103 DriveSettings. */
+            0x03, 0x11,
+            /* Type UNDEFINED. */
+            7, 0,
+            /* Count 4. */
+            4, 0, 0, 0,
+            /* The blob, stored inline. */
+            0x01, 0x03, 0x01, 0x08,
+            /* No next IFD. */
+            0, 0, 0, 0
         )
 
         val directories = mutableListOf<TiffDirectory>()

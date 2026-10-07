@@ -45,23 +45,39 @@ class TiffStripRewriteTest {
     fun testRewriteDropsRowsPerStripWithUnresolvedStripData() {
 
         val tiffBytes = convertHexStringToByteArray(
-            "49492a00" + // TIFF header, little endian
-                "08000000" + // IFD0 offset
+            /* TIFF header, little endian */
+            "49492a00" +
+                /* IFD0 offset */
+                "08000000" +
 
-                /* IFD0 with the classic minimal strip image field set. */
-                "0900" + // entry count
-                "0001" + "0400" + "01000000" + "04000000" + // ImageWidth = 4
-                "0101" + "0400" + "01000000" + "04000000" + // ImageLength = 4
-                "0201" + "0300" + "01000000" + "08000000" + // BitsPerSample = 8
-                "0301" + "0300" + "01000000" + "01000000" + // Compression = none
-                "0601" + "0300" + "01000000" + "01000000" + // Photometric = black is zero
-                "1101" + "0400" + "01000000" + "7a000000" + // StripOffsets = 122
-                "1501" + "0300" + "01000000" + "01000000" + // SamplesPerPixel = 1
-                "1601" + "0400" + "01000000" + "04000000" + // RowsPerStrip = 4
-                "1701" + "0400" + "01000000" + "10000000" + // StripByteCounts = 16
-                "00000000" + // next IFD
+                /*
+                 * IFD0 with the classic minimal strip image field set.
+                 * Entry count.
+                 */
+                "0900" +
+                /* ImageWidth = 4 */
+                "0001" + "0400" + "01000000" + "04000000" +
+                /* ImageLength = 4 */
+                "0101" + "0400" + "01000000" + "04000000" +
+                /* BitsPerSample = 8 */
+                "0201" + "0300" + "01000000" + "08000000" +
+                /* Compression = none */
+                "0301" + "0300" + "01000000" + "01000000" +
+                /* Photometric = black is zero */
+                "0601" + "0300" + "01000000" + "01000000" +
+                /* StripOffsets = 122 */
+                "1101" + "0400" + "01000000" + "7a000000" +
+                /* SamplesPerPixel = 1 */
+                "1501" + "0300" + "01000000" + "01000000" +
+                /* RowsPerStrip = 4 */
+                "1601" + "0400" + "01000000" + "04000000" +
+                /* StripByteCounts = 16 */
+                "1701" + "0400" + "01000000" + "10000000" +
+                /* next IFD */
+                "00000000" +
 
-                "00112233445566778899aabbccddeeff" // strip bytes, never captured
+                /* strip bytes, never captured */
+                "00112233445566778899aabbccddeeff"
         )
 
         /*
@@ -103,19 +119,32 @@ class TiffStripRewriteTest {
          * a sub-IFD at 50 and the real chain IFD1 at 68.
          */
         val tiffBytes = convertHexStringToByteArray(
-            "49492a00" + // TIFF header, little endian
-                "08000000" + // IFD0 offset
-                "0300" + // IFD0 entry count
-                "0001" + "0400" + "01000000" + "04000000" + // ImageWidth = 4
-                "4a01" + "0400" + "01000000" + "32000000" + // SubIFDs -> 50
-                "0101" + "0400" + "01000000" + "04000000" + // ImageLength = 4
-                "44000000" + // next IFD = 68
-                "0100" + // sub-IFD entry count
-                "0001" + "0400" + "01000000" + "04000000" + // ImageWidth = 4
-                "00000000" + // sub-IFD next
-                "0100" + // IFD1 entry count
-                "0001" + "0400" + "01000000" + "04000000" + // ImageWidth = 4
-                "00000000" // IFD1 next
+            /* TIFF header, little endian */
+            "49492a00" +
+                /* IFD0 offset */
+                "08000000" +
+                /* IFD0 entry count */
+                "0300" +
+                /* ImageWidth = 4 */
+                "0001" + "0400" + "01000000" + "04000000" +
+                /* SubIFDs -> 50 */
+                "4a01" + "0400" + "01000000" + "32000000" +
+                /* ImageLength = 4 */
+                "0101" + "0400" + "01000000" + "04000000" +
+                /* next IFD = 68 */
+                "44000000" +
+                /* sub-IFD entry count */
+                "0100" +
+                /* ImageWidth = 4 */
+                "0001" + "0400" + "01000000" + "04000000" +
+                /* sub-IFD next */
+                "00000000" +
+                /* IFD1 entry count */
+                "0100" +
+                /* ImageWidth = 4 */
+                "0001" + "0400" + "01000000" + "04000000" +
+                /* IFD1 next */
+                "00000000"
         )
 
         val tiffContents = TiffReader.read(ByteArrayByteReader(tiffBytes))
@@ -168,23 +197,40 @@ class TiffStripRewriteTest {
      * set and tile bytes behind it.
      */
     private fun tiledTiffBytes(): ByteArray = convertHexStringToByteArray(
-        "49492a00" + // TIFF header, little endian
-            "08000000" + // IFD0 offset
+        /* TIFF header, little endian */
+        "49492a00" +
+            /* IFD0 offset */
+            "08000000" +
 
-            /* IFD0 with the minimal tile image field set. */
-            "0a00" + // entry count
-            "0001" + "0400" + "01000000" + "04000000" + // ImageWidth = 4
-            "0101" + "0400" + "01000000" + "04000000" + // ImageLength = 4
-            "0201" + "0300" + "01000000" + "08000000" + // BitsPerSample = 8
-            "0301" + "0300" + "01000000" + "01000000" + // Compression = none
-            "0601" + "0300" + "01000000" + "01000000" + // Photometric = black is zero
-            "4201" + "0400" + "01000000" + "04000000" + // TileWidth = 4
-            "4301" + "0400" + "01000000" + "04000000" + // TileLength = 4
-            "4401" + "0400" + "01000000" + "7a000000" + // TileOffsets = 122
-            "4501" + "0400" + "01000000" + "10000000" + // TileByteCounts = 16
-            "5101" + "0300" + "01000000" + "01000000" + // SamplesPerPixel = 1
-            "00000000" + // next IFD
+            /*
+             * IFD0 with the minimal tile image field set.
+             * Entry count.
+             */
+            "0a00" +
+            /* ImageWidth = 4 */
+            "0001" + "0400" + "01000000" + "04000000" +
+            /* ImageLength = 4 */
+            "0101" + "0400" + "01000000" + "04000000" +
+            /* BitsPerSample = 8 */
+            "0201" + "0300" + "01000000" + "08000000" +
+            /* Compression = none */
+            "0301" + "0300" + "01000000" + "01000000" +
+            /* Photometric = black is zero */
+            "0601" + "0300" + "01000000" + "01000000" +
+            /* TileWidth = 4 */
+            "4201" + "0400" + "01000000" + "04000000" +
+            /* TileLength = 4 */
+            "4301" + "0400" + "01000000" + "04000000" +
+            /* TileOffsets = 122 */
+            "4401" + "0400" + "01000000" + "7a000000" +
+            /* TileByteCounts = 16 */
+            "4501" + "0400" + "01000000" + "10000000" +
+            /* SamplesPerPixel = 1 */
+            "5101" + "0300" + "01000000" + "01000000" +
+            /* next IFD */
+            "00000000" +
 
-            "00112233445566778899aabbccddeeff" // tile bytes, never captured
+            /* tile bytes, never captured */
+            "00112233445566778899aabbccddeeff"
     )
 }

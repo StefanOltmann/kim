@@ -117,12 +117,18 @@ class JpegAndReaderEdgeCasesTest {
     fun testReadMetadataWithLastSegmentNearEndOfFile() {
 
         val bytes = convertHexStringToByteArray(
-            "ffd8" + // SOI
-                "ffe00010" + "4a46494600010100000100010000" + // APP0 JFIF
-                "ffe10016" + "457869660000" + // APP1 EXIF with empty IFD
-                "49492a00" + "08000000" + "0000" + "00000000" + // Minimal valid TIFF
-                "ffda0008" + "010100003f00" + // SOS
-                "1122" + "ffd9" // Tiny scan data and EOI
+            /* SOI */
+            "ffd8" +
+                /* APP0 JFIF */
+                "ffe00010" + "4a46494600010100000100010000" +
+                /* APP1 EXIF with empty IFD */
+                "ffe10016" + "457869660000" +
+                /* Minimal valid TIFF */
+                "49492a00" + "08000000" + "0000" + "00000000" +
+                /* SOS */
+                "ffda0008" + "010100003f00" +
+                /* Tiny scan data and EOI */
+                "1122" + "ffd9"
         )
 
         /* The APP1 segment ends 14 bytes before EOF. */
@@ -142,12 +148,17 @@ class JpegAndReaderEdgeCasesTest {
     fun testReadMetadataRejectsTruncatedXmp() {
 
         val bytes = convertHexStringToByteArray(
-            "ffd8" + // SOI
+            /* SOI */
+            "ffd8" +
                 "ffe10032" +
-                "687474703a2f2f6e732e61646f62652e636f6d2f7861702f312e302f00" + // XMP identifier
-                "3c783a786d706d6574613e3c7264663a524446" + // "<x:xmpmeta><rdf:RDF", close missing
-                "ffda0008" + "010100003f00" + // SOS
-                "1122" + "ffd9" // Scan data and EOI
+                /* XMP identifier */
+                "687474703a2f2f6e732e61646f62652e636f6d2f7861702f312e302f00" +
+                /* "<x:xmpmeta><rdf:RDF", close missing */
+                "3c783a786d706d6574613e3c7264663a524446" +
+                /* SOS */
+                "ffda0008" + "010100003f00" +
+                /* Scan data and EOI */
+                "1122" + "ffd9"
         )
 
         assertFailsWith<ImageReadException> {
@@ -166,12 +177,18 @@ class JpegAndReaderEdgeCasesTest {
     fun testReadMetadataRejectsCorruptExif() {
 
         val bytes = convertHexStringToByteArray(
-            "ffd8" + // SOI
-                "ffe00010" + "4a46494600010100000100010000" + // APP0 JFIF
-                "ffe10012" + "457869660000" + // APP1 EXIF with broken IFD offset
-                "49492a00" + "ffffff00" + "0000" + // TIFF header, IFD offset outside the payload
-                "ffda0008" + "010100003f00" + // SOS
-                "11223344" + "ffd9" // Scan data and EOI
+            /* SOI */
+            "ffd8" +
+                /* APP0 JFIF */
+                "ffe00010" + "4a46494600010100000100010000" +
+                /* APP1 EXIF with broken IFD offset */
+                "ffe10012" + "457869660000" +
+                /* TIFF header, IFD offset outside the payload */
+                "49492a00" + "ffffff00" + "0000" +
+                /* SOS */
+                "ffda0008" + "010100003f00" +
+                /* Scan data and EOI */
+                "11223344" + "ffd9"
         )
 
         assertFailsWith<ImageReadException> {
@@ -188,12 +205,18 @@ class JpegAndReaderEdgeCasesTest {
     fun testUpdateRejectsCorruptExifInsteadOfDroppingIt() {
 
         val bytes = convertHexStringToByteArray(
-            "ffd8" + // SOI
-                "ffe00010" + "4a46494600010100000100010000" + // APP0 JFIF
-                "ffe10012" + "457869660000" + // APP1 EXIF with broken IFD offset
-                "49492a00" + "ffffff00" + "0000" + // TIFF header, IFD offset outside the payload
-                "ffda0008" + "010100003f00" + // SOS
-                "11223344" + "ffd9" // Scan data and EOI
+            /* SOI */
+            "ffd8" +
+                /* APP0 JFIF */
+                "ffe00010" + "4a46494600010100000100010000" +
+                /* APP1 EXIF with broken IFD offset */
+                "ffe10012" + "457869660000" +
+                /* TIFF header, IFD offset outside the payload */
+                "49492a00" + "ffffff00" + "0000" +
+                /* SOS */
+                "ffda0008" + "010100003f00" +
+                /* Scan data and EOI */
+                "11223344" + "ffd9"
         )
 
         assertFailsWith<ImageWriteException> {
@@ -213,12 +236,18 @@ class JpegAndReaderEdgeCasesTest {
     fun testReadMetadataRejectsCorruptIptc() {
 
         val bytes = convertHexStringToByteArray(
-            "ffd8" + // SOI
-                "ffe00010" + "4a46494600010100000100010000" + // APP0 JFIF
-                "ffed001c" + "50686f746f73686f7020332e3000" + // APP13 "Photoshop 3.0\0"
-                "3842494d" + "0404" + "0000" + "10000000" + // 8BIM block with size beyond the data
-                "ffda0008" + "010100003f00" + // SOS
-                "11223344" + "ffd9" // Scan data and EOI
+            /* SOI */
+            "ffd8" +
+                /* APP0 JFIF */
+                "ffe00010" + "4a46494600010100000100010000" +
+                /* APP13 "Photoshop 3.0\0" */
+                "ffed001c" + "50686f746f73686f7020332e3000" +
+                /* 8BIM block with size beyond the data */
+                "3842494d" + "0404" + "0000" + "10000000" +
+                /* SOS */
+                "ffda0008" + "010100003f00" +
+                /* Scan data and EOI */
+                "11223344" + "ffd9"
         )
 
         assertFailsWith<ImageReadException> {
@@ -234,12 +263,18 @@ class JpegAndReaderEdgeCasesTest {
     fun testUpdateRejectsCorruptIptcInsteadOfDroppingIt() {
 
         val bytes = convertHexStringToByteArray(
-            "ffd8" + // SOI
-                "ffe00010" + "4a46494600010100000100010000" + // APP0 JFIF
-                "ffed001c" + "50686f746f73686f7020332e3000" + // APP13 "Photoshop 3.0\0"
-                "3842494d" + "0404" + "0000" + "10000000" + // 8BIM block with size beyond the data
-                "ffda0008" + "010100003f00" + // SOS
-                "11223344" + "ffd9" // Scan data and EOI
+            /* SOI */
+            "ffd8" +
+                /* APP0 JFIF */
+                "ffe00010" + "4a46494600010100000100010000" +
+                /* APP13 "Photoshop 3.0\0" */
+                "ffed001c" + "50686f746f73686f7020332e3000" +
+                /* 8BIM block with size beyond the data */
+                "3842494d" + "0404" + "0000" + "10000000" +
+                /* SOS */
+                "ffda0008" + "010100003f00" +
+                /* Scan data and EOI */
+                "11223344" + "ffd9"
         )
 
         assertFailsWith<ImageWriteException> {

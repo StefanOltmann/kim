@@ -103,20 +103,20 @@ object KimTestData {
         AVIF_TEST_IMAGE_FROM_JPG_USING_IMAGEMAGICK_INDEX,
         HEIC_TEST_IMAGE_FROM_JPG_USING_IMAGEMAGICK_INDEX,
 
-//        JXL_NAKED_BYTESTREAM_UNCOMPRESSED_INDEX,
-//        JXL_CONTAINER_UNCOMPRESSED_INDEX,
-//        JXL_CONTAINER_COMPRESSED_INDEX,
-
         /*
+         * JXL_NAKED_BYTESTREAM_UNCOMPRESSED_INDEX,
+         * JXL_CONTAINER_UNCOMPRESSED_INDEX,
+         * JXL_CONTAINER_COMPRESSED_INDEX,
+         *
          * DNG files carry thumbnails whose extraction logic does not
          * fit the shared rewrite corpus, so they are excluded from it.
+         * DNG_CR2_TEST_IMAGE_INDEX,
+         * DNG_RAF_TEST_IMAGE_INDEX,
+         * DNG_NEF_TEST_IMAGE_INDEX,
+         * DNG_ARW_TEST_IMAGE_INDEX,
+         * DNG_RW2_TEST_IMAGE_INDEX,
+         * DNG_ORF_TEST_IMAGE_INDEX
          */
-//        DNG_CR2_TEST_IMAGE_INDEX,
-//        DNG_RAF_TEST_IMAGE_INDEX,
-//        DNG_NEF_TEST_IMAGE_INDEX,
-//        DNG_ARW_TEST_IMAGE_INDEX,
-//        DNG_RW2_TEST_IMAGE_INDEX,
-//        DNG_ORF_TEST_IMAGE_INDEX
     )
 
     val pngPhotoIds: Set<Int> = setOf(

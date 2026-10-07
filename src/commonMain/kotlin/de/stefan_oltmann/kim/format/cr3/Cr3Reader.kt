@@ -101,7 +101,8 @@ public object Cr3Reader {
                 imageSize = null,
                 exif = null,
                 exifBytes = null,
-                iptc = null, /* Not existent in CR3. */
+                /* Not existent in CR3. */
+iptc = null,
                 xmp = xmpFromUuidBox
             )
         }
@@ -147,7 +148,8 @@ public object Cr3Reader {
             directories = listOfNotNull(idf0Directory, exifIfdDirectory, gpsIfdDirectory),
             makerNoteDirectory = makerNoteDirectory,
             makerNoteSubDirectories = makerNoteSubDirectories,
-            geoTiffDirectory = null /* Not present in CR3. */
+            /* Not present in CR3. */
+geoTiffDirectory = null
         )
 
         val imageWidth = idf0.findTiffField(TiffTag.TIFF_TAG_IMAGE_WIDTH)?.toInt()
@@ -167,7 +169,8 @@ public object Cr3Reader {
             exif = tiffContents,
             /* CR3 stores no single EXIF byte block a rewrite could reuse. */
             exifBytes = null,
-            iptc = null, /* Not covered by ISO BMFF. */
+            /* Not covered by ISO BMFF. */
+iptc = null,
             xmp = xmpFromUuidBox
         )
     }

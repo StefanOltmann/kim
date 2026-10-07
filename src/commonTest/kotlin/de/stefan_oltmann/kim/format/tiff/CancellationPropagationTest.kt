@@ -40,16 +40,26 @@ class CancellationPropagationTest {
     fun testMakerNoteCancellationPropagatesThroughTheRead() {
 
         val bytes = convertHexStringToByteArray(
-            "49492A0008000000" + // Header: II, version 42, IFD0 at offset 8
-                "0200" + // IFD0: 2 entries
-                "0F0102000600000026000000" + // Make -> 38
-                "69870400010000002C000000" + // ExifOffset -> 44
-                "00000000" + // No next directory
-                "43616E6F6E00" + // "Canon\0"
-                "0100" + // ExifIFD: 1 entry
-                "7C920700200000003E000000" + // MakerNote -> 62
-                "00000000" + // No next directory
-                "41414141414141414141414141414141" + // MakerNote blob
+            /* Header: II, version 42, IFD0 at offset 8 */
+            "49492A0008000000" +
+                /* IFD0: 2 entries */
+                "0200" +
+                /* Make -> 38 */
+                "0F0102000600000026000000" +
+                /* ExifOffset -> 44 */
+                "69870400010000002C000000" +
+                /* No next directory */
+                "00000000" +
+                /* "Canon\0" */
+                "43616E6F6E00" +
+                /* ExifIFD: 1 entry */
+                "0100" +
+                /* MakerNote -> 62 */
+                "7C920700200000003E000000" +
+                /* No next directory */
+                "00000000" +
+                /* MakerNote blob */
+                "41414141414141414141414141414141" +
                 "41414141414141414141414141414141"
         )
 
@@ -72,13 +82,20 @@ class CancellationPropagationTest {
     fun testIfd1CancellationPropagatesThroughTheRead() {
 
         val bytes = convertHexStringToByteArray(
-            "49492A0008000000" + // Header: II, version 42, IFD0 at offset 8
-                "0100" + // IFD0: 1 entry
-                "000104000100000004000000" + // ImageWidth = 4
-                "1A000000" + // Next IFD at offset 26
-                "0100" + // IFD1: 1 entry
-                "000104000100000004000000" + // ImageWidth = 4
-                "00000000" // No next directory
+            /* Header: II, version 42, IFD0 at offset 8 */
+            "49492A0008000000" +
+                /* IFD0: 1 entry */
+                "0100" +
+                /* ImageWidth = 4 */
+                "000104000100000004000000" +
+                /* Next IFD at offset 26 */
+                "1A000000" +
+                /* IFD1: 1 entry */
+                "0100" +
+                /* ImageWidth = 4 */
+                "000104000100000004000000" +
+                /* No next directory */
+                "00000000"
         )
 
         val reader = CancellationFromOffsetOn(

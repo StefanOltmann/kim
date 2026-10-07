@@ -39,7 +39,8 @@ import kotlin.test.fail
 
 class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
 
-    private val timestamp = 1_689_166_125_401 // 2023:07:12 14:48:45 in GMT+02:00
+    /* 2023:07:12 14:48:45 in GMT+02:00 */
+    private val timestamp = 1_689_166_125_401
 
     private val title = "Süße Vögelchen"
 
@@ -258,12 +259,18 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
 
         /* A Photoshop stream whose only block carries no IPTC records. */
         val emptyBlock = byteArrayOf(
-            0x38, 0x42, 0x49, 0x4D, // "8BIM"
-            0x03, 0xED.toByte(), // Resolution info, no IPTC records
-            0x00, // Empty name
-            0x00, // Name padding
-            0x00, 0x00, 0x00, 0x04, // Block size 4
-            0x00, 0x00, 0x01, 0x00 // Block data
+            /* "8BIM" */
+            0x38, 0x42, 0x49, 0x4D,
+            /* Resolution info, no IPTC records */
+            0x03, 0xED.toByte(),
+            /* Empty name */
+            0x00,
+            /* Name padding */
+            0x00,
+            /* Block size 4 */
+            0x00, 0x00, 0x00, 0x04,
+            /* Block data */
+            0x00, 0x00, 0x01, 0x00
         )
 
         val app13Payload = "Photoshop 3.0\u0000".encodeToByteArray() + emptyBlock
@@ -295,12 +302,18 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
 
         /* A Photoshop stream whose only block carries no IPTC records. */
         val resolutionInfoBlock = byteArrayOf(
-            0x38, 0x42, 0x49, 0x4D, // "8BIM"
-            0x03, 0xED.toByte(), // Resolution info, no IPTC records
-            0x00, // Empty name
-            0x00, // Name padding
-            0x00, 0x00, 0x00, 0x04, // Block size 4
-            0x00, 0x00, 0x01, 0x00 // Block data
+            /* "8BIM" */
+            0x38, 0x42, 0x49, 0x4D,
+            /* Resolution info, no IPTC records */
+            0x03, 0xED.toByte(),
+            /* Empty name */
+            0x00,
+            /* Name padding */
+            0x00,
+            /* Block size 4 */
+            0x00, 0x00, 0x00, 0x04,
+            /* Block data */
+            0x00, 0x00, 0x01, 0x00
         )
 
         val app13Payload = "Photoshop 3.0\u0000".encodeToByteArray() + resolutionInfoBlock
@@ -348,7 +361,8 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
         val shortApp1 = byteArrayOf(
             0xFF.toByte(), 0xE1.toByte(),
             0x00, 0x05,
-            0x58, 0x59, 0x5A // "XYZ", no EXIF identifier
+            /* "XYZ", no EXIF identifier */
+            0x58, 0x59, 0x5A
         )
 
         val jpegBytes = byteArrayOf(0xFF.toByte(), 0xD8.toByte()) +
@@ -373,15 +387,24 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
     private fun buildExifSegmentWithOrientation(): ByteArray {
 
         val payload = byteArrayOf(
-            0x45, 0x78, 0x69, 0x66, 0x00, 0x00, // "Exif\0\0"
-            0x49, 0x49, 0x2A, 0x00, // TIFF: II, version 42
-            0x08, 0x00, 0x00, 0x00, // IFD0 at offset 8
-            0x01, 0x00, // 1 entry
-            0x12, 0x01, // Orientation tag
-            0x03, 0x00, // Type SHORT
-            0x01, 0x00, 0x00, 0x00, // Count 1
-            0x06, 0x00, 0x00, 0x00, // Value 6 (rotate right)
-            0x00, 0x00, 0x00, 0x00 // No next IFD
+            /* "Exif\0\0" */
+            0x45, 0x78, 0x69, 0x66, 0x00, 0x00,
+            /* TIFF: II, version 42 */
+            0x49, 0x49, 0x2A, 0x00,
+            /* IFD0 at offset 8 */
+            0x08, 0x00, 0x00, 0x00,
+            /* 1 entry */
+            0x01, 0x00,
+            /* Orientation tag */
+            0x12, 0x01,
+            /* Type SHORT */
+            0x03, 0x00,
+            /* Count 1 */
+            0x01, 0x00, 0x00, 0x00,
+            /* Value 6 (rotate right) */
+            0x06, 0x00, 0x00, 0x00,
+            /* No next IFD */
+            0x00, 0x00, 0x00, 0x00
         )
 
         return byteArrayOf(0xFF.toByte(), 0xE1.toByte()) +
@@ -393,10 +416,12 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
      * A minimal SOS scan data followed by the EOI marker.
      */
     private fun minimalScan(): ByteArray = byteArrayOf(
-        0xFF.toByte(), 0xDA.toByte(), // SOS
+        /* SOS */
+        0xFF.toByte(), 0xDA.toByte(),
         0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x3F, 0x00,
         0x11, 0x22, 0x33, 0x44,
-        0xFF.toByte(), 0xD9.toByte() // EOI
+        /* EOI */
+        0xFF.toByte(), 0xD9.toByte()
     )
 
     /**

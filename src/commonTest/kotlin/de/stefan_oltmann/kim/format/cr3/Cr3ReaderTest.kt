@@ -102,7 +102,8 @@ class Cr3ReaderTest {
         /* A box header claiming a size smaller than itself. */
         val corruptChild = byteArrayOf(
             0, 0, 0, 6,
-            0x66, 0x72, 0x65, 0x65, // "free"
+            /* "free" */
+            0x66, 0x72, 0x65, 0x65,
             1, 2
         )
 

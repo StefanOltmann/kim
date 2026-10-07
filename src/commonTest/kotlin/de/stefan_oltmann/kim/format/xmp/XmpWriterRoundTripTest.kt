@@ -40,7 +40,8 @@ class XmpWriterRoundTripTest {
 
     private val updates = setOf(
         MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT),
-        MetadataUpdate.TakenDate(1_690_889_862_000L), // 01.08.2023 13:37:42
+        /* 01.08.2023 13:37:42 */
+        MetadataUpdate.TakenDate(1_690_889_862_000L),
         MetadataUpdate.GpsCoordinates(GpsCoordinates(53.219391, 8.239661)),
         MetadataUpdate.Rating(ExifRating.THREE_STARS),
         MetadataUpdate.Keywords(setOf("fox", "fuchs", "<swiper>")),

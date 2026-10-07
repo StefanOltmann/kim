@@ -133,10 +133,14 @@ class GifImageParserTest {
         val bytes = "GIF89a".encodeToByteArray() +
             byteArrayOf(1, 0, 1, 0, 0, 0, 0) +
             byteArrayOf(
-                0x21, 0xF9.toByte(), // Extension introducer, GCE label.
-                5,                   // Declared body size (nonconformant).
-                1, 2, 3, 4, 5,       // Body bytes.
-                0x00                 // Block terminator.
+                /* Extension introducer, GCE label. */
+                0x21, 0xF9.toByte(),
+                /* Declared body size (nonconformant). */
+                5,
+                /* Body bytes. */
+                1, 2, 3, 4, 5,
+                /* Block terminator. */
+                0x00
             ) +
             byteArrayOf(GifConstants.GIF_TERMINATOR)
 

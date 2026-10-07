@@ -85,9 +85,12 @@ class MakerNoteDispatchTest {
          */
         val makerNote = signature.encodeToByteArray() +
             (if (withByteOrder) byteArrayOf(0x49, 0x49) else byteArrayOf()) +
-            byteArrayOf(1, 0) + // Entry count.
-            byteArrayOf(1, 0, 4, 0, 1, 0, 0, 0, 42, 0, 0, 0) + // Tag 1, LONG, value 42.
-            byteArrayOf(0, 0, 0, 0) // No next IFD.
+            /* Entry count. */
+            byteArrayOf(1, 0) +
+            /* Tag 1, LONG, value 42. */
+            byteArrayOf(1, 0, 4, 0, 1, 0, 0, 0, 42, 0, 0, 0) +
+            /* No next IFD. */
+            byteArrayOf(0, 0, 0, 0)
 
         val ifd0Offset = 8
         val ifd0Size = 2 + 2 * ENTRY_LENGTH + 4
@@ -96,7 +99,8 @@ class MakerNoteDispatchTest {
         val exifIfdSize = 2 + ENTRY_LENGTH + 4
         val makerNoteOffset = exifIfdOffset + exifIfdSize
 
-        out.write(byteArrayOf(0x49, 0x49, 0x2A, 0x00)) // TIFF header.
+        /* TIFF header. */
+        out.write(byteArrayOf(0x49, 0x49, 0x2A, 0x00))
         out.writeInt(ifd0Offset, ByteOrder.LITTLE_ENDIAN)
 
         /* IFD0: Make + Exif IFD pointer. */
@@ -112,7 +116,8 @@ class MakerNoteDispatchTest {
         out.writeInt(1, ByteOrder.LITTLE_ENDIAN)
         out.writeInt(exifIfdOffset, ByteOrder.LITTLE_ENDIAN)
 
-        out.writeInt(0, ByteOrder.LITTLE_ENDIAN) // No next IFD.
+        /* No next IFD. */
+        out.writeInt(0, ByteOrder.LITTLE_ENDIAN)
 
         out.write(make.encodeToByteArray())
 
@@ -124,7 +129,8 @@ class MakerNoteDispatchTest {
         out.writeInt(makerNote.size, ByteOrder.LITTLE_ENDIAN)
         out.writeInt(makerNoteOffset, ByteOrder.LITTLE_ENDIAN)
 
-        out.writeInt(0, ByteOrder.LITTLE_ENDIAN) // No next IFD.
+        /* No next IFD. */
+        out.writeInt(0, ByteOrder.LITTLE_ENDIAN)
 
         out.write(makerNote)
 

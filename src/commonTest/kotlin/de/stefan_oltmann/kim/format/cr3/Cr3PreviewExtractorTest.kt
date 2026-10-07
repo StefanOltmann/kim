@@ -407,7 +407,8 @@ class Cr3PreviewExtractorTest {
             mdatPayload = byteArrayOf(0, 0, 0, 0) +
                 byteArrayOf(0xFF.toByte(), 0xD8.toByte()) + "jpegdata".encodeToByteArray(),
             jpegLength = 10,
-            co64Offset = { it - 6 } /* Points into the mdat header. */
+            /* Points into the mdat header. */
+co64Offset = { it - 6 }
         )
 
         assertNull(
@@ -471,7 +472,8 @@ class Cr3PreviewExtractorTest {
                 byteArrayOf(0, 0, 0, 0) +
                 "PRVW".encodeToByteArray() +
                 ByteArray(12) +
-                byteArrayOf(0, 0, 10, 0) /* Declares 2560 bytes ... */
+                /* Declares 2560 bytes ... */
+byteArrayOf(0, 0, 10, 0)
 
         /* ... but only two bytes of actual data follow. */
         val truncatedJpeg = byteArrayOf(0xFF.toByte(), 0xD8.toByte())

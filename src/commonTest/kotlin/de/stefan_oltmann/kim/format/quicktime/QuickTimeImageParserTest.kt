@@ -317,8 +317,10 @@ class QuickTimeImageParserTest {
         /* Largesize hdlr: size field 1, type, 8-byte real size, payload. */
         val largesizeHdlr = byteArrayOf(
             0, 0, 0, 1,
-            0x68, 0x64, 0x6C, 0x72, // "hdlr"
-            0, 0, 0, 0, 0, 0, 0, 24, // largesize: 24 = 8 header + 8 largesize + 8 payload
+            /* "hdlr" */
+            0x68, 0x64, 0x6C, 0x72,
+            /* largesize: 24 = 8 header + 8 largesize + 8 payload */
+            0, 0, 0, 0, 0, 0, 0, 24,
             0, 0, 0, 0, 0, 0, 0, 0
         )
 

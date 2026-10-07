@@ -284,7 +284,8 @@ public object JpegConstants {
         0x6F,
         /* p */
         0x70,
-        0x20, //
+        /*  */
+        0x20,
         /* 3 */
         0x33,
         /* . */

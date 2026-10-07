@@ -88,7 +88,8 @@ class WebpUpdaterTest : AbstractUpdaterTest("webp") {
     fun testReadMetadataWithInvalidMaxRiffSize() {
 
         val bogusSizeBytes =
-            withDeclaredRiffSize(originalBytes, -1) /* 0xFFFFFFFF */
+            /* 0xFFFFFFFF */
+withDeclaredRiffSize(originalBytes, -1)
 
         val metadata = Kim.readMetadata(bogusSizeBytes)
 

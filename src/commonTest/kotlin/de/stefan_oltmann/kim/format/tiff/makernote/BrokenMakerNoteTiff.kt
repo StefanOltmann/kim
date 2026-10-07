@@ -34,29 +34,51 @@ internal object BrokenMakerNoteTiff {
      */
     fun buildTiff(makerNoteValueOffsetHex: String): ByteArray =
         convertHexStringToByteArray(
-            "49492a00" + // TIFF header
-                "08000000" + // IFD0 offset
+            /* TIFF header */
+            "49492a00" +
+                /* IFD0 offset */
+                "08000000" +
 
-                /* IFD0: Make and ExifIFD pointer. */
-                "0200" + // entry count
-                "0f010200" + "08000000" + "26000000" + // Make, ASCII, 8, at 38
-                "69870400" + "01000000" + "2e000000" + // ExifIFD, LONG, 1, at 46
-                "00000000" + // next IFD
+                /*
+                 * IFD0: Make and ExifIFD pointer.
+                 * Entry count.
+                 */
+                "0200" +
+                /* Make, ASCII, 8, at 38 */
+                "0f010200" + "08000000" + "26000000" +
+                /* ExifIFD, LONG, 1, at 46 */
+                "69870400" + "01000000" + "2e000000" +
+                /* next IFD */
+                "00000000" +
 
-                "4f4c594d50555300" + // "OLYMPUS\0"
+                /* "OLYMPUS\0" */
+                "4f4c594d50555300" +
 
-                /* ExifIFD: MakerNote field. */
-                "0100" + // entry count
-                "7c920700" + "64000000" + makerNoteValueOffsetHex + // MakerNote, UNDEFINED, 100
-                "00000000" + // next IFD
+                /*
+                 * ExifIFD: MakerNote field.
+                 * Entry count.
+                 */
+                "0100" +
+                /* MakerNote, UNDEFINED, 100 */
+                "7c920700" + "64000000" + makerNoteValueOffsetHex +
+                /* next IFD */
+                "00000000" +
 
-                /* MakerNote: signature, byte order, version and one sub-IFD pointer. */
-                "4f4c594d50555300" + // "OLYMPUS\0"
-                "4949" + // little-endian
-                "3031" + // version "01"
-                "0100" + // entry count
-                "50200400" + "01000000" + "1e000000" + // FocusInfoIFD, LONG, 1, offset 30
-                "00000000" + // next IFD
+                /*
+                 * MakerNote: signature, byte order, version and one sub-IFD pointer.
+                 * "OLYMPUS\0"
+                 */
+                "4f4c594d50555300" +
+                /* little-endian */
+                "4949" +
+                /* version "01" */
+                "3031" +
+                /* entry count */
+                "0100" +
+                /* FocusInfoIFD, LONG, 1, offset 30 */
+                "50200400" + "01000000" + "1e000000" +
+                /* next IFD */
+                "00000000" +
 
                 /* Corrupted sub-directory: 0xFFFF entry count. */
                 "ffff0000" +
@@ -80,12 +102,17 @@ internal object BrokenMakerNoteTiff {
         val app1Length = 2 + exifPayload.size
 
         val sos = byteArrayOf(
-            0xff.toByte(), // SOS
+            /* SOS */
+            0xff.toByte(),
             0xda.toByte(),
-            0x00, 0x08, // segment length
-            0x01, 0x01, // one component
-            0x00, 0x00, // spectral start and end
-            0x3f.toByte(), 0x00 // approximation
+            /* segment length */
+            0x00, 0x08,
+            /* one component */
+            0x01, 0x01,
+            /* spectral start and end */
+            0x00, 0x00,
+            /* approximation */
+            0x3f.toByte(), 0x00
         )
 
         val imageData = convertHexStringToByteArray(
@@ -96,9 +123,11 @@ internal object BrokenMakerNoteTiff {
         val bytes = ByteArray(4 + app1Length + sos.size + imageData.size + 2)
 
         var pos = 0
-        bytes[pos++] = 0xff.toByte() // SOI
+        /* SOI */
+        bytes[pos++] = 0xff.toByte()
         bytes[pos++] = 0xd8.toByte()
-        bytes[pos++] = 0xff.toByte() // APP1
+        /* APP1 */
+        bytes[pos++] = 0xff.toByte()
         bytes[pos++] = 0xe1.toByte()
         bytes[pos++] = (app1Length shr 8).toByte()
         bytes[pos++] = app1Length.toByte()
@@ -108,7 +137,8 @@ internal object BrokenMakerNoteTiff {
         pos += sos.size
         imageData.copyInto(bytes, pos)
         pos += imageData.size
-        bytes[pos++] = 0xff.toByte() // EOI
+        /* EOI */
+        bytes[pos++] = 0xff.toByte()
         bytes[pos] = 0xd9.toByte()
 
         return bytes

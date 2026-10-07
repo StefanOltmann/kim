@@ -461,21 +461,31 @@ class BaseMediaFileFormatImageParserTest {
 
         val writer = ByteArrayByteWriter()
 
-        writer.write(0) /* Version 0: absolute offsets, 2-byte item ids. */
-        writer.write(byteArrayOf(0, 0, 0)) /* Flags */
+        /* Version 0: absolute offsets, 2-byte item ids. */
+            writer.write(0)
+        /* Flags */
+            writer.write(byteArrayOf(0, 0, 0))
 
-        writer.write(0x44) /* Offset size 4, length size 4 */
-        writer.write(0x00) /* Base offset size 0, no index */
+        /* Offset size 4, length size 4 */
+            writer.write(0x44)
+        /* Base offset size 0, no index */
+            writer.write(0x00)
 
-        writer.write2BytesAsInt(items.size, BMFF_BYTE_ORDER) /* Item count */
+        /* Item count */
+            writer.write2BytesAsInt(items.size, BMFF_BYTE_ORDER)
 
         for (item in items) {
 
-            writer.write2BytesAsInt(item.itemId, BMFF_BYTE_ORDER) /* Item id */
-            /* Version 0 has no construction method field. */
-            writer.write2BytesAsInt(0, BMFF_BYTE_ORDER) /* Data reference index */
+            /* Item id */
+            writer.write2BytesAsInt(item.itemId, BMFF_BYTE_ORDER)
+            /*
+             * Version 0 has no construction method field.
+             * Data reference index.
+             */
+            writer.write2BytesAsInt(0, BMFF_BYTE_ORDER)
 
-            writer.write2BytesAsInt(item.extents.size, BMFF_BYTE_ORDER) /* Extent count */
+            /* Extent count */
+            writer.write2BytesAsInt(item.extents.size, BMFF_BYTE_ORDER)
 
             for (extent in item.extents) {
                 writer.writeInt(extent.offset.toInt(), BMFF_BYTE_ORDER)

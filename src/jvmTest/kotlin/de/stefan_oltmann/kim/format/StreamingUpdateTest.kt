@@ -36,7 +36,8 @@ import kotlin.test.assertContentEquals
  */
 class StreamingUpdateTest {
 
-    private val timestamp = 1_689_166_125_401 // 2023:07:12 14:48:45 in GMT+02:00
+    /* 2023:07:12 14:48:45 in GMT+02:00 */
+    private val timestamp = 1_689_166_125_401
 
     @BeforeTest
     fun setUp() {

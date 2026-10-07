@@ -114,8 +114,10 @@ class GifUpdaterTest : AbstractUpdaterTest(
         val byteWriter = ByteArrayByteWriter()
 
         byteWriter.write("GIF89a".encodeToByteArray())
-        byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0)) /* Logical screen descriptor, no color table */
-        byteWriter.write(byteArrayOf(0x21, 0xFE.toByte(), 0x02, 0x41, 0x42, 0x00)) /* Comment extension */
+        /* Logical screen descriptor, no color table */
+byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0))
+        /* Comment extension */
+byteWriter.write(byteArrayOf(0x21, 0xFE.toByte(), 0x02, 0x41, 0x42, 0x00))
         byteWriter.write(byteArrayOf(GifConstants.GIF_TERMINATOR))
 
         return byteWriter.toByteArray()
@@ -129,11 +131,15 @@ class GifUpdaterTest : AbstractUpdaterTest(
         val byteWriter = ByteArrayByteWriter()
 
         byteWriter.write("GIF87a".encodeToByteArray())
-        byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0)) /* Logical screen descriptor, no color table */
+        /* Logical screen descriptor, no color table */
+byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0))
         byteWriter.write(byteArrayOf(GifConstants.IMAGE_SEPARATOR))
-        byteWriter.write(byteArrayOf(0, 0, 0, 0, 1, 0, 1, 0, 0)) /* 1x1 image descriptor, no color table */
-        byteWriter.write(byteArrayOf(2)) /* LZW minimum code size */
-        byteWriter.write(byteArrayOf(2, 2, 0x44, 0)) /* Image data sub-chunks */
+        /* 1x1 image descriptor, no color table */
+byteWriter.write(byteArrayOf(0, 0, 0, 0, 1, 0, 1, 0, 0))
+        /* LZW minimum code size */
+byteWriter.write(byteArrayOf(2))
+        /* Image data sub-chunks */
+byteWriter.write(byteArrayOf(2, 2, 0x44, 0))
         byteWriter.write(byteArrayOf(GifConstants.GIF_TERMINATOR))
 
         return byteWriter.toByteArray()
@@ -179,11 +185,15 @@ class GifUpdaterTest : AbstractUpdaterTest(
         val byteWriter = ByteArrayByteWriter()
 
         byteWriter.write("GIF89a".encodeToByteArray())
-        byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0)) /* Logical screen descriptor, no color table */
+        /* Logical screen descriptor, no color table */
+byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0))
         byteWriter.write(byteArrayOf(GifConstants.IMAGE_SEPARATOR))
-        byteWriter.write(byteArrayOf(0, 0, 0, 0, 1, 0, 1, 0, 0)) /* 1x1 image descriptor, no color table */
-        byteWriter.write(byteArrayOf(2)) /* LZW minimum code size */
-        byteWriter.write(byteArrayOf(2, 2, 0x44, 0)) /* Image data sub-chunks */
+        /* 1x1 image descriptor, no color table */
+byteWriter.write(byteArrayOf(0, 0, 0, 0, 1, 0, 1, 0, 0))
+        /* LZW minimum code size */
+byteWriter.write(byteArrayOf(2))
+        /* Image data sub-chunks */
+byteWriter.write(byteArrayOf(2, 2, 0x44, 0))
 
         val commentBytes = STALE_COMMENT.encodeToByteArray()
 
