@@ -19,7 +19,6 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.decodeStrictUtf8
 import de.stefan_oltmann.kim.common.decodeUtf16BytesToString
 import de.stefan_oltmann.kim.common.slice
-import de.stefan_oltmann.kim.common.toInvariantString
 import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import kotlin.jvm.JvmStatic
@@ -220,43 +219,63 @@ public object IccProfileParser {
         return IccEntry(
             signature = signature,
             name = TAG_NAMES[signature],
-            value = decoded
+            textValue = decoded.text,
+            numericComponents = decoded.numbers
         )
     }
 
     /**
-     * Decodes a tag value by its own 4-character type signature. NULL
-     * means the type is a binary block this parser does not render.
+     * The decoded parts of a tag value: exactly one of both is present,
+     * or neither for an undecoded binary type.
      */
-    private fun decodeValue(valueBytes: ByteArray): String? {
+    private class DecodedValue(
+        val text: String?,
+        val numbers: DoubleArray?
+    )
+
+    /**
+     * Decodes a tag value by its own 4-character type signature. Both
+     * parts NULL means the type is a binary block this parser does not
+     * render.
+     */
+    private fun decodeValue(valueBytes: ByteArray): DecodedValue {
 
         if (valueBytes.size < MIN_VALUE_HEADER_SIZE)
-            return null
+            return DecodedValue(text = null, numbers = null)
 
         return when (stringAt(valueBytes, 0, FIELD_SIZE)) {
 
-            "desc" -> decodeTextDescription(valueBytes)
+            "desc" -> DecodedValue(decodeTextDescription(valueBytes), null)
 
-            "mluc" -> decodeMultiLanguageUnicode(valueBytes)
+            "mluc" -> DecodedValue(decodeMultiLanguageUnicode(valueBytes), null)
 
-            "text" -> valueBytes.slice(MIN_VALUE_HEADER_SIZE, valueBytes.size - MIN_VALUE_HEADER_SIZE)
-                .decodeStrictUtf8("The ICC text value")
-                .trimEnd('\u0000')
-
-            "XYZ " -> decodeS15Fixed16List(valueBytes, MIN_VALUE_HEADER_SIZE, XYZ_COMPONENT_COUNT)
-
-            "sf32" -> decodeS15Fixed16List(
-                valueBytes,
-                MIN_VALUE_HEADER_SIZE,
-                (valueBytes.size - MIN_VALUE_HEADER_SIZE) / FIELD_SIZE
+            "text" -> DecodedValue(
+                valueBytes.slice(MIN_VALUE_HEADER_SIZE, valueBytes.size - MIN_VALUE_HEADER_SIZE)
+                    .decodeStrictUtf8("The ICC text value")
+                    .trimEnd('\u0000'),
+                null
             )
 
-            "sig" -> stringAt(valueBytes, MIN_VALUE_HEADER_SIZE, FIELD_SIZE)
+            "XYZ " -> DecodedValue(
+                null,
+                readS15Fixed16Components(valueBytes, MIN_VALUE_HEADER_SIZE, XYZ_COMPONENT_COUNT)
+            )
 
-            "date" -> decodeDateTime(valueBytes)
+            "sf32" -> DecodedValue(
+                null,
+                readS15Fixed16Components(
+                    valueBytes,
+                    MIN_VALUE_HEADER_SIZE,
+                    (valueBytes.size - MIN_VALUE_HEADER_SIZE) / FIELD_SIZE
+                )
+            )
+
+            "sig" -> DecodedValue(stringAt(valueBytes, MIN_VALUE_HEADER_SIZE, FIELD_SIZE), null)
+
+            "date" -> DecodedValue(decodeDateTime(valueBytes), null)
 
             /* An undecoded binary type: no fabricated rendering. */
-            else -> null
+            else -> DecodedValue(text = null, numbers = null)
         }
     }
 
@@ -330,23 +349,23 @@ public object IccProfileParser {
     }
 
     /**
-     * Renders the s15Fixed16 numbers behind the 8-byte type and reserved
-     * prefix as invariant decimal strings separated by spaces.
+     * Reads the fixed-point components. The per-component string
+     * rendering happens later, when the entry value is read - parsing
+     * only validates and converts, which keeps the format cost out of
+     * the read path for profiles whose numbers are never displayed.
      */
-    private fun decodeS15Fixed16List(
+    private fun readS15Fixed16Components(
         valueBytes: ByteArray,
         firstValueOffset: Int,
         count: Int
-    ): String {
+    ): DoubleArray {
 
         if (firstValueOffset + count * FIELD_SIZE > valueBytes.size)
             throw ImageReadException("The ICC number list is truncated.")
 
-        val numbers = (0 until count)
-            .map { index -> readS15Fixed16(valueBytes, firstValueOffset + index * FIELD_SIZE) }
-
-        /* Invariant rendering, so written dumps do not depend on the platform. */
-        return numbers.joinToString(" ") { number -> number.toInvariantString() }
+        return DoubleArray(count) { index ->
+            readS15Fixed16(valueBytes, firstValueOffset + index * FIELD_SIZE)
+        }
     }
 
     private fun readS15Fixed16(bytes: ByteArray, offset: Int): Double {

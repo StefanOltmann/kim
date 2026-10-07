@@ -15,6 +15,8 @@
  */
 package de.stefan_oltmann.kim.format.icc
 
+import de.stefan_oltmann.kim.common.toInvariantString
+
 /**
  * A single entry of the ICC tag table.
  *
@@ -23,9 +25,21 @@ package de.stefan_oltmann.kim.format.icc
  * ICC tag registry or NULL for signatures without a known name, and
  * [value] the decoded text or number list - NULL for value types whose
  * binary layout the parser does not decode, like curve parameters.
+ *
+ * Attention: [value] formats the number components on first read. The
+ * parse validates the components eagerly, so a truncated number list
+ * still fails the read, but the per-component string rendering only
+ * happens when the value is actually consumed.
  */
-public data class IccEntry(
-    val signature: String,
-    val name: String?,
-    val value: String?
-)
+public class IccEntry internal constructor(
+    public val signature: String,
+    public val name: String?,
+    internal val textValue: String?,
+    internal val numericComponents: DoubleArray?
+) {
+
+    public val value: String? by lazy {
+        numericComponents?.joinToString(" ") { component -> component.toInvariantString() }
+            ?: textValue
+    }
+}
