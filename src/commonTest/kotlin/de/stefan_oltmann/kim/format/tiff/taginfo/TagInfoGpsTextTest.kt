@@ -35,7 +35,10 @@ class TagInfoGpsTextTest {
     /**
      * Builds an undefined-type text field carrying the given raw bytes.
      */
-    private fun undefinedField(bytes: ByteArray): TiffField =
+    private fun undefinedField(
+        bytes: ByteArray,
+        byteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
+    ): TiffField =
         TiffField(
             offset = 0,
             tag = ExifTag.EXIF_TAG_USER_COMMENT.tag,
@@ -45,7 +48,7 @@ class TagInfoGpsTextTest {
             localValue = null,
             valueOffset = 0,
             valueBytes = bytes,
-            byteOrder = ByteOrder.BIG_ENDIAN,
+            byteOrder = byteOrder,
             sortHint = 0
         )
 
@@ -109,6 +112,58 @@ class TagInfoGpsTextTest {
                 0x63, 0x61, 0x66, 0xE9.toByte() /* "café" in Latin-1 */
             ),
             actual = GpsTag.GPS_TAG_GPS_PROCESSING_METHOD.encodeValue("café")
+        )
+    }
+
+    /**
+     * BOM-less UTF-16 follows the byte order of the surrounding TIFF
+     * structure - the convention BOM-less writers use. A big-endian
+     * field carrying big-endian units must not decode as byte-swapped
+     * mojibake through a fixed little-endian fallback.
+     */
+    @Test
+    fun testValueDecodesBomLessUtf16InTheFieldByteOrder() {
+
+        /* "Hi" in UTF-16 big endian, no BOM, on an MM field. */
+        val bigEndianBytes =
+            "UNICODE".encodeToByteArray() + byteArrayOf(0) +
+                byteArrayOf(0x00, 0x48, 0x00, 0x69)
+
+        assertEquals(
+            "Hi",
+            ExifTag.EXIF_TAG_USER_COMMENT.getValue(undefinedField(bigEndianBytes))
+        )
+
+        /* "Hi" in UTF-16 little endian, no BOM, on an II field. */
+        val littleEndianBytes =
+            "UNICODE".encodeToByteArray() + byteArrayOf(0) +
+                byteArrayOf(0x48, 0x00, 0x69, 0x00)
+
+        assertEquals(
+            "Hi",
+            ExifTag.EXIF_TAG_USER_COMMENT.getValue(
+                undefinedField(littleEndianBytes, ByteOrder.LITTLE_ENDIAN)
+            )
+        )
+    }
+
+    /**
+     * A byte order mark always decides, independent of the field byte
+     * order - a big-endian BOM on a little-endian field still decodes
+     * big endian.
+     */
+    @Test
+    fun testValueDecodesUtf16WithByteOrderMark() {
+
+        val bytes =
+            "UNICODE".encodeToByteArray() + byteArrayOf(0) +
+                byteArrayOf(0xFE.toByte(), 0xFF.toByte(), 0x00, 0x48, 0x00, 0x69)
+
+        assertEquals(
+            "Hi",
+            ExifTag.EXIF_TAG_USER_COMMENT.getValue(
+                undefinedField(bytes, ByteOrder.LITTLE_ENDIAN)
+            )
         )
     }
 }

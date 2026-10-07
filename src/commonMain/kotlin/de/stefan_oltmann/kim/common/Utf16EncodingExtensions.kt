@@ -23,6 +23,13 @@ internal fun ByteArray.startsWithUtf16BigEndianBom(): Boolean =
     size >= 2 && this[0] == 0xFE.toByte() && this[1] == 0xFF.toByte()
 
 /**
+ * True when the bytes start with the UTF-16 little endian byte order
+ * mark (FF FE).
+ */
+internal fun ByteArray.startsWithUtf16LittleEndianBom(): Boolean =
+    size >= 2 && this[0] == 0xFF.toByte() && this[1] == 0xFE.toByte()
+
+/**
  * Decodes UTF-16 code units to a String. Surrogate pairs pass through
  * as-is, so supplementary characters survive the conversion.
  *
