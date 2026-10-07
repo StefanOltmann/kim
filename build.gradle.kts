@@ -162,7 +162,18 @@ kotlin {
     }
 
     js {
-        nodejs()
+        nodejs {
+            testTask {
+                useMocha {
+                    /*
+                     * Node reads the large test media files much slower
+                     * than the JVM, so mocha's default of 2 seconds
+                     * rejects tests that pass on every other target.
+                     */
+                    timeout = "60s"
+                }
+            }
+        }
     }
 
     @OptIn(ExperimentalWasmDsl::class)
