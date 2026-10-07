@@ -26,6 +26,7 @@ import de.stefan_oltmann.kim.format.jpeg.JpegConstants
 import de.stefan_oltmann.kim.format.jpeg.JpegSegmentAnalyzer
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
+import de.stefan_oltmann.kim.format.xmp.requireValidXmpPacket
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
@@ -245,6 +246,14 @@ public object TiffImageParser : ImageParser {
         if (bytes.isEmpty())
             return null
 
-        return bytes.decodeToString()
+        /*
+         * A packet cut between the opening and the closing element is
+         * truncated content: it must fail the read like it fails the
+         * update path, instead of reaching sidecar writers.
+         */
+        return requireValidXmpPacket(
+            xmp = bytes.decodeToString(),
+            sourceDescription = "The TIFF XMP tag"
+        )
     }
 }

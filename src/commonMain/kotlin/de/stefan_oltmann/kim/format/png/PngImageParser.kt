@@ -39,6 +39,7 @@ import de.stefan_oltmann.kim.format.png.chunk.PngChunkZtxt
 import de.stefan_oltmann.kim.format.png.chunk.PngTextChunk
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffReader
+import de.stefan_oltmann.kim.format.xmp.requireValidXmpPacket
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.read4BytesAsInt
 import de.stefan_oltmann.kim.input.readAndVerifyBytes
@@ -113,7 +114,15 @@ public object PngImageParser : ImageParser {
 
             val iptc = getIptcFromTextChunk(chunks)
 
-            val xmp = getXmpXml(chunks)
+            /*
+             * A packet cut between the opening and the closing element
+             * is truncated content: it must fail the read like it fails
+             * the update path, instead of reaching sidecar writers.
+             */
+            val xmp = requireValidXmpPacket(
+                xmp = getXmpXml(chunks),
+                sourceDescription = "The PNG XMP text chunk"
+            )
 
             return@tryWithImageReadException MediaMetadata(
                 mediaFormat = MediaFormat.PNG,

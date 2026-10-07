@@ -35,6 +35,7 @@ import de.stefan_oltmann.kim.format.jpeg.segment.Segment
 import de.stefan_oltmann.kim.format.jpeg.segment.SofnSegment
 import de.stefan_oltmann.kim.format.jpeg.segment.UnknownSegment
 import de.stefan_oltmann.kim.format.jpeg.xmp.JpegXmpParser
+import de.stefan_oltmann.kim.format.xmp.requireValidXmpPacket
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
@@ -340,7 +341,15 @@ public object JpegImageParser : ImageParser {
         if (xmp.isBlank())
             return null
 
-        return mergeExtendedXmp(xmp.toString(), extendedSegments)
+        /*
+         * A packet cut between the opening and the closing element is
+         * truncated content: it must fail the read like it fails the
+         * update path, instead of reaching sidecar writers.
+         */
+        return requireValidXmpPacket(
+            xmp = mergeExtendedXmp(xmp.toString(), extendedSegments),
+            sourceDescription = "The JPEG XMP segment"
+        )
     }
 
     /**

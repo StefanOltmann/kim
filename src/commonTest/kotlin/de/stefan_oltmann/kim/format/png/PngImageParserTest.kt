@@ -159,6 +159,28 @@ class PngImageParserTest {
         }
     }
 
+
+    /**
+     * An iTXt chunk with the XMP keyword whose packet is cut between
+     * the opening and the closing element is truncated content. Per
+     * the strict read policy the read fails instead of returning a
+     * packet that only the update path will reject.
+     */
+    @Test
+    fun testTruncatedXmpTextChunkFailsTheRead() {
+
+        val ihdrChunk = readIhdrChunk()
+
+        val truncatedChunk = PngChunkItxt(
+            "XML:com.adobe.xmp\u0000\u0000\u0000\u0000\u0000<x:xmpmeta><rdf:RDF".encodeToByteArray(),
+            crc = 0
+        )
+
+        assertFailsWith<ImageReadException> {
+            PngImageParser.parseMetadataFromChunks(listOf(ihdrChunk, truncatedChunk))
+        }
+    }
+
     private fun readIhdrChunk() =
         PngImageParser.readChunks(
             ByteArrayByteReader(

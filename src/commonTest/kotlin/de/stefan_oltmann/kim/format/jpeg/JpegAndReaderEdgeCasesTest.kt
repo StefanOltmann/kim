@@ -132,6 +132,30 @@ class JpegAndReaderEdgeCasesTest {
     }
 
     /*
+     * A JPEG XMP segment whose packet is cut between the opening and
+     * the closing element is truncated content. Per the strict read
+     * policy the read fails instead of returning a packet that only
+     * the update path will reject - like the WebP and GIF parsers
+     * already do.
+     */
+    @Test
+    fun testReadMetadataRejectsTruncatedXmp() {
+
+        val bytes = convertHexStringToByteArray(
+            "ffd8" + // SOI
+                "ffe10032" +
+                "687474703a2f2f6e732e61646f62652e636f6d2f7861702f312e302f00" + // XMP identifier
+                "3c783a786d706d6574613e3c7264663a524446" + // "<x:xmpmeta><rdf:RDF", close missing
+                "ffda0008" + "010100003f00" + // SOS
+                "1122" + "ffd9" // Scan data and EOI
+        )
+
+        assertFailsWith<ImageReadException> {
+            Kim.readMetadata(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /*
      * Attention: A corrupt EXIF segment must fail the read loudly instead
      * of degrading to NULL. Degrading would let a subsequent rewrite
      * silently drop all EXIF data of the file, while other tools may

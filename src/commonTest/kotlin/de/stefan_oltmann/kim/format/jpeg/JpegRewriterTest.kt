@@ -758,7 +758,9 @@ class JpegRewriterTest {
         JpegRewriter.updateXmpXml(
             byteReader = ByteArrayByteReader(bareJpeg()),
             byteWriter = outputWriter,
-            xmpXml = "<x:xmpmeta/>"
+            /* A complete packet - a self-closing one would fail the
+               shared packet validation on the re-read below. */
+            xmpXml = "<x:xmpmeta><rdf:RDF/></x:xmpmeta>"
         )
 
         val updatedBytes = outputWriter.toByteArray()
