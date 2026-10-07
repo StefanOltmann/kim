@@ -157,6 +157,8 @@ public object WebPImageParser : ImageParser {
 
         val chunks = mutableListOf<WebPChunk>()
 
+        var haveSeenVp8xHeader = false
+
         @Suppress("LoopWithTooManyJumpStatements")
         while (true) {
 
@@ -240,6 +242,9 @@ public object WebPImageParser : ImageParser {
             if (!isImageChunk)
                 chunks.add(chunk)
 
+            if (chunkType == WebPChunkType.VP8X)
+                haveSeenVp8xHeader = true
+
             /*
              * After reading the header we can decide if we need to
              * read the rest of the file for metadata.
@@ -253,7 +258,7 @@ public object WebPImageParser : ImageParser {
                  */
                 val isLegacyImageChunk =
                     (chunkType == WebPChunkType.VP8 || chunkType == WebPChunkType.VP8L) &&
-                        chunks.none { it is WebPChunkVP8X }
+                        !haveSeenVp8xHeader
 
                 if (isLegacyImageChunk)
                     break
