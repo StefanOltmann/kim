@@ -516,11 +516,19 @@ public object MetadataSummaryConverter {
             ?: metadata.findStringValue(ExifTag.EXIF_TAG_OFFSET_TIME)
             ?: return null
 
-        if (!UTC_OFFSET_REGEX.matches(offsetString))
+        /*
+         * EXIF ASCII fields are routinely space-padded to even byte
+         * counts - trailing container padding must not disqualify the
+         * offset, which would silently switch the date to the viewer's
+         * time zone.
+         */
+        val trimmedOffset = offsetString.trim()
+
+        if (!UTC_OFFSET_REGEX.matches(trimmedOffset))
             return null
 
         try {
-            return UtcOffset.parse(offsetString)
+            return UtcOffset.parse(trimmedOffset)
         } catch (ex: CancellationException) {
             throw ex
         } catch (_: Exception) {

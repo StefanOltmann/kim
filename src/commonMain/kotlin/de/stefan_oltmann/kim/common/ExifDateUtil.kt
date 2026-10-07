@@ -91,7 +91,20 @@ public fun convertExifDateToIso8601Date(exifDate: String): String {
         "Invalid year in date: $exifDate"
     }
 
-    val charArray = exifDate.toCharArray()
+    /*
+     * EXIF ASCII fields are routinely space-padded to even byte counts.
+     * Trailing padding behind the complete date is container padding,
+     * not part of the value - trimming it keeps the sub-second append
+     * and the ISO parse working. The blank-seconds variant sits inside
+     * the fixed 19-char core and is untouched by this.
+     */
+    val date =
+        if (exifDate.length > LENGTH_DATE_WITH_TIME)
+            exifDate.trimEnd(' ', '\u0000')
+        else
+            exifDate
+
+    val charArray = date.toCharArray()
 
     charArray[YEAR_AND_MONTH_SEPARATOR_INDEX] = '-'
     charArray[MONTH_AND_DAY_SEPARATOR_INDEX] = '-'
