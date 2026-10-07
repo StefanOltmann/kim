@@ -40,7 +40,7 @@ import platform.posix.strerror
  * no GUI process looks.
  */
 @OptIn(ExperimentalForeignApi::class)
-private fun posixErrorMessage(): String {
+internal fun posixErrorMessage(): String {
 
     val message = strerror(errno)?.toKString()
 

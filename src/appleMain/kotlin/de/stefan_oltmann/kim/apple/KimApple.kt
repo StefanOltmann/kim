@@ -18,7 +18,7 @@ package de.stefan_oltmann.kim.apple
 
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
-import de.stefan_oltmann.kim.common.readFileAsByteArray
+import de.stefan_oltmann.kim.common.PosixFileByteReader
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
@@ -51,9 +51,14 @@ public object KimApple {
          * fails the read with the concrete reason instead of silently
          * reporting "no metadata". Only files Kim can read but does not
          * recognize return null.
+         *
+         * The file streams in bounded chunks like the JVM and Android
+         * facades: TIFF-family RAW files routinely reach hundreds of
+         * megabytes, and buffering them whole can get an iOS app killed
+         * by the memory watchdog.
          */
         return@tryWithImageReadException Kim.readMetadata(
-            ByteArrayByteReader(readFileAsByteArray(path))
+            PosixFileByteReader(path)
         )
     }
 }
