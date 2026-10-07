@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -33,6 +34,25 @@ import kotlin.test.assertTrue
  * The test is placed in jvmTest, because the reader lives in jvmMain.
  */
 class JvmInputStreamByteReaderTest {
+
+    /**
+     * A negative count must fail with the clean IllegalArgumentException
+     * the sibling readers throw - on the Android legacy path the
+     * unguarded ByteArray(count) would raise a NegativeArraySizeException
+     * instead.
+     */
+    @Test
+    fun testReadBytesRejectsNegativeCount() {
+
+        val reader = JvmInputStreamByteReader(
+            inputStream = ByteArrayInputStream(byteArrayOf(1, 2)),
+            contentLength = 2
+        )
+
+        assertFailsWith<IllegalArgumentException> {
+            reader.readBytes(-1)
+        }
+    }
 
     @Test
     fun testReadByte() {
