@@ -453,8 +453,10 @@ class IptcParserEdgeCasesTest {
     @Test
     fun testParseRejectsInvalidBlockSize() {
 
-        /* A complete block size field that announces far more data
-           than the block holds. */
+        /*
+         * A complete block size field that announces far more data
+         * than the block holds.
+         */
         val block = byteArrayOf(
             0x38, 0x42, 0x49, 0x4D,
             0x04, 0x04,

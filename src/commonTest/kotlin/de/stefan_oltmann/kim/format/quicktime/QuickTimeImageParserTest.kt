@@ -586,7 +586,6 @@ class QuickTimeImageParserTest {
         }
     }
 
-
     /**
      * Strips the leading ftyp box, so a built video can be recombined
      * with an extra moov in front of it.

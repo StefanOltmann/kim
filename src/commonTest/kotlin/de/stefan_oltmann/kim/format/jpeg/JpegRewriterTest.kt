@@ -758,8 +758,10 @@ class JpegRewriterTest {
         JpegRewriter.updateXmpXml(
             byteReader = ByteArrayByteReader(bareJpeg()),
             byteWriter = outputWriter,
-            /* A complete packet - a self-closing one would fail the
-               shared packet validation on the re-read below. */
+            /*
+             * A complete packet - a self-closing one would fail the
+             * shared packet validation on the re-read below.
+             */
             xmpXml = "<x:xmpmeta><rdf:RDF/></x:xmpmeta>"
         )
 

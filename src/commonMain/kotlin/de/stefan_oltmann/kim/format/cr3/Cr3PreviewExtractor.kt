@@ -296,7 +296,7 @@ public object Cr3PreviewExtractor {
 
         when (size) {
 
-            0L -> size = available // The last box extends to the end of the file.
+            0L -> size = available /*  The last box extends to the end of the file. */
 
             1L -> {
                 size = byteReader.read8BytesAsLong("largesize", BMFF_BYTE_ORDER)

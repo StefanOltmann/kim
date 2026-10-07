@@ -141,7 +141,7 @@ internal object PngUpdater : MetadataUpdater {
             byteWriter = byteWriter,
             exifBytes = exifBytes,
             iptcBytes = null,
-            xmp = null // No change to XMP
+            xmp = null /*  No change to XMP */
         )
 
         return@tryWithImageWriteException byteWriter.toByteArray()

@@ -238,6 +238,121 @@ public object BoxReader {
     }
 
     /**
+     * The result of reading a box payload: the bytes kept for the box
+     * object (possibly empty for skipped payloads) and whether the
+     * source ended inside the payload.
+     */
+    private class BoxPayloadResult(
+        val bytes: ByteArray,
+        val truncated: Boolean
+    )
+
+    /**
+     * Reads one box payload according to the scan mode: skipped boxes
+     * stream through in bounded chunks, the video-scan file-level meta
+     * box is buffered with the metadata budget so its item children can
+     * be identified, mdat on the metadata path is retained by the
+     * CopyByteReader alone, and everything else buffers.
+     */
+    private fun readBoxPayload(
+        byteReader: ByteReader,
+        type: BoxType,
+        remainingBytesToReadInThisBox: Long,
+        skipDataBoxPayloads: Boolean,
+        stopAfterMetadataRead: Boolean
+    ): BoxPayloadResult {
+
+        var payloadTruncated = false
+
+        /*
+         * The payload boxes the video scan buffers instead of skipping,
+         * because their content feeds the metadata parse.
+         */
+        val isMetadataPayloadBox =
+            type == BoxType.MOOV ||
+                type == BoxType.UUID ||
+                type == BoxType.XMP_ ||
+                type == BoxType.FTYP
+
+        val isSkippableDataBox = skipDataBoxPayloads && !isMetadataPayloadBox
+
+        val bytes: ByteArray = when {
+
+                /*
+                 * The video scan must look inside a file-level meta box:
+                 * the ISO item layout in it carries metadata, and a meta
+                 * bearing it fails the read below instead of being
+                 * skipped. The payload is therefore buffered with the
+                 * metadata budget, like every other box the scan looks
+                 * into.
+                 */
+                type == BoxType.META && skipDataBoxPayloads -> {
+
+                    if (remainingBytesToReadInThisBox > MAX_METADATA_BOX_BYTES)
+                        throw ImageReadException(
+                            "Box $type carries $remainingBytesToReadInThisBox bytes of " +
+                                "payload, which exceeds the metadata budget of " +
+                                "$MAX_METADATA_BOX_BYTES bytes."
+                        )
+
+                    val payload = readPayloadUpToEof(
+                        byteReader,
+                        remainingBytesToReadInThisBox.toInt()
+                    )
+
+                    payloadTruncated = payload.size < remainingBytesToReadInThisBox
+
+                    payload
+                }
+
+                isSkippableDataBox -> {
+
+                    val skippedByteCount = skipPayloadUpToEof(
+                        byteReader,
+                        remainingBytesToReadInThisBox
+                    )
+
+                    payloadTruncated = skippedByteCount < remainingBytesToReadInThisBox
+
+                    /* The payload is discarded, not retained. */
+                    ByteArray(0)
+                }
+
+                type == BoxType.MDAT &&
+                    stopAfterMetadataRead &&
+                    byteReader is CopyByteReader -> {
+
+                    val retained = readPayloadUpToEof(
+                        byteReader,
+                        remainingBytesToReadInThisBox.toInt()
+                    )
+
+                    payloadTruncated = retained.size < remainingBytesToReadInThisBox
+
+                    /* The reader itself retains the bytes. */
+                    ByteArray(0)
+                }
+
+                stopAfterMetadataRead -> {
+
+                    val payload = readPayloadUpToEof(
+                        byteReader,
+                        remainingBytesToReadInThisBox.toInt()
+                    )
+
+                    payloadTruncated = payload.size < remainingBytesToReadInThisBox
+
+                    payload
+                }
+
+                else ->
+                    byteReader.readBytes("data", remainingBytesToReadInThisBox.toInt())
+                    }
+
+        return BoxPayloadResult(bytes, payloadTruncated)
+    }
+
+    /**
      * The parsed 8-byte box header: the declared size field and the type.
      */
     private class BoxHeader(
@@ -437,9 +552,11 @@ public object BoxReader {
                     largeSize
                 }
 
-                /* Keep the length we already read. ISOBMFF sizes are
+                /*
+                 * Keep the length we already read. ISOBMFF sizes are
                  * unsigned, so the high bit encodes boxes of 2 GiB and
-                 * above instead of a negative value. */
+                 * above instead of a negative value.
+                 */
                 else -> size and 0xFFFFFFFFL
             }
 
@@ -515,80 +632,17 @@ public object BoxReader {
              * image data twice. Nothing reads the box payload in that
              * mode, so it is dropped immediately.
              */
-            var payloadTruncated = false
+            val payloadResult = readBoxPayload(
+                byteReader = byteReader,
+                type = type,
+                remainingBytesToReadInThisBox = remainingBytesToReadInThisBox,
+                skipDataBoxPayloads = skipDataBoxPayloads,
+                stopAfterMetadataRead = stopAfterMetadataRead
+            )
 
-            val bytes: ByteArray = when {
+            val payloadTruncated = payloadResult.truncated
 
-                /*
-                 * The video scan must look inside a file-level meta box:
-                 * the ISO item layout in it carries metadata, and a meta
-                 * bearing it fails the read below instead of being
-                 * skipped. The payload is therefore buffered with the
-                 * metadata budget, like every other box the scan looks
-                 * into.
-                 */
-                type == BoxType.META && skipDataBoxPayloads -> {
-
-                    if (remainingBytesToReadInThisBox > MAX_METADATA_BOX_BYTES)
-                        throw ImageReadException(
-                            "Box $type carries $remainingBytesToReadInThisBox bytes of " +
-                                "payload, which exceeds the metadata budget of " +
-                                "$MAX_METADATA_BOX_BYTES bytes."
-                        )
-
-                    val payload = readPayloadUpToEof(
-                        byteReader,
-                        remainingBytesToReadInThisBox.toInt()
-                    )
-
-                    payloadTruncated = payload.size < remainingBytesToReadInThisBox
-
-                    payload
-                }
-
-                isSkippableDataBox -> {
-
-                    val skippedByteCount = skipPayloadUpToEof(
-                        byteReader,
-                        remainingBytesToReadInThisBox
-                    )
-
-                    payloadTruncated = skippedByteCount < remainingBytesToReadInThisBox
-
-                    /* The payload is discarded, not retained. */
-                    ByteArray(0)
-                }
-
-                type == BoxType.MDAT &&
-                    stopAfterMetadataRead &&
-                    byteReader is CopyByteReader -> {
-
-                    val retained = readPayloadUpToEof(
-                        byteReader,
-                        remainingBytesToReadInThisBox.toInt()
-                    )
-
-                    payloadTruncated = retained.size < remainingBytesToReadInThisBox
-
-                    /* The reader itself retains the bytes. */
-                    ByteArray(0)
-                }
-
-                stopAfterMetadataRead -> {
-
-                    val payload = readPayloadUpToEof(
-                        byteReader,
-                        remainingBytesToReadInThisBox.toInt()
-                    )
-
-                    payloadTruncated = payload.size < remainingBytesToReadInThisBox
-
-                    payload
-                }
-
-                else ->
-                    byteReader.readBytes("data", remainingBytesToReadInThisBox.toInt())
-            }
+            val bytes: ByteArray = payloadResult.bytes
 
             position += remainingBytesToReadInThisBox
 

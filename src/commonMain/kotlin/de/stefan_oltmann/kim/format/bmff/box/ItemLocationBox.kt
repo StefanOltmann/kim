@@ -102,7 +102,7 @@ public class ItemLocationBox(
         indexSize = if (version in 1..2)
             baseOffsetSizeAndIndexSize and LOWER_NIBBLE_MASK
         else
-            0 // Unused
+            0 /*  Unused */
 
         /* The version check above limits the field width to 2 or 4 bytes. */
         itemCount = if (version < 2)

@@ -117,7 +117,7 @@ public object IptcWriter {
         binaryWriter.write(IptcConstants.IPTC_RECORD_TAG_MARKER)
         binaryWriter.write(IptcConstants.IPTC_APPLICATION_2_RECORD_NUMBER)
         binaryWriter.write(IptcTypes.RECORD_VERSION.type)
-        binaryWriter.write2Bytes(2) // record version record size
+        binaryWriter.write2Bytes(2) /*  record version record size */
         binaryWriter.write2Bytes(IptcConstants.IPTC_RECORD_VERSION_VALUE)
 
         /* Write the IPTC records in order. */

@@ -54,8 +54,10 @@ class BoxReaderTest {
     @Test
     fun testOversizedBoxPayloadFailsAtTheBudget() {
 
-        /* One byte beyond the 16 MiB budget, so the box is hostile but
-           still far below the Int range. */
+        /*
+         * One byte beyond the 16 MiB budget, so the box is hostile but
+         * still far below the Int range.
+         */
         val oversizedPayload = ByteArray(17 * 1024 * 1024)
 
         val bytes =
@@ -173,8 +175,10 @@ class BoxReaderTest {
     @Test
     fun testBoxSmallerThanHeaderIsRejected() {
 
-        /* A free box (12 bytes) followed by a pseudo-box that claims
-           a size of 6 bytes. */
+        /*
+         * A free box (12 bytes) followed by a pseudo-box that claims
+         * a size of 6 bytes.
+         */
         val bytes = byteArrayOf(
             0, 0, 0, 12,
             0x66, 0x72, 0x65, 0x65, // "free"
@@ -202,8 +206,10 @@ class BoxReaderTest {
     @Test
     fun testLargesizeBelowBothHeadersIsRejected() {
 
-        /* A free box (12 bytes), a largesize box that declares 12, and
-           a box behind it that the broken scan would never reach. */
+        /*
+         * A free box (12 bytes), a largesize box that declares 12, and
+         * a box behind it that the broken scan would never reach.
+         */
         val bytes = byteArrayOf(
             0, 0, 0, 12,
             0x66, 0x72, 0x65, 0x65, // "free"

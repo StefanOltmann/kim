@@ -175,7 +175,6 @@ class TiffDirectoryEdgeCasesTest {
         assertEquals("Unknown type 42", TiffDirectory.description(42))
     }
 
-
     /**
      * Like the WebP and BMFF parsers, the TIFF parser must reject a
      * truncated XMP packet on read: read and update have to agree on

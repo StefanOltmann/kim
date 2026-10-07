@@ -60,8 +60,6 @@ import kotlin.test.assertTrue
 
 class TiffWriterRoundTripTest {
 
-
-
     private val customTagBase = 0xFD00
 
     private val tagInfoSByte =
@@ -469,8 +467,10 @@ class TiffWriterRoundTripTest {
         outputSet.addRootDirectory()
         outputSet.addExifDirectory()
 
-        /* SOI-prefixed dummy bytes: the SOI validation requires the
-           embedded thumbnail to look like a JPEG. */
+        /*
+         * SOI-prefixed dummy bytes: the SOI validation requires the
+         * embedded thumbnail to look like a JPEG.
+         */
         outputSet.setThumbnailBytes(byteArrayOf(0xFF.toByte(), 0xD8.toByte()) + ByteArray(62))
 
         /* The GPS directory is added after the thumbnail, but must still be written before it. */

@@ -444,8 +444,10 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
      */
     private fun createPngWithTrailingXmp(): ByteArray {
 
-        /* Keyword, null, no compression, no method, empty language tag,
-         * empty translated keyword - each null-terminated. */
+        /*
+         * Keyword, null, no compression, no method, empty language tag,
+         * empty translated keyword - each null-terminated.
+         */
         val xmpPayload =
             PngConstants.XMP_KEYWORD.encodeToByteArray() +
                 byteArrayOf(0, 0, 0, 0, 0) +

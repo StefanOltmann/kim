@@ -123,7 +123,7 @@ internal object WebPUpdater : MetadataUpdater {
             chunks = chunks,
             byteWriter = byteWriter,
             exifBytes = exifBytes,
-            xmp = null // No change to XMP
+            xmp = null /*  No change to XMP */
         )
 
         return@tryWithImageWriteException byteWriter.toByteArray()

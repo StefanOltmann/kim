@@ -102,8 +102,10 @@ class PngWriterTest {
             chunkBytes.toList().windowed(keyword.size).count { it.toByteArray().contentEquals(keyword) }
         )
 
-        /* The keyword terminator plus the two flags and the two empty
-           string terminators collapse into five NUL bytes. */
+        /*
+         * The keyword terminator plus the two flags and the two empty
+         * string terminators collapse into five NUL bytes.
+         */
         var nulCount = 0
         var position = keyword.size
 

@@ -250,8 +250,10 @@ class MakerNotePreservationTest {
             bytes = byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8)
         )
 
-        /* An anchor before the TIFF header (8 bytes) can never be
-           honored - the MakerNote would have to move. */
+        /*
+         * An anchor before the TIFF header (8 bytes) can never be
+         * honored - the MakerNote would have to move.
+         */
         makerNoteField.originalOffset = 4
 
         rootDirectory.add(makerNoteField)

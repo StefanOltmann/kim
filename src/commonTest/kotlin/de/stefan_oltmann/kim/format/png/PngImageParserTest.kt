@@ -163,7 +163,6 @@ class PngImageParserTest {
         }
     }
 
-
     /**
      * An iTXt chunk with the XMP keyword whose packet is cut between
      * the opening and the closing element is truncated content. Per

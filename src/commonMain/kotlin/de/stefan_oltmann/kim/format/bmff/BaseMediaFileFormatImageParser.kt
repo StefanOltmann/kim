@@ -221,7 +221,7 @@ public object BaseMediaFileFormatImageParser : ImageParser {
                 }
 
                 MetadataType.IPTC ->
-                    continue // Unsupported
+                    continue /*  Unsupported */
 
                 MetadataType.XMP -> {
                     xmp = readXmpString(byteReaderToUse, position, item)
@@ -239,11 +239,11 @@ public object BaseMediaFileFormatImageParser : ImageParser {
         xmp = requireValidXmpPacket(xmp, "The XMP data")
 
         return MediaMetadata(
-            mediaFormat = null, // could be any ISO BMFF
-            imageSize = null, // not covered by ISO BMFF
+            mediaFormat = null, /*  could be any ISO BMFF */
+            imageSize = null, /*  not covered by ISO BMFF */
             exif = exif,
             exifBytes = exifBytes,
-            iptc = null, // not supported by ISO BMFF
+            iptc = null, /*  not supported by ISO BMFF */
             xmp = xmp
         )
     }

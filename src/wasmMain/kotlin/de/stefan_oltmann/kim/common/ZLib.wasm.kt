@@ -76,7 +76,7 @@ private fun ByteArray.toUint8Array(): Uint8Array {
 }
 
 @OptIn(ExperimentalWasmJsInterop::class)
-@Suppress("UnusedPrivateMember", "UnusedParameter") // False positive
+@Suppress("UnusedPrivateMember", "UnusedParameter") /*  False positive */
 @JsModule("pako")
 private external object Pako {
     /**
