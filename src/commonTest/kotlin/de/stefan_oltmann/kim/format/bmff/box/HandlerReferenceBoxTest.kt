@@ -83,6 +83,32 @@ class HandlerReferenceBoxTest {
     }
 
     @Test
+    fun testIsoNameWhoseFirstByteLooksLikeAPascalLengthIsRead() {
+
+        /*
+         * A NUL-terminated ISO name whose first byte coincides with the
+         * remaining length must still be read as the full ISO name - the
+         * terminator decides, not the coincidence.
+         */
+        val name = "A".repeat(65)
+
+        val payload = ByteArray(NAME_FIELD_OFFSET + name.length + 1)
+
+        putHandlerType(payload, "vide")
+
+        name.encodeToByteArray().copyInto(payload, NAME_FIELD_OFFSET)
+
+        val box = HandlerReferenceBox(
+            offset = 0,
+            size = (payload.size + BOX_HEADER_LENGTH).toLong(),
+            largeSize = null,
+            payload = payload
+        )
+
+        assertEquals(name, box.name)
+    }
+
+    @Test
     fun testIsoNullTerminatedNameIsRead() {
 
         /* ISO/IEC 14496-12 writes the name NUL-terminated. */
