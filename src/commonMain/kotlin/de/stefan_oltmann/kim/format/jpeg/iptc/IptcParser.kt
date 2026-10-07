@@ -206,9 +206,22 @@ public object IptcParser {
                     .takeIf { it != 0 }
                     ?: IptcConstants.IPTC_EXTENDED_LENGTH_FIELD_SIZE
 
-                if (lengthFieldSize > IptcConstants.IPTC_MAX_EXTENDED_LENGTH_FIELD_SIZE ||
-                    index + lengthFieldSize > bytes.size
-                )
+                /*
+                 * A length field size beyond the defined maximum is a
+                 * corrupt header, not a truncated one.
+                 */
+                if (lengthFieldSize > IptcConstants.IPTC_MAX_EXTENDED_LENGTH_FIELD_SIZE)
+                    throw ImageReadException(
+                        "IPTC record declares an invalid length field " +
+                            "size of $lengthFieldSize bytes."
+                    )
+
+                /*
+                 * The block ends inside the length field: the declared
+                 * structure ends here, so parsing keeps what was read
+                 * so far (the clean boundary case).
+                 */
+                if (index + lengthFieldSize > bytes.size)
                     return records
 
                 recordLength = 0
@@ -222,13 +235,23 @@ public object IptcParser {
             }
 
             /*
-             * The record length is file-controlled. A length larger than the
-             * remaining data means the record is incomplete: terminate parsing
-             * and keep what was parsed so far, instead of emitting a silently
-             * shortened value or overflowing the index on the next iteration.
+             * The record length is file-controlled. A length larger than
+             * the remaining block bytes means the record header lies - the
+             * block itself is complete. Throwing keeps the strict-read
+             * guarantee: a graceful stop would drop this record and every
+             * record behind it from the rewrite unheard of. The index
+             * overflow protection is a consequence of the throw.
+             *
+             * The 8-byte length field carries unsigned 64-bit values, so a
+             * length with the sign bit set is negative here - without the
+             * check it would slip past the too-large guard and silently
+             * swallow the record.
              */
-            if (recordLength > bytes.size - index)
-                return records
+            if (recordLength < 0 || recordLength > bytes.size - index)
+                throw ImageReadException(
+                    "IPTC record declares $recordLength bytes, but only " +
+                        "${bytes.size - index} remain in the block."
+                )
 
             val recordData = bytes.slice(index, recordLength.toInt())
 

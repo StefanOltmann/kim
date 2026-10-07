@@ -207,8 +207,9 @@ class IptcParserEdgeCasesTest {
 
     /**
      * The extended length 0x7FFFFFFF is the largest positive Int. It is
-     * larger than any possible record data and must stop parsing instead
-     * of overflowing the index on the next loop iteration.
+     * larger than any possible record data, so the record header lies
+     * and the read fails instead of overflowing the index on the next
+     * loop iteration.
      */
     @Test
     fun testParseExtendedRecordLengthOverflows() {
@@ -221,12 +222,38 @@ class IptcParserEdgeCasesTest {
             0x7F.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte()
         )
 
-        val metadata = IptcParser.parseIptc(
-            bytes = wrapIn8BimBlock(recordBytes),
-            startsWithApp13Header = false
+        assertFailsWith<ImageReadException> {
+            IptcParser.parseIptc(
+                bytes = wrapIn8BimBlock(recordBytes),
+                startsWithApp13Header = false
+            )
+        }
+    }
+
+    /**
+     * The 8-byte extended length form carries unsigned 64-bit values. A
+     * length with the sign bit set turns negative in the signed Long
+     * accumulator, would slip past the too-large guard and silently
+     * swallow the record - the read must fail like for any other lying
+     * length.
+     */
+    @Test
+    fun testParseExtendedRecordLengthWithSignBitSetFailsTheRead() {
+
+        val recordBytes = byteArrayOf(
+            IptcConstants.IPTC_RECORD_TAG_MARKER.toByte(),
+            IptcConstants.IPTC_APPLICATION_2_RECORD_NUMBER.toByte(),
+            25,
+            0x80.toByte(), 0x08,
+            0x80.toByte(), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
         )
 
-        assertTrue(metadata.records.isEmpty())
+        assertFailsWith<ImageReadException> {
+            IptcParser.parseIptc(
+                bytes = wrapIn8BimBlock(recordBytes),
+                startsWithApp13Header = false
+            )
+        }
     }
 
     /**
@@ -256,9 +283,11 @@ class IptcParserEdgeCasesTest {
     }
 
     /**
-     * A standard record whose file-controlled length exceeds the remaining
-     * block bytes is incomplete. Terminating keeps what was parsed instead
-     * of emitting a silently shortened value as if it were the truth.
+     * A standard record whose file-controlled length exceeds the
+     * remaining block bytes is unreadable - the block itself is
+     * complete, so the record header lies. Per the strict read policy
+     * the read fails instead of keeping what was parsed so far, which
+     * would silently drop every record behind it on a rewrite.
      */
     @Test
     fun testParseStandardRecordBeyondRemainingData() {
@@ -271,12 +300,47 @@ class IptcParserEdgeCasesTest {
             0x00, 0x40
         ) + "partial".encodeToByteArray()
 
-        val metadata = IptcParser.parseIptc(
-            bytes = wrapIn8BimBlock(recordBytes),
-            startsWithApp13Header = false
-        )
+        assertFailsWith<ImageReadException> {
+            IptcParser.parseIptc(
+                bytes = wrapIn8BimBlock(recordBytes),
+                startsWithApp13Header = false
+            )
+        }
+    }
 
-        assertTrue(metadata.records.isEmpty())
+    /**
+     * A corrupt record in the middle of the block must fail the whole
+     * read: the graceful stop kept only the records before it, and the
+     * rewrite built from those silently dropped every record behind the
+     * corruption.
+     */
+    @Test
+    fun testCorruptRecordDropsNoRecordsBehindIt() {
+
+        /* ObjectName "Keep" declaring 4 bytes - complete. */
+        val goodRecord = byteArrayOf(
+            IptcConstants.IPTC_RECORD_TAG_MARKER.toByte(),
+            IptcConstants.IPTC_APPLICATION_2_RECORD_NUMBER.toByte(),
+            25,
+            0x00, 0x04
+        ) + "Keep".encodeToByteArray()
+
+        /* Caption record declaring 64 bytes - only 7 follow. */
+        val corruptRecord = byteArrayOf(
+            IptcConstants.IPTC_RECORD_TAG_MARKER.toByte(),
+            IptcConstants.IPTC_APPLICATION_2_RECORD_NUMBER.toByte(),
+            6,
+            0x00, 0x40
+        ) + "partial".encodeToByteArray()
+
+        val blockBytes = goodRecord + corruptRecord + captionRecord("Lost")
+
+        assertFailsWith<ImageReadException> {
+            IptcParser.parseIptc(
+                bytes = wrapIn8BimBlock(blockBytes),
+                startsWithApp13Header = false
+            )
+        }
     }
 
     /**
