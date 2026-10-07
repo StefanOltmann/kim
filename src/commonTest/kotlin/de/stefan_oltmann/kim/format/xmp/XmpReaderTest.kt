@@ -237,6 +237,37 @@ class XmpReaderTest {
     }
 
     /**
+     * Adobe's partial date forms are legal XMP values the summary's
+     * epoch-millis model cannot represent without fabricating a month or
+     * day (garbage category 5): the summary omits the taken date while
+     * the read itself succeeds, like ExifTool displays "2023 05" without
+     * inventing a day.
+     */
+    @Test
+    fun testReadPartialDateOmitsTakenDate() {
+
+        /* language=XML */
+        val xmp = """
+            <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
+                <x:xmpmeta xmlns:x="adobe:ns:meta/">
+                  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+                    <rdf:Description rdf:about=""
+                        xmlns:exif="http://ns.adobe.com/exif/1.0/"
+                      exif:DateTimeOriginal="2023-05"/>
+                  </rdf:RDF>
+                </x:xmpmeta>
+            <?xpacket end="w"?>
+        """.trimIndent()
+
+        val summary = XmpReader.readMetadata(xmp)
+
+        assertEquals(
+            expected = null,
+            actual = summary.takenDate
+        )
+    }
+
+    /**
      * Regression test: a DateTimeOriginal with a negative UTC offset must be
      * used for the epoch conversion, not dropped in favor of the local zone.
      */

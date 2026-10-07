@@ -399,6 +399,12 @@ public object JpegRewriter {
              * update merged into the new packet) is replaced. Additional
              * independent packets belong to other tools and survive
              * byte-exact - Kim keeps reading only the first packet.
+             *
+             * Every extended-XMP segment is removed, including orphans
+             * whose GUID no surviving packet references: their content is
+             * undecodable without the lost main packet (the read already
+             * skips them silently, like ExifTool), so keeping them would
+             * preserve bytes no tool can ever decode.
              */
             var removedFirstXmp = false
 

@@ -91,6 +91,19 @@ import kotlin.coroutines.cancellation.CancellationException
  *    metadata object, so nothing is lost for tools that parse them
  *    themselves.
  *
+ * 4. Orphan Adobe extended-XMP segments in JPEG files whose GUID is not
+ *    referenced by any standard packet: their content is undecodable
+ *    without the lost main packet (ExifTool ignores them as well), so the
+ *    read skips them and an XMP-writing update removes their bytes. This
+ *    only covers the unreferenced extension chunks - a truncated packet
+ *    that IS referenced fails the read like any other unreadable content.
+ *
+ * 5. Adobe's legal partial date forms ("2023", "2023-05") in XMP: they
+ *    are valid values, but the summary's epoch-millis model cannot
+ *    represent them without fabricating a month or day, so the derived
+ *    summary omits them. Like category 3, this drop happens at summary
+ *    level only - the raw packet stays untouched on the metadata object.
+ *
  * Dropping a MakerNote, EXIF, IPTC, or XMP content is real data loss and
  * must fail the read instead. Stopping a parse at the exact boundary where
  * the file's bytes end inside a structure is clean handling, not a

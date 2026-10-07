@@ -130,7 +130,14 @@ public object XmpReader {
             } catch (ex: CancellationException) {
                 throw ex
             } catch (_: Exception) {
-                /* We ignore invalid XMP DateTimeOriginal values. */
+                /*
+                 * Unusable XMP date values are dropped: illegal values
+                 * (garbage category 3) and Adobe's legal partial forms
+                 * like "2023-05", which the summary's epoch-millis model
+                 * cannot represent without fabricating a day (garbage
+                 * category 5). The raw packet stays untouched on the
+                 * metadata object.
+                 */
                 null
             }
         }

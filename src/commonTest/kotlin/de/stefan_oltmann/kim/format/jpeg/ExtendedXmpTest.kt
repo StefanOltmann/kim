@@ -57,8 +57,8 @@ class ExtendedXmpTest {
         val xmp = Kim.readMetadata(jpegBytes)?.xmp
 
         assertNotNull(xmp)
-        assertFalse(!xmp.contains("Main Title"))
-        assertFalse(!xmp.contains("EXTENDED_VALUE"))
+        assertTrue(xmp.contains("Main Title"), "Merged packet lost the main packet property.")
+        assertTrue(xmp.contains("EXTENDED_VALUE"), "Merged packet lost the extended property.")
     }
 
     /**
@@ -306,6 +306,100 @@ class ExtendedXmpTest {
         val newBytes = byteWriter.toByteArray()
 
         assertFalse(newBytes.decodeToString().contains(GUID))
+
+        /* The output must remain readable. */
+        assertNotNull(Kim.readMetadata(newBytes))
+    }
+
+    /**
+     * Extension segments whose GUID no packet references are sanctioned
+     * garbage category 4: the read skips them instead of failing, so
+     * real-world files that carry orphan chunks from a lost main packet
+     * stay readable.
+     */
+    @Test
+    fun testReadMetadataSkipsOrphanExtendedXmp() {
+
+        /* Standard XMP without any extended reference. */
+        val plainPacket = """
+            <?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>
+            <x:xmpmeta xmlns:x="adobe:ns:meta/">
+             <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/">
+               <dc:title><rdf:Alt><rdf:li xml:lang="x-default">Main Title</rdf:li></rdf:Alt></dc:title>
+              </rdf:Description>
+             </rdf:RDF>
+            </x:xmpmeta>
+            <?xpacket end="w"?>
+        """.trimIndent()
+
+        val orphanXml =
+            MINIMAL_HEADER +
+                "<rdf:Description rdf:about=\"\" " +
+                "xmlns:custom=\"http://example.com/custom/\">" +
+                "<custom:Extra>EXTENDED_VALUE</custom:Extra>" +
+                "</rdf:Description>" +
+                MINIMAL_FOOTER
+
+        val jpegBytes = createJpegWithExtendedXmp(
+            mainPacket = plainPacket,
+            extensionPayloads = listOf(buildExtensionPayload(GUID, orphanXml))
+        )
+
+        val xmp = Kim.readMetadata(jpegBytes)?.xmp
+
+        assertNotNull(xmp)
+        assertTrue(xmp.contains("Main Title"), "The main packet must survive the orphan chunk.")
+        assertFalse(xmp.contains("EXTENDED_VALUE"), "The orphan content must not be merged.")
+    }
+
+    /**
+     * An XMP-writing update removes the orphan extension bytes, so no
+     * undeletable garbage round-trips through every subsequent write.
+     */
+    @Test
+    fun testUpdateXmpXmlRemovesOrphanExtendedXmpBytes() {
+
+        /* Standard XMP without any extended reference. */
+        val plainPacket = """
+            <?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>
+            <x:xmpmeta xmlns:x="adobe:ns:meta/">
+             <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/">
+               <dc:title><rdf:Alt><rdf:li xml:lang="x-default">Main Title</rdf:li></rdf:Alt></dc:title>
+              </rdf:Description>
+             </rdf:RDF>
+            </x:xmpmeta>
+            <?xpacket end="w"?>
+        """.trimIndent()
+
+        val orphanXml =
+            MINIMAL_HEADER +
+                "<rdf:Description rdf:about=\"\" " +
+                "xmlns:custom=\"http://example.com/custom/\">" +
+                "<custom:Extra>EXTENDED_VALUE</custom:Extra>" +
+                "</rdf:Description>" +
+                MINIMAL_FOOTER
+
+        val jpegBytes = createJpegWithExtendedXmp(
+            mainPacket = plainPacket,
+            extensionPayloads = listOf(buildExtensionPayload(GUID, orphanXml))
+        )
+
+        val byteWriter = ByteArrayByteWriter()
+
+        JpegRewriter.updateXmpXml(
+            byteReader = ByteArrayByteReader(jpegBytes),
+            byteWriter = byteWriter,
+            xmpXml = plainPacket
+        )
+
+        val newBytes = byteWriter.toByteArray()
+
+        assertFalse(
+            newBytes.decodeToString().contains("http://ns.adobe.com/xmp/extension/"),
+            "The orphan extension segment must be removed from the rewrite."
+        )
 
         /* The output must remain readable. */
         assertNotNull(Kim.readMetadata(newBytes))
