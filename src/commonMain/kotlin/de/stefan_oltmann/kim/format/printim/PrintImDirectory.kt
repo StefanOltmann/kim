@@ -18,15 +18,6 @@ package de.stefan_oltmann.kim.format.printim
 import de.stefan_oltmann.kim.common.HEX_RADIX
 
 /**
- * A single entry of the PrintIM block. The tag semantics are vendor
- * specific - like ExifTool, entries are reported by their tag number.
- */
-public data class PrintImEntry(
-    val tag: Int,
-    val value: Int
-)
-
-/**
  * The Print Image Matching block: the version string plus the fixed
  * 6-byte tag/value entries that follow it.
  */
