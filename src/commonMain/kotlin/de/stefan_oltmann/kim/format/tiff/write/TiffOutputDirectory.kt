@@ -415,6 +415,19 @@ public class TiffOutputDirectory(
         binaryByteWriter: BinaryByteWriter
     ) {
 
+        /*
+         * The classic TIFF format declares the entry count in 16 bits.
+         * Writing the low bits only would serialize all entries behind
+         * a wrapped count - every consumer would then read the entries
+         * as the next-IFD pointer, so the write fails instead of
+         * emitting a corrupt file.
+         */
+        if (fields.size > MAX_DIRECTORY_ENTRY_COUNT)
+            throw ImageWriteException(
+                "Directory $type has ${fields.size} fields; a classic " +
+                    "TIFF directory holds at most $MAX_DIRECTORY_ENTRY_COUNT."
+            )
+
         /* Write directory field count. */
         binaryByteWriter.write2Bytes(fields.size)
 
@@ -590,4 +603,10 @@ public class TiffOutputDirectory(
 
     override fun toString(): String =
         description(type)
+
+    private companion object {
+
+        /* The entry count field of the classic TIFF directory is 16 bits wide. */
+        private const val MAX_DIRECTORY_ENTRY_COUNT: Int = 0xFFFF
+    }
 }
