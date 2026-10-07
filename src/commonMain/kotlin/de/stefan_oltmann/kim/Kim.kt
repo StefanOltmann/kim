@@ -439,6 +439,12 @@ public object Kim {
      * duplicate the same logical values, so updating only one of them would
      * let the copies drift apart - see [de.stefan_oltmann.kim.format.MetadataUpdater].
      *
+     * Attention: JPEG metadata segments behind the image data (see
+     * [readMetadata][readMetadata]) are left untouched: the trailer can
+     * belong to another tool, so an update rewrites the header metadata
+     * only and copies the trailer verbatim. A stale trailer copy stays
+     * visible through `readTrailerMetadata = true`.
+     *
      * Attention: The given [ByteReader] and [ByteWriter] are not closed by
      * this call; the caller owns and closes both.
      *
