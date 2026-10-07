@@ -16,9 +16,8 @@
 package de.stefan_oltmann.kim.format.bmff.box
 
 import de.stefan_oltmann.kim.format.bmff.BoxReader
-import de.stefan_oltmann.kim.format.bmff.PayloadSource
 import de.stefan_oltmann.kim.format.bmff.BoxType
-import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.format.bmff.PayloadSource
 
 /**
  * User Data box

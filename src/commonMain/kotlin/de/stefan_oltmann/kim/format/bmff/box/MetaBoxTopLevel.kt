@@ -20,10 +20,10 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.MetadataOffset
 import de.stefan_oltmann.kim.common.MetadataType
 import de.stefan_oltmann.kim.common.toHex
-import de.stefan_oltmann.kim.format.bmff.PayloadSource
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants
 import de.stefan_oltmann.kim.format.bmff.Extent
 import de.stefan_oltmann.kim.format.bmff.MetadataItem
+import de.stefan_oltmann.kim.format.bmff.PayloadSource
 
 /**
  * ISO/IEC 14496-12 meta box

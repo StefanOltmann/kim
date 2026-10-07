@@ -127,7 +127,7 @@ public class GifChunkApplicationExtension(
             else
                 decodePacketBytes(strippedPayload, "The GIF XMP extension payload")
                     ?: decodePacketBytes(bytes, "The GIF XMP extension")
-            ?: throw ImageReadException("No XMP data found in application extension.")
+                    ?: throw ImageReadException("No XMP data found in application extension.")
 
         /*
          * Completeness and the accepted envelope forms - the recommended

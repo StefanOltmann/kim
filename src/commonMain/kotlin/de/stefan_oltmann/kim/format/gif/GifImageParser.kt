@@ -32,7 +32,6 @@ import de.stefan_oltmann.kim.format.gif.chunk.GifChunkImageDescriptor
 import de.stefan_oltmann.kim.format.gif.chunk.GifChunkLogicalScreenDescriptor
 import de.stefan_oltmann.kim.format.gif.chunk.GifChunkPlainTextExtension
 import de.stefan_oltmann.kim.format.gif.chunk.GifChunkTerminator
-import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.format.gif.chunk.joinGifSubChunks
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.readByte
@@ -40,6 +39,7 @@ import de.stefan_oltmann.kim.input.readByteAsInt
 import de.stefan_oltmann.kim.input.readBytes
 import de.stefan_oltmann.kim.input.transferExactly
 import de.stefan_oltmann.kim.model.MediaFormat
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
 import kotlin.jvm.JvmStatic
 
