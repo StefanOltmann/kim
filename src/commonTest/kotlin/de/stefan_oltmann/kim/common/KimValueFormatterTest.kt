@@ -201,6 +201,12 @@ class KimValueFormatterTest {
             KimValueFormatter.formatExposureTime(-0.5)
         )
 
+        /* A huge value is no measurement either - not "2147483647'' s". */
+        assertEquals(
+            null,
+            KimValueFormatter.formatExposureTime(1.0E300)
+        )
+
         assertEquals(
             "1/8000 s",
             KimValueFormatter.formatExposureTime(0.000125)
@@ -424,5 +430,10 @@ class KimValueFormatterTest {
         assertEquals("", KimValueFormatter.formatFocalLength(Double.NaN))
         assertEquals("", KimValueFormatter.formatFocalLength(Double.POSITIVE_INFINITY))
         assertEquals("", KimValueFormatter.formatFocalLength(Double.NEGATIVE_INFINITY))
+
+        /* An exposure time that is no measurement renders as NULL. */
+        assertNull(KimValueFormatter.formatExposureTime(Double.NaN))
+        assertNull(KimValueFormatter.formatExposureTime(Double.POSITIVE_INFINITY))
+        assertNull(KimValueFormatter.formatExposureTime(Double.NEGATIVE_INFINITY))
     }
 }

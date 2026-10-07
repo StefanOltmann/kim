@@ -25,6 +25,12 @@ public object KimValueFormatter {
 
     public const val MEGA_PIXEL_COUNT: Int = 1_000_000
 
+    /*
+     * Real exposures stay far below one day; anything beyond is corrupt
+     * tag data whose only sensible rendering is NULL.
+     */
+    private const val MAX_EXPOSURE_TIME_SECONDS: Double = 86_400.0
+
     private const val BYTES_PER_KB = 1000.0
 
     private const val FUJI = "Fujifilm"
@@ -244,13 +250,14 @@ public object KimValueFormatter {
     /**
      * Formats an exposure time for display.
      *
-     * Returns NULL for non-positive input, because corrupt EXIF tags can
-     * carry zero or negative seconds and formatting those would produce
-     * nonsensical output like "1/2147483647 s".
+     * Returns NULL for input that is no exposure time at all - non-positive
+     * or non-finite values from corrupt EXIF tags, and values beyond the
+     * one-day sanity bound, whose formatting would only produce
+     * nonsensical output like "1/2147483647 s" or "2147483647'' s".
      */
     public fun formatExposureTime(seconds: Double): String? {
 
-        if (seconds <= 0.0)
+        if (seconds <= 0.0 || !seconds.isFinite() || seconds > MAX_EXPOSURE_TIME_SECONDS)
             return null
 
         @Suppress("MagicNumber")
