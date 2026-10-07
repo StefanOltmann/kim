@@ -63,14 +63,14 @@ Keywords (25) = 'flower'
 Keywords (25) = 'plant'
 
 ---- ICC ----
-ProfileSize        : 3144
-ProfileCMMType     : Lino
-ProfileVersion     : 2.1
-ProfileClass       : mntr
-ColorSpaceData     : RGB 
-ProfileConnectionSpace : XYZ 
-PrimaryPlatform    : MSFT
-RenderingIntent    : 1
+ProfileSize = 3144
+ProfileCMMType = Lino
+ProfileVersion = 2.1
+ProfileClass = mntr
+ColorSpaceData = RGB 
+ProfileConnectionSpace = XYZ 
+PrimaryPlatform = MSFT
+RenderingIntent = 1
 ProfileCopyright = Copyright (c) 1998 Hewlett-Packard Company
 ProfileDescription = sRGB IEC61966-2.1
 MediaWhitePoint = 0.9504547119140625 1.0 1.08905029296875
@@ -88,6 +88,7 @@ Technology (tech)
 RedTRC (rTRC)
 GreenTRC (gTRC)
 BlueTRC (bTRC)
+
 ---- XMP ----
 <x:xmpmeta xmlns:x='adobe:ns:meta/' x:xmptk='Image::ExifTool 12.27'>
 <rdf:RDF xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'>

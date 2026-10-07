@@ -78,14 +78,14 @@ Keywords (25) = 'wildlife'
 Keywords (25) = 'bear'
 
 ---- ICC ----
-ProfileSize        : 3144
-ProfileCMMType     : Lino
-ProfileVersion     : 2.1
-ProfileClass       : mntr
-ColorSpaceData     : RGB 
-ProfileConnectionSpace : XYZ 
-PrimaryPlatform    : MSFT
-RenderingIntent    : 1
+ProfileSize = 3144
+ProfileCMMType = Lino
+ProfileVersion = 2.1
+ProfileClass = mntr
+ColorSpaceData = RGB 
+ProfileConnectionSpace = XYZ 
+PrimaryPlatform = MSFT
+RenderingIntent = 1
 ProfileCopyright = Copyright (c) 1998 Hewlett-Packard Company
 ProfileDescription = sRGB IEC61966-2.1
 MediaWhitePoint = 0.9504547119140625 1.0 1.08905029296875
@@ -103,6 +103,7 @@ Technology (tech)
 RedTRC (rTRC)
 GreenTRC (gTRC)
 BlueTRC (bTRC)
+
 ---- XMP ----
 <?xpacket begin='﻿' id='W5M0MpCehiHzreSzNTczkc9d'?>
 <x:xmpmeta xmlns:x='adobe:ns:meta/' x:xmptk='Image::ExifTool 12.27'>

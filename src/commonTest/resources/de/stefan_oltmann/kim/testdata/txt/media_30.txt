@@ -61,14 +61,14 @@ Digital Creation Date (62) = '20200217'
 Digital Creation Time (63) = '144746'
 
 ---- ICC ----
-ProfileSize        : 3144
-ProfileCMMType     : Lino
-ProfileVersion     : 2.1
-ProfileClass       : mntr
-ColorSpaceData     : RGB 
-ProfileConnectionSpace : XYZ 
-PrimaryPlatform    : MSFT
-RenderingIntent    : 0
+ProfileSize = 3144
+ProfileCMMType = Lino
+ProfileVersion = 2.1
+ProfileClass = mntr
+ColorSpaceData = RGB 
+ProfileConnectionSpace = XYZ 
+PrimaryPlatform = MSFT
+RenderingIntent = 0
 ProfileCopyright = Copyright (c) 1998 Hewlett-Packard Company
 ProfileDescription = sRGB IEC61966-2.1
 MediaWhitePoint = 0.9504547119140625 1.0 1.08905029296875
@@ -86,3 +86,4 @@ Technology (tech)
 RedTRC (rTRC)
 GreenTRC (gTRC)
 BlueTRC (bTRC)
+

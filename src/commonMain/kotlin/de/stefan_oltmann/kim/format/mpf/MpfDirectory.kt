@@ -30,8 +30,8 @@ public data class MpfDirectory(
         val sb = StringBuilder()
 
         sb.appendLine("---- MPF ----")
-        sb.appendLine("MPFVersion      : $version")
-        sb.appendLine("NumberOfImages  : $numberOfImages")
+        sb.appendLine("MPFVersion = $version")
+        sb.appendLine("NumberOfImages = $numberOfImages")
 
         return sb.toString()
     }

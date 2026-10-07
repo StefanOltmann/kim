@@ -19,7 +19,9 @@ import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 /**
  * The Multi-Picture Format index travels in the "MPF\0" APP2 segment.
@@ -41,5 +43,20 @@ class JpegMpfTest {
 
         assertEquals("0100", mpf.version)
         assertEquals(3, mpf.numberOfImages)
+    }
+
+    /**
+     * Every line follows the regular "<key> = <value>" pattern of the
+     * other metadata sections.
+     */
+    @Test
+    fun testToStringUsesTheKeyEqualsValuePattern() {
+
+        val toString = assertNotNull(Kim.readMetadata(KimTestData.getBytesOf(15))).mpf.toString()
+
+        assertTrue("MPFVersion = 0100" in toString)
+        assertTrue("NumberOfImages = 3" in toString)
+
+        assertFalse(toString.contains(" : "), "No field may use the colon pattern: $toString")
     }
 }

@@ -260,14 +260,14 @@ Keywords (25) = 'people'
 Time Created (60) = '15:28:58-15:28'
 
 ---- ICC ----
-ProfileSize        : 672
-ProfileCMMType     : lcms
-ProfileVersion     : 4.3
-ProfileClass       : mntr
-ColorSpaceData     : RGB 
-ProfileConnectionSpace : XYZ 
-PrimaryPlatform    : APPL
-RenderingIntent    : 0
+ProfileSize = 672
+ProfileCMMType = lcms
+ProfileVersion = 4.3
+ProfileClass = mntr
+ColorSpaceData = RGB 
+ProfileConnectionSpace = XYZ 
+PrimaryPlatform = APPL
+RenderingIntent = 0
 ProfileDescription = GIMP built-in sRGB
 ProfileCopyright = Public Domain
 MediaWhitePoint = 0.964202880859375 1.0 0.8249053955078125
@@ -281,6 +281,7 @@ BlueTRC (bTRC)
 Chromaticity (chrm)
 DeviceMfgDesc = GIMP
 DeviceModelDesc = sRGB
+
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
 <x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core for KMP 2.0.2">

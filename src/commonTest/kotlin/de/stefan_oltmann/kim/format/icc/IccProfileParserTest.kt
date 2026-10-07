@@ -19,7 +19,9 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 /**
  * The parser reads the fixed header layout and dispatches the tag
@@ -62,6 +64,23 @@ class IccProfileParserTest {
 
         /* An undecoded binary type keeps the entry without a value. */
         assertNull(profile.findEntry("RedTRC")?.value)
+    }
+
+    /**
+     * Every line of the rendering follows the regular
+     * "<key> = <value>" pattern of the other metadata sections -
+     * header fields use the same separator as the tag entries.
+     */
+    @Test
+    fun testToStringUsesTheKeyEqualsValuePattern() {
+
+        val toString = IccProfileParser.parse(fixture.bytes).toString()
+
+        assertTrue("ProfileSize = ${fixture.bytes.size}" in toString)
+        assertTrue("ProfileCMMType = lcms" in toString)
+        assertTrue("ProfileClass = mntr" in toString)
+
+        assertFalse(toString.contains(" : "), "No field may use the colon pattern: $toString")
     }
 
     @Test
@@ -158,8 +177,10 @@ class IccProfileParserTest {
 
         val valueOffset = fixture.readUInt32(bytes, entryOffset + IccFixture.FIELD_SIZE)
 
-        fixture.writeUInt32(bytes, valueOffset + 8, -1) /* 0xFFFFFFFF */
-        fixture.writeUInt32(bytes, valueOffset + 12, -1) /* 0xFFFFFFFF */
+        /* 0xFFFFFFFF */
+        fixture.writeUInt32(bytes, valueOffset + 8, -1)
+        /* 0xFFFFFFFF */
+        fixture.writeUInt32(bytes, valueOffset + 12, -1)
 
         assertFailsWith<ImageReadException> {
             IccProfileParser.parse(bytes)

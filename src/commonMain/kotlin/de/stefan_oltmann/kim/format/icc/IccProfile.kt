@@ -48,14 +48,14 @@ public data class IccProfile(
         val sb = StringBuilder()
 
         sb.appendLine("---- ICC ----")
-        sb.appendLine("ProfileSize        : $size")
-        sb.appendLine("ProfileCMMType     : $cmmType")
-        sb.appendLine("ProfileVersion     : $version")
-        sb.appendLine("ProfileClass       : $profileClass")
-        sb.appendLine("ColorSpaceData     : $colorSpace")
-        sb.appendLine("ProfileConnectionSpace : $connectionSpace")
-        sb.appendLine("PrimaryPlatform    : ${primaryPlatform.orEmpty()}")
-        sb.appendLine("RenderingIntent    : $renderingIntent")
+        sb.appendLine("ProfileSize = $size")
+        sb.appendLine("ProfileCMMType = $cmmType")
+        sb.appendLine("ProfileVersion = $version")
+        sb.appendLine("ProfileClass = $profileClass")
+        sb.appendLine("ColorSpaceData = $colorSpace")
+        sb.appendLine("ProfileConnectionSpace = $connectionSpace")
+        sb.appendLine("PrimaryPlatform = ${primaryPlatform.orEmpty()}")
+        sb.appendLine("RenderingIntent = $renderingIntent")
 
         for (entry in entries) {
 

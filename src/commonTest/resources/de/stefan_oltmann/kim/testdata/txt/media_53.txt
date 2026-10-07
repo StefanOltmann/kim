@@ -409,14 +409,14 @@ Keywords (25) = 'bee'
 Time Created (60) = '16:42:23-16:42'
 
 ---- ICC ----
-ProfileSize        : 8940
-ProfileCMMType     : lcms
-ProfileVersion     : 2.1
-ProfileClass       : mntr
-ColorSpaceData     : RGB 
-ProfileConnectionSpace : XYZ 
-PrimaryPlatform    : APPL
-RenderingIntent    : 0
+ProfileSize = 8940
+ProfileCMMType = lcms
+ProfileVersion = 2.1
+ProfileClass = mntr
+ColorSpaceData = RGB 
+ProfileConnectionSpace = XYZ 
+PrimaryPlatform = APPL
+RenderingIntent = 0
 ProfileCopyright = Public Domain
 ProfileDescription = sRGB
 DeviceMfgDesc = Darktable
@@ -429,6 +429,7 @@ BlueMatrixColumn = 0.1430511474609375 0.06060791015625 0.71392822265625
 RedTRC (rTRC)
 GreenTRC (gTRC)
 BlueTRC (bTRC)
+
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
 <x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core 4.4.0-Exiv2">

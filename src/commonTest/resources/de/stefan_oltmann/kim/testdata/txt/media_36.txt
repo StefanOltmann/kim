@@ -66,14 +66,14 @@ Keywords (25) = 'dahlia'
 Keywords (25) = 'plant'
 
 ---- ICC ----
-ProfileSize        : 596
-ProfileCMMType     : lcms
-ProfileVersion     : 4.3
-ProfileClass       : mntr
-ColorSpaceData     : RGB 
-ProfileConnectionSpace : XYZ 
-PrimaryPlatform    : APPL
-RenderingIntent    : 0
+ProfileSize = 596
+ProfileCMMType = lcms
+ProfileVersion = 4.3
+ProfileClass = mntr
+ColorSpaceData = RGB 
+ProfileConnectionSpace = XYZ 
+PrimaryPlatform = APPL
+RenderingIntent = 0
 ProfileDescription = sRGB IEC61966-2.1
 ProfileCopyright = No copyright, use freely
 MediaWhitePoint = 0.964202880859375 1.0 0.8249053955078125
@@ -85,6 +85,7 @@ RedTRC (rTRC)
 GreenTRC (gTRC)
 BlueTRC (bTRC)
 Chromaticity (chrm)
+
 ---- XMP ----
 <?xpacket begin='﻿' id='W5M0MpCehiHzreSzNTczkc9d'?>
 <x:xmpmeta xmlns:x='adobe:ns:meta/' x:xmptk='Image::ExifTool 12.27'>

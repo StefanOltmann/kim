@@ -31,7 +31,7 @@ public data class PrintImDirectory(
         val sb = StringBuilder()
 
         sb.appendLine("---- PrintIM ----")
-        sb.appendLine("PrintIMVersion    : $version")
+        sb.appendLine("PrintIMVersion = $version")
 
         for (entry in entries) {
 
@@ -39,7 +39,7 @@ public data class PrintImDirectory(
                 .toString(HEX_RADIX)
                 .padStart(HEX_TAG_DIGITS, '0')
 
-            sb.appendLine("PrintIM_0x$paddedTag    : ${entry.value}")
+            sb.appendLine("PrintIM_0x$paddedTag = ${entry.value}")
         }
 
         return sb.toString()

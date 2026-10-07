@@ -404,14 +404,14 @@ Keywords (25) = 'apidae'
 Keywords (25) = 'bee'
 
 ---- ICC ----
-ProfileSize        : 8940
-ProfileCMMType     : lcms
-ProfileVersion     : 2.1
-ProfileClass       : mntr
-ColorSpaceData     : RGB 
-ProfileConnectionSpace : XYZ 
-PrimaryPlatform    : APPL
-RenderingIntent    : 0
+ProfileSize = 8940
+ProfileCMMType = lcms
+ProfileVersion = 2.1
+ProfileClass = mntr
+ColorSpaceData = RGB 
+ProfileConnectionSpace = XYZ 
+PrimaryPlatform = APPL
+RenderingIntent = 0
 ProfileCopyright = Public Domain
 ProfileDescription = sRGB
 DeviceMfgDesc = Darktable
@@ -424,6 +424,7 @@ BlueMatrixColumn = 0.1430511474609375 0.06060791015625 0.71392822265625
 RedTRC (rTRC)
 GreenTRC (gTRC)
 BlueTRC (bTRC)
+
 ---- XMP ----
 <?xpacket begin='﻿' id='W5M0MpCehiHzreSzNTczkc9d'?>
 <x:xmpmeta xmlns:x='adobe:ns:meta/' x:xmptk='Image::ExifTool 12.27'>

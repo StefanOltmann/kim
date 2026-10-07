@@ -65,14 +65,14 @@ Big-endian (Motorola, MM)
 Keywords (25) = 'Äußerst schön'
 
 ---- ICC ----
-ProfileSize        : 8952
-ProfileCMMType     : appl
-ProfileVersion     : 2.1
-ProfileClass       : mntr
-ColorSpaceData     : RGB 
-ProfileConnectionSpace : XYZ 
-PrimaryPlatform    : APPL
-RenderingIntent    : 0
+ProfileSize = 8952
+ProfileCMMType = appl
+ProfileVersion = 2.1
+ProfileClass = mntr
+ColorSpaceData = RGB 
+ProfileConnectionSpace = XYZ 
+PrimaryPlatform = APPL
+RenderingIntent = 0
 ProfileDescription = sRGB
 ProfileCopyright = Copyright Apple Inc., 2023
 MediaWhitePoint = 0.9504547119140625 1.0 1.08905029296875
@@ -85,6 +85,7 @@ DeviceModelDesc = sRGB
 DeviceMfgDesc = Darktable
 BlueTRC (bTRC)
 GreenTRC (gTRC)
+
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
     <x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Adobe XMP Core 6.1.10">

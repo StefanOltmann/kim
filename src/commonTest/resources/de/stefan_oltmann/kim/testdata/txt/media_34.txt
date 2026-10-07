@@ -233,14 +233,14 @@ Caption/Abstract (120) = 'selective focus photography of hedgehog on ground'
 Keywords (25) = 'mammal'
 
 ---- ICC ----
-ProfileSize        : 8684
-ProfileCMMType     : NKON
-ProfileVersion     : 2.2
-ProfileClass       : mntr
-ColorSpaceData     : RGB 
-ProfileConnectionSpace : XYZ 
-PrimaryPlatform    : APPL
-RenderingIntent    : 0
+ProfileSize = 8684
+ProfileCMMType = NKON
+ProfileVersion = 2.2
+ProfileClass = mntr
+ColorSpaceData = RGB 
+ProfileConnectionSpace = XYZ 
+PrimaryPlatform = APPL
+RenderingIntent = 0
 ProfileDescription = Nikon sRGB 4.0.0.3002
 RedMatrixColumn = 0.436065673828125 0.222503662109375 0.013916015625
 GreenMatrixColumn = 0.38507080078125 0.7168731689453125 0.0970611572265625
@@ -250,6 +250,7 @@ ProfileCopyright = Nikon Inc. & Nikon Corporation 2009
 RedTRC (rTRC)
 GreenTRC (gTRC)
 BlueTRC (bTRC)
+
 ---- XMP ----
 <?xpacket begin='﻿' id='W5M0MpCehiHzreSzNTczkc9d'?>
 <x:xmpmeta xmlns:x='adobe:ns:meta/' x:xmptk='Image::ExifTool 12.27'>

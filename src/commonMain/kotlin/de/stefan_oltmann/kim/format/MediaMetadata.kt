@@ -98,13 +98,13 @@ public class MediaMetadata internal constructor(
             sb.appendLine(iptc)
 
         if (iccProfile != null)
-            sb.append(iccProfile)
+            sb.appendLine(iccProfile)
 
         if (printIm != null)
-            sb.append(printIm)
+            sb.appendLine(printIm)
 
         if (mpf != null)
-            sb.append(mpf)
+            sb.appendLine(mpf)
 
         if (xmp != null) {
 

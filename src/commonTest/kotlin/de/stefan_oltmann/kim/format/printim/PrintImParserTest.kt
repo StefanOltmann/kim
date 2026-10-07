@@ -20,6 +20,8 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.slice
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
 
 /**
@@ -49,6 +51,21 @@ class PrintImParserTest {
         /* The second entry: ExifTool reports PrintIM_0x0002 = 1. */
         assertEquals(0x0002, directory.entries[1].tag)
         assertEquals(1, directory.entries[1].value)
+    }
+
+    /**
+     * Every line follows the regular "<key> = <value>" pattern of the
+     * other metadata sections - like ExifTool names the entries.
+     */
+    @Test
+    fun testToStringUsesTheKeyEqualsValuePattern() {
+
+        val toString = PrintImParser.parse(extractPrintImBytes()).toString()
+
+        assertTrue("PrintIMVersion = 0250" in toString)
+        assertTrue("PrintIM_0x0001 = 1310740" in toString)
+
+        assertFalse(toString.contains(" : "), "No field may use the colon pattern: $toString")
     }
 
     @Test
