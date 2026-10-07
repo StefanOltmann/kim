@@ -333,6 +333,19 @@ public object TiffReader {
             if (currentType >= 0 && directory.hasJpegImageData())
                 directory.thumbnailBytes = readThumbnailBytes(byteReader, directory)
 
+            /*
+             * Tile capture was never implemented, so requesting the
+             * image bytes of a tiled TIFF cannot be honored: a rewrite
+             * via createOutputSet would otherwise drop the tile fields
+             * and emit a file whose IFD references no image data.
+             * Failing here is the strict alternative to that loss.
+             */
+            if (readTiffImageBytes && directory.hasTileImageData())
+                throw ImageReadException(
+                    "The directory contains tiled image data, which " +
+                        "cannot be captured for a rewrite."
+                )
+
             if (readTiffImageBytes && directory.hasStripImageData())
                 directory.tiffImageBytes = readStripBytes(byteReader, directory)
 

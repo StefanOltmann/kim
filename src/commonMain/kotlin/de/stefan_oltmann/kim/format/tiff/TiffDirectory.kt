@@ -64,6 +64,9 @@ public class TiffDirectory(
     public fun hasStripImageData(): Boolean =
         null != findField(TiffTag.TIFF_TAG_STRIP_OFFSETS)
 
+    public fun hasTileImageData(): Boolean =
+        null != findField(TiffTag.TIFF_TAG_TILE_OFFSETS)
+
     public fun findField(tag: TagInfo): TiffField? {
         return findField(
             tag = tag,
