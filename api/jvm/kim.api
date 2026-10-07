@@ -13017,6 +13017,7 @@ public final class de/stefan_oltmann/kim/format/webp/WebPChunkType {
 
 public final class de/stefan_oltmann/kim/format/webp/WebPChunkType$Companion {
 	public final fun getEXIF ()Lde/stefan_oltmann/kim/format/webp/WebPChunkType;
+	public final fun getICCP ()Lde/stefan_oltmann/kim/format/webp/WebPChunkType;
 	public final fun getVP8 ()Lde/stefan_oltmann/kim/format/webp/WebPChunkType;
 	public final fun getVP8L ()Lde/stefan_oltmann/kim/format/webp/WebPChunkType;
 	public final fun getVP8X ()Lde/stefan_oltmann/kim/format/webp/WebPChunkType;
@@ -13064,6 +13065,10 @@ public class de/stefan_oltmann/kim/format/webp/chunk/WebPChunk {
 public final class de/stefan_oltmann/kim/format/webp/chunk/WebPChunkExif : de/stefan_oltmann/kim/format/webp/chunk/WebPChunk {
 	public fun <init> ([B)V
 	public final fun getTiffContents ()Lde/stefan_oltmann/kim/format/tiff/TiffContents;
+}
+
+public final class de/stefan_oltmann/kim/format/webp/chunk/WebPChunkIccp : de/stefan_oltmann/kim/format/webp/chunk/WebPChunk {
+	public fun <init> ([B)V
 }
 
 public final class de/stefan_oltmann/kim/format/webp/chunk/WebPChunkVP8 : de/stefan_oltmann/kim/format/webp/chunk/WebPChunk, de/stefan_oltmann/kim/format/webp/chunk/ImageSizeAware {

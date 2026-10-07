@@ -22,6 +22,8 @@ import de.stefan_oltmann.kim.common.decodeStrictUtf8
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
+import de.stefan_oltmann.kim.format.icc.IccProfile
+import de.stefan_oltmann.kim.format.icc.IccProfileParser
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
 import de.stefan_oltmann.kim.format.jpeg.JpegSegmentAnalyzer
@@ -67,9 +69,21 @@ public object TiffImageParser : ImageParser {
                 exif = contents,
                 exifBytes = null,
                 iptc = getIptc(contents),
-                xmp = xmp
+                xmp = xmp,
+                iccProfile = getIccProfile(contents)
             )
         }
+
+    /**
+     * Extracts and parses the ICC color profile from the IFD0 tag
+     * 0x8773, or NULL when the file carries none.
+     */
+    private fun getIccProfile(contents: TiffContents): IccProfile? =
+
+        contents.directories.firstOrNull()
+            ?.entries
+            ?.firstOrNull { field -> field.tag == ExifTag.EXIF_TAG_ICC_PROFILE_OFFSET.tag }
+            ?.let { field -> IccProfileParser.parse(field.valueBytes) }
 
     /**
      * The Panasonic RW2 stores its MakerNote inside the EXIF of the

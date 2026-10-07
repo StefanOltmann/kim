@@ -61,6 +61,9 @@ public data class WebPChunkType(
         /** XMP metadata. */
         public val XMP: WebPChunkType = of("XMP ".encodeToByteArray())
 
+        /** ICC color profile, stored uncompressed. */
+        public val ICCP: WebPChunkType = of("ICCP".encodeToByteArray())
+
         @Suppress("MagicNumber")
         public fun of(typeBytes: ByteArray): WebPChunkType {
 

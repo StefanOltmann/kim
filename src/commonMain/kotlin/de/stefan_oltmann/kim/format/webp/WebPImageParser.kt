@@ -19,6 +19,7 @@ package de.stefan_oltmann.kim.format.webp
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
+import de.stefan_oltmann.kim.format.icc.IccProfileParser
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.webp.WebPConstants.CHUNK_SIZE_LENGTH
 import de.stefan_oltmann.kim.format.webp.WebPConstants.RIFF_SIGNATURE
@@ -28,6 +29,7 @@ import de.stefan_oltmann.kim.format.webp.WebPConstants.WEBP_SIGNATURE
 import de.stefan_oltmann.kim.format.webp.chunk.ImageSizeAware
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunk
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkExif
+import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkIccp
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8L
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8X
@@ -99,13 +101,18 @@ public object WebPImageParser : ImageParser {
                 sourceDescription = "The WebP XMP chunk"
             )
 
+            val iccProfile = chunks.filterIsInstance<WebPChunkIccp>()
+                .firstOrNull()
+                ?.let { chunk -> IccProfileParser.parse(chunk.bytes) }
+
             return@tryWithImageReadException MediaMetadata(
                 mediaFormat = MediaFormat.WEBP,
                 imageSize = imageSize,
                 exif = exifChunk?.tiffContents,
                 exifBytes = exifChunk?.bytes,
                 iptc = null, /*  not supported by WebP */
-                xmp = xmp
+                xmp = xmp,
+                iccProfile = iccProfile
             )
         }
 
@@ -183,7 +190,8 @@ public object WebPImageParser : ImageParser {
             val keepFullPayload =
                 !stopAfterMetadataRead ||
                     chunkType == WebPChunkType.EXIF ||
-                    chunkType == WebPChunkType.XMP
+                    chunkType == WebPChunkType.XMP ||
+                    chunkType == WebPChunkType.ICCP
 
             val bytes: ByteArray = if (keepFullPayload) {
 
@@ -225,6 +233,7 @@ public object WebPImageParser : ImageParser {
                 WebPChunkType.VP8X -> WebPChunkVP8X(bytes)
                 WebPChunkType.EXIF -> WebPChunkExif(bytes)
                 WebPChunkType.XMP -> WebPChunkXmp(bytes)
+                WebPChunkType.ICCP -> WebPChunkIccp(bytes)
                 else -> WebPChunk(chunkType, bytes)
             }
 
@@ -250,10 +259,13 @@ public object WebPImageParser : ImageParser {
                     break
 
                 /*
-                 * If the header reveals that there will be no EXIF and no XMP
+                 * If the header reveals that there is no metadata at all
                  * we don't need to read the whole file.
                  */
-                if (chunk is WebPChunkVP8X && !chunk.hasExif && !chunk.hasXmp)
+                val hasNoMetadata = chunk is WebPChunkVP8X &&
+                    !chunk.hasIcc && !chunk.hasExif && !chunk.hasXmp
+
+                if (hasNoMetadata)
                     break
             }
         }
