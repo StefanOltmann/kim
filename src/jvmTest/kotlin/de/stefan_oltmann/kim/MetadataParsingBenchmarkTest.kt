@@ -17,58 +17,77 @@ package de.stefan_oltmann.kim
 
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
+import kotlin.time.Duration
 import kotlin.time.TimeSource
 
 /**
  * Measurement workload for a photo-folder scan: parses the metadata of
- * every corpus image repeatedly with the bytes cached in memory, like
- * an OS-cached folder. The numbers land in the test output - run this
- * class alone and grep for "BENCHMARK".
+ * every corpus image repeatedly. Each photo is read once and then kept
+ * hot for its warmup and measurement passes, like an OS-cached folder;
+ * only one photo's bytes are alive at a time, so the heap need stays at
+ * the largest photo and the workload also runs on small CI runners. The
+ * numbers land in the test output - run this class alone and grep for
+ * "BENCHMARK".
  */
 class MetadataParsingBenchmarkTest {
 
     @Test
     fun parseCorpusRepeatedly() {
 
-        val corpus = (1..KimTestData.TEST_MEDIA_COUNT)
-            .map { id -> id to KimTestData.getBytesOf(id) }
-            .toTypedArray()
+        val warmupPasses = 5
 
-        val totalBytes = corpus.sumOf { (_, bytes) -> bytes.size.toLong() }
+        val measuredPasses = 30
 
-        /* Warmup: JIT compilation, so the measured passes see steady state. */
-        repeat(5) {
-            for ((_, bytes) in corpus)
-                runCatching { Kim.readMetadata(bytes) }
-        }
+        val singlePhotoPasses = 20
 
-        val passes = 30
+        val mediaSizes = mutableListOf<Pair<Int, Long>>()
 
-        val start = TimeSource.Monotonic.markNow()
+        var measured = Duration.ZERO
 
-        repeat(passes) {
-            for ((_, bytes) in corpus)
-                runCatching { Kim.readMetadata(bytes) }
-        }
+        for (id in 1..KimTestData.TEST_MEDIA_COUNT) {
 
-        val elapsed = start.elapsedNow()
+            val bytes = KimTestData.getBytesOf(id)
 
-        val photoCount = passes.toLong() * corpus.size
+            mediaSizes += id to bytes.size.toLong()
 
-        println(
-            "BENCHMARK photos=$photoCount bytes=${totalBytes * passes} " +
-                "totalMs=${elapsed.inWholeMilliseconds} " +
-                "usPerPhoto=${elapsed.inWholeMicroseconds / photoCount} " +
-                "mbytesPerSecond=${totalBytes * passes / 1_048_576.0 / (elapsed.inWholeMilliseconds / 1000.0)}"
-        )
-
-        for ((id, bytes) in corpus.sortedByDescending { it.second.size }.take(5)) {
-            val singleStart = TimeSource.Monotonic.markNow()
-            repeat(20) {
+            /* Warmup: JIT compilation, so the measured passes see steady state. */
+            repeat(warmupPasses) {
                 runCatching { Kim.readMetadata(bytes) }
             }
-            val perPhoto = singleStart.elapsedNow().inWholeMicroseconds / 20
-            println("BENCHMARK largest media_$id size=${bytes.size} usPerPhoto=$perPhoto")
+
+            val start = TimeSource.Monotonic.markNow()
+
+            repeat(measuredPasses) {
+                runCatching { Kim.readMetadata(bytes) }
+            }
+
+            measured += start.elapsedNow()
+        }
+
+        val totalBytes = mediaSizes.sumOf { (_, size) -> size }
+
+        val photoCount = measuredPasses.toLong() * mediaSizes.size
+
+        println(
+            "BENCHMARK photos=$photoCount bytes=${totalBytes * measuredPasses} " +
+                "totalMs=${measured.inWholeMilliseconds} " +
+                "usPerPhoto=${measured.inWholeMicroseconds / photoCount} " +
+                "mbytesPerSecond=${totalBytes * measuredPasses / 1_048_576.0 / (measured.inWholeMilliseconds / 1000.0)}"
+        )
+
+        for ((id, size) in mediaSizes.sortedByDescending { it.second }.take(5)) {
+
+            val bytes = KimTestData.getBytesOf(id)
+
+            val singleStart = TimeSource.Monotonic.markNow()
+
+            repeat(singlePhotoPasses) {
+                runCatching { Kim.readMetadata(bytes) }
+            }
+
+            val perPhoto = singleStart.elapsedNow().inWholeMicroseconds / singlePhotoPasses
+
+            println("BENCHMARK largest media_$id size=$size usPerPhoto=$perPhoto")
         }
     }
 }

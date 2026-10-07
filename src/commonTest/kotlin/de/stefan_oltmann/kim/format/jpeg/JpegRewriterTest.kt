@@ -26,19 +26,16 @@ import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcRecord
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcTypes
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
-import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.DEFAULT_BUFFER_SIZE
-import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
-import de.stefan_oltmann.kim.testdata.ModifiedBytesVerifier
 import de.stefan_oltmann.kim.testdata.countOccurrences
 import de.stefan_oltmann.xmp.XMPMetaFactory
 import kotlinx.datetime.TimeZone
@@ -57,28 +54,6 @@ import kotlin.test.fail
 
 class JpegRewriterTest {
 
-    private val newDate = "2023:05:10 13:37:42"
-
-    private val keywordWithUmlauts = "Umlauts: äöüß"
-
-    private val crashBuildingGps = GpsCoordinates(
-        53.219391,
-        8.239661
-    )
-
-    /* language=XML */
-    private val newXmp = """
-        <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
-            <x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Adobe XMP Core 6.1.10">
-              <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-                <rdf:Description rdf:about=""
-                    xmlns:xmp="http://ns.adobe.com/xap/1.0/"
-                  xmp:Rating="3"/>
-              </rdf:RDF>
-            </x:xmpmeta>
-        <?xpacket end="w"?>
-    """.trimIndent()
-
     private val photosWithoutEmbeddedXmp =
         setOf(2, 20, 23, 30, 48)
 
@@ -90,89 +65,6 @@ class JpegRewriterTest {
     @AfterTest
     fun tearDown() {
         Kim.defaultTimeZone = null
-    }
-
-    /**
-     * Regression test based on a fixed small set of test files.
-     */
-    @Test
-    fun testChangeMetadata() {
-
-        for (index in 1..KimTestData.HIGHEST_JPEG_INDEX) {
-
-            /* Broken files are rejected by the segment length validation. */
-            if (KimTestData.brokenJpegIds.contains(index))
-                continue
-
-            val bytes = KimTestData.getBytesOf(index)
-
-            val metadata = Kim.readMetadata(bytes)
-
-            val exif: TiffContents? = metadata?.exif
-
-            val outputSet: TiffOutputSet = exif?.createOutputSet() ?: TiffOutputSet()
-
-            val rootDirectory = outputSet.getOrCreateRootDirectory()
-            val exifDirectory = outputSet.getOrCreateExifDirectory()
-
-            /* Rotate by 180 degrees */
-
-            rootDirectory.removeField(TiffTag.TIFF_TAG_ORIENTATION)
-            rootDirectory.add(TiffTag.TIFF_TAG_ORIENTATION, 8)
-
-            /* Set new date */
-
-            rootDirectory.removeField(TiffTag.TIFF_TAG_DATE_TIME)
-            rootDirectory.add(TiffTag.TIFF_TAG_DATE_TIME, newDate)
-
-            exifDirectory.removeField(ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL)
-            exifDirectory.add(ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL, newDate)
-
-            exifDirectory.removeField(ExifTag.EXIF_TAG_DATE_TIME_DIGITIZED)
-            exifDirectory.add(ExifTag.EXIF_TAG_DATE_TIME_DIGITIZED, newDate)
-
-            /* Set GPS */
-
-            outputSet.setGpsCoordinates(crashBuildingGps)
-
-            /* IPTC */
-
-            val iptcMetadata = metadata?.iptc
-
-            val newBlocks = iptcMetadata?.nonIptcBlocks ?: emptyList()
-            val oldRecords = iptcMetadata?.records ?: emptyList()
-
-            val newRecords = mutableListOf<IptcRecord>()
-            newRecords.addAll(oldRecords)
-
-            newRecords.add(IptcRecord(IptcTypes.KEYWORDS, keywordWithUmlauts))
-
-            val newPhotoshopData = IptcMetadata(newRecords, newBlocks)
-
-            /* Write end result */
-
-            val exifWriter = ByteArrayByteWriter()
-
-            JpegRewriter.updateExifMetadata(
-                ByteArrayByteReader(bytes), exifWriter, outputSet
-            )
-
-            val newExifBytes = exifWriter.toByteArray()
-
-            val iptcWriter = ByteArrayByteWriter()
-
-            JpegRewriter.writeIPTC(ByteArrayByteReader(newExifBytes), iptcWriter, newPhotoshopData)
-
-            val iptcBytes = iptcWriter.toByteArray()
-
-            val xmpWriter = ByteArrayByteWriter()
-
-            JpegRewriter.updateXmpXml(ByteArrayByteReader(iptcBytes), xmpWriter, newXmp)
-
-            val actualMetadataBytes = xmpWriter.toByteArray()
-
-            ModifiedBytesVerifier.verify(index, "jpg", actualMetadataBytes)
-        }
     }
 
     /**

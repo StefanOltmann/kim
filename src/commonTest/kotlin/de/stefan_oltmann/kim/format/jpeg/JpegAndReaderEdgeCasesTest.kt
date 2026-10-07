@@ -523,19 +523,25 @@ class JpegAndReaderEdgeCasesTest {
     }
 
     /**
-     * A file built from an unbounded number of small header segments
-     * must fail the read instead of buffering an unbounded amount of
-     * segment data during an update.
+     * A file built from many header segments must fail the read instead
+     * of buffering an unbounded amount of segment data during an update.
+     *
+     * The segments use the maximum payload a 16-bit length field can
+     * encode, so the 16 MiB accumulation limit is reached with a few
+     * hundred segments - fast enough for the default JavaScript runner
+     * timeout, which tiny segments would exceed.
      */
     @Test
     fun testReadSegmentsRejectsExcessiveHeaderSize() {
 
-        /* A COM segment with a 14-byte payload. The length field includes itself. */
-        val comSegmentContentLength = 14
+        /* A COM segment with a 65533-byte payload. The length field includes itself. */
+        val comSegmentContentLength = 65533
+
+        val comSegmentPayload = ByteArray(comSegmentContentLength) { 'x'.code.toByte() }
 
         val comSegment = byteArrayOf(
-            0xFF.toByte(), COM_MARKER.toByte(), 0, (comSegmentContentLength + 2).toByte()
-        ) + "0123456789ABCD".encodeToByteArray()
+            0xFF.toByte(), COM_MARKER.toByte(), 0xFF.toByte(), 0xFF.toByte()
+        ) + comSegmentPayload
 
         /* Only the payload of each segment counts towards the limit. */
         val segmentCount = (16 * 1024 * 1024) / comSegmentContentLength + 1
