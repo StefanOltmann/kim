@@ -22,6 +22,33 @@ import kotlin.test.assertFailsWith
 
 class ZLibTest {
 
+    /**
+     * An empty payload is truncated zlib data, not empty output. Every
+     * platform must reject it identically, so PNG text chunks cut
+     * before their compressed payload fail the read everywhere instead
+     * of parsing with an empty text on some targets only.
+     */
+    @Test
+    fun testDecompressRejectsEmptyInput() {
+
+        assertFailsWith<ImageReadException> {
+            decompressBytes(ByteArray(0))
+        }
+    }
+
+    /**
+     * A payload shorter than the two-byte zlib header must fail with the
+     * documented truncation error instead of an index-out-of-bounds from
+     * the header inspection.
+     */
+    @Test
+    fun testDecompressRejectsSingleBytePayload() {
+
+        assertFailsWith<ImageReadException> {
+            decompressBytes(byteArrayOf(0x78))
+        }
+    }
+
     @Test
     fun testDecompress() {
 
@@ -86,6 +113,27 @@ class ZLibTest {
 
         assertFailsWith<ImageReadException> {
             decompress(corrupted)
+        }
+    }
+
+    /**
+     * The inflater contract is zlib-wrapped streams only. pako
+     * auto-detects gzip/raw-deflate unless windowBits is pinned, so a
+     * gzip-framed payload must fail on every platform alike - a silently
+     * succeeding JS/wasm read would diverge from JVM and native.
+     */
+    @Test
+    fun testDecompressRejectsGzipFramedPayload() {
+
+        /* gzip of "abc" (deflate), framed with the 1F 8B gzip header. */
+        val gzipFramed = byteArrayOf(
+            0x1F.toByte(), 0x8B.toByte(), 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03,
+            0x4B.toByte(), 0x4C.toByte(), 0x4A.toByte(), 0x06, 0x00, 0xC2.toByte(), 0x41.toByte(),
+            0x24.toByte(), 0x35.toByte(), 0x03, 0x00, 0x00, 0x00
+        )
+
+        assertFailsWith<ImageReadException> {
+            decompressBytes(gzipFramed)
         }
     }
 

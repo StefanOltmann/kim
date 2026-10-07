@@ -21,7 +21,7 @@ import org.khronos.webgl.get
 import org.khronos.webgl.set
 
 @OptIn(ExperimentalWasmJsInterop::class)
-internal actual fun decompressBytes(
+internal actual fun decompressBytesPlatform(
     byteArray: ByteArray,
     maxOutputByteCount: Int
 ): ByteArray =

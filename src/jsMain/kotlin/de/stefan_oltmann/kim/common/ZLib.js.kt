@@ -19,7 +19,7 @@ package de.stefan_oltmann.kim.common
 import org.khronos.webgl.Int8Array
 import org.khronos.webgl.Uint8Array
 
-internal actual fun decompressBytes(
+internal actual fun decompressBytesPlatform(
     byteArray: ByteArray,
     maxOutputByteCount: Int
 ): ByteArray =

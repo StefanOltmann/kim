@@ -22,14 +22,10 @@ import java.util.zip.Inflater
 
 private const val ZLIB_BUFFER_SIZE: Int = 1024
 
-internal actual fun decompressBytes(
+internal actual fun decompressBytesPlatform(
     byteArray: ByteArray,
     maxOutputByteCount: Int
 ): ByteArray {
-
-    /* An empty stream cannot be valid zlib data. */
-    if (byteArray.isEmpty())
-        throw ImageReadException("Unexpected end of compressed data.")
 
     val outputStream = ByteArrayOutputStream()
 
