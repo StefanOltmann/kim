@@ -233,9 +233,16 @@ public object PngImageParser : ImageParser {
 
         val index = chunkText.indexOf(identifierHex)
 
-        /* If we did not find the identifier we may have invalid data. */
+        /*
+         * The keyword is present, so the chunk claims to carry this
+         * profile. Without the identifier its content is metadata that
+         * cannot be read cleanly - per the strict read policy the read
+         * fails instead of silently dropping it.
+         */
         if (index == -1)
-            return null
+            throw ImageReadException(
+                "The $profileName text chunk of the PNG has no profile identifier."
+            )
 
         /*
          * The profile text is HEX encoded and contains control chars.
@@ -247,11 +254,14 @@ public object PngImageParser : ImageParser {
             .trim()
 
         /*
-         * The chunk content is file-controlled and may be garbage, which
-         * is ignored instead of failing the read.
+         * The chunk claims to carry the profile, so content that is not
+         * hex encoded cannot be read cleanly - the read fails instead
+         * of silently dropping it.
          */
         if (!profileText.isValidHexString())
-            return null
+            throw ImageReadException(
+                "The $profileName text chunk of the PNG is not hex encoded."
+            )
 
         if (profileText.length % 2 != 0)
             throw ImageReadException("The $profileName text chunk of the PNG is truncated.")
@@ -271,7 +281,7 @@ public object PngImageParser : ImageParser {
 
     /**
      * Whether the string consists of hex digits only, so a profile that
-     * is not hex encoded is ignored instead of failing the conversion.
+     * is not hex encoded fails the read.
      */
     private fun String.isValidHexString(): Boolean =
         isNotEmpty() && all { it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }

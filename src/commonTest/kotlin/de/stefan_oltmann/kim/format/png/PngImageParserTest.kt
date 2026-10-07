@@ -82,12 +82,14 @@ class PngImageParserTest {
     }
 
     /**
-     * Text chunks whose "Raw profile type" content is not valid hex are
-     * uninterpretable. They must be ignored like any other uninterpretable
-     * chunk instead of failing the read of the whole file.
+     * A text chunk that claims to be a "Raw profile type" profile but
+     * carries no readable profile is metadata content that cannot be
+     * read cleanly. Per the strict read policy the read fails instead
+     * of silently dropping the chunk - a later update would rewrite
+     * the file without it unheard of.
      */
     @Test
-    fun testParseMetadataIgnoresGarbageRawProfileChunks() {
+    fun testParseMetadataRejectsGarbageRawProfileChunks() {
 
         val ihdrChunk = PngImageParser.readChunks(
             ByteArrayByteReader(
@@ -108,11 +110,13 @@ class PngImageParserTest {
             crc = 0
         )
 
-        val metadata = PngImageParser.parseMetadataFromChunks(
-            listOf(ihdrChunk, garbageExifChunk, garbageIptcChunk)
-        )
+        assertFailsWith<ImageReadException> {
+            PngImageParser.parseMetadataFromChunks(listOf(ihdrChunk, garbageExifChunk))
+        }
 
-        assertNotNull(metadata)
+        assertFailsWith<ImageReadException> {
+            PngImageParser.parseMetadataFromChunks(listOf(ihdrChunk, garbageIptcChunk))
+        }
     }
 
     /**
