@@ -146,7 +146,6 @@ class MakerNoteTest {
         val specialModeField = makerNoteDirectory.findField(OlympusTag.SPECIAL_MODE)
         assertNotNull(specialModeField)
         assertEquals(listOf(0, 0, 0), specialModeField.toIntArray().toList())
-
         val cameraIdField = makerNoteDirectory.findField(OlympusTag.CAMERA_ID)
         assertNotNull(cameraIdField)
         assertEquals(
@@ -209,6 +208,50 @@ class MakerNoteTest {
         assertEquals(274, makerNoteDirectory.findField(SonyTag.SONY_MODEL_ID)?.toInt())
         assertEquals("Standard", makerNoteDirectory.findField(SonyTag.CREATIVE_STYLE)?.value)
         assertEquals(0, makerNoteDirectory.findField(SonyTag.RATING)?.toInt())
+    }
+
+    /**
+     * OM System bodies (OM-1, OM-5, ...) write the Make "OM Digital
+     * Solutions" and the MakerNote header "OM SYSTEM\0" after the
+     * rebrand. The bytes keep the Olympus MakerNote layout, so they must
+     * dispatch into the Olympus handler like the pre-rebrand files - or
+     * every vendor value is lost from the parsed output.
+     */
+    @Test
+    fun testOmSystemMakerNoteParsing() {
+
+        val bytes = convertHexStringToByteArray(
+            "49492A0008000000" + // Header: II, version 42, IFD0 at offset 8
+                "0300" + // IFD0: 3 entries
+                "0F0102001500000032000000" + // Make -> 50
+                "100102000500000047000000" + // Model -> 71
+                "69870400010000004C000000" + // ExifOffset -> ExifIFD at 76
+                "00000000" + // No next directory
+                "4F4D204469676974616C20536F6C7574696F6E7300" + // "OM Digital Solutions\0"
+                "4F4D2D3100" + // "OM-1\0"
+                "0100" + // ExifIFD: 1 entry
+                "7C920700200000005E000000" + // MakerNote -> 94
+                "00000000" + // No next directory
+                "4F4D2053595354454D00" + // "OM SYSTEM\0" signature
+                "4949" + // Byte order
+                "0300" + // Version
+                "0100" + // MakerNote IFD: 1 entry
+                "000007000400000030313030" + // MakerNoteVersion = "0100"
+                "00000000" + // No next directory
+                "00" // Padding to the declared MakerNote length
+        )
+
+        val contents = TiffReader.read(ByteArrayByteReader(bytes))
+
+        val makerNoteDirectory = contents.makerNoteDirectory
+
+        assertNotNull(makerNoteDirectory)
+        assertEquals(TiffConstants.TIFF_MAKER_NOTE_OLYMPUS, makerNoteDirectory.type)
+
+        assertEquals(
+            "0100",
+            makerNoteDirectory.findField(OlympusTag.MAKER_NOTE_VERSION)?.valueBytes?.decodeToString()
+        )
     }
 
     @Test

@@ -1010,7 +1010,9 @@ public object TiffReader {
                 make.contains("RICOH", ignoreCase = true) ->
                     RicohMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
 
-                make.contains("OLYMPUS", ignoreCase = true) ->
+                make.contains("OLYMPUS", ignoreCase = true) ||
+                    make.contains("OM Digital", ignoreCase = true) ||
+                    make.contains("OM SYSTEM", ignoreCase = true) ->
                     OlympusMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
 
                 make.contains("Panasonic", ignoreCase = true) ->
