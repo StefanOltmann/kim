@@ -547,6 +547,9 @@ public object FujiFilmTag {
     public const val FILM_MODE_BLEACH_BYPASS: Int = 0x900
     public const val FILM_MODE_NOSTALGIC_NEG: Int = 0xA00
     public const val FILM_MODE_REALA_ACE: Int = 0xB00
+    public const val FILM_MODE_STUDIO_PORTRAIT_ENHANCED_SATURATION: Int = 0x110
+    public const val FILM_MODE_STUDIO_PORTRAIT_INCREASED_SHARPNESS: Int = 0x130
+    public const val FILM_MODE_STUDIO_PORTRAIT_EX: Int = 0x300
 
     /**
      * See [FujiFilmDynamicRangeSetting].
@@ -921,15 +924,20 @@ public object FujiFilmTag {
     )
 
     /**
-     * Returns the display name for a film mode value.
+     * Returns the display name for a film mode value. The names are
+     * ExifTool's FilmMode PrintConv values, so the summary reports the
+     * same strings ExifTool reports for the same bytes.
      */
     public fun getFilmModeName(value: Int): String? =
         when (value) {
-            FILM_MODE_PROVIA_STANDARD -> "Provia/Standard"
-            FILM_MODE_STUDIO_PORTRAIT -> "Studio Portrait"
-            FILM_MODE_ASTIA_SOFT -> "Astia/Soft"
-            FILM_MODE_VELVIA_VIVID -> "Velvia/Vivid"
-            FILM_MODE_VELVIA -> "Velvia"
+            FILM_MODE_PROVIA_STANDARD -> "F0/Standard (Provia)"
+            FILM_MODE_STUDIO_PORTRAIT -> "F1/Studio Portrait"
+            FILM_MODE_STUDIO_PORTRAIT_ENHANCED_SATURATION -> "F1a/Studio Portrait Enhanced Saturation"
+            FILM_MODE_ASTIA_SOFT -> "F1b/Studio Portrait Smooth Skin Tone (Astia)"
+            FILM_MODE_STUDIO_PORTRAIT_INCREASED_SHARPNESS -> "F1c/Studio Portrait Increased Sharpness"
+            FILM_MODE_VELVIA_VIVID -> "F2/Fujichrome (Velvia)"
+            FILM_MODE_STUDIO_PORTRAIT_EX -> "F3/Studio Portrait Ex"
+            FILM_MODE_VELVIA -> "F4/Velvia"
             FILM_MODE_PRO_NEG_STD -> "Pro Neg. Std"
             FILM_MODE_PRO_NEG_HI -> "Pro Neg. Hi"
             FILM_MODE_CLASSIC_CHROME -> "Classic Chrome"

@@ -119,7 +119,7 @@ class FujiFilmSimulationTest {
         assertNotNull(summary)
 
         assertEquals(
-            expected = "Provia/Standard",
+            expected = "F0/Standard (Provia)",
             actual = summary.filmSimulation
         )
     }
@@ -150,12 +150,19 @@ class FujiFilmSimulationTest {
     @Test
     fun testAllKnownFilmSimulations() {
 
+        /*
+         * The display names are ExifTool's FilmMode PrintConv values, so
+         * the summary reports the same strings ExifTool reports.
+         */
         val testCases = mapOf(
-            0x000 to "Provia/Standard",
-            0x100 to "Studio Portrait",
-            0x120 to "Astia/Soft",
-            0x200 to "Velvia/Vivid",
-            0x400 to "Velvia",
+            0x000 to "F0/Standard (Provia)",
+            0x100 to "F1/Studio Portrait",
+            0x110 to "F1a/Studio Portrait Enhanced Saturation",
+            0x120 to "F1b/Studio Portrait Smooth Skin Tone (Astia)",
+            0x130 to "F1c/Studio Portrait Increased Sharpness",
+            0x200 to "F2/Fujichrome (Velvia)",
+            0x300 to "F3/Studio Portrait Ex",
+            0x400 to "F4/Velvia",
             0x500 to "Pro Neg. Std",
             0x501 to "Pro Neg. Hi",
             0x600 to "Classic Chrome",
@@ -184,7 +191,7 @@ class FujiFilmSimulationTest {
     fun testFilmSimulationLogic() {
 
         /* Verify that getFilmModeName returns correct values for known film modes */
-        assertEquals("Provia/Standard", FujiFilmTag.getFilmModeName(0x000))
+        assertEquals("F0/Standard (Provia)", FujiFilmTag.getFilmModeName(0x000))
         assertEquals("Classic Chrome", FujiFilmTag.getFilmModeName(0x600))
         assertEquals("Classic Negative", FujiFilmTag.getFilmModeName(0x800))
 
