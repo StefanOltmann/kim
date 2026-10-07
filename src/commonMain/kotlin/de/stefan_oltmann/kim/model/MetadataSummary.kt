@@ -180,14 +180,20 @@ public data class MetadataSummary(
         this == emptySummary
 
     /**
-     * Combine the current metadata with the given one,
-     * but only replace fields that are NULL.
+     * Combine the current metadata with the given one, where NULL fields
+     * of this summary fall back to the values of the other one. The
+     * flagged flag is OR-ed, and the collections (keywords, faces,
+     * persons in image) fall back to the other summary when this one
+     * carries none.
      *
      * We read metadata in a certain order where XMP
      * is more important than EXIF, and so on.
      *
      * If the other metadata is NULL the same object is returned.
      * This API is provided to chain it.
+     *
+     * Attention: Required by external tools & libraries - it has no
+     * callers in this repository by design and must never be removed.
      */
     public fun merge(other: MetadataSummary?): MetadataSummary {
 
