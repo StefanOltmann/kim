@@ -22,6 +22,7 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.head
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toInt
+import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.tiff.TiffReader.directoryTypeMap
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
@@ -75,6 +76,11 @@ public object TiffReader {
     private const val MAX_SUB_DIRECTORY_DEPTH: Int = 16
 
     private const val BIGTIFF_VERSION: Int = 43
+
+    /* The BigTIFF signature is decided by the byte-order mark and the 2-byte version. */
+    private const val BIGTIFF_HEADER_MIN_SIZE: Int = 4
+
+    private const val BYTE_SHIFT_8: Int = 8
 
     /* The sub-IFD pointers are LONGs, so a recoverable value holds 4 bytes. */
     private const val SUB_IFD_OFFSET_BYTE_COUNT: Int = 4
@@ -229,6 +235,42 @@ public object TiffReader {
             byteReader.read4BytesAsInt("Offset to first IFD", byteOrder)
 
         return TiffHeader(byteOrder, tiffVersion, offsetToFirstIFD)
+    }
+
+    /**
+     * Fails with [ImageReadException] when the given format-detection
+     * header bytes carry the BigTIFF signature.
+     *
+     * `MediaFormat.detect` matches only the classic-TIFF magic, so a
+     * standalone BigTIFF file never reaches [readTiffHeader] through
+     * the public facade - without this check it would be reported as
+     * unknown bytes instead of failing the read like every other
+     * entry point does.
+     */
+    internal fun rejectBigTiffHeader(headerBytes: ByteArray) {
+
+        if (headerBytes.size < BIGTIFF_HEADER_MIN_SIZE)
+            return
+
+        val byteOrderByte = headerBytes[0]
+
+        /*
+         * The two byte-order bytes are equal ('I' little-endian,
+         * 'M' big-endian), and the version follows at offset 2 in the
+         * matching endianness. Everything else is not TIFF-family.
+         */
+        if (byteOrderByte != headerBytes[1] ||
+            (byteOrderByte.toInt() != 'I'.code && byteOrderByte.toInt() != 'M'.code))
+            return
+
+        val version =
+            if (byteOrderByte.toInt() == 'I'.code)
+                headerBytes[2].toUInt8() or (headerBytes[3].toUInt8() shl BYTE_SHIFT_8)
+            else
+                (headerBytes[2].toUInt8() shl BYTE_SHIFT_8) or headerBytes[3].toUInt8()
+
+        if (version == BIGTIFF_VERSION)
+            throw ImageReadException("BigTIFF is not supported.")
     }
 
     private fun getTiffByteOrder(byteOrderByte: Byte): ByteOrder =

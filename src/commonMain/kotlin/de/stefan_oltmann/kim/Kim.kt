@@ -223,10 +223,22 @@ public object Kim {
 
         byteReader.use {
 
-            val (mediaFormat, newReader) = detectFormatAndReplayHeader(it)
+            val detection = detectFormatAndReplayHeader(it)
 
-            if (mediaFormat == null)
+            val mediaFormat = detection.mediaFormat
+
+            if (mediaFormat == null) {
+
+                /*
+                 * A BigTIFF header is not unknown bytes: the documented
+                 * rule is that it keeps failing the read, which
+                 * TiffReader cannot enforce when the facade never
+                 * forwards the file to it.
+                 */
+                TiffReader.rejectBigTiffHeader(detection.headerBytes)
+
                 return@use null
+            }
 
             val imageParser = ImageParser.forFormat(mediaFormat)
                 ?: return@use MediaMetadata.createEmpty(mediaFormat)
@@ -237,9 +249,9 @@ public object Kim {
              */
             return@use (
                 if (readTrailerMetadata && mediaFormat == MediaFormat.JPEG)
-                    JpegImageParser.parseMetadata(newReader, readTrailerMetadata = true)
+                    JpegImageParser.parseMetadata(detection.reader, readTrailerMetadata = true)
                 else
-                    imageParser.parseMetadata(byteReader = newReader)
+                    imageParser.parseMetadata(byteReader = detection.reader)
                 ).withMediaFormat(mediaFormat = mediaFormat)
         }
     }
@@ -266,13 +278,23 @@ public object Kim {
 
         byteReader.use {
 
-            val (mediaFormat, newReader) = detectFormatAndReplayHeader(it)
+            val detection = detectFormatAndReplayHeader(it)
+
+            if (detection.mediaFormat == null) {
+
+                /* Same rule as in readMetadata: BigTIFF fails, the rest is unknown. */
+                TiffReader.rejectBigTiffHeader(detection.headerBytes)
+
+                return@use null to byteArrayOf()
+            }
+
+            val mediaFormat = detection.mediaFormat
 
             return@use when (mediaFormat) {
-                MediaFormat.JPEG -> mediaFormat to JpegMetadataExtractor.extractMetadataBytes(newReader)
-                MediaFormat.PNG -> mediaFormat to PngMetadataExtractor.extractMetadataBytes(newReader)
-                MediaFormat.RAF -> mediaFormat to RafMetadataExtractor.extractMetadataBytes(newReader)
-                MediaFormat.GIF -> mediaFormat to GifMetadataExtractor.extractMetadataBytes(newReader)
+                MediaFormat.JPEG -> mediaFormat to JpegMetadataExtractor.extractMetadataBytes(detection.reader)
+                MediaFormat.PNG -> mediaFormat to PngMetadataExtractor.extractMetadataBytes(detection.reader)
+                MediaFormat.RAF -> mediaFormat to RafMetadataExtractor.extractMetadataBytes(detection.reader)
+                MediaFormat.GIF -> mediaFormat to GifMetadataExtractor.extractMetadataBytes(detection.reader)
                 else -> mediaFormat to byteArrayOf()
             }
         }
@@ -292,22 +314,24 @@ public object Kim {
 
         byteReader.use {
 
-            val (mediaFormat, prePendingByteReader) = detectFormatAndReplayHeader(it)
+            val detection = detectFormatAndReplayHeader(it)
+
+            val mediaFormat = detection.mediaFormat
 
             return@use when (mediaFormat) {
 
                 MediaFormat.RAF ->
-                    RafPreviewExtractor.extractPreviewImage(prePendingByteReader)
+                    RafPreviewExtractor.extractPreviewImage(detection.reader)
 
                 MediaFormat.CR3 ->
-                    Cr3PreviewExtractor.extractPreviewImage(prePendingByteReader)
+                    Cr3PreviewExtractor.extractPreviewImage(detection.reader)
 
                 MediaFormat.CR2,
                 MediaFormat.RW2,
                 MediaFormat.ORF,
                 MediaFormat.TIFF -> {
 
-                    val reader = DefaultRandomAccessByteReader(prePendingByteReader)
+                    val reader = DefaultRandomAccessByteReader(detection.reader)
 
                     val tiffContents = TiffReader.read(reader)
 
@@ -338,7 +362,7 @@ public object Kim {
                  * loudly for them.
                  */
                 null -> {
-                    TiffReader.read(DefaultRandomAccessByteReader(prePendingByteReader))
+                    TiffReader.read(DefaultRandomAccessByteReader(detection.reader))
 
                     null
                 }
@@ -440,19 +464,19 @@ public object Kim {
         if (updates.isEmpty())
             throw ImageWriteException("You did not specify any updates.")
 
-        val (mediaFormat, prePendingByteReader) = detectFormatAndReplayHeader(byteReader)
+        val detection = detectFormatAndReplayHeader(byteReader)
 
-        if (mediaFormat == null)
+        if (detection.mediaFormat == null)
             throw ImageWriteException("Unknown or unsupported file format.")
 
         /*
          * GIF can carry XMP but has no EXIF, IPTC or thumbnail concept, so
          * its updater answers those calls itself with a targeted error.
          */
-        val updater = MetadataUpdater.forFormat(mediaFormat)
-            ?: throw ImageWriteException("Can't embed metadata into $mediaFormat.")
+        val updater = MetadataUpdater.forFormat(detection.mediaFormat)
+            ?: throw ImageWriteException("Can't embed metadata into ${detection.mediaFormat}.")
 
-        updater.update(prePendingByteReader, byteWriter, updates)
+        updater.update(detection.reader, byteWriter, updates)
     }
 
     /**
@@ -502,15 +526,15 @@ public object Kim {
         byteWriter: ByteWriter
     ): Unit = tryWithImageWriteException {
 
-        val (mediaFormat, prePendingByteReader) = detectFormatAndReplayHeader(byteReader)
+        val detection = detectFormatAndReplayHeader(byteReader)
 
-        if (mediaFormat == null)
+        if (detection.mediaFormat == null)
             throw ImageWriteException("Unknown or unsupported file format.")
 
-        val updater = MetadataUpdater.forFormat(mediaFormat)
-            ?: throw ImageWriteException("Can't delete metadata of $mediaFormat.")
+        val updater = MetadataUpdater.forFormat(detection.mediaFormat)
+            ?: throw ImageWriteException("Can't delete metadata of ${detection.mediaFormat}.")
 
-        updater.deleteMetadata(prePendingByteReader, byteWriter)
+        updater.deleteMetadata(detection.reader, byteWriter)
     }
 
     /**
@@ -561,20 +585,33 @@ public object Kim {
         }
 
     /**
+     * The outcome of reading the head of a stream: the detected media
+     * format - NULL for unknown bytes - the consumed header bytes, so
+     * callers can classify special unknown signatures like BigTIFF, and
+     * a reader that replays the consumed bytes, so the format parsers
+     * see the complete stream again.
+     */
+    private class DetectedFormat(
+        val mediaFormat: MediaFormat?,
+        val headerBytes: ByteArray,
+        val reader: ByteReader
+    )
+
+    /**
      * Reads the head of the stream and detects the media format from it.
-     *
-     * Returns the detected format - NULL for unknown bytes - together
-     * with a reader that replays the consumed header bytes, so the
-     * format parsers see the complete stream again.
      */
     private fun detectFormatAndReplayHeader(
         byteReader: ByteReader
-    ): Pair<MediaFormat?, ByteReader> {
+    ): DetectedFormat {
 
         val headerBytes = byteReader.readBytes(MediaFormat.REQUIRED_HEADER_BYTE_COUNT_FOR_DETECTION)
 
         val mediaFormat = MediaFormat.detect(headerBytes)
 
-        return mediaFormat to PrePendingByteReader(byteReader, headerBytes.toList())
+        return DetectedFormat(
+            mediaFormat = mediaFormat,
+            headerBytes = headerBytes,
+            reader = PrePendingByteReader(byteReader, headerBytes.toList())
+        )
     }
 }
