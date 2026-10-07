@@ -22,6 +22,7 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
+import de.stefan_oltmann.kim.format.icc.IccProfileParser
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
@@ -32,6 +33,7 @@ import de.stefan_oltmann.kim.format.png.PngCrc.finishPartialCrc
 import de.stefan_oltmann.kim.format.png.PngCrc.startPartialCrc
 import de.stefan_oltmann.kim.format.png.chunk.PngChunk
 import de.stefan_oltmann.kim.format.png.chunk.PngChunkExif
+import de.stefan_oltmann.kim.format.png.chunk.PngChunkIccp
 import de.stefan_oltmann.kim.format.png.chunk.PngChunkIhdr
 import de.stefan_oltmann.kim.format.png.chunk.PngChunkItxt
 import de.stefan_oltmann.kim.format.png.chunk.PngChunkText
@@ -64,7 +66,8 @@ public object PngImageParser : ImageParser {
         PngChunkType.ZTXT,
         PngChunkType.ITXT,
         PngChunkType.EXIF,
-        PngChunkType.ZXIF
+        PngChunkType.ZXIF,
+        PngChunkType.ICCP
     )
 
     @Throws(ImageReadException::class)
@@ -124,13 +127,18 @@ public object PngImageParser : ImageParser {
                 sourceDescription = "The PNG XMP text chunk"
             )
 
+            val iccProfile = chunks.filterIsInstance<PngChunkIccp>()
+                .firstOrNull()
+                ?.let { chunk -> IccProfileParser.parse(chunk.profileBytes) }
+
             return@tryWithImageReadException MediaMetadata(
                 mediaFormat = MediaFormat.PNG,
                 imageSize = imageSize,
                 exif = exifPair?.second,
                 exifBytes = exifPair?.first,
                 iptc = iptc,
-                xmp = xmp
+                xmp = xmp,
+                iccProfile = iccProfile
             )
         }
 
@@ -460,6 +468,9 @@ public object PngImageParser : ImageParser {
 
             PngChunkType.ITXT ->
                 PngChunkItxt(bytes, crc)
+
+            PngChunkType.ICCP ->
+                PngChunkIccp(bytes, crc)
 
             /*
              * A later duplicate EXIF chunk is ignored like

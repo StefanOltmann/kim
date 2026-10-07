@@ -976,6 +976,7 @@ public final class de/stefan_oltmann/kim/format/png/PngChunkType {
 
 public final class de/stefan_oltmann/kim/format/png/PngChunkType$Companion {
 	public final fun getEXIF ()Lde/stefan_oltmann/kim/format/png/PngChunkType;
+	public final fun getICCP ()Lde/stefan_oltmann/kim/format/png/PngChunkType;
 	public final fun getIDAT ()Lde/stefan_oltmann/kim/format/png/PngChunkType;
 	public final fun getIEND ()Lde/stefan_oltmann/kim/format/png/PngChunkType;
 	public final fun getIHDR ()Lde/stefan_oltmann/kim/format/png/PngChunkType;
@@ -1043,6 +1044,12 @@ public final class de/stefan_oltmann/kim/format/png/chunk/PngChunkExif : de/stef
 	public fun <init> ([BI)V
 	public final fun getExifBytes ()[B
 	public final fun getTiffContents ()Lde/stefan_oltmann/kim/format/tiff/TiffContents;
+}
+
+public final class de/stefan_oltmann/kim/format/png/chunk/PngChunkIccp : de/stefan_oltmann/kim/format/png/chunk/PngChunk {
+	public fun <init> ([BI)V
+	public final fun getKeyword ()Ljava/lang/String;
+	public final fun getProfileBytes ()[B
 }
 
 public final class de/stefan_oltmann/kim/format/png/chunk/PngChunkIhdr : de/stefan_oltmann/kim/format/png/chunk/PngChunk {
