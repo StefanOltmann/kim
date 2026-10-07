@@ -156,6 +156,31 @@ class KotlinIoExtensionsTest {
         assertEquals(MediaFormat.JPEG, result)
     }
 
+    /**
+     * A zero hint means "size unknown" (a chunked upload without
+     * Content-Length) and must read as unbounded like on the JVM
+     * facade. Passed through raw, the JPEG header scan sees an exhausted
+     * budget after the first marker and silently returns empty metadata.
+     */
+    @Test
+    fun testKotlinIoSourceByteReaderWithZeroHintReadsUnbounded() {
+
+        val path = tempDir() / "media.jpg"
+
+        val bytes = de.stefan_oltmann.kim.testdata.KimTestData.getBytesOf(1)
+
+        path.writeBytes(bytes)
+
+        val metadata = de.stefan_oltmann.kim.input.KotlinIoSourceByteReader(
+            source = SystemFileSystem.source(path).buffered(),
+            contentLength = 0L
+        ).use { reader ->
+            Kim.readMetadata(checkNotNull(reader))
+        }
+
+        assertNotNull(metadata?.convertToSummary()?.cameraMake, "The zero hint must not empty the metadata.")
+    }
+
     @Test
     fun testKotlinIoSourceByteReaderRejectsMissingFile() {
 

@@ -29,8 +29,16 @@ import kotlinx.io.files.SystemFileSystem
  */
 public class KotlinIoSourceByteReader(
     private val source: Source,
-    override val contentLength: Long
+    contentLength: Long
 ) : ByteReader {
+
+    /*
+     * A non-positive hint means the size is unknown (a source without a
+     * usable size). It is reported as unbounded, like on the JVM facade,
+     * so parsers treat the stream end as the only truncation evidence.
+     */
+    override val contentLength: Long =
+        if (contentLength > 0) contentLength else Long.MAX_VALUE
 
     /** Scratch buffer reused across bulk reads; the reader is not shared between threads. */
     private val scratchBuffer = Buffer()

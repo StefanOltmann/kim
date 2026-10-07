@@ -42,9 +42,19 @@ import kotlinx.io.readByteArray
  */
 public class KtorByteReadChannelByteReader(
     private val channel: ByteReadChannel,
-    override val contentLength: Long,
+    contentLength: Long,
     private val bufferSize: Long = READ_CHANNEL_BUFFER_SIZE
 ) : ByteReader {
+
+    /*
+     * A non-positive hint means the size is unknown (a chunked upload
+     * without Content-Length). It is reported as unbounded, so parsers
+     * treat the stream end as the only truncation evidence - a zero hint
+     * passed through raw would let the JPEG header scan silently return
+     * empty metadata.
+     */
+    override val contentLength: Long =
+        if (contentLength > 0) contentLength else Long.MAX_VALUE
 
     private var buffer: ByteArray = byteArrayOf()
     private var bufferOffset = 0

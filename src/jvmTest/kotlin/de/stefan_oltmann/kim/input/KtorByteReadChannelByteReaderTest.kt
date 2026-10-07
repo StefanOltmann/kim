@@ -93,4 +93,20 @@ class KtorByteReadChannelByteReaderTest {
         assertEquals(0, reader.readBytes(100).size)
         assertNull(reader.readByte())
     }
+
+    /**
+     * A zero hint means "size unknown" and must read as unbounded like
+     * on the JVM facade - passed through raw, the JPEG header budget
+     * check would treat every position as exhausted.
+     */
+    @Test
+    fun testZeroHintIsReportedAsUnbounded() {
+
+        val reader = KtorByteReadChannelByteReader(
+            channel = ByteReadChannel(byteArrayOf(1, 2, 3)),
+            contentLength = 0
+        )
+
+        assertEquals(Long.MAX_VALUE, reader.contentLength)
+    }
 }
