@@ -63,6 +63,7 @@ public fun interface ImageParser {
                 MediaFormat.RAF -> RafImageParser
 
                 MediaFormat.HEIC,
+                MediaFormat.HIF,
                 MediaFormat.AVIF,
                 MediaFormat.CR3,
                 MediaFormat.JXL -> BaseMediaFileFormatImageParser
