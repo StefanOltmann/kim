@@ -53,7 +53,7 @@ class ZLibTest {
     fun testDecompress() {
 
         for (entry in zlibTestData)
-            assertEquals(entry.key, decompress(entry.value))
+            assertEquals(entry.key, decompressBytes(entry.value).decodeToString())
     }
 
     /**
@@ -66,7 +66,7 @@ class ZLibTest {
 
         val text = "A".repeat(100_000)
 
-        assertEquals(text, decompress(compressedA100K))
+        assertEquals(text, decompressBytes(compressedA100K).decodeToString())
     }
 
     /**
@@ -80,7 +80,7 @@ class ZLibTest {
 
         val text = "\u00E4\u00F6\u00FC".repeat(2048)
 
-        assertEquals(text, decompress(compressedUmlauts))
+        assertEquals(text, decompressBytes(compressedUmlauts).decodeToString())
     }
 
     /**
@@ -95,7 +95,7 @@ class ZLibTest {
             compressedA100K.copyOfRange(0, compressedA100K.size / 2)
 
         assertFailsWith<ImageReadException> {
-            decompress(truncated)
+            decompressBytes(truncated)
         }
     }
 
@@ -112,7 +112,7 @@ class ZLibTest {
         corrupted[0] = 0x00
 
         assertFailsWith<ImageReadException> {
-            decompress(corrupted)
+            decompressBytes(corrupted)
         }
     }
 
@@ -150,7 +150,7 @@ class ZLibTest {
 
         assertEquals(
             expected = "Hello, World!" + "I love Kotlin!",
-            actual = decompress(joined)
+            actual = decompressBytes(joined).decodeToString()
         )
     }
 
@@ -162,7 +162,7 @@ class ZLibTest {
     fun testDecompressRejectsOutputBeyondTheLimit() {
 
         assertFailsWith<ImageReadException> {
-            decompress(compressedA100K, maxOutputByteCount = 1024)
+            decompressBytes(compressedA100K, maxOutputByteCount = 1024)
         }
     }
 
@@ -175,7 +175,8 @@ class ZLibTest {
 
         assertEquals(
             expected = "The quick brown fox jumps over the lazy dog.",
-            actual = decompress(compressedFox, maxOutputByteCount = 4096)
+            actual = decompressBytes(compressedFox, maxOutputByteCount = 4096)
+                .decodeToString()
         )
     }
 

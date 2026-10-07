@@ -173,6 +173,32 @@ class PngChunkTest {
         assertEquals(text, chunk.getText())
     }
 
+    /**
+     * iTXt text is UTF-8 whether it is stored compressed or not, so
+     * invalid sequences must fail the read in both branches - the
+     * compressed path used to fabricate replacement characters.
+     */
+    @Test
+    fun testItxtChunkWithCompressedTextRejectsInvalidUtf8() {
+
+        /* zlib-compressed bytes C3 28 - an invalid UTF-8 sequence. */
+        val invalidUtf8Compressed = convertHexStringToByteArray(
+            "78DA3BAC010001B000EC"
+        )
+
+        val bytes = "Comment".encodeToByteArray() +
+            byteArrayOf(0) +
+            byteArrayOf(1) +
+            byteArrayOf(0) +
+            byteArrayOf(0) +
+            byteArrayOf(0) +
+            invalidUtf8Compressed
+
+        assertFailsWith<ImageReadException> {
+            PngChunkItxt(bytes, 0)
+        }
+    }
+
     @Test
     fun testItxtChunkRejectsInvalidData() {
 
@@ -212,6 +238,31 @@ class PngChunkTest {
 
         assertEquals(keyword, chunk.getKeyword())
         assertEquals(text, chunk.getText())
+    }
+
+    /**
+     * The PNG specification defines zTXt text as Latin-1 - the same
+     * encoding the keyword already uses. Decoding the decompressed
+     * bytes as UTF-8 corrupts every character above 0x7F.
+     */
+    @Test
+    fun testZtxtChunkDecodesLatin1Text() {
+
+        val keyword = "Artist"
+
+        /* zlib-compressed Latin-1 bytes of "Müller". */
+        val latin1Compressed = convertHexStringToByteArray(
+            "78DAF3FD9393935A04000AF002F9"
+        )
+
+        val bytes = keyword.encodeToByteArray() +
+            byteArrayOf(0) +
+            byteArrayOf(0) +
+            latin1Compressed
+
+        val chunk = PngChunkZtxt(bytes, 0)
+
+        assertEquals("Müller", chunk.getText())
     }
 
     @Test

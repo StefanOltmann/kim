@@ -82,15 +82,3 @@ internal fun decompressBytes(
 
     return decompressBytesPlatform(byteArray, maxOutputByteCount)
 }
-
-/**
- * Decompresses the given zlib data.
- *
- * Aborts with an [ImageReadException] when the output exceeds
- * [maxOutputByteCount], so hostile input cannot exhaust the memory.
- */
-internal fun decompress(
-    byteArray: ByteArray,
-    maxOutputByteCount: Int = MAX_DECOMPRESSED_BYTE_COUNT
-): String =
-    decompressBytes(byteArray, maxOutputByteCount).decodeToString()

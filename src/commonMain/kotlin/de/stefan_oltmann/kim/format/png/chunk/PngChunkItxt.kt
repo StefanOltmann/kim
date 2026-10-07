@@ -20,7 +20,7 @@ package de.stefan_oltmann.kim.format.png.chunk
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.decodeStrictUtf8
 import de.stefan_oltmann.kim.common.decodeLatin1BytesToString
-import de.stefan_oltmann.kim.common.decompress
+import de.stefan_oltmann.kim.common.decompressBytes
 import de.stefan_oltmann.kim.common.indexOfNullTerminator
 import de.stefan_oltmann.kim.common.slice
 import de.stefan_oltmann.kim.format.png.PngChunkType
@@ -111,7 +111,8 @@ public class PngChunkItxt(
         )
 
         text = if (compressed)
-            decompress(subBytes)
+            decompressBytes(subBytes)
+                .decodeStrictUtf8("The PNG iTXt chunk text")
         else
             subBytes.decodeStrictUtf8("The PNG iTXt chunk text")
     }
