@@ -33,8 +33,19 @@ public class DefaultRandomAccessByteReader(
     public val byteReader: ByteReader
 ) : RandomAccessByteReader {
 
+    /*
+     * The unbounded length sentinel of stream sources means "unknown
+     * size", not a real content size. It is reported as the addressable
+     * maximum here, so the construction below does not mistake it for a
+     * size - a stream with unknown length could otherwise never read
+     * TIFF-family metadata at all. Reads stay gated by the delegate's
+     * real end of data, never by the hint.
+     */
     override val contentLength: Long =
-        byteReader.contentLength
+        if (byteReader.contentLength == Long.MAX_VALUE)
+            Int.MAX_VALUE.toLong()
+        else
+            byteReader.contentLength
 
     init {
 

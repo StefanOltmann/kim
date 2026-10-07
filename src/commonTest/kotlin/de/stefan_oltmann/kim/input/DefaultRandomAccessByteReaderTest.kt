@@ -18,6 +18,7 @@ package de.stefan_oltmann.kim.input
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
+import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -28,6 +29,44 @@ import kotlin.test.assertTrue
 class DefaultRandomAccessByteReaderTest {
 
     private val bytes = byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+
+    /**
+     * The unbounded length sentinel of stream readers reports "unknown
+     * size", not a real content size. It must not fail the
+     * construction, because reads are gated by the delegate's real end
+     * of data - with the sentinel treated as a size, a stream with
+     * unknown length could never read TIFF-family metadata at all.
+     */
+    @Test
+    fun testUnboundedLengthHintAllowsTiffReads() {
+
+        val tiffBytes = KimTestData.getBytesOf(KimTestData.TIFF_NONE_TEST_IMAGE_INDEX)
+
+        val reader = DefaultRandomAccessByteReader(
+            UnboundedHintByteReader(ByteArrayByteReader(tiffBytes))
+        )
+
+        val contents = TiffReader.read(reader)
+
+        assertTrue(contents.directories.isNotEmpty())
+    }
+
+    /**
+     * A ByteReader whose length hint claims an unbounded stream, like
+     * the JVM stream reader reports unknown sizes.
+     */
+    private class UnboundedHintByteReader(
+        private val delegate: ByteReader
+    ) : ByteReader {
+
+        override val contentLength: Long = Long.MAX_VALUE
+
+        override fun readByte(): Byte? = delegate.readByte()
+
+        override fun readBytes(count: Int): ByteArray = delegate.readBytes(count)
+
+        override fun close() = delegate.close()
+    }
 
     @Test
     fun testSequentialReads() {
