@@ -148,9 +148,11 @@ class JxlUpdaterTest : AbstractUpdaterTest("jxl") {
         val jxlpBytes = createJxlpFileWithTrailingMetadata()
 
         val malformedBox =
-            byteArrayOf(0, 0, 0, 1) + // size 1 means the real size follows
+            /* size 1 means the real size follows */
+            byteArrayOf(0, 0, 0, 1) +
                 BoxType.XML.bytes +
-                byteArrayOf(0, 0, 0, 0, 0, 0, 0, 10) // largesize 10 < 2 * 8
+                /* largesize 10 < 2 * 8 */
+                byteArrayOf(0, 0, 0, 0, 0, 0, 0, 10)
 
         assertFailsWith<ImageWriteException> {
             Kim.deleteMetadata(jxlpBytes + malformedBox)

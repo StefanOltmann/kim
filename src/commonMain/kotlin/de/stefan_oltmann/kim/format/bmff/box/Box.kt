@@ -19,17 +19,17 @@ package de.stefan_oltmann.kim.format.bmff.box
 
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BOX_HEADER_LENGTH
 import de.stefan_oltmann.kim.format.bmff.BoxType
+import de.stefan_oltmann.kim.format.bmff.PayloadSource
 
 /**
  * A box of the ISO base media file format.
  */
-public open class Box(
+public open class Box internal constructor(
     public val type: BoxType,
     public val offset: Long,
     public val size: Long,
     public val largeSize: Long?,
-    /** Payload bytes, not including type & length bytes. */
-    public val payload: ByteArray,
+    internal val payloadSource: PayloadSource,
     /**
      * The true extent of the box. Only the box scanner sets this when
      * the payload was deliberately dropped during the scan, because the
@@ -38,6 +38,14 @@ public open class Box(
      */
     public val resolvedLength: Long? = null
 ) {
+
+    /**
+     * Payload bytes, not including type & length bytes. Materialized on
+     * first access - for container boxes the children parse from the
+     * parent buffer through a window, so the payload array exists only
+     * if something actually reads it.
+     */
+    public val payload: ByteArray by lazy { payloadSource.bytes() }
 
     /*
      * "size" is an integer that specifies the number of bytes in this box,
@@ -49,13 +57,26 @@ public open class Box(
     public val actualLength: Long =
         resolvedLength
             ?: when (size) {
-                0L -> BOX_HEADER_LENGTH.toLong() + payload.size
+                0L -> BOX_HEADER_LENGTH.toLong() + payloadSource.length
 
                 /* A size of 1 means the real size is stored in largesize. */
                 1L -> checkNotNull(largeSize) { "Box $type has size 1, but no largesize." }
 
                 else -> size
             }
+
+    /**
+     * The box constructor with the payload bytes, for callers that hold
+     * the bytes already.
+     */
+    public constructor(
+        type: BoxType,
+        offset: Long,
+        size: Long,
+        largeSize: Long?,
+        payload: ByteArray,
+        resolvedLength: Long? = null
+    ) : this(type, offset, size, largeSize, PayloadSource.of(payload), resolvedLength)
 
     override fun toString(): String =
         "Box '$type' @$offset ($actualLength bytes)"

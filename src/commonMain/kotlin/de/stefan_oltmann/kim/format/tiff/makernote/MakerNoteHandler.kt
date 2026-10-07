@@ -29,6 +29,7 @@ import de.stefan_oltmann.kim.input.RandomAccessByteReader
 import de.stefan_oltmann.kim.input.readByteAsInt
 import de.stefan_oltmann.kim.input.readBytes
 import de.stefan_oltmann.kim.input.skipBytes
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * The shared machinery for reading the MakerNote directories.
@@ -166,6 +167,8 @@ internal open class MakerNoteHandler {
                     addDirectory = addDirectory
                 )
 
+            } catch (ex: CancellationException) {
+                throw ex
             } catch (_: Exception) {
                 /*
                  * Skip the unreadable sub-directory.
@@ -193,7 +196,7 @@ internal open class MakerNoteHandler {
         byteOrder: ByteOrder,
         blobPointers: List<MakerNoteBlobPointer>,
         addDirectory: (TiffDirectory) -> Unit,
-        serialKey: Int? = null,
+        serialKey: Long? = null,
         countKey: Int? = null,
         model: String? = null
     ) {
@@ -255,6 +258,8 @@ internal open class MakerNoteHandler {
                     addDirectory = addDirectory
                 )
 
+            } catch (ex: CancellationException) {
+                throw ex
             } catch (_: Exception) {
                 /*
                  * Skip the unreadable sub-directory.
@@ -311,6 +316,8 @@ internal open class MakerNoteHandler {
                     addDirectory = addDirectory
                 )
 
+            } catch (ex: CancellationException) {
+                throw ex
             } catch (_: Exception) {
                 /*
                  * Skip the unreadable sub-directory.

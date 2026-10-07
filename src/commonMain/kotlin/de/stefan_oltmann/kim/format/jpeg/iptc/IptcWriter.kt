@@ -91,11 +91,20 @@ public object IptcWriter {
      * Encodes the given records into IPTC application record 2 data,
      * written in UTF-8 with the coded-character-set envelope set.
      *
+     * The [foreignDatasets] are re-emitted verbatim after the record 2
+     * datasets in their original order - datasets outside record 2
+     * cannot be regenerated from the model, so dropping them would be
+     * data loss. The IIM stream model does not require ascending
+     * dataset order for readers.
+     *
      * @throws ImageWriteException for record types outside the range the
      *         format defines.
      */
     @Throws(ImageWriteException::class)
-    public fun writeIptcBlockData(records: List<IptcRecord>): ByteArray {
+    public fun writeIptcBlockData(
+        records: List<IptcRecord>,
+        foreignDatasets: List<ByteArray> = emptyList()
+    ): ByteArray {
 
         val byteWriter = ByteArrayByteWriter()
 
@@ -117,7 +126,8 @@ public object IptcWriter {
         binaryWriter.write(IptcConstants.IPTC_RECORD_TAG_MARKER)
         binaryWriter.write(IptcConstants.IPTC_APPLICATION_2_RECORD_NUMBER)
         binaryWriter.write(IptcTypes.RECORD_VERSION.type)
-        binaryWriter.write2Bytes(2) // record version record size
+        /*  record version record size */
+        binaryWriter.write2Bytes(2)
         binaryWriter.write2Bytes(IptcConstants.IPTC_RECORD_VERSION_VALUE)
 
         /* Write the IPTC records in order. */
@@ -161,6 +171,35 @@ public object IptcWriter {
             binaryWriter.write(recordData)
         }
 
+        for (foreignDataset in foreignDatasets)
+            binaryWriter.write(foreignDataset)
+
         return byteWriter.toByteArray()
+    }
+
+    /**
+     * Encodes the metadata as the Photoshop image resource block
+     * structure (8BIM) without the APP13 identifier: the form both the
+     * JPEG APP13 segment and the PNG "Raw profile type iptc" text
+     * chunk carry. Non-IPTC resources - the IPTCDigest marker among
+     * them - are re-emitted, so a rewrite never drops them.
+     *
+     * @throws ImageWriteException for record types outside the range the
+     *         format defines.
+     */
+    @JvmStatic
+    @Throws(ImageWriteException::class)
+    public fun writeIptcResourceBlocks(metadata: IptcMetadata): ByteArray {
+
+        val newBlock = IptcBlock(
+            blockType = IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DATA,
+            blockNameBytes = IptcParser.EMPTY_BYTE_ARRAY,
+            blockData = writeIptcBlockData(metadata.records, metadata.foreignDatasets)
+        )
+
+        return writeIptcBlocks(
+            blocks = metadata.nonIptcBlocks + newBlock,
+            includeApp13Identifier = false
+        )
     }
 }

@@ -100,22 +100,37 @@ class JpegOrientationOffsetFinderTest {
 
         /* SOI + APP1 with an EXIF whose Orientation is typed LONG. */
         val bytes = byteArrayOf(
-            0xFF.toByte(), 0xD8.toByte(), // SOI
-            0xFF.toByte(), 0xE1.toByte(), // APP1
-            0x00, 0x22,                   // Segment length 34.
-            0x45, 0x78, 0x69, 0x66, 0x00, 0x00, // "Exif\0\0"
-            0x49, 0x49, 0x2A, 0x00,       // TIFF header, little-endian.
-            8, 0, 0, 0,                   // IFD0 offset.
-            1, 0,                         // Entry count.
-            0x12, 0x01,                   // Orientation tag.
-            4, 0,                         // Type LONG (nonconformant).
-            1, 0, 0, 0,                   // Count 1.
-            6, 0, 0, 0,                   // Value 6.
-            0, 0, 0, 0,                   // No next IFD.
-            0xFF.toByte(), 0xDA.toByte(), // SOS
+            /* SOI */
+            0xFF.toByte(), 0xD8.toByte(),
+            /* APP1 */
+            0xFF.toByte(), 0xE1.toByte(),
+            /* Segment length 34. */
+            0x00, 0x22,
+            /* "Exif\0\0" */
+            0x45, 0x78, 0x69, 0x66, 0x00, 0x00,
+            /* TIFF header, little-endian. */
+            0x49, 0x49, 0x2A, 0x00,
+            /* IFD0 offset. */
+            8, 0, 0, 0,
+            /* Entry count. */
+            1, 0,
+            /* Orientation tag. */
+            0x12, 0x01,
+            /* Type LONG (nonconformant). */
+            4, 0,
+            /* Count 1. */
+            1, 0, 0, 0,
+            /* Value 6. */
+            6, 0, 0, 0,
+            /* No next IFD. */
+            0, 0, 0, 0,
+            /* SOS */
+            0xFF.toByte(), 0xDA.toByte(),
             0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x3F, 0x00,
-            0x12, 0x34,                   // Entropy-coded data.
-            0xFF.toByte(), 0xD9.toByte()  // EOI
+            /* Entropy-coded data. */
+            0x12, 0x34,
+            /* EOI */
+            0xFF.toByte(), 0xD9.toByte()
         )
 
         assertEquals(

@@ -38,8 +38,10 @@ class WebPImageParserTest {
         /* A valid minimal VP8 key frame header. */
         val vp8Payload = byteArrayOf(
             0x10, 0x00, 0x00, 0x9D.toByte(), 0x01, 0x2A,
-            0x64, 0x00, // width 100
-            0x64, 0x00 // height 100
+            /* width 100 */
+            0x64, 0x00,
+            /* height 100 */
+            0x64, 0x00
         )
 
         val vp8Chunk = "VP8 ".encodeToByteArray() +
@@ -91,8 +93,10 @@ class WebPImageParserTest {
 
         val vp8Payload = byteArrayOf(
             0x10, 0x00, 0x00, 0x9D.toByte(), 0x01, 0x2A,
-            0x64, 0x00, // width 100
-            0x64, 0x00 // height 100
+            /* width 100 */
+            0x64, 0x00,
+            /* height 100 */
+            0x64, 0x00
         )
 
         val vp8Chunk = "VP8 ".encodeToByteArray() +

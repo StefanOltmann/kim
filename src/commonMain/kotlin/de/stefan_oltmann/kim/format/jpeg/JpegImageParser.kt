@@ -19,12 +19,16 @@ package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.getRemainingBytes
+import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toInt
 import de.stefan_oltmann.kim.common.toUInt16
+import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MediaMetadata
+import de.stefan_oltmann.kim.format.icc.IccProfile
+import de.stefan_oltmann.kim.format.icc.IccProfileParser
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
@@ -35,8 +39,12 @@ import de.stefan_oltmann.kim.format.jpeg.segment.Segment
 import de.stefan_oltmann.kim.format.jpeg.segment.SofnSegment
 import de.stefan_oltmann.kim.format.jpeg.segment.UnknownSegment
 import de.stefan_oltmann.kim.format.jpeg.xmp.JpegXmpParser
+import de.stefan_oltmann.kim.format.mpf.MpfDirectory
+import de.stefan_oltmann.kim.format.mpf.MpfParser
+import de.stefan_oltmann.kim.format.printim.PrintImParser
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffReader
+import de.stefan_oltmann.kim.format.xmp.requireValidXmpPacket
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.read2BytesAsInt
@@ -71,8 +79,10 @@ public object JpegImageParser : ImageParser {
          */
         var readBytesCount = magicNumberBytes.size.toLong()
 
-        /* The consumed bytes are only counted here, so the scanner must not
-         * buffer a potentially unbounded inter-marker gap. */
+        /*
+         * The consumed bytes are only counted here, so the scanner must not
+         * buffer a potentially unbounded inter-marker gap.
+         */
         val scanner = JpegMarkerScanner(byteReader, keepConsumedBytes = false)
 
         @Suppress("LoopWithTooManyJumpStatements")
@@ -143,7 +153,11 @@ public object JpegImageParser : ImageParser {
 
             val (segments, endMarkerBytes) = JpegUtils.readSegments(byteReader) { marker ->
                 marker in JpegConstants.SOFN_MARKERS +
-                    listOf(JpegConstants.JPEG_APP1_MARKER, JpegConstants.JPEG_APP13_MARKER)
+                    listOf(
+                        JpegConstants.JPEG_APP1_MARKER,
+                        JpegConstants.JPEG_APP2_MARKER,
+                        JpegConstants.JPEG_APP13_MARKER
+                    )
             }
 
             /*
@@ -187,13 +201,22 @@ public object JpegImageParser : ImageParser {
 
         val xmp = getXmpXml(segments)
 
+        val iccProfile = getIccProfile(segments)
+
+        val printIm = exif?.let { contents -> PrintImParser.parseFrom(contents) }
+
+        val mpf = getMpf(segments)
+
         return MediaMetadata(
             mediaFormat = MediaFormat.JPEG,
             imageSize = imageSize,
             exif = exif,
             exifBytes = exifBytes,
             iptc = iptc,
-            xmp = xmp
+            xmp = xmp,
+            iccProfile = iccProfile,
+            printIm = printIm,
+            mpf = mpf
         )
     }
 
@@ -204,6 +227,7 @@ public object JpegImageParser : ImageParser {
     private fun toSegment(marker: Int, segmentBytes: ByteArray): Segment? =
         when (marker) {
             JpegConstants.JPEG_APP1_MARKER -> AppnSegment(marker, segmentBytes)
+            JpegConstants.JPEG_APP2_MARKER -> AppnSegment(marker, segmentBytes)
             JpegConstants.JPEG_APP13_MARKER -> App13Segment(marker, segmentBytes)
 
             /*
@@ -340,7 +364,15 @@ public object JpegImageParser : ImageParser {
         if (xmp.isBlank())
             return null
 
-        return mergeExtendedXmp(xmp.toString(), extendedSegments)
+        /*
+         * A packet cut between the opening and the closing element is
+         * truncated content: it must fail the read like it fails the
+         * update path, instead of reaching sidecar writers.
+         */
+        return requireValidXmpPacket(
+            xmp = mergeExtendedXmp(xmp.toString(), extendedSegments),
+            sourceDescription = "The JPEG XMP segment"
+        )
     }
 
     /**
@@ -366,6 +398,88 @@ public object JpegImageParser : ImageParser {
         } catch (ex: XMPException) {
             throw ImageReadException("Failed to merge the extended XMP data.", ex)
         }
+
+    /**
+     * Extracts and parses the ICC color profile from the APP2
+     * "ICC_PROFILE" chunks, or NULL when the file carries none.
+     *
+     * A profile larger than one segment is spread over consecutive
+     * APP2 chunks that number themselves (first byte behind the
+     * identifier) against their total (second byte). The chunk
+     * sequence must be complete and consistent: a missing, duplicated
+     * or out-of-range chunk means corrupt metadata, which fails the
+     * read instead of parsing a truncated profile.
+     */
+    private fun getIccProfile(segments: List<Segment>): IccProfile? {
+
+        data class IccChunk(
+            val index: Int,
+            val total: Int,
+            val payload: ByteArray
+        )
+
+        val chunks = mutableListOf<IccChunk>()
+
+        for (segment in segments.filterIsInstance<GenericSegment>()) {
+
+            if (segment.marker != JpegConstants.JPEG_APP2_MARKER)
+                continue
+
+            val segmentBytes = segment.segmentBytes
+
+            if (!segmentBytes.startsWith(JpegConstants.ICC_PROFILE_IDENTIFIER))
+                continue
+
+            val index = segmentBytes[JpegConstants.ICC_CHUNK_SEQUENCE_OFFSET].toUInt8()
+            val total = segmentBytes[JpegConstants.ICC_CHUNK_SEQUENCE_OFFSET + 1].toUInt8()
+
+            if (total < 1 || index < 1 || index > total)
+                throw ImageReadException(
+                    "Invalid ICC chunk sequence $index of $total in the APP2 segment."
+                )
+
+            chunks.add(
+                IccChunk(
+                    index = index,
+                    total = total,
+                    payload = segmentBytes.getRemainingBytes(
+                        JpegConstants.ICC_IDENTIFIER_LENGTH + JpegConstants.ICC_SEQUENCE_BYTE_COUNT
+                    )
+                )
+            )
+        }
+
+        if (chunks.isEmpty())
+            return null
+
+        val total = chunks.first().total
+
+        if (chunks.size != total || chunks.map { it.index }.sorted() != (1..total).toList())
+            throw ImageReadException(
+                "The ICC profile spans ${chunks.size} of $total declared chunks - " +
+                    "the chunk sequence is incomplete."
+            )
+
+        val profileBytes = ByteArrayByteWriter()
+
+        chunks.sortedBy { chunk -> chunk.index }
+            .forEach { chunk -> profileBytes.write(chunk.payload) }
+
+        return IccProfileParser.parse(profileBytes.toByteArray())
+    }
+
+    /**
+     * Extracts and parses the Multi-Picture Format index from the
+     * "MPF\u0000" APP2 segment, or NULL when the file carries none.
+     */
+    private fun getMpf(segments: List<Segment>): MpfDirectory? =
+
+        segments.filterIsInstance<GenericSegment>()
+            .firstOrNull { segment ->
+                segment.marker == JpegConstants.JPEG_APP2_MARKER &&
+                    segment.segmentBytes.startsWith(JpegConstants.MPF_IDENTIFIER)
+            }
+            ?.let { segment -> MpfParser.parse(segment.segmentBytes) }
 
     private fun getIptc(segments: List<Segment>): IptcMetadata? {
 

@@ -39,6 +39,7 @@ import de.stefan_oltmann.kim.format.raf.RafPreviewExtractor
 import de.stefan_oltmann.kim.format.rw2.Rw2PreviewExtractor
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffReader
+import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.DefaultRandomAccessByteReader
@@ -75,7 +76,7 @@ import kotlin.coroutines.cancellation.CancellationException
  * sidecars (XMP, JSON) from the read result, so a silent partial read loses
  * data anyway.
  *
- * There are exactly three kinds of garbage that may be dropped silently:
+ * There are exactly five kinds of garbage that may be dropped silently:
  *
  * 1. Corrupt embedded thumbnails and preview images: they are always
  *    restorable from the primary image data, so dropping them is not real
@@ -90,6 +91,19 @@ import kotlin.coroutines.cancellation.CancellationException
  *    happens at summary level only - the raw values stay untouched on the
  *    metadata object, so nothing is lost for tools that parse them
  *    themselves.
+ *
+ * 4. Orphan Adobe extended-XMP segments in JPEG files whose GUID is not
+ *    referenced by any standard packet: their content is undecodable
+ *    without the lost main packet (ExifTool ignores them as well), so the
+ *    read skips them and an XMP-writing update removes their bytes. This
+ *    only covers the unreferenced extension chunks - a truncated packet
+ *    that IS referenced fails the read like any other unreadable content.
+ *
+ * 5. Adobe's legal partial date forms ("2023", "2023-05") in XMP: they
+ *    are valid values, but the summary's epoch-millis model cannot
+ *    represent them without fabricating a month or day, so the derived
+ *    summary omits them. Like category 3, this drop happens at summary
+ *    level only - the raw packet stays untouched on the metadata object.
  *
  * Dropping a MakerNote, EXIF, IPTC, or XMP content is real data loss and
  * must fail the read instead. Stopping a parse at the exact boundary where
@@ -210,10 +224,22 @@ public object Kim {
 
         byteReader.use {
 
-            val (mediaFormat, newReader) = detectFormatAndReplayHeader(it)
+            val detection = detectFormatAndReplayHeader(it)
 
-            if (mediaFormat == null)
+            val mediaFormat = detection.mediaFormat
+
+            if (mediaFormat == null) {
+
+                /*
+                 * A BigTIFF header is not unknown bytes: the documented
+                 * rule is that it keeps failing the read, which
+                 * TiffReader cannot enforce when the facade never
+                 * forwards the file to it.
+                 */
+                TiffReader.rejectBigTiffHeader(detection.headerBytes)
+
                 return@use null
+            }
 
             val imageParser = ImageParser.forFormat(mediaFormat)
                 ?: return@use MediaMetadata.createEmpty(mediaFormat)
@@ -222,13 +248,53 @@ public object Kim {
              * We re-apply the MediaFormat here, because we don't want to report
              * "TIFF" for every TIFF-based RAW format like CR2.
              */
-            return@use (
+            val metadata =
                 if (readTrailerMetadata && mediaFormat == MediaFormat.JPEG)
-                    JpegImageParser.parseMetadata(newReader, readTrailerMetadata = true)
+                    JpegImageParser.parseMetadata(detection.reader, readTrailerMetadata = true)
                 else
-                    imageParser.parseMetadata(byteReader = newReader)
-                ).withMediaFormat(mediaFormat = mediaFormat)
+                    imageParser.parseMetadata(byteReader = detection.reader)
+
+            /*
+             * NEF, ARW and DNG files carry the plain TIFF magic, so the
+             * header detection labels them TIFF. The parsed structure
+             * identifies them - the DNGVersion tag marks a DNG, the
+             * vendor maker notes mark NEF and ARW - like ExifTool
+             * reports the specific format for the same bytes.
+             */
+            val reportedFormat =
+                if (mediaFormat == MediaFormat.TIFF)
+                    refineTiffFormat(metadata) ?: mediaFormat
+                else
+                    mediaFormat
+
+            return@use metadata.withMediaFormat(mediaFormat = reportedFormat)
         }
+    }
+
+    /**
+     * Refines a TIFF-detected metadata result to the specific TIFF-based
+     * format, or returns NULL when the structure identifies no specific
+     * format: the DNGVersion tag marks a DNG, a Nikon or Sony maker note
+     * marks NEF or ARW.
+     */
+    private fun refineTiffFormat(metadata: MediaMetadata): MediaFormat? {
+
+        val exif = metadata.exif ?: return null
+
+        if (metadata.findTiffField(TiffTag.TIFF_TAG_DNG_VERSION) != null)
+            return MediaFormat.DNG
+
+        val hasMakerNote = exif.makerNoteDirectory != null
+
+        val make = metadata.findStringValue(TiffTag.TIFF_TAG_MAKE)
+
+        if (hasMakerNote && make?.startsWith("NIKON", ignoreCase = true) == true)
+            return MediaFormat.NEF
+
+        if (hasMakerNote && make?.startsWith("SONY", ignoreCase = true) == true)
+            return MediaFormat.ARW
+
+        return null
     }
 
     /**
@@ -253,13 +319,23 @@ public object Kim {
 
         byteReader.use {
 
-            val (mediaFormat, newReader) = detectFormatAndReplayHeader(it)
+            val detection = detectFormatAndReplayHeader(it)
+
+            if (detection.mediaFormat == null) {
+
+                /* Same rule as in readMetadata: BigTIFF fails, the rest is unknown. */
+                TiffReader.rejectBigTiffHeader(detection.headerBytes)
+
+                return@use null to byteArrayOf()
+            }
+
+            val mediaFormat = detection.mediaFormat
 
             return@use when (mediaFormat) {
-                MediaFormat.JPEG -> mediaFormat to JpegMetadataExtractor.extractMetadataBytes(newReader)
-                MediaFormat.PNG -> mediaFormat to PngMetadataExtractor.extractMetadataBytes(newReader)
-                MediaFormat.RAF -> mediaFormat to RafMetadataExtractor.extractMetadataBytes(newReader)
-                MediaFormat.GIF -> mediaFormat to GifMetadataExtractor.extractMetadataBytes(newReader)
+                MediaFormat.JPEG -> mediaFormat to JpegMetadataExtractor.extractMetadataBytes(detection.reader)
+                MediaFormat.PNG -> mediaFormat to PngMetadataExtractor.extractMetadataBytes(detection.reader)
+                MediaFormat.RAF -> mediaFormat to RafMetadataExtractor.extractMetadataBytes(detection.reader)
+                MediaFormat.GIF -> mediaFormat to GifMetadataExtractor.extractMetadataBytes(detection.reader)
                 else -> mediaFormat to byteArrayOf()
             }
         }
@@ -279,22 +355,24 @@ public object Kim {
 
         byteReader.use {
 
-            val (mediaFormat, prePendingByteReader) = detectFormatAndReplayHeader(it)
+            val detection = detectFormatAndReplayHeader(it)
+
+            val mediaFormat = detection.mediaFormat
 
             return@use when (mediaFormat) {
 
                 MediaFormat.RAF ->
-                    RafPreviewExtractor.extractPreviewImage(prePendingByteReader)
+                    RafPreviewExtractor.extractPreviewImage(detection.reader)
 
                 MediaFormat.CR3 ->
-                    Cr3PreviewExtractor.extractPreviewImage(prePendingByteReader)
+                    Cr3PreviewExtractor.extractPreviewImage(detection.reader)
 
                 MediaFormat.CR2,
                 MediaFormat.RW2,
                 MediaFormat.ORF,
                 MediaFormat.TIFF -> {
 
-                    val reader = DefaultRandomAccessByteReader(prePendingByteReader)
+                    val reader = DefaultRandomAccessByteReader(detection.reader)
 
                     val tiffContents = TiffReader.read(reader)
 
@@ -325,7 +403,7 @@ public object Kim {
                  * loudly for them.
                  */
                 null -> {
-                    TiffReader.read(DefaultRandomAccessByteReader(prePendingByteReader))
+                    TiffReader.read(DefaultRandomAccessByteReader(detection.reader))
 
                     null
                 }
@@ -402,6 +480,12 @@ public object Kim {
      * duplicate the same logical values, so updating only one of them would
      * let the copies drift apart - see [de.stefan_oltmann.kim.format.MetadataUpdater].
      *
+     * Attention: JPEG metadata segments behind the image data (see
+     * [readMetadata][readMetadata]) are left untouched: the trailer can
+     * belong to another tool, so an update rewrites the header metadata
+     * only and copies the trailer verbatim. A stale trailer copy stays
+     * visible through `readTrailerMetadata = true`.
+     *
      * Attention: The given [ByteReader] and [ByteWriter] are not closed by
      * this call; the caller owns and closes both.
      *
@@ -427,19 +511,19 @@ public object Kim {
         if (updates.isEmpty())
             throw ImageWriteException("You did not specify any updates.")
 
-        val (mediaFormat, prePendingByteReader) = detectFormatAndReplayHeader(byteReader)
+        val detection = detectFormatAndReplayHeader(byteReader)
 
-        if (mediaFormat == null)
+        if (detection.mediaFormat == null)
             throw ImageWriteException("Unknown or unsupported file format.")
 
         /*
          * GIF can carry XMP but has no EXIF, IPTC or thumbnail concept, so
          * its updater answers those calls itself with a targeted error.
          */
-        val updater = MetadataUpdater.forFormat(mediaFormat)
-            ?: throw ImageWriteException("Can't embed metadata into $mediaFormat.")
+        val updater = MetadataUpdater.forFormat(detection.mediaFormat)
+            ?: throw ImageWriteException("Can't embed metadata into ${detection.mediaFormat}.")
 
-        updater.update(prePendingByteReader, byteWriter, updates)
+        updater.update(detection.reader, byteWriter, updates)
     }
 
     /**
@@ -489,23 +573,25 @@ public object Kim {
         byteWriter: ByteWriter
     ): Unit = tryWithImageWriteException {
 
-        val (mediaFormat, prePendingByteReader) = detectFormatAndReplayHeader(byteReader)
+        val detection = detectFormatAndReplayHeader(byteReader)
 
-        if (mediaFormat == null)
+        if (detection.mediaFormat == null)
             throw ImageWriteException("Unknown or unsupported file format.")
 
-        val updater = MetadataUpdater.forFormat(mediaFormat)
-            ?: throw ImageWriteException("Can't delete metadata of $mediaFormat.")
+        val updater = MetadataUpdater.forFormat(detection.mediaFormat)
+            ?: throw ImageWriteException("Can't delete metadata of ${detection.mediaFormat}.")
 
-        updater.deleteMetadata(prePendingByteReader, byteWriter)
+        updater.deleteMetadata(detection.reader, byteWriter)
     }
 
     /**
-     * Replaces the embedded thumbnail of the file with the given JPEG bytes.
+     * Replaces the embedded thumbnail of the file with the given bytes.
      *
-     * Attention: The thumbnail is embedded into the EXIF data, which must
-     * fit into a single JPEG APP1 segment of about 65 KB. Thumbnails that
-     * exceed this limit are rejected with an [ImageWriteException].
+     * Attention: The thumbnail is embedded into the EXIF data, whose
+     * tightest container bound is the JPEG APP1 segment at about 65 KB.
+     * Thumbnails exceeding that shared bound, or bytes without the JPEG
+     * SOI marker, are rejected with an [ImageWriteException] - on every
+     * format alike. The bytes are otherwise embedded as-is.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -545,20 +631,33 @@ public object Kim {
         }
 
     /**
+     * The outcome of reading the head of a stream: the detected media
+     * format - NULL for unknown bytes - the consumed header bytes, so
+     * callers can classify special unknown signatures like BigTIFF, and
+     * a reader that replays the consumed bytes, so the format parsers
+     * see the complete stream again.
+     */
+    private class DetectedFormat(
+        val mediaFormat: MediaFormat?,
+        val headerBytes: ByteArray,
+        val reader: ByteReader
+    )
+
+    /**
      * Reads the head of the stream and detects the media format from it.
-     *
-     * Returns the detected format - NULL for unknown bytes - together
-     * with a reader that replays the consumed header bytes, so the
-     * format parsers see the complete stream again.
      */
     private fun detectFormatAndReplayHeader(
         byteReader: ByteReader
-    ): Pair<MediaFormat?, ByteReader> {
+    ): DetectedFormat {
 
         val headerBytes = byteReader.readBytes(MediaFormat.REQUIRED_HEADER_BYTE_COUNT_FOR_DETECTION)
 
         val mediaFormat = MediaFormat.detect(headerBytes)
 
-        return mediaFormat to PrePendingByteReader(byteReader, headerBytes.toList())
+        return DetectedFormat(
+            mediaFormat = mediaFormat,
+            headerBytes = headerBytes,
+            reader = PrePendingByteReader(byteReader, headerBytes.toList())
+        )
     }
 }

@@ -21,6 +21,9 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
 
+/* Copies stream in bounded chunks, like the file readers beside them. */
+private const val COPY_CHUNK_BYTES: Int = 64 * 1024
+
 public fun Path.copyTo(destination: Path) {
 
     require(exists()) { "$this does not exist." }
@@ -32,7 +35,24 @@ public fun Path.copyTo(destination: Path) {
 
     SystemFileSystem.source(this).buffered().use { rawSource ->
         SystemFileSystem.sink(destination).buffered().use { sink ->
-            sink.write(rawSource, metadata.size)
+
+            /*
+             * Copy to the real end of data instead of the stat snapshot:
+             * the reported size is a snapshot that concurrent growth
+             * invalidates, and a copy bounded by it would end "successfully"
+             * with the file tail silently missing.
+             */
+            val chunk = ByteArray(COPY_CHUNK_BYTES)
+
+            while (true) {
+
+                val readByteCount = rawSource.readAtMostTo(chunk, 0, chunk.size)
+
+                if (readByteCount == -1)
+                    break
+
+                sink.write(chunk, startIndex = 0, endIndex = readByteCount)
+            }
         }
     }
 }

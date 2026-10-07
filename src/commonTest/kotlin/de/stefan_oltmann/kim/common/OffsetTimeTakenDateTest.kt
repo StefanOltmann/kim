@@ -162,4 +162,73 @@ class OffsetTimeTakenDateTest {
 
         assertEquals(1577872800000L, summary.takenDate)
     }
+
+    /**
+     * EXIF ASCII fields are routinely space-padded to even byte counts.
+     * Trailing padding behind a complete date must not lose the whole
+     * taken date - like the blank-seconds repair, this is a vendor
+     * variant the conversion tolerates.
+     */
+    @Test
+    fun testTakenDateSurvivesSpacePaddedDate() {
+
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.JPEG,
+            imageSize = null,
+            exif = tiffContents(
+                tiffField(
+                    ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL,
+                    "2020:01:01 12:00:00 ".encodeToByteArray(),
+                    directoryType = TiffConstants.TIFF_DIRECTORY_EXIF
+                ),
+                tiffField(
+                    ExifTag.EXIF_TAG_OFFSET_TIME_ORIGINAL,
+                    "+05:00".encodeToByteArray(),
+                    directoryType = TiffConstants.TIFF_DIRECTORY_EXIF
+                )
+            ),
+            exifBytes = null,
+            iptc = null,
+            xmp = null
+        )
+
+        val summary = metadata.convertToSummary()
+
+        /* 12:00:00+05:00 is 07:00:00Z - the padded date still counts. */
+        assertEquals(1577862000000L, summary.takenDate)
+    }
+
+    /**
+     * Trailing padding behind the offset text must not disqualify the
+     * offset: an ignored offset silently converts the date in the
+     * viewer's zone, which reports the wrong instant with no error.
+     */
+    @Test
+    fun testTakenDateUsesSpacePaddedOffsetTime() {
+
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.JPEG,
+            imageSize = null,
+            exif = tiffContents(
+                tiffField(
+                    ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL,
+                    "2020:01:01 12:00:00".encodeToByteArray(),
+                    directoryType = TiffConstants.TIFF_DIRECTORY_EXIF
+                ),
+                tiffField(
+                    ExifTag.EXIF_TAG_OFFSET_TIME_ORIGINAL,
+                    "+05:00 ".encodeToByteArray(),
+                    directoryType = TiffConstants.TIFF_DIRECTORY_EXIF
+                )
+            ),
+            exifBytes = null,
+            iptc = null,
+            xmp = null
+        )
+
+        val summary = metadata.convertToSummary()
+
+        /* The padded offset still applies: 12:00:00+05:00 is 07:00:00Z. */
+        assertEquals(1577862000000L, summary.takenDate)
+    }
 }

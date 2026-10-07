@@ -16,7 +16,10 @@
  */
 package de.stefan_oltmann.kim.format
 
+import de.stefan_oltmann.kim.format.icc.IccProfile
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
+import de.stefan_oltmann.kim.format.mpf.MpfDirectory
+import de.stefan_oltmann.kim.format.printim.PrintImDirectory
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffDirectory
 import de.stefan_oltmann.kim.format.tiff.TiffField
@@ -33,7 +36,23 @@ public class MediaMetadata internal constructor(
     public val exif: TiffContents?,
     public val exifBytes: ByteArray?,
     public val iptc: IptcMetadata?,
-    public val xmp: String?
+    public val xmp: String?,
+    /**
+     * The ICC color profile of the image, parsed from the container's
+     * profile storage (JPEG APP2 chunks, PNG iCCP, TIFF tag 0x8773),
+     * or NULL when the file carries none.
+     */
+    public val iccProfile: IccProfile? = null,
+    /**
+     * The Print Image Matching block of the file, parsed from the
+     * EXIF tag 0xC4A5, or NULL when the file carries none.
+     */
+    public val printIm: PrintImDirectory? = null,
+    /**
+     * The Multi-Picture Format index of the file, parsed from the
+     * "MPF\u0000" APP2 segment, or NULL when the file carries none.
+     */
+    public val mpf: MpfDirectory? = null
 ) {
 
     /** Returns the string value of the given tag, or NULL when absent. */
@@ -78,6 +97,15 @@ public class MediaMetadata internal constructor(
         if (iptc != null)
             sb.appendLine(iptc)
 
+        if (iccProfile != null)
+            sb.appendLine(iccProfile)
+
+        if (printIm != null)
+            sb.appendLine(printIm)
+
+        if (mpf != null)
+            sb.appendLine(mpf)
+
         if (xmp != null) {
 
             sb.appendLine("---- XMP ----")
@@ -94,7 +122,10 @@ public class MediaMetadata internal constructor(
             exif = exif,
             exifBytes = exifBytes,
             iptc = iptc,
-            xmp = xmp
+            xmp = xmp,
+            iccProfile = iccProfile,
+            printIm = printIm,
+            mpf = mpf
         )
 
     internal companion object {

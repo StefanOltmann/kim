@@ -47,7 +47,9 @@ class ExifToolDumpComparisonTest {
 
     private val makerNoteTestFiles: List<Int> = listOf(
         1, 15, 18, 21, 23, 28, 31, 34, 39, 41, 42, 48, 49, 50, 53,
-        57, 58, 60, 62, 63, 64, 65, 72, 73, 74, 75, 83, 86, 87, 88
+        57, 58, 60, 62, 63, 64, 65, 72, 73, 74, 75, 83, 86, 87, 88,
+        KimTestData.WEBP_WITH_MAKERNOTE_INDEX,
+        KimTestData.JXL_WITH_MAKERNOTE_INDEX
     )
     private val entryLineRegex = Regex("""^[\s|]*\d+\)\s+""")
     private val subDirectoryRegex = Regex("""^[\s|]*\d+\)\s+(\w+) \(SubDirectory\) -->$""")
@@ -106,28 +108,74 @@ class ExifToolDumpComparisonTest {
         Triple("MakerNote/ImageProcessingIFD", 0x1104, "UnknownBlock4")
     )
 
-
     @Test
     fun testMakerNoteValuesMatchExifToolDumps() {
+
+        compareMakerNotesAgainstDumps(
+            indices = makerNoteTestFiles,
+            loadBytes = KimTestData::getBytesOf,
+            loadDump = ::loadFullDumpText,
+            label = "media",
+            minimumComparedFieldCount = 200
+        )
+    }
+
+    /**
+     * The independent witness for the write path: the committed modified
+     * goldens were produced by Kim's own writer, so comparing them
+     * against ExifTool dumps of the same bytes is the only guard that
+     * catches a writer+reader defect that agrees with itself.
+     */
+    @Test
+    fun testModifiedMakerNoteValuesMatchExifToolDumps() {
+
+        compareMakerNotesAgainstDumps(
+            indices = makerNoteTestFiles.filter { KimTestData.hasModifiedBytesOf(it) },
+            loadBytes = KimTestData::getModifiedBytesOf,
+            loadDump = ::loadModifiedDumpText,
+            label = "modified media",
+            minimumComparedFieldCount = 100
+        )
+    }
+
+    private fun loadFullDumpText(index: Int): String =
+        Resource(
+            "de/stefan_oltmann/kim/testdata/exiftool/media_$index.txt"
+        ).readText()
+
+    private fun loadModifiedDumpText(index: Int): String =
+        Resource(
+            "de/stefan_oltmann/kim/testdata/exiftool/modified/media_${index}_modified.txt"
+        ).readText()
+
+    /**
+     * Parses the ExifTool dump of every given file and compares the
+     * MakerNote fields against Kim's parse of the same bytes.
+     */
+    private fun compareMakerNotesAgainstDumps(
+        indices: List<Int>,
+        loadBytes: (Int) -> ByteArray,
+        loadDump: (Int) -> String,
+        label: String,
+        minimumComparedFieldCount: Int
+    ) {
 
         val failures = mutableListOf<String>()
         val fileSummaries = mutableListOf<String>()
         var comparedFieldCount = 0
 
-        for (index in makerNoteTestFiles) {
+        for (index in indices) {
 
-            val dumpText = Resource(
-                "de/stefan_oltmann/kim/testdata/exiftool/media_$index.txt"
-            ).readText()
+            val dumpText = loadDump(index)
 
             val dumpDirectory = parseMakerNoteDump(dumpText)
 
-            val metadata = Kim.readMetadata(KimTestData.getBytesOf(index))
+            val metadata = Kim.readMetadata(loadBytes(index))
             val contents = requireNotNull(metadata?.exif)
             val makerNoteDirectory = contents.makerNoteDirectory
 
             fileSummaries.add(
-                "media_$index: dump fields=${dumpDirectory?.fields?.size ?: -1} " +
+                "$label$index: dump fields=${dumpDirectory?.fields?.size ?: -1} " +
                     "subs=${dumpDirectory?.subDirectories?.size ?: -1} " +
                     "kim type=${makerNoteDirectory?.type ?: -1}"
             )
@@ -150,7 +198,7 @@ class ExifToolDumpComparisonTest {
              */
             if (dumpHasComparableValues && makerNoteDirectory == null) {
                 failures.add(
-                    "media_$index: Kim failed to parse MakerNote that ExifTool parsed"
+                    "$label$index: Kim failed to parse MakerNote that ExifTool parsed"
                 )
                 continue
             }
@@ -164,13 +212,14 @@ class ExifToolDumpComparisonTest {
                 kimDirectory = makerNoteDirectory,
                 kimSubDirectories = contents.makerNoteSubDirectories,
                 path = "MakerNote",
-                failures = failures
+                failures = failures,
+                label = label
             )
         }
 
         /* Make sure the dumps were actually parsed and compared. */
         assertTrue(
-            comparedFieldCount > 200,
+            comparedFieldCount > minimumComparedFieldCount,
             "Only $comparedFieldCount fields compared.\n${fileSummaries.joinToString("\n")}"
         )
 
@@ -186,7 +235,8 @@ class ExifToolDumpComparisonTest {
         kimDirectory: TiffDirectory,
         kimSubDirectories: List<TiffDirectory>,
         path: String,
-        failures: MutableList<String>
+        failures: MutableList<String>,
+        label: String
     ): Int {
 
         var comparedFieldCount = 0
@@ -209,7 +259,7 @@ class ExifToolDumpComparisonTest {
             if (kimField == null) {
 
                 failures.add(
-                    "media_$mediaIndex $path: field 0x${dumpField.tag.toString(16)} " +
+                    "$label$mediaIndex $path: field 0x${dumpField.tag.toString(16)} " +
                         "(${dumpField.name}) missing in kim"
                 )
                 continue
@@ -218,7 +268,7 @@ class ExifToolDumpComparisonTest {
             /* Fields whose hex dump was snipped by ExifTool cannot be verified. */
             if (dumpField.bytes.size != kimField.valueBytes.size) {
                 failures.add(
-                    "media_$mediaIndex $path: field 0x${dumpField.tag.toString(16)} " +
+                    "$label$mediaIndex $path: field 0x${dumpField.tag.toString(16)} " +
                         "(${dumpField.name}) size mismatch: " +
                         "dump=${dumpField.bytes.size} kim=${kimField.valueBytes.size}"
                 )
@@ -230,7 +280,7 @@ class ExifToolDumpComparisonTest {
             if (!kimField.valueBytes.contentEquals(dumpField.bytes)) {
 
                 failures.add(
-                    "media_$mediaIndex $path: field 0x${dumpField.tag.toString(16)} " +
+                    "$label$mediaIndex $path: field 0x${dumpField.tag.toString(16)} " +
                         "(${dumpField.name}) value mismatch: " +
                         "expected ${dumpField.bytes.headHex()}... " +
                         "but was ${kimField.valueBytes.headHex()}..."
@@ -242,7 +292,7 @@ class ExifToolDumpComparisonTest {
             ) {
 
                 failures.add(
-                    """media_$mediaIndex $path: field 0x${dumpField.tag.toString(16)} """ +
+                    """$label$mediaIndex $path: field 0x${dumpField.tag.toString(16)} """ +
                         """name mismatch: dump="${dumpField.name}" """ +
                         """kim="${kimField.tagInfo?.name}""""
                 )
@@ -264,7 +314,7 @@ class ExifToolDumpComparisonTest {
                 ) {
 
                     failures.add(
-                        "media_$mediaIndex $path: field 0x${kimField.tag.toString(16)} " +
+                        "$label$mediaIndex $path: field 0x${kimField.tag.toString(16)} " +
                             "(${kimField.tagInfo?.name}) extra in kim"
                     )
                 }
@@ -291,7 +341,7 @@ class ExifToolDumpComparisonTest {
             if (kimSubDirectory == null) {
 
                 failures.add(
-                    "media_$mediaIndex $path: sub-directory ${subDirectory.name} missing in kim"
+                    "$label$mediaIndex $path: sub-directory ${subDirectory.name} missing in kim"
                 )
                 continue
             }
@@ -302,7 +352,8 @@ class ExifToolDumpComparisonTest {
                 kimDirectory = kimSubDirectory,
                 kimSubDirectories = emptyList(),
                 path = "$path/${subDirectory.name}",
-                failures = failures
+                failures = failures,
+                label = label
             )
         }
 
@@ -561,7 +612,6 @@ class ExifToolDumpComparisonTest {
                 fields.add(DumpField(tag, name, bytes))
         }
     }
-
 
     private fun isEntryLine(line: String): Boolean =
         entryLineRegex.containsMatchIn(line)

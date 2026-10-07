@@ -18,9 +18,11 @@ package de.stefan_oltmann.kim.input
 
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.writeBytes
 import de.stefan_oltmann.kim.kotlinx.readMetadata
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -44,17 +46,23 @@ class KotlinIoPathSourceTest {
     }
 
     /**
-     * Test to check that KotlinIoSourceByteReader works correctly.
+     * Verifies that the kotlinx-io Path read facade produces exactly the
+     * metadata the in-memory facade produces: the full corpus is compared
+     * against the committed golden dumps, like
+     * [de.stefan_oltmann.kim.MediaMetadataTest.testToString] does for
+     * the byte-array path.
      */
     @Test
-    fun testToStringWithKotlinIoPath() {
+    fun testReadMetadataCorpusMatchesGoldensViaPath() {
+
+        val mismatchedIndexes = mutableListOf<Int>()
 
         for (index in 1..KimTestData.TEST_MEDIA_COUNT) {
 
             val diskPath = getFullImageDiskPath(index)
 
             /* Broken files are rejected by the segment length validation. */
-            if (rejectedJpegIds.contains(index)) {
+            if (KimTestData.brokenJpegIds.contains(index)) {
 
                 assertFailsWith<ImageReadException> {
                     Kim.readMetadata(Path(diskPath))
@@ -83,19 +91,22 @@ class KotlinIoPathSourceTest {
 
             val expectedToString = KimTestData.getToStringText(index)
 
-            val equals = expectedToString.contentEquals(actualToString)
+            if (!expectedToString.contentEquals(actualToString)) {
 
-            /*
-             * Note that ImageMetadataTest already writes the expected result.
-             * This test does not write it to avoid confusion.
-             */
-            assertTrue(equals, "photo_$index.txt is different.")
+                mismatchedIndexes.add(index)
+
+                SystemFileSystem.createDirectories(Path("build/regenerated_txt"))
+
+                Path("build/regenerated_txt/media_$index.txt")
+                    .writeBytes(actualToString)
+            }
         }
-    }
 
-    private companion object {
-
-        /* Media 44, 45 and 47 contain invalid segment lengths. */
-        private val rejectedJpegIds = setOf(44, 45, 47)
+        assertTrue(
+            mismatchedIndexes.isEmpty(),
+            "Metadata output does not match the golden files for media " +
+                mismatchedIndexes.joinToString(prefix = "[", postfix = "]") +
+                ". The regenerated dumps were written to build/regenerated_txt."
+        )
     }
 }

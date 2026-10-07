@@ -237,6 +237,105 @@ class XmpReaderTest {
     }
 
     /**
+     * Regions with stArea:unit="pixel" carry pixel coordinates on the
+     * dimensions of mwg-rs:AppliedToDimensions - the reader must convert
+     * them to the normalized form the summary model carries, instead of
+     * misreading the raw pixel values as normalized ones. A region without
+     * an explicit unit stays normalized like the MWG default. The fixture
+     * is written and validated by ExifTool.
+     */
+    @Test
+    fun testReadPixelUnitFaceRegionsAreNormalized() {
+
+        val xmp = KimTestData.getXmp("exiftool_face_region_pixel_unit.xmp")
+
+        val summary = XmpReader.readMetadata(xmp)
+
+        assertEquals(
+            expected = listOf(
+                XmpFaceRegion(
+                    "Swiper",
+                    XMPRegionArea(
+                        xPos = 0.404336 / 4390.0,
+                        yPos = 0.422313 / 2927.0,
+                        width = 0.124503 / 4390.0,
+                        height = 0.240097 / 2927.0
+                    )
+                ),
+                XmpFaceRegion(
+                    "Swiper",
+                    XMPRegionArea(
+                        xPos = 0.1 / 4390.0,
+                        yPos = 0.2 / 2927.0,
+                        width = 0.3 / 4390.0,
+                        height = 0.4 / 2927.0
+                    )
+                ),
+                XmpFaceRegion(
+                    null,
+                    XMPRegionArea(
+                        xPos = 0.5 / 4390.0,
+                        yPos = 0.5 / 2927.0,
+                        width = 0.2 / 4390.0,
+                        height = 0.2 / 2927.0
+                    )
+                ),
+                XmpFaceRegion("Bob", XMPRegionArea(400.0, 150.0, 100.0, 200.0))
+            ),
+            actual = summary.faces
+        )
+    }
+
+    /**
+     * A pixel-unit region without mwg-rs:AppliedToDimensions has no
+     * reference to normalize against - the content exists but cannot be
+     * read cleanly, so the strict read policy fails the read instead of
+     * misreporting pixel values as normalized ones.
+     */
+    @Test
+    fun testPixelUnitFaceRegionsWithoutDimensionsFailTheRead() {
+
+        val xmp = KimTestData.getXmp(
+            "exiftool_face_region_pixel_unit_without_dimensions.xmp"
+        )
+
+        assertFailsWith<ImageReadException> {
+            XmpReader.readMetadata(xmp)
+        }
+    }
+
+    /**
+     * Adobe's partial date forms are legal XMP values the summary's
+     * epoch-millis model cannot represent without fabricating a month or
+     * day (garbage category 5): the summary omits the taken date while
+     * the read itself succeeds, like ExifTool displays "2023 05" without
+     * inventing a day.
+     */
+    @Test
+    fun testReadPartialDateOmitsTakenDate() {
+
+        /* language=XML */
+        val xmp = """
+            <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
+                <x:xmpmeta xmlns:x="adobe:ns:meta/">
+                  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+                    <rdf:Description rdf:about=""
+                        xmlns:exif="http://ns.adobe.com/exif/1.0/"
+                      exif:DateTimeOriginal="2023-05"/>
+                  </rdf:RDF>
+                </x:xmpmeta>
+            <?xpacket end="w"?>
+        """.trimIndent()
+
+        val summary = XmpReader.readMetadata(xmp)
+
+        assertEquals(
+            expected = null,
+            actual = summary.takenDate
+        )
+    }
+
+    /**
      * Regression test: a DateTimeOriginal with a negative UTC offset must be
      * used for the epoch conversion, not dropped in favor of the local zone.
      */

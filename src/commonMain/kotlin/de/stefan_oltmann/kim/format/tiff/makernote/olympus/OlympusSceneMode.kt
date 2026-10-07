@@ -18,7 +18,7 @@ package de.stefan_oltmann.kim.format.tiff.makernote.olympus
 /**
  * Values of the Olympus SceneMode tag.
  *
- * See https://exiftool.sourceforge.net/TagNames/Olympus.html#SceneMode
+ * See https://exiftool.sourceforge.net/TagNames/Olympus.html
  */
 @Suppress("MaxLineLength")
 public enum class OlympusSceneMode(

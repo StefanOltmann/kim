@@ -18,7 +18,7 @@ package de.stefan_oltmann.kim.format.tiff.makernote.sony
 /**
  * Values of the Sony CreativeStyle tag.
  *
- * See https://exiftool.sourceforge.net/TagNames/Sony.html#CreativeStyle
+ * See https://exiftool.sourceforge.net/TagNames/Sony.html
  */
 @Suppress("MaxLineLength")
 public enum class SonyCreativeStyle(

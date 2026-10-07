@@ -15,7 +15,9 @@
  */
 package de.stefan_oltmann.kim
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
@@ -39,6 +41,44 @@ class KimEdgeCasesTest {
     @Test
     fun testReadMetadataFromUnknownFormat() {
 
+        assertNull(Kim.readMetadata(unknownFormatBytes))
+    }
+
+    /**
+     * A BigTIFF header is never "unknown" bytes: the documented rule is
+     * that it keeps failing the read instead of being misparsed as
+     * classic TIFF, so the facade must fail it like the TiffReader does.
+     */
+    @Test
+    fun testReadMetadataRejectsBigTiffHeader() {
+
+        val littleEndian =
+            convertHexStringToByteArray("49492b0008000000" + "0000000000000000")
+
+        val bigEndian =
+            convertHexStringToByteArray("4d4d002b" + "00000008" + "0000000000000000")
+
+        assertFailsWith<ImageReadException> {
+            Kim.readMetadata(littleEndian)
+        }
+
+        assertFailsWith<ImageReadException> {
+            Kim.readMetadata(bigEndian)
+        }
+
+        assertFailsWith<ImageReadException> {
+            Kim.extractMetadataBytes(ByteArrayByteReader(littleEndian))
+        }
+
+        /* The write side keeps its own exception type for unknown bytes. */
+        assertFailsWith<ImageWriteException> {
+            Kim.update(
+                bytes = littleEndian,
+                update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT)
+            )
+        }
+
+        /* Genuinely unknown bytes keep returning NULL. */
         assertNull(Kim.readMetadata(unknownFormatBytes))
     }
 

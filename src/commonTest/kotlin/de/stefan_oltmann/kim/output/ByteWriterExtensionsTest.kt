@@ -16,9 +16,11 @@
 package de.stefan_oltmann.kim.output
 
 import de.stefan_oltmann.kim.common.ByteOrder
+import de.stefan_oltmann.kim.common.ImageWriteException
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class ByteWriterExtensionsTest {
 
@@ -64,6 +66,22 @@ class ByteWriterExtensionsTest {
         )
 
         assertContentEquals(expected, writer.toByteArray())
+    }
+
+    /**
+     * A character beyond the Latin-1 range cannot be written as its own
+     * byte: silently truncating it to the low byte would emit data that
+     * no longer represents the input. Per the write policy the write
+     * fails instead.
+     */
+    @Test
+    fun testWriteStringRejectsNonLatin1Characters() {
+
+        val writer = ByteArrayByteWriter()
+
+        assertFailsWith<ImageWriteException> {
+            writer.writeString("\u20AC")
+        }
     }
 
     @Test

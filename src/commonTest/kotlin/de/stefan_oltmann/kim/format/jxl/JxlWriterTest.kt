@@ -159,7 +159,8 @@ class JxlWriterTest {
 
         val jxlpHeader = byteArrayOf(
             0, 0, 0, (jxlpPayload.size + 8).toByte(),
-            0x6A, 0x78, 0x6C, 0x70 // "jxlp"
+            /* "jxlp" */
+            0x6A, 0x78, 0x6C, 0x70
         ) + jxlpPayload
 
         /* The cut payload: largesize - 16 bytes must survive the update. */
@@ -168,8 +169,10 @@ class JxlWriterTest {
         val largeSize = 16L + cutPayload.size
 
         val cutHeader = byteArrayOf(
-            0, 0, 0, 1, // size = 1 -> largesize follows
-            0x6A, 0x78, 0x6C, 0x63 // "jxlc"
+            /* size = 1 -> largesize follows */
+            0, 0, 0, 1,
+            /* "jxlc" */
+            0x6A, 0x78, 0x6C, 0x63
         ) + byteArrayOf(
             (largeSize shr 56).toByte(),
             (largeSize shr 48).toByte(),

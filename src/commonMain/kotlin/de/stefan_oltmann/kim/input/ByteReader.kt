@@ -30,10 +30,22 @@ package de.stefan_oltmann.kim.input
  * - The field based extensions in `ByteReaderExtensions` throw an
  *   [de.stefan_oltmann.kim.common.ImageReadException] when a requested
  *   structure cannot be read completely.
+ *
+ * A fourth form exists in `ByteReaderExtensions`: [readByteAsInt]
+ * returns the `-1` sentinel at the end of the data, so every caller
+ * must check for it explicitly.
  */
 public interface ByteReader : AutoCloseable {
 
     public val contentLength: Long
+
+    /**
+     * Whether this reader retains the bytes it reads for its own later
+     * use. Payload-handling strategies can consult this to avoid
+     * buffering the same bytes a second time.
+     */
+    public val isRetaining: Boolean
+        get() = false
 
     /**
      * Returns the next Byte, if any.

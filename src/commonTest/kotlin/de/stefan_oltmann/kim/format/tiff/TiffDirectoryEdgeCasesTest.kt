@@ -174,6 +174,34 @@ class TiffDirectoryEdgeCasesTest {
         assertEquals("Unknown type 42", TiffDirectory.description(42))
     }
 
+    /**
+     * Like the WebP and BMFF parsers, the TIFF parser must reject a
+     * truncated XMP packet on read: read and update have to agree on
+     * file validity, and sidecar writers would otherwise persist
+     * packet bytes that only the update path rejects.
+     */
+    @Test
+    fun testTiffImageParserRejectsTruncatedXmp() {
+
+        val outputSet = TiffOutputSet()
+
+        val rootDirectory = outputSet.getOrCreateRootDirectory()
+
+        rootDirectory.add(TiffTag.TIFF_TAG_IMAGE_WIDTH, 10)
+        rootDirectory.add(TiffTag.TIFF_TAG_IMAGE_HEIGHT, 10)
+        rootDirectory.add(TiffTag.TIFF_TAG_XMP, "<x:xmpmeta><rdf:RDF".encodeToByteArray())
+
+        val byteWriter = ByteArrayByteWriter()
+
+        TiffWriter(ByteOrder.BIG_ENDIAN).write(byteWriter, outputSet)
+
+        assertFailsWith<ImageReadException> {
+            TiffImageParser.parseMetadata(
+                ByteArrayByteReader(byteWriter.toByteArray())
+            )
+        }
+    }
+
     @Test
     fun testTiffImageParserReadsXmp() {
 

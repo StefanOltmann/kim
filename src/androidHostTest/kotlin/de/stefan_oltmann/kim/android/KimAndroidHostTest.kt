@@ -25,6 +25,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 /**
  * Host tests for the KimAndroid API, which must only throw
@@ -91,5 +92,23 @@ class KimAndroidHostTest {
         KimAndroid.readMetadata(stream, length = 3)
 
         assertTrue(stream.closed)
+    }
+
+    /**
+     * A failing size lookup must not leak the already-opened stream:
+     * the length is resolved before the stream opens, like
+     * KimJvm.readMetadataFrom documents. A provider without a SIZE
+     * column makes the query throw - one file descriptor would leak
+     * per failing call if the stream were opened first.
+     */
+    @Test
+    fun testCreateByteReaderFromOpensNoStreamWhenSizeLookupFails() {
+
+        assertFailsWith<ImageReadException> {
+            KimAndroid.createByteReaderFrom(
+                sizeLookup = { throw IllegalArgumentException("Provider has no SIZE column.") },
+                openStream = { fail("The stream must not be opened when the size lookup fails.") }
+            )
+        }
     }
 }

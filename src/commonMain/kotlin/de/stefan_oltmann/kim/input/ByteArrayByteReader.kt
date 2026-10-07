@@ -28,14 +28,60 @@ public class ByteArrayByteReader(
     private val bytes: ByteArray
 ) : RandomAccessByteReader {
 
-    override val contentLength: Long =
-        bytes.size.toLong()
+    private var windowStartField: Int = 0
 
-    private var currentPosition = 0
+    private var windowEndField: Int = bytes.size
+
+    private var currentPosition: Int = 0
+
+    override val contentLength: Long
+        get() = (windowEndField - windowStartField).toLong()
+
+    internal val windowArray: ByteArray
+        get() = bytes
+
+    internal val windowPosition: Int
+        get() = currentPosition
+
+    internal val windowEnd: Int
+        get() = windowEndField
+
+    /**
+     * Internal constructor that reads through a window into the given
+     * array: positions are relative to the window, so the children of a
+     * container box can parse from the parent's buffer without copying
+     * the payload a second time.
+     */
+    internal constructor(
+        bytes: ByteArray,
+        windowStart: Int,
+        windowEnd: Int
+    ) : this(bytes) {
+        require(windowStart in 0..windowEnd) {
+            "Invalid window: [$windowStart, $windowEnd)."
+        }
+
+        require(windowEnd <= bytes.size) {
+            "Window end $windowEnd exceeds the array of ${bytes.size} bytes."
+        }
+
+        this.windowStartField = windowStart
+        this.windowEndField = windowEnd
+        this.currentPosition = windowStartField
+    }
+
+    internal fun moveWindowPositionTo(index: Int) {
+
+        require(index in windowStartField..windowEndField) {
+            "Can't move to $index outside the window [$windowStartField, $windowEndField]."
+        }
+
+        currentPosition = index
+    }
 
     override fun readByte(): Byte? {
 
-        if (currentPosition == bytes.size)
+        if (currentPosition == windowEndField)
             return null
 
         return bytes[currentPosition++]
@@ -48,7 +94,7 @@ public class ByteArrayByteReader(
             source = bytes,
             fromIndex = currentPosition.toLong(),
             count = count.toLong(),
-            limit = bytes.size.toLong()
+            limit = windowEndField.toLong()
         )
 
         currentPosition += result.size
@@ -62,7 +108,7 @@ public class ByteArrayByteReader(
             "Can't move to $position in content of $contentLength bytes."
         }
 
-        this.currentPosition = position
+        this.currentPosition = windowStartField + position
     }
 
     override fun readBytes(offset: Int, length: Int): ByteArray {
@@ -72,13 +118,14 @@ public class ByteArrayByteReader(
 
         return copyClamped(
             source = bytes,
-            fromIndex = offset.toLong(),
+            fromIndex = (windowStartField + offset).toLong(),
             count = length.toLong(),
-            limit = contentLength
+            limit = windowEndField.toLong()
         )
     }
 
     override fun close() {
         /* Does nothing. */
     }
+
 }

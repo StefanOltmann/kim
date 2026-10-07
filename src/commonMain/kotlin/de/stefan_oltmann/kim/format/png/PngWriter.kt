@@ -257,8 +257,10 @@ public object PngWriter {
 
                 byteReader.transferExactly(crcWriter, CRC_LENGTH)
 
+                val keyword = keywordOf(chunkType, payloadWriter.toByteArray())
+
                 val isStale = try {
-                    staleFilter.isStale(chunkType, keywordOf(chunkType, payloadWriter.toByteArray()))
+                    staleFilter.isStale(chunkType, keyword)
                 } catch (_: ImageReadException) {
                     false
                 }
@@ -271,7 +273,7 @@ public object PngWriter {
                  * written so far, because the tail - including IEND - was
                  * never reached.
                  */
-                if (isStale && failOnStaleMetadata)
+                if (isStale && failOnStaleMetadata && staleFilter.failWhenStale(chunkType, keyword))
                     throw ImageWriteException(
                         "The update cannot merge metadata behind the image " +
                             "data. The source file was not modified, but the " +
@@ -371,13 +373,14 @@ public object PngWriter {
         writer.write(PngConstants.XMP_KEYWORD.encodeToByteArray())
         writer.write(0)
 
-        /* No compression and no language tag */
-        writer.write(0) // No compression
-        writer.write(0) // No compression method
-        writer.write(0) // No language tag
-
-        /* XMP keyword - null-terminated */
-        writer.write(PngConstants.XMP_KEYWORD.encodeToByteArray())
+        /*
+         * No compression, no compression method, no language tag and
+         * an empty translated keyword - the five NUL bytes every
+         * common writer emits (see the ExifTool reference dumps).
+         */
+        writer.write(0)
+        writer.write(0)
+        writer.write(0)
         writer.write(0)
 
         /* XMP bytes */

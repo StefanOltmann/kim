@@ -21,20 +21,20 @@ package de.stefan_oltmann.kim.format.bmff.box
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BoxType
-import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.format.bmff.PayloadSource
 
 /**
  * ISO/IEC 14496-12 movie box
  *
  * The Track Box is a container for several sub boxes.
  */
-public class TrackBox(
+public class TrackBox internal constructor(
     offset: Long,
     size: Long,
     largeSize: Long?,
-    payload: ByteArray,
+    payloadSource: PayloadSource,
     depth: Int = 0
-) : Box(BoxType.TRAK, offset, size, largeSize, payload), BoxContainer {
+) : Box(BoxType.TRAK, offset, size, largeSize, payloadSource), BoxContainer {
 
     override val boxes: List<Box>
 
@@ -46,7 +46,7 @@ public class TrackBox(
 
     init {
 
-        val byteReader = ByteArrayByteReader(payload)
+        val byteReader = payloadSource.reader()
 
         boxes = BoxReader.readChildBoxes(
             byteReader = byteReader,
@@ -63,6 +63,14 @@ public class TrackBox(
         mediaBox = boxes.filterIsInstance<MediaBox>().firstOrNull()
             ?: throw ImageReadException("Track box should contain a media box: $boxes")
     }
+
+    public constructor(
+        offset: Long,
+        size: Long,
+        largeSize: Long?,
+        payload: ByteArray,
+        depth: Int = 0
+    ) : this(offset, size, largeSize, PayloadSource.of(payload), depth)
 
     override fun toString(): String =
         "$type Box @$offset boxes=${boxes.map { it.type }}"

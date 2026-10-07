@@ -23,7 +23,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoSShort
 /**
  * Tags of the WorldTime maker note sub-directory.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#WorldTime
+ * See https://exiftool.sourceforge.net/TagNames/Nikon.html#WorldTime
  */
 @Suppress("MagicNumber", "StringLiteralDuplication", "MaxLineLength")
 public object NikonWorldTimeTag {

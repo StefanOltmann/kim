@@ -19,7 +19,7 @@ package de.stefan_oltmann.kim.format.png.chunk
 
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.decodeLatin1BytesToString
-import de.stefan_oltmann.kim.common.decompress
+import de.stefan_oltmann.kim.common.decompressBytes
 import de.stefan_oltmann.kim.common.indexOfNullTerminator
 import de.stefan_oltmann.kim.format.png.PngChunkType
 import de.stefan_oltmann.kim.format.png.PngConstants
@@ -66,7 +66,8 @@ public class PngChunkZtxt(
 
         val compressedText = bytes.copyOfRange(index, bytes.size)
 
-        text = decompress(compressedText)
+        /* The PNG specification defines zTXt text as Latin-1 - like the keyword. */
+        text = decompressBytes(compressedText).decodeLatin1BytesToString()
     }
 
     /**

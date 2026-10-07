@@ -18,7 +18,7 @@ package de.stefan_oltmann.kim.format.tiff.makernote.canon
 /**
  * Values of the Canon ModelID tag.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#ModelID
+ * See https://exiftool.sourceforge.net/TagNames/Canon.html#CanonModelID
  */
 @Suppress("MaxLineLength")
 public enum class CanonModelId(

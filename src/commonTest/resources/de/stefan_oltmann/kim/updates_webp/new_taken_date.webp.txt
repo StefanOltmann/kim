@@ -60,9 +60,32 @@ Little-endian (Intel, II)
 0000000890 0x0201 JpgFromRawStart = 924
 0000000902 0x0202 JpgFromRawLength = 7245
 
+---- ICC ----
+ProfileSize = 672
+ProfileCMMType = lcms
+ProfileVersion = 4.3
+ProfileClass = mntr
+ColorSpaceData = RGB 
+ProfileConnectionSpace = XYZ 
+PrimaryPlatform = APPL
+RenderingIntent = 0
+ProfileDescription = GIMP built-in sRGB
+ProfileCopyright = Public Domain
+MediaWhitePoint = 0.964202880859375 1.0 0.8249053955078125
+ChromaticAdaptation = 1.047882080078125 0.022918701171875 -0.0502166748046875 0.0295867919921875 0.990478515625 -0.0170745849609375 -0.009246826171875 0.01507568359375 0.751678466796875
+RedMatrixColumn = 0.43603515625 0.2224884033203125 0.013916015625
+BlueMatrixColumn = 0.1430511474609375 0.06060791015625 0.71392822265625
+GreenMatrixColumn = 0.3851165771484375 0.7169036865234375 0.0970611572265625
+RedTRC (rTRC)
+GreenTRC (gTRC)
+BlueTRC (bTRC)
+Chromaticity (chrm)
+DeviceMfgDesc = GIMP
+DeviceModelDesc = sRGB
+
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
-<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core for KMP 2.0.0">
+<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core for KMP 2.0.2">
   <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <rdf:Description rdf:about=""
         xmlns:GIMP="http://www.gimp.org/xmp/"
@@ -206,6 +229,7 @@ Little-endian (Intel, II)
       crs:WhiteBalance="As Shot"
       crs:Whites2012="-85"
       dc:format="image/jpeg"
+      exif:DateTimeDigitized="2023-07-12T14:48:45.401"
       exif:DateTimeOriginal="2023-07-12T14:48:45.401"
       exifEX:LensModel="EF-S18-55mm f/3.5-5.6 IS II"
       photoshop:DateCreated="2019-07-24T17:15:41.09"

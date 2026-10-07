@@ -66,8 +66,10 @@ public object JpegSegmentAnalyzer {
 
         var positionCounter: Long = MediaFormatMagicNumbers.jpeg.size.toLong()
 
-        /* The consumed bytes are only counted here, so the scanner must not
-         * buffer a potentially unbounded inter-marker gap. */
+        /*
+         * The consumed bytes are only counted here, so the scanner must not
+         * buffer a potentially unbounded inter-marker gap.
+         */
         val scanner = JpegMarkerScanner(byteReader, keepConsumedBytes = false)
 
         @Suppress("LoopWithTooManyJumpStatements")

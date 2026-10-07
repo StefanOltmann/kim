@@ -147,8 +147,10 @@ class Cr3PreviewExtractorTest {
     @Test
     fun testExtractRejectsBoxSmallerThanHeader() {
 
-        /* A box header whose declared size of 4 is smaller than the
-           8-byte header every ISOBMFF box starts with. */
+        /*
+         * A box header whose declared size of 4 is smaller than the
+         * 8-byte header every ISOBMFF box starts with.
+         */
         val bytes = byteArrayOf(0, 0, 0, 4) + "free".encodeToByteArray()
 
         val exception = assertFailsWith<ImageReadException> {
@@ -164,6 +166,65 @@ class Cr3PreviewExtractorTest {
     }
 
     /**
+     * The largesize form extends the box header to 16 bytes, so a
+     * declared size between 8 and 15 cannot describe a payload. Like
+     * BoxReader, the walk must reject it with the descriptive box
+     * validation instead of letting a negative data size flow into the
+     * skip and read calls.
+     */
+    @Test
+    fun testExtractRejectsLargesizeBelowItsOwnHeader() {
+
+        /*
+         * mdat header: size=1 (largesize form), largesize=12 - below the
+         * 16-byte header of that form. The largesize read succeeds, so
+         * the size validation is what fires.
+         */
+        val bytes = byteArrayOf(
+            0, 0, 0, 1,
+            'm'.code.toByte(), 'd'.code.toByte(), 'a'.code.toByte(), 't'.code.toByte(),
+            0, 0, 0, 0, 0, 0, 0, 12
+        )
+
+        val exception = assertFailsWith<ImageReadException> {
+            Cr3PreviewExtractor.extractFullSizePreviewImage(
+                ByteArrayByteReader(bytes)
+            )
+        }
+
+        assertTrue(
+            exception.message?.contains("smaller than its header") == true,
+            "Unexpected message: ${exception.message}"
+        )
+    }
+
+    /**
+     * A hostile moov declaring more than the metadata budget must not be
+     * buffered on constrained targets - the preview degrades to NULL
+     * instead, exactly like an unparseable moov does.
+     */
+    @Test
+    fun testExtractDegradesToNullOnMoovBeyondTheMetadataBudget() {
+
+        val moovPayload = ByteArray(17 * 1024 * 1024)
+
+        val moovSize = moovPayload.size + 8
+
+        val bytes = byteArrayOf(
+            (moovSize shr 24).toByte(),
+            ((moovSize shr 16) and 0xFF).toByte(),
+            ((moovSize shr 8) and 0xFF).toByte(),
+            (moovSize and 0xFF).toByte()
+        ) + "moov".encodeToByteArray() + moovPayload
+
+        assertNull(
+            Cr3PreviewExtractor.extractFullSizePreviewImage(
+                ByteArrayByteReader(bytes)
+            )
+        )
+    }
+
+    /**
      * ISOBMFF sizes are unsigned 32-bit values, so a box of 2 GiB and
      * above carries its size in the high bit. The size must not be read
      * as a negative number, which would reject legal boxes of large
@@ -172,9 +233,11 @@ class Cr3PreviewExtractorTest {
     @Test
     fun testExtractReadsBoxSizeAsUnsigned() {
 
-        /* The size field 0x80000000 declares a 2 GiB box - only the
-           header bytes exist, so the walk fails loudly on the short
-           payload instead of on the size. */
+        /*
+         * The size field 0x80000000 declares a 2 GiB box - only the
+         * header bytes exist, so the walk fails loudly on the short
+         * payload instead of on the size.
+         */
         val headerBytes = byteArrayOf(0x80.toByte(), 0, 0, 0) + "mdat".encodeToByteArray()
 
         val reader = FakeLengthByteReader(
@@ -344,7 +407,8 @@ class Cr3PreviewExtractorTest {
             mdatPayload = byteArrayOf(0, 0, 0, 0) +
                 byteArrayOf(0xFF.toByte(), 0xD8.toByte()) + "jpegdata".encodeToByteArray(),
             jpegLength = 10,
-            co64Offset = { it - 6 } /* Points into the mdat header. */
+            /* Points into the mdat header. */
+            co64Offset = { it - 6 }
         )
 
         assertNull(
@@ -408,7 +472,8 @@ class Cr3PreviewExtractorTest {
                 byteArrayOf(0, 0, 0, 0) +
                 "PRVW".encodeToByteArray() +
                 ByteArray(12) +
-                byteArrayOf(0, 0, 10, 0) /* Declares 2560 bytes ... */
+                /* Declares 2560 bytes ... */
+                byteArrayOf(0, 0, 10, 0)
 
         /* ... but only two bytes of actual data follow. */
         val truncatedJpeg = byteArrayOf(0xFF.toByte(), 0xD8.toByte())

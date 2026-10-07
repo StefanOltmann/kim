@@ -35,14 +35,10 @@ import platform.zlib.z_stream
 private const val OUTPUT_BUFFER_LENGTH = 4096
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun decompressBytes(
+internal actual fun decompressBytesPlatform(
     byteArray: ByteArray,
     maxOutputByteCount: Int
 ): ByteArray {
-
-    /* An empty stream cannot be valid zlib data. */
-    if (byteArray.isEmpty())
-        throw ImageReadException("Unexpected end of compressed data.")
 
     memScoped {
 
@@ -119,6 +115,6 @@ internal actual fun decompressBytes(
             inflateEnd(stream.ptr)
         }
 
-        return@decompressBytes byteWriter.toByteArray()
+        return@decompressBytesPlatform byteWriter.toByteArray()
     }
 }

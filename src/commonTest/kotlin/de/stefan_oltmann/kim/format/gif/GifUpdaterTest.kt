@@ -19,6 +19,7 @@ package de.stefan_oltmann.kim.format.gif
 
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.convertToSummary
 import de.stefan_oltmann.kim.format.AbstractUpdaterTest
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.ImageSize
@@ -81,7 +82,7 @@ class GifUpdaterTest : AbstractUpdaterTest(
         assertEquals("GIF89a", header)
 
         /* The image must survive the upgrade. */
-        val metadata = Kim.readMetadata(updatedBytes)!!
+        val metadata = assertNotNull(Kim.readMetadata(updatedBytes))
 
         assertEquals(ImageSize(1, 1), metadata.imageSize)
     }
@@ -113,8 +114,10 @@ class GifUpdaterTest : AbstractUpdaterTest(
         val byteWriter = ByteArrayByteWriter()
 
         byteWriter.write("GIF89a".encodeToByteArray())
-        byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0)) /* Logical screen descriptor, no color table */
-        byteWriter.write(byteArrayOf(0x21, 0xFE.toByte(), 0x02, 0x41, 0x42, 0x00)) /* Comment extension */
+        /* Logical screen descriptor, no color table */
+        byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0))
+        /* Comment extension */
+        byteWriter.write(byteArrayOf(0x21, 0xFE.toByte(), 0x02, 0x41, 0x42, 0x00))
         byteWriter.write(byteArrayOf(GifConstants.GIF_TERMINATOR))
 
         return byteWriter.toByteArray()
@@ -128,11 +131,15 @@ class GifUpdaterTest : AbstractUpdaterTest(
         val byteWriter = ByteArrayByteWriter()
 
         byteWriter.write("GIF87a".encodeToByteArray())
-        byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0)) /* Logical screen descriptor, no color table */
+        /* Logical screen descriptor, no color table */
+        byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0))
         byteWriter.write(byteArrayOf(GifConstants.IMAGE_SEPARATOR))
-        byteWriter.write(byteArrayOf(0, 0, 0, 0, 1, 0, 1, 0, 0)) /* 1x1 image descriptor, no color table */
-        byteWriter.write(byteArrayOf(2)) /* LZW minimum code size */
-        byteWriter.write(byteArrayOf(2, 2, 0x44, 0)) /* Image data sub-chunks */
+        /* 1x1 image descriptor, no color table */
+        byteWriter.write(byteArrayOf(0, 0, 0, 0, 1, 0, 1, 0, 0))
+        /* LZW minimum code size */
+        byteWriter.write(byteArrayOf(2))
+        /* Image data sub-chunks */
+        byteWriter.write(byteArrayOf(2, 2, 0x44, 0))
         byteWriter.write(byteArrayOf(GifConstants.GIF_TERMINATOR))
 
         return byteWriter.toByteArray()
@@ -178,11 +185,15 @@ class GifUpdaterTest : AbstractUpdaterTest(
         val byteWriter = ByteArrayByteWriter()
 
         byteWriter.write("GIF89a".encodeToByteArray())
-        byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0)) /* Logical screen descriptor, no color table */
+        /* Logical screen descriptor, no color table */
+        byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0))
         byteWriter.write(byteArrayOf(GifConstants.IMAGE_SEPARATOR))
-        byteWriter.write(byteArrayOf(0, 0, 0, 0, 1, 0, 1, 0, 0)) /* 1x1 image descriptor, no color table */
-        byteWriter.write(byteArrayOf(2)) /* LZW minimum code size */
-        byteWriter.write(byteArrayOf(2, 2, 0x44, 0)) /* Image data sub-chunks */
+        /* 1x1 image descriptor, no color table */
+        byteWriter.write(byteArrayOf(0, 0, 0, 0, 1, 0, 1, 0, 0))
+        /* LZW minimum code size */
+        byteWriter.write(byteArrayOf(2))
+        /* Image data sub-chunks */
+        byteWriter.write(byteArrayOf(2, 2, 0x44, 0))
 
         val commentBytes = STALE_COMMENT.encodeToByteArray()
 
@@ -197,6 +208,67 @@ class GifUpdaterTest : AbstractUpdaterTest(
         byteWriter.write(byteArrayOf(GifConstants.GIF_TERMINATOR))
 
         return byteWriter.toByteArray()
+    }
+
+    /**
+     * A GIF87a file can carry an XMP application extension: the header
+     * version only decides whether NEW XMP may be written. Hiding the
+     * packet on read made it invisible, and the update then destroyed
+     * it unread by writing a fresh packet built without the old
+     * properties.
+     */
+    @Test
+    fun testUpdatePreservesXmpOfGif87aFile() {
+
+        val xmpPacket =
+            """<x:xmpmeta xmlns:x="adobe:ns:meta/" xmlns:xmp="http://ns.adobe.com/xap/1.0/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmp:Rating="3"/></rdf:RDF></x:xmpmeta>"""
+
+        val xmpBytes = xmpPacket.encodeToByteArray()
+
+        val byteWriter = ByteArrayByteWriter()
+
+        byteWriter.write("GIF87a".encodeToByteArray())
+        byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0))
+
+        /* XMP application extension before the first frame. */
+        byteWriter.write(byteArrayOf(GifConstants.EXTENSION_INTRODUCER, 0xFF.toByte()))
+        byteWriter.write(11)
+        byteWriter.write("XMP DataXMP".encodeToByteArray())
+
+        var offset = 0
+
+        while (offset < xmpBytes.size) {
+
+            val chunkSize = minOf(255, xmpBytes.size - offset)
+
+            byteWriter.write(chunkSize.toByte())
+            byteWriter.write(xmpBytes.copyOfRange(offset, offset + chunkSize))
+
+            offset += chunkSize
+        }
+
+        byteWriter.write(0)
+
+        byteWriter.write(byteArrayOf(GifConstants.IMAGE_SEPARATOR))
+        byteWriter.write(byteArrayOf(0, 0, 0, 0, 1, 0, 1, 0, 0))
+        byteWriter.write(byteArrayOf(2))
+        byteWriter.write(byteArrayOf(2, 2, 0x44, 0))
+        byteWriter.write(byteArrayOf(GifConstants.GIF_TERMINATOR))
+
+        val bytes = byteWriter.toByteArray()
+
+        /* The packet must be visible on read - also for GIF87a files. */
+        val summary = assertNotNull(Kim.readMetadata(bytes)).convertToSummary()
+
+        assertEquals(3, summary.rating?.value)
+
+        val updatedBytes = Kim.update(bytes = bytes, update = MetadataUpdate.Title("New title"))
+
+        /* The update must merge, not reset: the rating survives. */
+        val updatedSummary = assertNotNull(Kim.readMetadata(updatedBytes)).convertToSummary()
+
+        assertEquals("New title", updatedSummary.title)
+        assertEquals(3, updatedSummary.rating?.value)
     }
 
     /**
@@ -265,7 +337,7 @@ class GifUpdaterTest : AbstractUpdaterTest(
         assertTrue(updatedBytes.containsBytes(UNKNOWN_EXTENSION_BYTES))
 
         /* The image data behind the extension must parse at its true position. */
-        val metadata = Kim.readMetadata(updatedBytes)!!
+        val metadata = assertNotNull(Kim.readMetadata(updatedBytes))
 
         assertEquals(ImageSize(1, 1), metadata.imageSize)
         assertNotNull(metadata.xmp)
@@ -282,7 +354,7 @@ class GifUpdaterTest : AbstractUpdaterTest(
 
         assertTrue(deletedBytes.containsBytes(UNKNOWN_EXTENSION_BYTES))
 
-        val metadata = Kim.readMetadata(deletedBytes)!!
+        val metadata = assertNotNull(Kim.readMetadata(deletedBytes))
 
         assertEquals(ImageSize(1, 1), metadata.imageSize)
         assertEquals(null, metadata.xmp)

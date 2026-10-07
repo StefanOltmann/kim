@@ -33,6 +33,11 @@ import java.nio.file.StandardOpenOption
  */
 public object KimJvm {
 
+    /**
+     * Attention: The stream IS closed by this call, including the stream
+     * below it, and must not be used afterwards. Unknown bytes yield
+     * null; unreadable streams fail with [ImageReadException].
+     */
     @JvmStatic
     @Throws(ImageReadException::class)
     public fun readMetadata(inputStream: InputStream, length: Long): MediaMetadata? =

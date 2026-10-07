@@ -24,10 +24,12 @@ import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlinx.datetime.TimeZone
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 /*
  * The test is placed in jvmTest, because JvmInputStreamByteReader is a
@@ -40,11 +42,22 @@ class JpegStreamingUpdateTest {
     private val jpegBytes: ByteArray =
         KimTestData.getBytesOf(1)
 
-    private val timestamp = 1_689_166_125_401 // 2023:07:12 14:48:45 in GMT+02:00
+    /* 2023:07:12 14:48:45 in GMT+02:00 */
+    private val timestamp = 1_689_166_125_401
 
     @BeforeTest
     fun setUp() {
         Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
+    }
+
+    @AfterTest
+    fun tearDown() {
+
+        /*
+         * Reset the override, so it cannot leak into test classes that
+         * exercise the platform default time zone.
+         */
+        Kim.defaultTimeZone = null
     }
 
     @Test
@@ -85,7 +98,7 @@ class JpegStreamingUpdateTest {
             setOf(MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT))
         )
 
-        val metadata = Kim.readMetadata(result)!!
+        val metadata = assertNotNull(Kim.readMetadata(result))
 
         assertEquals(
             TiffOrientation.ROTATE_RIGHT.value.toShort(),

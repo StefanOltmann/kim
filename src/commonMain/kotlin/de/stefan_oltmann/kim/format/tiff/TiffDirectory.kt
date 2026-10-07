@@ -64,6 +64,9 @@ public class TiffDirectory(
     public fun hasStripImageData(): Boolean =
         null != findField(TiffTag.TIFF_TAG_STRIP_OFFSETS)
 
+    public fun hasTileImageData(): Boolean =
+        null != findField(TiffTag.TIFF_TAG_TILE_OFFSETS)
+
     public fun findField(tag: TagInfo): TiffField? {
         return findField(
             tag = tag,
@@ -303,9 +306,11 @@ public class TiffDirectory(
                  * display names on purpose: in the EXIF context these ids
                  * are read as Kodak/DCP sub-IFDs, not as chain IFDs.
                  */
+                TiffConstants.EXIF_SUB_IFD0 -> "SubIFD0"
                 TiffConstants.EXIF_SUB_IFD1 -> "SubIFD1"
                 TiffConstants.EXIF_SUB_IFD2 -> "SubIFD2"
                 TiffConstants.EXIF_SUB_IFD3 -> "SubIFD3"
+                TiffConstants.EXIF_SUB_IFD4 -> "SubIFD4"
 
                 TiffConstants.DIRECTORY_TYPE_UNKNOWN -> "Unknown"
 

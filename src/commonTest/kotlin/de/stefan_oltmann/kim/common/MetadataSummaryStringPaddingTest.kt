@@ -24,14 +24,15 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 /**
- * EXIF and IPTC strings are padded with trailing spaces or NUL bytes.
- * The summary reports them like ExifTool does: without the padding, and
- * with the EXIF ImageDescription as the description fallback.
+ * EXIF strings are NUL-terminated, so trailing NUL bytes are container
+ * structure and the summary removes them. Trailing spaces are content -
+ * ExifTool reports them - and survive the summary byte-exact, like the
+ * EXIF ImageDescription as the description fallback.
  */
 class MetadataSummaryStringPaddingTest {
 
     @Test
-    fun testTrailingAsciiPaddingIsTrimmed() {
+    fun testTrailingSpacePaddingStaysInTheSummary() {
 
         val metadata = MediaMetadata(
             mediaFormat = MediaFormat.TIFF,
@@ -47,8 +48,27 @@ class MetadataSummaryStringPaddingTest {
 
         val summary = metadata.convertToSummary()
 
-        assertEquals("OLYMPUS IMAGING CORP.", summary.cameraMake)
-        assertEquals("E-M10", summary.cameraModel)
+        assertEquals("OLYMPUS IMAGING CORP.  ", summary.cameraMake)
+        assertEquals("E-M10           ", summary.cameraModel)
+    }
+
+    @Test
+    fun testTrailingNulPaddingIsTrimmed() {
+
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.TIFF,
+            imageSize = null,
+            exif = tiffContents(
+                tiffField(TiffTag.TIFF_TAG_MAKE, "Canon\u0000\u0000".encodeToByteArray())
+            ),
+            exifBytes = null,
+            iptc = null,
+            xmp = null
+        )
+
+        val summary = metadata.convertToSummary()
+
+        assertEquals("Canon", summary.cameraMake)
     }
 
     /**
@@ -76,6 +96,6 @@ class MetadataSummaryStringPaddingTest {
 
         val summary = metadata.convertToSummary()
 
-        assertEquals("OLYMPUS DIGITAL CAMERA", summary.description)
+        assertEquals("OLYMPUS DIGITAL CAMERA          ", summary.description)
     }
 }

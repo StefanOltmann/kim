@@ -31,13 +31,83 @@ class ItemLocationBoxTest {
     @Test
     fun testRejectsNegativeItemCount() {
 
-        /* version 2, no flags, 4-byte offsets/lengths, no base offset,
-           itemCount 0xFFFFFFFF and no items. */
+        /*
+         * version 2, no flags, 4-byte offsets/lengths, no base offset,
+         * itemCount 0xFFFFFFFF and no items.
+         */
         val payload = byteArrayOf(
             2, 0, 0, 0,
             0x44,
             0x00,
             0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte()
+        )
+
+        assertFailsWith<ImageReadException> {
+            ItemLocationBox(
+                offset = 0,
+                size = payload.size.toLong() + 8,
+                largeSize = null,
+                payload = payload
+            )
+        }
+    }
+
+    /**
+     * The spec allows field sizes of 0, 1, 2, 4 and 8 bytes only. The
+     * nibbles are file-controlled data, so an illegal width must fail
+     * with the documented ImageReadException instead of the internal
+     * error the shared field reader throws.
+     */
+    @Test
+    fun testRejectsIllegalFieldSizeNibbles() {
+
+        /*
+         * version 0, offsetSize=3 (illegal), lengthSize=0, baseOffset=0,
+         * index=0, one item with one extent (3-byte offset, no length) -
+         * the extent read is what the illegal width reaches.
+         */
+        val payload = byteArrayOf(
+            0, 0, 0, 0,
+            0x30,
+            0x00,
+            0, 1,
+            0, 1, 0, 0,
+            0, 1,
+            1, 2, 3
+        )
+
+        assertFailsWith<ImageReadException> {
+            ItemLocationBox(
+                offset = 0,
+                size = payload.size.toLong() + 8,
+                largeSize = null,
+                payload = payload
+            )
+        }
+    }
+
+    /**
+     * The spec allows zero-size offset and length fields, in which case
+     * an extent consumes no box bytes at all and the extent loop is not
+     * terminated by the end of the payload. A hostile file can
+     * therefore spin the parser through billions of allocation-only
+     * iterations, so the total extent count is bounded. Two items
+     * declaring 40000 field-less extents each exceed that bound.
+     */
+    @Test
+    fun testRejectsTotalExtentCountBeyondTheLimit() {
+
+        /*
+         * version 0, zero-size offset/length/baseOffset fields, two
+         * items with 40000 extents each.
+         */
+        val payload = byteArrayOf(
+            0, 0, 0, 0,
+            0x00,
+            0x00,
+            0, 2,
+            0, 1, 0, 0, 0x9C.toByte(), 0x40,
+            0, 2, 0, 0, 0x9C.toByte(), 0x40
         )
 
         assertFailsWith<ImageReadException> {
@@ -58,8 +128,10 @@ class ItemLocationBoxTest {
     @Test
     fun testExtentOffsetAboveTwoGigIsReadUnsigned() {
 
-        /* version 2, 4-byte offsets/lengths, one item with one extent
-           at offset 0x90000000. */
+        /*
+         * version 2, 4-byte offsets/lengths, one item with one extent
+         * at offset 0x90000000.
+         */
         val payload = byteArrayOf(
             2, 0, 0, 0,
             0x44,

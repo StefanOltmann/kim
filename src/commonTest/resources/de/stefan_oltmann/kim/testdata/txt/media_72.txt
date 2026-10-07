@@ -1,4 +1,4 @@
-File format : HEIC
+File format : HIF
 Resolution  : null
 ---- TIFF ----
 Version 42

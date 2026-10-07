@@ -90,4 +90,44 @@ class XmpPacketValidationTest {
 
         assertEquals(envelope, requireValidXmpPacket(envelope, "The CR3 XMP UUID box"))
     }
+
+    /**
+     * A bare rdf:RDF root without the recommended x:xmpmeta envelope is
+     * a complete, xmpcore-parseable packet the XMP specification allows,
+     * so the container check must accept it.
+     */
+    @Test
+    fun testBareRdfPacketPassesContainerCheck() {
+
+        /* language=XML */
+        val packet = """
+            <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="" dc:title="x"/>
+            </rdf:RDF>
+        """.trimIndent()
+
+        assertEquals(
+            packet,
+            requireValidXmpPacket(packet, "The test chunk")
+        )
+    }
+
+    /**
+     * A bare RDF packet cut off before its closing element is truncated
+     * content and must fail like its enveloped twin.
+     */
+    @Test
+    fun testTruncatedBareRdfPacketFailsContainerCheck() {
+
+        /* language=XML */
+        val packet = """
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about=""
+        """.trimIndent()
+
+        assertFailsWith<ImageReadException> {
+            requireValidXmpPacket(packet, "The test chunk")
+        }
+    }
 }

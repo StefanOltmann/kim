@@ -33,8 +33,19 @@ public class DefaultRandomAccessByteReader(
     public val byteReader: ByteReader
 ) : RandomAccessByteReader {
 
+    /*
+     * The unbounded length sentinel of stream sources means "unknown
+     * size", not a real content size. It is reported as the addressable
+     * maximum here, so the construction below does not mistake it for a
+     * size - a stream with unknown length could otherwise never read
+     * TIFF-family metadata at all. Reads stay gated by the delegate's
+     * real end of data, never by the hint.
+     */
     override val contentLength: Long =
-        byteReader.contentLength
+        if (byteReader.contentLength == Long.MAX_VALUE)
+            Int.MAX_VALUE.toLong()
+        else
+            byteReader.contentLength
 
     init {
 
@@ -157,13 +168,19 @@ public class DefaultRandomAccessByteReader(
     /**
      * Grows the buffer in bounded steps until [endIndex] is buffered or
      * the delegate's end of data is reached, so a declared content length
-     * or a hostile offset cannot drive a huge up-front allocation.
+     * or a hostile offset cannot drive a huge up-front allocation. The
+     * steps grow geometrically: with fixed 64 KB steps, reaching a
+     * file-controlled offset n would re-copy the whole buffer n/64 KB
+     * times - quadratic copy volume on every high-offset read.
      */
     private fun ensureBufferedUpTo(endIndex: Int) {
 
         while (bufferPosition < endIndex) {
 
-            val stepEnd = minOf(endIndex.toLong(), buffer.size.toLong() + BUFFER_EXPANSION).toInt()
+            val stepEnd = minOf(
+                endIndex.toLong(),
+                max(buffer.size.toLong() * 2, buffer.size.toLong() + BUFFER_EXPANSION)
+            ).toInt()
 
             readToIndex(stepEnd)
 
@@ -195,8 +212,7 @@ public class DefaultRandomAccessByteReader(
 
         val bytes = byteReader.readBytes(missingBytesCount)
 
-        for (i in bytes.indices)
-            buffer[bufferPosition + i] = bytes[i]
+        bytes.copyInto(buffer, bufferPosition)
 
         /*
          * Only advance by the bytes that were actually read. At the end of

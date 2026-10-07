@@ -22,7 +22,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoByte
 /**
  * Tags of the Equipment maker note sub-directory.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#Equipment
+ * See https://exiftool.sourceforge.net/TagNames/Olympus.html#Equipment
  */
 @Suppress("MagicNumber", "StringLiteralDuplication", "MaxLineLength")
 public object OlympusEquipmentTag {

@@ -18,7 +18,7 @@ package de.stefan_oltmann.kim.format.tiff.makernote.nikon
 /**
  * Values of the Nikon RetouchHistory tag.
  *
- * See https://exiftool.sourceforge.net/TagNames/Nikon.html#RetouchHistory
+ * See https://exiftool.sourceforge.net/TagNames/Nikon.html
  */
 @Suppress("MaxLineLength")
 public enum class NikonRetouchHistory(

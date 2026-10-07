@@ -26,6 +26,7 @@ import de.stefan_oltmann.kim.format.tiff.makernote.MakerNoteHandler
 import de.stefan_oltmann.kim.input.RandomAccessByteReader
 import de.stefan_oltmann.kim.input.read4BytesAsInt
 import de.stefan_oltmann.kim.input.skipBytes
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Reads the MakerNote of Sony cameras.
@@ -203,6 +204,8 @@ internal object SonyMakerNoteHandler : MakerNoteHandler() {
                     addDirectory = addDirectory
                 )
 
+            } catch (ex: CancellationException) {
+                throw ex
             } catch (_: Exception) {
                 /*
                  * Skip the unreadable block.

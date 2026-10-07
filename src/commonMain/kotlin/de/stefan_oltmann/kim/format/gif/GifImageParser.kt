@@ -39,6 +39,7 @@ import de.stefan_oltmann.kim.input.readByteAsInt
 import de.stefan_oltmann.kim.input.readBytes
 import de.stefan_oltmann.kim.input.transferExactly
 import de.stefan_oltmann.kim.model.MediaFormat
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
 import kotlin.jvm.JvmStatic
 
@@ -110,27 +111,25 @@ public object GifImageParser : ImageParser {
             mediaFormat = MediaFormat.GIF,
             imageSize = imageSize,
             exif = null,
-            exifBytes = null, // GIF does not support EXIF data
-            iptc = null, // GIF does not support IPTC data
+            /*  GIF does not support EXIF data */
+            exifBytes = null,
+            /*  GIF does not support IPTC data */
+            iptc = null,
             xmp = xmp
         )
     }
 
     /**
-     * Returns the XMP of the given GIF chunks, or NULL for GIF87A files
-     * that cannot store XMP.
+     * Returns the XMP of the given GIF chunks, or NULL when the file
+     * has none.
+     *
+     * The header version is deliberately not consulted here: a GIF87a
+     * file can carry an XMP application extension, and hiding it would
+     * make the update destroy it unread by writing a fresh packet.
+     * The 89a requirement only applies where a new packet is written.
      */
-    internal fun parseXmp(chunks: List<GifChunk>): String? {
-
-        val headerChunk = chunks.filterIsInstance<GifChunkHeader>().firstOrNull()
-            ?: return null
-
-        /* Only GIF89A supports XMP metadata */
-        if (headerChunk.version != GifVersion.GIF89A)
-            return null
-
-        return getXmpXml(chunks)
-    }
+    internal fun parseXmp(chunks: List<GifChunk>): String? =
+        getXmpXml(chunks)
 
     private fun getXmpXml(chunks: List<GifChunk>): String? = chunks
         .filterIsInstance<GifChunkApplicationExtension>()
@@ -361,14 +360,102 @@ public object GifImageParser : ImageParser {
                 )
             }
 
-            GifConstants.APPLICATION_EXTENSION_LABEL ->
+            GifConstants.APPLICATION_EXTENSION_LABEL -> {
+
+                /*
+                 * The Adobe XMP binding writes its identifier as the first
+                 * block and continues with the packet contiguously instead
+                 * of in sub-blocks; the magic trailer and the block
+                 * terminator close the data. Older Kim releases wrote the
+                 * packet in sub-blocks, so both framings are read: in
+                 * either form the packet carries no 0x00 byte, so the
+                 * first 0x00 ends the data and the byte behind it tells
+                 * the framings apart.
+                 */
+                val firstBlockSize = byteReader.readByteAsInt()
+
+                val firstBlock = byteArrayOf(firstBlockSize.toByte()) +
+                    byteReader.readBytes("application identifier block", firstBlockSize)
+
+                val xmpIdentifierBlock =
+                    GifConstants.XMP_APPLICATION_IDENTIFIER + GifConstants.XMP_APPLICATION_CODE
+
+                val isXmpBinding =
+                    firstBlockSize == xmpIdentifierBlock.length &&
+                        firstBlock.decodeToString().substring(1) == xmpIdentifierBlock
+
+                val payloadBlocks: List<ByteArray>
+                val contiguouslyFramed: Boolean
+
+                if (isXmpBinding) {
+
+                    /*
+                     * The contiguous Adobe binding stores the packet
+                     * directly, so the data begins with the '<' of the
+                     * XML - "<?xpacket" or "<x:xmpmeta". The sub-blocked
+                     * form that older Kim releases wrote begins with a
+                     * sub-block size byte instead.
+                     */
+                    val firstDataByte = byteReader.readByte()
+                        ?: throw ImageReadException(
+                            "Unexpected end of file behind the XMP identifier."
+                        )
+
+                    contiguouslyFramed = firstDataByte == GifConstants.XML_TAG_START
+
+                    if (contiguouslyFramed) {
+
+                        val data = byteArrayOf(firstDataByte) +
+                            byteReader.readGifBytesUntilFirstTerminator("XMP packet")
+
+                        val terminator = byteReader.readByte()
+                            ?: throw ImageReadException(
+                                "Unexpected end of file behind the XMP packet."
+                            )
+
+                        if (terminator != GifConstants.BLOCK_TERMINATOR)
+                            throw ImageReadException(
+                                "The XMP packet has no block terminator."
+                            )
+
+                        /*
+                         * The block list ends without the terminator,
+                         * because the join adds it - the flattened bytes
+                         * stay identical to the file's.
+                         */
+                        payloadBlocks = listOf(data)
+                    } else {
+
+                        /*
+                         * Sub-blocked form: the first data byte is the
+                         * first sub-block's size, its bytes follow.
+                         */
+                        val firstSubBlock = byteArrayOf(firstDataByte) +
+                            byteReader.readBytes(
+                                "XMP sub-block",
+                                firstDataByte.toInt() and 0xFF
+                            )
+
+                        payloadBlocks = listOf(firstSubBlock) +
+                            byteReader.parseGifSubChunksUntilEmpty("application extension")
+                    }
+                } else {
+
+                    payloadBlocks =
+                        byteReader.parseGifSubChunksUntilEmpty("application extension")
+
+                    contiguouslyFramed = false
+                }
+
                 GifChunkApplicationExtension(
                     byteArrayOf(
                         GifConstants.EXTENSION_INTRODUCER,
                         GifConstants.APPLICATION_EXTENSION_LABEL
                     ),
-                    byteReader.parseGifSubChunksUntilEmpty("application extension")
+                    listOf(firstBlock) + payloadBlocks,
+                    contiguouslyFramed = contiguouslyFramed
                 )
+            }
 
             GifConstants.COMMENT_EXTENSION_LABEL ->
                 GifChunkCommentExtension(
@@ -473,6 +560,28 @@ internal fun ByteReader.transferGifSubBlocks(byteWriter: ByteWriter?) {
             return
 
         transferExactly(byteWriter, sizeByte.toUInt8().toLong())
+    }
+}
+
+/**
+ * Reads the bytes of a contiguous GIF data area up to and including the
+ * terminating 0x00 - the form the Adobe XMP binding writes its packet
+ * in, where the magic trailer's last 0x00 is data and the block
+ * terminator follows it as the second 0x00.
+ */
+internal fun ByteReader.readGifBytesUntilFirstTerminator(fieldName: String): ByteArray {
+
+    val writer = ByteArrayByteWriter()
+
+    while (true) {
+
+        val byte = readByte()
+            ?: throw ImageReadException("Unexpected end of file behind the $fieldName.")
+
+        writer.write(byte)
+
+        if (byte == GifConstants.BLOCK_TERMINATOR)
+            return writer.toByteArray()
     }
 }
 

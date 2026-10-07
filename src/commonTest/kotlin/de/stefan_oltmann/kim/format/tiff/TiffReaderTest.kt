@@ -52,14 +52,22 @@ class TiffReaderTest {
 
         /* IFD0 with a single entry: ExifOffset (0x8769), LONG, count 0. */
         val bytes = byteArrayOf(
-            0x49, 0x49, 0x2A, 0x00, // TIFF header.
-            8, 0, 0, 0,             // IFD0 offset.
-            1, 0,                   // Entry count.
-            0x69, 0x87.toByte(),       // ExifOffset tag.
-            4, 0,                   // Type LONG.
-            0, 0, 0, 0,             // Count 0.
-            0, 0, 0, 0,             // Value (unused).
-            0, 0, 0, 0              // No next IFD.
+            /* TIFF header. */
+            0x49, 0x49, 0x2A, 0x00,
+            /* IFD0 offset. */
+            8, 0, 0, 0,
+            /* Entry count. */
+            1, 0,
+            /* ExifOffset tag. */
+            0x69, 0x87.toByte(),
+            /* Type LONG. */
+            4, 0,
+            /* Count 0. */
+            0, 0, 0, 0,
+            /* Value (unused). */
+            0, 0, 0, 0,
+            /* No next IFD. */
+            0, 0, 0, 0
         )
 
         val metadata = TiffReader.read(bytes)
@@ -78,17 +86,27 @@ class TiffReaderTest {
     @Test
     fun testUnreadableExifOffsetValueFailsTheRead() {
 
-        /* IFD0 with a single entry: ExifOffset (0x8769), LONG, count 5,
-         * value offset 1000 - far behind the end of this 26-byte file. */
+        /*
+         * IFD0 with a single entry: ExifOffset (0x8769), LONG, count 5,
+         * value offset 1000 - far behind the end of this 26-byte file.
+         */
         val bytes = byteArrayOf(
-            0x49, 0x49, 0x2A, 0x00, // TIFF header.
-            8, 0, 0, 0,             // IFD0 offset.
-            1, 0,                   // Entry count.
-            0x69, 0x87.toByte(),    // ExifOffset tag.
-            4, 0,                   // Type LONG.
-            5, 0, 0, 0,             // Count 5 (value does not fit inline).
-            0xE8.toByte(), 0x03, 0x00, 0x00, // Value offset 1000.
-            0, 0, 0, 0              // No next IFD.
+            /* TIFF header. */
+            0x49, 0x49, 0x2A, 0x00,
+            /* IFD0 offset. */
+            8, 0, 0, 0,
+            /* Entry count. */
+            1, 0,
+            /* ExifOffset tag. */
+            0x69, 0x87.toByte(),
+            /* Type LONG. */
+            4, 0,
+            /* Count 5 (value does not fit inline). */
+            5, 0, 0, 0,
+            /* Value offset 1000. */
+            0xE8.toByte(), 0x03, 0x00, 0x00,
+            /* No next IFD. */
+            0, 0, 0, 0
         )
 
         assertFailsWith<ImageReadException> {
@@ -107,21 +125,37 @@ class TiffReaderTest {
 
         /* IFD0 with a single entry: ExifOffset (0x8769), type SLONG. */
         val bytes = byteArrayOf(
-            0x49, 0x49, 0x2A, 0x00, // TIFF header.
-            8, 0, 0, 0,             // IFD0 offset.
-            1, 0,                   // Entry count.
-            0x69, 0x87.toByte(),    // ExifOffset tag.
-            9, 0,                   // Type SLONG (variant).
-            1, 0, 0, 0,             // Count 1.
-            26, 0, 0, 0,            // Value 26 (inline).
-            0, 0, 0, 0,             // No next IFD.
-            /* The Exif sub-IFD at offset 26. */
-            1, 0,                   // Entry count.
-            0x0E, 0x01,             // ImageDescription tag.
-            2, 0,                   // Type ASCII.
-            2, 0, 0, 0,             // Count 2.
-            0x41, 0, 0, 0,          // "A" + padding.
-            0, 0, 0, 0              // No next IFD.
+            /* TIFF header. */
+            0x49, 0x49, 0x2A, 0x00,
+            /* IFD0 offset. */
+            8, 0, 0, 0,
+            /* Entry count. */
+            1, 0,
+            /* ExifOffset tag. */
+            0x69, 0x87.toByte(),
+            /* Type SLONG (variant). */
+            9, 0,
+            /* Count 1. */
+            1, 0, 0, 0,
+            /* Value 26 (inline). */
+            26, 0, 0, 0,
+            /* No next IFD. */
+            0, 0, 0, 0,
+            /*
+             * The Exif sub-IFD at offset 26.
+             * Entry count.
+             */
+            1, 0,
+            /* ImageDescription tag. */
+            0x0E, 0x01,
+            /* Type ASCII. */
+            2, 0,
+            /* Count 2. */
+            2, 0, 0, 0,
+            /* "A" + padding. */
+            0x41, 0, 0, 0,
+            /* No next IFD. */
+            0, 0, 0, 0
         )
 
         val metadata = TiffReader.read(DefaultRandomAccessByteReader(ByteArrayByteReader(bytes)))
@@ -154,15 +188,24 @@ class TiffReaderTest {
 
         /* Modeled after media_46.jpg: ExifOffset (0x8769) with count 3. */
         val bytes = byteArrayOf(
-            0x49, 0x49, 0x2A, 0x00, // TIFF header.
-            8, 0, 0, 0,             // IFD0 offset.
-            1, 0,                   // Entry count.
-            0x69, 0x87.toByte(),    // ExifOffset tag.
-            4, 0,                   // Type LONG.
-            3, 0, 0, 0,             // Count 3 (no single offset).
-            26, 0, 0, 0,            // Value offset 26.
-            0, 0, 0, 0,             // No next IFD.
-            1, 0, 0, 0,             // The 12 value bytes.
+            /* TIFF header. */
+            0x49, 0x49, 0x2A, 0x00,
+            /* IFD0 offset. */
+            8, 0, 0, 0,
+            /* Entry count. */
+            1, 0,
+            /* ExifOffset tag. */
+            0x69, 0x87.toByte(),
+            /* Type LONG. */
+            4, 0,
+            /* Count 3 (no single offset). */
+            3, 0, 0, 0,
+            /* Value offset 26. */
+            26, 0, 0, 0,
+            /* No next IFD. */
+            0, 0, 0, 0,
+            /* The 12 value bytes. */
+            1, 0, 0, 0,
             0, 0, 0, 0,
             2, 0, 0, 0
         )
@@ -184,18 +227,29 @@ class TiffReaderTest {
     @Test
     fun testGeoKeyDirectoryWithWrongTypeFailsTheRead() {
 
-        /* IFD0 with a single entry: GeoKeyDirectory (0x87AF), stored as
-         * LONG, count 4, value at offset 24. */
+        /*
+         * IFD0 with a single entry: GeoKeyDirectory (0x87AF), stored as
+         * LONG, count 4, value at offset 24.
+         */
         val bytes = byteArrayOf(
-            0x49, 0x49, 0x2A, 0x00, // TIFF header.
-            8, 0, 0, 0,             // IFD0 offset.
-            1, 0,                   // Entry count.
-            0xAF.toByte(), 0x87.toByte(),    // GeoKeyDirectory tag.
-            4, 0,                   // Type LONG (wrong).
-            4, 0, 0, 0,             // Count 4.
-            24, 0, 0, 0,            // Value offset 24.
-            0, 0, 0, 0,             // No next IFD.
-            1, 0, 0, 0,             // Value: 4 LONGs (16 bytes).
+            /* TIFF header. */
+            0x49, 0x49, 0x2A, 0x00,
+            /* IFD0 offset. */
+            8, 0, 0, 0,
+            /* Entry count. */
+            1, 0,
+            /* GeoKeyDirectory tag. */
+            0xAF.toByte(), 0x87.toByte(),
+            /* Type LONG (wrong). */
+            4, 0,
+            /* Count 4. */
+            4, 0, 0, 0,
+            /* Value offset 24. */
+            24, 0, 0, 0,
+            /* No next IFD. */
+            0, 0, 0, 0,
+            /* Value: 4 LONGs (16 bytes). */
+            1, 0, 0, 0,
             0, 0, 0, 0,
             2, 0, 0, 0,
             0, 0, 0, 0
@@ -216,14 +270,22 @@ class TiffReaderTest {
 
         /* IFD0 with a single entry: tag 0x0001, type 0x0F, count 1, inline 0. */
         val bytes = byteArrayOf(
-            0x49, 0x49, 0x2A, 0x00, // TIFF header.
-            8, 0, 0, 0,             // IFD0 offset.
-            1, 0,                   // Entry count.
-            1, 0,                   // Tag.
-            0x0F, 0,                // Unknown type.
-            1, 0, 0, 0,             // Count.
-            0, 0, 0, 0,             // Inline value.
-            0, 0, 0, 0              // No next IFD.
+            /* TIFF header. */
+            0x49, 0x49, 0x2A, 0x00,
+            /* IFD0 offset. */
+            8, 0, 0, 0,
+            /* Entry count. */
+            1, 0,
+            /* Tag. */
+            1, 0,
+            /* Unknown type. */
+            0x0F, 0,
+            /* Count. */
+            1, 0, 0, 0,
+            /* Inline value. */
+            0, 0, 0, 0,
+            /* No next IFD. */
+            0, 0, 0, 0
         )
 
         val exception = assertFailsWith<ImageReadException> {
@@ -244,13 +306,20 @@ class TiffReaderTest {
     fun testReadSkipsEntryWithOverflowingCount() {
 
         val bytes = convertHexStringToByteArray(
-            "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
-                "0400" + // 4 entries
-                "00010100ffffffff00000000" + // ImageWidth, BYTE, count 0xFFFFFFFF
-                "010103007fffffff00000000" + // ImageLength, SHORT, count 0x7FFFFFFF
-                "000104000100004000000000" + // NewSubfileType (0x00FE), LONG, count 0x40000001
-                "120103000100000001000000" + // Orientation, SHORT, count 1, value 1
-                "00000000" // No next directory
+            /* Header: II, version 42, IFD0 at offset 8 */
+            "49492a0008000000" +
+                /* 4 entries */
+                "0400" +
+                /* ImageWidth, BYTE, count 0xFFFFFFFF */
+                "00010100ffffffff00000000" +
+                /* ImageLength, SHORT, count 0x7FFFFFFF */
+                "010103007fffffff00000000" +
+                /* NewSubfileType (0x00FE), LONG, count 0x40000001 */
+                "000104000100004000000000" +
+                /* Orientation, SHORT, count 1, value 1 */
+                "120103000100000001000000" +
+                /* No next directory */
+                "00000000"
         )
 
         val tiffContents = TiffReader.read(ByteArrayByteReader(bytes))
@@ -278,11 +347,16 @@ class TiffReaderTest {
     fun testReadSkipsThumbnailWithNegativeResolvedOffset() {
 
         val bytes = convertHexStringToByteArray(
-            "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
-                "0200" + // 2 entries
-                "0102040001000000ffffffff" + // JPEGInterchangeFormat (0x0201), LONG, 0xFFFFFFFF
-                "020204000100000010000000" + // JPEGInterchangeFormatLength (0x0202), LONG, 16
-                "00000000" // No next directory
+            /* Header: II, version 42, IFD0 at offset 8 */
+            "49492a0008000000" +
+                /* 2 entries */
+                "0200" +
+                /* JPEGInterchangeFormat (0x0201), LONG, 0xFFFFFFFF */
+                "0102040001000000ffffffff" +
+                /* JPEGInterchangeFormatLength (0x0202), LONG, 16 */
+                "020204000100000010000000" +
+                /* No next directory */
+                "00000000"
         )
 
         val tiffContents = TiffReader.read(ByteArrayByteReader(bytes))
@@ -306,11 +380,16 @@ class TiffReaderTest {
     fun testReadRejectsTruncatedGpsIfd() {
 
         val bytes = convertHexStringToByteArray(
-            "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
-                "0100" + // 1 entry
-                "25880400010000001a000000" + // GPSInfo (0x8825), LONG, count 1, GPS IFD at offset 26
-                "00000000" + // No next directory
-                "3200" // GPS IFD entry count 0x0032 (50), no entries follow
+            /* Header: II, version 42, IFD0 at offset 8 */
+            "49492a0008000000" +
+                /* 1 entry */
+                "0100" +
+                /* GPSInfo (0x8825), LONG, count 1, GPS IFD at offset 26 */
+                "25880400010000001a000000" +
+                /* No next directory */
+                "00000000" +
+                /* GPS IFD entry count 0x0032 (50), no entries follow */
+                "3200"
         )
 
         assertFailsWith<ImageReadException> {
@@ -336,10 +415,14 @@ class TiffReaderTest {
     fun testReadRejectsGpsIfdOffsetBeyondEof() {
 
         val bytes = convertHexStringToByteArray(
-            "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
-                "0100" + // 1 entry
-                "2588040001000000" + "00300000" + // GPSInfo, LONG, GPS IFD at offset 12288
-                "00000000" // No next directory
+            /* Header: II, version 42, IFD0 at offset 8 */
+            "49492a0008000000" +
+                /* 1 entry */
+                "0100" +
+                /* GPSInfo, LONG, GPS IFD at offset 12288 */
+                "2588040001000000" + "00300000" +
+                /* No next directory */
+                "00000000"
         )
 
         assertFailsWith<ImageReadException> {
@@ -375,13 +458,20 @@ class TiffReaderTest {
     fun testReadSkipsHostileGpsTextTag() {
 
         val bytes = convertHexStringToByteArray(
-            "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
-                "0100" + // 1 entry
-                "69870400010000001a000000" + // ExifIFDOffset (0x8769), LONG, EXIF IFD at offset 26
-                "00000000" + // No next directory
-                "0100" + // EXIF IFD: 1 entry
-                "869204000100000041414141" + // UserComment (0x9286), LONG, count 1, "AAAA"
-                "00000000" // No next directory
+            /* Header: II, version 42, IFD0 at offset 8 */
+            "49492a0008000000" +
+                /* 1 entry */
+                "0100" +
+                /* ExifIFDOffset (0x8769), LONG, EXIF IFD at offset 26 */
+                "69870400010000001a000000" +
+                /* No next directory */
+                "00000000" +
+                /* EXIF IFD: 1 entry */
+                "0100" +
+                /* UserComment (0x9286), LONG, count 1, "AAAA" */
+                "869204000100000041414141" +
+                /* No next directory */
+                "00000000"
         )
 
         val tiffContents = TiffReader.read(ByteArrayByteReader(bytes))
@@ -406,12 +496,18 @@ class TiffReaderTest {
 
         /* IFD0 with a 7-byte JPEG thumbnail at offset 38. */
         val tiffBytes = convertHexStringToByteArray(
-            "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
-                "0200" + // 2 entries
-                "010204000100000026000000" + // JPEGInterchangeFormat (0x0201) = 38
-                "020204000100000007000000" + // JPEGInterchangeFormatLength (0x0202) = 7
-                "00000000" + // No next directory
-                "ffd8112233" + "ffd9" // The thumbnail bytes at offset 38.
+            /* Header: II, version 42, IFD0 at offset 8 */
+            "49492a0008000000" +
+                /* 2 entries */
+                "0200" +
+                /* JPEGInterchangeFormat (0x0201) = 38 */
+                "010204000100000026000000" +
+                /* JPEGInterchangeFormatLength (0x0202) = 7 */
+                "020204000100000007000000" +
+                /* No next directory */
+                "00000000" +
+                /* The thumbnail bytes at offset 38. */
+                "ffd8112233" + "ffd9"
         )
 
         val delegate = DefaultRandomAccessByteReader(ByteArrayByteReader(tiffBytes))
@@ -444,11 +540,16 @@ class TiffReaderTest {
     fun testReadSkipsEntryWithValueOffsetAboveIntMax() {
 
         val bytes = convertHexStringToByteArray(
-            "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
-                "0200" + // 2 entries
-                "0001" + "0100" + "08000000" + "00000090" + // ImageWidth, BYTE[8], value offset 0x90000000
-                "0201" + "0300" + "01000000" + "08000000" + // BitsPerSample = 8
-                "00000000" // No next directory
+            /* Header: II, version 42, IFD0 at offset 8 */
+            "49492a0008000000" +
+                /* 2 entries */
+                "0200" +
+                /* ImageWidth, BYTE[8], value offset 0x90000000 */
+                "0001" + "0100" + "08000000" + "00000090" +
+                /* BitsPerSample = 8 */
+                "0201" + "0300" + "01000000" + "08000000" +
+                /* No next directory */
+                "00000000"
         )
 
         val tiffContents = TiffReader.read(
@@ -469,11 +570,16 @@ class TiffReaderTest {
     @Test
     fun testReadSkipsStripWithNegativeResolvedOffset() {
         val bytes = convertHexStringToByteArray(
-            "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
-                "0200" + // 2 entries
-                "1101040001000000ffffffff" + // StripOffsets (0x0111), LONG, 0xFFFFFFFF
-                "170104000100000010000000" + // StripByteCounts (0x0117), LONG, 16
-                "00000000" // No next directory
+            /* Header: II, version 42, IFD0 at offset 8 */
+            "49492a0008000000" +
+                /* 2 entries */
+                "0200" +
+                /* StripOffsets (0x0111), LONG, 0xFFFFFFFF */
+                "1101040001000000ffffffff" +
+                /* StripByteCounts (0x0117), LONG, 16 */
+                "170104000100000010000000" +
+                /* No next directory */
+                "00000000"
         )
 
         val tiffContents = TiffReader.read(
@@ -499,11 +605,16 @@ class TiffReaderTest {
     fun testReadSkipsEntryWithValueOffsetWrapAround() {
 
         val bytes = convertHexStringToByteArray(
-            "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
-                "0100" + // 1 entry
-                "00010100f9ffffff" + // Unknown tag 0x0100, BYTE, count 0x7FFFFFF9
-                "ffffff7f" + // Value offset 0x7FFFFFFF
-                "00000000" // No next directory
+            /* Header: II, version 42, IFD0 at offset 8 */
+            "49492a0008000000" +
+                /* 1 entry */
+                "0100" +
+                /* Unknown tag 0x0100, BYTE, count 0x7FFFFFF9 */
+                "00010100f9ffffff" +
+                /* Value offset 0x7FFFFFFF */
+                "ffffff7f" +
+                /* No next directory */
+                "00000000"
         )
 
         /*
@@ -533,16 +644,21 @@ class TiffReaderTest {
         val directoryOffset = 0x7FFFFFF0
 
         val headerBytes = byteArrayOf(
-            0x49, 0x49, 0x2A, 0x00, // TIFF header.
-            0xF0.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0x7F.toByte() // Directory far out.
+            /* TIFF header. */
+            0x49, 0x49, 0x2A, 0x00,
+            /* Directory far out. */
+            0xF0.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0x7F.toByte()
         )
 
         /* Entry count, three SHORT entries and no next directory. */
         val tailBytes = byteArrayOf(
             3, 0,
-            0x01, 0x01, 0x03, 0x00, 1, 0, 0, 0, 42, 0, 0, 0, // Tag 0x0101, SHORT, count 1, value 42.
-            0x02, 0x01, 0x03, 0x00, 1, 0, 0, 0, 1, 0, 0, 0, // Tag 0x0102, SHORT, count 1, value 1.
-            0x03, 0x01, 0x03, 0x00, 1, 0, 0, 0, 1, 0, 0, 0, // Tag 0x0103, SHORT, count 1, value 1.
+            /* Tag 0x0101, SHORT, count 1, value 42. */
+            0x01, 0x01, 0x03, 0x00, 1, 0, 0, 0, 42, 0, 0, 0,
+            /* Tag 0x0102, SHORT, count 1, value 1. */
+            0x02, 0x01, 0x03, 0x00, 1, 0, 0, 0, 1, 0, 0, 0,
+            /* Tag 0x0103, SHORT, count 1, value 1. */
+            0x03, 0x01, 0x03, 0x00, 1, 0, 0, 0, 1, 0, 0, 0,
             0, 0, 0, 0
         )
 
@@ -574,15 +690,24 @@ class TiffReaderTest {
     fun testFindTiffFieldWithTagNumberCollision() {
 
         val bytes = convertHexStringToByteArray(
-            "49492a0008000000" + // Header: II, version 42, IFD0 at offset 8
-                "0200" + // 2 entries
-                "01000100010000002a000000" + // Unknown tag 0x0001, BYTE, count 1, value 42
-                "25880400010000002a000000" + // GPSInfo (0x8825), LONG, count 1, offset 42
-                "00000000" + // No next directory
-                "00000000" + // Padding
-                "0100" + // GPS directory at offset 42: 1 entry
-                "01000200020000004e000000" + // GPSLatitudeRef (0x0001), ASCII, count 2, value "N"
-                "00000000" // No next directory
+            /* Header: II, version 42, IFD0 at offset 8 */
+            "49492a0008000000" +
+                /* 2 entries */
+                "0200" +
+                /* Unknown tag 0x0001, BYTE, count 1, value 42 */
+                "01000100010000002a000000" +
+                /* GPSInfo (0x8825), LONG, count 1, offset 42 */
+                "25880400010000002a000000" +
+                /* No next directory */
+                "00000000" +
+                /* Padding */
+                "00000000" +
+                /* GPS directory at offset 42: 1 entry */
+                "0100" +
+                /* GPSLatitudeRef (0x0001), ASCII, count 2, value "N" */
+                "01000200020000004e000000" +
+                /* No next directory */
+                "00000000"
         )
 
         val tiffContents = TiffReader.read(ByteArrayByteReader(bytes))
@@ -635,10 +760,13 @@ class TiffReaderTest {
     fun testReadTerminatesOnSelfReferencingDirectory() {
 
         val bytes = convertHexStringToByteArray(
-            "49492a00" + // Header: II, version 42, IFD0 at offset 8
+            /* Header: II, version 42, IFD0 at offset 8 */
+            "49492a00" +
                 "08000000" +
-                "0000" + // No entries
-                "08000000" // Next directory: this very directory
+                /* No entries */
+                "0000" +
+                /* Next directory: this very directory */
+                "08000000"
         )
 
         val tiffContents = TiffReader.read(ByteArrayByteReader(bytes))
@@ -670,7 +798,8 @@ class TiffReaderTest {
         byteWriter.write(shortArrayOf(1).toBytes(ByteOrder.LITTLE_ENDIAN))
 
         byteWriter.write(shortArrayOf(0x8825.toShort()).toBytes(ByteOrder.LITTLE_ENDIAN))
-        byteWriter.write(shortArrayOf(4).toBytes(ByteOrder.LITTLE_ENDIAN)) // LONG
+        /* LONG */
+        byteWriter.write(shortArrayOf(4).toBytes(ByteOrder.LITTLE_ENDIAN))
         byteWriter.writeInt(1, ByteOrder.LITTLE_ENDIAN)
         byteWriter.writeInt(gpsOffset, ByteOrder.LITTLE_ENDIAN)
 
@@ -680,7 +809,8 @@ class TiffReaderTest {
         byteWriter.write(shortArrayOf(1).toBytes(ByteOrder.LITTLE_ENDIAN))
 
         byteWriter.write(shortArrayOf(GpsTag.GPS_TAG_GPS_VERSION_ID.tag.toShort()).toBytes(ByteOrder.LITTLE_ENDIAN))
-        byteWriter.write(shortArrayOf(1).toBytes(ByteOrder.LITTLE_ENDIAN)) // BYTE
+        /* BYTE */
+        byteWriter.write(shortArrayOf(1).toBytes(ByteOrder.LITTLE_ENDIAN))
         byteWriter.writeInt(4, ByteOrder.LITTLE_ENDIAN)
         byteWriter.write(GpsTag.GPS_VERSION)
 
@@ -691,7 +821,8 @@ class TiffReaderTest {
         /* The junk IFD that used to be mis-tagged as an Exif IFD. */
         byteWriter.write(shortArrayOf(1).toBytes(ByteOrder.LITTLE_ENDIAN))
         byteWriter.write(shortArrayOf(0x1111).toBytes(ByteOrder.LITTLE_ENDIAN))
-        byteWriter.write(shortArrayOf(4).toBytes(ByteOrder.LITTLE_ENDIAN)) // LONG
+        /* LONG */
+        byteWriter.write(shortArrayOf(4).toBytes(ByteOrder.LITTLE_ENDIAN))
         byteWriter.writeInt(1, ByteOrder.LITTLE_ENDIAN)
         byteWriter.writeInt(7, ByteOrder.LITTLE_ENDIAN)
         byteWriter.writeInt(0, ByteOrder.LITTLE_ENDIAN)
@@ -727,11 +858,14 @@ class TiffReaderTest {
 
             /* One ExifOffset entry pointing to the next level. */
             byteWriter.write(shortArrayOf(1).toBytes(ByteOrder.LITTLE_ENDIAN))
-            byteWriter.write(byteArrayOf(0x69, 0x87.toByte())) // ExifOffset (0x8769)
-            byteWriter.write(byteArrayOf(0x04, 0x00)) // LONG
+            /* ExifOffset (0x8769) */
+            byteWriter.write(byteArrayOf(0x69, 0x87.toByte()))
+            /* LONG */
+            byteWriter.write(byteArrayOf(0x04, 0x00))
             byteWriter.writeInt(1, ByteOrder.LITTLE_ENDIAN)
             byteWriter.writeInt(8 + (level + 1) * levelSize, ByteOrder.LITTLE_ENDIAN)
-            byteWriter.writeInt(0, ByteOrder.LITTLE_ENDIAN) // No next directory
+            /* No next directory */
+            byteWriter.writeInt(0, ByteOrder.LITTLE_ENDIAN)
         }
 
         /* The terminal directory the last level points to. */
@@ -745,8 +879,10 @@ class TiffReaderTest {
 
     private fun writeTiffHeader(byteWriter: ByteArrayByteWriter) {
 
-        byteWriter.write(byteArrayOf(0x49, 0x49, 0x2A, 0)) // II, version 42
-        byteWriter.writeInt(8, ByteOrder.LITTLE_ENDIAN) // IFD0 at offset 8
+        /* II, version 42 */
+        byteWriter.write(byteArrayOf(0x49, 0x49, 0x2A, 0))
+        /* IFD0 at offset 8 */
+        byteWriter.writeInt(8, ByteOrder.LITTLE_ENDIAN)
     }
 
     /**

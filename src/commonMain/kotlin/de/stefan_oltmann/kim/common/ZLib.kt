@@ -24,25 +24,61 @@ package de.stefan_oltmann.kim.common
  */
 internal const val MAX_DECOMPRESSED_BYTE_COUNT: Int = 8 * 1024 * 1024
 
+/* The zlib header is two bytes: CMF and FDG. */
+private const val ZLIB_HEADER_LENGTH: Int = 2
+
+/* The zlib CMF low nibble names the compression method: 8 is deflate. */
+private const val ZLIB_DEFLATE_METHOD: Int = 8
+
+/* The zlib header is valid when CMF and FDG together are a multiple of 31. */
+private const val ZLIB_HEADER_CHECK_MODULUS: Int = 31
+
 /**
  * Decompresses the given zlib data into raw bytes.
  *
  * Aborts with an [ImageReadException] when the output exceeds
  * [maxOutputByteCount], so hostile input cannot exhaust the memory.
  */
-internal expect fun decompressBytes(
+internal expect fun decompressBytesPlatform(
     byteArray: ByteArray,
-    maxOutputByteCount: Int = MAX_DECOMPRESSED_BYTE_COUNT
+    maxOutputByteCount: Int
 ): ByteArray
 
 /**
- * Decompresses the given zlib data.
+ * Decompresses the given zlib data into raw bytes.
  *
- * Aborts with an [ImageReadException] when the output exceeds
- * [maxOutputByteCount], so hostile input cannot exhaust the memory.
+ * An empty input is truncated zlib data, not empty output, and fails
+ * with an [ImageReadException] on every platform - the PNG text chunks
+ * are parsed from file-controlled bytes, so a chunk cut before its
+ * compressed payload must not succeed here on some targets only.
  */
-internal fun decompress(
+internal fun decompressBytes(
     byteArray: ByteArray,
     maxOutputByteCount: Int = MAX_DECOMPRESSED_BYTE_COUNT
-): String =
-    decompressBytes(byteArray, maxOutputByteCount).decodeToString()
+): ByteArray {
+
+    if (byteArray.size < ZLIB_HEADER_LENGTH)
+        throw ImageReadException("Unexpected end of compressed data.")
+
+    /*
+     * The zlib header check runs on every platform: pako's incremental
+     * inflater auto-detects gzip and raw-deflate unless windowBits is
+     * pinned, so without this guard a gzip-framed or raw-deflate payload
+     * would decode on JS/wasm while JVM and native reject it - identical
+     * input, divergent read outcome. The CMF low nibble must name the
+     * deflate method (8) and CMF/FDG together a multiple of 31 - the
+     * same checks inflate itself performs.
+     */
+    val headerByte = byteArray[0].toInt() and 0xFF
+
+    val flagByte = byteArray[1].toInt() and 0xFF
+
+    val isZlibHeader =
+        headerByte and 0x0F == ZLIB_DEFLATE_METHOD &&
+            ((headerByte shl 8) or flagByte) % ZLIB_HEADER_CHECK_MODULUS == 0
+
+    if (!isZlibHeader)
+        throw ImageReadException("The payload is not zlib-compressed data.")
+
+    return decompressBytesPlatform(byteArray, maxOutputByteCount)
+}

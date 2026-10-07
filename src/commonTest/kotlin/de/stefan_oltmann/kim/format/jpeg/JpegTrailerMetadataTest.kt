@@ -19,10 +19,12 @@ import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
+import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
 import kotlin.test.assertContains
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
@@ -85,6 +87,66 @@ class JpegTrailerMetadataTest {
             TiffOrientation.UPSIDE_DOWN.value,
             exif.directories.first().findField(TiffTag.TIFF_TAG_ORIENTATION)?.toInt()
         )
+    }
+
+    /**
+     * The trailer can belong to another tool, so an update neither
+     * touches nor fails on it: the bytes of the trailer segments survive
+     * verbatim while the header metadata is rewritten. The stale copy
+     * stays visible through `readTrailerMetadata = true` - users of
+     * trailer-aware reads see both values and can clear the trailer
+     * themselves.
+     */
+    @Test
+    fun testUpdateLeavesTrailerBytesVerbatim() {
+
+        val marker = "Behind EOI".encodeToByteArray()
+
+        val updatedBytes = Kim.update(
+            bytes = fixtureBytes,
+            updates = setOf(MetadataUpdate.Title("Header update"))
+        )
+
+        /*
+         * A window of the trailer XMP around its title text is copied
+         * byte-exact: the update rewrites the header metadata only.
+         */
+        val fixtureMarkerOffset = indexOf(fixtureBytes, marker)
+
+        val updatedMarkerOffset = indexOf(updatedBytes, marker)
+
+        assertContentEquals(
+            expected = fixtureBytes.copyOfRange(
+                fixtureMarkerOffset - 200,
+                fixtureMarkerOffset + 200
+            ),
+            actual = updatedBytes.copyOfRange(
+                updatedMarkerOffset - 200,
+                updatedMarkerOffset + 200
+            )
+        )
+
+        /* The rewritten file stays fully readable, trailer flag included. */
+        assertNotNull(
+            Kim.readMetadata(
+                bytes = updatedBytes,
+                readTrailerMetadata = true
+            )
+        )
+    }
+
+    /**
+     * Returns the offset of the first occurrence of the needle, or -1.
+     */
+    private fun indexOf(bytes: ByteArray, needle: ByteArray): Int {
+
+        for (index in 0..bytes.size - needle.size) {
+
+            if (bytes.copyOfRange(index, index + needle.size).contentEquals(needle))
+                return index
+        }
+
+        return -1
     }
 
     /**

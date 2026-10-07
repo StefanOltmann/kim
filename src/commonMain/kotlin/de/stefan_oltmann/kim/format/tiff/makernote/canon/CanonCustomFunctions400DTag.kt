@@ -22,7 +22,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoByte
 /**
  * Tags of the Functions400D maker note sub-directory.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#Functions400D
+ * See https://exiftool.sourceforge.net/TagNames/CanonCustom.html#Functions400D
  */
 @Suppress("MagicNumber", "StringLiteralDuplication", "MaxLineLength")
 public object CanonCustomFunctions400DTag {

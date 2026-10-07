@@ -48,10 +48,14 @@ class KimUpdateSmallFileTest {
 
         /* A tiny truncated JPEG: header segments, SOS and image data, no EOI. */
         val smallJpeg = convertHexStringToByteArray(
-            "ffd8" + // SOI
-                "ffe00010" + "4a46494600010100000100010000" + // APP0 JFIF
-                "ffda0008" + "010100003f00" + // SOS, one component
-                "112233445566778899aabbccddeeff" + // image data
+            /* SOI */
+            "ffd8" +
+                /* APP0 JFIF */
+                "ffe00010" + "4a46494600010100000100010000" +
+                /* SOS, one component */
+                "ffda0008" + "010100003f00" +
+                /* image data */
+                "112233445566778899aabbccddeeff" +
                 "112233445566778899aabbccddeeff01"
         )
 
@@ -83,9 +87,12 @@ class KimUpdateSmallFileTest {
     fun testUpdateTruncatedJpegWithoutSosIsRejected() {
 
         val truncatedJpeg = convertHexStringToByteArray(
-            "ffd8" + // SOI
-                "ffe00010" + "4a46494600010100000100010000" + // APP0 JFIF
-                "ffe1000a" + "457869660000" // APP1 EXIF header only
+            /* SOI */
+            "ffd8" +
+                /* APP0 JFIF */
+                "ffe00010" + "4a46494600010100000100010000" +
+                /* APP1 EXIF header only */
+                "ffe1000a" + "457869660000"
         )
 
         assertFailsWith<ImageWriteException> {
@@ -104,8 +111,10 @@ class KimUpdateSmallFileTest {
     fun testDeleteMetadataTruncatedJpegWithoutSosIsRejected() {
 
         val truncatedJpeg = convertHexStringToByteArray(
-            "ffd8" + // SOI
-                "ffe00010" + "4a46494600010100000100010000" // APP0 JFIF
+            /* SOI */
+            "ffd8" +
+                /* APP0 JFIF */
+                "ffe00010" + "4a46494600010100000100010000"
         )
 
         assertFailsWith<ImageWriteException> {
@@ -121,9 +130,12 @@ class KimUpdateSmallFileTest {
     fun testUpdateJpegWithEoiBeforeSosIsRejected() {
 
         val eoiBeforeSosJpeg = convertHexStringToByteArray(
-            "ffd8" + // SOI
-                "ffe00010" + "4a46494600010100000100010000" + // APP0 JFIF
-                "ffd9" // EOI
+            /* SOI */
+            "ffd8" +
+                /* APP0 JFIF */
+                "ffe00010" + "4a46494600010100000100010000" +
+                /* EOI */
+                "ffd9"
         )
 
         assertFailsWith<ImageWriteException> {
@@ -142,9 +154,12 @@ class KimUpdateSmallFileTest {
     fun testDeleteMetadataJpegWithEoiBeforeSosIsRejected() {
 
         val eoiBeforeSosJpeg = convertHexStringToByteArray(
-            "ffd8" + // SOI
-                "ffe00010" + "4a46494600010100000100010000" + // APP0 JFIF
-                "ffd9" // EOI
+            /* SOI */
+            "ffd8" +
+                /* APP0 JFIF */
+                "ffe00010" + "4a46494600010100000100010000" +
+                /* EOI */
+                "ffd9"
         )
 
         assertFailsWith<ImageWriteException> {
@@ -200,12 +215,18 @@ class KimUpdateSmallFileTest {
     fun testUpdateGifWithTruncatedImageDataIsRejected() {
 
         val truncatedGif = convertHexStringToByteArray(
-            "474946383961" + // GIF89a
-                "01000100000000" + // Logical screen descriptor, no global color table
-                "2c" + // Image separator
-                "00000000" + "0100" + "0100" + "00" + // Image descriptor, no local color table
-                "02" + // LZW minimum code size
-                "02" + "44" // Sub-block announcing 2 data bytes, but only 1 follows
+            /* GIF89a */
+            "474946383961" +
+                /* Logical screen descriptor, no global color table */
+                "01000100000000" +
+                /* Image separator */
+                "2c" +
+                /* Image descriptor, no local color table */
+                "00000000" + "0100" + "0100" + "00" +
+                /* LZW minimum code size */
+                "02" +
+                /* Sub-block announcing 2 data bytes, but only 1 follows */
+                "02" + "44"
         )
 
         assertFailsWith<ImageWriteException> {
@@ -224,13 +245,20 @@ class KimUpdateSmallFileTest {
     fun testDeleteMetadataGifWithoutTrailerIsRejected() {
 
         val gifWithoutTrailer = convertHexStringToByteArray(
-            "474946383961" + // GIF89a
-                "01000100000000" + // Logical screen descriptor, no global color table
-                "2c" + // Image separator
-                "00000000" + "0100" + "0100" + "00" + // Image descriptor, no local color table
-                "02" + // LZW minimum code size
-                "02" + "4401" + // Complete image data sub-block
-                "00" // Block terminator, but no GIF trailer (0x3B)
+            /* GIF89a */
+            "474946383961" +
+                /* Logical screen descriptor, no global color table */
+                "01000100000000" +
+                /* Image separator */
+                "2c" +
+                /* Image descriptor, no local color table */
+                "00000000" + "0100" + "0100" + "00" +
+                /* LZW minimum code size */
+                "02" +
+                /* Complete image data sub-block */
+                "02" + "4401" +
+                /* Block terminator, but no GIF trailer (0x3B) */
+                "00"
         )
 
         assertFailsWith<ImageWriteException> {

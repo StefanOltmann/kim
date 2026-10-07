@@ -19,6 +19,7 @@
 package de.stefan_oltmann.kim.format.bmff
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.readUnsignedInt
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.bmff.box.Box
 import de.stefan_oltmann.kim.format.bmff.box.FileTypeBox
@@ -40,8 +41,9 @@ import de.stefan_oltmann.kim.format.jxl.box.CompressedBox
 import de.stefan_oltmann.kim.format.jxl.box.ExifBox
 import de.stefan_oltmann.kim.format.jxl.box.JxlPartialCodestreamBox
 import de.stefan_oltmann.kim.format.jxl.box.XmlBox
+import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
-import de.stefan_oltmann.kim.input.read4BytesAsInt
+import de.stefan_oltmann.kim.input.DEFAULT_BUFFER_SIZE
 import de.stefan_oltmann.kim.input.read8BytesAsLong
 import de.stefan_oltmann.kim.input.readBytes
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
@@ -51,6 +53,15 @@ import de.stefan_oltmann.kim.output.ByteArrayByteWriter
  */
 public object BoxReader {
 
+    private val CONTAINER_BOX_TYPES: Set<BoxType> = setOf(
+        BoxType.MOOV,
+        BoxType.TRAK,
+        BoxType.MDIA,
+        BoxType.UDTA,
+        BoxType.IINF,
+        BoxType.META
+    )
+
     /*
      * Real files nest container boxes only a few levels deep
      * (moov > trak > mdia > meta), so this limit only rejects hostile input.
@@ -59,6 +70,20 @@ public object BoxReader {
 
     /** Chunk size for reading possibly-truncated box payloads. */
     private const val READ_CHUNK_SIZE: Long = 64 * 1024
+
+    /*
+     * The payload of every buffered box is held in memory, so like the
+     * JPEG path's header segment budget, a box beyond this limit is
+     * hostile input rather than a legitimate file: no real photo or
+     * video carries metadata-sized boxes anywhere near it.
+     */
+    internal const val MAX_METADATA_BOX_BYTES: Int = 16 * 1024 * 1024
+
+    /* The JXL codestream signature the first JXLP fragment starts with. */
+    private const val JXL_HEADER_SIGNATURE_LENGTH: Int = 6
+
+    /* The largesize form stores its 64-bit length behind the type. */
+    private const val LARGESIZE_LENGTH: Int = 8
 
     /**
      * Reads all top-level boxes of the file completely, including the
@@ -226,6 +251,271 @@ public object BoxReader {
     }
 
     /**
+     * The result of reading a box payload: the bytes kept for the box
+     * object (possibly empty for skipped payloads) and whether the
+     * source ended inside the payload.
+     */
+    private class BoxPayloadResult(
+        val source: PayloadSource,
+        val truncated: Boolean
+    )
+
+    /**
+     * Reads one box payload according to the scan mode: skipped boxes
+     * stream through in bounded chunks, the video-scan file-level meta
+     * box is buffered with the metadata budget so its item children can
+     * be identified, mdat on the metadata path is retained by the
+     * CopyByteReader alone, and everything else buffers.
+     */
+    private fun readBoxPayload(
+        byteReader: ByteReader,
+        type: BoxType,
+        remainingBytesToReadInThisBox: Long,
+        skipDataBoxPayloads: Boolean,
+        stopAfterMetadataRead: Boolean,
+        haveSeenJxlHeaderBox: Boolean
+    ): BoxPayloadResult {
+
+        /*
+         * Container boxes parse their children from the parent buffer
+         * through a window, so their payload array only materializes
+         * when something reads it.
+         */
+        val isContainerBox = type in CONTAINER_BOX_TYPES
+
+        var payloadTruncated = false
+
+        /*
+         * The payload boxes the video scan buffers instead of skipping,
+         * because their content feeds the metadata parse.
+         */
+        val isMetadataPayloadBox =
+            type == BoxType.MOOV ||
+                type == BoxType.UUID ||
+                type == BoxType.XMP_ ||
+                type == BoxType.FTYP
+
+        val isSkippableDataBox = skipDataBoxPayloads && !isMetadataPayloadBox
+
+        val source: PayloadSource = when {
+
+            /*
+             * The video scan must look inside a file-level meta box:
+             * the ISO item layout in it carries metadata, and a meta
+             * bearing it fails the read below instead of being
+             * skipped. The payload is therefore buffered with the
+             * metadata budget, like every other box the scan looks
+             * into.
+             */
+            type == BoxType.META && skipDataBoxPayloads -> {
+
+                if (remainingBytesToReadInThisBox > MAX_METADATA_BOX_BYTES)
+                    throw ImageReadException(
+                        "Box $type carries $remainingBytesToReadInThisBox bytes of " +
+                            "payload, which exceeds the metadata budget of " +
+                            "$MAX_METADATA_BOX_BYTES bytes."
+                    )
+
+                val payload = readPayloadUpToEof(
+                    byteReader,
+                    remainingBytesToReadInThisBox.toInt()
+                )
+
+                payloadTruncated = payload.size < remainingBytesToReadInThisBox
+
+                PayloadSource.of(payload)
+            }
+
+            isSkippableDataBox -> {
+
+                val skippedByteCount = skipPayloadUpToEof(
+                    byteReader,
+                    remainingBytesToReadInThisBox
+                )
+
+                payloadTruncated = skippedByteCount < remainingBytesToReadInThisBox
+
+                /* The payload is discarded, not retained. */
+                PayloadSource.of(ByteArray(0))
+            }
+
+            type == BoxType.MDAT &&
+                stopAfterMetadataRead &&
+                byteReader.isRetaining -> {
+
+                val retained = readPayloadUpToEof(
+                    byteReader,
+                    remainingBytesToReadInThisBox.toInt()
+                )
+
+                payloadTruncated = retained.size < remainingBytesToReadInThisBox
+
+                /* The reader itself retains the bytes. */
+                PayloadSource.of(ByteArray(0))
+            }
+
+            /*
+             * JXL codestream fragments are image data, not metadata:
+             * a metadata read must not buffer them a second time. The
+             * scan reads them through the retaining reader (which
+             * already holds the bytes) and keeps only the leading
+             * signature bytes of the first fragment - they decide
+             * whether the fragment is the codestream header.
+             */
+            (type == BoxType.JXLC || type == BoxType.JXLP) &&
+                stopAfterMetadataRead &&
+                byteReader.isRetaining -> {
+
+                val retained = readPayloadUpToEof(
+                    byteReader,
+                    remainingBytesToReadInThisBox.toInt()
+                )
+
+                payloadTruncated = retained.size < remainingBytesToReadInThisBox
+
+                if (type == BoxType.JXLP && !haveSeenJxlHeaderBox)
+                    PayloadSource.of(
+                        retained.copyOf(minOf(retained.size, JXL_HEADER_SIGNATURE_LENGTH))
+                    )
+                else
+                    PayloadSource.of(ByteArray(0))
+            }
+
+            stopAfterMetadataRead -> {
+
+                val payload = readPayloadUpToEof(
+                    byteReader,
+                    remainingBytesToReadInThisBox.toInt()
+                )
+
+                payloadTruncated = payload.size < remainingBytesToReadInThisBox
+
+                PayloadSource.of(payload)
+            }
+
+            isContainerBox && byteReader is ByteArrayByteReader &&
+                byteReader.windowPosition + remainingBytesToReadInThisBox <=
+                byteReader.windowEnd -> {
+
+                /*
+                 * The payload stays a window into the parent buffer: the
+                 * children parse from it without a copy, and the array
+                 * materializes only if something reads the payload.
+                 */
+                val start = byteReader.windowPosition
+                val length = remainingBytesToReadInThisBox.toInt()
+
+                byteReader.moveWindowPositionTo(start + length)
+
+                PayloadSource.ofWindow(byteReader.windowArray, start, length)
+            }
+
+            else ->
+                PayloadSource.of(byteReader.readBytes("data", remainingBytesToReadInThisBox.toInt()))
+        }
+
+        return BoxPayloadResult(source, payloadTruncated)
+    }
+
+    /**
+     * The parsed 8-byte box header: the declared size field and the type.
+     */
+    private class BoxHeader(
+        val declaredSize: Long,
+        val type: BoxType
+    )
+
+    /**
+     * Parses the buffered 8-byte box header: the 4-byte size field
+     * followed by the type FourCC.
+     */
+    private fun parseBoxHeader(headerBytes: ByteArray): BoxHeader =
+
+        BoxHeader(
+            declaredSize = headerBytes.readUnsignedInt(
+                0,
+                BMFFConstants.SIZE_LENGTH,
+                BMFF_BYTE_ORDER
+            ),
+            type = BoxType.of(
+                headerBytes.copyOfRange(
+                    BMFFConstants.SIZE_LENGTH,
+                    BMFFConstants.BOX_HEADER_LENGTH
+                )
+            )
+        )
+
+    /**
+     * Whether the direct children of a buffered file-level meta box
+     * contain an item information entry - the marker of the ISO
+     * 14496-12 item layout that carries metadata. The walk is generic on
+     * purpose: only the child's type FourCC is identified, so hostile or
+     * unknown children cannot break the skip semantics of the video
+     * scan, and a meta whose children cannot even be walked keeps the
+     * skip behavior.
+     */
+    private fun hasItemMetadataChildren(payload: ByteArray): Boolean {
+
+        var offset = 0L
+
+        while (offset + BMFFConstants.BOX_HEADER_LENGTH <= payload.size) {
+
+            val type = payload.decodeToString(
+                offset.toInt() + BMFFConstants.SIZE_LENGTH,
+                offset.toInt() + BMFFConstants.BOX_HEADER_LENGTH
+            )
+
+            /*
+             * The item layout's marker at meta child level is "iinf", the
+             * item information box wrapping the infe entries. A bare
+             * "infe" child is malformed but seen in the wild and
+             * identifies the layout just the same.
+             */
+            if (type == "iinf" || type == "infe")
+                return true
+
+            val declaredSize = payload.readUnsignedInt(
+                offset.toInt(),
+                BMFFConstants.SIZE_LENGTH,
+                BMFF_BYTE_ORDER
+            )
+
+            /*
+             * A declared size of 1 announces an 8-byte largesize field
+             * behind the type FourCC; a size below the box header cannot
+             * be walked.
+             */
+            val size =
+                if (declaredSize == 1L) {
+
+                    if (offset + BMFFConstants.BOX_HEADER_LENGTH + LARGESIZE_LENGTH > payload.size)
+                        return false
+
+                    payload.readUnsignedInt(
+                        offset.toInt() + BMFFConstants.BOX_HEADER_LENGTH,
+                        LARGESIZE_LENGTH,
+                        BMFF_BYTE_ORDER
+                    )
+                } else {
+                    declaredSize
+                }
+
+            /*
+             * The lower bound covers both forms: a declared size below the
+             * header and a largesize value below the (larger) header. A
+             * hostile zero or negative largesize must end the walk, or the
+             * same child would be re-read forever.
+             */
+            if (size < BMFFConstants.BOX_HEADER_LENGTH)
+                return false
+
+            offset += size
+        }
+
+        return false
+    }
+
+    /**
      * The one shared box scan loop. Every entry point passes a fixed,
      * tested combination of the mode flags into it.
      *
@@ -274,28 +564,32 @@ public object BoxReader {
 
         while (true) {
 
-            val available = byteReader.contentLength - position
-
             /*
-             * Check if there are enough bytes for another box.
-             * If so, we at least need the 8 header bytes.
+             * The box walk ends at the delegate's real end of data, never
+             * at the length hint: the hint is caller-supplied and may
+             * understate the content, and boxes behind it would silently
+             * vanish from the parse. The header is read through the raw
+             * short-read contract, because the field-based reads throw on
+             * a short read while the walk needs the boundary decision.
              */
-            if (available < BMFFConstants.BOX_HEADER_LENGTH) {
+            val headerBytes = byteReader.readBytes(BMFFConstants.BOX_HEADER_LENGTH)
 
-                checkTrailingFragment(available, rejectTrailingFragment)
+            if (headerBytes.size < BMFFConstants.BOX_HEADER_LENGTH) {
+
+                /* An empty read is the clean end; a short one a fragment. */
+                checkTrailingFragment(headerBytes.size.toLong(), rejectTrailingFragment)
 
                 break
             }
 
             val offset: Long = position
 
-            /* Note: The length includes the 8 header bytes. */
-            val size: Long =
-                byteReader.read4BytesAsInt("length", BMFF_BYTE_ORDER).toLong()
+            /* Note: The declared length includes the 8 header bytes. */
+            val header = parseBoxHeader(headerBytes)
 
-            val type = BoxType.of(
-                byteReader.readBytes("type", BMFFConstants.TYPE_LENGTH)
-            )
+            val size: Long = header.declaredSize
+
+            val type = header.type
 
             position += BMFFConstants.BOX_HEADER_LENGTH
 
@@ -310,8 +604,12 @@ public object BoxReader {
 
             val actualLength: Long = when (size) {
 
-                /* A value of zero indicates that it's the last box. */
-                0L -> available
+                /*
+                 * A value of zero indicates that it's the last box, which
+                 * extends to the end of the content. The extent is measured
+                 * from the box start like every declared extent.
+                 */
+                0L -> byteReader.contentLength - offset
 
                 /* A length of 1 indicates that we should read the next 8 bytes to get a long value. */
                 1L -> {
@@ -319,9 +617,11 @@ public object BoxReader {
                     largeSize
                 }
 
-                /* Keep the length we already read. ISOBMFF sizes are
+                /*
+                 * Keep the length we already read. ISOBMFF sizes are
                  * unsigned, so the high bit encodes boxes of 2 GiB and
-                 * above instead of a negative value. */
+                 * above instead of a negative value.
+                 */
                 else -> size and 0xFFFFFFFFL
             }
 
@@ -383,15 +683,10 @@ public object BoxReader {
 
             val isSkippableDataBox = skipDataBoxPayloads && !isMetadataPayloadBox
 
-            /*
-             * The payload of every buffered box is read into memory, so
-             * boxes larger than Int.MAX_VALUE bytes must be rejected
-             * instead of overflowing the read count.
-             */
-            if (!isSkippableDataBox && remainingBytesToReadInThisBox > Int.MAX_VALUE)
-                throw ImageReadException(
-                    "Box $type is too large: $remainingBytesToReadInThisBox bytes."
-                )
+            requireBufferSizeAllowed(
+                type, isSkippableDataBox, remainingBytesToReadInThisBox,
+                enforceBudget = stopAfterMetadataRead || skipDataBoxPayloads
+            )
 
             /*
              * Attention: When the reader retains every consumed byte (the
@@ -402,53 +697,18 @@ public object BoxReader {
              * image data twice. Nothing reads the box payload in that
              * mode, so it is dropped immediately.
              */
-            var payloadTruncated = false
+            val payloadResult = readBoxPayload(
+                byteReader = byteReader,
+                type = type,
+                remainingBytesToReadInThisBox = remainingBytesToReadInThisBox,
+                skipDataBoxPayloads = skipDataBoxPayloads,
+                stopAfterMetadataRead = stopAfterMetadataRead,
+                haveSeenJxlHeaderBox = haveSeenJxlHeaderBox
+            )
 
-            val bytes: ByteArray = when {
+            val payloadTruncated = payloadResult.truncated
 
-                isSkippableDataBox -> {
-
-                    val skippedByteCount = skipPayloadUpToEof(
-                        byteReader,
-                        remainingBytesToReadInThisBox
-                    )
-
-                    payloadTruncated = skippedByteCount < remainingBytesToReadInThisBox
-
-                    /* The payload is discarded, not retained. */
-                    ByteArray(0)
-                }
-
-                type == BoxType.MDAT &&
-                    stopAfterMetadataRead &&
-                    byteReader is CopyByteReader -> {
-
-                    val retained = readPayloadUpToEof(
-                        byteReader,
-                        remainingBytesToReadInThisBox.toInt()
-                    )
-
-                    payloadTruncated = retained.size < remainingBytesToReadInThisBox
-
-                    /* The reader itself retains the bytes. */
-                    ByteArray(0)
-                }
-
-                stopAfterMetadataRead -> {
-
-                    val payload = readPayloadUpToEof(
-                        byteReader,
-                        remainingBytesToReadInThisBox.toInt()
-                    )
-
-                    payloadTruncated = payload.size < remainingBytesToReadInThisBox
-
-                    payload
-                }
-
-                else ->
-                    byteReader.readBytes("data", remainingBytesToReadInThisBox.toInt())
-            }
+            val payloadSource: PayloadSource = payloadResult.source
 
             position += remainingBytesToReadInThisBox
 
@@ -456,47 +716,63 @@ public object BoxReader {
 
             val box = when (type) {
                 /* Generic ISO/IEC 14496-12 boxes. */
-                BoxType.FTYP -> FileTypeBox(globalOffset, size, largeSize, bytes)
+                BoxType.FTYP -> FileTypeBox(globalOffset, size, largeSize, payloadSource.bytes())
                 BoxType.META -> if (parentBoxType == null) {
 
                     /*
                      * The video scan skips payloads that carry nothing it
-                     * consumes, so a file-level meta box arrives with an
-                     * empty payload. Such a meta is legal in a video
-                     * container and has no item-metadata children there -
-                     * the strict container would reject the whole read
-                     * for children it cannot even see, and even the plain
-                     * container cannot parse a payload that was skipped.
-                     * The generic box keeps the (skipped) box available
-                     * instead.
+                     * consumes, so a file-level meta box would arrive with
+                     * an empty payload. Such a meta is legal in a video
+                     * container - but the ISO 14496-12 item layout is legal
+                     * in it too, and muxers write video XMP into that
+                     * layout. Silently skipping a metadata-bearing meta
+                     * would lose it, so a meta carrying item boxes fails
+                     * the read; an unparseable meta keeps the skip
+                     * semantics, because its content cannot be identified
+                     * as metadata. The generic box keeps the (skipped) box
+                     * available instead.
                      */
-                    if (isSkippableDataBox)
-                        Box(BoxType.META, globalOffset, size, largeSize, bytes)
-                    else
-                        MetaBoxTopLevel(globalOffset, size, largeSize, bytes, depth + 1)
+                    if (isSkippableDataBox) {
+
+                        if (hasItemMetadataChildren(payloadSource.bytes()))
+                            throw ImageReadException(
+                                "The file-level meta box of the video " +
+                                    "carries item metadata, which is not " +
+                                    "read here."
+                            )
+
+                        Box(BoxType.META, globalOffset, size, largeSize, payloadSource)
+                    } else {
+                        MetaBoxTopLevel(globalOffset, size, largeSize, payloadSource, depth + 1)
+                    }
                 } else {
-                    MetaBox(globalOffset, size, largeSize, bytes, depth + 1)
+                    MetaBox(globalOffset, size, largeSize, payloadSource, depth + 1)
                 }
 
-                BoxType.HDLR -> HandlerReferenceBox(globalOffset, size, largeSize, bytes)
-                BoxType.IINF -> ItemInformationBox(globalOffset, size, largeSize, bytes, depth + 1)
-                BoxType.INFE -> ItemInfoEntryBox(globalOffset, size, largeSize, bytes)
-                BoxType.ILOC -> ItemLocationBox(globalOffset, size, largeSize, bytes)
-                BoxType.PITM -> PrimaryItemBox(globalOffset, size, largeSize, bytes)
-                BoxType.MDAT -> MediaDataBox(globalOffset, size, largeSize, bytes, resolvedLength = actualLength)
-                BoxType.MOOV -> MovieBox(globalOffset, size, largeSize, bytes, depth + 1)
-                BoxType.TRAK -> TrackBox(globalOffset, size, largeSize, bytes, depth + 1)
-                BoxType.TKHD -> TrackHeaderBox(globalOffset, size, largeSize, bytes)
-                BoxType.MDIA -> MediaBox(globalOffset, size, largeSize, bytes, depth + 1)
-                BoxType.UUID -> UuidBox(globalOffset, size, largeSize, bytes)
-                BoxType.UDTA -> UserDataBox(globalOffset, size, largeSize, bytes, depth + 1)
+                BoxType.HDLR -> HandlerReferenceBox(globalOffset, size, largeSize, payloadSource.bytes())
+                BoxType.IINF -> ItemInformationBox(globalOffset, size, largeSize, payloadSource, depth + 1)
+                BoxType.INFE -> ItemInfoEntryBox(globalOffset, size, largeSize, payloadSource.bytes())
+                BoxType.ILOC -> ItemLocationBox(globalOffset, size, largeSize, payloadSource.bytes())
+                BoxType.PITM -> PrimaryItemBox(globalOffset, size, largeSize, payloadSource.bytes())
+                BoxType.MDAT ->
+                    MediaDataBox(
+                        globalOffset, size, largeSize, payloadSource.bytes(),
+                        resolvedLength = actualLength
+                    )
+
+                BoxType.MOOV -> MovieBox(globalOffset, size, largeSize, payloadSource, depth + 1)
+                BoxType.TRAK -> TrackBox(globalOffset, size, largeSize, payloadSource, depth + 1)
+                BoxType.TKHD -> TrackHeaderBox(globalOffset, size, largeSize, payloadSource.bytes())
+                BoxType.MDIA -> MediaBox(globalOffset, size, largeSize, payloadSource, depth + 1)
+                BoxType.UUID -> UuidBox(globalOffset, size, largeSize, payloadSource.bytes())
+                BoxType.UDTA -> UserDataBox(globalOffset, size, largeSize, payloadSource, depth + 1)
                 /* JXL boxes */
-                BoxType.EXIF -> ExifBox(globalOffset, size, largeSize, bytes)
-                BoxType.XML -> XmlBox(globalOffset, size, largeSize, bytes)
-                BoxType.JXLP -> JxlPartialCodestreamBox(globalOffset, size, largeSize, bytes)
-                BoxType.BROB -> CompressedBox(globalOffset, size, largeSize, bytes)
+                BoxType.EXIF -> ExifBox(globalOffset, size, largeSize, payloadSource.bytes())
+                BoxType.XML -> XmlBox(globalOffset, size, largeSize, payloadSource.bytes())
+                BoxType.JXLP -> JxlPartialCodestreamBox(globalOffset, size, largeSize, payloadSource.bytes())
+                BoxType.BROB -> CompressedBox(globalOffset, size, largeSize, payloadSource.bytes())
                 /* Unknown box; skippable ones stream through with an empty payload. */
-                else -> Box(type, globalOffset, size, largeSize, bytes, resolvedLength = actualLength)
+                else -> Box(type, globalOffset, size, largeSize, payloadSource, resolvedLength = actualLength)
             }
 
             boxes.add(box)
@@ -592,6 +868,47 @@ public object BoxReader {
     }
 
     /**
+     * Rejects a payload that must not be buffered: boxes beyond the
+     * Int range would overflow the read count in every mode, and in the
+     * scan modes every non-image box beyond the metadata budget is
+     * hostile input - a hostile meta, moov or free box must not exhaust
+     * the memory on constrained targets.
+     *
+     * The budget is intentionally not enforced in the full-read modes:
+     * there the caller explicitly asked for the whole file to be
+     * buffered (the JXL rewrite and the public readAllBoxes), and the
+     * JXL image data lives in jxlp/jxlc boxes, which are image data
+     * just like mdat and never budget-bound.
+     */
+    private fun requireBufferSizeAllowed(
+        type: BoxType,
+        isSkippableDataBox: Boolean,
+        remainingBytesToReadInThisBox: Long,
+        enforceBudget: Boolean
+    ) {
+
+        if (isSkippableDataBox)
+            return
+
+        if (remainingBytesToReadInThisBox > Int.MAX_VALUE)
+            throw ImageReadException(
+                "Box $type is too large: $remainingBytesToReadInThisBox bytes."
+            )
+
+        val isImageDataBox =
+            type == BoxType.MDAT || type == BoxType.JXLP || type == BoxType.JXLC
+
+        if (enforceBudget && !isImageDataBox && remainingBytesToReadInThisBox > MAX_METADATA_BOX_BYTES) {
+
+            throw ImageReadException(
+                "Box $type carries $remainingBytesToReadInThisBox bytes of " +
+                    "payload, which exceeds the metadata budget of " +
+                    "$MAX_METADATA_BOX_BYTES bytes."
+            )
+        }
+    }
+
+    /**
      * Reads exactly [count] bytes, or everything up to the end of the
      * stream. A result shorter than [count] means the stream ended inside
      * the box payload - an interrupted recording.
@@ -601,7 +918,16 @@ public object BoxReader {
      */
     private fun readPayloadUpToEof(byteReader: ByteReader, count: Int): ByteArray {
 
-        val writer = ByteArrayByteWriter()
+        /*
+         * The expected size is known, so the writer starts at full size
+         * instead of growing over and over - growth copies dominated the
+         * parse time for video containers with large metadata regions.
+         */
+        val writer = ByteArrayByteWriter(
+            minOf(count.toLong(), byteReader.contentLength.coerceAtLeast(0L))
+                .toInt()
+                .coerceAtLeast(DEFAULT_BUFFER_SIZE)
+        )
 
         var remaining = count.toLong()
 

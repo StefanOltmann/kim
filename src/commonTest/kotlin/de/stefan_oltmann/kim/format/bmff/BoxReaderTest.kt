@@ -18,6 +18,7 @@
 package de.stefan_oltmann.kim.format.bmff
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.readUnsignedInt
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.bmff.box.BoxContainer
 import de.stefan_oltmann.kim.format.bmff.box.ItemInfoEntryBox
@@ -26,9 +27,13 @@ import de.stefan_oltmann.kim.format.bmff.box.MediaDataBox
 import de.stefan_oltmann.kim.format.bmff.box.MetaBox
 import de.stefan_oltmann.kim.format.bmff.box.MetaBoxTopLevel
 import de.stefan_oltmann.kim.format.bmff.box.MovieBox
+import de.stefan_oltmann.kim.format.jxl.box.JxlPartialCodestreamBox
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.input.ByteReader
+import de.stefan_oltmann.kim.input.PrePendingByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.writeInt
+import de.stefan_oltmann.kim.output.writeLong
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.box
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.hdlrBox
@@ -44,6 +49,128 @@ import kotlin.test.assertTrue
 class BoxReaderTest {
 
     /**
+     * The payload of every non-media box is buffered during the
+     * metadata scan. A hostile oversized box must fail the read at the
+     * budget instead of allocating unboundedly - the JPEG path enforces
+     * the same budget for its header segments.
+     */
+    @Test
+    fun testOversizedBoxPayloadFailsAtTheBudget() {
+
+        /*
+         * One byte beyond the 16 MiB budget, so the box is hostile but
+         * still far below the Int range.
+         */
+        val oversizedPayload = ByteArray(17 * 1024 * 1024)
+
+        val bytes =
+            box(BoxType.FTYP, "heic\u0000\u0000\u0000\u0000mif1".encodeToByteArray()) +
+                box(BoxType.FREE, oversizedPayload)
+
+        assertFailsWith<ImageReadException> {
+            BoxReader.scanMetadataBoxes(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /**
+     * The full-read modes buffer the whole file on explicit request - the
+     * JXL rewrite and the public readAllBoxes. The metadata budget of the
+     * scan modes must not apply there, because the JXL image data lives
+     * in jxlp/jxlc boxes and a 45 MP lossless codestream is far beyond
+     * any metadata-sized bound.
+     */
+    @Test
+    fun testFullReadBuffersLargeCodestreamBoxes() {
+
+        val oversizedCodestream = ByteArray(17 * 1024 * 1024)
+
+        val bytes =
+            box(BoxType.FTYP, "jxl \u0000\u0000\u0000\u0000jxl ".encodeToByteArray()) +
+                box(BoxType.JXLP, oversizedCodestream)
+
+        val boxes = BoxReader.readAllBoxes(ByteArrayByteReader(bytes))
+
+        assertEquals(2, boxes.size)
+        assertTrue(boxes[1].payload.isNotEmpty())
+    }
+
+    /**
+     * The box walk must end at the delegate's real end of data, never at
+     * the length hint: a provider can understate the size, and boxes
+     * behind the hinted boundary would silently vanish from the parse -
+     * the same defect class the WebP walk had.
+     */
+    @Test
+    fun testScanDiscoversBoxesBehindUnderstatedContentLengthHint() {
+
+        val bytes = KimTestData.getBytesOf(KimTestData.HEIC_TEST_IMAGE_INDEX)
+
+        val metaOffset = topLevelBoxOffset(bytes, "meta")
+
+        val reader = UnderstatedHintByteReader(
+            delegate = ByteArrayByteReader(bytes),
+            hintedLength = metaOffset
+        )
+
+        val boxes = BoxReader.scanMetadataBoxes(reader)
+
+        assertTrue(
+            boxes.any { it.type == BoxType.META },
+            "The meta box behind the hinted boundary must be discovered."
+        )
+    }
+
+    /**
+     * Returns the file offset of the top-level box with the given type.
+     */
+    private fun topLevelBoxOffset(bytes: ByteArray, typeName: String): Long {
+
+        var offset = 0L
+
+        while (offset + BMFFConstants.BOX_HEADER_LENGTH <= bytes.size) {
+
+            val type = bytes.decodeToString(
+                offset.toInt() + BMFFConstants.SIZE_LENGTH,
+                offset.toInt() + BMFFConstants.BOX_HEADER_LENGTH
+            )
+
+            if (type == typeName)
+                return offset
+
+            val size = bytes.readUnsignedInt(
+                offset.toInt(),
+                BMFFConstants.SIZE_LENGTH,
+                BMFF_BYTE_ORDER
+            )
+
+            if (size < BMFFConstants.BOX_HEADER_LENGTH)
+                error("Invalid box size $size at offset $offset.")
+
+            offset += size
+        }
+
+        error("No $typeName box found.")
+    }
+
+    /**
+     * A ByteReader whose length hint understates the content while the
+     * delegate delivers every byte.
+     */
+    private class UnderstatedHintByteReader(
+        private val delegate: ByteReader,
+        private val hintedLength: Long
+    ) : ByteReader {
+
+        override val contentLength: Long = hintedLength
+
+        override fun readByte(): Byte? = delegate.readByte()
+
+        override fun readBytes(count: Int): ByteArray = delegate.readBytes(count)
+
+        override fun close() = delegate.close()
+    }
+
+    /**
      * A box that declares a size smaller than its own 8-byte header is
      * corrupt. It must be rejected: the metadata path would otherwise
      * rewind its position and re-parse consumed header bytes as boxes.
@@ -51,14 +178,18 @@ class BoxReaderTest {
     @Test
     fun testBoxSmallerThanHeaderIsRejected() {
 
-        /* A free box (12 bytes) followed by a pseudo-box that claims
-           a size of 6 bytes. */
+        /*
+         * A free box (12 bytes) followed by a pseudo-box that claims
+         * a size of 6 bytes.
+         */
         val bytes = byteArrayOf(
             0, 0, 0, 12,
-            0x66, 0x72, 0x65, 0x65, // "free"
+            /* "free" */
+            0x66, 0x72, 0x65, 0x65,
             1, 2, 3, 4,
             0, 0, 0, 6,
-            0x66, 0x72, 0x65, 0x65 // "free"
+            /* "free" */
+            0x66, 0x72, 0x65, 0x65
         )
 
         val exception = assertFailsWith<ImageReadException> {
@@ -80,17 +211,24 @@ class BoxReaderTest {
     @Test
     fun testLargesizeBelowBothHeadersIsRejected() {
 
-        /* A free box (12 bytes), a largesize box that declares 12, and
-           a box behind it that the broken scan would never reach. */
+        /*
+         * A free box (12 bytes), a largesize box that declares 12, and
+         * a box behind it that the broken scan would never reach.
+         */
         val bytes = byteArrayOf(
             0, 0, 0, 12,
-            0x66, 0x72, 0x65, 0x65, // "free"
+            /* "free" */
+            0x66, 0x72, 0x65, 0x65,
             1, 2, 3, 4,
-            0, 0, 0, 1, // size 1 -> the real size follows
-            0x66, 0x72, 0x65, 0x65, // "free"
-            0, 0, 0, 0, 0, 0, 0, 12, // largesize 12 < 2 * 8 header bytes
+            /* size 1 -> the real size follows */
+            0, 0, 0, 1,
+            /* "free" */
+            0x66, 0x72, 0x65, 0x65,
+            /* largesize 12 < 2 * 8 header bytes */
+            0, 0, 0, 0, 0, 0, 0, 12,
             0, 0, 0, 12,
-            0x66, 0x72, 0x65, 0x65, // "free"
+            /* "free" */
+            0x66, 0x72, 0x65, 0x65,
             5, 6, 7, 8
         )
 
@@ -115,9 +253,11 @@ class BoxReaderTest {
         /* A free box (12 bytes) followed by 3 bytes of a cut-off box. */
         val bytes = byteArrayOf(
             0, 0, 0, 12,
-            0x66, 0x72, 0x65, 0x65, // "free"
+            /* "free" */
+            0x66, 0x72, 0x65, 0x65,
             1, 2, 3, 4,
-            0, 0, 0, // Truncated box header.
+            /* Truncated box header. */
+            0, 0, 0,
             0x66
         )
 
@@ -139,9 +279,11 @@ class BoxReaderTest {
         /* A free box (12 bytes) followed by 3 bytes of a cut-off box. */
         val bytes = byteArrayOf(
             0, 0, 0, 12,
-            0x66, 0x72, 0x65, 0x65, // "free"
+            /* "free" */
+            0x66, 0x72, 0x65, 0x65,
             1, 2, 3, 4,
-            0, 0, 0, // Truncated box header.
+            /* Truncated box header. */
+            0, 0, 0,
             0x66
         )
 
@@ -160,10 +302,12 @@ class BoxReaderTest {
 
         val bytes = byteArrayOf(
             0, 0, 0, 12,
-            0x66, 0x72, 0x65, 0x65, // "free"
+            /* "free" */
+            0x66, 0x72, 0x65, 0x65,
             1, 2, 3, 4,
             0, 0, 0, 0,
-            0x66, 0x72, 0x65, 0x65, // "free"
+            /* "free" */
+            0x66, 0x72, 0x65, 0x65,
             9, 9, 9, 9
         )
 
@@ -187,10 +331,12 @@ class BoxReaderTest {
         /* A free box (12 bytes) and a size-0 mdat extending to EOF. */
         val bytes = byteArrayOf(
             0, 0, 0, 12,
-            0x66, 0x72, 0x65, 0x65, // "free"
+            /* "free" */
+            0x66, 0x72, 0x65, 0x65,
             1, 2, 3, 4,
             0, 0, 0, 0,
-            0x6D, 0x64, 0x61, 0x74, // "mdat"
+            /* "mdat" */
+            0x6D, 0x64, 0x61, 0x74,
             1, 2, 3, 4
         )
 
@@ -207,7 +353,7 @@ class BoxReaderTest {
     }
 
     @Test
-    fun readsBoxesFromHeic() {
+    fun testReadsBoxesFromHeic() {
 
         val bytes = KimTestData.getBytesOf(KimTestData.HEIC_TEST_IMAGE_INDEX)
 
@@ -230,7 +376,7 @@ class BoxReaderTest {
     }
 
     @Test
-    fun readsBoxesFromAvif() {
+    fun testReadsBoxesFromAvif() {
 
         val bytes = KimTestData.getBytesOf(KimTestData.AVIF_TEST_IMAGE_FROM_JPG_USING_IMAGEMAGICK_INDEX)
 
@@ -253,7 +399,7 @@ class BoxReaderTest {
     }
 
     @Test
-    fun readsBoxesFromAnimatedAvif() {
+    fun testReadsBoxesFromAnimatedAvif() {
 
         val bytes = KimTestData.getBytesOf(KimTestData.ANIMATED_AVIF_TEST_IMAGE_INDEX)
 
@@ -281,7 +427,7 @@ class BoxReaderTest {
     }
 
     @Test
-    fun reportsInfeOffsetForIinfVersionZero() {
+    fun testReportsInfeOffsetForIinfVersionZero() {
 
         val mimeEntry = BmffTestBoxes.InfeEntry(itemId = 1, itemType = BMFFConstants.ITEM_TYPE_MIME)
 
@@ -300,7 +446,7 @@ class BoxReaderTest {
     }
 
     @Test
-    fun reportsInfeOffsetForIinfVersionOne() {
+    fun testReportsInfeOffsetForIinfVersionOne() {
 
         val mimeEntry = BmffTestBoxes.InfeEntry(itemId = 1, itemType = BMFFConstants.ITEM_TYPE_MIME)
 
@@ -323,7 +469,7 @@ class BoxReaderTest {
      * rejected with a clear error instead of corrupting the read.
      */
     @Test
-    fun rejectsBoxWithSizeOverflowingInt() {
+    fun testRejectsBoxWithSizeOverflowingInt() {
 
         val box = ByteArrayByteWriter()
 
@@ -371,6 +517,89 @@ class BoxReaderTest {
 
         /* The offset stays intact for extent-based re-reads. */
         assertEquals(0L, mdatBox.offset)
+    }
+
+    /**
+     * The production read wraps the retaining reader in a
+     * PrePendingByteReader (the JXL codestream peek). The mdat payload
+     * must stay un-buffered through that wrapper, too - otherwise every
+     * metadata read holds the image data twice.
+     */
+    @Test
+    fun testMdatPayloadIsNotDuplicatedBehindPrePendingWrapper() {
+
+        val mdatPayload = ByteArray(64)
+
+        val box = ByteArrayByteWriter()
+
+        box.writeInt(mdatPayload.size + 8, BMFF_BYTE_ORDER)
+        box.write(BoxType.MDAT.bytes)
+        box.write(mdatPayload)
+
+        val copyReader = CopyByteReader(ByteArrayByteReader(box.toByteArray()))
+
+        /* Production peeks the codestream signature before wrapping. */
+        val peekedBytes = copyReader.readBytes(2).toList()
+
+        val boxes = BoxReader.scanMetadataBoxes(
+            byteReader = PrePendingByteReader(copyReader, peekedBytes)
+        )
+
+        val mdatBox = boxes.filterIsInstance<MediaDataBox>().firstOrNull()
+
+        assertNotNull(mdatBox)
+        assertEquals(0, mdatBox.payload.size, "The mdat payload must not be buffered twice.")
+        assertEquals(0L, mdatBox.offset)
+    }
+
+    /**
+     * JXL codestream fragments are image data: the metadata scan must
+     * not buffer a fragment beyond its leading signature bytes, and an
+     * oversized fragment must not slip past the metadata budget through
+     * the image-data exemption.
+     */
+    @Test
+    fun testJxlFragmentSignatureIsReadButPayloadIsNotBuffered() {
+
+        val fragmentPayload = ByteArray(17 * 1024 * 1024) { index -> (index % 13).toByte() }
+
+        /* The codestream signature: the first fragment is the header. */
+        fragmentPayload[0] = 0x00.toByte()
+        fragmentPayload[1] = 0x00.toByte()
+        fragmentPayload[2] = 0x00.toByte()
+        fragmentPayload[3] = 0x00.toByte()
+        fragmentPayload[4] = 0xFF.toByte()
+        fragmentPayload[5] = 0x0A.toByte()
+
+        val box = ByteArrayByteWriter()
+
+        /* size 1 = largesize form */
+        box.writeInt(1, BMFF_BYTE_ORDER)
+        box.write(BoxType.JXLP.bytes)
+        box.writeLong(fragmentPayload.size.toLong() + 16L, BMFF_BYTE_ORDER)
+        box.write(fragmentPayload)
+
+        val copyReader = CopyByteReader(ByteArrayByteReader(box.toByteArray()))
+
+        /* Production peeks the codestream signature before wrapping. */
+        val peekedBytes = copyReader.readBytes(2).toList()
+
+        val boxes = BoxReader.scanMetadataBoxes(
+            byteReader = PrePendingByteReader(copyReader, peekedBytes)
+        )
+
+        val fragmentBox = boxes.filterIsInstance<JxlPartialCodestreamBox>().firstOrNull()
+
+        assertNotNull(fragmentBox)
+
+        /* The signature survived for the header decision... */
+        assertTrue(fragmentBox.isHeader)
+
+        /* ... while the 17 MiB payload was not buffered. */
+        assertTrue(
+            fragmentBox.payload.size <= 6,
+            "The codestream fragment must not be buffered: ${fragmentBox.payload.size} bytes."
+        )
     }
 
     /**

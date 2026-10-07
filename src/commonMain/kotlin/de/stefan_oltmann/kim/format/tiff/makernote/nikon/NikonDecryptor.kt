@@ -24,9 +24,9 @@ package de.stefan_oltmann.kim.format.tiff.makernote.nikon
 @Suppress("MagicNumber", "MaxLineLength")
 internal object NikonDecryptor {
 
-    private const val D50_KEY: Int = 0x22
+    private const val D50_KEY: Long = 0x22
 
-    private const val DEFAULT_KEY: Int = 0x60
+    private const val DEFAULT_KEY: Long = 0x60
 
     private val NUMERIC_SERIAL_REGEX = Regex("""\d+""")
 
@@ -81,15 +81,20 @@ internal object NikonDecryptor {
      * numeric serial use fixed keys: the D50 uses 0x22, all other models
      * use 0x60.
      */
-    internal fun serialKey(serialNumber: String?, model: String?): Int? {
+    internal fun serialKey(serialNumber: String?, model: String?): Long? {
 
         if (serialNumber == null)
             return null
 
-        /* The serial is used as key only when it is entirely numeric. */
+        /*
+         * The serial is used as key only when it is entirely numeric.
+         * The key is consumed modulo 256 downstream, so the full numeric
+         * range is kept: a serial beyond the Int range is still its own
+         * key instead of silently falling back to the model default.
+         */
         val numericSerial =
             if (NUMERIC_SERIAL_REGEX.matches(serialNumber))
-                serialNumber.toIntOrNull()
+                serialNumber.toLongOrNull()
             else
                 null
 
@@ -109,7 +114,7 @@ internal object NikonDecryptor {
      */
     internal fun decrypt(
         data: ByteArray,
-        serialKey: Int,
+        serialKey: Long,
         count: Int,
         start: Int
     ): ByteArray {
@@ -119,7 +124,7 @@ internal object NikonDecryptor {
         for (shift in 0..3)
             key = key xor ((count shr (shift * 8)) and 0xff)
 
-        val ci0 = xlat[0][serialKey and 0xff]
+        val ci0 = xlat[0][(serialKey and 0xff).toInt()]
         var cj = xlat[1][key]
         var ck = 0x60
 

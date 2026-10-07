@@ -105,7 +105,7 @@ public object CanonTag {
     /**
      * Model specific camera info blob.
      *
-     * See https://exiftool.sourceforge.net/TagNames/Canon.html#CameraInfo
+     * See https://exiftool.sourceforge.net/TagNames/Canon.html
      */
     public val CANON_CAMERA_INFO: TagInfoUndefineds = TagInfoUndefineds(
         0x000d, "CanonCameraInfo", TagInfo.LENGTH_UNKNOWN,

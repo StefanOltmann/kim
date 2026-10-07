@@ -87,7 +87,8 @@ public object PngMetadataCopyUtil {
                     byteReader?.let {
                         PngImageParser.readChunks(
                             byteReader = byteReader,
-                            chunkTypeFilter = null // = All of them
+                            /*  = All of them */
+                            chunkTypeFilter = null
                         )
                     }
                 } ?: throw ImageReadException("Failed to read destination chunks: $destination")
@@ -196,7 +197,8 @@ public object PngMetadataCopyUtil {
         val destinationChunks: List<PngChunk> =
             PngImageParser.readChunks(
                 byteReader = ByteArrayByteReader(destination),
-                chunkTypeFilter = null // = All of them
+                /*  = All of them */
+                chunkTypeFilter = null
             )
 
         val newChunks = mergeChunks(sourceMetadataChunks, destinationChunks)

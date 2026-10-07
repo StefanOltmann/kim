@@ -23,6 +23,7 @@ import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlinx.datetime.TimeZone
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -35,11 +36,22 @@ import kotlin.test.assertContentEquals
  */
 class StreamingUpdateTest {
 
-    private val timestamp = 1_689_166_125_401 // 2023:07:12 14:48:45 in GMT+02:00
+    /* 2023:07:12 14:48:45 in GMT+02:00 */
+    private val timestamp = 1_689_166_125_401
 
     @BeforeTest
     fun setUp() {
         Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
+    }
+
+    @AfterTest
+    fun tearDown() {
+
+        /*
+         * Reset the override, so it cannot leak into test classes that
+         * exercise the platform default time zone.
+         */
+        Kim.defaultTimeZone = null
     }
 
     @Test

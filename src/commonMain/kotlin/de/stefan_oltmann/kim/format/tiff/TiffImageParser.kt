@@ -18,19 +18,24 @@
 package de.stefan_oltmann.kim.format.tiff
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.decodeStrictUtf8
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaMetadata
+import de.stefan_oltmann.kim.format.icc.IccProfile
+import de.stefan_oltmann.kim.format.icc.IccProfileParser
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
 import de.stefan_oltmann.kim.format.jpeg.JpegSegmentAnalyzer
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
+import de.stefan_oltmann.kim.format.printim.PrintImParser
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.makernote.panasonic.PanasonicTag
+import de.stefan_oltmann.kim.format.xmp.requireValidXmpPacket
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.DefaultRandomAccessByteReader
@@ -65,9 +70,22 @@ public object TiffImageParser : ImageParser {
                 exif = contents,
                 exifBytes = null,
                 iptc = getIptc(contents),
-                xmp = xmp
+                xmp = xmp,
+                iccProfile = getIccProfile(contents),
+                printIm = PrintImParser.parseFrom(contents)
             )
         }
+
+    /**
+     * Extracts and parses the ICC color profile from the IFD0 tag
+     * 0x8773, or NULL when the file carries none.
+     */
+    private fun getIccProfile(contents: TiffContents): IccProfile? =
+
+        contents.directories.firstOrNull()
+            ?.entries
+            ?.firstOrNull { field -> field.tag == ExifTag.EXIF_TAG_ICC_PROFILE_OFFSET.tag }
+            ?.let { field -> IccProfileParser.parse(field.valueBytes) }
 
     /**
      * The Panasonic RW2 stores its MakerNote inside the EXIF of the
@@ -211,6 +229,15 @@ public object TiffImageParser : ImageParser {
         val width = widthField.toInt() ?: return null
         val height = heightField.toInt() ?: return null
 
+        /*
+         * The dimensions are attacker-controlled input. A hostile
+         * 0xFFFFFFFF LONG reads as a negative Int; like the WebP
+         * readers, an unusable size fails the read instead of flowing
+         * into MediaMetadata.
+         */
+        if (width < 1 || height < 1)
+            throw ImageReadException("Illegal image dimensions: $width x $height.")
+
         return ImageSize(width, height)
     }
 
@@ -236,6 +263,14 @@ public object TiffImageParser : ImageParser {
         if (bytes.isEmpty())
             return null
 
-        return bytes.decodeToString()
+        /*
+         * A packet cut between the opening and the closing element is
+         * truncated content: it must fail the read like it fails the
+         * update path, instead of reaching sidecar writers.
+         */
+        return requireValidXmpPacket(
+            xmp = bytes.decodeStrictUtf8("The TIFF XMP tag"),
+            sourceDescription = "The TIFF XMP tag"
+        )
     }
 }

@@ -18,7 +18,7 @@ package de.stefan_oltmann.kim.format.tiff.makernote.sony
 /**
  * Values of the Sony Teleconverter tag.
  *
- * See https://exiftool.sourceforge.net/TagNames/Sony.html#Teleconverter
+ * See https://exiftool.sourceforge.net/TagNames/Sony.html
  */
 @Suppress("MaxLineLength")
 public enum class SonyTeleconverter(

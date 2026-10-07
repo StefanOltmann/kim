@@ -19,11 +19,13 @@ This lib is used in production by my online [EXIF Viewer](https://stefan-oltmann
 ## Features
 
 * JPG: Read & Write EXIF, IPTC & XMP
+    + Also read the ICC color profile (APP2), the Multi-Picture Format (MPF) index
+      and the Print Image Matching (PrintIM) block
 * PNG: Read & Write `eXIf` chunk & XMP
     + Also read the compressed `zxIf` chunk variant and non-standard EXIF & IPTC
       from `tEXt`/`zTXt` chunks
 * WebP: Read & Write EXIF & XMP
-* HEIC / AVIF: Read EXIF & XMP
+* HEIC / AVIF / HIF: Read EXIF & XMP
     + Support for animated AVIF files (AV1 Image Sequence)
 * MOV / MP4: Read EXIF & XMP
     + Includes the MakerNote and thumbnail of Fujifilm videos and the display
@@ -33,10 +35,13 @@ This lib is used in production by my online [EXIF Viewer](https://stefan-oltmann
     + Full support for Adobe DNG, Canon CR2, Canon CR3 & Fujifilm RAF
     + Support for Nikon NEF, Sony ARW & Panasonic RW2
     + API for preview image extraction of DNG, CR2, CR3, RAF, NEF, ARW, RW2 & ORF
-* MakerNote reading for Canon, Nikon, Sony, Fujifilm, Apple, Olympus, Panasonic, Pentax, Ricoh,
-  Samsung, Sigma and Leica cameras, including the sub-directories with camera settings, white
-  balance, AF, flash and lens data, the camera-encrypted Nikon data and the model specific Canon
-  CameraInfo and CustomFunctions records
+* ICC: Read color profiles from JPG, PNG, TIFF & WebP files, exposing the profile
+  fields and the decoded tag table entries
+* MakerNote reading for Canon, Nikon, Sony, Fujifilm, Apple, Olympus, OM System,
+  Panasonic, Pentax, Ricoh, Samsung, Sigma and Leica cameras, including the
+  sub-directories with camera settings, white balance, AF, flash and lens data, the
+  camera-encrypted Nikon data and the model specific Canon CameraInfo and
+  CustomFunctions records
 * GIF: Read & Write XMP
 * Handling of XMP content through
   [XMP Core for Kotlin Multiplatform](https://github.com/StefanOltmann/xmpcore)
@@ -64,10 +69,12 @@ implementation(npm("pako", "2.1.0"))
 `kotlinx.io.files.Path`, `kotlinx.io.Source` (for usage with Ktor) & `ByteReadChannel`,
 `java.io.File`, `java.io.InputStream`, `NSData` (iOS) and `String` paths.
 
+Unknown or empty input yields `null`; unreadable files fail with an `ImageReadException`.
+
 ```kotlin
 val bytes: ByteArray = loadBytes()
 
-val metadata = Kim.readMetadata(bytes)
+val metadata = Kim.readMetadata(bytes) ?: error("Not a supported image file.")
 
 /* MediaMetadata has a proper toString() similar to the output of ExifTool */
 println(metadata)
@@ -123,7 +130,7 @@ contains the following:
 ```kotlin
 val bytes: ByteArray = loadBytes()
 
-val summary = Kim.readMetadata(bytes).convertToSummary()
+val summary = Kim.readMetadata(bytes)?.convertToSummary() ?: error("Not a supported image file.")
 ```
 
 ### Extract metadata bytes
@@ -334,7 +341,8 @@ Java projects.
 
 ## Limitations
 
-* Does not read the image size and orientation for HEIC, AVIF & JPEG XL.
+* The image size of HEIC, AVIF, HIF & JPEG XL files and the rotation of HEIC & AVIF images (the
+  "irot" box) are not read. The EXIF orientation is used when the file carries an EXIF box.
 * JPEG: Metadata that does not fit into a single segment (~64 KB) is written interoperably,
   following ExifTool as the reference implementation:
   oversized XMP uses Adobe Extended XMP (main packet plus GUID-referenced extension segments),

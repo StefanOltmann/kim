@@ -56,6 +56,12 @@ public object TiffConstants {
     public const val EXIF_SUB_IFD2: Int = 3
     public const val EXIF_SUB_IFD3: Int = 4
 
+    /** The raw-image sub-IFD at SubIFDs index 0 of a DNG. */
+    public const val EXIF_SUB_IFD0: Int = 5
+
+    /** The lossy-JPEG preview sub-IFD at SubIFDs index 4 of a DNG. */
+    public const val EXIF_SUB_IFD4: Int = 6
+
     public const val TIFF_DIRECTORY_EXIF: Int = -2
     public const val TIFF_DIRECTORY_GPS: Int = -3
     public const val TIFF_DIRECTORY_INTEROP: Int = -4
@@ -141,11 +147,6 @@ public object TiffConstants {
     public const val TIFF_MAKER_NOTE_SONY5: Int = -154
     public const val TIFF_MAKER_NOTE_SONY_ERICSSON: Int = -155
     public const val TIFF_MAKER_NOTE_SONY_CAMERA_INFO3: Int = -156
-    public const val TIFF_MAKER_NOTE_SONY_MORE_INFO: Int = -157
-    public const val TIFF_MAKER_NOTE_SONY_CAMERA_SETTINGS3: Int = -158
-    public const val TIFF_MAKER_NOTE_SONY_EXTRA_INFO3: Int = -159
-    public const val TIFF_MAKER_NOTE_SONY_TAG_900B: Int = -160
-
     public const val FIELD_TYPE_BYTE_INDEX: Int = 1
     public const val FIELD_TYPE_ASCII_INDEX: Int = 2
     public const val FIELD_TYPE_SHORT_INDEX: Int = 3

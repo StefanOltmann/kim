@@ -23,6 +23,7 @@ import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.LocationShown
 import de.stefan_oltmann.kim.model.MetadataUpdate
+import de.stefan_oltmann.xmp.XMPConst
 import de.stefan_oltmann.xmp.XMPLocation
 import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
@@ -70,6 +71,18 @@ public object XmpWriter {
                         .toLocalDateTime(timeZone)
 
                     setDateTimeOriginal(localDateTime.toXmpDate())
+
+                    /*
+                     * External writers store both date properties, and the
+                     * EXIF path rewrites both on a TakenDate update - the
+                     * digitized date follows the new original date instead
+                     * of drifting behind it.
+                     */
+                    setProperty(
+                        XMPConst.NS_EXIF,
+                        "DateTimeDigitized",
+                        localDateTime.toXmpDate().toString()
+                    )
 
                 } else {
 
@@ -128,8 +141,19 @@ public object XmpWriter {
                     setFlagged(false)
             }
 
-            is MetadataUpdate.Keywords ->
+            is MetadataUpdate.Keywords -> {
+
+                /*
+                 * The reader treats acdsee:keywords as a first-class
+                 * keyword source, so deleting only dc:subject would leave
+                 * the old keywords readable on ACDSee-processed files -
+                 * the delete must clear the ACDSee copy too.
+                 */
+                if (update.keywords.isEmpty())
+                    deleteProperty(XMPConst.NS_ACDSEE, XMPConst.XMP_ACDSEE_KEYWORDS)
+
                 setKeywords(update.keywords)
+            }
 
             is MetadataUpdate.Faces ->
                 setFaceRegions(update.faces, update.widthPx, update.heightPx)
@@ -148,7 +172,7 @@ public object XmpWriter {
         xmpMeta: XMPMeta,
         updates: Set<MetadataUpdate>,
         writePackageWrapper: Boolean
-    ): String {
+    ): String = tryWithImageWriteException {
 
         for (update in updates)
             xmpMeta.applyUpdate(update)
@@ -162,7 +186,7 @@ public object XmpWriter {
          */
         xmpMeta.deleteHasExtendedXmp()
 
-        return xmpMeta.serializeToString(writePackageWrapper)
+        xmpMeta.serializeToString(writePackageWrapper)
     }
 
     /**
@@ -203,13 +227,21 @@ public object XmpWriter {
     /**
      * Writes the GPS coordinates, or deletes them for NULL. Coordinates
      * outside the valid range fail the update instead of being written.
+     *
+     * External writers keep a fleet of companion properties next to the
+     * position: altitude, timestamps, satellite data, image direction.
+     * Every GPS property is removed before the new position is written -
+     * the EXIF write path clears its GPS directory the same way - so
+     * pairing the new position with the old altitude can never drift the
+     * two storages apart within a single update.
      */
     private fun XMPMeta.applyGpsCoordinates(gpsCoordinates: GpsCoordinates?) {
 
-        if (gpsCoordinates == null) {
-            deleteGpsCoordinates()
+        /* Removes every exif:GPS property, companions included. */
+        deleteGpsCoordinates()
+
+        if (gpsCoordinates == null)
             return
-        }
 
         requireValidGpsCoordinates(gpsCoordinates)
 
@@ -273,7 +305,9 @@ public object XmpWriter {
     /**
      * Builds the XMP date for the wall-clock time in the effective zone. The
      * UTC offset is omitted, so the written value stays offset-less, like
-     * ExifTool's default XMP dates.
+     * ExifTool's default XMP dates. The time separator is always carried,
+     * so a value at exactly midnight keeps its "T00:00:00" instead of
+     * collapsing into a date-only literal.
      */
     private fun LocalDateTime.toXmpDate(): XmpDate =
         XmpDate(
@@ -284,6 +318,7 @@ public object XmpWriter {
             minute = minute,
             second = second,
             nanosecond = nanosecond,
-            utcOffsetMinutes = null
+            utcOffsetMinutes = null,
+            timeWasPresent = true
         )
 }

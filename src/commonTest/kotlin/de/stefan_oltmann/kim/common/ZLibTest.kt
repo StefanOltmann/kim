@@ -22,11 +22,38 @@ import kotlin.test.assertFailsWith
 
 class ZLibTest {
 
+    /**
+     * An empty payload is truncated zlib data, not empty output. Every
+     * platform must reject it identically, so PNG text chunks cut
+     * before their compressed payload fail the read everywhere instead
+     * of parsing with an empty text on some targets only.
+     */
+    @Test
+    fun testDecompressRejectsEmptyInput() {
+
+        assertFailsWith<ImageReadException> {
+            decompressBytes(ByteArray(0))
+        }
+    }
+
+    /**
+     * A payload shorter than the two-byte zlib header must fail with the
+     * documented truncation error instead of an index-out-of-bounds from
+     * the header inspection.
+     */
+    @Test
+    fun testDecompressRejectsSingleBytePayload() {
+
+        assertFailsWith<ImageReadException> {
+            decompressBytes(byteArrayOf(0x78))
+        }
+    }
+
     @Test
     fun testDecompress() {
 
         for (entry in zlibTestData)
-            assertEquals(entry.key, decompress(entry.value))
+            assertEquals(entry.key, decompressBytes(entry.value).decodeToString())
     }
 
     /**
@@ -39,7 +66,7 @@ class ZLibTest {
 
         val text = "A".repeat(100_000)
 
-        assertEquals(text, decompress(compressedA100K))
+        assertEquals(text, decompressBytes(compressedA100K).decodeToString())
     }
 
     /**
@@ -53,7 +80,7 @@ class ZLibTest {
 
         val text = "\u00E4\u00F6\u00FC".repeat(2048)
 
-        assertEquals(text, decompress(compressedUmlauts))
+        assertEquals(text, decompressBytes(compressedUmlauts).decodeToString())
     }
 
     /**
@@ -68,7 +95,7 @@ class ZLibTest {
             compressedA100K.copyOfRange(0, compressedA100K.size / 2)
 
         assertFailsWith<ImageReadException> {
-            decompress(truncated)
+            decompressBytes(truncated)
         }
     }
 
@@ -85,7 +112,28 @@ class ZLibTest {
         corrupted[0] = 0x00
 
         assertFailsWith<ImageReadException> {
-            decompress(corrupted)
+            decompressBytes(corrupted)
+        }
+    }
+
+    /**
+     * The inflater contract is zlib-wrapped streams only. pako
+     * auto-detects gzip/raw-deflate unless windowBits is pinned, so a
+     * gzip-framed payload must fail on every platform alike - a silently
+     * succeeding JS/wasm read would diverge from JVM and native.
+     */
+    @Test
+    fun testDecompressRejectsGzipFramedPayload() {
+
+        /* gzip of "abc" (deflate), framed with the 1F 8B gzip header. */
+        val gzipFramed = byteArrayOf(
+            0x1F.toByte(), 0x8B.toByte(), 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03,
+            0x4B.toByte(), 0x4C.toByte(), 0x4A.toByte(), 0x06, 0x00, 0xC2.toByte(), 0x41.toByte(),
+            0x24.toByte(), 0x35.toByte(), 0x03, 0x00, 0x00, 0x00
+        )
+
+        assertFailsWith<ImageReadException> {
+            decompressBytes(gzipFramed)
         }
     }
 
@@ -102,7 +150,7 @@ class ZLibTest {
 
         assertEquals(
             expected = "Hello, World!" + "I love Kotlin!",
-            actual = decompress(joined)
+            actual = decompressBytes(joined).decodeToString()
         )
     }
 
@@ -114,7 +162,7 @@ class ZLibTest {
     fun testDecompressRejectsOutputBeyondTheLimit() {
 
         assertFailsWith<ImageReadException> {
-            decompress(compressedA100K, maxOutputByteCount = 1024)
+            decompressBytes(compressedA100K, maxOutputByteCount = 1024)
         }
     }
 
@@ -127,7 +175,8 @@ class ZLibTest {
 
         assertEquals(
             expected = "The quick brown fox jumps over the lazy dog.",
-            actual = decompress(compressedFox, maxOutputByteCount = 4096)
+            actual = decompressBytes(compressedFox, maxOutputByteCount = 4096)
+                .decodeToString()
         )
     }
 

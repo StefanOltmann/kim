@@ -29,7 +29,13 @@ package de.stefan_oltmann.kim.format.jpeg.iptc
 public data class IptcMetadata(
     val records: List<IptcRecord>,
     val rawBlocks: List<IptcBlock>,
-    val sourceSegmentBytes: List<ByteArray> = emptyList()
+    val sourceSegmentBytes: List<ByteArray> = emptyList(),
+    /**
+     * Raw bytes of the IIM datasets outside application record 2
+     * (envelope identifiers, NewsPhoto data), carried verbatim through
+     * IPTC rewrites.
+     */
+    val foreignDatasets: List<ByteArray> = emptyList()
 ) {
 
     val nonIptcBlocks: List<IptcBlock> by lazy {

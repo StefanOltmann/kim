@@ -20,6 +20,7 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaMetadata
+import de.stefan_oltmann.kim.format.icc.IccProfileParser
 import de.stefan_oltmann.kim.format.webp.WebPConstants.CHUNK_SIZE_LENGTH
 import de.stefan_oltmann.kim.format.webp.WebPConstants.RIFF_SIGNATURE
 import de.stefan_oltmann.kim.format.webp.WebPConstants.TYPE_LENGTH
@@ -28,6 +29,7 @@ import de.stefan_oltmann.kim.format.webp.WebPConstants.WEBP_SIGNATURE
 import de.stefan_oltmann.kim.format.webp.chunk.ImageSizeAware
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunk
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkExif
+import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkIccp
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8L
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8X
@@ -51,9 +53,6 @@ public object WebPImageParser : ImageParser {
      * so this prefix is sufficient to determine the image size.
      */
     private const val SIZE_HEADER_BYTES: Int = 16
-
-    /* The "RIFF" signature plus the 4-byte size field. */
-    private const val RIFF_PREFIX_LENGTH: Int = TYPE_LENGTH + CHUNK_SIZE_LENGTH
 
     /*
      * https://developers.google.com/speed/webp/docs/riff_container
@@ -102,13 +101,19 @@ public object WebPImageParser : ImageParser {
                 sourceDescription = "The WebP XMP chunk"
             )
 
+            val iccProfile = chunks.filterIsInstance<WebPChunkIccp>()
+                .firstOrNull()
+                ?.let { chunk -> IccProfileParser.parse(chunk.bytes) }
+
             return@tryWithImageReadException MediaMetadata(
                 mediaFormat = MediaFormat.WEBP,
                 imageSize = imageSize,
                 exif = exifChunk?.tiffContents,
                 exifBytes = exifChunk?.bytes,
-                iptc = null, // not supported by WebP
-                xmp = xmp
+                /*  not supported by WebP */
+                iptc = null,
+                xmp = xmp,
+                iccProfile = iccProfile
             )
         }
 
@@ -140,33 +145,40 @@ public object WebPImageParser : ImageParser {
 
         byteReader.readAndVerifyBytes("WEBP signature", WEBP_SIGNATURE)
 
-        val bytesToRead =
-            (byteReader.contentLength - RIFF_PREFIX_LENGTH - WEBP_SIGNATURE.size)
-                .coerceAtLeast(0L)
-
         return readChunksInternal(
             byteReader = byteReader,
-            bytesToRead = bytesToRead,
             stopAfterMetadataRead = stopAfterMetadataRead
         )
     }
 
     private fun readChunksInternal(
         byteReader: ByteReader,
-        bytesToRead: Long,
         stopAfterMetadataRead: Boolean
     ): List<WebPChunk> {
 
         val chunks = mutableListOf<WebPChunk>()
 
-        var bytesReadCount = 0L
+        var haveSeenVp8xHeader = false
 
         @Suppress("LoopWithTooManyJumpStatements")
-        while (bytesReadCount < bytesToRead) {
+        while (true) {
 
-            val chunkType = WebPChunkType.of(
-                byteReader.readBytes("chunk type", TYPE_LENGTH)
-            )
+            /*
+             * The chunk walk ends at the delegate's real end of data,
+             * never at the length hint: the hint is caller-supplied and
+             * may understate the content, and chunks behind it would
+             * silently vanish on a rewrite - the same reason the RIFF
+             * size field above is not trusted.
+             */
+            val chunkTypeBytes = byteReader.readBytes(TYPE_LENGTH)
+
+            if (chunkTypeBytes.isEmpty())
+                break
+
+            if (chunkTypeBytes.size < TYPE_LENGTH)
+                throw ImageReadException("Truncated WebP chunk type.")
+
+            val chunkType = WebPChunkType.of(chunkTypeBytes)
 
             val chunkSize = byteReader.read4BytesAsInt("chunk size", WEBP_BYTE_ORDER)
 
@@ -181,7 +193,8 @@ public object WebPImageParser : ImageParser {
             val keepFullPayload =
                 !stopAfterMetadataRead ||
                     chunkType == WebPChunkType.EXIF ||
-                    chunkType == WebPChunkType.XMP
+                    chunkType == WebPChunkType.XMP ||
+                    chunkType == WebPChunkType.ICCP
 
             val bytes: ByteArray = if (keepFullPayload) {
 
@@ -204,18 +217,8 @@ public object WebPImageParser : ImageParser {
              * encoder may omit the pad byte of the final chunk, which then
              * is the end of the file instead of a parse error.
              */
-            val hasPadding = chunkSize % 2 != 0
-
-            val paddedEndCount =
-                bytesReadCount + TYPE_LENGTH + CHUNK_SIZE_LENGTH + chunkSize + 1
-
-            val hasFinalPadding = hasPadding && paddedEndCount <= bytesToRead
-
-            if (hasFinalPadding)
-                byteReader.skipBytes("padding byte", 1)
-
-            bytesReadCount += TYPE_LENGTH + CHUNK_SIZE_LENGTH + chunkSize +
-                if (hasFinalPadding) 1 else 0
+            if (chunkSize % 2 != 0)
+                byteReader.readByte()
 
             /*
              * Skipped image chunks are not part of the result, because
@@ -233,11 +236,15 @@ public object WebPImageParser : ImageParser {
                 WebPChunkType.VP8X -> WebPChunkVP8X(bytes)
                 WebPChunkType.EXIF -> WebPChunkExif(bytes)
                 WebPChunkType.XMP -> WebPChunkXmp(bytes)
+                WebPChunkType.ICCP -> WebPChunkIccp(bytes)
                 else -> WebPChunk(chunkType, bytes)
             }
 
             if (!isImageChunk)
                 chunks.add(chunk)
+
+            if (chunkType == WebPChunkType.VP8X)
+                haveSeenVp8xHeader = true
 
             /*
              * After reading the header we can decide if we need to
@@ -252,16 +259,19 @@ public object WebPImageParser : ImageParser {
                  */
                 val isLegacyImageChunk =
                     (chunkType == WebPChunkType.VP8 || chunkType == WebPChunkType.VP8L) &&
-                        chunks.none { it is WebPChunkVP8X }
+                        !haveSeenVp8xHeader
 
                 if (isLegacyImageChunk)
                     break
 
                 /*
-                 * If the header reveals that there will be no EXIF and no XMP
+                 * If the header reveals that there is no metadata at all
                  * we don't need to read the whole file.
                  */
-                if (chunk is WebPChunkVP8X && !chunk.hasExif && !chunk.hasXmp)
+                val hasNoMetadata = chunk is WebPChunkVP8X &&
+                    !chunk.hasIcc && !chunk.hasExif && !chunk.hasXmp
+
+                if (hasNoMetadata)
                     break
             }
         }

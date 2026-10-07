@@ -284,6 +284,8 @@ Object Name (5) = 'Süße Vögelchen'
 Keywords (25) = 'hello'
 Keywords (25) = 'test'
 Keywords (25) = 'Äußerst öffentlich'
+Date Created (55) = '20230712'
+Time Created (60) = '144845+0200'
 City (90) = 'Rastede'
 Sublocation (92) = 'Schafjückenweg 2'
 Province/State (95) = 'Niedersachsen'
@@ -292,7 +294,7 @@ Caption/Abstract (120) = 'Äußerst süße Vögel fliegen durch die Lüfte.'
 
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
-<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core for KMP 2.0.0">
+<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core for KMP 2.0.2">
   <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <rdf:Description rdf:about=""
         xmlns:Iptc4xmpCore="http://iptc.org/std/Iptc4xmpCore/1.0/xmlns/"
@@ -303,6 +305,7 @@ Caption/Abstract (120) = 'Äußerst süße Vögel fliegen durch die Lüfte.'
         xmlns:tiff="http://ns.adobe.com/tiff/1.0/"
         xmlns:xmp="http://ns.adobe.com/xap/1.0/"
       Iptc4xmpCore:Location="Schafjückenweg 2"
+      exif:DateTimeDigitized="2023-07-12T14:48:45.401"
       exif:DateTimeOriginal="2023-07-12T14:48:45.401"
       exif:GPSLatitude="53,13.1635N"
       exif:GPSLongitude="8,14.3797E"

@@ -28,17 +28,17 @@ class FujiFilmTagTest {
     fun testFilmModeNames() {
 
         assertEquals(
-            expected = "Provia/Standard",
+            expected = "F0/Standard (Provia)",
             actual = FujiFilmTag.getFilmModeName(FujiFilmTag.FILM_MODE_PROVIA_STANDARD)
         )
 
         assertEquals(
-            expected = "Velvia/Vivid",
+            expected = "F2/Fujichrome (Velvia)",
             actual = FujiFilmTag.getFilmModeName(FujiFilmTag.FILM_MODE_VELVIA_VIVID)
         )
 
         assertEquals(
-            expected = "Astia/Soft",
+            expected = "F1b/Studio Portrait Smooth Skin Tone (Astia)",
             actual = FujiFilmTag.getFilmModeName(FujiFilmTag.FILM_MODE_ASTIA_SOFT)
         )
 

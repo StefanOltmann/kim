@@ -84,7 +84,8 @@ internal object JxlReader {
             imageSize = null,
             exif = exifBox?.tiffContents,
             exifBytes = exifBox?.exifBytes,
-            iptc = null, // not covered by ISO BMFF
+            /*  not covered by ISO BMFF */
+            iptc = null,
             xmp = xmp
         )
     }

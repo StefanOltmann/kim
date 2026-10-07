@@ -42,7 +42,7 @@ internal interface WebInflater {
  * The chunk size the input is fed in, so the accumulated output can be
  * checked between pushes.
  */
-internal const val INFLATE_INPUT_CHUNK_SIZE: Int = 8192
+internal const val INFLATE_INPUT_CHUNK_SIZE: Int = 1024
 
 /**
  * Decompresses concatenated zlib members with a hard output budget.

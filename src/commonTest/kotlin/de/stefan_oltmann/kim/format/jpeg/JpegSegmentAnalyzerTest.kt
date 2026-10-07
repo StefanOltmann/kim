@@ -218,9 +218,12 @@ class JpegSegmentAnalyzerTest {
     fun testFindSegmentInfosBeyondIntRange() {
 
         val headerBytes = byteArrayOf(
-            0xFF.toByte(), 0xD8.toByte(),                          // SOI
-            0xFF.toByte(), 0xE1.toByte(), 0x00, 0x04, 0x00, 0x00,  // APP1, empty payload
-            0xFF.toByte(), 0xDA.toByte(), 0x00, 0x02               // SOS
+            /* SOI */
+            0xFF.toByte(), 0xD8.toByte(),
+            /* APP1, empty payload */
+            0xFF.toByte(), 0xE1.toByte(), 0x00, 0x04, 0x00, 0x00,
+            /* SOS */
+            0xFF.toByte(), 0xDA.toByte(), 0x00, 0x02
         )
 
         /* Just beyond the signed Int range - no real allocation needed. */

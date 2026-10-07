@@ -17,14 +17,12 @@ package de.stefan_oltmann.kim.common
 
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.model.MediaFormat
-import kotlinx.datetime.TimeZone
 import kotlinx.io.Buffer
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
 import java.nio.file.Files
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -36,11 +34,6 @@ import kotlin.test.assertTrue
  * The test is placed in jvmTest, because the extensions live in ktorMain.
  */
 class KotlinIoExtensionsTest {
-
-    @BeforeTest
-    fun setUp() {
-        Kim.defaultTimeZone = TimeZone.of("GMT+02:00")
-    }
 
     private fun tempDir(): Path {
         val dir = Files.createTempDirectory("kim-test")
@@ -72,6 +65,27 @@ class KotlinIoExtensionsTest {
         source.copyTo(destination)
 
         assertContentEquals(byteArrayOf(9, 8, 7), destination.readBytes())
+    }
+
+    /**
+     * The copy must transfer to the real end of data, not to the stat
+     * snapshot size: a snapshot invalidated by concurrent growth would
+     * end the copy "successfully" with the file tail silently missing.
+     * More than one chunk must cross the chunked loop.
+     */
+    @Test
+    fun testCopyToTransfersContentBeyondMultipleChunks() {
+
+        val source = tempDir() / "source.bin"
+        val destination = tempDir() / "destination.bin"
+
+        val bytes = ByteArray(2 * 64 * 1024 + 17) { index -> (index % 199).toByte() }
+
+        source.writeBytes(bytes)
+
+        source.copyTo(destination)
+
+        assertContentEquals(bytes, destination.readBytes())
     }
 
     @Test
@@ -142,6 +156,31 @@ class KotlinIoExtensionsTest {
         assertEquals(MediaFormat.JPEG, result)
     }
 
+    /**
+     * A zero hint means "size unknown" (a chunked upload without
+     * Content-Length) and must read as unbounded like on the JVM
+     * facade. Passed through raw, the JPEG header scan sees an exhausted
+     * budget after the first marker and silently returns empty metadata.
+     */
+    @Test
+    fun testKotlinIoSourceByteReaderWithZeroHintReadsUnbounded() {
+
+        val path = tempDir() / "media.jpg"
+
+        val bytes = de.stefan_oltmann.kim.testdata.KimTestData.getBytesOf(1)
+
+        path.writeBytes(bytes)
+
+        val metadata = de.stefan_oltmann.kim.input.KotlinIoSourceByteReader(
+            source = SystemFileSystem.source(path).buffered(),
+            contentLength = 0L
+        ).use { reader ->
+            Kim.readMetadata(checkNotNull(reader))
+        }
+
+        assertNotNull(metadata?.convertToSummary()?.cameraMake, "The zero hint must not empty the metadata.")
+    }
+
     @Test
     fun testKotlinIoSourceByteReaderRejectsMissingFile() {
 
@@ -187,8 +226,8 @@ class KotlinIoExtensionsTest {
 
         writer.close()
 
-        /* Sink close does not throw for a buffer. */
-        assertNotNull(buffer)
+        /* Closing a drained buffer sink a second time must not throw. */
+        writer.close()
     }
 
     private operator fun Path.div(name: String): Path = Path("$this/$name")

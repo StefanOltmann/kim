@@ -23,13 +23,11 @@ import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
-import de.stefan_oltmann.kim.format.jpeg.iptc.IptcBlock
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcConstants
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
-import de.stefan_oltmann.kim.format.jpeg.iptc.IptcRecord
-import de.stefan_oltmann.kim.format.jpeg.iptc.IptcType
-import de.stefan_oltmann.kim.format.jpeg.iptc.IptcTypes
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
+import de.stefan_oltmann.kim.format.jpeg.iptc.createIptcMetadata
+import de.stefan_oltmann.kim.format.jpeg.iptc.withIptcDigestResource
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
@@ -37,7 +35,6 @@ import de.stefan_oltmann.kim.format.tiff.write.isExifUpdate
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
-import de.stefan_oltmann.kim.model.LocationShown
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
@@ -46,36 +43,6 @@ import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
 
 internal object JpegUpdater : MetadataUpdater {
-
-    private val LOCATION_SHOWN_IPTC_TYPES: Set<IptcType> = setOf(
-        IptcTypes.SUBLOCATION,
-        IptcTypes.CITY,
-        IptcTypes.PROVINCE_STATE,
-        IptcTypes.COUNTRY_PRIMARY_LOCATION_NAME
-    )
-
-    /**
-     * Replaces the data of the Photoshop IPTCDigest resource (0x0425,
-     * 16 raw MD5 bytes) with the given digest, so the MWG sync
-     * indicator matches the rewritten IPTC data - like ExifTool
-     * maintains it when the IPTC is written.
-     */
-    private fun IptcMetadata.withIptcDigestResource(digestBytes: ByteArray): IptcMetadata {
-
-        if (nonIptcBlocks.isEmpty())
-            return this
-
-        val blocks = nonIptcBlocks.map { block ->
-            if (block.blockType == IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DIGEST &&
-                block.blockData.size == digestBytes.size
-            )
-                IptcBlock(block.blockType, block.blockNameBytes, digestBytes)
-            else
-                block
-        }
-
-        return IptcMetadata(records, blocks, sourceSegmentBytes)
-    }
 
     @Throws(ImageWriteException::class)
     override fun update(
@@ -107,13 +74,26 @@ internal object JpegUpdater : MetadataUpdater {
             val carriedIptcDigestResource = kimMetadata.iptc?.nonIptcBlocks
                 ?.any { it.blockType == IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DIGEST } == true
 
-            if (iptc != null && carriedIptcDigestResource) {
+            /*
+             * MWG-style writers may declare the digest only in the XMP
+             * (xmpNote:IPTCDigest) without carrying the Photoshop 0x0425
+             * resource. Whenever the file declares a digest in either
+             * place, both markers must be refreshed together - a stale
+             * xmpNote digest makes digest-aware tools report the stores
+             * as out of sync although they agree.
+             */
+            val declaredIptcDigest = carriedIptcDigestResource ||
+                xmpMeta.getIptcDigest() != null
 
-                val digestBytes = Md5.digest(IptcWriter.writeIptcBlockData(iptc.records))
+            if (iptc != null && declaredIptcDigest) {
+
+                val digestBytes =
+                    Md5.digest(IptcWriter.writeIptcBlockData(iptc.records, iptc.foreignDatasets))
 
                 xmpMeta.setIptcDigest(digestBytes.toHex())
 
-                iptcWithDigest = iptc.withIptcDigestResource(digestBytes)
+                if (carriedIptcDigestResource)
+                    iptcWithDigest = iptc.withIptcDigestResource(digestBytes)
             }
 
             val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
@@ -265,117 +245,4 @@ internal object JpegUpdater : MetadataUpdater {
         return true
     }
 
-    /**
-     * Creates the IPTC metadata with all IPTC-applicable updates applied, or
-     * NULL if the IPTC data does not need to be rewritten.
-     */
-    private fun createIptcMetadata(
-        iptc: IptcMetadata?,
-        updates: Set<MetadataUpdate>
-    ): IptcMetadata? {
-
-        val iptcUpdates = updates.filter { update ->
-            update is MetadataUpdate.Title ||
-                update is MetadataUpdate.Description ||
-                update is MetadataUpdate.LocationShown ||
-                update is MetadataUpdate.GpsCoordinatesAndLocationShown ||
-                update is MetadataUpdate.Keywords
-        }
-
-        if (iptcUpdates.isEmpty())
-            return null
-
-        val newBlocks = iptc?.nonIptcBlocks ?: emptyList()
-        val oldRecords = iptc?.records ?: emptyList()
-
-        val removedIptcTypes = mutableSetOf<IptcType>()
-        val newRecords = mutableListOf<IptcRecord>()
-
-        for (update in iptcUpdates) {
-
-            when (update) {
-
-                is MetadataUpdate.Title -> {
-
-                    removedIptcTypes.add(IptcTypes.OBJECT_NAME)
-
-                    update.title?.let { title ->
-                        newRecords.add(IptcRecord(IptcTypes.OBJECT_NAME, title))
-                    }
-                }
-
-                is MetadataUpdate.Description -> {
-
-                    removedIptcTypes.add(IptcTypes.CAPTION_ABSTRACT)
-
-                    update.description?.let { description ->
-                        newRecords.add(IptcRecord(IptcTypes.CAPTION_ABSTRACT, description))
-                    }
-                }
-
-                is MetadataUpdate.LocationShown -> {
-
-                    removedIptcTypes.addAll(LOCATION_SHOWN_IPTC_TYPES)
-
-                    update.locationShown?.let { locationShown ->
-                        newRecords.addAll(createLocationShownRecords(locationShown))
-                    }
-                }
-
-                is MetadataUpdate.GpsCoordinatesAndLocationShown -> {
-
-                    removedIptcTypes.addAll(LOCATION_SHOWN_IPTC_TYPES)
-
-                    update.locationShown?.let { locationShown ->
-                        newRecords.addAll(createLocationShownRecords(locationShown))
-                    }
-                }
-
-                is MetadataUpdate.Keywords -> {
-
-                    removedIptcTypes.add(IptcTypes.KEYWORDS)
-
-                    for (keyword in update.keywords.sorted())
-                        newRecords.add(IptcRecord(IptcTypes.KEYWORDS, keyword))
-                }
-
-                else -> throw ImageWriteException("Can't perform update $update.")
-            }
-        }
-
-        val remainingRecords = oldRecords.filter { record -> record.iptcType !in removedIptcTypes }
-
-        /*
-         * The rewrite must remove the segments the parsed stream came
-         * from, so its identity is carried through the update.
-         */
-        return IptcMetadata(
-            remainingRecords + newRecords,
-            newBlocks,
-            iptc?.sourceSegmentBytes ?: emptyList()
-        )
-    }
-
-    private fun createLocationShownRecords(locationShown: LocationShown): List<IptcRecord> {
-
-        val records = mutableListOf<IptcRecord>()
-
-        locationShown.street?.let { location ->
-            records.add(IptcRecord(IptcTypes.SUBLOCATION, location))
-        }
-
-        locationShown.city?.let { city ->
-            records.add(IptcRecord(IptcTypes.CITY, city))
-        }
-
-        locationShown.state?.let { state ->
-            records.add(IptcRecord(IptcTypes.PROVINCE_STATE, state))
-        }
-
-        locationShown.country?.let { country ->
-            records.add(IptcRecord(IptcTypes.COUNTRY_PRIMARY_LOCATION_NAME, country))
-        }
-
-        return records
-    }
 }

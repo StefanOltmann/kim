@@ -80,10 +80,13 @@ class JpegMetadataExtractorTest {
 
         /* SOI, a large junk gap, then the end of the file. */
         val bytes = byteArrayOf(
-            0xFF.toByte(), 0xD8.toByte(), // SOI
-            0xFF.toByte(), 0x00.toByte()  // Fill byte, treated as a marker.
+            /* SOI */
+            0xFF.toByte(), 0xD8.toByte(),
+            /* Fill byte, treated as a marker. */
+            0xFF.toByte(), 0x00.toByte()
         ) + ByteArray(budget) + byteArrayOf(
-            0xFF.toByte(), 0xD9.toByte() // EOI
+            /* EOI */
+            0xFF.toByte(), 0xD9.toByte()
         )
 
         assertFailsWith<ImageReadException> {

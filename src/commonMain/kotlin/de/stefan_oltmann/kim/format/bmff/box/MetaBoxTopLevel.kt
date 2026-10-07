@@ -23,6 +23,7 @@ import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants
 import de.stefan_oltmann.kim.format.bmff.Extent
 import de.stefan_oltmann.kim.format.bmff.MetadataItem
+import de.stefan_oltmann.kim.format.bmff.PayloadSource
 
 /**
  * ISO/IEC 14496-12 meta box
@@ -30,13 +31,13 @@ import de.stefan_oltmann.kim.format.bmff.MetadataItem
  * The Meta Box is a container for several metadata boxes. This class represents a top-level Meta
  * Box that is not a sub-box of some other box.
  */
-public class MetaBoxTopLevel(
+public class MetaBoxTopLevel internal constructor(
     offset: Long,
     size: Long,
     largeSize: Long?,
-    payload: ByteArray,
+    payloadSource: PayloadSource,
     depth: Int = 0
-) : MetaBox(offset, size, largeSize, payload, depth), BoxContainer {
+) : MetaBox(offset, size, largeSize, payloadSource, depth), BoxContainer {
 
     /* Mandatory boxes in top-level META */
     public val primaryItemBox: PrimaryItemBox =
@@ -53,13 +54,8 @@ public class MetaBoxTopLevel(
 
     /*
      * Extents with an idat-relative construction method cannot be
-     * resolved, because the idat box is not supported.
-     *
-     * Attention: These extents are valid data, not corrupt data. They are
-     * not surfaced as metadata only because interpreting them as absolute
-     * offsets would misread image bytes. The raw payloads are preserved,
-     * so rewrites keep them intact. Supporting the idat box would make
-     * this metadata available again.
+     * resolved, because the idat box is not supported. Interpreting
+     * them as absolute offsets would misread image bytes.
      */
     private val resolvableExtents: List<Extent>
         get() = itemLocationBox.extents.filter { it.constructionMethod == 0 }
@@ -75,7 +71,39 @@ public class MetaBoxTopLevel(
      * can be parsed as one stream. Items are ordered by position, and
      * the extents of each item are ordered by position as well.
      */
+    public constructor(
+        offset: Long,
+        size: Long,
+        largeSize: Long?,
+        payload: ByteArray,
+        depth: Int = 0
+    ) : this(offset, size, largeSize, PayloadSource.of(payload), depth)
+
     public fun findMetadataItems(): List<MetadataItem> {
+
+        /*
+         * An infe-declared EXIF or XMP item without resolvable extents
+         * is real metadata in a layout this reader cannot resolve.
+         * Per the strict read policy it must fail the read instead of
+         * silently vanishing from the result - sidecar writers would
+         * otherwise report "no metadata" for files that carry it.
+         */
+        for (itemInfo in itemInfoBox.map.values) {
+
+            val isMetadataType = itemInfo.itemType == BMFFConstants.ITEM_TYPE_EXIF ||
+                itemInfo.itemType == BMFFConstants.ITEM_TYPE_MIME
+
+            if (!isMetadataType)
+                continue
+
+            val hasResolvableExtent = resolvableExtents.any { it.itemId == itemInfo.itemId }
+
+            if (!hasResolvableExtent)
+                throw ImageReadException(
+                    "The ${itemInfo.itemType} item ${itemInfo.itemId} has no " +
+                        "resolvable extents (idat-relative or missing)."
+                )
+        }
 
         /* Preserves the file order of the items. */
         val extentsByItemId = LinkedHashMap<Int, MutableList<MetadataOffset>>()
@@ -122,4 +150,5 @@ public class MetaBoxTopLevel(
 
     override fun toString(): String =
         "$type Box version=$version flags=${flags.toHex()} boxes=${boxes.map { it.type }}"
+
 }

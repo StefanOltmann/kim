@@ -18,7 +18,7 @@ package de.stefan_oltmann.kim.format.tiff.makernote.sony
 /**
  * Values of the Sony ModelID tag.
  *
- * See https://exiftool.sourceforge.net/TagNames/Sony.html#ModelID
+ * See https://exiftool.sourceforge.net/TagNames/Sony.html
  */
 @Suppress("MaxLineLength")
 public enum class SonyModelId(

@@ -106,6 +106,7 @@ public object KimAndroid {
             )
         )
 
+    @JvmStatic
     @Throws(ImageReadException::class)
     public fun createByteReader(
         contentResolver: ContentResolver,
@@ -118,25 +119,50 @@ public object KimAndroid {
             length = length
         )
 
+    @JvmStatic
     @Throws(ImageReadException::class)
     public fun createByteReader(
         contentResolver: ContentResolver,
         uri: Uri,
         length: Long? = null
-    ): ByteReader = tryWithImageReadException {
+    ): ByteReader {
 
         /*
          * The ContentResolver handles content and file URIs on every API
          * level. The old file-path fallback only worked for URIs whose
          * path happens to be a real filesystem path - MediaStore and SAF
          * URIs failed on older devices.
+         *
+         * The length is resolved before the stream opens, so a failing
+         * provider query cannot leak an already-opened stream - the same
+         * invariant KimJvm.readMetadataFrom documents.
          */
-        val inputStream = contentResolver.openInputStream(uri)
-            ?: throw ImageReadException("Unable to open input stream for URI $uri")
+        return createByteReaderFrom(
+            sizeLookup = {
+                length ?: (contentResolver.getFileSize(uri) ?: 0L)
+            },
+            openStream = {
+                contentResolver.openInputStream(uri)
+                    ?: throw ImageReadException("Unable to open input stream for URI $uri")
+            }
+        )
+    }
 
-        return@tryWithImageReadException AndroidInputStreamByteReader(
-            inputStream = inputStream,
-            contentLength = length ?: (contentResolver.getFileSize(uri) ?: 0L)
+    /**
+     * Assembles the byte reader with the length resolved first: a
+     * failing size lookup must not leak an already-opened stream.
+     * Internal for the host tests, which pin the ordering.
+     */
+    internal fun createByteReaderFrom(
+        sizeLookup: () -> Long,
+        openStream: () -> InputStream
+    ): ByteReader = tryWithImageReadException {
+
+        val length = sizeLookup()
+
+        AndroidInputStreamByteReader(
+            inputStream = openStream().buffered(),
+            contentLength = length
         )
     }
 
@@ -151,6 +177,7 @@ public object KimAndroid {
      *
      * The caller is responsible for closing the returned writer.
      */
+    @JvmStatic
     @Throws(ImageWriteException::class)
     public fun createByteWriter(
         contentResolver: ContentResolver,
@@ -169,6 +196,7 @@ public object KimAndroid {
      *
      * The caller is responsible for closing the returned writer.
      */
+    @JvmStatic
     @Throws(ImageWriteException::class)
     public fun createByteWriter(
         contentResolver: ContentResolver,
@@ -190,9 +218,12 @@ public object KimAndroid {
 }
 
 /**
- * Reads the metadata from a stream. The stream is read but NOT closed -
- * closing it stays the caller's responsibility. The [length] is only a
- * hint and may be 0 for unknown sizes.
+ * Reads the metadata from a stream.
+ *
+ * Attention: The stream IS closed by this call, including the stream
+ * below it, and must not be used afterwards - like
+ * [KimAndroid.readMetadata] documents. The [length] is only a hint and
+ * may be 0 for unknown sizes.
  */
 @Throws(ImageReadException::class)
 @Suppress("UnusedReceiverParameter")

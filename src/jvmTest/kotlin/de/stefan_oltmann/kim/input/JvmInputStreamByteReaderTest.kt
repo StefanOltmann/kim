@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -33,6 +34,25 @@ import kotlin.test.assertTrue
  * The test is placed in jvmTest, because the reader lives in jvmMain.
  */
 class JvmInputStreamByteReaderTest {
+
+    /**
+     * A negative count must fail with the clean IllegalArgumentException
+     * the sibling readers throw - on the Android legacy path the
+     * unguarded ByteArray(count) would raise a NegativeArraySizeException
+     * instead.
+     */
+    @Test
+    fun testReadBytesRejectsNegativeCount() {
+
+        val reader = JvmInputStreamByteReader(
+            inputStream = ByteArrayInputStream(byteArrayOf(1, 2)),
+            contentLength = 2
+        )
+
+        assertFailsWith<IllegalArgumentException> {
+            reader.readBytes(-1)
+        }
+    }
 
     @Test
     fun testReadByte() {
@@ -170,7 +190,8 @@ class JvmInputStreamByteReaderTest {
 
         val writer = de.stefan_oltmann.kim.output.ByteArrayByteWriter()
 
-        writer.write(byteArrayOf(0xFF.toByte(), 0xD8.toByte())) // SOI
+        /* SOI */
+        writer.write(byteArrayOf(0xFF.toByte(), 0xD8.toByte()))
 
         writer.write(
             byteArrayOf(
@@ -178,7 +199,8 @@ class JvmInputStreamByteReaderTest {
                 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01,
                 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00
             )
-        ) // APP0 JFIF
+            /* APP0 JFIF */
+        )
 
         /* SOS with minimal parameters and entropy-coded data. */
         writer.write(
@@ -190,7 +212,8 @@ class JvmInputStreamByteReaderTest {
 
         writer.write(ByteArray(imageDataSize) { index -> (index % 0x7F).toByte() })
 
-        writer.write(byteArrayOf(0xFF.toByte(), 0xD9.toByte())) // EOI
+        /* EOI */
+        writer.write(byteArrayOf(0xFF.toByte(), 0xD9.toByte()))
 
         return writer.toByteArray()
     }

@@ -105,8 +105,10 @@ class GifImageParserTest {
     @Test
     fun testReadChunksRejectsUnknownBlockIntroducer() {
 
-        /* Header, logical screen descriptor without color table,
-           one stray byte, then the terminator. */
+        /*
+         * Header, logical screen descriptor without color table,
+         * one stray byte, then the terminator.
+         */
         val bytes = "GIF89a".encodeToByteArray() +
             byteArrayOf(1, 0, 1, 0, 0, 0, 0) +
             byteArrayOf(0x55.toByte()) +
@@ -131,10 +133,14 @@ class GifImageParserTest {
         val bytes = "GIF89a".encodeToByteArray() +
             byteArrayOf(1, 0, 1, 0, 0, 0, 0) +
             byteArrayOf(
-                0x21, 0xF9.toByte(), // Extension introducer, GCE label.
-                5,                   // Declared body size (nonconformant).
-                1, 2, 3, 4, 5,       // Body bytes.
-                0x00                 // Block terminator.
+                /* Extension introducer, GCE label. */
+                0x21, 0xF9.toByte(),
+                /* Declared body size (nonconformant). */
+                5,
+                /* Body bytes. */
+                1, 2, 3, 4, 5,
+                /* Block terminator. */
+                0x00
             ) +
             byteArrayOf(GifConstants.GIF_TERMINATOR)
 
@@ -174,8 +180,10 @@ class GifImageParserTest {
     @Test
     fun testReadToleratesShortApplicationExtension() {
 
-        /* Header, logical screen descriptor, app extension with a
-           4-byte first sub-block, a minimal 1x1 image, terminator. */
+        /*
+         * Header, logical screen descriptor, app extension with a
+         * 4-byte first sub-block, a minimal 1x1 image, terminator.
+         */
         val bytes = "GIF89a".encodeToByteArray() +
             byteArrayOf(1, 0, 1, 0, 0, 0, 0) +
             byteArrayOf(0x21.toByte(), 0xFF.toByte(), 4, 1, 2, 3, 4, 0) +

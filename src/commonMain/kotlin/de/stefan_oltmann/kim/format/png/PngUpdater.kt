@@ -17,11 +17,18 @@
 package de.stefan_oltmann.kim.format.png
 
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.Md5
 import de.stefan_oltmann.kim.common.startsWith
+import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
 import de.stefan_oltmann.kim.format.exifBytesWithThumbnail
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcConstants
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
+import de.stefan_oltmann.kim.format.jpeg.iptc.createIptcMetadata
+import de.stefan_oltmann.kim.format.jpeg.iptc.withIptcDigestResource
 import de.stefan_oltmann.kim.format.updatedExifBytes
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
@@ -29,6 +36,7 @@ import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.ByteWriter
+import de.stefan_oltmann.xmp.XMPMetaFactory
 
 internal object PngUpdater : MetadataUpdater {
 
@@ -53,20 +61,60 @@ internal object PngUpdater : MetadataUpdater {
 
             val metadata = PngImageParser.parseMetadataFromChunks(chunks)
 
-            val updatedXmp = XmpWriter.updateXmp(metadata.xmp, updates, true)
+            val xmpMeta = XMPMetaFactory.parseOrCreate(metadata.xmp)
+
+            var iptcWithDigest: IptcMetadata? = null
+
+            val iptc = createIptcMetadata(metadata.iptc, updates)
+
+            /*
+             * When the rewrite replaces the IPTC text chunk, the
+             * xmpNote:IPTCDigest of the XMP must be updated to the
+             * digest of the new IPTC data, like ExifTool maintains it.
+             * It is only synced when the file declares the digest - a
+             * digest that a tool invented for IPTC the file never
+             * declared as synced would be misleading. Unchanged IPTC
+             * keeps its existing (still valid) digest.
+             */
+            val carriedIptcDigestResource = metadata.iptc?.nonIptcBlocks
+                ?.any { it.blockType == IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DIGEST } == true
+
+            val declaredIptcDigest = carriedIptcDigestResource ||
+                xmpMeta.getIptcDigest() != null
+
+            if (iptc != null && declaredIptcDigest) {
+
+                val digestBytes =
+                    Md5.digest(IptcWriter.writeIptcBlockData(iptc.records, iptc.foreignDatasets))
+
+                xmpMeta.setIptcDigest(digestBytes.toHex())
+
+                if (carriedIptcDigestResource)
+                    iptcWithDigest = iptc.withIptcDigestResource(digestBytes)
+            }
+
+            val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
 
             val exifBytes = metadata.updatedExifBytes(updates)
+
+            /*
+             * An update that changes an IPTC-representable field rewrites
+             * the IPTC text chunk like the JPEG path rewrites the APP13
+             * segment: the affected records carry the new values so
+             * ExifTool and GIMP read the same data as from XMP and EXIF,
+             * which is exactly the copies-drift-apart state this API must
+             * prevent.
+             */
+            val iptcBytes = (iptcWithDigest ?: iptc)
+                ?.let { blockData -> IptcWriter.writeIptcResourceBlocks(blockData) }
+
+            val removeStaleIptc = iptcBytes != null
 
             PngWriter.writeImage(
                 chunks = chunks,
                 byteWriter = outputWriter,
                 exifBytes = exifBytes,
-                /*
-                 * IPTC is not written because it's not recognized everywhere.
-                 * XMP is the better choice. If users demand it we may add it.
-                 * The logic is already implemented.
-                 */
-                iptcBytes = null,
+                iptcBytes = iptcBytes,
                 xmp = updatedXmp
             )
 
@@ -75,14 +123,26 @@ internal object PngUpdater : MetadataUpdater {
              * metadata are removed. Comments and tIME chunks are user data
              * unrelated to the change and must survive an update.
              */
-            StaleChunkFilter { chunkType, keyword ->
-                (exifBytes != null &&
-                    (
-                        chunkType == PngChunkType.EXIF ||
-                            chunkType == PngChunkType.ZXIF ||
-                            keyword == PngConstants.EXIF_KEYWORD
-                        )) ||
-                    (keyword == PngConstants.XMP_KEYWORD)
+            object : StaleChunkFilter {
+
+                override fun isStale(chunkType: PngChunkType, keyword: String?): Boolean =
+                    (exifBytes != null &&
+                        (
+                            chunkType == PngChunkType.EXIF ||
+                                chunkType == PngChunkType.ZXIF ||
+                                keyword == PngConstants.EXIF_KEYWORD
+                            )) ||
+                        (keyword == PngConstants.XMP_KEYWORD) ||
+                        (removeStaleIptc && keyword == PngConstants.IPTC_KEYWORD)
+
+                override fun failWhenStale(chunkType: PngChunkType, keyword: String?): Boolean =
+                    /*
+                     * Once the IPTC store was rewritten in front of the
+                     * image data - where ExifTool relocates it, too - a
+                     * trailing chunk is a stale duplicate of the same
+                     * store, because the first chunk is authoritative.
+                     */
+                    !(removeStaleIptc && keyword == PngConstants.IPTC_KEYWORD)
             }
         }
     }
@@ -141,7 +201,8 @@ internal object PngUpdater : MetadataUpdater {
             byteWriter = byteWriter,
             exifBytes = exifBytes,
             iptcBytes = null,
-            xmp = null // No change to XMP
+            /*  No change to XMP */
+            xmp = null
         )
 
         return@tryWithImageWriteException byteWriter.toByteArray()

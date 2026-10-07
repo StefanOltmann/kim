@@ -19,6 +19,9 @@ import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.png.PngChunkType
+import de.stefan_oltmann.kim.format.png.PngConstants.PNG_BYTE_ORDER
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
+import de.stefan_oltmann.kim.output.writeInt
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -27,6 +30,45 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class PngChunkTest {
+
+    /**
+     * The IHDR dimensions are attacker-controlled input. Per the PNG
+     * specification both are 1 to 2^31-1, so out-of-range values must
+     * fail the read instead of producing negative or zero sizes in
+     * MediaMetadata.
+     */
+    @Test
+    fun testIhdrRejectsNonPositiveDimensions() {
+
+        fun ihdrBytes(width: Int, height: Int): ByteArray {
+
+            val writer = ByteArrayByteWriter()
+
+            writer.writeInt(width, PNG_BYTE_ORDER)
+            writer.writeInt(height, PNG_BYTE_ORDER)
+
+            /* Bit depth, color type, compression, filter, interlace. */
+            writer.write(8)
+            writer.write(6)
+            writer.write(0)
+            writer.write(0)
+            writer.write(0)
+
+            return writer.toByteArray()
+        }
+
+        assertFailsWith<ImageReadException> {
+            PngChunkIhdr(ihdrBytes(-1, 1), 0)
+        }
+
+        assertFailsWith<ImageReadException> {
+            PngChunkIhdr(ihdrBytes(1, 0), 0)
+        }
+
+        assertFailsWith<ImageReadException> {
+            PngChunkIhdr(ihdrBytes(0, 0), 0)
+        }
+    }
 
     @Test
     fun testChunkTypeOf() {
@@ -131,6 +173,32 @@ class PngChunkTest {
         assertEquals(text, chunk.getText())
     }
 
+    /**
+     * iTXt text is UTF-8 whether it is stored compressed or not, so
+     * invalid sequences must fail the read in both branches - the
+     * compressed path used to fabricate replacement characters.
+     */
+    @Test
+    fun testItxtChunkWithCompressedTextRejectsInvalidUtf8() {
+
+        /* zlib-compressed bytes C3 28 - an invalid UTF-8 sequence. */
+        val invalidUtf8Compressed = convertHexStringToByteArray(
+            "78DA3BAC010001B000EC"
+        )
+
+        val bytes = "Comment".encodeToByteArray() +
+            byteArrayOf(0) +
+            byteArrayOf(1) +
+            byteArrayOf(0) +
+            byteArrayOf(0) +
+            byteArrayOf(0) +
+            invalidUtf8Compressed
+
+        assertFailsWith<ImageReadException> {
+            PngChunkItxt(bytes, 0)
+        }
+    }
+
     @Test
     fun testItxtChunkRejectsInvalidData() {
 
@@ -170,6 +238,31 @@ class PngChunkTest {
 
         assertEquals(keyword, chunk.getKeyword())
         assertEquals(text, chunk.getText())
+    }
+
+    /**
+     * The PNG specification defines zTXt text as Latin-1 - the same
+     * encoding the keyword already uses. Decoding the decompressed
+     * bytes as UTF-8 corrupts every character above 0x7F.
+     */
+    @Test
+    fun testZtxtChunkDecodesLatin1Text() {
+
+        val keyword = "Artist"
+
+        /* zlib-compressed Latin-1 bytes of "Müller". */
+        val latin1Compressed = convertHexStringToByteArray(
+            "78DAF3FD9393935A04000AF002F9"
+        )
+
+        val bytes = keyword.encodeToByteArray() +
+            byteArrayOf(0) +
+            byteArrayOf(0) +
+            latin1Compressed
+
+        val chunk = PngChunkZtxt(bytes, 0)
+
+        assertEquals("Müller", chunk.getText())
     }
 
     @Test

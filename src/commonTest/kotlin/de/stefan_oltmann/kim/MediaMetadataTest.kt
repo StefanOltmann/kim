@@ -23,6 +23,7 @@ import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlinx.datetime.TimeZone
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -102,6 +103,7 @@ class MediaMetadataTest {
      * confirmed by the GPSDateStamp) - like ExifTool. A later XMP date
      * from a re-export must not overwrite it.
      */
+
     @Test
     fun testTakenDatePrefersExifOverXmp() {
 
@@ -111,8 +113,21 @@ class MediaMetadataTest {
 
         val summary = MetadataSummaryConverter.convertToSummary(metadata)
 
-        /* 2022-09-26T12:38:48Z (14:38:48+02:00) - das EXIF-Datum, das
-         * auch ExifTool als Instant meldet. */
+        /*
+         * 2022-09-26T12:38:48Z (14:38:48+02:00) - the EXIF date, which
+         * ExifTool also reports as the instant.
+         */
         assertEquals(1664195928773L, summary.takenDate)
+    }
+
+    /**
+     * Restores the process-wide default time zone, so the GMT override of
+     * [testTakenDatePrefersExifOverXmp] cannot leak into any suite that
+     * runs afterwards in the same process.
+     */
+    @AfterTest
+    fun tearDown() {
+
+        Kim.defaultTimeZone = null
     }
 }

@@ -38,7 +38,14 @@ private const val FIVE_STARS_STRING: String = "★★★★★"
  * and -1 for rejected images.
  */
 public enum class ExifRating(
+    /** The numeric rating value the EXIF tags and XMP carry. */
     public val value: Int,
+    /**
+     * The star display form like "★★☆☆☆".
+     *
+     * Attention: Required by external tools & libraries - it has no
+     * callers in this repository by design and must never be removed.
+     */
     public val string: String
 ) {
 
@@ -52,11 +59,19 @@ public enum class ExifRating(
 
     public companion object {
 
-        /** The full range of rating values the format defines. */
+        /**
+         * The full range of rating values the format defines.
+         *
+         * Attention: Required by external tools & libraries - it has no
+         * callers in this repository by design and must never be removed.
+         */
         public val validIntRange: IntRange = REJECTED.value..FIVE_STARS.value
 
-        /** Parses the integer rating the EXIF tags carry, or returns NULL. */
-        /* **Note:** Swift problems if parameter value is of type Int? */
+        /**
+         * Parses the integer rating the EXIF tags carry, or returns NULL.
+         *
+         * **Note:** Swift problems if parameter value is of type Int?
+         */
         public fun of(value: Int): ExifRating? = when (value) {
             REJECTED_VALUE -> REJECTED
             UNRATED_VALUE -> UNRATED

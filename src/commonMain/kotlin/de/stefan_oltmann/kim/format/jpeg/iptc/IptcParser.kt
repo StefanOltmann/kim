@@ -20,6 +20,7 @@ package de.stefan_oltmann.kim.format.jpeg.iptc
 import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.decodeLatin1BytesToString
+import de.stefan_oltmann.kim.common.decodeStrictUtf8
 import de.stefan_oltmann.kim.common.slice
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toInt
@@ -49,19 +50,10 @@ public object IptcParser {
     internal val EMPTY_BYTE_ARRAY = byteArrayOf()
 
     /**
-     * The record header is the record number, the record type and
-     * the 2-byte size field.
+     * The smallest record header after the tag marker: record number,
+     * dataset number and the 2-byte size field.
      */
-    private const val IPTC_RECORD_HEADER_BYTE_COUNT = 4
-
-    /**
-     * Block types (or Image Resource IDs) that are not recommended to be
-     * interpreted when libraries process Photoshop IPTC metadata.
-     *
-     * See https://www.adobe.com/devnet-apps/photoshop/fileformatashtml/
-     */
-    @Suppress("MagicNumber")
-    private val PHOTOSHOP_IGNORED_BLOCK_TYPE = listOf(1084, 1085, 1086, 1087)
+    private const val IPTC_MIN_HEADER_TAIL_BYTE_COUNT = 4
 
     public const val CODED_CHARACTER_SET_IPTC_CODE: Int = 90
 
@@ -96,6 +88,7 @@ public object IptcParser {
     ): IptcMetadata = tryWithImageReadException {
 
         val records = mutableListOf<IptcRecord>()
+        val foreignDatasets = mutableListOf<ByteArray>()
 
         val blocks = parseAllIptcBlocks(bytes, startsWithApp13Header)
 
@@ -104,10 +97,13 @@ public object IptcParser {
             if (!block.isIPTCBlock())
                 continue
 
-            records.addAll(parseIPTCBlock(detectWordSwap(block.blockData)))
+            val content = parseIPTCBlock(detectWordSwap(block.blockData))
+
+            records.addAll(content.records)
+            foreignDatasets.addAll(content.foreignDatasets)
         }
 
-        IptcMetadata(records, blocks)
+        IptcMetadata(records, blocks, foreignDatasets = foreignDatasets)
     }
 
     /**
@@ -152,19 +148,33 @@ public object IptcParser {
     @JvmStatic
     public fun parseIptcDataset(bytes: ByteArray): IptcMetadata =
         tryWithImageReadException {
-            IptcMetadata(parseIPTCBlock(detectWordSwap(bytes)), emptyList())
+            val content = parseIPTCBlock(detectWordSwap(bytes))
+
+            IptcMetadata(
+                records = content.records,
+                rawBlocks = emptyList(),
+                foreignDatasets = content.foreignDatasets
+            )
         }
 
-    private fun parseIPTCBlock(bytes: ByteArray): List<IptcRecord> {
+    private class BlockContent(
+        val records: List<IptcRecord>,
+        val foreignDatasets: List<ByteArray>
+    )
+
+    private fun parseIPTCBlock(bytes: ByteArray): BlockContent {
 
         var isUtf8 = false
 
         val records = mutableListOf<IptcRecord>()
+        val foreignDatasets = mutableListOf<ByteArray>()
 
         var index = 0
 
         @Suppress("LoopWithTooManyJumpStatements")
         while (index + 1 < bytes.size) {
+
+            val datasetStartIndex = index
 
             val tagMarker = bytes[index++].toUInt8()
 
@@ -176,7 +186,7 @@ public object IptcParser {
              * The truncated tail of the block may not hold the record
              * number, type and size. Stop instead of reading past the end.
              */
-            if (index + IPTC_RECORD_HEADER_BYTE_COUNT > bytes.size)
+            if (index + IPTC_MIN_HEADER_TAIL_BYTE_COUNT > bytes.size)
                 break
 
             val recordNumber = bytes[index++].toUInt8()
@@ -206,10 +216,23 @@ public object IptcParser {
                     .takeIf { it != 0 }
                     ?: IptcConstants.IPTC_EXTENDED_LENGTH_FIELD_SIZE
 
-                if (lengthFieldSize > IptcConstants.IPTC_MAX_EXTENDED_LENGTH_FIELD_SIZE ||
-                    index + lengthFieldSize > bytes.size
-                )
-                    return records
+                /*
+                 * A length field size beyond the defined maximum is a
+                 * corrupt header, not a truncated one.
+                 */
+                if (lengthFieldSize > IptcConstants.IPTC_MAX_EXTENDED_LENGTH_FIELD_SIZE)
+                    throw ImageReadException(
+                        "IPTC record declares an invalid length field " +
+                            "size of $lengthFieldSize bytes."
+                    )
+
+                /*
+                 * The block ends inside the length field: the declared
+                 * structure ends here, so parsing keeps what was read
+                 * so far (the clean boundary case).
+                 */
+                if (index + lengthFieldSize > bytes.size)
+                    return BlockContent(records, foreignDatasets)
 
                 recordLength = 0
 
@@ -222,13 +245,23 @@ public object IptcParser {
             }
 
             /*
-             * The record length is file-controlled. A length larger than the
-             * remaining data means the record is incomplete: terminate parsing
-             * and keep what was parsed so far, instead of emitting a silently
-             * shortened value or overflowing the index on the next iteration.
+             * The record length is file-controlled. A length larger than
+             * the remaining block bytes means the record header lies - the
+             * block itself is complete. Throwing keeps the strict-read
+             * guarantee: a graceful stop would drop this record and every
+             * record behind it from the rewrite unheard of. The index
+             * overflow protection is a consequence of the throw.
+             *
+             * The 8-byte length field carries unsigned 64-bit values, so a
+             * length with the sign bit set is negative here - without the
+             * check it would slip past the too-large guard and silently
+             * swallow the record.
              */
-            if (recordLength > bytes.size - index)
-                return records
+            if (recordLength < 0 || recordLength > bytes.size - index)
+                throw ImageReadException(
+                    "IPTC record declares $recordLength bytes, but only " +
+                        "${bytes.size - index} remain in the block."
+                )
 
             val recordData = bytes.slice(index, recordLength.toInt())
 
@@ -241,24 +274,55 @@ public object IptcParser {
                 continue
             }
 
-            if (recordNumber != IptcConstants.IPTC_APPLICATION_2_RECORD_NUMBER)
+            /*
+             * Datasets outside application record 2 (envelope identifiers,
+             * NewsPhoto data) are kept as raw bytes, so an IPTC rewrite can
+             * carry them through instead of silently dropping them. The
+             * slice spans from the tag marker to the value end, so it is
+             * exact regardless of the length encoding the writer chose.
+             */
+            if (recordNumber != IptcConstants.IPTC_APPLICATION_2_RECORD_NUMBER) {
+
+                foreignDatasets.add(
+                    bytes.slice(datasetStartIndex, index - datasetStartIndex)
+                )
+
                 continue
+            }
 
             if (recordType == 0)
                 continue
+
+            /*
+             * Datasets the IIM specification defines as binary (rasterized
+             * caption, objectData preview) have no text form: re-encoding
+             * them through a String would corrupt every byte >= 0x80 and
+             * grow the dataset, so like the datasets outside record 2 they
+             * are carried through as raw bytes.
+             */
+            if (recordType == IptcTypes.RASTERIZED_CAPTION.type ||
+                recordType == IptcTypes.OBJECT_DATA_PREVIEW_DATA.type
+            ) {
+
+                foreignDatasets.add(
+                    bytes.slice(datasetStartIndex, index - datasetStartIndex)
+                )
+
+                continue
+            }
 
             records.add(
                 IptcRecord(
                     iptcType = getIptcType(recordType),
                     value = if (isUtf8)
-                        recordData.decodeToString()
+                        recordData.decodeStrictUtf8("An UTF-8 flagged IPTC record")
                     else
                         recordData.decodeLatin1BytesToString()
                 )
             )
         }
 
-        return records
+        return BlockContent(records, foreignDatasets)
     }
 
     private fun parseAllIptcBlocks(
@@ -290,7 +354,15 @@ public object IptcParser {
             if (!byteReader.skipToNextResourceBlock())
                 break
 
-            val blockType = readTolerantly { byteReader.readNextNonIgnoredBlockType() } ?: break
+            /*
+             * Block types the Photoshop specification recommends not to
+             * interpret are read like any other block: they stay opaque
+             * byte carriers so an IPTC rewrite re-emits them instead of
+             * silently dropping their bytes.
+             */
+            val blockType =
+                readTolerantly { byteReader.read2BytesAsInt("IPTC block type", APP13_BYTE_ORDER) }
+                    ?: break
 
             val blockNameLength = readTolerantly { byteReader.readByte("block name length").toUInt8() }
                 ?: break
@@ -394,43 +466,6 @@ public object IptcParser {
             throw ImageReadException("Unparseable Photoshop APP13 tail.")
 
         return true
-    }
-
-    /**
-     * Reads the block type of the next 8BIM resource block, skipping
-     * blocks that the photoshop spec recommends to ignore.
-     *
-     * The skip consumes the next block's signature, so the block type
-     * of the following block is read directly here instead of reading
-     * a signature again.
-     *
-     * Returns null at the end of the data.
-     */
-    private fun ByteReader.readNextNonIgnoredBlockType(): Int? {
-
-        var blockType = read2BytesAsInt("IPTC block type", APP13_BYTE_ORDER)
-
-        while (PHOTOSHOP_IGNORED_BLOCK_TYPE.contains(blockType)) {
-
-            /*
-             * If there is still data in this block, before the next image resource block (8BIM),
-             * then we must consume these bytes to leave a pointer ready to read the next block.
-             *
-             * These block types are skipped because the Photoshop
-             * specification classifies them as non-IPTC resources (like
-             * resolution or print flag information). They are never part
-             * of the IPTC metadata this parser is responsible for, and
-             * they remain untouched in the raw block bytes.
-             */
-            val skipSuccessful = skipToQuad(JpegConstants.IPTC_RESOURCE_BLOCK_SIGNATURE_INT)
-
-            if (!skipSuccessful)
-                return null
-
-            blockType = read2BytesAsInt("IPTC block type", APP13_BYTE_ORDER)
-        }
-
-        return blockType
     }
 
     private fun isUtf8(codedCharset: ByteArray): Boolean {

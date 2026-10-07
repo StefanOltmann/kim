@@ -250,8 +250,10 @@ class MakerNotePreservationTest {
             bytes = byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8)
         )
 
-        /* An anchor before the TIFF header (8 bytes) can never be
-           honored - the MakerNote would have to move. */
+        /*
+         * An anchor before the TIFF header (8 bytes) can never be
+         * honored - the MakerNote would have to move.
+         */
         makerNoteField.originalOffset = 4
 
         rootDirectory.add(makerNoteField)
@@ -303,6 +305,55 @@ class MakerNotePreservationTest {
     }
 
     /**
+     * Regression test: replacing the EXIF thumbnail must not move or
+     * truncate the MakerNote either - the thumbnail rewrite rebuilds
+     * the whole EXIF IFD structure around it.
+     */
+    @Test
+    fun testMakerNoteSurvivesThumbnailUpdateByteIdentically() {
+
+        var checkedFileCount = 0
+
+        /* A 1 KB thumbnail that fits into every corpus EXIF segment. */
+        val thumbnailBytes = KimTestData.getTinyThumbnailBytes()
+
+        for (index in 1..KimTestData.HIGHEST_JPEG_INDEX) {
+
+            /* The same broken-segment files the rewrite corpus excludes. */
+            if (index in unrewritableIndices)
+                continue
+
+            val bytes = KimTestData.getBytesOf(index)
+
+            val originalField = findMakerNoteField(bytes) ?: continue
+
+            val updatedBytes = Kim.updateThumbnail(bytes, thumbnailBytes)
+
+            val updatedField = findMakerNoteField(updatedBytes)
+                ?: fail("Thumbnail update of media_$index dropped the MakerNote.")
+
+            assertContentEquals(
+                expected = originalField.valueBytes,
+                actual = updatedField.valueBytes,
+                message = "MakerNote bytes of media_$index changed on thumbnail update."
+            )
+
+            assertEquals(
+                expected = originalField.valueOffset,
+                actual = updatedField.valueOffset,
+                message = "MakerNote offset of media_$index changed on thumbnail update."
+            )
+
+            checkedFileCount++
+        }
+
+        assertTrue(
+            checkedFileCount > 0,
+            "The test must check at least one file with a MakerNote."
+        )
+    }
+
+    /**
      * Returns the MakerNote field of the given bytes, or null when
      * the file does not contain a MakerNote.
      */
@@ -346,22 +397,27 @@ class MakerNotePreservationTest {
 
     private companion object {
 
-        /* The JPEG files with update support and the PNG files. */
+        /*
+         * The JPEG files with update support, the PNG files and the
+         * WebP/JXL files whose EXIF carries a MakerNote - the update
+         * paths of all four formats re-serialize the EXIF through the
+         * anchor-sensitive TiffWriter, so each needs corpus coverage.
+         */
         val testMediaIndices: List<Int> = (1..KimTestData.HIGHEST_JPEG_INDEX).toList() +
             listOf(
                 KimTestData.PNG_TEST_IMAGE_INDEX,
                 KimTestData.PNG_APPLE_PREVIEW_TEST_IMAGE_INDEX,
-                KimTestData.PNG_GIMP_TEST_IMAGE_INDEX
+                KimTestData.PNG_GIMP_TEST_IMAGE_INDEX,
+                KimTestData.WEBP_WITH_MAKERNOTE_INDEX,
+                KimTestData.JXL_WITH_MAKERNOTE_INDEX
             )
 
         /*
-         * Files that contain invalid segment lengths (44, 45, 47) and are
-         * rejected by the rewriter. Keep this set in sync with
-         * KotlinIoPathSourceTest.rejectedJpegIds and KimUpdateSmallFileTest.
-         * If a file becomes parseable, remove it here so the MakerNote
+         * The authoritative set lives in [KimTestData.brokenJpegIds]. If a
+         * file becomes parseable, remove it there so the MakerNote
          * preservation check covers it.
          */
-        val unrewritableIndices: Set<Int> = setOf(44, 45, 47)
+        val unrewritableIndices: Set<Int> = KimTestData.brokenJpegIds
 
         const val TEST_TAKEN_DATE_MILLIS: Long = 1_575_302_400_000
 

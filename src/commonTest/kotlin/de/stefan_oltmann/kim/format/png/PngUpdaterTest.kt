@@ -20,19 +20,30 @@ import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.Md5
 import de.stefan_oltmann.kim.common.MetadataSummaryConverter
+import de.stefan_oltmann.kim.common.convertToSummary
+import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.format.AbstractUpdaterTest
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcBlock
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcConstants
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcRecord
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcTypes
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
 import de.stefan_oltmann.kim.format.png.PngCrc.continuePartialCrc
 import de.stefan_oltmann.kim.format.png.PngCrc.finishPartialCrc
 import de.stefan_oltmann.kim.format.png.PngCrc.startPartialCrc
+import de.stefan_oltmann.kim.format.png.chunk.PngTextChunk
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
+import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.writeInt
+import de.stefan_oltmann.xmp.XMPMetaFactory
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -444,8 +455,10 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
      */
     private fun createPngWithTrailingXmp(): ByteArray {
 
-        /* Keyword, null, no compression, no method, empty language tag,
-         * empty translated keyword - each null-terminated. */
+        /*
+         * Keyword, null, no compression, no method, empty language tag,
+         * empty translated keyword - each null-terminated.
+         */
         val xmpPayload =
             PngConstants.XMP_KEYWORD.encodeToByteArray() +
                 byteArrayOf(0, 0, 0, 0, 0) +
@@ -521,7 +534,320 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
         byteWriter.writeInt(crc, PngConstants.PNG_BYTE_ORDER)
     }
 
+    /**
+     * The IPTC rewrite covers the text chunks behind the image data as
+     * well: an IPTC profile behind the IDAT is stale once the rewritten
+     * chunk was written behind the IHDR, so exactly one copy must
+     * remain - the fresh one in front of the image data.
+     */
+    @Test
+    fun testUpdateRewritesIptcTextChunkBehindImageData() {
+
+        val iptcBytes = IptcWriter.writeIptcBlocks(
+            blocks = listOf(
+                IptcBlock(
+                    blockType = IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DATA,
+                    blockNameBytes = byteArrayOf(),
+                    blockData = IptcWriter.writeIptcBlockData(
+                        listOf(IptcRecord(IptcTypes.KEYWORDS, "old"))
+                    )
+                )
+            ),
+            includeApp13Identifier = false
+        )
+
+        val byteWriter = ByteArrayByteWriter()
+
+        byteWriter.write(PngConstants.PNG_SIGNATURE)
+
+        /* 1x1 pixel, 8 bit RGBA, no interlace. */
+        writeChunk(
+            byteWriter = byteWriter,
+            typeName = "IHDR",
+            data = byteArrayOf(0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0)
+        )
+
+        writeChunk(
+            byteWriter = byteWriter,
+            typeName = "IDAT",
+            data = byteArrayOf(1, 2, 3, 4)
+        )
+
+        writeChunk(
+            byteWriter = byteWriter,
+            typeName = "tEXt",
+            data = (RAW_IPTC_TEXT_PREFIX + iptcBytes.toHex()).encodeToByteArray()
+        )
+
+        writeChunk(
+            byteWriter = byteWriter,
+            typeName = "IEND",
+            data = byteArrayOf()
+        )
+
+        val updatedBytes = Kim.update(
+            bytes = byteWriter.toByteArray(),
+            update = MetadataUpdate.Keywords(setOf("new"))
+        )
+
+        val after = assertNotNull(Kim.readMetadata(updatedBytes))
+
+        assertEquals(setOf("new"), after.convertToSummary().keywords)
+
+        /*
+         * The trailing stale chunk is gone; the rewritten chunk lives
+         * behind the IHDR, exactly once.
+         */
+        val updatedChunks = PngImageParser.readChunks(
+            ByteArrayByteReader(updatedBytes),
+            chunkTypeFilter = null
+        )
+
+        assertEquals(
+            expected = 1,
+            actual = updatedChunks.count { chunk ->
+                chunk is PngTextChunk && chunk.getKeyword() == PngConstants.IPTC_KEYWORD
+            }
+        )
+
+        assertTrue(
+            updatedChunks.indexOfFirst { chunk ->
+                chunk is PngTextChunk && chunk.getKeyword() == PngConstants.IPTC_KEYWORD
+            } < updatedChunks.indexOfFirst { it.type == PngChunkType.IDAT },
+            "The rewritten IPTC chunk must sit in front of the image data."
+        )
+    }
+
+    /**
+     * An update that changes an IPTC-representable field rewrites the
+     * IPTC text chunk like the JPEG path rewrites the APP13 segment:
+     * the affected records carry the new values so ExifTool and GIMP
+     * no longer read the old keywords, while records the update does
+     * not touch survive unchanged.
+     */
+    @Test
+    fun testUpdateRewritesStaleIptcTextChunk() {
+
+        /*
+         * The text chunk carries the 8BIM-wrapped IPTC block, like
+         * Exiv2 and the writer below produce it.
+         */
+        val iptcBytes = IptcWriter.writeIptcBlocks(
+            blocks = listOf(
+                IptcBlock(
+                    blockType = IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DATA,
+                    blockNameBytes = byteArrayOf(),
+                    blockData = IptcWriter.writeIptcBlockData(
+                        listOf(
+                            IptcRecord(IptcTypes.CAPTION_ABSTRACT, "caption"),
+                            IptcRecord(IptcTypes.KEYWORDS, "old")
+                        )
+                    )
+                )
+            ),
+            includeApp13Identifier = false
+        )
+
+        val allChunks = PngImageParser.readChunks(
+            ByteArrayByteReader(originalBytes),
+            chunkTypeFilter = null
+        )
+
+        val byteWriter = ByteArrayByteWriter()
+
+        PngWriter.writeImage(
+            chunks = allChunks,
+            byteWriter = byteWriter,
+            exifBytes = null,
+            iptcBytes = iptcBytes,
+            xmp = null
+        )
+
+        val pngWithIptc = byteWriter.toByteArray()
+
+        val before = assertNotNull(Kim.readMetadata(pngWithIptc))
+
+        assertEquals(setOf("old"), before.convertToSummary().keywords)
+
+        val updatedBytes = Kim.update(
+            bytes = pngWithIptc,
+            update = MetadataUpdate.Keywords(setOf("new"))
+        )
+
+        val after = assertNotNull(Kim.readMetadata(updatedBytes))
+
+        /* The chunk is rewritten in place, not dropped. */
+        val records = assertNotNull(after.iptc).records
+
+        assertEquals(setOf("new"), after.convertToSummary().keywords)
+
+        assertEquals(
+            expected = listOf("new"),
+            actual = records.filter { it.iptcType == IptcTypes.KEYWORDS }.map { it.value }
+        )
+
+        /* The record the update does not touch must survive. */
+        assertEquals(
+            expected = "caption",
+            actual = records.first { it.iptcType == IptcTypes.CAPTION_ABSTRACT }.value
+        )
+    }
+
+    /**
+     * A TakenDate update is IPTC-representable (the JPEG path rewrites
+     * the DATE_CREATED/TIME_CREATED datasets), so the IPTC text chunk
+     * must carry the new date afterwards - leaving the old capture
+     * date in place would report it to every IPTC-reading tool while
+     * EXIF and XMP carry the new one.
+     */
+    @Test
+    fun testTakenDateUpdateRewritesIptcTextChunk() {
+
+        val iptcBytes = IptcWriter.writeIptcBlocks(
+            blocks = listOf(
+                IptcBlock(
+                    blockType = IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DATA,
+                    blockNameBytes = byteArrayOf(),
+                    blockData = IptcWriter.writeIptcBlockData(
+                        listOf(
+                            IptcRecord(IptcTypes.DATE_CREATED, "2020:01:01"),
+                            IptcRecord(IptcTypes.TIME_CREATED, "12:00:00")
+                        )
+                    )
+                )
+            ),
+            includeApp13Identifier = false
+        )
+
+        val allChunks = PngImageParser.readChunks(
+            ByteArrayByteReader(originalBytes),
+            chunkTypeFilter = null
+        )
+
+        val byteWriter = ByteArrayByteWriter()
+
+        PngWriter.writeImage(
+            chunks = allChunks,
+            byteWriter = byteWriter,
+            exifBytes = null,
+            iptcBytes = iptcBytes,
+            xmp = null
+        )
+
+        val pngWithIptc = byteWriter.toByteArray()
+
+        val before = assertNotNull(Kim.readMetadata(pngWithIptc))
+
+        /* Sanity: the fixture really carries the IPTC date datasets. */
+        assertNotNull(before.iptc)
+
+        val updatedBytes = Kim.update(
+            bytes = pngWithIptc,
+            update = MetadataUpdate.TakenDate(1_689_166_125_401)
+        )
+
+        val after = assertNotNull(Kim.readMetadata(updatedBytes))
+
+        /*
+         * The chunk is rewritten in place, not dropped. The epoch is
+         * 2023-07-12T12:48:45Z, which is 14:48:45 in GMT+02:00.
+         */
+        val records = assertNotNull(after.iptc, "The IPTC date copy must survive the update.").records
+
+        assertEquals(
+            expected = "20230712",
+            actual = records.first { it.iptcType == IptcTypes.DATE_CREATED }.value
+        )
+
+        assertEquals(
+            expected = "144845+0200",
+            actual = records.first { it.iptcType == IptcTypes.TIME_CREATED }.value
+        )
+    }
+
+    /**
+     * MWG-style writers may declare the IPTC digest in the XMP
+     * (xmpNote:IPTCDigest). When the update rewrites the IPTC text
+     * chunk, the XMP digest must track the new records - a stale
+     * digest makes digest-aware tools report the stores as out of
+     * sync although they agree.
+     */
+    @Test
+    fun testIptcRewriteRefreshesXmpDigest() {
+
+        val iptcBytes = IptcWriter.writeIptcBlocks(
+            blocks = listOf(
+                IptcBlock(
+                    blockType = IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DATA,
+                    blockNameBytes = byteArrayOf(),
+                    blockData = IptcWriter.writeIptcBlockData(
+                        listOf(IptcRecord(IptcTypes.KEYWORDS, "old"))
+                    )
+                )
+            ),
+            includeApp13Identifier = false
+        )
+
+        val byteWriter = ByteArrayByteWriter()
+
+        byteWriter.write(PngConstants.PNG_SIGNATURE)
+
+        /* 1x1 pixel, 8 bit RGBA, no interlace. */
+        writeChunk(
+            byteWriter = byteWriter,
+            typeName = "IHDR",
+            data = byteArrayOf(0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0)
+        )
+
+        writeChunk(
+            byteWriter = byteWriter,
+            typeName = "tEXt",
+            data = PngConstants.XMP_KEYWORD.encodeToByteArray() +
+                byteArrayOf(0) +
+                DIGEST_XMP.encodeToByteArray()
+        )
+
+        writeChunk(
+            byteWriter = byteWriter,
+            typeName = "tEXt",
+            data = (RAW_IPTC_TEXT_PREFIX + iptcBytes.toHex()).encodeToByteArray()
+        )
+
+        writeChunk(byteWriter = byteWriter, typeName = "IDAT", data = byteArrayOf(1, 2, 3, 4))
+
+        writeChunk(byteWriter = byteWriter, typeName = "IEND", data = byteArrayOf())
+
+        val updatedBytes = Kim.update(
+            bytes = byteWriter.toByteArray(),
+            update = MetadataUpdate.Keywords(setOf("new"))
+        )
+
+        /*
+         * The XMP digest must equal the MD5 of the rewritten IPTC
+         * records - the stale "AAAA" marker would make digest-aware
+         * tools report the stores as out of sync.
+         */
+        val metadata = assertNotNull(Kim.readMetadata(updatedBytes))
+
+        val xmpDigest = assertNotNull(
+            XMPMetaFactory.parseFromString(assertNotNull(metadata.xmp)).getIptcDigest()
+        )
+
+        val expectedDigest = Md5.digest(
+            IptcWriter.writeIptcBlockData(assertNotNull(metadata.iptc).records)
+        ).toHex()
+
+        assertEquals(expectedDigest.lowercase(), xmpDigest.lowercase())
+    }
+
     private companion object {
+
+        /**
+         * The Exiv2-style text chunk prefix: keyword, NUL terminator and
+         * the "IPTC profile" header line the hex profile follows.
+         */
+        const val RAW_IPTC_TEXT_PREFIX: String =
+            "Raw profile type iptc\u0000" + "\nIPTC profile\n"
 
         /**
          * A valid minimal TIFF structure with one IFD0 entry, so the
@@ -558,6 +884,23 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
                 </rdf:RDF></x:xmpmeta>
             """.trimIndent()
 
+        /*
+         * A packet that declares the MWG sync indicator only in the
+         * XMP, without any Photoshop 0x0425 resource in the IPTC.
+         */
+        val DIGEST_XMP: String =
+            """
+                <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
+                <x:xmpmeta xmlns:x="adobe:ns:meta/">
+                  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+                    <rdf:Description rdf:about=""
+                        xmlns:xmpNote="http://ns.adobe.com/xmp/note/"
+                      xmpNote:IPTCDigest="AAAA"/>
+                  </rdf:RDF>
+                </x:xmpmeta>
+                <?xpacket end="w"?>
+            """.trimIndent()
+
         /* The 8-byte PNG signature at the start of every file. */
         private const val PNG_SIGNATURE_LENGTH: Int = 8
 
@@ -567,4 +910,5 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
         /* The IHDR chunk always carries exactly 13 data bytes. */
         private const val IHDR_DATA_LENGTH: Int = 13
     }
+
 }

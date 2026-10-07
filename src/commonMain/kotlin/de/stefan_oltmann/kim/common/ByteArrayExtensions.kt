@@ -61,6 +61,20 @@ internal fun ByteArray.indexOfNullTerminator(start: Int): Int {
     return -1
 }
 
+/**
+ * Decodes the bytes as UTF-8 and fails the read when a sequence is
+ * truncated or malformed: replacement-mode decoding would fabricate
+ * U+FFFD characters and present corrupted text as clean, which the
+ * strict read policy forbids.
+ */
+internal fun ByteArray.decodeStrictUtf8(fieldName: String): String =
+
+    try {
+        decodeToString(throwOnInvalidSequence = true)
+    } catch (ex: Exception) {
+        throw ImageReadException("Invalid UTF-8 in $fieldName.", ex)
+    }
+
 internal fun ByteArray.startsWith(bytes: ByteArray): Boolean =
     startsWithNullable(bytes.toList())
 

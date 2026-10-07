@@ -16,10 +16,16 @@
  */
 package de.stefan_oltmann.kim
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.convertToSummary
 import de.stefan_oltmann.kim.common.readFileAsByteArray
-import platform.posix.perror
 
+/**
+ * The command line demo entry point of the native targets (Windows,
+ * Linux, macOS, iOS). It compiles into the native executables and is
+ * the one sanctioned exception to the no-println rule: its output is
+ * the demo's purpose, like a CLI tool's.
+ */
 public fun main(args: Array<String>) {
 
     if (args.size != 1) {
@@ -33,10 +39,10 @@ public fun main(args: Array<String>) {
 
     println("File path   : $filePath")
 
-    val bytes = readFileAsByteArray(filePath)
-
-    if (bytes == null) {
-        perror("File could not be read: $filePath")
+    val bytes = try {
+        readFileAsByteArray(filePath)
+    } catch (ex: ImageReadException) {
+        println("File could not be read: ${ex.message}")
         return
     }
 
@@ -45,7 +51,7 @@ public fun main(args: Array<String>) {
     val metadata = Kim.readMetadata(bytes)
 
     if (metadata == null) {
-        perror("File could not be parsed.")
+        println("File could not be parsed: $filePath")
         return
     }
 

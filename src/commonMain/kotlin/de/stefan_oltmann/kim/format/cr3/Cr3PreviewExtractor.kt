@@ -26,6 +26,7 @@ import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BOX_HEADER_LENGTH
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.TYPE_LENGTH
 import de.stefan_oltmann.kim.format.bmff.BoxReader
+import de.stefan_oltmann.kim.format.bmff.BoxReader.MAX_METADATA_BOX_BYTES
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.bmff.box.MovieBox
 import de.stefan_oltmann.kim.format.bmff.box.TrackBox
@@ -82,7 +83,10 @@ public object Cr3PreviewExtractor {
      */
     private const val PRVW_BYTES_BEFORE_JPEG =
         PRVW_UNKNOWN_BYTES + PRVW_SIZE_BYTES +
-            4 /* marker */ + PRVW_HEADER_BYTES + 4 /* JPEG size field */
+            /* marker */
+            4 + PRVW_HEADER_BYTES +
+            /* JPEG size field */
+            4
 
     @Throws(ImageReadException::class)
     @JvmStatic
@@ -256,9 +260,16 @@ public object Cr3PreviewExtractor {
          */
         fun readData(byteReader: ByteReader): ByteArray {
 
-            if (dataSize > Int.MAX_VALUE)
+            /*
+             * A hostile moov of a few hundred megabytes must not be
+             * buffered on constrained targets - the metadata read of the
+             * same file rejects it at this budget (no legitimate preview
+             * index is anywhere near it).
+             */
+            if (dataSize > MAX_METADATA_BOX_BYTES)
                 throw ImageReadException(
-                    "Box $type is too large to buffer: $dataSize bytes."
+                    "Box $type carries $dataSize bytes of payload, which " +
+                        "exceeds the metadata budget of $MAX_METADATA_BOX_BYTES bytes."
                 )
 
             return byteReader.readBytes("box data", dataSize.toInt())
@@ -296,7 +307,8 @@ public object Cr3PreviewExtractor {
 
         when (size) {
 
-            0L -> size = available // The last box extends to the end of the file.
+            /*  The last box extends to the end of the file. */
+            0L -> size = available
 
             1L -> {
                 size = byteReader.read8BytesAsLong("largesize", BMFF_BYTE_ORDER)
@@ -311,8 +323,10 @@ public object Cr3PreviewExtractor {
          * A box smaller than its own header cannot describe a payload.
          * Rejecting it here keeps a negative data size from flowing into
          * the skip and read calls, like BoxReader rejects the same input.
+         * The largesize form extends the header to 16 bytes, so its size
+         * value must cover that, too.
          */
-        if (size < BOX_HEADER_LENGTH)
+        if (size < (BOX_HEADER_LENGTH + if (largeSize != null) LARGE_SIZE_FIELD_LENGTH else 0))
             throw ImageReadException("Box $type declares a size smaller than its header: $size.")
 
         if (size > available)

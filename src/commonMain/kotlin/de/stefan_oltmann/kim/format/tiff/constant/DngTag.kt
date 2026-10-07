@@ -40,7 +40,6 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoUndefineds
 @Suppress("MagicNumber", "MaxLineLength")
 public object DngTag {
 
-
     public val TIFF_TAG_DNG_DNG_BACKWARD_VERSION: TagInfoBytes = TagInfoBytes(
         0xc613, "DNGBackwardVersion", 4,
         TIFF_DIRECTORY_IFD0

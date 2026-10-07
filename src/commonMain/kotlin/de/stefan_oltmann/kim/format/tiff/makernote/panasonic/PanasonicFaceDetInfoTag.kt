@@ -23,7 +23,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoShorts
 /**
  * Tags of the FaceDetInfo maker note sub-directory.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#FaceDetInfo
+ * See https://exiftool.sourceforge.net/TagNames/Panasonic.html#FaceDetInfo
  */
 @Suppress("MagicNumber", "StringLiteralDuplication", "MaxLineLength")
 public object PanasonicFaceDetInfoTag {

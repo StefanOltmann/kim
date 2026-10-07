@@ -22,6 +22,8 @@ import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.LocationShown
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
+import de.stefan_oltmann.kim.testdata.KimTestData
+import de.stefan_oltmann.xmp.XMPConst
 import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
 import de.stefan_oltmann.xmp.XMPRegionArea
@@ -34,8 +36,10 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.ExperimentalTime
 
 class XmpWriterEdgeCasesTest {
@@ -91,6 +95,51 @@ class XmpWriterEdgeCasesTest {
     }
 
     /**
+     * The reader treats acdsee:keywords as a first-class keyword source
+     * (fallback when dc:subject is empty), so a keyword deletion must
+     * clear the ACDSee copy too - on ACDSee-processed files whose
+     * keywords live only there, the documented "removes all keywords"
+     * would otherwise change nothing the reader can observe.
+     */
+    @Test
+    fun testKeywordDeletionClearsTheAcdSeeCopy() {
+
+        val updated = XmpWriter.updateXmp(
+            existingXmp = KimTestData.getXmp("acdsee_sample.xmp"),
+            updates = setOf(MetadataUpdate.Keywords(emptySet())),
+            writePackageWrapper = false
+        )
+
+        val updatedMeta = XMPMetaFactory.parseFromString(updated)
+
+        assertNull(updatedMeta.getProperty(XMPConst.NS_ACDSEE, XMPConst.XMP_ACDSEE_KEYWORDS))
+
+        assertTrue(XmpReader.readMetadata(updated).keywords.isEmpty())
+    }
+
+    /**
+     * External writers store both date properties, and the EXIF path
+     * rewrites both on a TakenDate update - the XMP set branch must keep
+     * the digitized date in sync instead of letting it drift behind.
+     */
+    @Test
+    fun testUpdateSetsDateTimeDigitizedWithTakenDate() {
+
+        xmpMeta.setProperty(XMP_NS_EXIF, "DateTimeOriginal", "2020:08:30 18:43:00")
+        xmpMeta.setProperty(XMP_NS_EXIF, "DateTimeDigitized", "2020:08:30 18:43:00")
+
+        apply(MetadataUpdate.TakenDate(1_689_166_125_401))
+
+        /*
+         * Both properties must carry the same rendered instant - the
+         * exact string comes from the xmpcore serializer.
+         */
+        val original = assertNotNull(xmpMeta.getPropertyString(XMP_NS_EXIF, "DateTimeOriginal"))
+
+        assertEquals(original, xmpMeta.getPropertyString(XMP_NS_EXIF, "DateTimeDigitized"))
+    }
+
+    /**
      * External writers store DateTimeOriginal AND DateTimeDigitized.
      * Removing the taken date must clear both, mirroring the EXIF write
      * path - a leftover digitized date contradicts the deletion.
@@ -107,6 +156,23 @@ class XmpWriterEdgeCasesTest {
         assertNull(xmpMeta.getProperty(XMP_NS_EXIF, "DateTimeDigitized"))
     }
 
+    /**
+     * A taken date at exactly midnight is a complete time, so the written
+     * value must keep its "T00:00:00" like ExifTool's XMP dates - dropping
+     * the time would silently turn the update into a date-only literal.
+     */
+    @Test
+    fun testTakenDateAtMidnightKeepsItsTime() {
+
+        /* 2023-05-11T22:00:00Z is 2023-05-12T00:00:00 at GMT+02:00. */
+        apply(MetadataUpdate.TakenDate(1_683_842_400_000))
+
+        assertEquals(
+            "2023-05-12T00:00:00",
+            xmpMeta.getPropertyString(XMP_NS_EXIF, "DateTimeOriginal")
+        )
+    }
+
     @Test
     fun testUpdateRemovesGpsCoordinates() {
 
@@ -119,6 +185,62 @@ class XmpWriterEdgeCasesTest {
         apply(MetadataUpdate.GpsCoordinates(null))
 
         assertNull(xmpMeta.getProperty(XMP_NS_EXIF, "GPSLatitude"))
+    }
+
+    /**
+     * A GPS position never travels alone: external writers keep altitude,
+     * timestamps and image direction next to it. A GPS update rewrites
+     * the position, so the companions of the old position must go with
+     * it - the EXIF write path removes every residual GPS field the same
+     * way, and mixing the new coordinates with the old altitude would
+     * drift the storages apart within one update.
+     */
+    @Test
+    fun testUpdateDropsResidualGpsCompanions() {
+
+        xmpMeta.setProperty(XMP_NS_EXIF, "GPSAltitude", "14/1")
+        xmpMeta.setProperty(XMP_NS_EXIF, "GPSImgDirection", "270")
+        xmpMeta.setProperty(XMP_NS_EXIF, "GPSTimeStamp", "12:00:00")
+
+        apply(MetadataUpdate.GpsCoordinates(GpsCoordinates(53.219391, 8.239661)))
+
+        assertNull(xmpMeta.getProperty(XMP_NS_EXIF, "GPSAltitude"))
+        assertNull(xmpMeta.getProperty(XMP_NS_EXIF, "GPSImgDirection"))
+        assertNull(xmpMeta.getProperty(XMP_NS_EXIF, "GPSTimeStamp"))
+
+        assertNotNull(xmpMeta.getProperty(XMP_NS_EXIF, "GPSLatitude"))
+    }
+
+    /**
+     * The companion cleanup must cover every exif:GPS property an
+     * external writer may have set. Track, destination refs and the
+     * measure mode describe the old position or the journey to it and
+     * must not survive the location's removal.
+     */
+    @Test
+    fun testUpdateRemovesEveryResidualGpsCompanion() {
+
+        xmpMeta.setProperty(XMP_NS_EXIF, "GPSTrack", "270")
+        xmpMeta.setProperty(XMP_NS_EXIF, "GPSTrackRef", "T")
+        xmpMeta.setProperty(XMP_NS_EXIF, "GPSDestLatitudeRef", "N")
+        xmpMeta.setProperty(XMP_NS_EXIF, "GPSDestLongitudeRef", "E")
+        xmpMeta.setProperty(XMP_NS_EXIF, "GPSMeasureMode", "3")
+        xmpMeta.setProperty(XMP_NS_EXIF, "GPSVersionID", "2.3.0.0")
+
+        apply(MetadataUpdate.GpsCoordinates(null))
+
+        for (propertyName in listOf(
+            "GPSTrack",
+            "GPSTrackRef",
+            "GPSDestLatitudeRef",
+            "GPSDestLongitudeRef",
+            "GPSMeasureMode",
+            "GPSVersionID"
+        ))
+            assertNull(
+                xmpMeta.getProperty(XMP_NS_EXIF, propertyName),
+                "Property $propertyName survived the removal"
+            )
     }
 
     @Test
@@ -178,7 +300,21 @@ class XmpWriterEdgeCasesTest {
         /* Rejecting a flagged photo removes the flag. */
         apply(MetadataUpdate.Rating(ExifRating.REJECTED))
 
-        assertNull(xmpMeta.getPropertyBoolean(XMP_NS_XMP, "Flagged"))
+        /*
+         * The flag markers live in the xmpDM/ACDSee/Mylio/Narrative
+         * namespaces - never in xap/1.0, so asserting there would pass
+         * unconditionally. setFlagged(false) writes the marker
+         * explicitly, so it must read back false.
+         */
+        assertEquals(
+            false,
+            xmpMeta.getPropertyBoolean(XMPConst.NS_DM, XMPConst.FLAGGED_TAG_ADOBE_NAME)
+        )
+
+        /* The summary must report the photo as not flagged. */
+        val serialized = XmpWriter.updateXmp(xmpMeta, emptySet(), writePackageWrapper = false)
+
+        assertFalse(XmpReader.readMetadata(serialized).flagged)
     }
 
     /**
@@ -204,6 +340,27 @@ class XmpWriterEdgeCasesTest {
             expected = regions,
             actual = XmpReader.readMetadata(serialized).faces
         )
+    }
+
+    /**
+     * A face area below the plain-notation range must serialize with the
+     * JVM's double spelling on every platform - plain Double.toString
+     * writes "5.0E-4" on the JVM but "0.0005" on JS and Wasm, which made
+     * written files depend on the platform that ran the write before
+     * XMP Core 2.0.1 fixed it.
+     */
+    @Test
+    fun testFaceAreaBelowPlainNotationRangeSerializesJvmStyle() {
+
+        val regions = listOf(
+            XmpFaceRegion("Face A", XMPRegionArea(5.0E-4, 0.2, 0.3, 0.4))
+        )
+
+        apply(MetadataUpdate.Faces(regions, widthPx = 1500, heightPx = 1000))
+
+        val serialized = XmpWriter.updateXmp(xmpMeta, emptySet(), writePackageWrapper = false)
+
+        assertTrue(serialized.contains("5.0E-4"), "Serialized area: $serialized")
     }
 
     @OptIn(ExperimentalTime::class)

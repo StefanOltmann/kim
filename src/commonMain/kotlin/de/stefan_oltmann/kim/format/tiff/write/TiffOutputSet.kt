@@ -22,7 +22,9 @@ import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.RationalNumber.Companion.valueOf
 import de.stefan_oltmann.kim.common.RationalNumbers
+import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toExifDateString
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
@@ -186,22 +188,24 @@ public class TiffOutputSet(
 
                     exifDirectory.add(ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL, exifDateString)
                     exifDirectory.add(ExifTag.EXIF_TAG_DATE_TIME_DIGITIZED, exifDateString)
-                }
 
-                /*
-                 * The written tags are defined by Exif 2.3, so validators
-                 * require the ExifVersion. Like ExifTool, it is added
-                 * when the EXIF does not carry one yet.
-                 */
-                if (exifDirectory.findField(ExifTag.EXIF_TAG_EXIF_VERSION) == null)
-                    exifDirectory.add(
-                        TiffOutputField(
-                            tag = ExifTag.EXIF_TAG_EXIF_VERSION.tag,
-                            fieldType = FieldTypeUndefined,
-                            count = EXIF_VERSION_FIELD_LENGTH,
-                            bytes = CURRENT_EXIF_VERSION_BYTES
+                    /*
+                     * The written tags are defined by Exif 2.3, so validators
+                     * require the ExifVersion. Like ExifTool, it is added
+                     * when the EXIF does not carry one yet. A pure removal
+                     * adds nothing - injecting an ExifVersion into a file
+                     * without one would falsely signal a modification.
+                     */
+                    if (exifDirectory.findField(ExifTag.EXIF_TAG_EXIF_VERSION) == null)
+                        exifDirectory.add(
+                            TiffOutputField(
+                                tag = ExifTag.EXIF_TAG_EXIF_VERSION.tag,
+                                fieldType = FieldTypeUndefined,
+                                count = EXIF_VERSION_FIELD_LENGTH,
+                                bytes = CURRENT_EXIF_VERSION_BYTES
+                            )
                         )
-                    )
+                }
             }
 
             is MetadataUpdate.Description -> {
@@ -264,6 +268,17 @@ public class TiffOutputSet(
         if (thumbnailBytes.isEmpty())
             throw ImageWriteException("Thumbnail bytes must not be empty.")
 
+        /*
+         * EXIF thumbnails are JPEG images: the embedded bytes are handed
+         * to consumers verbatim, so anything without the JPEG SOI marker
+         * would silently produce a file whose thumbnail no viewer can
+         * decode.
+         */
+        if (!thumbnailBytes.startsWith(JpegConstants.SOI))
+            throw ImageWriteException(
+                "Thumbnail bytes are not a JPEG image (missing SOI marker)."
+            )
+
         val thumbnailDirectory = getOrCreateThumbnailDirectory()
 
         thumbnailDirectory.setThumbnailBytes(thumbnailBytes)
@@ -281,22 +296,28 @@ public class TiffOutputSet(
 
         val gpsDirectory = getOrCreateGPSDirectory()
 
-        /* First delete everything. */
-        gpsDirectory.removeField(GpsTag.GPS_TAG_GPS_VERSION_ID)
-        gpsDirectory.removeField(GpsTag.GPS_TAG_GPS_LONGITUDE_REF)
-        gpsDirectory.removeField(GpsTag.GPS_TAG_GPS_LATITUDE_REF)
-        gpsDirectory.removeField(GpsTag.GPS_TAG_GPS_LONGITUDE)
-        gpsDirectory.removeField(GpsTag.GPS_TAG_GPS_LATITUDE)
-
         /*
-         * NULL means "remove the location". Every residual GPS field -
+         * The position is rewritten fresh: every residual GPS field -
          * altitude, timestamps, satellite data or a free-text processing
-         * method that can name a place - must go as well.
+         * method that can name a place - goes with the old position, so
+         * the new coordinates are never paired with companions that
+         * describe the old one. This matches the XMP write path, which
+         * clears its companions the same way.
          */
+        for (tag in GpsTag.ALL)
+            gpsDirectory.removeField(tag.tag)
+
         if (gpsCoordinates == null) {
 
-            for (tag in GpsTag.ALL)
-                gpsDirectory.removeField(tag.tag)
+            /*
+             * The emptied directory must not survive: the writer registers
+             * a GPSInfo pointer for every present GPS directory, so the
+             * output would advertise a "has location" GPS section with no
+             * data. Drop the directory and the pointer with the fields.
+             */
+            directories.removeAll { directory -> directory.type == TiffConstants.TIFF_DIRECTORY_GPS }
+
+            getOrCreateRootDirectory().removeField(ExifTag.EXIF_TAG_GPSINFO)
 
             return
         }
@@ -338,7 +359,7 @@ public class TiffOutputSet(
         val minutes = value.toLong().toDouble()
 
         value %= 1.0
-        value *= MINUTES_PER_HOUR
+        value *= SECONDS_PER_MINUTE
 
         val seconds = value
 
@@ -377,8 +398,17 @@ public class TiffOutputSet(
 
     private companion object {
 
-        /* The EXIF GPS rationals carry degrees, minutes and seconds */
-        const val MINUTES_PER_HOUR: Double = 60.0
+        /*
+         * The EXIF GPS rationals carry degrees, minutes and seconds.
+         * Deliberately not const: a const in a private companion still
+         * compiles to a public static field, freezing these conversion
+         * internals into the binary API.
+         */
+        @Suppress("MayBeConstant")
+        private val MINUTES_PER_HOUR: Double = 60.0
+
+        @Suppress("MayBeConstant")
+        private val SECONDS_PER_MINUTE: Double = 60.0
     }
 }
 

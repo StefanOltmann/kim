@@ -1,0 +1,44 @@
+  ExifToolVersion = 13.59
+  FileName = media_61_modified.gif
+  Directory = modified
+  FileSize = 1373381
+  FileModifyDate = 1789668880.62019
+  FileAccessDate = 1791131095.73598
+  FileCreateDate = 1789668880.62019
+  FilePermissions = 33206
+  FileType = GIF
+  FileTypeExtension = GIF
+  MIMEType = image/gif
+  GIFVersion = 89a
+  ScreenDescriptor (SubDirectory) -->
+  + [BinaryData directory, 7 bytes, Little-endian]
+  | ImageWidth = 3000
+  | - Tag 0x0000 (2 bytes, int16u[1]):
+  |     0000: b8 0b                                           [..]
+  | ImageHeight = 3000
+  | - Tag 0x0002 (2 bytes, int16u[1]):
+  |     0002: b8 0b                                           [..]
+  | HasColorMap = 1
+  | - Tag '4.1', mask 0x80 (1 bytes, int8u[1]):
+  |     0004: e7                                              [.]
+  | ColorResolutionDepth = 6
+  | - Tag '4.2', mask 0x70 (1 bytes, int8u[1]):
+  |     0004: e7                                              [.]
+  | BitsPerPixel = 7
+  | - Tag '4.3', mask 0x07 (1 bytes, int8u[1]):
+  |     0004: e7                                              [.]
+  | BackgroundColor = 254
+  | - Tag 0x0005 (1 bytes, int8u[1]):
+  |     0005: fe                                              [.]
+  | PixelAspectRatio = 0
+  | - Tag 0x0006 (1 bytes, int8u[1]):
+  |     0006: 00                                              [.]
+Application Extension: XMP Data/XMP
+  + [XMP directory, 626 bytes]
+  | XMPToolkit = Adobe XMP Core 6.1.10
+  | DateTimeOriginal = 2020-10-05T13:37:42
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/tmp0:DateTimeOriginal'
+  | [adding XMP-tmp0:DateTimeOriginal]
+  | Rating = 3
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmp:Rating'
+Image: left=0 top=0 width=3000 height=3000

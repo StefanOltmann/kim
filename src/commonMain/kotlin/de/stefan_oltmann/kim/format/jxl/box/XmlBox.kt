@@ -16,6 +16,7 @@
  */
 package de.stefan_oltmann.kim.format.jxl.box
 
+import de.stefan_oltmann.kim.common.decodeStrictUtf8
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.bmff.box.Box
 
@@ -29,5 +30,5 @@ public class XmlBox(
     payload: ByteArray
 ) : Box(BoxType.XML, offset, size, largeSize, payload) {
 
-    public val xmp: String = payload.decodeToString()
+    public val xmp: String = payload.decodeStrictUtf8("The JXL xml box")
 }

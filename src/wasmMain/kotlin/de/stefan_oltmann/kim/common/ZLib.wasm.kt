@@ -21,7 +21,7 @@ import org.khronos.webgl.get
 import org.khronos.webgl.set
 
 @OptIn(ExperimentalWasmJsInterop::class)
-internal actual fun decompressBytes(
+internal actual fun decompressBytesPlatform(
     byteArray: ByteArray,
     maxOutputByteCount: Int
 ): ByteArray =
@@ -76,7 +76,8 @@ private fun ByteArray.toUint8Array(): Uint8Array {
 }
 
 @OptIn(ExperimentalWasmJsInterop::class)
-@Suppress("UnusedPrivateMember", "UnusedParameter") // False positive
+@Suppress("UnusedPrivateMember", "UnusedParameter")
+/*  False positive */
 @JsModule("pako")
 private external object Pako {
     /**

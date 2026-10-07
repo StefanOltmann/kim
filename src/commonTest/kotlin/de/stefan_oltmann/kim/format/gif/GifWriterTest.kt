@@ -124,11 +124,13 @@ class GifWriterTest {
     }
 
     /**
-     * The XMP payload must be written in size-prefixed
-     * sub-blocks, so that a strict GIF89a sub-block walker can extract it.
+     * The XMP packet is written contiguously behind the identifier - also
+     * when it spans more bytes than a single GIF sub-block could carry -
+     * and the magic trailer with its terminating 0x00 closes the data
+     * area, like the Adobe GIF binding and ExifTool write it.
      */
     @Test
-    fun testWriteXmpUsesSubBlockFraming() {
+    fun testWriteXmpLongerThanASubBlockIsWrittenContiguously() {
 
         val xmp = buildString {
 
@@ -143,8 +145,8 @@ class GifWriterTest {
         }
 
         assertTrue(
-            xmp.length > GifConstants.GIF_MAX_SUB_BLOCK_SIZE,
-            "Test XMP must span multiple sub-blocks, but is ${xmp.length} chars."
+            xmp.length > 255,
+            "Test XMP must span more bytes than one GIF sub-block could name, but is ${xmp.length} chars."
         )
 
         val chunks = GifImageParser.readChunks(
@@ -162,9 +164,7 @@ class GifWriterTest {
             xmp = xmp
         )
 
-        val extractedXmp = walkApplicationExtensionPayload(byteWriter.toByteArray())
-
-        assertEquals(xmp, extractedXmp)
+        assertEquals(xmp, walkApplicationExtensionPayload(byteWriter.toByteArray()))
     }
 
     /**
@@ -244,22 +244,11 @@ class GifWriterTest {
 
             index += blockSize
 
-            /* Walk the sub-blocks. */
-            val payload = StringBuilder()
-
-            while (true) {
-
-                val subBlockSize = gif[index++].toInt() and 0xFF
-
-                if (subBlockSize == 0)
-                    break
-
-                payload.append(gif.copyOfRange(index, index + subBlockSize).decodeToString())
-
-                index += subBlockSize
-            }
-
-            val content = payload.toString()
+            /*
+             * The packet follows contiguously and ends with the magic
+             * trailer; the tag slice is immune to its binary bytes.
+             */
+            val content = gif.copyOfRange(index, gif.size).decodeToString()
 
             return xmpStart +
                 content.substringAfter(xmpStart).substringBefore(xmpEnd) +
@@ -267,5 +256,48 @@ class GifWriterTest {
         }
 
         fail("No application extension found.")
+    }
+
+    /**
+     * The GIF binding of XMP stores the packet contiguously behind the
+     * identifier - not in size-prefixed sub-blocks - and ends it with the
+     * 256-byte magic trailer whose last byte terminates the data area.
+     * Sub-blocked packets are unreadable for conformant tools: ExifTool
+     * reports "XMP format error" for them and loses the metadata.
+     */
+    @Test
+    fun testXmpChunkIsWrittenContiguously() {
+
+        val packet = "<x:xmpmeta>PK</x:xmpmeta>"
+
+        val byteWriter = ByteArrayByteWriter()
+
+        GifWriter.writeXmpChunk(byteWriter, packet)
+
+        val bytes = byteWriter.toByteArray()
+
+        /* The extension header: introducer, label and identifier length. */
+        assertEquals(0x21, bytes[0].toInt() and 0xFF)
+        assertEquals(0xFF, bytes[1].toInt() and 0xFF)
+        assertEquals(11, bytes[2].toInt() and 0xFF)
+        assertEquals("XMP DataXMP", bytes.decodeToString(3, 14))
+
+        /* The packet follows the identifier byte for byte. */
+        val packetBytes = packet.encodeToByteArray()
+
+        for ((offset, byte) in packetBytes.withIndex())
+            assertEquals(byte, bytes[14 + offset], "packet byte $offset differs")
+
+        /*
+         * The magic trailer of 256 bytes follows directly and ends with
+         * the data byte 0x00; the explicit block terminator behind it
+         * closes the extension, like every GIF data area.
+         */
+        val trailerStart = 14 + packetBytes.size
+
+        assertEquals(0xFF, bytes[trailerStart].toInt() and 0xFF)
+        assertEquals(0x00, bytes[trailerStart + 255].toInt() and 0xFF)
+        assertEquals(0x00, bytes[trailerStart + 256].toInt() and 0xFF)
+        assertEquals(trailerStart + 257, bytes.size)
     }
 }

@@ -23,7 +23,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoUndefineds
 /**
  * Tags of the TimeInfo maker note sub-directory.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#TimeInfo
+ * See https://exiftool.sourceforge.net/TagNames/Panasonic.html#TimeInfo
  */
 @Suppress("MagicNumber", "StringLiteralDuplication", "MaxLineLength")
 public object PanasonicTimeInfoTag {

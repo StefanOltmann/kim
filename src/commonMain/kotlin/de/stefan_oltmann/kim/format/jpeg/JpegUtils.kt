@@ -180,8 +180,10 @@ internal object JpegUtils {
 
         val segments = mutableListOf<JFIFPieceSegment>()
 
-        /* The consumed bytes are only counted here, so the scanner must not
-         * buffer a potentially unbounded inter-marker gap. */
+        /*
+         * The consumed bytes are only counted here, so the scanner must not
+         * buffer a potentially unbounded inter-marker gap.
+         */
         val scanner = JpegMarkerScanner(byteReader, keepConsumedBytes = false)
 
         byteReader.readAndVerifyBytes("JPEG SOI (0xFFD8)", JpegConstants.SOI)

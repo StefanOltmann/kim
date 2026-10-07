@@ -1,5 +1,5 @@
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
-<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core for KMP 2.0.0">
+<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core for KMP 2.0.2">
   <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <rdf:Description rdf:about=""
         xmlns:Iptc4xmpCore="http://iptc.org/std/Iptc4xmpCore/1.0/xmlns/"
@@ -33,6 +33,7 @@
       exif:ColorSpace="1"
       exif:CompressedBitsPerPixel="32/10"
       exif:CustomRendered="0"
+      exif:DateTimeDigitized="2023-08-01T13:37:42"
       exif:DateTimeOriginal="2023-08-01T13:37:42"
       exif:ExifVersion="0230"
       exif:ExposureBiasValue="0/100"
@@ -47,11 +48,8 @@
       exif:FocalPlaneResolutionUnit="3"
       exif:FocalPlaneXResolution="1882/1"
       exif:FocalPlaneYResolution="1882/1"
-      exif:GPSAltitude="14/1"
-      exif:GPSAltitudeRef="0"
       exif:GPSLatitude="53,13.1635N"
       exif:GPSLongitude="8,14.3797E"
-      exif:GPSMapDatum="WGS-84"
       exif:GPSVersionID="2.3.0.0"
       exif:LightSource="0"
       exif:MaxApertureValue="300/100"

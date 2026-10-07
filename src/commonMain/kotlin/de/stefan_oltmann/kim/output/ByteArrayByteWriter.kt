@@ -22,9 +22,11 @@ import de.stefan_oltmann.kim.input.DEFAULT_BUFFER_SIZE
 /**
  * A ByteWriter that writes into an in-memory byte array.
  */
-public class ByteArrayByteWriter : ByteWriter {
+public class ByteArrayByteWriter(
+    initialCapacity: Int = DEFAULT_BUFFER_SIZE
+) : ByteWriter {
 
-    private var bytes: ByteArray = ByteArray(DEFAULT_BUFFER_SIZE)
+    private var bytes: ByteArray = ByteArray(initialCapacity)
 
     private var position: Int = 0
 

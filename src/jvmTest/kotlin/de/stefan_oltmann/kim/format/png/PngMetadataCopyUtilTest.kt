@@ -179,8 +179,10 @@ class PngMetadataCopyUtilTest {
 
         Path(getFullImageDiskPath(51)).copyTo(destination)
 
-        /* A directory at the temporary file's path makes the write step
-           fail while both files read cleanly. */
+        /*
+         * A directory at the temporary file's path makes the write step
+         * fail while both files read cleanly.
+         */
         SystemFileSystem.createDirectories(
             Path(PngMetadataCopyUtil.tempFilePathFor(destination).toString())
         )

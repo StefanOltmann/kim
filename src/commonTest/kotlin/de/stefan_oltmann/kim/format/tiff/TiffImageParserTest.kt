@@ -16,11 +16,17 @@
 package de.stefan_oltmann.kim.format.tiff
 
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcRecord
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcTypes
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
+import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
+import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
+import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 
 /**
@@ -28,6 +34,40 @@ import kotlin.test.assertNotNull
  * EXIF structure.
  */
 class TiffImageParserTest {
+
+    /**
+     * The ImageWidth/Height fields are attacker-controlled input. A
+     * hostile 0xFFFFFFFF LONG reads as a negative Int, which must fail
+     * the read instead of reporting ImageSize(-1, ...) - the WebP
+     * readers reject the equivalent input as well.
+     */
+    @Test
+    fun testHostileImageDimensionsFailTheRead() {
+
+        fun tiffWithDimensions(width: Int, height: Int): ByteArray {
+
+            val outputSet = TiffOutputSet()
+
+            val rootDirectory = outputSet.getOrCreateRootDirectory()
+
+            rootDirectory.add(TiffTag.TIFF_TAG_IMAGE_WIDTH, width)
+            rootDirectory.add(TiffTag.TIFF_TAG_IMAGE_HEIGHT, height)
+
+            val byteWriter = ByteArrayByteWriter()
+
+            TiffWriter(outputSet.byteOrder).write(byteWriter, outputSet)
+
+            return byteWriter.toByteArray()
+        }
+
+        assertFailsWith<ImageReadException> {
+            TiffImageParser.parseMetadata(ByteArrayByteReader(tiffWithDimensions(-1, 1)))
+        }
+
+        assertFailsWith<ImageReadException> {
+            TiffImageParser.parseMetadata(ByteArrayByteReader(tiffWithDimensions(1, 0)))
+        }
+    }
 
     /**
      * TIFF files (for example from scanners and IPTC editing tools) can

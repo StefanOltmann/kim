@@ -176,7 +176,7 @@ Little-endian (Intel, II)
 0000003926 0x0013 SelfTimerTime = -126
 0000003927 0x0014 ImageReviewTime = 0
 0000003928 0x0015 PlaybackMenusTime = 68
-0000003930 0x0017 InternalFlash = 0
+0000003930 0x0017 ManualFlashOutput = 0
 
 ---- Directory MakerNoteNikonColorBalance @ 11784 ----
 0000012072 0x0000 WB_GRBGLevels = [230, 1, 1728, 400]
@@ -231,6 +231,25 @@ Little-endian (Intel, II)
 ---- IPTC ----
 Caption/Abstract (120) = 'selective focus photography of hedgehog on ground'
 Keywords (25) = 'mammal'
+
+---- ICC ----
+ProfileSize = 8684
+ProfileCMMType = NKON
+ProfileVersion = 2.2
+ProfileClass = mntr
+ColorSpaceData = RGB 
+ProfileConnectionSpace = XYZ 
+PrimaryPlatform = APPL
+RenderingIntent = 0
+ProfileDescription = Nikon sRGB 4.0.0.3002
+RedMatrixColumn = 0.436065673828125 0.222503662109375 0.013916015625
+GreenMatrixColumn = 0.38507080078125 0.7168731689453125 0.0970611572265625
+BlueMatrixColumn = 0.1430511474609375 0.06060791015625 0.7139892578125
+MediaWhitePoint = 0.95050048828125 1.0 1.0890960693359375
+ProfileCopyright = Nikon Inc. & Nikon Corporation 2009
+RedTRC (rTRC)
+GreenTRC (gTRC)
+BlueTRC (bTRC)
 
 ---- XMP ----
 <?xpacket begin='﻿' id='W5M0MpCehiHzreSzNTczkc9d'?>

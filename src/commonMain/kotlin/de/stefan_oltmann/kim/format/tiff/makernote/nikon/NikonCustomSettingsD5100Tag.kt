@@ -22,7 +22,7 @@ import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfoByte
 /**
  * Tags of the CustomSettingsD5100 maker note sub-directory.
  *
- * See https://exiftool.sourceforge.net/TagNames/Canon.html#CustomSettingsD5100
+ * See https://exiftool.sourceforge.net/TagNames/NikonCustom.html#SettingsD5100
  */
 @Suppress("MagicNumber", "StringLiteralDuplication", "MaxLineLength")
 public object NikonCustomSettingsD5100Tag {
@@ -102,8 +102,8 @@ public object NikonCustomSettingsD5100Tag {
         TiffDirectoryType.EXIF_DIRECTORY_MAKER_NOTE_NIKON_CUSTOM_SETTINGS
     )
 
-    public val INTERNAL_FLASH: TagInfoByte = TagInfoByte(
-        0x17, "InternalFlash",
+    public val MANUAL_FLASH_OUTPUT: TagInfoByte = TagInfoByte(
+        0x17, "ManualFlashOutput",
         TiffDirectoryType.EXIF_DIRECTORY_MAKER_NOTE_NIKON_CUSTOM_SETTINGS
     )
 
@@ -123,6 +123,6 @@ public object NikonCustomSettingsD5100Tag {
         SELF_TIMER_TIME,
         IMAGE_REVIEW_TIME,
         PLAYBACK_MENUS_TIME,
-        INTERNAL_FLASH
+        MANUAL_FLASH_OUTPUT
     )
 }

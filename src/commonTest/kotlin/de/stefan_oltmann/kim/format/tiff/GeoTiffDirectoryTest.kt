@@ -94,7 +94,8 @@ class GeoTiffDirectoryTest {
 
         val dataOffset = 8 + 2 + ENTRY_LENGTH + 4
 
-        out.write(byteArrayOf(0x49, 0x49, 0x2A, 0x00)) // TIFF header.
+        /* TIFF header. */
+        out.write(byteArrayOf(0x49, 0x49, 0x2A, 0x00))
         out.writeInt(8, ByteOrder.LITTLE_ENDIAN)
 
         out.write2BytesAsInt(1, ByteOrder.LITTLE_ENDIAN)
@@ -104,7 +105,8 @@ class GeoTiffDirectoryTest {
         out.writeInt(geoShorts.size, ByteOrder.LITTLE_ENDIAN)
         out.writeInt(dataOffset, ByteOrder.LITTLE_ENDIAN)
 
-        out.writeInt(0, ByteOrder.LITTLE_ENDIAN) // No next IFD.
+        /* No next IFD. */
+        out.writeInt(0, ByteOrder.LITTLE_ENDIAN)
 
         for (short in geoShorts) {
             out.write(

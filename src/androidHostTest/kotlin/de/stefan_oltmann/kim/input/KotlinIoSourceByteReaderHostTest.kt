@@ -30,9 +30,12 @@ import kotlin.test.assertNotNull
 class KotlinIoSourceByteReaderHostTest {
 
     private val jpegBytes = byteArrayOf(
-        0xFF.toByte(), 0xD8.toByte(), 0xFF.toByte(), 0xE0.toByte(), // SOI + APP0.
-        0, 2, 0x4A, 0x46, 0x49, 0x46, 0, 1, // Length 2, "JFIF", version...
-        0xFF.toByte(), 0xD9.toByte() // EOI.
+        /* SOI + APP0. */
+        0xFF.toByte(), 0xD8.toByte(), 0xFF.toByte(), 0xE0.toByte(),
+        /* Length 2, "JFIF", version... */
+        0, 2, 0x4A, 0x46, 0x49, 0x46, 0, 1,
+        /* EOI. */
+        0xFF.toByte(), 0xD9.toByte()
     )
 
     /**
@@ -73,7 +76,8 @@ class KotlinIoSourceByteReaderHostTest {
     @Test
     fun testKimKtorWithZeroLengthHintReadsMetadata() {
 
-        val bytes = KimTestData.getBytesOf(2) // A plain JPEG test image.
+        /* A plain JPEG test image. */
+        val bytes = KimTestData.getBytesOf(2)
 
         val metadata = KimKtor.readMetadata(
             Buffer().apply { write(bytes) },

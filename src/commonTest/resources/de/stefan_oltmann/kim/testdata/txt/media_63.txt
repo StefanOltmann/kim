@@ -1,4 +1,4 @@
-File format : TIFF
+File format : ARW
 Resolution  : 4272 x 2848
 ---- TIFF ----
 Version 42
@@ -62,7 +62,7 @@ Little-endian (Intel, II)
 0000044150 0x0001 InteroperabilityIndex = R98
 0000044162 0x0002 InteroperabilityVersion = [0x30, 0x31, 0x30, 0x30]
 
----- Directory IFD1 @ 118108 ----
+---- Directory SubIFD0 @ 118108 ----
 0000118110 0x00fe NewSubfileType = 0
 0000118122 0x0100 ImageWidth = 4288
 0000118134 0x0101 ImageHeight = 2858
@@ -191,4 +191,13 @@ Little-endian (Intel, II)
 0000021289 0x005b Face1Position = 0
 0000021299 0x0065 Face2Position = 0
 0000021309 0x006f Face3Position = 0
+
+---- PrintIM ----
+PrintIMVersion = 0300
+PrintIM_0x0001 = 1441814
+PrintIM_0x0002 = 1
+PrintIM_0x0003 = 52
+PrintIM_0x0100 = 5
+PrintIM_0x0101 = 0
+PrintIM_0x0110 = 128
 

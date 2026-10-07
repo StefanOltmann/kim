@@ -70,6 +70,103 @@ class PngWriterTest {
     }
 
     /**
+     * The iTXt payload is keyword, NUL, compression flag,
+     * compression method, empty language tag, empty translated keyword
+     * and the text - the layout every common writer emits (verified
+     * against the ExifTool reference dumps of media_51 to media_53).
+     * Repeating the keyword in the translated-keyword field made every
+     * chunk written here carry a spurious translated keyword.
+     */
+    @Test
+    fun testWrittenXmpItxtUsesEmptyTranslatedKeyword() {
+
+        val chunkBytes = firstChunkOf(
+            bytes = writeImageWithXmp(),
+            chunkType = "iTXt"
+        )
+
+        val keyword = "XML:com.adobe.xmp".encodeToByteArray()
+
+        /* The keyword must appear exactly once, at the start. */
+        assertContentEquals(keyword, chunkBytes.copyOfRange(0, keyword.size))
+        assertEquals(
+            1,
+            chunkBytes.toList().windowed(keyword.size).count { it.toByteArray().contentEquals(keyword) }
+        )
+
+        /*
+         * The keyword terminator plus the two flags and the two empty
+         * string terminators collapse into five NUL bytes.
+         */
+        var nulCount = 0
+        var position = keyword.size
+
+        while (chunkBytes[position] == 0.toByte()) {
+            nulCount++
+            position++
+        }
+
+        assertEquals(5, nulCount)
+        assertEquals('<'.code.toByte(), chunkBytes[position])
+    }
+
+    /**
+     * Reads a big endian int at the given offset.
+     */
+    private fun readBigEndianInt(bytes: ByteArray, offset: Int): Int =
+        ((bytes[offset].toInt() and 0xFF) shl 24) or
+            ((bytes[offset + 1].toInt() and 0xFF) shl 16) or
+            ((bytes[offset + 2].toInt() and 0xFF) shl 8) or
+            (bytes[offset + 3].toInt() and 0xFF)
+
+    /**
+     * Writes a minimal PNG carrying XMP through the writer.
+     */
+    private fun writeImageWithXmp(): ByteArray {
+
+        val ihdrChunk = PngImageParser.readChunks(
+            ByteArrayByteReader(
+                KimTestData.getHeaderBytesOf(KimTestData.PNG_TEST_IMAGE_INDEX)
+            ),
+            listOf(PngChunkType.IHDR)
+        ).single()
+
+        val byteWriter = ByteArrayByteWriter()
+
+        PngWriter.writeImage(
+            chunks = listOf(ihdrChunk),
+            byteWriter = byteWriter,
+            exifBytes = null,
+            iptcBytes = null,
+            xmp = "<x:xmpmeta><rdf:RDF/></x:xmpmeta>"
+        )
+
+        return byteWriter.toByteArray()
+    }
+
+    /**
+     * Returns the payload of the first chunk with the given type.
+     */
+    private fun firstChunkOf(bytes: ByteArray, chunkType: String): ByteArray {
+
+        var position = PNG_SIGNATURE_LENGTH
+
+        while (position + PNG_CHUNK_HEADER_LENGTH <= bytes.size) {
+
+            val length = readBigEndianInt(bytes, position)
+
+            val type = bytes.decodeToString(position + 4, position + 8)
+
+            if (type == chunkType)
+                return bytes.copyOfRange(position + 8, position + 8 + length)
+
+            position += PNG_CHUNK_HEADER_LENGTH + length + PNG_CRC_LENGTH
+        }
+
+        error("No $chunkType chunk found.")
+    }
+
+    /**
      * Tests that there is no loss if writing
      * the PNG chunks again without any change.
      *
@@ -237,5 +334,13 @@ class PngWriterTest {
 
             ModifiedBytesVerifier.verify(index, "png", newBytes)
         }
+    }
+
+    private companion object {
+
+        /* PNG signature, the 8-byte chunk header and the CRC field. */
+        private const val PNG_SIGNATURE_LENGTH: Int = 8
+        private const val PNG_CHUNK_HEADER_LENGTH: Int = 8
+        private const val PNG_CRC_LENGTH: Int = 4
     }
 }

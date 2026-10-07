@@ -233,17 +233,20 @@ public object MetadataSummaryConverter {
     }
 
     /**
-     * EXIF and IPTC strings are padded with spaces or NUL bytes to a
-     * fixed length. The padding is not data, so the summary reports
-     * these values like ExifTool does: with the trailing padding
-     * removed. An empty result is reported as NULL.
+     * EXIF strings are NUL-terminated and IPTC strings of fixed-length
+     * datasets are NUL-padded, so the trailing NUL bytes are container
+     * structure and are removed. Trailing SPACES are kept: ExifTool
+     * reports them, and they cannot be told apart from real content - a
+     * variable-length IPTC value whose author ended it with a space must
+     * survive the summary byte-exact. A value that is empty afterwards
+     * is reported as NULL.
      */
     private fun String?.trimTrailingPadding(): String? {
 
         if (this == null)
             return null
 
-        return trimEnd(' ', '\u0000').ifEmpty { null }
+        return trimEnd('\u0000').ifEmpty { null }
     }
 
     private fun extractTakenDateAsIsoString(metadata: MediaMetadata): String? {
@@ -516,15 +519,23 @@ public object MetadataSummaryConverter {
             ?: metadata.findStringValue(ExifTag.EXIF_TAG_OFFSET_TIME)
             ?: return null
 
-        if (!UTC_OFFSET_REGEX.matches(offsetString))
+        /*
+         * EXIF ASCII fields are routinely space-padded to even byte
+         * counts - trailing container padding must not disqualify the
+         * offset, which would silently switch the date to the viewer's
+         * time zone.
+         */
+        val trimmedOffset = offsetString.trim()
+
+        if (!UTC_OFFSET_REGEX.matches(trimmedOffset))
             return null
 
-        return try {
-            UtcOffset.parse(offsetString)
+        try {
+            return UtcOffset.parse(trimmedOffset)
         } catch (ex: CancellationException) {
             throw ex
         } catch (_: Exception) {
-            null
+            return null
         }
     }
 

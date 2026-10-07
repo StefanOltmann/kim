@@ -96,13 +96,20 @@ class MakerNoteRejectionTest {
     fun testTruncatedEmbeddedJpegIsSkipped() {
 
         val tiffBytes = convertHexStringToByteArray(
-            "49492a00" + // TIFF header
-                "08000000" + // IFD0 offset
+            /* TIFF header */
+            "49492a00" +
+                /* IFD0 offset */
+                "08000000" +
 
-                /* IFD0: JPG_FROM_RAW pointing to a malformed JPEG. */
-                "0100" + // entry count
-                "01020100" + "05000000" + "1a000000" + // JPG_FROM_RAW, BYTES, 5, at 26
-                "00000000" + // next IFD
+                /*
+                 * IFD0: JPG_FROM_RAW pointing to a malformed JPEG.
+                 * Entry count.
+                 */
+                "0100" +
+                /* JPG_FROM_RAW, BYTES, 5, at 26 */
+                "01020100" + "05000000" + "1a000000" +
+                /* next IFD */
+                "00000000" +
 
                 /* SOI followed by an APP1 marker whose length field is cut off. */
                 "ffd8ffe100"
@@ -202,7 +209,8 @@ class MakerNoteRejectionTest {
         val exifIfdSize = 2 + ENTRY_LENGTH + 4
         val makerNoteOffset = exifIfdOffset + exifIfdSize
 
-        out.write(byteArrayOf(0x49, 0x49, 0x2A, 0x00)) // TIFF header
+        /* TIFF header */
+        out.write(byteArrayOf(0x49, 0x49, 0x2A, 0x00))
         out.writeInt(ifd0Offset, ByteOrder.LITTLE_ENDIAN)
 
         /* IFD0: Make + Exif IFD pointer. */
@@ -218,7 +226,8 @@ class MakerNoteRejectionTest {
         out.writeInt(1, ByteOrder.LITTLE_ENDIAN)
         out.writeInt(exifIfdOffset, ByteOrder.LITTLE_ENDIAN)
 
-        out.writeInt(0, ByteOrder.LITTLE_ENDIAN) // No next IFD.
+        /* No next IFD. */
+        out.writeInt(0, ByteOrder.LITTLE_ENDIAN)
 
         out.write("Apple\u0000".encodeToByteArray())
 
@@ -230,7 +239,8 @@ class MakerNoteRejectionTest {
         out.writeInt(makerNote.size, ByteOrder.LITTLE_ENDIAN)
         out.writeInt(makerNoteOffset, ByteOrder.LITTLE_ENDIAN)
 
-        out.writeInt(0, ByteOrder.LITTLE_ENDIAN) // No next IFD.
+        /* No next IFD. */
+        out.writeInt(0, ByteOrder.LITTLE_ENDIAN)
 
         out.write(makerNote)
 
@@ -268,7 +278,8 @@ class MakerNoteRejectionTest {
         val ifd0Size = 2 + ENTRY_LENGTH + 4
         val jpegOffset = ifd0Offset + ifd0Size
 
-        out.write(byteArrayOf(0x49, 0x49, 0x2A, 0x00)) // TIFF header.
+        /* TIFF header. */
+        out.write(byteArrayOf(0x49, 0x49, 0x2A, 0x00))
         out.writeInt(ifd0Offset, ByteOrder.LITTLE_ENDIAN)
 
         out.write2BytesAsInt(1, ByteOrder.LITTLE_ENDIAN)
@@ -278,7 +289,8 @@ class MakerNoteRejectionTest {
         out.writeInt(garbageJpeg.size, ByteOrder.LITTLE_ENDIAN)
         out.writeInt(jpegOffset, ByteOrder.LITTLE_ENDIAN)
 
-        out.writeInt(0, ByteOrder.LITTLE_ENDIAN) // No next IFD.
+        /* No next IFD. */
+        out.writeInt(0, ByteOrder.LITTLE_ENDIAN)
 
         out.write(garbageJpeg)
 

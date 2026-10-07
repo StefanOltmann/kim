@@ -13,7 +13,8 @@ jobs:
   prune-old-actions:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      # actions/checkout v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: yanovian/prune-old-actions@4976108ec60d9053e8d318206a43706f7d0cf781
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

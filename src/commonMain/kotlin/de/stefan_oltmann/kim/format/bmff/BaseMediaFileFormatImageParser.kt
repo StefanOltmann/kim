@@ -19,6 +19,7 @@ package de.stefan_oltmann.kim.format.bmff
 
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.MetadataType
+import de.stefan_oltmann.kim.common.decodeStrictUtf8
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
@@ -114,6 +115,25 @@ public object BaseMediaFileFormatImageParser : ImageParser {
 
         val metadataItems = metaBox.findMetadataItems()
 
+        /*
+         * Multiple items of the same metadata type make the
+         * authoritative packet ambiguous: silently letting the last
+         * item win would hide the first item's content from every
+         * consumer. Like QuickTime's duplicate XMP boxes, the read
+         * fails instead.
+         */
+        val duplicatedType = metadataItems
+            .groupBy { it.type }
+            .entries
+            .firstOrNull { it.value.size > 1 }
+
+        if (duplicatedType != null)
+            throw ImageReadException(
+                "The file declares ${duplicatedType.value.size} items of type " +
+                    "${duplicatedType.key}, so the metadata that an update applies " +
+                    "to is ambiguous."
+            )
+
         /* Return empty object if no metadata is found. */
         if (metadataItems.isEmpty() && uuidBoxes.none { it.isXmp })
             return MediaMetadata.createEmpty(mediaFormat = null)
@@ -202,7 +222,8 @@ public object BaseMediaFileFormatImageParser : ImageParser {
                 }
 
                 MetadataType.IPTC ->
-                    continue // Unsupported
+                    /*  Unsupported */
+                    continue
 
                 MetadataType.XMP -> {
                     xmp = readXmpString(byteReaderToUse, position, item)
@@ -213,18 +234,31 @@ public object BaseMediaFileFormatImageParser : ImageParser {
 
         /*
          * XMP data can also be found in a UUID box, if we didn't find it in the metadata offsets.
+         *
+         * When the file declares XMP in BOTH places, the authoritative
+         * packet is ambiguous: picking one would silently drop the other
+         * from every derived view and sidecar export, which the read
+         * policy counts as data loss. The read fails instead.
          */
-        if (xmp == null)
-            xmp = uuidBoxes.firstOrNull { it.isXmp }?.data?.decodeToString()
+        val uuidXmp = uuidBoxes.firstOrNull { it.isXmp }?.data?.decodeStrictUtf8("The video XMP UUID box")
 
-        xmp = requireValidXmpPacket(xmp, "The XMP data")
+        if (xmp != null && uuidXmp != null)
+            throw ImageReadException(
+                "The file declares XMP both as a metadata item and in a " +
+                    "UUID box, so the authoritative packet is ambiguous."
+            )
+
+        xmp = requireValidXmpPacket(uuidXmp ?: xmp, "The XMP data")
 
         return MediaMetadata(
-            mediaFormat = null, // could be any ISO BMFF
-            imageSize = null, // not covered by ISO BMFF
+            /*  could be any ISO BMFF */
+            mediaFormat = null,
+            /*  not covered by ISO BMFF */
+            imageSize = null,
             exif = exif,
             exifBytes = exifBytes,
-            iptc = null, // not supported by ISO BMFF
+            /*  not supported by ISO BMFF */
+            iptc = null,
             xmp = xmp
         )
     }
@@ -283,7 +317,7 @@ public object BaseMediaFileFormatImageParser : ImageParser {
             label = "XMP"
         )
 
-        return xmpBytes.decodeToString()
+        return xmpBytes.decodeStrictUtf8("The XMP metadata item")
     }
 
     /**

@@ -78,7 +78,9 @@ public fun interface TiffPreviewExtractor {
          * Some files carry random garbage in the preview tags, so like
          * [de.stefan_oltmann.kim.format.tiff.TiffReader] for thumbnails,
          * out-of-bounds ranges and data without the JPEG signature are
-         * rejected with NULL instead of returning unusable bytes.
+         * rejected with NULL instead of returning unusable bytes. The
+         * content length of stream readers is only a hint that may
+         * understate the data, so the real read decides.
          */
         internal fun readValidatedPreviewBytes(
             randomAccessByteReader: RandomAccessByteReader,
@@ -90,14 +92,17 @@ public fun interface TiffPreviewExtractor {
              * Long math, so hostile offsets cannot overflow the Int range.
              */
             val startIndex = start.toLong()
-            val endIndex = startIndex + length.toLong()
 
-            if (startIndex < 0 || length <= 0 || endIndex > randomAccessByteReader.contentLength)
+            if (startIndex < 0 || length <= 0)
                 return null
 
             randomAccessByteReader.moveTo(startIndex.toInt())
 
             val previewBytes = randomAccessByteReader.readBytes(length)
+
+            /* A short read means the preview range does not exist. */
+            if (previewBytes.size != length)
+                return null
 
             if (!previewBytes.startsWith(MediaFormatMagicNumbers.jpeg))
                 return null

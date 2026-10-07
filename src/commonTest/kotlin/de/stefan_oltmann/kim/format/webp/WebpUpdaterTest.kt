@@ -21,8 +21,12 @@ import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.format.AbstractUpdaterTest
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8X
+import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.model.MetadataUpdate
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
+import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -84,7 +88,8 @@ class WebpUpdaterTest : AbstractUpdaterTest("webp") {
     fun testReadMetadataWithInvalidMaxRiffSize() {
 
         val bogusSizeBytes =
-            withDeclaredRiffSize(originalBytes, -1) /* 0xFFFFFFFF */
+            /* 0xFFFFFFFF */
+            withDeclaredRiffSize(originalBytes, -1)
 
         val metadata = Kim.readMetadata(bogusSizeBytes)
 
@@ -105,6 +110,121 @@ class WebpUpdaterTest : AbstractUpdaterTest("webp") {
                 ((declaredSize shr (index * Byte.SIZE_BITS)) and 0xFF).toByte()
 
         return result
+    }
+
+    /**
+     * Regression test: an animated WebP keeps every animation chunk on
+     * a metadata update - a chunk iteration or padding bug would drop
+     * or garble frames silently, and no other test reads animation
+     * chunks at all.
+     */
+    @Test
+    fun testUpdateAnimatedWebpPreservesAllFrameChunks() {
+
+        val animatedBytes = KimTestData.getBytesOf(KimTestData.ANIMATED_WEBP_TEST_IMAGE_INDEX)
+
+        val originalCounts = chunkTypeCounts(animatedBytes)
+
+        assertTrue(originalCounts.getValue("ANMF") >= 2, "The fixture must be animated.")
+
+        val updatedBytes = Kim.update(
+            bytes = animatedBytes,
+            updates = setOf(MetadataUpdate.Title("Animated"))
+        )
+
+        /* Every animation chunk must survive the rewrite unchanged. */
+        assertEquals(originalCounts, chunkTypeCounts(updatedBytes))
+
+        val updatedMetadata = assertNotNull(Kim.readMetadata(updatedBytes))
+
+        assertTrue(
+            updatedMetadata.xmp?.contains("Animated") == true,
+            "The rewritten file must report the new XMP."
+        )
+    }
+
+    /**
+     * The reader length hint is caller-supplied and may understate the
+     * content - like the RIFF size field, which the parser already
+     * refuses to trust. The chunk walk must end at the delegate's real
+     * end of data: a walk bounded by the hint would drop the metadata
+     * chunks behind it silently on a rewrite.
+     */
+    @Test
+    fun testUpdatePreservesChunksBehindUnderstatedContentLengthHint() {
+
+        /*
+         * The hint ends exactly where the EXIF chunk starts, so a walk
+         * bounded by the hint never starts that chunk - and the EXIF
+         * sits at the end, behind the image data.
+         */
+        val exifOffset = firstChunkOffset(originalBytes, "EXIF")
+
+        val reader = UnderstatedHintByteReader(
+            delegate = ByteArrayByteReader(originalBytes),
+            hintedLength = exifOffset.toLong()
+        )
+
+        val byteWriter = ByteArrayByteWriter()
+
+        Kim.update(
+            byteReader = reader,
+            byteWriter = byteWriter,
+            updates = setOf(MetadataUpdate.Title("test"))
+        )
+
+        val originalMetadata = assertNotNull(Kim.readMetadata(originalBytes))
+        val updatedMetadata = assertNotNull(Kim.readMetadata(byteWriter.toByteArray()))
+
+        assertContentEquals(
+            expected = originalMetadata.exifBytes,
+            actual = updatedMetadata.exifBytes
+        )
+    }
+
+    /**
+     * A ByteReader whose length hint understates the content while the
+     * delegate delivers every byte.
+     */
+    private class UnderstatedHintByteReader(
+        private val delegate: ByteReader,
+        private val hintedLength: Long
+    ) : ByteReader {
+
+        override val contentLength: Long = hintedLength
+
+        override fun readByte(): Byte? = delegate.readByte()
+
+        override fun readBytes(count: Int): ByteArray = delegate.readBytes(count)
+
+        override fun close() = delegate.close()
+    }
+
+    /**
+     * Counts the chunks of the given WebP file by type, in file order
+     * independent form - only the counts are compared.
+     */
+    private fun chunkTypeCounts(webpBytes: ByteArray): Map<String, Int> {
+
+        val counts = mutableMapOf<String, Int>()
+
+        var offset = WEBP_SIGNATURE_TOTAL_LENGTH
+
+        while (offset + WebPConstants.CHUNK_HEADER_LENGTH <= webpBytes.size) {
+
+            val type = webpBytes.copyOfRange(
+                offset,
+                offset + WebPConstants.TYPE_LENGTH
+            ).decodeToString()
+
+            counts[type] = (counts[type] ?: 0) + 1
+
+            val size = readChunkSize(webpBytes, offset)
+
+            offset += WebPConstants.CHUNK_HEADER_LENGTH + size + size % 2
+        }
+
+        return counts
     }
 
     /**
@@ -258,6 +378,118 @@ class WebpUpdaterTest : AbstractUpdaterTest("webp") {
         return withoutVp8x.copyOfRange(0, insertIndex) +
             vp8xChunk +
             withoutVp8x.copyOfRange(insertIndex, withoutVp8x.size)
+    }
+
+    /**
+     * A file whose VP8X denies the ICC profile while carrying an ICCP
+     * chunk is as nonconformant as a stale EXIF flag: the flags must
+     * describe the chunks that are actually written, so the rewrite
+     * declares the profile the chunk list still carries.
+     */
+    @Test
+    fun testUpdateDeclaresIccWhenVp8xFlagIsStaleButChunkIsPresent() {
+
+        /* Sanity: the source carries the profile chunk. */
+        assertTrue("ICCP" in chunkTypes(originalBytes))
+
+        val staleFlagBytes = withVp8xFlags(originalBytes, hasIcc = false)
+
+        /* Sanity: the flag now lies about the chunk. */
+        assertFalse(vp8xChunk(staleFlagBytes).hasIcc)
+
+        val updatedBytes = Kim.update(
+            bytes = staleFlagBytes,
+            updates = setOf(MetadataUpdate.Title("test"))
+        )
+
+        val updatedVp8x = vp8xChunk(updatedBytes)
+
+        assertTrue(updatedVp8x.hasIcc, "The rewritten VP8X must declare the ICCP chunk.")
+
+        assertTrue("ICCP" in chunkTypes(updatedBytes))
+    }
+
+    /**
+     * Returns a copy of the given WebP bytes whose VP8X header is
+     * rebuilt with the given ICC flag, keeping every other flag.
+     */
+    private fun withVp8xFlags(webpBytes: ByteArray, hasIcc: Boolean): ByteArray {
+
+        val vp8xOffset = firstChunkOffset(webpBytes, "VP8X")
+
+        val vp8x = vp8xChunk(webpBytes)
+
+        val replacementPayload = WebPChunkVP8X.createBytes(
+            hasIcc = hasIcc,
+            hasAlpha = vp8x.hasAlpha,
+            hasExif = vp8x.hasExif,
+            hasXmp = vp8x.hasXmp,
+            hasAnimation = vp8x.hasAnimation,
+            imageSize = vp8x.imageSize
+        )
+
+        val vp8xTotalLength = WebPConstants.CHUNK_HEADER_LENGTH + replacementPayload.size
+
+        val sizeBytes = byteArrayOf(
+            (replacementPayload.size and 0xFF).toByte(),
+            ((replacementPayload.size shr 8) and 0xFF).toByte(),
+            ((replacementPayload.size shr 16) and 0xFF).toByte(),
+            ((replacementPayload.size shr 24) and 0xFF).toByte()
+        )
+
+        return webpBytes.copyOfRange(0, vp8xOffset) +
+            "VP8X".encodeToByteArray() +
+            sizeBytes +
+            replacementPayload +
+            webpBytes.copyOfRange(vp8xOffset + vp8xTotalLength, webpBytes.size)
+    }
+
+    /**
+     * A nonconformant legacy file (image chunk without VP8X) can carry an
+     * ICCP chunk. The synthesized VP8X header must declare it - decoders
+     * honor the profile only when the flag is set, so the rewritten file
+     * would render differently from what the read reported.
+     */
+    @Test
+    fun testUpdateLegacyFileWithIccChunkDeclaresIccInSynthesizedVp8x() {
+        /*
+         * The legacy layout the spec grew out of: the image chunk first,
+         * the ICCP chunk behind it. The ICCP chunk moves to the end,
+         * because without a VP8X it has no declared place before the
+         * image data.
+         */
+        val iccpOffset = firstChunkOffset(originalBytes, "ICCP")
+
+        val iccpSize = readChunkSize(originalBytes, iccpOffset)
+
+        val iccpTotalLength = WebPConstants.CHUNK_HEADER_LENGTH + iccpSize + iccpSize % 2
+
+        val iccpChunk = originalBytes.copyOfRange(iccpOffset, iccpOffset + iccpTotalLength)
+
+        val legacyBytes = removeFirstChunk(
+            removeFirstChunk(
+                removeFirstChunk(
+                    removeFirstChunk(originalBytes, "VP8X"),
+                    "EXIF"
+                ),
+                "XMP "
+            ),
+            "ICCP"
+        ) + iccpChunk
+
+        /* Sanity: the image chunk leads, the profile is still carried. */
+        assertEquals(setOf("VP8 ", "ICCP"), chunkTypes(legacyBytes))
+
+        val updatedBytes = Kim.update(
+            bytes = legacyBytes,
+            updates = setOf(MetadataUpdate.Title("test"))
+        )
+
+        val updatedVp8x = vp8xChunk(updatedBytes)
+
+        assertTrue(updatedVp8x.hasIcc, "The synthesized VP8X must declare the ICCP chunk.")
+
+        assertTrue("ICCP" in chunkTypes(updatedBytes))
     }
 
     /**

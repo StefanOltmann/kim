@@ -100,10 +100,19 @@ public class WebPChunkVP8(
 
         verticalScale = b9 shr 6
 
-        imageSize = ImageSize(
-            width = applyVp8DisplayScale(widthCode, horizontalScale),
-            height = applyVp8DisplayScale(heightCode, verticalScale)
-        )
+        /*
+         * A crafted frame with a zero dimension would flow into
+         * MediaMetadata, and a rewrite of it would encode a VP8X
+         * canvas of `0 - 1` that fails the re-read. Like the VP8X and
+         * VP8L readers, an unusable size fails here.
+         */
+        val width = applyVp8DisplayScale(widthCode, horizontalScale)
+        val height = applyVp8DisplayScale(heightCode, verticalScale)
+
+        if (width < 1 || height < 1)
+            throw ImageReadException("Illegal dimensions: $width x $height.")
+
+        imageSize = ImageSize(width, height)
     }
 
     /**

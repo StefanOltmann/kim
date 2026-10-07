@@ -260,6 +260,84 @@ class QuickTimeImageParserTest {
     }
 
     /**
+     * The ISO 14496-12 item layout is legal in a file-level meta box,
+     * and muxers write video XMP into it: hdlr, pitm, iinf with the infe
+     * entries, iloc and idat. Silently skipping such a meta loses its
+     * metadata, so the read fails instead - like the HEIC reader fails
+     * for unresolvable metadata items.
+     */
+    @Test
+    fun testRejectsVideoMetaBoxWithItemLayout() {
+
+        val iinfPayload = byteArrayOf(0, 0, 0, 0, 0, 0) +
+            QuickTimeTestVideos.box("infe", byteArrayOf(0, 1, 2, 3))
+
+        val bytes = QuickTimeTestVideos.ftypBox() +
+            QuickTimeTestVideos.box(
+                "meta",
+                QuickTimeTestVideos.box("hdlr", byteArrayOf(0, 0, 0, 0)) +
+                    QuickTimeTestVideos.box("iinf", iinfPayload) +
+                    QuickTimeTestVideos.box("iloc", byteArrayOf(0, 1, 2, 3))
+            ) +
+            QuickTimeTestVideos.movWithXmpInMoov(xmpPacketBytes)
+
+        assertFailsWith<ImageReadException> {
+            Kim.readMetadata(bytes)
+        }
+    }
+
+    /**
+     * A bare infe child is malformed but seen in the wild; it identifies
+     * the item layout just like a wrapped one.
+     */
+    @Test
+    fun testRejectsVideoMetaBoxWithBareInfeChild() {
+
+        val bytes = QuickTimeTestVideos.ftypBox() +
+            QuickTimeTestVideos.box(
+                "meta",
+                QuickTimeTestVideos.box("infe", byteArrayOf(0, 1, 2, 3))
+            ) +
+            QuickTimeTestVideos.movWithXmpInMoov(xmpPacketBytes)
+
+        assertFailsWith<ImageReadException> {
+            Kim.readMetadata(bytes)
+        }
+    }
+
+    /**
+     * A child declaring the largesize form must not end the child walk:
+     * the 8-byte length field behind the type FourCC is part of the
+     * header, and metadata children behind such a child must still be
+     * detected.
+     */
+    @Test
+    fun testVideoMetaChildWalkHandlesLargesizeChildren() {
+
+        /* Largesize hdlr: size field 1, type, 8-byte real size, payload. */
+        val largesizeHdlr = byteArrayOf(
+            0, 0, 0, 1,
+            /* "hdlr" */
+            0x68, 0x64, 0x6C, 0x72,
+            /* largesize: 24 = 8 header + 8 largesize + 8 payload */
+            0, 0, 0, 0, 0, 0, 0, 24,
+            0, 0, 0, 0, 0, 0, 0, 0
+        )
+
+        val bytes = QuickTimeTestVideos.ftypBox() +
+            QuickTimeTestVideos.box(
+                "meta",
+                largesizeHdlr +
+                    QuickTimeTestVideos.box("iinf", byteArrayOf(0, 0, 0, 0, 0, 0))
+            ) +
+            QuickTimeTestVideos.movWithXmpInMoov(xmpPacketBytes)
+
+        assertFailsWith<ImageReadException> {
+            Kim.readMetadata(bytes)
+        }
+    }
+
+    /**
      * ExifTool and Adobe write the XMP packet of MOV videos into an "XMP_"
      * box inside the user data. Such packets must be read like the UUID
      * box variants, because dropping them silently would lose them for
@@ -298,6 +376,25 @@ class QuickTimeImageParserTest {
     fun testRejectsFileWithoutMoovBox() {
 
         val bytes = QuickTimeTestVideos.ftypBox() + QuickTimeTestVideos.mdatBox()
+
+        assertFailsWith<ImageReadException> {
+            Kim.readMetadata(bytes)
+        }
+    }
+
+    /**
+     * Two moov boxes can carry metadata in each, so reporting only the
+     * first would present an arbitrary pick as the video's metadata -
+     * the same ambiguity rule the duplicate XMP boxes follow.
+     */
+    @Test
+    fun testRejectsDuplicateMoovBoxes() {
+
+        val xmpBytes = xmpPacketBytes
+
+        val bytes = QuickTimeTestVideos.ftypBox() +
+            QuickTimeTestVideos.box("moov", ByteArray(0)) +
+            QuickTimeTestVideos.movWithXmpInMoov(xmpBytes).removeFtyp()
 
         assertFailsWith<ImageReadException> {
             Kim.readMetadata(bytes)
@@ -491,4 +588,14 @@ class QuickTimeImageParserTest {
         }
     }
 
+    /**
+     * Strips the leading ftyp box, so a built video can be recombined
+     * with an extra moov in front of it.
+     */
+    private fun ByteArray.removeFtyp(): ByteArray {
+
+        val ftypSize = QuickTimeTestVideos.ftypBox().size
+
+        return copyOfRange(ftypSize, size)
+    }
 }

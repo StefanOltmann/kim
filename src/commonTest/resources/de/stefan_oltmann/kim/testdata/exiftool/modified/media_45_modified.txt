@@ -1,0 +1,121 @@
+  ExifToolVersion = 13.59
+  FileName = media_45_modified.jpg
+  Directory = modified
+  FileSize = 1039
+  FileModifyDate = 1789668880.56003
+  FileAccessDate = 1791131091.20225
+  FileCreateDate = 1789668880.55903
+  FilePermissions = 33206
+  FileType = JPEG
+  FileTypeExtension = JPG
+  MIMEType = image/jpeg
+JPEG APP0 (270 bytes):
+      0006: 4a 46 49 46 00 04 49 00 00 64 9c 8b 27 00 ff d2 [JFIF..I..d..'...]
+      0016: cf 11 38 75 63 6b 2d 00 8d 32 04 00 00 00 25 00 [..8uck-..2....%.]
+      0026: ee 34 ee 00 67 90 83 6f 50 d6 8a bc c0 dd c6 5f [.4..g..oP......_]
+      0036: 81 ff db a4 84 00 4d 04 4d 95 f2 d6 3a 05 63 19 [......M.M...:.c.]
+      0046: 09 2a cb 9e 0e 94 0a c2 06 08 0b 8e 0a 95 0b 0a [.*..............]
+      0056: 92 69 c4 0c 0c 1b 4a 0c b6 39 0c 0e 66 10 0f 0b [.i....J..9..f...]
+      0066: 5e f6 be 14 14 13 ff 1c 1b 1b 1b 1c d2 a1 b7 1f [^...............]
+      [snip 158 bytes]
+  + [BinaryData directory, 265 bytes, Big-endian]
+  | JFIFVersion = 4 73
+  | - Tag 0x0000 (2 bytes, int8u[2]):
+  |     000b: 04 49                                           [.I]
+  | ResolutionUnit = 0
+  | - Tag 0x0002 (1 bytes, int8u[1]):
+  |     000d: 00                                              [.]
+  | XResolution = 100
+  | - Tag 0x0003 (2 bytes, int16u[1]):
+  |     000e: 00 64                                           [.d]
+  | YResolution = 40075
+  | - Tag 0x0005 (2 bytes, int16u[1]):
+  |     0010: 9c 8b                                           [..]
+  | ThumbnailWidth = 39
+  | - Tag 0x0007 (1 bytes, int8u[1]):
+  |     0012: 27                                              [']
+  | ThumbnailHeight = 0
+  | - Tag 0x0008 (1 bytes, int8u[1]):
+  |     0013: 00                                              [.]
+  | ThumbnailTIFF = 
+  | - Tag 0x0009 (0 bytes, undef):
+JPEG APP1 (278 bytes):
+      0118: 45 78 69 66 00 00 4d 4d 00 2a 00 00 00 08 00 04 [Exif..MM.*......]
+      0128: 01 12 00 03 00 00 00 01 00 08 00 00 01 32 00 02 [.............2..]
+      0138: 00 00 00 14 00 00 00 40 87 69 00 04 00 00 00 01 [.......@.i......]
+      0148: 00 00 00 54 88 25 00 04 00 00 00 01 00 00 00 9c [...T.%..........]
+      0158: 00 00 00 00 00 00 32 30 32 33 3a 30 35 3a 31 30 [......2023:05:10]
+      0168: 20 31 33 3a 33 37 3a 34 32 00 00 02 90 03 00 02 [ 13:37:42.......]
+      0178: 00 00 00 14 00 00 00 74 90 04 00 02 00 00 00 14 [.......t........]
+      [snip 166 bytes]
+  ExifByteOrder = MM
+  + [IFD0 directory with 4 entries, Big-endian]
+  | 0)  Orientation = 8
+  |     - Tag 0x0112 (2 bytes, int16u[1]):
+  |         0130: 00 08                                           [..]
+  | 1)  ModifyDate = 2023:05:10 13:37:42
+  |     - Tag 0x0132 (20 bytes, string[20]):
+  |         015e: 32 30 32 33 3a 30 35 3a 31 30 20 31 33 3a 33 37 [2023:05:10 13:37]
+  |         016e: 3a 34 32 00                                     [:42.]
+  | 2)  ExifOffset (SubDirectory) -->
+  |     - Tag 0x8769 (4 bytes, int32u[1]):
+  |         0148: 00 00 00 54                                     [...T]
+  | + [ExifIFD directory with 2 entries, Big-endian]
+  | | 0)  DateTimeOriginal = 2023:05:10 13:37:42
+  | |     - Tag 0x9003 (20 bytes, string[20]):
+  | |         0192: 32 30 32 33 3a 30 35 3a 31 30 20 31 33 3a 33 37 [2023:05:10 13:37]
+  | |         01a2: 3a 34 32 00                                     [:42.]
+  | | 1)  CreateDate = 2023:05:10 13:37:42
+  | |     - Tag 0x9004 (20 bytes, string[20]):
+  | |         01a6: 32 30 32 33 3a 30 35 3a 31 30 20 31 33 3a 33 37 [2023:05:10 13:37]
+  | |         01b6: 3a 34 32 00                                     [:42.]
+  | 3)  GPSInfo (SubDirectory) -->
+  |     - Tag 0x8825 (4 bytes, int32u[1]):
+  |         0154: 00 00 00 9c                                     [....]
+  | + [GPS directory with 5 entries, Big-endian]
+  | | 0)  GPSVersionID = 2 3 0 0
+  | |     - Tag 0x0000 (4 bytes, int8u[4]):
+  | |         01c4: 02 03 00 00                                     [....]
+  | | 1)  GPSLatitudeRef = N
+  | |     - Tag 0x0001 (2 bytes, string[2]):
+  | |         01d0: 4e 00                                           [N.]
+  | | 2)  GPSLatitude = 53 13 9.8076 (53/1 13/1 24519/2500)
+  | |     - Tag 0x0002 (24 bytes, rational64u[3]):
+  | |         01fe: 00 00 00 35 00 00 00 01 00 00 00 0d 00 00 00 01 [...5............]
+  | |         020e: 00 00 5f c7 00 00 09 c4                         [.._.....]
+  | | 3)  GPSLongitudeRef = E
+  | |     - Tag 0x0003 (2 bytes, string[2]):
+  | |         01e8: 45 00                                           [E.]
+  | | 4)  GPSLongitude = 8 14 22.7796 (8/1 14/1 56949/2500)
+  | |     - Tag 0x0004 (24 bytes, rational64u[3]):
+  | |         0216: 00 00 00 08 00 00 00 01 00 00 00 0e 00 00 00 01 [................]
+  | |         0226: 00 00 de 75 00 00 09 c4                         [...u....]
+JPEG APP14 (6 bytes):
+      0232: 03 f7 ad 02 48 d7                               [....H.]
+  Warning = [minor] Unknown APP14 segment
+JPEG APP13 (64 bytes):
+      023c: 50 68 6f 74 6f 73 68 6f 70 20 33 2e 30 00 38 42 [Photoshop 3.0.8B]
+      024c: 49 4d 04 04 00 00 00 00 00 25 1c 01 5a 00 03 1b [IM.......%..Z...]
+      025c: 25 47 1c 02 00 00 02 00 04 1c 02 19 00 11 55 6d [%G............Um]
+      026c: 6c 61 75 74 73 3a 20 c3 a4 c3 b6 c3 bc c3 9f 00 [lauts: .........]
+  + [Photoshop directory, 50 bytes]
+  | IPTCData (SubDirectory) -->
+  | - Tag 0x0404 (37 bytes):
+  |     0256: 1c 01 5a 00 03 1b 25 47 1c 02 00 00 02 00 04 1c [..Z...%G........]
+  |     0266: 02 19 00 11 55 6d 6c 61 75 74 73 3a 20 c3 a4 c3 [....Umlauts: ...]
+  |     0276: b6 c3 bc c3 9f                                  [.....]
+  | + [IPTC directory, 37 bytes]
+  | | CurrentIPTCDigest = H....V.*31.y.~%.
+  | | -- IPTCEnvelope record --
+  | | CodedCharacterSet = .%G
+  | | - Tag 0x005a, IPTCEnvelope record (3 bytes, string[0,32]):
+  | |     025b: 1b 25 47                                        [.%G]
+  | | -- IPTCApplication record --
+  | | ApplicationRecordVersion = 4
+  | | - Tag 0x0000, IPTCApplication record (2 bytes, int16u):
+  | |     0263: 00 04                                           [..]
+  | | Keywords = Umlauts: ........
+  | | - Tag 0x0019, IPTCApplication record (17 bytes, string[0,64]):
+  | |     026a: 55 6d 6c 61 75 74 73 3a 20 c3 a4 c3 b6 c3 bc c3 [Umlauts: .......]
+  | |     027a: 9f                                              [.]
+  Warning = JPEG format error

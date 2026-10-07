@@ -19,7 +19,7 @@ package de.stefan_oltmann.kim.common
 import org.khronos.webgl.Int8Array
 import org.khronos.webgl.Uint8Array
 
-internal actual fun decompressBytes(
+internal actual fun decompressBytesPlatform(
     byteArray: ByteArray,
     maxOutputByteCount: Int
 ): ByteArray =
@@ -78,7 +78,8 @@ private fun ByteArray.toUint8Array(): Uint8Array {
 private fun Uint8Array.toByteArray(): ByteArray =
     Int8Array(buffer, byteOffset, length).unsafeCast<ByteArray>()
 
-@Suppress("UnusedPrivateMember", "UnusedParameter") // False positive
+@Suppress("UnusedPrivateMember", "UnusedParameter")
+/*  False positive */
 @JsModule("pako")
 @JsNonModule
 private external object Pako {

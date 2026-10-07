@@ -35,6 +35,8 @@ internal class CopyByteReader(
     override val contentLength: Long =
         byteReader.contentLength
 
+    override val isRetaining: Boolean = true
+
     fun getBytes(): ByteArray =
         byteWriter.toByteArray()
 

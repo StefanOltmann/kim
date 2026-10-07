@@ -72,6 +72,53 @@ object KimTestData {
     const val ANIMATED_AVIF_TEST_IMAGE_WITH_LEGACY_ADOBE_XMP_INDEX: Int = 87
     const val ANIMATED_AVIF_TEST_IMAGE_WITH_ALT_LEGACY_ADOBE_XMP_INDEX: Int = 88
 
+    /*
+     * The MakerNote-bearing rewrite fixtures are outside the generic
+     * 1..TEST_MEDIA_COUNT corpus: only the MakerNote preservation test
+     * reads them, so they need no golden dumps of their own. Their EXIF
+     * was injected from media_1.jpg with ExifTool 13.59.
+     */
+    const val WEBP_WITH_MAKERNOTE_INDEX: Int = 89
+    const val JXL_WITH_MAKERNOTE_INDEX: Int = 90
+
+    /*
+     * Animated WebP, encoded by ffmpeg from two corpus frames and
+     * verified with ExifTool - the only fixture that exercises the
+     * animation chunk pass-through of the WebP rewrite.
+     */
+    const val ANIMATED_WEBP_TEST_IMAGE_INDEX: Int = 91
+
+    /*
+     * Small derivations of the CR3, MOV and RAF corpus files, so the API
+     * contract fuzz covers their parse chains under its 2 MB candidate cap:
+     *
+     * - media_92.cr3 is media_83 truncated behind its metadata boxes with a
+     *   64 KiB mdat slice. ExifTool reads the retained EXIF/XMP unchanged
+     *   and only reports the truncated embedded JPEG.
+     * - media_93.mov is an ffmpeg-encoded clip whose XMP was written and
+     *   verified with ExifTool - the corpus MOV's 5.4 MB moov box exceeds
+     *   the cap, so it cannot be truncated instead.
+     * - media_94.raf is media_58 rebuilt around its truncated embedded JPEG
+     *   (the existing 78 KB header fixture), the original CFA header block
+     *   and a 4 KiB CFA data slice. ExifTool reads it without warnings;
+     *   the moved CFA section is reflected in StripOffsets.
+     * - media_95.png is media_51 kept verbatim through its first 8 KiB
+     *   IDAT chunk and closed with IEND, because rewriting the corpus
+     *   PNG's 1.4 MB picture with every mutation exceeds the default
+     *   runner timeout on JavaScript. Every metadata chunk stays
+     *   byte-exact; the image data is an incomplete zlib stream. ExifTool
+     *   reads it without warnings.
+     * - media_96.gif is media_61 kept through 64 KiB of whole image
+     *   sub-blocks and closed with the block terminator and the trailer
+     *   byte, for the same reason. The XMP application extension stays
+     *   byte-exact; ExifTool reads it without warnings.
+     */
+    const val CR3_FUZZ_CANDIDATE_INDEX: Int = 92
+    const val MOV_FUZZ_CANDIDATE_INDEX: Int = 93
+    const val RAF_FUZZ_CANDIDATE_INDEX: Int = 94
+    const val PNG_FUZZ_CANDIDATE_INDEX: Int = 95
+    const val GIF_FUZZ_CANDIDATE_INDEX: Int = 96
+
     @Suppress("MagicNumber")
     val mediaIdsWithExifThumbnail: Set<Int> = setOf(
         2, 3, 4, 5, 6, 7, 10, 12, 15, 16, 19, 20, 21,
@@ -87,20 +134,20 @@ object KimTestData {
         AVIF_TEST_IMAGE_FROM_JPG_USING_IMAGEMAGICK_INDEX,
         HEIC_TEST_IMAGE_FROM_JPG_USING_IMAGEMAGICK_INDEX,
 
-//        JXL_NAKED_BYTESTREAM_UNCOMPRESSED_INDEX,
-//        JXL_CONTAINER_UNCOMPRESSED_INDEX,
-//        JXL_CONTAINER_COMPRESSED_INDEX,
-
         /*
+         * JXL_NAKED_BYTESTREAM_UNCOMPRESSED_INDEX,
+         * JXL_CONTAINER_UNCOMPRESSED_INDEX,
+         * JXL_CONTAINER_COMPRESSED_INDEX,
+         *
          * DNG files carry thumbnails whose extraction logic does not
          * fit the shared rewrite corpus, so they are excluded from it.
+         * DNG_CR2_TEST_IMAGE_INDEX,
+         * DNG_RAF_TEST_IMAGE_INDEX,
+         * DNG_NEF_TEST_IMAGE_INDEX,
+         * DNG_ARW_TEST_IMAGE_INDEX,
+         * DNG_RW2_TEST_IMAGE_INDEX,
+         * DNG_ORF_TEST_IMAGE_INDEX
          */
-//        DNG_CR2_TEST_IMAGE_INDEX,
-//        DNG_RAF_TEST_IMAGE_INDEX,
-//        DNG_NEF_TEST_IMAGE_INDEX,
-//        DNG_ARW_TEST_IMAGE_INDEX,
-//        DNG_RW2_TEST_IMAGE_INDEX,
-//        DNG_ORF_TEST_IMAGE_INDEX
     )
 
     val pngPhotoIds: Set<Int> = setOf(
@@ -129,6 +176,9 @@ object KimTestData {
     private fun getExtension(index: Int) = when (index) {
         GIF_TEST_IMAGE_INDEX -> "gif"
         WEBP_TEST_IMAGE_INDEX -> "webp"
+        WEBP_WITH_MAKERNOTE_INDEX -> "webp"
+        ANIMATED_WEBP_TEST_IMAGE_INDEX -> "webp"
+        JXL_WITH_MAKERNOTE_INDEX -> "jxl"
         HEIC_TEST_IMAGE_INDEX -> "heic"
         HEIC_TEST_IMAGE_WITH_XMP_INDEX -> "heic"
         AVIF_TEST_IMAGE_FROM_JPG_USING_IMAGEMAGICK_INDEX -> "avif"
@@ -162,6 +212,11 @@ object KimTestData {
         CR3_TEST_IMAGE_INDEX -> "cr3"
         MP4_TEST_VIDEO_INDEX -> "mp4"
         MOV_TEST_VIDEO_INDEX -> "mov"
+        CR3_FUZZ_CANDIDATE_INDEX -> "cr3"
+        MOV_FUZZ_CANDIDATE_INDEX -> "mov"
+        RAF_FUZZ_CANDIDATE_INDEX -> "raf"
+        PNG_FUZZ_CANDIDATE_INDEX -> "png"
+        GIF_FUZZ_CANDIDATE_INDEX -> "gif"
         ANIMATED_AVIF_TEST_IMAGE_INDEX -> "avif"
         ANIMATED_AVIF_TEST_IMAGE_WITH_LEGACY_ADOBE_XMP_INDEX -> "avif"
         ANIMATED_AVIF_TEST_IMAGE_WITH_ALT_LEGACY_ADOBE_XMP_INDEX -> "avif"
@@ -196,6 +251,14 @@ object KimTestData {
 
     fun getExifThumbnailBytesOf(index: Int): ByteArray =
         Resource("$RESOURCE_PATH/exifthumbs/media_${index}_exifthumb.jpg").readBytes()
+
+    /**
+     * A 32x32 JPEG encoded by ffmpeg, usable as thumbnail payload: at
+     * 1 KB it fits into the APP1 segment of every MakerNote-bearing
+     * corpus file, which the full-sized thumbnails do not.
+     */
+    fun getTinyThumbnailBytes(): ByteArray =
+        Resource("$RESOURCE_PATH/exifthumbs/tiny_thumbnail.jpg").readBytes()
 
     fun getPreviewBytesOf(index: Int): ByteArray =
         Resource("$RESOURCE_PATH/previews/media_${index}_preview.jpg").readBytes()

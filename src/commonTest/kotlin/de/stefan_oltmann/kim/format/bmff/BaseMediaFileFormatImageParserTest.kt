@@ -258,6 +258,62 @@ class BaseMediaFileFormatImageParserTest {
     }
 
     /**
+     * Two items of the same metadata type make the authoritative packet
+     * ambiguous: silently letting the last item win would hide the
+     * first item's content from every consumer. Like QuickTime's
+     * duplicate XMP boxes, the read fails instead.
+     */
+    @Test
+    fun testDuplicateMetadataItemsFailTheRead() {
+
+        /* Minimal TIFF: header plus an empty IFD0. */
+        val tiffBytes = convertHexStringToByteArray(
+            "49492A00" + "08000000" + "0000" + "00000000"
+        )
+
+        val exifPayload = ByteArray(TIFF_HEADER_OFFSET_SIZE) + tiffBytes
+
+        val bytes = buildHeicFile(
+            iinfEntries = listOf(
+                ItemSpec(itemId = 1, itemType = BMFFConstants.ITEM_TYPE_EXIF),
+                ItemSpec(itemId = 2, itemType = BMFFConstants.ITEM_TYPE_EXIF)
+            )
+        ) { mdatDataOffset ->
+
+            val ilocBox = box(
+                type = BoxType.ILOC,
+                payload = createIlocPayloadForItems(
+                    items = listOf(
+                        ItemSpec(
+                            itemId = 1,
+                            itemType = BMFFConstants.ITEM_TYPE_EXIF,
+                            extents = listOf(
+                                ExtentSpec(offset = mdatDataOffset, length = exifPayload.size)
+                            )
+                        ),
+                        ItemSpec(
+                            itemId = 2,
+                            itemType = BMFFConstants.ITEM_TYPE_EXIF,
+                            extents = listOf(
+                                ExtentSpec(
+                                    offset = mdatDataOffset + exifPayload.size,
+                                    length = exifPayload.size
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+
+            Pair(ilocBox, exifPayload + exifPayload)
+        }
+
+        assertFailsWith<ImageReadException> {
+            BaseMediaFileFormatImageParser.parseMetadata(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /**
      * Like WebP, JXL and CR3, an XMP item without a `<x:xmpmeta>` element
      * must fail the read instead of being handed to sidecar writers as a
      * corrupt packet.
@@ -329,6 +385,51 @@ class BaseMediaFileFormatImageParserTest {
     }
 
     /**
+     * When the file declares XMP twice - as a metadata item and in a
+     * UUID box - the authoritative packet is ambiguous. Picking one
+     * would silently drop the other from sidecar exports, so the read
+     * fails instead of guessing.
+     */
+    @Test
+    fun testAmbiguousXmpItemAndUuidBoxFailsTheRead() {
+
+        val xmpPayload = "<x:xmpmeta></x:xmpmeta>".encodeToByteArray()
+
+        val uuidBox = box(
+            type = BoxType.UUID,
+            payload = convertHexStringToByteArray(BMFFConstants.XMP_UUID) +
+                "<x:xmpmeta></x:xmpmeta>".encodeToByteArray()
+        )
+
+        val bytes = buildHeicFile(
+            iinfEntries = listOf(ItemSpec(itemId = 1, itemType = ITEM_TYPE_MIME)),
+            prefixBoxes = uuidBox
+        ) { mdatDataOffset ->
+
+            val ilocBox = box(
+                type = BoxType.ILOC,
+                payload = createIlocPayloadForItems(
+                    items = listOf(
+                        ItemSpec(
+                            itemId = 1,
+                            itemType = ITEM_TYPE_MIME,
+                            extents = listOf(
+                                ExtentSpec(offset = mdatDataOffset, length = xmpPayload.size)
+                            )
+                        )
+                    )
+                )
+            )
+
+            Pair(ilocBox, xmpPayload)
+        }
+
+        assertFailsWith<ImageReadException> {
+            BaseMediaFileFormatImageParser.parseMetadata(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /**
      * Builds a version-0 iloc box payload with one EXIF item that is
      * fragmented into two extents.
      */
@@ -360,21 +461,31 @@ class BaseMediaFileFormatImageParserTest {
 
         val writer = ByteArrayByteWriter()
 
-        writer.write(0) /* Version 0: absolute offsets, 2-byte item ids. */
-        writer.write(byteArrayOf(0, 0, 0)) /* Flags */
+        /* Version 0: absolute offsets, 2-byte item ids. */
+        writer.write(0)
+        /* Flags */
+        writer.write(byteArrayOf(0, 0, 0))
 
-        writer.write(0x44) /* Offset size 4, length size 4 */
-        writer.write(0x00) /* Base offset size 0, no index */
+        /* Offset size 4, length size 4 */
+        writer.write(0x44)
+        /* Base offset size 0, no index */
+        writer.write(0x00)
 
-        writer.write2BytesAsInt(items.size, BMFF_BYTE_ORDER) /* Item count */
+        /* Item count */
+        writer.write2BytesAsInt(items.size, BMFF_BYTE_ORDER)
 
         for (item in items) {
 
-            writer.write2BytesAsInt(item.itemId, BMFF_BYTE_ORDER) /* Item id */
-            /* Version 0 has no construction method field. */
-            writer.write2BytesAsInt(0, BMFF_BYTE_ORDER) /* Data reference index */
+            /* Item id */
+            writer.write2BytesAsInt(item.itemId, BMFF_BYTE_ORDER)
+            /*
+             * Version 0 has no construction method field.
+             * Data reference index.
+             */
+            writer.write2BytesAsInt(0, BMFF_BYTE_ORDER)
 
-            writer.write2BytesAsInt(item.extents.size, BMFF_BYTE_ORDER) /* Extent count */
+            /* Extent count */
+            writer.write2BytesAsInt(item.extents.size, BMFF_BYTE_ORDER)
 
             for (extent in item.extents) {
                 writer.writeInt(extent.offset.toInt(), BMFF_BYTE_ORDER)
@@ -396,6 +507,7 @@ class BaseMediaFileFormatImageParserTest {
      */
     private fun buildHeicFile(
         iinfEntries: List<ItemSpec>,
+        prefixBoxes: ByteArray = ByteArray(0),
         buildParts: (mdatDataOffset: Long) -> Pair<ByteArray, ByteArray>
     ): ByteArray {
 
@@ -422,7 +534,7 @@ class BaseMediaFileFormatImageParserTest {
         )
 
         val mdatDataOffset: Long =
-            (ftypBox.size + metaBox.size + 8).toLong()
+            (ftypBox.size + prefixBoxes.size + metaBox.size + 8).toLong()
 
         val (ilocBox, mdatPayload) = buildParts(mdatDataOffset)
 
@@ -433,7 +545,7 @@ class BaseMediaFileFormatImageParserTest {
 
         val mdatBox = box(type = BoxType.MDAT, payload = mdatPayload)
 
-        return ftypBox + realMetaBox + mdatBox
+        return ftypBox + prefixBoxes + realMetaBox + mdatBox
     }
 
     private companion object {

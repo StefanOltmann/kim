@@ -18,7 +18,7 @@ package de.stefan_oltmann.kim.format.tiff.makernote.fujifilm
 /**
  * Values of the FujiFilm Saturation tag.
  *
- * See https://exiftool.sourceforge.net/TagNames/FujiFilm.html#FujiFilm
+ * See https://exiftool.sourceforge.net/TagNames/FujiFilm.html
  */
 @Suppress("MaxLineLength")
 public enum class FujiFilmSaturation(

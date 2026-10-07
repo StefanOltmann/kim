@@ -17,26 +17,26 @@ package de.stefan_oltmann.kim.format.bmff.box
 
 import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BoxType
-import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.format.bmff.PayloadSource
 
 /**
  * User Data box
  *
  * This box contains multiple UUID boxes.
  */
-public class UserDataBox(
+public class UserDataBox internal constructor(
     offset: Long,
     size: Long,
     largeSize: Long?,
-    payload: ByteArray,
+    payloadSource: PayloadSource,
     depth: Int = 0
-) : Box(BoxType.UDTA, offset, size, largeSize, payload), BoxContainer {
+) : Box(BoxType.UDTA, offset, size, largeSize, payloadSource), BoxContainer {
 
     override val boxes: List<Box>
 
     init {
 
-        val byteReader = ByteArrayByteReader(payload)
+        val byteReader = payloadSource.reader()
 
         boxes = BoxReader.readChildBoxes(
             byteReader = byteReader,
@@ -45,4 +45,12 @@ public class UserDataBox(
             offsetShift = offset + 8
         )
     }
+
+    public constructor(
+        offset: Long,
+        size: Long,
+        largeSize: Long?,
+        payload: ByteArray,
+        depth: Int = 0
+    ) : this(offset, size, largeSize, PayloadSource.of(payload), depth)
 }

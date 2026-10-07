@@ -17,13 +17,13 @@
  */
 package de.stefan_oltmann.kim.format.bmff.box
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.FLAGS_LENGTH
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.readByteAsInt
 import de.stefan_oltmann.kim.input.readBytes
-import de.stefan_oltmann.kim.input.readNullTerminatedString
 import de.stefan_oltmann.kim.input.skipBytes
 
 /**
@@ -62,7 +62,31 @@ public class HandlerReferenceBox(
 
         byteReader.skipBytes("reserved", RESERVED_LENGTH)
 
-        name = byteReader.readNullTerminatedString("name")
+        /*
+         * ISO/IEC 14496-12 writes the name NUL-terminated, QuickTime
+         * writes a Pascal string: one length byte plus that many bytes,
+         * without a terminator - the form ffmpeg writes for MOV files.
+         * A NUL byte decides; only a field without one whose first byte
+         * matches the exact remaining count is read as a Pascal string.
+         * The length byte is unsigned, so the high bit must not turn it
+         * into a negative number for names longer than 127 bytes.
+         */
+        val nameField = payload.copyOfRange(NAME_FIELD_OFFSET, payload.size)
+
+        val terminatorIndex = nameField.indexOf(0)
+
+        name =
+            when {
+                terminatorIndex >= 0 ->
+                    nameField.decodeToString(0, terminatorIndex)
+
+                nameField.isNotEmpty() &&
+                    (nameField[0].toInt() and UNSIGNED_BYTE_MASK) == nameField.size - 1 ->
+                    nameField.decodeToString(1, nameField.size)
+
+                else ->
+                    throw ImageReadException("No bytes for name, never reached terminator byte.")
+            }
     }
 
     override fun toString(): String =
@@ -82,5 +106,12 @@ public class HandlerReferenceBox(
 
         /* The reserved field is 12 bytes */
         const val RESERVED_LENGTH = 12
+
+        /* Version, flags, pre-defined, handler type and reserved. */
+        const val NAME_FIELD_OFFSET =
+            1 + FLAGS_LENGTH + PRE_DEFINED_LENGTH + HANDLER_TYPE_LENGTH + RESERVED_LENGTH
+
+        /* The Pascal length byte is unsigned. */
+        const val UNSIGNED_BYTE_MASK = 0xFF
     }
 }

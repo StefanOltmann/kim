@@ -16,6 +16,7 @@
 package de.stefan_oltmann.kim.format.quicktime
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.decodeStrictUtf8
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaMetadata
@@ -54,9 +55,9 @@ public object QuickTimeImageParser : ImageParser {
      */
     private fun extractXmpPacket(box: Box): String? =
         if (box is UuidBox)
-            box.data.decodeToString()
+            box.data.decodeStrictUtf8("The video XMP UUID box")
         else
-            box.payload.decodeToString()
+            box.payload.decodeStrictUtf8("The video XMP_ box")
 
     override fun parseMetadata(byteReader: ByteReader): MediaMetadata =
         tryWithImageReadException {
@@ -81,7 +82,21 @@ public object QuickTimeImageParser : ImageParser {
      */
     internal fun createMetadata(allBoxes: List<Box>): MediaMetadata {
 
-        val movieBox = allBoxes.filterIsInstance<MovieBox>().firstOrNull()
+        val movieBoxes = allBoxes.filterIsInstance<MovieBox>()
+
+        /*
+         * A file with two moov boxes can carry metadata in each, so
+         * reporting only the first would present an arbitrary pick as the
+         * metadata of the video - the same ambiguity rule the duplicate
+         * XMP boxes below follow.
+         */
+        if (movieBoxes.size > 1)
+            throw ImageReadException(
+                "The video contains multiple moov boxes, " +
+                    "so the metadata that an update applies to is ambiguous."
+            )
+
+        val movieBox = movieBoxes.firstOrNull()
             ?: throw ImageReadException("Illegal ISOBMFF: Has no 'moov' Box.")
 
         val userDataBox = movieBox.boxes.filterIsInstance<UserDataBox>().firstOrNull()
@@ -116,11 +131,13 @@ public object QuickTimeImageParser : ImageParser {
         )
 
         return MediaMetadata(
-            mediaFormat = null, /* Set by Kim.readMetadata from the detected format. */
+            /* Set by Kim.readMetadata from the detected format. */
+            mediaFormat = null,
             imageSize = findVideoTrackImageSize(movieBox),
             exif = exif,
             exifBytes = mvtgBox?.payload,
-            iptc = null, /* Not existent in MOV & MP4. */
+            /* Not existent in MOV & MP4. */
+            iptc = null,
             xmp = xmp
         )
     }

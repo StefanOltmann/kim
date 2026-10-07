@@ -19,6 +19,7 @@ import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
+import de.stefan_oltmann.kim.testdata.containsBytes
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -92,25 +93,6 @@ class JpegIndependentMetadataBlocksTest {
         return bytes.toByteArray()
     }
 
-    private fun containsSubArray(haystack: ByteArray, needle: ByteArray): Boolean {
-
-        if (needle.isEmpty() || needle.size > haystack.size)
-            return false
-
-        outer@ for (start in 0..haystack.size - needle.size) {
-
-            for (index in needle.indices) {
-
-                if (haystack[start + index] != needle[index])
-                    continue@outer
-            }
-
-            return true
-        }
-
-        return false
-    }
-
     @Test
     fun testUpdatePreservesIndependentSecondExifBlock() {
 
@@ -132,11 +114,11 @@ class JpegIndependentMetadataBlocksTest {
         )
 
         /* The first block was rebuilt by the update. */
-        assertFalse(containsSubArray(updatedBytes, firstExif.segmentBytes))
+        assertFalse(updatedBytes.containsBytes(firstExif.segmentBytes))
 
         /* The independent second block survived byte-exact. */
         assertTrue(
-            containsSubArray(updatedBytes, secondExif.segmentBytes),
+            updatedBytes.containsBytes(secondExif.segmentBytes),
             "The independent second EXIF block was removed by the update."
         )
     }
@@ -171,11 +153,11 @@ class JpegIndependentMetadataBlocksTest {
         )
 
         /* The first packet was rebuilt by the update. */
-        assertFalse(containsSubArray(updatedBytes, firstXmp.segmentBytes))
+        assertFalse(updatedBytes.containsBytes(firstXmp.segmentBytes))
 
         /* The independent second packet survived byte-exact. */
         assertTrue(
-            containsSubArray(updatedBytes, secondXmp.segmentBytes),
+            updatedBytes.containsBytes(secondXmp.segmentBytes),
             "The independent second XMP packet was removed by the update."
         )
     }

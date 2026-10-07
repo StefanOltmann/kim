@@ -40,6 +40,7 @@ public enum class MediaFormat(
     WEBP(MediaFormatType.IMAGE, "image/webp", "org.webmproject.webp", setOf("webp")),
     TIFF(MediaFormatType.IMAGE, "image/tiff", "public.tiff", setOf("tif", "tiff")),
     HEIC(MediaFormatType.IMAGE, "image/heic", "public.heic", setOf("heic")),
+    HIF(MediaFormatType.IMAGE, "image/heif", "public.heif", setOf("hif", "heif")),
     AVIF(MediaFormatType.IMAGE, "image/avif", "public.avif", setOf("avif")),
     CR2(MediaFormatType.IMAGE, "image/x-canon-cr2", "com.canon.cr2-raw-image", setOf("cr2")),
     CR3(MediaFormatType.IMAGE, "image/x-canon-cr3", "com.canon.cr3", setOf("cr3")),
@@ -139,7 +140,10 @@ public enum class MediaFormat(
         }
 
         /**
-         * Detects JPEG, GIF, PNG, TIFF & WEBP files based on the header bytes.
+         * Detects the media format of the given file based on its header
+         * magic bytes: every format in this enum that carries header magic
+         * numbers, including the TIFF based RAW formats, JXL, HEIC, AVIF,
+         * CR3 and the MP4/MOV brands.
          *
          * If the byte array is less than REQUIRED_HEADER_BYTE_COUNT_FOR_DETECTION
          * (for example empty) than the detection returns null.
@@ -199,7 +203,13 @@ public enum class MediaFormat(
                 bytes.startsWithNullable(MediaFormatMagicNumbers.heic) -> HEIC
                 bytes.startsWithNullable(MediaFormatMagicNumbers.mif1) -> HEIC
                 bytes.startsWithNullable(MediaFormatMagicNumbers.msf1) -> HEIC
-                bytes.startsWithNullable(MediaFormatMagicNumbers.heix) -> HEIC
+
+                /*
+                 * A heix major brand without a heic compatible brand in
+                 * the detection window is a plain HEIF, which Panasonic
+                 * cameras store as HIF.
+                 */
+                bytes.startsWithNullable(MediaFormatMagicNumbers.heix) -> HIF
                 bytes.startsWithNullable(MediaFormatMagicNumbers.hevc) -> HEIC
                 bytes.startsWithNullable(MediaFormatMagicNumbers.hevx) -> HEIC
 

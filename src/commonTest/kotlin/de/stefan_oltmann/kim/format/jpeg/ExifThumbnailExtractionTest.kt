@@ -21,7 +21,9 @@ import de.stefan_oltmann.kim.common.writeBytes
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlinx.io.files.Path
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.fail
 
 class ExifThumbnailExtractionTest {
@@ -66,5 +68,32 @@ class ExifThumbnailExtractionTest {
                 fail("Media $index has not the expected bytes!")
             }
         }
+    }
+
+    /**
+     * The EXIF thumbnail is defined in the root chain: it comes from the
+     * IFD1 directory, falling back to IFD0 for the Fujifilm MVTG
+     * structure of QuickTime videos. Sub-IFD previews must not masquerade
+     * as the thumbnail - the Sony ARW carries a 736 KB preview on its
+     * IFD0 next to the real 3884-byte IFD1 thumbnail, and the Nikon NEF
+     * has no IFD1 at all, where ExifTool also reports no thumbnail.
+     */
+    @Test
+    fun testThumbnailComesFromTheRootChainOnly() {
+
+        val arwBytes = KimTestData.getBytesOf(KimTestData.ARW_TEST_IMAGE_INDEX)
+
+        assertEquals(
+            expected = 3884,
+            actual = Kim.readMetadata(arwBytes)?.getExifThumbnailBytes()?.size,
+            "The ARW thumbnail must be the 3884-byte IFD1 thumbnail, not the SubIFD preview."
+        )
+
+        val nefBytes = KimTestData.getBytesOf(KimTestData.NEF_TEST_IMAGE_INDEX)
+
+        assertNull(
+            Kim.readMetadata(nefBytes)?.getExifThumbnailBytes(),
+            "The NEF has no IFD1, so it must report no EXIF thumbnail."
+        )
     }
 }

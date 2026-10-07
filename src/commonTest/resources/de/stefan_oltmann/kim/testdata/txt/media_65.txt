@@ -465,3 +465,34 @@ Little-endian (Intel, II)
 0000007920 0x1800 Olympus_FocusInfo_0x1800 = 0
 0000007932 0x1801 Olympus_FocusInfo_0x1801 = 21314
 
+---- PrintIM ----
+PrintIMVersion = 0300
+PrintIM_0x0001 = 1179666
+PrintIM_0x0002 = 1
+PrintIM_0x0003 = 240
+PrintIM_0x0007 = 0
+PrintIM_0x0008 = 0
+PrintIM_0x0009 = 0
+PrintIM_0x000a = 0
+PrintIM_0x000b = 312
+PrintIM_0x000c = 0
+PrintIM_0x000d = 0
+PrintIM_0x000e = 336
+PrintIM_0x0010 = 352
+PrintIM_0x0020 = 436
+PrintIM_0x0100 = 3
+PrintIM_0x0101 = 0
+PrintIM_0x0110 = 128
+PrintIM_0x0200 = 0
+PrintIM_0x0207 = 0
+PrintIM_0x0208 = 0
+PrintIM_0x0209 = 0
+PrintIM_0x020a = 0
+PrintIM_0x020b = 504
+PrintIM_0x020d = 0
+PrintIM_0x0220 = 470
+PrintIM_0x0300 = 3
+PrintIM_0x0301 = 0
+PrintIM_0x0310 = 128
+PrintIM_0x0400 = 0
+

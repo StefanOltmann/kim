@@ -243,7 +243,6 @@ public object ExifTag {
         TiffDirectoryType.EXIF_DIRECTORY_EXIF_IFD
     )
 
-
     /**
      * The f-number of the lens.
      */
@@ -338,7 +337,7 @@ public object ExifTag {
     )
 
     public val EXIF_TAG_SEMINFO: TagInfoAscii = TagInfoAscii(
-        0x8546, "SEMInfo", 1,
+        0x8546, "SEMInfo", TagInfo.LENGTH_UNKNOWN,
         TIFF_DIRECTORY_IFD0
     )
 
@@ -833,7 +832,6 @@ public object ExifTag {
         0x9217, "SensingMethod",
         TiffDirectoryType.EXIF_DIRECTORY_EXIF_IFD
     )
-
 
     /**
      * The image sensor type of the camera.

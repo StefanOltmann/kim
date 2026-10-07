@@ -17,6 +17,7 @@ package de.stefan_oltmann.kim.format.tiff.fieldtype
 
 import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.decodeStrictUtf8
 import de.stefan_oltmann.kim.common.indexOfNullTerminator
 import de.stefan_oltmann.kim.common.slice
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
@@ -45,10 +46,16 @@ public data object FieldTypeUtf8 : FieldType<String> {
         if (length == 0)
             return ""
 
+        /*
+         * The type is declared as UTF-8, so bytes that are no valid
+         * UTF-8 are corrupt content - replacement decoding would
+         * present corrupted text as clean, which the strict read
+         * policy forbids.
+         */
         return bytes.slice(
             startIndex = 0,
             count = length
-        ).decodeToString()
+        ).decodeStrictUtf8("The TIFF UTF8 field value")
     }
 
     override fun writeData(data: Any, byteOrder: ByteOrder): ByteArray {

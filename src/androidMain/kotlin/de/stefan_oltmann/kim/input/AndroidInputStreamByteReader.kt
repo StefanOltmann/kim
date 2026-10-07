@@ -32,14 +32,13 @@ public open class AndroidInputStreamByteReader(
     contentLength = contentLength
 ) {
 
-    override fun readBytes(count: Int): ByteArray {
-        require(count >= 0) { "Count must not be negative: $count" }
+    override fun readBytesImpl(count: Int): ByteArray {
 
         /*
          * On Android 13 and later use the more efficient API.
          */
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-            return super.readBytes(count)
+            return super.readBytesImpl(count)
 
         /*
          * Fall back to old API that works on all versions.

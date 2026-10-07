@@ -23,6 +23,7 @@ import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaMetadata
+import de.stefan_oltmann.kim.format.icc.IccProfileParser
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
@@ -32,6 +33,7 @@ import de.stefan_oltmann.kim.format.png.PngCrc.finishPartialCrc
 import de.stefan_oltmann.kim.format.png.PngCrc.startPartialCrc
 import de.stefan_oltmann.kim.format.png.chunk.PngChunk
 import de.stefan_oltmann.kim.format.png.chunk.PngChunkExif
+import de.stefan_oltmann.kim.format.png.chunk.PngChunkIccp
 import de.stefan_oltmann.kim.format.png.chunk.PngChunkIhdr
 import de.stefan_oltmann.kim.format.png.chunk.PngChunkItxt
 import de.stefan_oltmann.kim.format.png.chunk.PngChunkText
@@ -39,6 +41,7 @@ import de.stefan_oltmann.kim.format.png.chunk.PngChunkZtxt
 import de.stefan_oltmann.kim.format.png.chunk.PngTextChunk
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffReader
+import de.stefan_oltmann.kim.format.xmp.requireValidXmpPacket
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.read4BytesAsInt
 import de.stefan_oltmann.kim.input.readAndVerifyBytes
@@ -54,6 +57,13 @@ import kotlin.jvm.JvmStatic
  */
 public object PngImageParser : ImageParser {
 
+    /*
+     * The payload of every kept chunk is buffered, so like the JPEG
+     * path's header segment budget, a hostile file of oversized
+     * metadata chunks must not accumulate unboundedly.
+     */
+    internal const val MAX_RETAINED_CHUNK_BYTES: Int = 16 * 1024 * 1024
+
     /* Note that [\\p{Cntrl}] does not work for Kotlin/JS. */
     private val controlCharRegex = Regex("""[\x00-\x1F\x7F-\x9F]""")
 
@@ -63,7 +73,8 @@ public object PngImageParser : ImageParser {
         PngChunkType.ZTXT,
         PngChunkType.ITXT,
         PngChunkType.EXIF,
-        PngChunkType.ZXIF
+        PngChunkType.ZXIF,
+        PngChunkType.ICCP
     )
 
     @Throws(ImageReadException::class)
@@ -113,7 +124,19 @@ public object PngImageParser : ImageParser {
 
             val iptc = getIptcFromTextChunk(chunks)
 
-            val xmp = getXmpXml(chunks)
+            /*
+             * A packet cut between the opening and the closing element
+             * is truncated content: it must fail the read like it fails
+             * the update path, instead of reaching sidecar writers.
+             */
+            val xmp = requireValidXmpPacket(
+                xmp = getXmpXml(chunks),
+                sourceDescription = "The PNG XMP text chunk"
+            )
+
+            val iccProfile = chunks.filterIsInstance<PngChunkIccp>()
+                .firstOrNull()
+                ?.let { chunk -> IccProfileParser.parse(chunk.profileBytes) }
 
             return@tryWithImageReadException MediaMetadata(
                 mediaFormat = MediaFormat.PNG,
@@ -121,7 +144,8 @@ public object PngImageParser : ImageParser {
                 exif = exifPair?.second,
                 exifBytes = exifPair?.first,
                 iptc = iptc,
-                xmp = xmp
+                xmp = xmp,
+                iccProfile = iccProfile
             )
         }
 
@@ -224,9 +248,16 @@ public object PngImageParser : ImageParser {
 
         val index = chunkText.indexOf(identifierHex)
 
-        /* If we did not find the identifier we may have invalid data. */
+        /*
+         * The keyword is present, so the chunk claims to carry this
+         * profile. Without the identifier its content is metadata that
+         * cannot be read cleanly - per the strict read policy the read
+         * fails instead of silently dropping it.
+         */
         if (index == -1)
-            return null
+            throw ImageReadException(
+                "The $profileName text chunk of the PNG has no profile identifier."
+            )
 
         /*
          * The profile text is HEX encoded and contains control chars.
@@ -238,11 +269,14 @@ public object PngImageParser : ImageParser {
             .trim()
 
         /*
-         * The chunk content is file-controlled and may be garbage, which
-         * is ignored instead of failing the read.
+         * The chunk claims to carry the profile, so content that is not
+         * hex encoded cannot be read cleanly - the read fails instead
+         * of silently dropping it.
          */
         if (!profileText.isValidHexString())
-            return null
+            throw ImageReadException(
+                "The $profileName text chunk of the PNG is not hex encoded."
+            )
 
         if (profileText.length % 2 != 0)
             throw ImageReadException("The $profileName text chunk of the PNG is truncated.")
@@ -262,7 +296,7 @@ public object PngImageParser : ImageParser {
 
     /**
      * Whether the string consists of hex digits only, so a profile that
-     * is not hex encoded is ignored instead of failing the conversion.
+     * is not hex encoded fails the read.
      */
     private fun String.isValidHexString(): Boolean =
         isNotEmpty() && all { it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }
@@ -337,6 +371,19 @@ public object PngImageParser : ImageParser {
         val chunks = mutableListOf<PngChunk>()
 
         /*
+         * The budget only guards the metadata-scoped reads: a full-file
+         * rewrite (updateThumbnail, public writeImage) inherently buffers
+         * the whole image, so counting its image data against a metadata
+         * budget would fail legitimate files. The metadata reads
+         * (metadata filter, or the walk that stops at the image data)
+         * buffer only metadata, and that is what the budget protects.
+         */
+        val enforceRetainedBudget =
+            chunkTypeFilter != null || imageDataHeaderWriter != null
+
+        var retainedChunkBytes = 0L
+
+        /*
          * Only the first EXIF chunk is parsed; like ExifTool, later ones
          * are ignored instead of failing or merging the read.
          */
@@ -365,6 +412,18 @@ public object PngImageParser : ImageParser {
 
             var bytes: ByteArray? = null
 
+            /*
+             * Validate before allocating: a single hostile chunk declaring
+             * hundreds of megabytes must fail without materializing its
+             * payload first.
+             */
+            if (keep && enforceRetainedBudget &&
+                retainedChunkBytes + length > MAX_RETAINED_CHUNK_BYTES
+            )
+                throw ImageReadException(
+                    "The PNG metadata chunks exceed $MAX_RETAINED_CHUNK_BYTES bytes."
+                )
+
             if (keep)
                 bytes = byteReader.readBytes("chunk data", length)
             else
@@ -375,6 +434,8 @@ public object PngImageParser : ImageParser {
             if (keep) {
 
                 requireNotNull(bytes)
+
+                retainedChunkBytes += bytes.size
 
                 verifyChunkCrc(chunkType, bytes, crc)
 
@@ -441,6 +502,9 @@ public object PngImageParser : ImageParser {
 
             PngChunkType.ITXT ->
                 PngChunkItxt(bytes, crc)
+
+            PngChunkType.ICCP ->
+                PngChunkIccp(bytes, crc)
 
             /*
              * A later duplicate EXIF chunk is ignored like

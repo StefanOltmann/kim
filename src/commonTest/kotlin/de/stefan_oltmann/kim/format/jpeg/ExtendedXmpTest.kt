@@ -57,8 +57,8 @@ class ExtendedXmpTest {
         val xmp = Kim.readMetadata(jpegBytes)?.xmp
 
         assertNotNull(xmp)
-        assertFalse(!xmp.contains("Main Title"))
-        assertFalse(!xmp.contains("EXTENDED_VALUE"))
+        assertTrue(xmp.contains("Main Title"), "Merged packet lost the main packet property.")
+        assertTrue(xmp.contains("EXTENDED_VALUE"), "Merged packet lost the extended property.")
     }
 
     /**
@@ -291,8 +291,10 @@ class ExtendedXmpTest {
             extensionPayloads = emptyList()
         )
 
-        /* A packet as a reader round-trips it: it still contains the
-           reference of a previous extended-XMP write. */
+        /*
+         * A packet as a reader round-trips it: it still contains the
+         * reference of a previous extended-XMP write.
+         */
         val packetWithStaleReference = buildMainPacket(GUID)
 
         val byteWriter = ByteArrayByteWriter()
@@ -306,6 +308,100 @@ class ExtendedXmpTest {
         val newBytes = byteWriter.toByteArray()
 
         assertFalse(newBytes.decodeToString().contains(GUID))
+
+        /* The output must remain readable. */
+        assertNotNull(Kim.readMetadata(newBytes))
+    }
+
+    /**
+     * Extension segments whose GUID no packet references are sanctioned
+     * garbage category 4: the read skips them instead of failing, so
+     * real-world files that carry orphan chunks from a lost main packet
+     * stay readable.
+     */
+    @Test
+    fun testReadMetadataSkipsOrphanExtendedXmp() {
+
+        /* Standard XMP without any extended reference. */
+        val plainPacket = """
+            <?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>
+            <x:xmpmeta xmlns:x="adobe:ns:meta/">
+             <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/">
+               <dc:title><rdf:Alt><rdf:li xml:lang="x-default">Main Title</rdf:li></rdf:Alt></dc:title>
+              </rdf:Description>
+             </rdf:RDF>
+            </x:xmpmeta>
+            <?xpacket end="w"?>
+        """.trimIndent()
+
+        val orphanXml =
+            MINIMAL_HEADER +
+                "<rdf:Description rdf:about=\"\" " +
+                "xmlns:custom=\"http://example.com/custom/\">" +
+                "<custom:Extra>EXTENDED_VALUE</custom:Extra>" +
+                "</rdf:Description>" +
+                MINIMAL_FOOTER
+
+        val jpegBytes = createJpegWithExtendedXmp(
+            mainPacket = plainPacket,
+            extensionPayloads = listOf(buildExtensionPayload(GUID, orphanXml))
+        )
+
+        val xmp = Kim.readMetadata(jpegBytes)?.xmp
+
+        assertNotNull(xmp)
+        assertTrue(xmp.contains("Main Title"), "The main packet must survive the orphan chunk.")
+        assertFalse(xmp.contains("EXTENDED_VALUE"), "The orphan content must not be merged.")
+    }
+
+    /**
+     * An XMP-writing update removes the orphan extension bytes, so no
+     * undeletable garbage round-trips through every subsequent write.
+     */
+    @Test
+    fun testUpdateXmpXmlRemovesOrphanExtendedXmpBytes() {
+
+        /* Standard XMP without any extended reference. */
+        val plainPacket = """
+            <?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>
+            <x:xmpmeta xmlns:x="adobe:ns:meta/">
+             <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/">
+               <dc:title><rdf:Alt><rdf:li xml:lang="x-default">Main Title</rdf:li></rdf:Alt></dc:title>
+              </rdf:Description>
+             </rdf:RDF>
+            </x:xmpmeta>
+            <?xpacket end="w"?>
+        """.trimIndent()
+
+        val orphanXml =
+            MINIMAL_HEADER +
+                "<rdf:Description rdf:about=\"\" " +
+                "xmlns:custom=\"http://example.com/custom/\">" +
+                "<custom:Extra>EXTENDED_VALUE</custom:Extra>" +
+                "</rdf:Description>" +
+                MINIMAL_FOOTER
+
+        val jpegBytes = createJpegWithExtendedXmp(
+            mainPacket = plainPacket,
+            extensionPayloads = listOf(buildExtensionPayload(GUID, orphanXml))
+        )
+
+        val byteWriter = ByteArrayByteWriter()
+
+        JpegRewriter.updateXmpXml(
+            byteReader = ByteArrayByteReader(jpegBytes),
+            byteWriter = byteWriter,
+            xmpXml = plainPacket
+        )
+
+        val newBytes = byteWriter.toByteArray()
+
+        assertFalse(
+            newBytes.decodeToString().contains("http://ns.adobe.com/xmp/extension/"),
+            "The orphan extension segment must be removed from the rewrite."
+        )
 
         /* The output must remain readable. */
         assertNotNull(Kim.readMetadata(newBytes))
@@ -382,8 +478,10 @@ class ExtendedXmpTest {
 
         val jpegBytes = createJpegWithExtendedXmp(
             mainPacket = buildMainPacket(guid),
-            /* The chunk claims offset 200 behind a 50-byte first chunk,
-               leaving a gap of 150 bytes. */
+            /*
+             * The chunk claims offset 200 behind a 50-byte first chunk,
+             * leaving a gap of 150 bytes.
+             */
             extensionPayloads = listOf(
                 buildExtensionPayload(guid, extendedXml, chunkOffset = 200)
             )
@@ -405,8 +503,10 @@ class ExtendedXmpTest {
 
         val hugeValue = "x".repeat(JpegConstants.MAX_XMP_BYTES_PER_SEGMENT + 100)
 
-        /* One description carries both the stale reference (attribute
-           form) and real properties. */
+        /*
+         * One description carries both the stale reference (attribute
+         * form) and real properties.
+         */
         val hugeXmp =
             """<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>""" +
                 """<x:xmpmeta xmlns:x="adobe:ns:meta/">""" +
@@ -438,8 +538,10 @@ class ExtendedXmpTest {
     @Test
     fun testUpdateXmpXmlKeepsDuplicateDescriptionOccurrences() {
 
-        /* Two byte-identical mid-size blocks, so only the first fits into
-           the main packet and the second must move to the extended data. */
+        /*
+         * Two byte-identical mid-size blocks, so only the first fits into
+         * the main packet and the second must move to the extended data.
+         */
         val duplicateBlock =
             """<rdf:Description rdf:about="" xmlns:custom="http://example.com/custom/">""" +
                 "<custom:Mark>KEEPME</custom:Mark>" +
@@ -564,7 +666,8 @@ class ExtendedXmpTest {
 
         val bytes = ByteArrayByteWriter()
 
-        bytes.write(byteArrayOf(0xFF.toByte(), 0xD8.toByte())) /* SOI */
+        /* SOI */
+        bytes.write(byteArrayOf(0xFF.toByte(), 0xD8.toByte()))
 
         val xmpPayload =
             convertHexStringToByteArray(XMP_IDENTIFIER_HEX) + mainPacket.encodeToByteArray()
@@ -577,7 +680,8 @@ class ExtendedXmpTest {
         /* SOS with minimal scan data. */
         bytes.write(byteArrayOf(0xFF.toByte(), 0xDA.toByte(), 0, 8, 1, 1, 0, 0, 63.toByte(), 0))
         bytes.write(byteArrayOf(0x11, 0x22, 0x33, 0x44))
-        bytes.write(byteArrayOf(0xFF.toByte(), 0xD9.toByte())) /* EOI */
+        /* EOI */
+        bytes.write(byteArrayOf(0xFF.toByte(), 0xD9.toByte()))
 
         return bytes.toByteArray()
     }

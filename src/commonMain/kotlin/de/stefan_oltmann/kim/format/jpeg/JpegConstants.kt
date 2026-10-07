@@ -33,72 +33,114 @@ public object JpegConstants {
     /*
      * Max payload bytes per APP1 segment. The 2-byte segment length field
      * counts into the segment size, so payloads may not exceed 65533 bytes.
-     */
+    */
     public const val MAX_PAYLOAD_BYTES_PER_SEGMENT: Int = MAX_SEGMENT_SIZE - 2
 
     public val JFIF0_SIGNATURE: ByteArray = byteArrayOf(
-        0x4a, // J
-        0x46, // F
-        0x49, // I
-        0x46, // F
+        /* J */
+        0x4a,
+        /* F */
+        0x46,
+        /* I */
+        0x49,
+        /* F */
+        0x46,
         0x0
     )
 
     public val JFIF0_SIGNATURE_ALTERNATIVE: ByteArray = byteArrayOf(
-        0x4A, // J
-        0x46, // F
-        0x49, // I
-        0x46, // F
+        /* J */
+        0x4A,
+        /* F */
+        0x46,
+        /* I */
+        0x49,
+        /* F */
+        0x46,
         0x20
     )
 
     public val EXIF_IDENTIFIER_CODE: ByteArray = byteArrayOf(
-        0x45, // E
-        0x78, // x
-        0x69, // i
-        0x66, // f
-        0, // NUL
-        0 // NUL
+        /* E */
+        0x45,
+        /* x */
+        0x78,
+        /* i */
+        0x69,
+        /* f */
+        0x66,
+        /* NUL */
+        0,
+        /* NUL */
+        0
     )
 
     public const val EXIF_IDENTIFIER_CODE_HEX: String = "457869660000"
 
     public val XMP_IDENTIFIER: ByteArray = byteArrayOf(
-        0x68, // h
-        0x74, // t
-        0x74, // t
-        0x70, // p
-        0x3A, // :
-        0x2F, // /
-        0x2F, // /
-        0x6E, // n
-        0x73, // s
-        0x2E, // .
-        0x61, // a
-        0x64, // d
-        0x6F, // o
-        0x62, // b
-        0x65, // e
-        0x2E, // .
-        0x63, // c
-        0x6F, // o
-        0x6D, // m
-        0x2F, // /
-        0x78, // x
-        0x61, // a
-        0x70, // p
-        0x2F, // /
-        0x31, // 1
-        0x2E, // .
-        0x30, // 0
-        0x2F, // /
+        /* h */
+        0x68,
+        /* t */
+        0x74,
+        /* t */
+        0x74,
+        /* p */
+        0x70,
+        /* : */
+        0x3A,
+        /* / */
+        0x2F,
+        /* / */
+        0x2F,
+        /* n */
+        0x6E,
+        /* s */
+        0x73,
+        /* . */
+        0x2E,
+        /* a */
+        0x61,
+        /* d */
+        0x64,
+        /* o */
+        0x6F,
+        /* b */
+        0x62,
+        /* e */
+        0x65,
+        /* . */
+        0x2E,
+        /* c */
+        0x63,
+        /* o */
+        0x6F,
+        /* m */
+        0x6D,
+        /* / */
+        0x2F,
+        /* x */
+        0x78,
+        /* a */
+        0x61,
+        /* p */
+        0x70,
+        /* / */
+        0x2F,
+        /* 1 */
+        0x31,
+        /* . */
+        0x2E,
+        /* 0 */
+        0x30,
+        /* / */
+        0x2F,
         0
     )
 
     /*
      * Max XML bytes per XMP APP1 segment. The XMP identifier (29 bytes)
      * counts into the segment payload.
-     */
+    */
     public val MAX_XMP_BYTES_PER_SEGMENT: Int =
         MAX_PAYLOAD_BYTES_PER_SEGMENT - XMP_IDENTIFIER.size
 
@@ -106,7 +148,7 @@ public object JpegConstants {
      * Identifier of Adobe extended XMP segments ("http://ns.adobe.com/xmp/extension/"
      * + NUL). Oversized XMP is written as a normal packet plus one or more of
      * these segments, exactly like ExifTool and the Adobe SDK do it.
-     */
+    */
     public val EXTENDED_XMP_IDENTIFIER: ByteArray =
         "http://ns.adobe.com/xmp/extension/\u0000".encodeToByteArray()
 
@@ -140,6 +182,26 @@ public object JpegConstants {
     public const val JPEG_APP0_MARKER: Int = 0xFFE0
     public const val JPEG_APP1_MARKER: Int = 0xFFE1
     public const val JPEG_APP2_MARKER: Int = 0xFFE2
+
+    /** The identifier every ICC APP2 chunk starts with, followed by the chunk sequence bytes. */
+    public val ICC_PROFILE_IDENTIFIER: ByteArray = byteArrayOf(
+        0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45, 0x00
+    )
+
+    /** Byte count of the ICC APP2 identifier including its terminating zero. */
+    public const val ICC_IDENTIFIER_LENGTH: Int = 12
+
+    /** Offset of the chunk sequence bytes behind the ICC APP2 identifier. */
+    public const val ICC_CHUNK_SEQUENCE_OFFSET: Int = 12
+
+    /** Byte count of the chunk index and chunk total that follow the identifier. */
+    public const val ICC_SEQUENCE_BYTE_COUNT: Int = 2
+
+    /** The identifier the Multi-Picture Format APP2 segment starts with. */
+    public val MPF_IDENTIFIER: ByteArray = byteArrayOf(
+        0x4D, 0x50, 0x46, 0x00
+    )
+
     public const val JPEG_APP3_MARKER: Int = 0xFFE3
     public const val JPEG_APP4_MARKER: Int = 0xFFE4
     public const val JPEG_APP5_MARKER: Int = 0xFFE5
@@ -204,19 +266,32 @@ public object JpegConstants {
     )
 
     public val APP13_IDENTIFIER: ByteArray = byteArrayOf(
-        0x50, // P
-        0x68, // h
-        0x6F, // o
-        0x74, // t
-        0x6F, // o
-        0x73, // s
-        0x68, // h
-        0x6F, // o
-        0x70, // p
-        0x20, //
-        0x33, // 3
-        0x2E, // .
-        0x30, // 0
+        /* P */
+        0x50,
+        /* h */
+        0x68,
+        /* o */
+        0x6F,
+        /* t */
+        0x74,
+        /* o */
+        0x6F,
+        /* s */
+        0x73,
+        /* h */
+        0x68,
+        /* o */
+        0x6F,
+        /* p */
+        0x70,
+        /*  */
+        0x20,
+        /* 3 */
+        0x33,
+        /* . */
+        0x2E,
+        /* 0 */
+        0x30,
         0
     )
 
@@ -226,7 +301,7 @@ public object JpegConstants {
      * Max Photoshop data bytes per APP13 segment. The segment length field
      * (2 bytes) and the Photoshop identifier (14 bytes) count into the
      * segment size.
-     */
+    */
     public val MAX_PHOTOSHOP_BYTES_PER_SEGMENT: Int =
         MAX_SEGMENT_SIZE - 2 - APP13_IDENTIFIER.size
 

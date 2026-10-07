@@ -158,7 +158,7 @@ class MediaFormatTest {
                 index == KimTestData.DNG_RW2_TEST_IMAGE_INDEX -> MediaFormat.TIFF
                 index == KimTestData.DNG_ORF_TEST_IMAGE_INDEX -> MediaFormat.TIFF
                 index == KimTestData.HEIC_TEST_IMAGE_INDEX -> MediaFormat.HEIC
-                index == KimTestData.HIF_TEST_IMAGE_INDEX -> MediaFormat.HEIC
+                index == KimTestData.HIF_TEST_IMAGE_INDEX -> MediaFormat.HIF
                 index == KimTestData.HEIC_TEST_IMAGE_WITH_XMP_INDEX -> MediaFormat.HEIC
                 index == KimTestData.AVIF_TEST_IMAGE_FROM_JPG_USING_IMAGEMAGICK_INDEX -> MediaFormat.AVIF
                 index == KimTestData.HEIC_TEST_IMAGE_FROM_JPG_USING_IMAGEMAGICK_INDEX -> MediaFormat.HEIC

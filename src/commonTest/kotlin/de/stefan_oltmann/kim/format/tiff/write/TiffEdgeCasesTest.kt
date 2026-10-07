@@ -29,6 +29,7 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldType
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeAscii
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeByte
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeRational
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
@@ -37,8 +38,29 @@ import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 
 class TiffEdgeCasesTest {
+
+    /**
+     * The tags the writer validates, rewrites or removes on its own -
+     * the IFD pointers against real directories, the MakerNote by
+     * anchoring, and the tile and thumbnail fields by removal. None of
+     * that is the concern of the entry count tests.
+     */
+    private val pointerTags =
+        setOf(
+            ExifTag.EXIF_TAG_EXIF_OFFSET.tag,
+            ExifTag.EXIF_TAG_GPSINFO.tag,
+            ExifTag.EXIF_TAG_INTEROP_OFFSET.tag,
+            ExifTag.EXIF_TAG_MAKER_NOTE.tag,
+            TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT.tag,
+            TiffTag.TIFF_TAG_JPEG_INTERCHANGE_FORMAT_LENGTH.tag,
+            TiffTag.TIFF_TAG_TILE_OFFSETS.tag,
+            TiffTag.TIFF_TAG_TILE_BYTE_COUNTS.tag,
+            TiffTag.TIFF_TAG_TILE_WIDTH.tag,
+            TiffTag.TIFF_TAG_TILE_LENGTH.tag
+        )
 
     private fun write(outputSet: TiffOutputSet) {
         TiffWriter(ByteOrder.LITTLE_ENDIAN).write(
@@ -57,6 +79,81 @@ class TiffEdgeCasesTest {
         assertFailsWith<ImageWriteException> {
             write(outputSet)
         }
+    }
+
+    /**
+     * SEMInfo is a free-form ASCII string like its sibling string tags:
+     * a declared length of 1 would reject every real value through the
+     * public add API with a confusing length error.
+     */
+    @Test
+    fun testAddSemInfoString() {
+
+        val directory = TiffOutputDirectory(
+            TiffConstants.TIFF_DIRECTORY_TYPE_IFD0,
+            ByteOrder.LITTLE_ENDIAN
+        )
+
+        directory.add(ExifTag.EXIF_TAG_SEMINFO, "MI SPI 1.0")
+
+        val field = assertNotNull(directory.findField(ExifTag.EXIF_TAG_SEMINFO))
+
+        /* The 10 characters plus the ASCII terminating NUL. */
+        assertEquals(11, field.count)
+    }
+
+    /**
+     * The classic TIFF directory declares its entry count in 16 bits.
+     * Writing the count with the low bits only would serialize all
+     * entries behind a count of 0 - every consumer would then read the
+     * entries as the next-IFD pointer. The write fails instead.
+     */
+    @Test
+    fun testDirectoryEntryCountOverflowFailsTheWrite() {
+
+        val outputSet = TiffOutputSet()
+
+        val rootDirectory = outputSet.getOrCreateRootDirectory()
+
+        /*
+         * The pointer tags are validated against real directories by
+         * the writer, which is not the concern here. Tags beyond the
+         * 16-bit range stand in for the excluded ones, so the directory
+         * ends up one field beyond the representable count.
+         */
+        for (tag in 0..0xFFFF + pointerTags.size) {
+
+            if (tag in pointerTags)
+                continue
+
+            rootDirectory.add(TiffOutputField(tag, FieldTypeByte, 1, byteArrayOf(tag.toByte())))
+        }
+
+        assertFailsWith<ImageWriteException> {
+            write(outputSet)
+        }
+    }
+
+    /**
+     * A directory with exactly the maximum entry count is the legal
+     * boundary and must still write.
+     */
+    @Test
+    fun testMaximumDirectoryEntryCountWrites() {
+
+        val outputSet = TiffOutputSet()
+
+        val rootDirectory = outputSet.getOrCreateRootDirectory()
+
+        for (tag in 0 until 0xFFFF) {
+
+            if (tag in pointerTags)
+                continue
+
+            rootDirectory.add(TiffOutputField(tag, FieldTypeByte, 1, byteArrayOf(tag.toByte())))
+        }
+
+        write(outputSet)
     }
 
     @Test

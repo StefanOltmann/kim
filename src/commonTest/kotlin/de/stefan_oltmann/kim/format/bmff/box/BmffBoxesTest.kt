@@ -373,12 +373,13 @@ class BmffBoxesTest {
     }
 
     /**
-     * Extents with an idat-relative construction method cannot be
-     * resolved without idat support. They must be skipped instead of
-     * reading image data as metadata.
+     * An infe-declared EXIF item whose extents are all idat-relative is
+     * real metadata that cannot be resolved. Per the strict read policy
+     * it must fail the read instead of silently vanishing from the
+     * result.
      */
     @Test
-    fun testMetaBoxTopLevelSkipsIdatRelativeExtents() {
+    fun testMetaBoxTopLevelRejectsIdatOnlyMetadataItems() {
 
         val hdlr = hdlrBox(name = "Main Image")
         val pitm = pitmBox(itemId = 1)
@@ -415,7 +416,9 @@ class BmffBoxesTest {
 
         assertEquals(1, metaBox.itemLocationBox.extents.single().constructionMethod)
 
-        assertTrue(metaBox.findMetadataOffsets().isEmpty())
+        assertFailsWith<ImageReadException> {
+            metaBox.findMetadataItems()
+        }
     }
 
     @Test

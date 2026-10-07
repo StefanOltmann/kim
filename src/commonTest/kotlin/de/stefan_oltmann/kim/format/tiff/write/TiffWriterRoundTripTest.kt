@@ -190,11 +190,11 @@ class TiffWriterRoundTripTest {
 
         exifDirectory.add(ExifTag.EXIF_TAG_USER_COMMENT, "A comment")
 
-        /* GPS directory. */
+        /*
+         * GPS directory. A position rewrite yields a fresh GPS state,
+         * so the companion fields are added after the position.
+         */
         val gpsDirectory = outputSet.getOrCreateGPSDirectory()
-
-        gpsDirectory.add(GpsTag.GPS_TAG_GPS_PROCESSING_METHOD, "GPS")
-        gpsDirectory.add(GpsTag.GPS_TAG_GPS_VERSION_ID, byteArrayOf(2, 3, 0, 0))
 
         outputSet.setGpsCoordinates(
             de.stefan_oltmann.kim.model.GpsCoordinates(
@@ -202,6 +202,10 @@ class TiffWriterRoundTripTest {
                 longitude = 8.2396611123
             )
         )
+
+        gpsDirectory.add(GpsTag.GPS_TAG_GPS_PROCESSING_METHOD, "GPS")
+
+        /* The version identifier is already written by setGpsCoordinates. */
 
         val byteWriter = ByteArrayByteWriter()
 
@@ -467,7 +471,11 @@ class TiffWriterRoundTripTest {
         outputSet.addRootDirectory()
         outputSet.addExifDirectory()
 
-        outputSet.setThumbnailBytes(ByteArray(64))
+        /*
+         * SOI-prefixed dummy bytes: the SOI validation requires the
+         * embedded thumbnail to look like a JPEG.
+         */
+        outputSet.setThumbnailBytes(byteArrayOf(0xFF.toByte(), 0xD8.toByte()) + ByteArray(62))
 
         /* The GPS directory is added after the thumbnail, but must still be written before it. */
         outputSet.addGPSDirectory()
@@ -774,6 +782,23 @@ class TiffWriterRoundTripTest {
         assertTrue(outputSet.getDirectories().isEmpty())
     }
 
+    /**
+     * Removing a taken date from a file without one must not inject
+     * anything: an ExifVersion field (and with it a whole EXIF block)
+     * added by a pure removal would falsely signal a modification and
+     * add bytes to a file that needed none.
+     */
+    @Test
+    fun testApplyUpdatesTakenDateRemovalInjectsNothing() {
+
+        val outputSet = TiffOutputSet()
+
+        outputSet.applyUpdates(setOf(MetadataUpdate.TakenDate(null)))
+
+        assertNull(outputSet.findField(ExifTag.EXIF_TAG_EXIF_VERSION.tag))
+        assertNull(outputSet.findField(ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL.tag))
+    }
+
     @Test
     fun testAddDirectoryRejectsDuplicates() {
 
@@ -832,5 +857,25 @@ class TiffWriterRoundTripTest {
 
         assertNotNull(tiffContents.findTiffDirectory(TiffConstants.TIFF_DIRECTORY_EXIF))
         assertNotNull(tiffContents.findTiffDirectory(TiffConstants.TIFF_DIRECTORY_INTEROP))
+    }
+
+    /**
+     * EXIF thumbnails are JPEG images that consumers decode verbatim -
+     * embedding arbitrary bytes would silently produce a file whose
+     * thumbnail no viewer can decode, so the write fails instead.
+     */
+    @Test
+    fun testThumbnailRejectsNonJpegBytes() {
+
+        val outputSet = TiffOutputSet()
+
+        val thumbnailDirectory = outputSet.getOrCreateThumbnailDirectory()
+
+        thumbnailDirectory.add(TiffTag.TIFF_TAG_IMAGE_WIDTH, 100)
+        thumbnailDirectory.add(TiffTag.TIFF_TAG_IMAGE_HEIGHT, 100)
+
+        assertFailsWith<ImageWriteException> {
+            outputSet.setThumbnailBytes("not a jpeg".encodeToByteArray())
+        }
     }
 }

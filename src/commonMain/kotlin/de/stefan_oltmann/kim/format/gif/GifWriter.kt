@@ -343,30 +343,21 @@ public object GifWriter {
         byteWriter.writeString(GifConstants.XMP_APPLICATION_CODE)
 
         /*
-         * The XMP payload is written in size-prefixed sub-blocks of at most
-         * 255 bytes, as required by the GIF89a application extension format.
+         * The XMP packet follows the identifier contiguously, like the
+         * Adobe GIF binding and ExifTool write it - not in size-prefixed
+         * sub-blocks. Sub-blocked packets are unreadable for conformant
+         * tools, which would silently lose the metadata of the rewritten
+         * file.
          */
-        val xmpBytes = xmpXml.encodeToByteArray()
-
-        for (offset in xmpBytes.indices step GifConstants.GIF_MAX_SUB_BLOCK_SIZE) {
-
-            val endIndex = minOf(offset + GifConstants.GIF_MAX_SUB_BLOCK_SIZE, xmpBytes.size)
-
-            writeSubBlock(byteWriter, xmpBytes.copyOfRange(offset, endIndex))
-        }
+        byteWriter.write(xmpXml.encodeToByteArray())
 
         /*
          * The magic trailer starts with 0xFF and is therefore a valid
-         * 255-byte sub-block by itself.
+         * 255-byte sub-block by itself. The block terminator behind it
+         * ends the extension like every GIF data area does.
          */
         val magicTrailer = ByteArray(256) { (0xFF - it).toByte() }
         byteWriter.write(magicTrailer)
         byteWriter.write(GifConstants.BLOCK_TERMINATOR)
-    }
-
-    private fun writeSubBlock(byteWriter: ByteWriter, data: ByteArray) {
-
-        byteWriter.write(data.size)
-        byteWriter.write(data)
     }
 }

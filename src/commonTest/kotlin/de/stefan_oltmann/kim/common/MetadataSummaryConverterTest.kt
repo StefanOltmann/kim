@@ -55,7 +55,7 @@ class MetadataSummaryConverterTest {
                 KimTestData.getHeaderBytesOf(index)
 
             /* Broken files are rejected by the segment length validation. */
-            if (rejectedJpegIds.contains(index)) {
+            if (KimTestData.brokenJpegIds.contains(index)) {
 
                 assertFailsWith<ImageReadException> {
                     Kim.readMetadata(bytes)
@@ -88,6 +88,38 @@ class MetadataSummaryConverterTest {
         assertEquals(
             expected = KimTestData.getMetadataCsvString(),
             actual = createCsvString(metadataMap)
+        )
+    }
+
+    /**
+     * Trailing space padding of EXIF and IPTC strings is content, not
+     * structure: ExifTool 13.59 reports these values with their trailing
+     * spaces, so the summary preserves them byte-exact and only the NUL
+     * termination ends a string. A whitespace-only value is kept as the
+     * value it is, not silently dropped.
+     */
+    @Test
+    fun testTrailingSpacePaddingStaysInTheSummary() {
+
+        val media39 = Kim.readMetadata(KimTestData.getHeaderBytesOf(39))?.convertToSummary()
+
+        assertEquals(
+            expected = "OLYMPUS DIGITAL CAMERA         ",
+            actual = media39?.description
+        )
+
+        val media43 = Kim.readMetadata(KimTestData.getHeaderBytesOf(43))?.convertToSummary()
+
+        assertEquals(
+            expected = " DIGITAL CAMERA ",
+            actual = media43?.description
+        )
+
+        val media20 = Kim.readMetadata(KimTestData.getHeaderBytesOf(20))?.convertToSummary()
+
+        assertEquals(
+            expected = 117,
+            actual = media20?.description?.length
         )
     }
 
@@ -135,11 +167,5 @@ class MetadataSummaryConverterTest {
         }
 
         return stringBuilder.toString()
-    }
-
-    private companion object {
-
-        /* Media 44, 45 and 47 contain invalid segment lengths. */
-        private val rejectedJpegIds = setOf(44, 45, 47)
     }
 }

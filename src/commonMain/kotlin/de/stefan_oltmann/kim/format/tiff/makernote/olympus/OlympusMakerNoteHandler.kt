@@ -28,6 +28,14 @@ import de.stefan_oltmann.kim.input.skipBytes
 internal object OlympusMakerNoteHandler : MakerNoteHandler() {
 
     private const val OLYMPUS_MAKER_NOTE_SIGNATURE = "OLYMPUS\u0000"
+
+    /*
+     * OM System bodies kept the Olympus MakerNote layout after the
+     * rebrand, but write this longer signature - the IFD offset below is
+     * therefore computed from the matched signature's length.
+     */
+    private const val OM_SYSTEM_MAKER_NOTE_SIGNATURE = "OM SYSTEM\u0000"
+
     private const val OLYMPUS_MAKER_NOTE_VERSION_LENGTH = 2
 
     /**
@@ -47,7 +55,9 @@ internal object OlympusMakerNoteHandler : MakerNoteHandler() {
      * Reads the MakerNote of an Olympus camera.
      *
      * Olympus MakerNotes start with a signature, a byte order marker
-     * and a version, followed by the IFD.
+     * and a version, followed by the IFD. OM System bodies write the
+     * longer "OM SYSTEM\0" signature with the same layout after the
+     * rebrand.
      *
      * The MakerNote contains several sub-IFDs (Equipment, CameraSettings,
      * RawDevelopment, ImageProcessing, FocusInfo), whose offsets are
@@ -60,15 +70,29 @@ internal object OlympusMakerNoteHandler : MakerNoteHandler() {
         addDirectory: (TiffDirectory) -> Unit
     ) {
 
-        if (!readMakerNoteSignature(byteReader, makerNoteValueOffset, OLYMPUS_MAKER_NOTE_SIGNATURE))
-            return
+        val signatureLength =
+            when {
+                readMakerNoteSignature(
+                    byteReader = byteReader,
+                    makerNoteValueOffset = makerNoteValueOffset,
+                    signature = OLYMPUS_MAKER_NOTE_SIGNATURE
+                ) -> OLYMPUS_MAKER_NOTE_SIGNATURE.length
+
+                readMakerNoteSignature(
+                    byteReader = byteReader,
+                    makerNoteValueOffset = makerNoteValueOffset,
+                    signature = OM_SYSTEM_MAKER_NOTE_SIGNATURE
+                ) -> OM_SYSTEM_MAKER_NOTE_SIGNATURE.length
+
+                else -> return
+            }
 
         val byteOrder = readMakerNoteByteOrder(byteReader) ?: return
 
         /* Skip the version bytes. */
         byteReader.skipBytes("Olympus MakerNote version", OLYMPUS_MAKER_NOTE_VERSION_LENGTH)
 
-        val ifdOffset = OLYMPUS_MAKER_NOTE_SIGNATURE.length + 2 + OLYMPUS_MAKER_NOTE_VERSION_LENGTH
+        val ifdOffset = signatureLength + 2 + OLYMPUS_MAKER_NOTE_VERSION_LENGTH
 
         val makerNoteDirectory = readMakerNoteDirectory(
             byteReader = byteReader,

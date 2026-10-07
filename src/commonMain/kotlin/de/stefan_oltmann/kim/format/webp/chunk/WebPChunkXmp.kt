@@ -16,6 +16,7 @@
  */
 package de.stefan_oltmann.kim.format.webp.chunk
 
+import de.stefan_oltmann.kim.common.decodeStrictUtf8
 import de.stefan_oltmann.kim.format.webp.WebPChunkType
 
 /**
@@ -25,5 +26,5 @@ public class WebPChunkXmp(
     bytes: ByteArray
 ) : WebPChunk(WebPChunkType.XMP, bytes) {
 
-    public val xmp: String = bytes.decodeToString()
+    public val xmp: String = bytes.decodeStrictUtf8("The WebP XMP chunk")
 }

@@ -61,7 +61,8 @@ class MakerNoteVersionDispatchTest {
 
         "0201".encodeToByteArray().copyInto(blob)
 
-        blob[0x33] = 7 /* Sharpness of the 2-byte layout. */
+        /* Sharpness of the 2-byte layout. */
+        blob[0x33] = 7
 
         val directory = TiffDirectory(
             type = TiffConstants.TIFF_MAKER_NOTE_NIKON,

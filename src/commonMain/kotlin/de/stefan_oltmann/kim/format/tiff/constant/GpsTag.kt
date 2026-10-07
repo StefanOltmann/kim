@@ -194,6 +194,11 @@ public object GpsTag {
         TiffDirectoryType.EXIF_DIRECTORY_GPS
     )
 
+    public val GPS_TAG_GPS_DEST_DISTANCE_REF: TagInfoAscii = TagInfoAscii(
+        0x0019, "GPSDestDistanceRef", 2,
+        TiffDirectoryType.EXIF_DIRECTORY_GPS
+    )
+
     public val GPS_TAG_GPS_DEST_DISTANCE: TagInfoRational = TagInfoRational(
         0x001a, "GPSDestDistance",
         TiffDirectoryType.EXIF_DIRECTORY_GPS
@@ -240,6 +245,7 @@ public object GpsTag {
         GPS_TAG_GPS_DEST_LATITUDE, GPS_TAG_GPS_DEST_LONGITUDE_REF,
         GPS_TAG_GPS_DEST_LONGITUDE, GPS_TAG_GPS_DEST_BEARING_REF,
         GPS_TAG_GPS_DEST_BEARING,
+        GPS_TAG_GPS_DEST_DISTANCE_REF,
         GPS_TAG_GPS_DEST_DISTANCE, GPS_TAG_GPS_PROCESSING_METHOD,
         GPS_TAG_GPS_AREA_INFORMATION, GPS_TAG_GPS_DATE_STAMP,
         GPS_TAG_GPS_DIFFERENTIAL, GPS_TAG_GPS_H_POSITIONING_ERROR

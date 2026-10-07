@@ -259,18 +259,6 @@ public enum class TiffDirectoryType(
     ),
     EXIF_DIRECTORY_MAKER_NOTE_SONY_CAMERA_INFO3(
         TiffConstants.TIFF_MAKER_NOTE_SONY_CAMERA_INFO3, "MakerNoteSonyCameraInfo3", false
-    ),
-    EXIF_DIRECTORY_MAKER_NOTE_SONY_MORE_INFO(
-        TiffConstants.TIFF_MAKER_NOTE_SONY_MORE_INFO, "MakerNoteSonyMoreInfo", false
-    ),
-    EXIF_DIRECTORY_MAKER_NOTE_SONY_CAMERA_SETTINGS3(
-        TiffConstants.TIFF_MAKER_NOTE_SONY_CAMERA_SETTINGS3, "MakerNoteSonyCameraSettings3", false
-    ),
-    EXIF_DIRECTORY_MAKER_NOTE_SONY_EXTRA_INFO3(
-        TiffConstants.TIFF_MAKER_NOTE_SONY_EXTRA_INFO3, "MakerNoteSonyExtraInfo3", false
-    ),
-    EXIF_DIRECTORY_MAKER_NOTE_SONY_TAG_900B(
-        TiffConstants.TIFF_MAKER_NOTE_SONY_TAG_900B, "MakerNoteSonyTag900b", false
     );
 
     override fun toString(): String =

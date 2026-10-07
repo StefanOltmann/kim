@@ -113,9 +113,14 @@ public object WebPWriter {
 
         if (headerChunk is WebPChunkVP8X) {
 
+            /*
+             * Every flag describes the chunks that will actually be
+             * written - a header can lie in both directions, like the
+             * stale EXIF flag the chunk deletion already corrects.
+             */
             val replacementChunk = WebPChunkVP8X(
                 bytes = WebPChunkVP8X.createBytes(
-                    hasIcc = headerChunk.hasIcc,
+                    hasIcc = modifiedChunks.any { it.type == WebPChunkType.ICCP },
                     hasAlpha = headerChunk.hasAlpha,
                     hasExif = hasExifChunk,
                     hasXmp = hasXmpChunk,
@@ -142,11 +147,19 @@ public object WebPWriter {
              */
             val hasAlpha = (headerChunk as? WebPChunkVP8L)?.hasAlpha == true
 
+            /*
+             * A nonconformant legacy file can carry an ICCP chunk without
+             * a VP8X header. Decoders honor the profile only when the
+             * flag is set, so like the metadata flags above it is derived
+             * from the chunks that will actually be written.
+             */
+            val hasIccChunk = modifiedChunks.any { it.type == WebPChunkType.ICCP }
+
             modifiedChunks.add(
                 index = 0,
                 element = WebPChunkVP8X(
                     bytes = WebPChunkVP8X.createBytes(
-                        hasIcc = false,
+                        hasIcc = hasIccChunk,
                         hasAlpha = hasAlpha,
                         hasExif = exifBytes != null,
                         hasXmp = xmp != null,

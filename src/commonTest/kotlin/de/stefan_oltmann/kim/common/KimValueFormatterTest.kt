@@ -201,6 +201,12 @@ class KimValueFormatterTest {
             KimValueFormatter.formatExposureTime(-0.5)
         )
 
+        /* A huge value is no measurement either - not "2147483647'' s". */
+        assertEquals(
+            null,
+            KimValueFormatter.formatExposureTime(1.0E300)
+        )
+
         assertEquals(
             "1/8000 s",
             KimValueFormatter.formatExposureTime(0.000125)
@@ -375,6 +381,15 @@ class KimValueFormatterTest {
             KimValueFormatter.formatFNumber(2.8)
         )
 
+        /*
+         * The invariant rendering: file-controlled rationals can produce
+         * values whose platform Double renderings diverge.
+         */
+        assertEquals(
+            "ƒ0.003158",
+            KimValueFormatter.formatFNumber(0.003158)
+        )
+
         assertEquals(
             "ƒ8",
             KimValueFormatter.formatFNumber(8.0)
@@ -387,6 +402,11 @@ class KimValueFormatterTest {
         assertEquals(
             "4.2 mm",
             KimValueFormatter.formatFocalLength(4.2)
+        )
+
+        assertEquals(
+            "0.003158 mm",
+            KimValueFormatter.formatFocalLength(0.003158)
         )
 
         assertEquals(
@@ -410,5 +430,10 @@ class KimValueFormatterTest {
         assertEquals("", KimValueFormatter.formatFocalLength(Double.NaN))
         assertEquals("", KimValueFormatter.formatFocalLength(Double.POSITIVE_INFINITY))
         assertEquals("", KimValueFormatter.formatFocalLength(Double.NEGATIVE_INFINITY))
+
+        /* An exposure time that is no measurement renders as NULL. */
+        assertNull(KimValueFormatter.formatExposureTime(Double.NaN))
+        assertNull(KimValueFormatter.formatExposureTime(Double.POSITIVE_INFINITY))
+        assertNull(KimValueFormatter.formatExposureTime(Double.NEGATIVE_INFINITY))
     }
 }

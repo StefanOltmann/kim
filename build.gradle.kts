@@ -2,6 +2,8 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
 
@@ -16,6 +18,7 @@ plugins {
     alias(libs.plugins.resources)
     alias(libs.plugins.versions)
     alias(libs.plugins.maven.publish)
+    alias(libs.plugins.binary.compatibility.validator)
 }
 
 repositories {
@@ -163,9 +166,15 @@ kotlin {
             testTask {
                 useMocha {
                     /*
-                     * Node reads the large test media files much slower
-                     * than the JVM, so mocha's default of 2 seconds
-                     * rejects tests that pass on every other target.
+                     * Attention: Never remove or lower this timeout. It
+                     * is hard-won: mocha's default of 2 seconds rejects
+                     * corpus tests that pass on every other target
+                     * whenever CI's runner is loaded, which broke CI
+                     * repeatedly (benchmark, rewriter, fuzz and toString
+                     * runs all tripped over it). Splitting tests does
+                     * not fix that reliably, because the next test on
+                     * the cliff just fails instead. Node reads the large
+                     * test media files much slower than the JVM.
                      */
                     timeout = "60s"
                 }
@@ -377,6 +386,19 @@ kotlin {
     }
 }
 
+// region JS test reporter
+/*
+ * Kotlin 2.4.20 pins kotlin-web-helpers 3.3.0, whose Node test reporter
+ * always passes its own 'alsoWithHtml' option together with 'Base' and
+ * then warns that the option has no effect (KT-88592, fixed in 3.5.x).
+ * Force the fixed version until the Kotlin upgrade removes the override.
+ */
+rootProject.plugins.withType<YarnPlugin> {
+    rootProject.the<YarnRootExtension>()
+        .resolution("kotlin-web-helpers", "3.5.4")
+}
+// endregion
+
 // region Writing version.txt for GitHub Actions
 val writeVersion: TaskProvider<Task> = tasks.register("writeVersion") {
     group = "build"
@@ -501,7 +523,7 @@ val checkTextFiles: TaskProvider<Task> = tasks.register("checkTextFiles") {
     group = "verification"
     description =
         "Checks every *.kt, *.kts, *.svg, *.xml and *.md file for UTF-8 (no BOM), LF line " +
-            "endings and a final newline - see .editorconfig."
+            "endings, no NUL bytes and a final newline - see .editorconfig."
 
     doLast {
 
@@ -541,6 +563,15 @@ val checkTextFiles: TaskProvider<Task> = tasks.register("checkTextFiles") {
                 if ('\uFFFD' in text)
                     violations += "$relativePath: contains a U+FFFD replacement character"
 
+                /*
+                 * A NUL byte is valid UTF-8, but it makes the file binary to
+                 * text tooling (diff, grep, editors), so text files must
+                 * never carry one - e.g. as a byte-level illustration of a
+                 * binary format identifier pasted into a comment.
+                 */
+                if (bytes.contains(0.toByte()))
+                    violations += "$relativePath: contains a NUL byte"
+
                 if ('\r' in text)
                     violations += "$relativePath: contains a CR; line endings must be LF"
 
@@ -562,8 +593,8 @@ val checkTextFiles: TaskProvider<Task> = tasks.register("checkTextFiles") {
 
         throw GradleException(
             "${violations.size} text file violation(s) - expected UTF-8 without BOM, LF line " +
-                "endings and a final newline (see .editorconfig); fix the files, the check " +
-                "never rewrites them:\n$shown$more"
+                "endings, no NUL bytes and a final newline (see .editorconfig); fix the files, " +
+                "the check never rewrites them:\n$shown$more"
         )
     }
 }

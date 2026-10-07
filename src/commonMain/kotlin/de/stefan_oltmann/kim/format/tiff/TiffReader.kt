@@ -22,14 +22,18 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.head
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toInt
+import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.tiff.TiffReader.directoryTypeMap
+import de.stefan_oltmann.kim.format.tiff.TiffReader.readOffsetDirectories
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.GeoTiffTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
+import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.EXIF_SUB_IFD0
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.EXIF_SUB_IFD1
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.EXIF_SUB_IFD2
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.EXIF_SUB_IFD3
+import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.EXIF_SUB_IFD4
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants.TIFF_DIRECTORY_TYPE_IFD1
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldType.Companion.getFieldType
@@ -58,6 +62,7 @@ import de.stefan_oltmann.kim.input.readByte
 import de.stefan_oltmann.kim.input.readBytes
 import de.stefan_oltmann.kim.input.skipBytes
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.jvm.JvmStatic
 
 /**
@@ -74,6 +79,11 @@ public object TiffReader {
 
     private const val BIGTIFF_VERSION: Int = 43
 
+    /* The BigTIFF signature is decided by the byte-order mark and the 2-byte version. */
+    private const val BIGTIFF_HEADER_MIN_SIZE: Int = 4
+
+    private const val BYTE_SHIFT_8: Int = 8
+
     /* The sub-IFD pointers are LONGs, so a recoverable value holds 4 bytes. */
     private const val SUB_IFD_OFFSET_BYTE_COUNT: Int = 4
 
@@ -84,11 +94,17 @@ public object TiffReader {
      */
     private const val PANASONIC_RAW_TIFF_VERSION: Int = 0x55
 
-    private val directoryTypeMap = mapOf(
+    /*
+     * The offset fields pointing to a fixed-type sub-IFD, with the
+     * directory type each maps to. The DNG SubIFDs pointer is
+     * deliberately absent: its sub-directories are numbered by their
+     * position in the offset list (see [getSubDirectoryType]), so no
+     * fixed type exists for it.
+     */
+    private val directoryTypeMap: Map<TagInfo, Int> = mapOf(
         ExifTag.EXIF_TAG_EXIF_OFFSET to TiffConstants.TIFF_DIRECTORY_EXIF,
         ExifTag.EXIF_TAG_GPSINFO to TiffConstants.TIFF_DIRECTORY_GPS,
-        ExifTag.EXIF_TAG_INTEROP_OFFSET to TiffConstants.TIFF_DIRECTORY_INTEROP,
-        ExifTag.EXIF_TAG_SUB_IFDS_OFFSET to TIFF_DIRECTORY_TYPE_IFD1
+        ExifTag.EXIF_TAG_INTEROP_OFFSET to TiffConstants.TIFF_DIRECTORY_INTEROP
     )
 
     /**
@@ -100,8 +116,15 @@ public object TiffReader {
      * handling: the thumbnail strip offset is the one entry that is
      * not metadata-bearing.
      */
-    private val metadataBearingOffsetFields =
-        directoryTypeMap.keys - ExifTag.EXIF_TAG_SUB_IFDS_OFFSET
+    private val metadataBearingOffsetFields = directoryTypeMap.keys
+
+    /**
+     * All offset fields [readOffsetDirectories] resolves, in file order:
+     * the fixed-type sub-IFDs first, the DNG SubIFDs pointer last, like
+     * the previous single map carried them.
+     */
+    private val subDirectoryOffsetFields = directoryTypeMap.keys +
+        ExifTag.EXIF_TAG_SUB_IFDS_OFFSET
 
     /**
      * Convenience method for calls with short byte array like
@@ -229,6 +252,43 @@ public object TiffReader {
         return TiffHeader(byteOrder, tiffVersion, offsetToFirstIFD)
     }
 
+    /**
+     * Fails with [ImageReadException] when the given format-detection
+     * header bytes carry the BigTIFF signature.
+     *
+     * `MediaFormat.detect` matches only the classic-TIFF magic, so a
+     * standalone BigTIFF file never reaches [readTiffHeader] through
+     * the public facade - without this check it would be reported as
+     * unknown bytes instead of failing the read like every other
+     * entry point does.
+     */
+    internal fun rejectBigTiffHeader(headerBytes: ByteArray) {
+
+        if (headerBytes.size < BIGTIFF_HEADER_MIN_SIZE)
+            return
+
+        val byteOrderByte = headerBytes[0]
+
+        /*
+         * The two byte-order bytes are equal ('I' little-endian,
+         * 'M' big-endian), and the version follows at offset 2 in the
+         * matching endianness. Everything else is not TIFF-family.
+         */
+        if (byteOrderByte != headerBytes[1] ||
+            (byteOrderByte.toInt() != 'I'.code && byteOrderByte.toInt() != 'M'.code)
+        )
+            return
+
+        val version =
+            if (byteOrderByte.toInt() == 'I'.code)
+                headerBytes[2].toUInt8() or (headerBytes[3].toUInt8() shl BYTE_SHIFT_8)
+            else
+                (headerBytes[2].toUInt8() shl BYTE_SHIFT_8) or headerBytes[3].toUInt8()
+
+        if (version == BIGTIFF_VERSION)
+            throw ImageReadException("BigTIFF is not supported.")
+    }
+
     private fun getTiffByteOrder(byteOrderByte: Byte): ByteOrder =
         when (byteOrderByte.toInt()) {
             'I'.code -> ByteOrder.LITTLE_ENDIAN
@@ -299,6 +359,8 @@ public object TiffReader {
                     preferPanasonicRawTags = preferPanasonicRawTags
                 )
 
+            } catch (ex: CancellationException) {
+                throw ex
             } catch (ex: Exception) {
 
                 /*
@@ -332,6 +394,19 @@ public object TiffReader {
              */
             if (currentType >= 0 && directory.hasJpegImageData())
                 directory.thumbnailBytes = readThumbnailBytes(byteReader, directory)
+
+            /*
+             * Tile capture was never implemented, so requesting the
+             * image bytes of a tiled TIFF cannot be honored: a rewrite
+             * via createOutputSet would otherwise drop the tile fields
+             * and emit a file whose IFD references no image data.
+             * Failing here is the strict alternative to that loss.
+             */
+            if (readTiffImageBytes && directory.hasTileImageData())
+                throw ImageReadException(
+                    "The directory contains tiled image data, which " +
+                        "cannot be captured for a rewrite."
+                )
 
             if (readTiffImageBytes && directory.hasStripImageData())
                 directory.tiffImageBytes = readStripBytes(byteReader, directory)
@@ -410,7 +485,7 @@ public object TiffReader {
         depth: Int
     ) {
 
-        for (offsetField in directoryTypeMap.keys) {
+        for (offsetField in subDirectoryOffsetFields) {
 
             val field = directory.findField(offsetField) ?: continue
 
@@ -570,10 +645,17 @@ public object TiffReader {
     private fun getSubDirectoryType(offsetField: TagInfo, index: Int): Int =
         if (offsetField == ExifTag.EXIF_TAG_SUB_IFDS_OFFSET)
             when (index) {
+                0 -> EXIF_SUB_IFD0
                 1 -> EXIF_SUB_IFD1
                 2 -> EXIF_SUB_IFD2
                 3 -> EXIF_SUB_IFD3
-                else -> TIFF_DIRECTORY_TYPE_IFD1
+
+                /*
+                 * The DNG convention places the lossy-JPEG preview at
+                 * index 4; no corpus file or spec reference carries more
+                 * than five SubIFDs, so further indexes share the label.
+                 */
+                else -> EXIF_SUB_IFD4
             }
         else
             directoryTypeMap.getValue(offsetField)
@@ -946,7 +1028,9 @@ public object TiffReader {
                 make.contains("RICOH", ignoreCase = true) ->
                     RicohMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
 
-                make.contains("OLYMPUS", ignoreCase = true) ->
+                make.contains("OLYMPUS", ignoreCase = true) ||
+                    make.contains("OM Digital", ignoreCase = true) ||
+                    make.contains("OM SYSTEM", ignoreCase = true) ->
                     OlympusMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
 
                 make.contains("Panasonic", ignoreCase = true) ->
@@ -961,6 +1045,8 @@ public object TiffReader {
                 make.startsWith("SIGMA", ignoreCase = true) ->
                     SigmaMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
             }
+        } catch (ex: CancellationException) {
+            throw ex
         } catch (_: Exception) {
 
             /*

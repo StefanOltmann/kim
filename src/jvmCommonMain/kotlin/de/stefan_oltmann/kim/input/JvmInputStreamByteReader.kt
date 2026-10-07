@@ -53,7 +53,20 @@ public open class JvmInputStreamByteReader(
     }
 
     override fun readBytes(count: Int): ByteArray =
-        inputStream.readNBytes(count)
+        readBytesImpl(count)
+
+    /**
+     * The actual read strategy, kept internal and overridable so the
+     * Android subclass can substitute the legacy loop below API 33:
+     * [InputStream.readNBytes] does not exist there, and a public
+     * Android-reachable path must never reach it.
+     */
+    internal open fun readBytesImpl(count: Int): ByteArray {
+
+        require(count >= 0) { "Count must not be negative: $count" }
+
+        return inputStream.readNBytes(count)
+    }
 
     override fun close(): Unit =
         inputStream.close()

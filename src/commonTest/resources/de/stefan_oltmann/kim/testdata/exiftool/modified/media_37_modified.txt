@@ -1,0 +1,984 @@
+  ExifToolVersion = 13.59
+  FileName = media_37_modified.jpg
+  Directory = modified
+  FileSize = 372486
+  FileModifyDate = 1789668880.53202
+  FileAccessDate = 1791131088.91395
+  FileCreateDate = 1789668880.53102
+  FilePermissions = 33206
+  FileType = JPEG
+  FileTypeExtension = JPG
+  MIMEType = image/jpeg
+JPEG APP1 (2720 bytes):
+      0006: 45 78 69 66 00 00 49 49 2a 00 08 00 00 00 11 00 [Exif..II*.......]
+      0016: 00 01 03 00 01 00 00 00 ee 16 00 00 01 01 03 00 [................]
+      0026: 01 00 00 00 ef 0a 00 00 02 01 03 00 03 00 00 00 [................]
+      0036: da 00 00 00 03 01 03 00 01 00 00 00 08 00 00 00 [................]
+      0046: 06 01 03 00 01 00 00 00 02 00 00 00 0f 01 02 00 [................]
+      0056: 12 00 00 00 e0 00 00 00 10 01 02 00 0c 00 00 00 [................]
+      0066: f2 00 00 00 12 01 03 00 01 00 00 00 08 00 00 00 [................]
+      [snip 2608 bytes]
+  ExifByteOrder = II
+  + [IFD0 directory with 17 entries, Little-endian]
+  | 0)  ImageWidth = 5870
+  |     - Tag 0x0100 (2 bytes, int16u[1]):
+  |         001e: ee 16                                           [..]
+  | 1)  ImageHeight = 2799
+  |     - Tag 0x0101 (2 bytes, int16u[1]):
+  |         002a: ef 0a                                           [..]
+  | 2)  BitsPerSample = 16 16 16
+  |     - Tag 0x0102 (6 bytes, int16u[3]):
+  |         00e6: 10 00 10 00 10 00                               [......]
+  | 3)  Compression = 8
+  |     - Tag 0x0103 (2 bytes, int16u[1]):
+  |         0042: 08 00                                           [..]
+  | 4)  PhotometricInterpretation = 2
+  |     - Tag 0x0106 (2 bytes, int16u[1]):
+  |         004e: 02 00                                           [..]
+  | 5)  Make = NIKON CORPORATION
+  |     - Tag 0x010f (18 bytes, string[18]):
+  |         00ec: 4e 49 4b 4f 4e 20 43 4f 52 50 4f 52 41 54 49 4f [NIKON CORPORATIO]
+  |         00fc: 4e 00                                           [N.]
+  | 6)  Model = NIKON D7200
+  |     - Tag 0x0110 (12 bytes, string[12]):
+  |         00fe: 4e 49 4b 4f 4e 20 44 37 32 30 30 00             [NIKON D7200.]
+  | 7)  Orientation = 8
+  |     - Tag 0x0112 (2 bytes, int16u[1]):
+  |         0072: 08 00                                           [..]
+  | 8)  SamplesPerPixel = 3
+  |     - Tag 0x0115 (2 bytes, int16u[1]):
+  |         007e: 03 00                                           [..]
+  | 9)  XResolution = 300 (3000000/10000)
+  |     - Tag 0x011a (8 bytes, rational64u[1]):
+  |         010a: c0 c6 2d 00 10 27 00 00                         [..-..'..]
+  | 10) YResolution = 300 (3000000/10000)
+  |     - Tag 0x011b (8 bytes, rational64u[1]):
+  |         0112: c0 c6 2d 00 10 27 00 00                         [..-..'..]
+  | 11) PlanarConfiguration = 1
+  |     - Tag 0x011c (2 bytes, int16u[1]):
+  |         00a2: 01 00                                           [..]
+  | 12) ResolutionUnit = 2
+  |     - Tag 0x0128 (2 bytes, int16u[1]):
+  |         00ae: 02 00                                           [..]
+  | 13) Software = Adobe Photoshop CC 2018 (Macintosh)
+  |     - Tag 0x0131 (36 bytes, string[36]):
+  |         011a: 41 64 6f 62 65 20 50 68 6f 74 6f 73 68 6f 70 20 [Adobe Photoshop ]
+  |         012a: 43 43 20 32 30 31 38 20 28 4d 61 63 69 6e 74 6f [CC 2018 (Macinto]
+  |         013a: 73 68 29 00                                     [sh).]
+  | 14) ModifyDate = 2023:05:10 13:37:42
+  |     - Tag 0x0132 (20 bytes, string[20]):
+  |         013e: 32 30 32 33 3a 30 35 3a 31 30 20 31 33 3a 33 37 [2023:05:10 13:37]
+  |         014e: 3a 34 32 00                                     [:42.]
+  | 15) ExifOffset (SubDirectory) -->
+  |     - Tag 0x8769 (4 bytes, int32u[1]):
+  |         00d2: 46 01 00 00                                     [F...]
+  | + [ExifIFD directory with 42 entries, Little-endian]
+  | | 0)  ExposureTime = 10 (10/1)
+  | |     - Tag 0x829a (8 bytes, rational64u[1]):
+  | |         0350: 0a 00 00 00 01 00 00 00                         [........]
+  | | 1)  FNumber = 6.3 (63/10)
+  | |     - Tag 0x829d (8 bytes, rational64u[1]):
+  | |         0358: 3f 00 00 00 0a 00 00 00                         [?.......]
+  | | 2)  ExposureProgram = 1
+  | |     - Tag 0x8822 (2 bytes, int16u[1]):
+  | |         0174: 01 00                                           [..]
+  | | 3)  ISO = 100
+  | |     - Tag 0x8827 (2 bytes, int16u[1]):
+  | |         0180: 64 00                                           [d.]
+  | | 4)  SensitivityType = 2
+  | |     - Tag 0x8830 (2 bytes, int16u[1]):
+  | |         018c: 02 00                                           [..]
+  | | 5)  ExifVersion = 0230
+  | |     - Tag 0x9000 (4 bytes, undef[4]):
+  | |         0198: 30 32 33 30                                     [0230]
+  | | 6)  DateTimeOriginal = 2023:05:10 13:37:42
+  | |     - Tag 0x9003 (20 bytes, string[20]):
+  | |         0360: 32 30 32 33 3a 30 35 3a 31 30 20 31 33 3a 33 37 [2023:05:10 13:37]
+  | |         0370: 3a 34 32 00                                     [:42.]
+  | | 7)  CreateDate = 2023:05:10 13:37:42
+  | |     - Tag 0x9004 (20 bytes, string[20]):
+  | |         0374: 32 30 32 33 3a 30 35 3a 31 30 20 31 33 3a 33 37 [2023:05:10 13:37]
+  | |         0384: 3a 34 32 00                                     [:42.]
+  | | 8)  ShutterSpeedValue = -3.321928 (-3321928/1000000)
+  | |     - Tag 0x9201 (8 bytes, rational64s[1]):
+  | |         0388: b8 4f cd ff 40 42 0f 00                         [.O..@B..]
+  | | 9)  ApertureValue = 5.310704 (5310704/1000000)
+  | |     - Tag 0x9202 (8 bytes, rational64u[1]):
+  | |         0390: f0 08 51 00 40 42 0f 00                         [..Q.@B..]
+  | | 10) ExposureCompensation = 0 (0/6)
+  | |     - Tag 0x9204 (8 bytes, rational64s[1]):
+  | |         0398: 00 00 00 00 06 00 00 00                         [........]
+  | | 11) MaxApertureValue = 1.6 (16/10)
+  | |     - Tag 0x9205 (8 bytes, rational64u[1]):
+  | |         03a0: 10 00 00 00 0a 00 00 00                         [........]
+  | | 12) MeteringMode = 5
+  | |     - Tag 0x9207 (2 bytes, int16u[1]):
+  | |         01ec: 05 00                                           [..]
+  | | 13) LightSource = 0
+  | |     - Tag 0x9208 (2 bytes, int16u[1]):
+  | |         01f8: 00 00                                           [..]
+  | | 14) Flash = 16
+  | |     - Tag 0x9209 (2 bytes, int16u[1]):
+  | |         0204: 10 00                                           [..]
+  | | 15) FocalLength = 35 (350/10)
+  | |     - Tag 0x920a (8 bytes, rational64u[1]):
+  | |         03a8: 5e 01 00 00 0a 00 00 00                         [^.......]
+  | | 16) SubSecTimeOriginal = 35
+  | |     - Tag 0x9291 (3 bytes, string[3]):
+  | |         021c: 33 35 00                                        [35.]
+  | | 17) SubSecTimeDigitized = 35
+  | |     - Tag 0x9292 (3 bytes, string[3]):
+  | |         0228: 33 35 00                                        [35.]
+  | | 18) ColorSpace = 65535
+  | |     - Tag 0xa001 (2 bytes, int16u[1]):
+  | |         0234: ff ff                                           [..]
+  | | 19) ExifImageWidth = 5870
+  | |     - Tag 0xa002 (4 bytes, int32u[1]):
+  | |         0240: ee 16 00 00                                     [....]
+  | | 20) ExifImageHeight = 2799
+  | |     - Tag 0xa003 (4 bytes, int32u[1]):
+  | |         024c: ef 0a 00 00                                     [....]
+  | | 21) FocalPlaneXResolution = 2558.641205 (83841555/32768)
+  | |     - Tag 0xa20e (8 bytes, rational64u[1]):
+  | |         03b0: 13 52 ff 04 00 80 00 00                         [.R......]
+  | | 22) FocalPlaneYResolution = 2558.641205 (83841555/32768)
+  | |     - Tag 0xa20f (8 bytes, rational64u[1]):
+  | |         03b8: 13 52 ff 04 00 80 00 00                         [.R......]
+  | | 23) FocalPlaneResolutionUnit = 3
+  | |     - Tag 0xa210 (2 bytes, int16u[1]):
+  | |         0270: 03 00                                           [..]
+  | | 24) SensingMethod = 2
+  | |     - Tag 0xa217 (2 bytes, int16u[1]):
+  | |         027c: 02 00                                           [..]
+  | | 25) FileSource = 3
+  | |     - Tag 0xa300 (1 bytes, undef[1]):
+  | |         0288: 03                                              [.]
+  | | 26) SceneType = 1
+  | |     - Tag 0xa301 (1 bytes, undef[1]):
+  | |         0294: 01                                              [.]
+  | | 27) CFAPattern = .....
+  | |     - Tag 0xa302 (8 bytes, undef[8]):
+  | |         03c0: 02 00 02 00 00 01 01 02                         [........]
+  | | 28) CustomRendered = 1
+  | |     - Tag 0xa401 (2 bytes, int16u[1]):
+  | |         02ac: 01 00                                           [..]
+  | | 29) ExposureMode = 1
+  | |     - Tag 0xa402 (2 bytes, int16u[1]):
+  | |         02b8: 01 00                                           [..]
+  | | 30) WhiteBalance = 0
+  | |     - Tag 0xa403 (2 bytes, int16u[1]):
+  | |         02c4: 00 00                                           [..]
+  | | 31) DigitalZoomRatio = 1 (1/1)
+  | |     - Tag 0xa404 (8 bytes, rational64u[1]):
+  | |         03c8: 01 00 00 00 01 00 00 00                         [........]
+  | | 32) FocalLengthIn35mmFormat = 52
+  | |     - Tag 0xa405 (2 bytes, int16u[1]):
+  | |         02dc: 34 00                                           [4.]
+  | | 33) SceneCaptureType = 0
+  | |     - Tag 0xa406 (2 bytes, int16u[1]):
+  | |         02e8: 00 00                                           [..]
+  | | 34) GainControl = 0
+  | |     - Tag 0xa407 (2 bytes, int16u[1]):
+  | |         02f4: 00 00                                           [..]
+  | | 35) Contrast = 0
+  | |     - Tag 0xa408 (2 bytes, int16u[1]):
+  | |         0300: 00 00                                           [..]
+  | | 36) Saturation = 0
+  | |     - Tag 0xa409 (2 bytes, int16u[1]):
+  | |         030c: 00 00                                           [..]
+  | | 37) Sharpness = 0
+  | |     - Tag 0xa40a (2 bytes, int16u[1]):
+  | |         0318: 00 00                                           [..]
+  | | 38) SubjectDistanceRange = 0
+  | |     - Tag 0xa40c (2 bytes, int16u[1]):
+  | |         0324: 00 00                                           [..]
+  | | 39) SerialNumber = 4305691
+  | |     - Tag 0xa431 (8 bytes, string[8]):
+  | |         03d0: 34 33 30 35 36 39 31 00                         [4305691.]
+  | | 40) LensInfo = 35 35 1.8 1.8 (350/10 350/10 18/10 18/10)
+  | |     - Tag 0xa432 (32 bytes, rational64u[4]):
+  | |         03d8: 5e 01 00 00 0a 00 00 00 5e 01 00 00 0a 00 00 00 [^.......^.......]
+  | |         03e8: 12 00 00 00 0a 00 00 00 12 00 00 00 0a 00 00 00 [................]
+  | | 41) LensModel = 35.0 mm f/1.8
+  | |     - Tag 0xa434 (14 bytes, string[14]):
+  | |         03f8: 33 35 2e 30 20 6d 6d 20 66 2f 31 2e 38 00       [35.0 mm f/1.8.]
+  | 16) GPSInfo (SubDirectory) -->
+  |     - Tag 0x8825 (4 bytes, int32u[1]):
+  |         00de: fa 03 00 00                                     [....]
+  | + [GPS directory with 5 entries, Little-endian]
+  | | 0)  GPSVersionID = 2 3 0 0
+  | |     - Tag 0x0000 (4 bytes, int8u[4]):
+  | |         0410: 02 03 00 00                                     [....]
+  | | 1)  GPSLatitudeRef = N
+  | |     - Tag 0x0001 (2 bytes, string[2]):
+  | |         041c: 4e 00                                           [N.]
+  | | 2)  GPSLatitude = 53 13 9.8076 (53/1 13/1 24519/2500)
+  | |     - Tag 0x0002 (24 bytes, rational64u[3]):
+  | |         0448: 35 00 00 00 01 00 00 00 0d 00 00 00 01 00 00 00 [5...............]
+  | |         0458: c7 5f 00 00 c4 09 00 00                         [._......]
+  | | 3)  GPSLongitudeRef = E
+  | |     - Tag 0x0003 (2 bytes, string[2]):
+  | |         0434: 45 00                                           [E.]
+  | | 4)  GPSLongitude = 8 14 22.7796 (8/1 14/1 56949/2500)
+  | |     - Tag 0x0004 (24 bytes, rational64u[3]):
+  | |         0460: 08 00 00 00 01 00 00 00 0e 00 00 00 01 00 00 00 [................]
+  | |         0470: 75 de 00 00 c4 09 00 00                         [u.......]
+  + [IFD1 directory with 6 entries, Little-endian]
+  | 0)  Compression = 6
+  |     - Tag 0x0103 (2 bytes, int16u[1]):
+  |         0482: 06 00                                           [..]
+  | 1)  XResolution = 72 (72/1)
+  |     - Tag 0x011a (8 bytes, rational64u[1]):
+  |         04c6: 48 00 00 00 01 00 00 00                         [H.......]
+  | 2)  YResolution = 72 (72/1)
+  |     - Tag 0x011b (8 bytes, rational64u[1]):
+  |         04ce: 48 00 00 00 01 00 00 00                         [H.......]
+  | 3)  ResolutionUnit = 2
+  |     - Tag 0x0128 (2 bytes, int16u[1]):
+  |         04a6: 02 00                                           [..]
+  | 4)  ThumbnailOffset = 1226
+  |     - Tag 0x0201 (4 bytes, int32u[1]):
+  |         04b2: ca 04 00 00                                     [....]
+  | 5)  ThumbnailLength = 1487
+  |     - Tag 0x0202 (4 bytes, int32u[1]):
+  |         04be: cf 05 00 00                                     [....]
+JPEG APP2 (574 bytes):
+      0aaa: 49 43 43 5f 50 52 4f 46 49 4c 45 00 01 01 00 00 [ICC_PROFILE.....]
+      0aba: 02 30 41 44 42 45 02 10 00 00 6d 6e 74 72 52 47 [.0ADBE....mntrRG]
+      0aca: 42 20 58 59 5a 20 07 cf 00 06 00 03 00 00 00 00 [B XYZ ..........]
+      0ada: 00 00 61 63 73 70 41 50 50 4c 00 00 00 00 6e 6f [..acspAPPL....no]
+      0aea: 6e 65 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [ne..............]
+      0afa: 00 00 00 00 f6 d6 00 01 00 00 00 00 d3 2d 41 44 [.............-AD]
+      0b0a: 42 45 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [BE..............]
+      [snip 462 bytes]
+ICC_Profile chunk 1 of 1
+  + [ICC_Profile directory with 10 entries, 560 bytes]
+  | ProfileHeader (SubDirectory) -->
+  | + [BinaryData directory, 128 bytes, Big-endian]
+  | | ProfileCMMType = ADBE
+  | | - Tag 0x0004 (4 bytes, string[4]):
+  | |     0004: 41 44 42 45                                     [ADBE]
+  | | ProfileVersion = 528
+  | | - Tag 0x0008 (2 bytes, int16s[1]):
+  | |     0008: 02 10                                           [..]
+  | | ProfileClass = mntr
+  | | - Tag 0x000c (4 bytes, string[4]):
+  | |     000c: 6d 6e 74 72                                     [mntr]
+  | | ColorSpaceData = RGB 
+  | | - Tag 0x0010 (4 bytes, string[4]):
+  | |     0010: 52 47 42 20                                     [RGB ]
+  | | ProfileConnectionSpace = XYZ 
+  | | - Tag 0x0014 (4 bytes, string[4]):
+  | |     0014: 58 59 5a 20                                     [XYZ ]
+  | | ProfileDateTime = 1999 6 3 0 0 0
+  | | - Tag 0x0018 (12 bytes, int16u[6]):
+  | |     0018: 07 cf 00 06 00 03 00 00 00 00 00 00             [............]
+  | | ProfileFileSignature = acsp
+  | | - Tag 0x0024 (4 bytes, string[4]):
+  | |     0024: 61 63 73 70                                     [acsp]
+  | | PrimaryPlatform = APPL
+  | | - Tag 0x0028 (4 bytes, string[4]):
+  | |     0028: 41 50 50 4c                                     [APPL]
+  | | CMMFlags = 0
+  | | - Tag 0x002c (4 bytes, int32u[1]):
+  | |     002c: 00 00 00 00                                     [....]
+  | | DeviceManufacturer = none
+  | | - Tag 0x0030 (4 bytes, string[4]):
+  | |     0030: 6e 6f 6e 65                                     [none]
+  | | DeviceModel = 
+  | | - Tag 0x0034 (4 bytes, string[4]):
+  | |     0034: 00 00 00 00                                     [....]
+  | | DeviceAttributes = 0 0
+  | | - Tag 0x0038 (8 bytes, int32u[2]):
+  | |     0038: 00 00 00 00 00 00 00 00                         [........]
+  | | RenderingIntent = 0
+  | | - Tag 0x0040 (4 bytes, int32u[1]):
+  | |     0040: 00 00 00 00                                     [....]
+  | | ConnectionSpaceIlluminant = 0.9642 1 0.82491
+  | | - Tag 0x0044 (12 bytes, fixed32s[3]):
+  | |     0044: 00 00 f6 d6 00 01 00 00 00 00 d3 2d             [...........-]
+  | | ProfileCreator = ADBE
+  | | - Tag 0x0050 (4 bytes, string[4]):
+  | |     0050: 41 44 42 45                                     [ADBE]
+  | | ProfileID = 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  | | - Tag 0x0054 (16 bytes, int8u[16]):
+  | |     0054: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  | 0)  ProfileCopyright = Copyright 1999 Adobe Systems Incorporated
+  |     - Tag 'cprt' (50 bytes, type 'text'):
+  |         00fc: 74 65 78 74 00 00 00 00 43 6f 70 79 72 69 67 68 [text....Copyrigh]
+  |         010c: 74 20 31 39 39 39 20 41 64 6f 62 65 20 53 79 73 [t 1999 Adobe Sys]
+  |         011c: 74 65 6d 73 20 49 6e 63 6f 72 70 6f 72 61 74 65 [tems Incorporate]
+  |         012c: 64 00                                           [d.]
+  | 1)  ProfileDescription = Adobe RGB (1998)
+  |     - Tag 'desc' (107 bytes, type 'desc'):
+  |         0130: 64 65 73 63 00 00 00 00 00 00 00 11 41 64 6f 62 [desc........Adob]
+  |         0140: 65 20 52 47 42 20 28 31 39 39 38 29 00 00 00 00 [e RGB (1998)....]
+  |         0150: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  |         0160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  |         0170: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  |         0180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  |         0190: 00 00 00 00 00 00 00 00 00 00 00                [...........]
+  | 2)  MediaWhitePoint = 0.95045 1 1.08905
+  |     - Tag 'wtpt' (20 bytes, type 'XYZ '):
+  |         019c: 58 59 5a 20 00 00 00 00 00 00 f3 51 00 01 00 00 [XYZ .......Q....]
+  |         01ac: 00 01 16 cc                                     [....]
+  | 3)  MediaBlackPoint = 0 0 0
+  |     - Tag 'bkpt' (20 bytes, type 'XYZ '):
+  |         01b0: 58 59 5a 20 00 00 00 00 00 00 00 00 00 00 00 00 [XYZ ............]
+  |         01c0: 00 00 00 00                                     [....]
+  | 4)  RedTRC = curv..3
+  |     - Tag 'rTRC' (14 bytes, type 'curv'):
+  |         01c4: 63 75 72 76 00 00 00 00 00 00 00 01 02 33       [curv.........3]
+  | 5)  GreenTRC = curv..3
+  |     - Tag 'gTRC' (14 bytes, type 'curv'):
+  |         01d4: 63 75 72 76 00 00 00 00 00 00 00 01 02 33       [curv.........3]
+  | 6)  BlueTRC = curv..3
+  |     - Tag 'bTRC' (14 bytes, type 'curv'):
+  |         01e4: 63 75 72 76 00 00 00 00 00 00 00 01 02 33       [curv.........3]
+  | 7)  RedMatrixColumn = 0.60974 0.31111 0.01947
+  |     - Tag 'rXYZ' (20 bytes, type 'XYZ '):
+  |         01f4: 58 59 5a 20 00 00 00 00 00 00 9c 18 00 00 4f a5 [XYZ ..........O.]
+  |         0204: 00 00 04 fc                                     [....]
+  | 8)  GreenMatrixColumn = 0.20528 0.62567 0.06087
+  |     - Tag 'gXYZ' (20 bytes, type 'XYZ '):
+  |         0208: 58 59 5a 20 00 00 00 00 00 00 34 8d 00 00 a0 2c [XYZ ......4....,]
+  |         0218: 00 00 0f 95                                     [....]
+  | 9)  BlueMatrixColumn = 0.14919 0.06322 0.74457
+  |     - Tag 'bXYZ' (20 bytes, type 'XYZ '):
+  |         021c: 58 59 5a 20 00 00 00 00 00 00 26 31 00 00 10 2f [XYZ ......&1.../]
+  |         022c: 00 00 be 9c                                     [....]
+JPEG APP14 (12 bytes):
+      0cec: 41 64 6f 62 65 00 64 40 00 00 00 01             [Adobe.d@....]
+  + [BinaryData directory, 7 bytes, Big-endian]
+  | DCTEncodeVersion = 100
+  | - Tag 0x0000 (2 bytes, int16u[1]):
+  |     0cf1: 00 64                                           [.d]
+  | APP14Flags0 = 16384
+  | - Tag 0x0001 (2 bytes, int16u[1]):
+  |     0cf3: 40 00                                           [@.]
+  | APP14Flags1 = 0
+  | - Tag 0x0002 (2 bytes, int16u[1]):
+  |     0cf5: 00 00                                           [..]
+  | ColorTransform = 1
+  | - Tag 0x0003 (1 bytes, int8u[1]):
+  |     0cf7: 01                                              [.]
+JPEG APP13 (5778 bytes):
+      0cfc: 50 68 6f 74 6f 73 68 6f 70 20 33 2e 30 00 38 42 [Photoshop 3.0.8B]
+      0d0c: 49 4d 04 25 00 00 00 00 00 10 28 9a 7a e0 fb d9 [IM.%......(.z...]
+      0d1c: bd 0b d5 f4 4f 59 23 21 02 3a 38 42 49 4d 04 3a [....OY#!.:8BIM.:]
+      0d2c: 00 00 00 00 01 4e 00 00 00 10 00 00 00 01 00 00 [.....N..........]
+      0d3c: 00 00 00 0b 70 72 69 6e 74 4f 75 74 70 75 74 00 [....printOutput.]
+      0d4c: 00 00 05 00 00 00 00 50 73 74 53 62 6f 6f 6c 01 [.......PstSbool.]
+      0d5c: 00 00 00 00 49 6e 74 65 65 6e 75 6d 00 00 00 00 [....Inteenum....]
+      [snip 5666 bytes]
+  + [Photoshop directory, 5764 bytes]
+  | IPTCDigest = (.z.......OY#!.:
+  | - Tag 0x0425 (16 bytes):
+  |     0d16: 28 9a 7a e0 fb d9 bd 0b d5 f4 4f 59 23 21 02 3a [(.z.......OY#!.:]
+  | PrintInfo2 = ...printOutput.PstSbool.InteenumInteClrm.printSixteenBitbool.printerNameTEXT.Canon iX6800 series.printProofSetupObjc.Proof-Einstellung.proofSetup..profileTEXT.myposter_LeinwandInteenumInteClrmMpBlbool.
+  | - Tag 0x043a (334 bytes):
+  |     0d32: 00 00 00 10 00 00 00 01 00 00 00 00 00 0b 70 72 [..............pr]
+  |     0d42: 69 6e 74 4f 75 74 70 75 74 00 00 00 05 00 00 00 [intOutput.......]
+  |     0d52: 00 50 73 74 53 62 6f 6f 6c 01 00 00 00 00 49 6e [.PstSbool.....In]
+  |     0d62: 74 65 65 6e 75 6d 00 00 00 00 49 6e 74 65 00 00 [teenum....Inte..]
+  |     0d72: 00 00 43 6c 72 6d 00 00 00 0f 70 72 69 6e 74 53 [..Clrm....printS]
+  |     0d82: 69 78 74 65 65 6e 42 69 74 62 6f 6f 6c 00 00 00 [ixteenBitbool...]
+  |     0d92: 00 0b 70 72 69 6e 74 65 72 4e 61 6d 65 54 45 58 [..printerNameTEX]
+  |     0da2: 54 00 00 00 14 00 43 00 61 00 6e 00 6f 00 6e 00 [T.....C.a.n.o.n.]
+  |     0db2: 20 00 69 00 58 00 36 00 38 00 30 00 30 00 20 00 [ .i.X.6.8.0.0. .]
+  |     0dc2: 73 00 65 00 72 00 69 00 65 00 73 00 00 00 00 00 [s.e.r.i.e.s.....]
+  |     0dd2: 0f 70 72 69 6e 74 50 72 6f 6f 66 53 65 74 75 70 [.printProofSetup]
+  |     0de2: 4f 62 6a 63 00 00 00 12 00 50 00 72 00 6f 00 6f [Objc.....P.r.o.o]
+  |     0df2: 00 66 00 2d 00 45 00 69 00 6e 00 73 00 74 00 65 [.f.-.E.i.n.s.t.e]
+  |     0e02: 00 6c 00 6c 00 75 00 6e 00 67 00 00 00 00 00 0a [.l.l.u.n.g......]
+  |     0e12: 70 72 6f 6f 66 53 65 74 75 70 00 00 00 03 00 00 [proofSetup......]
+  |     0e22: 00 07 70 72 6f 66 69 6c 65 54 45 58 54 00 00 00 [..profileTEXT...]
+  |     0e32: 12 00 6d 00 79 00 70 00 6f 00 73 00 74 00 65 00 [..m.y.p.o.s.t.e.]
+  |     0e42: 72 00 5f 00 4c 00 65 00 69 00 6e 00 77 00 61 00 [r._.L.e.i.n.w.a.]
+  |     0e52: 6e 00 64 00 00 00 00 00 00 49 6e 74 65 65 6e 75 [n.d......Inteenu]
+  |     0e62: 6d 00 00 00 00 49 6e 74 65 00 00 00 00 43 6c 72 [m....Inte....Clr]
+  |     0e72: 6d 00 00 00 00 4d 70 42 6c 62 6f 6f 6c 01       [m....MpBlbool.]
+  | PrintStyle = ...printOutputOptions.CptnboolClbrboolRgsMboolCrnCboolCntCboolLblsboolNgtvboolEmlDboolIntrboolBckgObjc.RGBC.Rd  doub@o.Grn doub@o.Bl  doub@o.BrdTUntF#RltBld UntF#RltRsltUntF#Pxl@r..vectorDatabool.PgPsenumPgPsPgPCLeftUntF#Rlt.Jz.8Top UntF#Rlt@^.. Scl UntF#Prc@V....cropWhenPrintingbool.cropRectBottomlong.6.cropRectLeftlong.cropRectRightlong...cropRectToplong
+  | - Tag 0x043b (557 bytes):
+  |     0e8c: 00 00 00 10 00 00 00 01 00 00 00 00 00 12 70 72 [..............pr]
+  |     0e9c: 69 6e 74 4f 75 74 70 75 74 4f 70 74 69 6f 6e 73 [intOutputOptions]
+  |     0eac: 00 00 00 17 00 00 00 00 43 70 74 6e 62 6f 6f 6c [........Cptnbool]
+  |     0ebc: 00 00 00 00 00 43 6c 62 72 62 6f 6f 6c 00 00 00 [.....Clbrbool...]
+  |     0ecc: 00 00 52 67 73 4d 62 6f 6f 6c 00 00 00 00 00 43 [..RgsMbool.....C]
+  |     0edc: 72 6e 43 62 6f 6f 6c 00 00 00 00 00 43 6e 74 43 [rnCbool.....CntC]
+  |     0eec: 62 6f 6f 6c 00 00 00 00 00 4c 62 6c 73 62 6f 6f [bool.....Lblsboo]
+  |     0efc: 6c 00 00 00 00 00 4e 67 74 76 62 6f 6f 6c 00 00 [l.....Ngtvbool..]
+  |     0f0c: 00 00 00 45 6d 6c 44 62 6f 6f 6c 00 00 00 00 00 [...EmlDbool.....]
+  |     0f1c: 49 6e 74 72 62 6f 6f 6c 00 00 00 00 00 42 63 6b [Intrbool.....Bck]
+  |     0f2c: 67 4f 62 6a 63 00 00 00 01 00 00 00 00 00 00 52 [gObjc..........R]
+  |     0f3c: 47 42 43 00 00 00 03 00 00 00 00 52 64 20 20 64 [GBC........Rd  d]
+  |     0f4c: 6f 75 62 40 6f e0 00 00 00 00 00 00 00 00 00 47 [oub@o..........G]
+  |     0f5c: 72 6e 20 64 6f 75 62 40 6f e0 00 00 00 00 00 00 [rn doub@o.......]
+  |     0f6c: 00 00 00 42 6c 20 20 64 6f 75 62 40 6f e0 00 00 [...Bl  doub@o...]
+  |     0f7c: 00 00 00 00 00 00 00 42 72 64 54 55 6e 74 46 23 [.......BrdTUntF#]
+  |     0f8c: 52 6c 74 00 00 00 00 00 00 00 00 00 00 00 00 42 [Rlt............B]
+  |     0f9c: 6c 64 20 55 6e 74 46 23 52 6c 74 00 00 00 00 00 [ld UntF#Rlt.....]
+  |     0fac: 00 00 00 00 00 00 00 52 73 6c 74 55 6e 74 46 23 [.......RsltUntF#]
+  |     0fbc: 50 78 6c 40 72 c0 00 00 00 00 00 00 00 00 0a 76 [Pxl@r..........v]
+  |     0fcc: 65 63 74 6f 72 44 61 74 61 62 6f 6f 6c 01 00 00 [ectorDatabool...]
+  |     0fdc: 00 00 50 67 50 73 65 6e 75 6d 00 00 00 00 50 67 [..PgPsenum....Pg]
+  |     0fec: 50 73 00 00 00 00 50 67 50 43 00 00 00 00 4c 65 [Ps....PgPC....Le]
+  |     0ffc: 66 74 55 6e 74 46 23 52 6c 74 c0 4a 7a e1 38 00 [ftUntF#Rlt.Jz.8.]
+  |     100c: 00 00 00 00 00 00 54 6f 70 20 55 6e 74 46 23 52 [......Top UntF#R]
+  |     101c: 6c 74 40 5e bd b2 20 00 00 00 00 00 00 00 53 63 [lt@^.. .......Sc]
+  |     102c: 6c 20 55 6e 74 46 23 50 72 63 40 56 7f ff f6 00 [l UntF#Prc@V....]
+  |     103c: 00 00 00 00 00 10 63 72 6f 70 57 68 65 6e 50 72 [......cropWhenPr]
+  |     104c: 69 6e 74 69 6e 67 62 6f 6f 6c 00 00 00 00 0e 63 [intingbool.....c]
+  |     105c: 72 6f 70 52 65 63 74 42 6f 74 74 6f 6d 6c 6f 6e [ropRectBottomlon]
+  |     106c: 67 00 00 03 36 00 00 00 0c 63 72 6f 70 52 65 63 [g...6....cropRec]
+  |     107c: 74 4c 65 66 74 6c 6f 6e 67 00 00 00 00 00 00 00 [tLeftlong.......]
+  |     108c: 0d 63 72 6f 70 52 65 63 74 52 69 67 68 74 6c 6f [.cropRectRightlo]
+  |     109c: 6e 67 00 00 04 8a 00 00 00 0b 63 72 6f 70 52 65 [ng........cropRe]
+  |     10ac: 63 74 54 6f 70 6c 6f 6e 67 00 00 00 00          [ctToplong....]
+  | ResolutionInfo (SubDirectory) -->
+  | - Tag 0x03ed (16 bytes):
+  |     10c6: 01 2c 00 00 00 01 00 02 01 2c 00 00 00 01 00 02 [.,.......,......]
+  | + [BinaryData directory, 16 bytes, Big-endian]
+  | | XResolution = 19660800
+  | | - Tag 0x0000 (4 bytes, int32u[1]):
+  | |     10c6: 01 2c 00 00                                     [.,..]
+  | | DisplayedUnitsX = 1
+  | | - Tag 0x0002 (2 bytes, int16u[1]):
+  | |     10ca: 00 01                                           [..]
+  | | YResolution = 19660800
+  | | - Tag 0x0004 (4 bytes, int32u[1]):
+  | |     10ce: 01 2c 00 00                                     [.,..]
+  | | DisplayedUnitsY = 1
+  | | - Tag 0x0006 (2 bytes, int16u[1]):
+  | |     10d2: 00 01                                           [..]
+  | PrintScaleInfo (SubDirectory) -->
+  | - Tag 0x0426 (14 bytes):
+  |     10e2: 00 00 bf 3c 4d 5e 3f da 9a 48 3f 66 66 66       [...<M^?..H?fff]
+  | + [BinaryData directory, 14 bytes, Big-endian]
+  | | PrintStyle = 0
+  | | - Tag 0x0000 (2 bytes, int16u[1]):
+  | |     10e2: 00 00                                           [..]
+  | | PrintPosition = -0.735555529594421 1.7078332901001
+  | | - Tag 0x0002 (8 bytes, float[2]):
+  | |     10e4: bf 3c 4d 5e 3f da 9a 48                         [.<M^?..H]
+  | | PrintScale = 0.899999976158142
+  | | - Tag 0x000a (4 bytes, float[1]):
+  | |     10ec: 3f 66 66 66                                     [?fff]
+  | BackgroundColor = ......
+  | - Tag 0x03f2 (10 bytes):
+  |     10fc: 00 00 ff ff ff ff ff ff 00 00                   [..........]
+  | GlobalAngle = .
+  | - Tag 0x040d (4 bytes):
+  |     1112: 00 00 00 1e                                     [....]
+  | GlobalAltitude = .
+  | - Tag 0x0419 (4 bytes):
+  |     1122: 00 00 00 1e                                     [....]
+  | PrintFlags = 0 0 0 0 0 0 0 0 1
+  | - Tag 0x03f3 (9 bytes, int8u[9]):
+  |     1132: 00 00 00 00 00 00 00 00 01                      [.........]
+  | PrintFlagsInfo = ..
+  | - Tag 0x2710 (10 bytes):
+  |     1148: 00 01 00 00 00 00 00 00 00 02                   [..........]
+  | ColorHalftoningInfo = /ff.lff../ff......2.Z..5.-..
+  | - Tag 0x03f5 (72 bytes):
+  |     115e: 00 2f 66 66 00 01 00 6c 66 66 00 06 00 00 00 00 [./ff...lff......]
+  |     116e: 00 01 00 2f 66 66 00 01 00 a1 99 9a 00 06 00 00 [.../ff..........]
+  |     117e: 00 00 00 01 00 32 00 00 00 01 00 5a 00 00 00 06 [.....2.....Z....]
+  |     118e: 00 00 00 00 00 01 00 35 00 00 00 01 00 2d 00 00 [.......5.....-..]
+  |     119e: 00 06 00 00 00 00 00 01                         [........]
+  | ColorTransferFuncs = ................................................................................................
+  | - Tag 0x03f8 (112 bytes):
+  |     11b2: 00 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff [................]
+  |     11c2: ff ff ff ff ff ff ff ff 03 e8 00 00 00 00 ff ff [................]
+  |     11d2: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff [................]
+  |     11e2: ff ff ff ff 03 e8 00 00 00 00 ff ff ff ff ff ff [................]
+  |     11f2: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff [................]
+  |     1202: 03 e8 00 00 00 00 ff ff ff ff ff ff ff ff ff ff [................]
+  |     1212: ff ff ff ff ff ff ff ff ff ff ff ff 03 e8 00 00 [................]
+  | TargetLayerID = 0
+  | - Tag 0x0400 (2 bytes, int16u[1]):
+  |     122e: 00 00                                           [..]
+  | LayersGroupInfo = 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  | - Tag 0x0402 (34 bytes, int16u[17]):
+  |     123c: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  |     124c: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  |     125c: 00 00                                           [..]
+  | LayerGroupsEnabledID = 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+  | - Tag 0x0430 (17 bytes, int8u[17]):
+  |     126a: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 [................]
+  |     127a: 01                                              [.]
+  | LayerSelectionIDs = .a
+  | - Tag 0x042d (6 bytes):
+  |     1288: 00 01 00 00 00 61                               [.....a]
+  | GridGuidesInfo = ..@.@.........Y....`.......n....
+  | - Tag 0x0408 (46 bytes):
+  |     129a: 00 00 00 01 00 00 02 40 00 00 02 40 00 00 00 06 [.......@...@....]
+  |     12aa: ff ff ea e0 01 ff ff ed 59 01 ff ff f0 60 01 ff [........Y....`..]
+  |     12ba: ff f2 b5 01 00 01 6e e0 00 00 00 ae f0 01       [......n.......]
+  | URL_List = 
+  | - Tag 0x041e (4 bytes):
+  |     12d4: 00 00 00 00                                     [....]
+  | SliceInfo (SubDirectory) -->
+  | - Tag 0x041a (766 bytes):
+  |     12e4: 00 00 00 08 00 00 00 10 00 00 00 01 00 00 00 00 [................]
+  |     12f4: 00 00 6e 75 6c 6c 00 00 00 03 00 00 00 08 62 61 [..null........ba]
+  |     1304: 73 65 4e 61 6d 65 54 45 58 54 00 00 00 09 00 42 [seNameTEXT.....B]
+  |     1314: 00 65 00 6e 00 75 00 74 00 7a 00 65 00 72 00 00 [.e.n.u.t.z.e.r..]
+  |     1324: 00 00 00 06 62 6f 75 6e 64 73 4f 62 6a 63 00 00 [....boundsObjc..]
+  |     1334: 00 01 00 00 00 00 00 00 52 63 74 31 00 00 00 04 [........Rct1....]
+  |     1344: 00 00 00 00 54 6f 70 20 6c 6f 6e 67 00 00 00 00 [....Top long....]
+  |     1354: 00 00 00 00 4c 65 66 74 6c 6f 6e 67 00 00 00 00 [....Leftlong....]
+  |     1364: 00 00 00 00 42 74 6f 6d 6c 6f 6e 67 00 00 0a ef [....Btomlong....]
+  |     1374: 00 00 00 00 52 67 68 74 6c 6f 6e 67 00 00 16 ee [....Rghtlong....]
+  |     1384: 00 00 00 06 73 6c 69 63 65 73 56 6c 4c 73 00 00 [....slicesVlLs..]
+  |     1394: 00 01 4f 62 6a 63 00 00 00 01 00 00 00 00 00 05 [..Objc..........]
+  |     13a4: 73 6c 69 63 65 00 00 00 12 00 00 00 07 73 6c 69 [slice........sli]
+  |     13b4: 63 65 49 44 6c 6f 6e 67 00 00 00 00 00 00 00 07 [ceIDlong........]
+  |     13c4: 67 72 6f 75 70 49 44 6c 6f 6e 67 00 00 00 00 00 [groupIDlong.....]
+  |     13d4: 00 00 06 6f 72 69 67 69 6e 65 6e 75 6d 00 00 00 [...originenum...]
+  |     13e4: 0c 45 53 6c 69 63 65 4f 72 69 67 69 6e 00 00 00 [.ESliceOrigin...]
+  |     13f4: 0d 61 75 74 6f 47 65 6e 65 72 61 74 65 64 00 00 [.autoGenerated..]
+  |     1404: 00 00 54 79 70 65 65 6e 75 6d 00 00 00 0a 45 53 [..Typeenum....ES]
+  |     1414: 6c 69 63 65 54 79 70 65 00 00 00 00 49 6d 67 20 [liceType....Img ]
+  |     1424: 00 00 00 06 62 6f 75 6e 64 73 4f 62 6a 63 00 00 [....boundsObjc..]
+  |     1434: 00 01 00 00 00 00 00 00 52 63 74 31 00 00 00 04 [........Rct1....]
+  |     1444: 00 00 00 00 54 6f 70 20 6c 6f 6e 67 00 00 00 00 [....Top long....]
+  |     1454: 00 00 00 00 4c 65 66 74 6c 6f 6e 67 00 00 00 00 [....Leftlong....]
+  |     1464: 00 00 00 00 42 74 6f 6d 6c 6f 6e 67 00 00 0a ef [....Btomlong....]
+  |     1474: 00 00 00 00 52 67 68 74 6c 6f 6e 67 00 00 16 ee [....Rghtlong....]
+  |     1484: 00 00 00 03 75 72 6c 54 45 58 54 00 00 00 01 00 [....urlTEXT.....]
+  |     1494: 00 00 00 00 00 6e 75 6c 6c 54 45 58 54 00 00 00 [.....nullTEXT...]
+  |     14a4: 01 00 00 00 00 00 00 4d 73 67 65 54 45 58 54 00 [.......MsgeTEXT.]
+  |     14b4: 00 00 01 00 00 00 00 00 06 61 6c 74 54 61 67 54 [.........altTagT]
+  |     14c4: 45 58 54 00 00 00 01 00 00 00 00 00 0e 63 65 6c [EXT..........cel]
+  |     14d4: 6c 54 65 78 74 49 73 48 54 4d 4c 62 6f 6f 6c 01 [lTextIsHTMLbool.]
+  |     14e4: 00 00 00 08 63 65 6c 6c 54 65 78 74 54 45 58 54 [....cellTextTEXT]
+  |     14f4: 00 00 00 01 00 00 00 00 00 09 68 6f 72 7a 41 6c [..........horzAl]
+  |     1504: 69 67 6e 65 6e 75 6d 00 00 00 0f 45 53 6c 69 63 [ignenum....ESlic]
+  |     1514: 65 48 6f 72 7a 41 6c 69 67 6e 00 00 00 07 64 65 [eHorzAlign....de]
+  |     1524: 66 61 75 6c 74 00 00 00 09 76 65 72 74 41 6c 69 [fault....vertAli]
+  |     1534: 67 6e 65 6e 75 6d 00 00 00 0f 45 53 6c 69 63 65 [gnenum....ESlice]
+  |     1544: 56 65 72 74 41 6c 69 67 6e 00 00 00 07 64 65 66 [VertAlign....def]
+  |     1554: 61 75 6c 74 00 00 00 0b 62 67 43 6f 6c 6f 72 54 [ault....bgColorT]
+  |     1564: 79 70 65 65 6e 75 6d 00 00 00 11 45 53 6c 69 63 [ypeenum....ESlic]
+  |     1574: 65 42 47 43 6f 6c 6f 72 54 79 70 65 00 00 00 00 [eBGColorType....]
+  |     1584: 4e 6f 6e 65 00 00 00 09 74 6f 70 4f 75 74 73 65 [None....topOutse]
+  |     1594: 74 6c 6f 6e 67 00 00 00 00 00 00 00 0a 6c 65 66 [tlong........lef]
+  |     15a4: 74 4f 75 74 73 65 74 6c 6f 6e 67 00 00 00 00 00 [tOutsetlong.....]
+  |     15b4: 00 00 0c 62 6f 74 74 6f 6d 4f 75 74 73 65 74 6c [...bottomOutsetl]
+  |     15c4: 6f 6e 67 00 00 00 00 00 00 00 0b 72 69 67 68 74 [ong........right]
+  |     15d4: 4f 75 74 73 65 74 6c 6f 6e 67 00 00 00 00       [Outsetlong....]
+  | + [BinaryData directory, 766 bytes, Big-endian]
+  | | SlicesGroupName = .
+  | | - Tag 0x0014 (742 bytes, ustr32[742]):
+  | |     12fc: 00 03 00 00 00 08 62 61 73 65 4e 61 6d 65 54 45 [......baseNameTE]
+  | |     130c: 58 54 00 00 00 09 00 42 00 65 00 6e 00 75 00 74 [XT.....B.e.n.u.t]
+  | |     131c: 00 7a 00 65 00 72 00 00 00 00 00 06 62 6f 75 6e [.z.e.r......boun]
+  | |     132c: 64 73 4f 62 6a 63 00 00 00 01 00 00 00 00 00 00 [dsObjc..........]
+  | |     133c: 52 63 74 31 00 00 00 04 00 00 00 00 54 6f 70 20 [Rct1........Top ]
+  | |     134c: 6c 6f 6e 67 00 00 00 00 00 00 00 00 4c 65 66 74 [long........Left]
+  | |     135c: 6c 6f 6e 67 00 00 00 00 00 00 00 00 42 74 6f 6d [long........Btom]
+  | |     136c: 6c 6f 6e 67 00 00 0a ef 00 00 00 00 52 67 68 74 [long........Rght]
+  | |     137c: 6c 6f 6e 67 00 00 16 ee 00 00 00 06 73 6c 69 63 [long........slic]
+  | |     138c: 65 73 56 6c 4c 73 00 00 00 01 4f 62 6a 63 00 00 [esVlLs....Objc..]
+  | |     139c: 00 01 00 00 00 00 00 05 73 6c 69 63 65 00 00 00 [........slice...]
+  | |     13ac: 12 00 00 00 07 73 6c 69 63 65 49 44 6c 6f 6e 67 [.....sliceIDlong]
+  | |     13bc: 00 00 00 00 00 00 00 07 67 72 6f 75 70 49 44 6c [........groupIDl]
+  | |     13cc: 6f 6e 67 00 00 00 00 00 00 00 06 6f 72 69 67 69 [ong........origi]
+  | |     13dc: 6e 65 6e 75 6d 00 00 00 0c 45 53 6c 69 63 65 4f [nenum....ESliceO]
+  | |     13ec: 72 69 67 69 6e 00 00 00 0d 61 75 74 6f 47 65 6e [rigin....autoGen]
+  | |     13fc: 65 72 61 74 65 64 00 00 00 00 54 79 70 65 65 6e [erated....Typeen]
+  | |     140c: 75 6d 00 00 00 0a 45 53 6c 69 63 65 54 79 70 65 [um....ESliceType]
+  | |     141c: 00 00 00 00 49 6d 67 20 00 00 00 06 62 6f 75 6e [....Img ....boun]
+  | |     142c: 64 73 4f 62 6a 63 00 00 00 01 00 00 00 00 00 00 [dsObjc..........]
+  | |     143c: 52 63 74 31 00 00 00 04 00 00 00 00 54 6f 70 20 [Rct1........Top ]
+  | |     144c: 6c 6f 6e 67 00 00 00 00 00 00 00 00 4c 65 66 74 [long........Left]
+  | |     145c: 6c 6f 6e 67 00 00 00 00 00 00 00 00 42 74 6f 6d [long........Btom]
+  | |     146c: 6c 6f 6e 67 00 00 0a ef 00 00 00 00 52 67 68 74 [long........Rght]
+  | |     147c: 6c 6f 6e 67 00 00 16 ee 00 00 00 03 75 72 6c 54 [long........urlT]
+  | |     148c: 45 58 54 00 00 00 01 00 00 00 00 00 00 6e 75 6c [EXT..........nul]
+  | |     149c: 6c 54 45 58 54 00 00 00 01 00 00 00 00 00 00 4d [lTEXT..........M]
+  | |     14ac: 73 67 65 54 45 58 54 00 00 00 01 00 00 00 00 00 [sgeTEXT.........]
+  | |     14bc: 06 61 6c 74 54 61 67 54 45 58 54 00 00 00 01 00 [.altTagTEXT.....]
+  | |     14cc: 00 00 00 00 0e 63 65 6c 6c 54 65 78 74 49 73 48 [.....cellTextIsH]
+  | |     14dc: 54 4d 4c 62 6f 6f 6c 01 00 00 00 08 63 65 6c 6c [TMLbool.....cell]
+  | |     14ec: 54 65 78 74 54 45 58 54 00 00 00 01 00 00 00 00 [TextTEXT........]
+  | |     14fc: 00 09 68 6f 72 7a 41 6c 69 67 6e 65 6e 75 6d 00 [..horzAlignenum.]
+  | |     150c: 00 00 0f 45 53 6c 69 63 65 48 6f 72 7a 41 6c 69 [...ESliceHorzAli]
+  | |     151c: 67 6e 00 00 00 07 64 65 66 61 75 6c 74 00 00 00 [gn....default...]
+  | |     152c: 09 76 65 72 74 41 6c 69 67 6e 65 6e 75 6d 00 00 [.vertAlignenum..]
+  | |     153c: 00 0f 45 53 6c 69 63 65 56 65 72 74 41 6c 69 67 [..ESliceVertAlig]
+  | |     154c: 6e 00 00 00 07 64 65 66 61 75 6c 74 00 00 00 0b [n....default....]
+  | |     155c: 62 67 43 6f 6c 6f 72 54 79 70 65 65 6e 75 6d 00 [bgColorTypeenum.]
+  | |     156c: 00 00 11 45 53 6c 69 63 65 42 47 43 6f 6c 6f 72 [...ESliceBGColor]
+  | |     157c: 54 79 70 65 00 00 00 00 4e 6f 6e 65 00 00 00 09 [Type....None....]
+  | |     158c: 74 6f 70 4f 75 74 73 65 74 6c 6f 6e 67 00 00 00 [topOutsetlong...]
+  | |     159c: 00 00 00 00 0a 6c 65 66 74 4f 75 74 73 65 74 6c [.....leftOutsetl]
+  | |     15ac: 6f 6e 67 00 00 00 00 00 00 00 0c 62 6f 74 74 6f [ong........botto]
+  | |     15bc: 6d 4f 75 74 73 65 74 6c 6f 6e 67 00 00 00 00 00 [mOutsetlong.....]
+  | |     15cc: 00 00 0b 72 69 67 68 74 4f 75 74 73 65 74 6c 6f [...rightOutsetlo]
+  | |     15dc: 6e 67 00 00 00 00                               [ng....]
+  | PixelInfo (SubDirectory) -->
+  | - Tag 0x0428 (12 bytes):
+  |     15ee: 00 00 00 02 3f f0 00 00 00 00 00 00             [....?.......]
+  | + [BinaryData directory, 12 bytes, Big-endian]
+  | | PixelAspectRatio = 1
+  | | - Tag 0x0004 (8 bytes, double[1]):
+  | |     15f2: 3f f0 00 00 00 00 00 00                         [?.......]
+  | IDsBaseValue = 104
+  | - Tag 0x0414 (4 bytes, int32u[1]):
+  |     1606: 00 00 00 68                                     [...h]
+  | PhotoshopThumbnail = ..L.............Adobe_CM....Adobed..........................................................................................................................................L...".............?......................................................3.....!.1.AQa."q.2.....B#$.R.b34r..C.%.S...cs5....&D.TdE..t6..U.e.....u..F'...............Vfv........7GWgw.......................5....!1..AQaq"..2.....B#.R..3$b.r..CS.cs4.%......&5..D.T..dEU6te......u..F...............Vfv........'7GWgw..............?...I%)$.EJI$.R.I$...I%)$.IJI$.R.I$...I%)$.IO.....I%)$.IJI$.R.I$.....a..Z...).]..+iy.Hh'O..S..--0.A.......JJRI$...I$.$.I)I$.J......I%'..6....U`...2bv...r....ZH>...<B=9...Wn..ZY...s]......Z!.@.8...HC...~..F...=.s_nE...^....m.el...=..}7.xTQwP........].....pk...kv7..:.G..^.g.........kk.q...T$.'Ry)...........(.......Fz?.t6........%.....`.[...c.k...Q.../...N..z........Y..{.F..._...._....X..._K1....j........Z...[...b.....=..%e..HJ"...w....*.#.9..........;g..C.d.........rh....S....lw...K......s..,D......~5..$...U....z.wop.3?....Eg.wKoJ;l}.......6~....U.........7......4..z.......o>..F.;l.)v.]:ON..c..?....K.....G..9.......A...Ip...O...^..6..@".\.Z.cs..}.....5V.E.'..-.[......~.X............X.......p.um.$.xt...Z.......^^%..".n......&..n.....FKkk...41.....X......4.1.........9......t.p/...Z5.ed..._H5...}[.tt..nUo.. 4Xj Z...]^.c..{..*.c;.;5.c.k........odT.I$.S.....I%)$.IJI$.R.I$...I%)$.EJI$.R.I$...I%)$.IO.....I.)$.EJI$.R.I$...I%)$.IJI$.R.I$...I.)$.IO..
+  | - Tag 0x040c (1515 bytes):
+  |     1616: 00 00 00 01 00 00 00 9f 00 00 00 4c 00 00 01 e0 [...........L....]
+  |     1626: 00 00 8e 80 00 00 05 cf 00 18 00 01 ff d8 ff ed [................]
+  |     1636: 00 0c 41 64 6f 62 65 5f 43 4d 00 01 ff ee 00 0e [..Adobe_CM......]
+  |     1646: 41 64 6f 62 65 00 64 80 00 00 00 01 ff db 00 84 [Adobe.d.........]
+  |     1656: 00 0c 08 08 08 09 08 0c 09 09 0c 11 0b 0a 0b 11 [................]
+  |     1666: 15 0f 0c 0c 0f 15 18 13 13 15 13 13 18 11 0c 0c [................]
+  |     1676: 0c 0c 0c 0c 11 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c [................]
+  |     1686: 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c [................]
+  |     1696: 0c 01 0d 0b 0b 0d 0e 0d 10 0e 0e 10 14 0e 0e 0e [................]
+  |     16a6: 14 14 0e 0e 0e 0e 14 11 0c 0c 0c 0c 0c 11 11 0c [................]
+  |     16b6: 0c 0c 0c 0c 0c 11 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c [................]
+  |     16c6: 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c 0c [................]
+  |     16d6: 0c 0c ff c0 00 11 08 00 4c 00 9f 03 01 22 00 02 [........L...."..]
+  |     16e6: 11 01 03 11 01 ff dd 00 04 00 0a ff c4 01 3f 00 [..............?.]
+  |     16f6: 00 01 05 01 01 01 01 01 01 00 00 00 00 00 00 00 [................]
+  |     1706: 03 00 01 02 04 05 06 07 08 09 0a 0b 01 00 01 05 [................]
+  |     1716: 01 01 01 01 01 01 00 00 00 00 00 00 00 01 00 02 [................]
+  |     1726: 03 04 05 06 07 08 09 0a 0b 10 00 01 04 01 03 02 [................]
+  |     1736: 04 02 05 07 06 08 05 03 0c 33 01 00 02 11 03 04 [.........3......]
+  |     1746: 21 12 31 05 41 51 61 13 22 71 81 32 06 14 91 a1 [!.1.AQa."q.2....]
+  |     1756: b1 42 23 24 15 52 c1 62 33 34 72 82 d1 43 07 25 [.B#$.R.b34r..C.%]
+  |     1766: 92 53 f0 e1 f1 63 73 35 16 a2 b2 83 26 44 93 54 [.S...cs5....&D.T]
+  |     1776: 64 45 c2 a3 74 36 17 d2 55 e2 65 f2 b3 84 c3 d3 [dE..t6..U.e.....]
+  |     1786: 75 e3 f3 46 27 94 a4 85 b4 95 c4 d4 e4 f4 a5 b5 [u..F'...........]
+  |     1796: c5 d5 e5 f5 56 66 76 86 96 a6 b6 c6 d6 e6 f6 37 [....Vfv........7]
+  |     17a6: 47 57 67 77 87 97 a7 b7 c7 d7 e7 f7 11 00 02 02 [GWgw............]
+  |     17b6: 01 02 04 04 03 04 05 06 07 07 06 05 35 01 00 02 [............5...]
+  |     17c6: 11 03 21 31 12 04 41 51 61 71 22 13 05 32 81 91 [..!1..AQaq"..2..]
+  |     17d6: 14 a1 b1 42 23 c1 52 d1 f0 33 24 62 e1 72 82 92 [...B#.R..3$b.r..]
+  |     17e6: 43 53 15 63 73 34 f1 25 06 16 a2 b2 83 07 26 35 [CS.cs4.%......&5]
+  |     17f6: c2 d2 44 93 54 a3 17 64 45 55 36 74 65 e2 f2 b3 [..D.T..dEU6te...]
+  |     1806: 84 c3 d3 75 e3 f3 46 94 a4 85 b4 95 c4 d4 e4 f4 [...u..F.........]
+  |     1816: a5 b5 c5 d5 e5 f5 56 66 76 86 96 a6 b6 c6 d6 e6 [......Vfv.......]
+  |     1826: f6 27 37 47 57 67 77 87 97 a7 b7 c7 ff da 00 0c [.'7GWgw.........]
+  |     1836: 03 01 00 02 11 03 11 00 3f 00 f2 a4 92 49 25 29 [........?....I%)]
+  |     1846: 24 92 45 4a 49 24 92 52 92 49 24 94 a4 92 49 25 [$.EJI$.R.I$...I%]
+  |     1856: 29 24 92 49 4a 49 24 92 52 92 49 24 94 a4 92 49 [)$.IJI$.R.I$...I]
+  |     1866: 25 29 24 92 49 4f ff d0 f2 a4 92 49 25 29 24 92 [%)$.IO.....I%)$.]
+  |     1876: 49 4a 49 24 92 52 92 49 24 94 a4 93 b9 ae 61 da [IJI$.R.I$.....a.]
+  |     1886: f0 5a e1 d8 88 29 d9 5d 96 12 2b 69 79 02 48 68 [.Z...).]..+iy.Hh]
+  |     1896: 27 4f 1d 12 53 14 92 2d 2d 30 e0 41 1c 82 90 04 ['O..S..--0.A....]
+  |     18a6: cc 09 8d 4a 4a 52 49 24 92 94 92 49 24 a5 24 92 [...JJRI$...I$.$.]
+  |     18b6: 49 29 49 24 92 4a 7f ff d1 f2 a4 92 49 25 27 c7 [I)I$.J......I%'.]
+  |     18c6: c4 36 b0 d8 fb 1b 55 60 ed dc e9 32 62 76 b5 ac [.6....U`...2bv..]
+  |     18d6: 0e 72 15 95 9a de 5a 48 3e 0e 1a 82 3c 42 3d 39 [.r....ZH>...<B=9]
+  |     18e6: 15 0a 85 57 6e 86 92 5a 59 07 9f cd 73 5d b7 c1 [...Wn..ZY...s]..]
+  |     18f6: 02 d7 87 ba 5a 21 a3 40 9a 38 b8 8d b2 48 43 80 [....Z!.@.8...HC.]
+  |     1906: 11 f3 7e 2e 96 46 16 0e 2e 3d 0c 73 5f 6e 45 95 [..~..F...=.s_nE.]
+  |     1916: b6 db 5e 1d 01 be a0 6d ac 65 6c db f9 b5 3d 9e [..^....m.el...=.]
+  |     1926: e7 7d 37 aa 78 54 51 77 50 c7 c7 c8 b3 d2 a2 cb [.}7.xTQwP.......]
+  |     1936: 99 5d b6 92 1b b5 8e 70 6b ec dc ef 6b 76 37 dc [.].....pk...kv7.]
+  |     1946: a6 3a a6 47 a0 da 5e 19 67 a6 dd 95 d8 f6 cb da [.:.G..^.g.......]
+  |     1956: d1 ab 6b 6b ff 00 71 bf 99 bd 54 24 93 27 52 79 [..kk..q...T$.'Ry]
+  |     1966: 29 b0 8c 85 f1 1e bb dd ff 00 e8 a9 c9 28 1e 1e [)............(..]
+  |     1976: 11 b6 e2 ab ff 00 46 7a 3f ac 74 36 bc 9b b1 ea [......Fz?.t6....]
+  |     1986: c2 af 1a 9a 25 81 a2 b0 d7 b7 60 03 5b be 9d fb [....%.....`.[...]
+  |     1996: 63 df 6b ec b3 d7 51 fa 8f f6 2f db 2e fb 4e cf [c.k...Q.../...N.]
+  |     19a6: b4 7a 0f fd 9f ea 10 d6 fd a6 59 e9 ed 7b ff 00 [.z........Y..{..]
+  |     19b6: 46 db fd 1f 5f ec 9b ff 00 ed 5f a1 fe 17 d3 58 [F..._....._....X]
+  |     19c6: b6 e7 e7 5f 4b 31 ee c8 b2 ca 6a 01 b5 d6 e7 12 [..._K1....j.....]
+  |     19d6: d6 81 a3 5a d6 93 f4 5b f9 a8 08 62 84 a3 0e 19 [...Z...[...b....]
+  |     19e6: 1b 3d c7 fd 25 65 c9 19 48 4a 22 ab a7 ec 77 be [.=..%e..HJ"...w.]
+  |     19f6: b5 d3 d4 2a cb 23 a8 39 c6 d3 05 ad b0 cb c0 8f [...*.#.9........]
+  |     1a06: de 97 3b 67 fd fd 43 a6 64 e2 fe c0 cb c2 ad c2 [..;g..C.d.......]
+  |     1a16: ac eb 72 68 b1 fb 8e df 53 1d 8d b7 f4 6c 77 d1 [..rh....S....lw.]
+  |     1a26: fd 06 4b aa b9 f5 7f 86 fe 73 fe d3 2c 44 93 a1 [..K......s..,D..]
+  |     1a36: 0e 18 08 93 7e 35 c2 b7 24 f8 a7 c5 55 f5 b4 f9 [....~5..$...U...]
+  |     1a46: 84 7a 9b 77 6f 70 99 33 3f d9 dc ba ba 45 67 ea [.z.wop.3?....Eg.]
+  |     1a56: 77 4b 6f 4a 3b 6c 7d f9 07 aa ba b9 df eb 36 7e [wKoJ;l}.......6~]
+  |     1a66: c9 f6 89 fa 55 b7 11 ff 00 ab ff 00 82 fe 7f fc [....U...........]
+  |     1a76: 37 a8 b8 d4 a4 84 e2 34 a4 09 7a ae 92 e5 01 f6 [7......4..z.....]
+  |     1a86: 87 8f 6f 3e ed bf 46 7f 3b 6c 7f 29 76 df 5d 3a [..o>..F.;l.)v.]:]
+  |     1a96: 4f 4e e9 df 63 e9 bd 3f 12 b1 8c ca 4b be d1 b5 [ON..c..?....K...]
+  |     1aa6: a6 db 47 fd c8 39 8d 1b ae df bb d7 ff 00 41 fe [..G..9........A.]
+  |     1ab6: 8e bf 49 70 8a cd bd 4f a8 dd 8b 5e 1d b9 36 d9 [..Ip...O...^..6.]
+  |     1ac6: 8d 40 22 aa 5c f2 5a c0 63 73 18 d2 7d ac f6 fd [.@".\.Z.cs..}...]
+  |     1ad6: 04 88 35 56 a0 45 dd 27 e8 1d 2d bd 5b aa d1 82 [..5V.E.'..-.[...]
+  |     1ae6: f7 9a eb 7e e7 58 e6 ea e0 ca da eb ac d8 0f e7 [...~.X..........]
+  |     1af6: ec ad 58 fa cb 83 81 83 96 da 70 eb 75 6d 83 24 [..X.......p.um.$]
+  |     1b06: bf 78 74 18 96 cb 5a e5 9b 87 99 93 83 93 5e 5e [.xt...Z.......^^]
+  |     1b16: 25 8e a7 22 97 6e ae c6 f2 0f fa fd 26 a3 f5 6e [%..".n......&..n]
+  |     1b26: af 95 d5 b2 06 46 4b 6b 6b c0 db 15 34 31 bf e6 [.....FKkk...41..]
+  |     1b36: b5 2e ab 58 f4 ce 97 95 d4 ef 34 d1 00 31 bb ec [...X......4..1..]
+  |     1b46: b1 d3 b5 ad 1d dd b0 39 ee fe a3 18 9b a8 74 fb [.......9......t.]
+  |     1b56: 70 2f f4 9e f6 5a 35 db 65 64 96 98 fa 5f 48 35 [p/...Z5.ed..._H5]
+  |     1b66: db 9a af 7d 5b eb 74 74 ab ad 6e 55 6f b3 1b 20 [...}[.tt..nUo.. ]
+  |     1b76: 34 58 6a 20 5a d2 dd db 5d 5e ff 00 63 bd af 7b [4Xj Z...]^..c..{]
+  |     1b86: 1e c7 2a bd 63 3b 1f 3b 35 f7 63 d6 6b a8 9d 03 [..*.c;.;5.c.k...]
+  |     1b96: a0 1f 0f a2 cf 6f 64 54 d1 49 24 92 53 ff d2 f2 [.....odT.I$.S...]
+  |     1ba6: a4 92 49 25 29 24 92 49 4a 49 24 92 52 92 49 24 [..I%)$.IJI$.R.I$]
+  |     1bb6: 94 a4 92 49 25 29 24 92 45 4a 49 24 90 52 92 49 [...I%)$.EJI$.R.I]
+  |     1bc6: 24 94 a4 92 49 25 29 24 92 49 4f ff d3 f2 a4 92 [$...I%)$.IO.....]
+  |     1bd6: 49 15 29 24 92 45 4a 49 24 92 52 92 49 24 94 a4 [I.)$.EJI$.R.I$..]
+  |     1be6: 92 49 25 29 24 92 49 4a 49 24 92 52 92 49 24 94 [.I%)$.IJI$.R.I$.]
+  |     1bf6: a4 92 49 05 29 24 92 49 4f ff d9                [..I.)$.IO..]
+  | VersionInfo (SubDirectory) -->
+  | - Tag 0x0421 (93 bytes):
+  |     1c0e: 00 00 00 01 01 00 00 00 0f 00 41 00 64 00 6f 00 [..........A.d.o.]
+  |     1c1e: 62 00 65 00 20 00 50 00 68 00 6f 00 74 00 6f 00 [b.e. .P.h.o.t.o.]
+  |     1c2e: 73 00 68 00 6f 00 70 00 00 00 17 00 41 00 64 00 [s.h.o.p.....A.d.]
+  |     1c3e: 6f 00 62 00 65 00 20 00 50 00 68 00 6f 00 74 00 [o.b.e. .P.h.o.t.]
+  |     1c4e: 6f 00 73 00 68 00 6f 00 70 00 20 00 43 00 43 00 [o.s.h.o.p. .C.C.]
+  |     1c5e: 20 00 32 00 30 00 31 00 38 00 00 00 01          [ .2.0.1.8....]
+  | + [BinaryData directory, 93 bytes, Big-endian]
+  | | HasRealMergedData = 1
+  | | - Tag 0x0004 (1 bytes, int8u[1]):
+  | |     1c12: 01                                              [.]
+  | | WriterName = Adobe Photoshop
+  | | - Tag 0x0005 (30 bytes, ustr32[30]):
+  | |     1c17: 00 41 00 64 00 6f 00 62 00 65 00 20 00 50 00 68 [.A.d.o.b.e. .P.h]
+  | |     1c27: 00 6f 00 74 00 6f 00 73 00 68 00 6f 00 70       [.o.t.o.s.h.o.p]
+  | | ReaderName = Adobe Photoshop CC 2018
+  | | - Tag 0x0009 (46 bytes, ustr32[46]):
+  | |     1c39: 00 41 00 64 00 6f 00 62 00 65 00 20 00 50 00 68 [.A.d.o.b.e. .P.h]
+  | |     1c49: 00 6f 00 74 00 6f 00 73 00 68 00 6f 00 70 00 20 [.o.t.o.s.h.o.p. ]
+  | |     1c59: 00 43 00 43 00 20 00 32 00 30 00 31 00 38       [.C.C. .2.0.1.8]
+  | Photoshop_0x0fa0 = mopt.........................................................................................................................................................................................................................................................................................................L...TargetSettings.MttCObjc..NativeQuad.Bl  long.Grn long.Rd  long.Trnsbool..embedICCProfilebool..fileFormatenum.FileFormat.PNG24.interlacedbool.noMatteColorbool.transparencyDitherAlgorithmenum.DitherAlgorithmNone.transparencyDitherAmountlong
+  | - Tag 0x0fa0 (1486 bytes):
+  |     1c78: 6d 6f 70 74 00 00 00 03 00 00 00 01 00 00 00 00 [mopt............]
+  |     1c88: 00 00 00 07 00 00 00 03 01 00 00 00 00 00 00 00 [................]
+  |     1c98: 00 00 00 00 ff ff ff ff ff ff ff ff 00 00 00 01 [................]
+  |     1ca8: ff ff ff ff 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  |     1cb8: 00 00 00 00 00 00 00 00 ff ff ff ff 01 00 00 00 [................]
+  |     1cc8: 04 ff ff ff ff 00 00 00 00 ff ff ff ff 00 00 00 [................]
+  |     1cd8: 00 ff ff ff ff 00 00 00 00 ff ff ff ff 00 00 00 [................]
+  |     1ce8: 00 00 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1cf8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1d08: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1d18: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1d28: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1d38: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1d48: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1d58: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1d68: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1d78: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1d88: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1d98: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1da8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1db8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1dc8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1dd8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1de8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1df8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1e08: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1e18: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1e28: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1e38: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1e48: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1e58: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1e68: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1e78: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1e88: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1e98: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1ea8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1eb8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1ec8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1ed8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1ee8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1ef8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1f08: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1f18: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1f28: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1f38: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1f48: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1f58: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1f68: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1f78: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1f88: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1f98: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1fa8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1fb8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1fc8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1fd8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1fe8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     1ff8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     2008: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     2018: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     2028: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     2038: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     2048: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     2058: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     2068: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     2078: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     2088: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     2098: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     20a8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     20b8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     20c8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     20d8: 00 ff 00 00 00 ff 00 00 00 ff 00 00 00 ff 00 00 [................]
+  |     20e8: 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+  |     20f8: 01 4c 00 00 00 10 00 00 00 01 00 00 00 00 00 0e [.L..............]
+  |     2108: 54 61 72 67 65 74 53 65 74 74 69 6e 67 73 00 00 [TargetSettings..]
+  |     2118: 00 08 00 00 00 00 4d 74 74 43 4f 62 6a 63 00 00 [......MttCObjc..]
+  |     2128: 00 01 00 00 00 00 00 0a 4e 61 74 69 76 65 51 75 [........NativeQu]
+  |     2138: 61 64 00 00 00 03 00 00 00 00 42 6c 20 20 6c 6f [ad........Bl  lo]
+  |     2148: 6e 67 00 00 00 ff 00 00 00 00 47 72 6e 20 6c 6f [ng........Grn lo]
+  |     2158: 6e 67 00 00 00 ff 00 00 00 00 52 64 20 20 6c 6f [ng........Rd  lo]
+  |     2168: 6e 67 00 00 00 ff 00 00 00 00 54 72 6e 73 62 6f [ng........Trnsbo]
+  |     2178: 6f 6c 01 00 00 00 0f 65 6d 62 65 64 49 43 43 50 [ol.....embedICCP]
+  |     2188: 72 6f 66 69 6c 65 62 6f 6f 6c 01 00 00 00 0a 66 [rofilebool.....f]
+  |     2198: 69 6c 65 46 6f 72 6d 61 74 65 6e 75 6d 00 00 00 [ileFormatenum...]
+  |     21a8: 0a 46 69 6c 65 46 6f 72 6d 61 74 00 00 00 05 50 [.FileFormat....P]
+  |     21b8: 4e 47 32 34 00 00 00 0a 69 6e 74 65 72 6c 61 63 [NG24....interlac]
+  |     21c8: 65 64 62 6f 6f 6c 00 00 00 00 0c 6e 6f 4d 61 74 [edbool.....noMat]
+  |     21d8: 74 65 43 6f 6c 6f 72 62 6f 6f 6c 00 00 00 00 1b [teColorbool.....]
+  |     21e8: 74 72 61 6e 73 70 61 72 65 6e 63 79 44 69 74 68 [transparencyDith]
+  |     21f8: 65 72 41 6c 67 6f 72 69 74 68 6d 65 6e 75 6d 00 [erAlgorithmenum.]
+  |     2208: 00 00 0f 44 69 74 68 65 72 41 6c 67 6f 72 69 74 [...DitherAlgorit]
+  |     2218: 68 6d 00 00 00 00 4e 6f 6e 65 00 00 00 18 74 72 [hm....None....tr]
+  |     2228: 61 6e 73 70 61 72 65 6e 63 79 44 69 74 68 65 72 [ansparencyDither]
+  |     2238: 41 6d 6f 75 6e 74 6c 6f 6e 67 00 00 00 00       [Amountlong....]
+  | Photoshop_0x0fa1 = mset...null..Versionlong
+  | - Tag 0x0fa1 (45 bytes):
+  |     2252: 6d 73 65 74 00 00 00 10 00 00 00 01 00 00 00 00 [mset............]
+  |     2262: 00 04 6e 75 6c 6c 00 00 00 01 00 00 00 07 56 65 [..null........Ve]
+  |     2272: 72 73 69 6f 6e 6c 6f 6e 67 00 00 00 00          [rsionlong....]
+  | Photoshop_0x0fa2 = ms4w.
+  | - Tag 0x0fa2 (8 bytes):
+  |     228c: 6d 73 34 77 00 00 00 02                         [ms4w....]
+  | JPEG_Quality (SubDirectory) -->
+  | - Tag 0x0406 (7 bytes):
+  |     22a0: 00 08 00 00 00 01 01                            [.......]
+  | + [BinaryData directory, 7 bytes, Big-endian]
+  | | PhotoshopQuality = 8
+  | | - Tag 0x0000 (2 bytes, int16s[1]):
+  | |     22a0: 00 08                                           [..]
+  | | PhotoshopFormat = 0
+  | | - Tag 0x0001 (2 bytes, int16s[1]):
+  | |     22a2: 00 00                                           [..]
+  | IPTCData (SubDirectory) -->
+  | - Tag 0x0404 (218 bytes):
+  |     22b4: 1c 01 5a 00 03 1b 25 47 1c 02 00 00 02 00 04 1c [..Z...%G........]
+  |     22c4: 02 19 00 07 65 63 6c 69 70 73 65 1c 02 19 00 08 [....eclipse.....]
+  |     22d4: 6f 75 74 64 6f 6f 72 73 1c 02 19 00 06 6e 61 74 [outdoors.....nat]
+  |     22e4: 75 72 65 1c 02 19 00 0d 6c 75 6e 61 72 20 65 63 [ure.....lunar ec]
+  |     22f4: 6c 69 70 73 65 1c 02 19 00 05 73 70 61 63 65 1c [lipse.....space.]
+  |     2304: 02 19 00 0b 6f 75 74 65 72 20 73 70 61 63 65 1c [....outer space.]
+  |     2314: 02 19 00 05 6e 69 67 68 74 1c 02 19 00 09 61 73 [....night.....as]
+  |     2324: 74 72 6f 6e 6f 6d 79 1c 02 19 00 08 75 6e 69 76 [tronomy.....univ]
+  |     2334: 65 72 73 65 1c 02 19 00 11 55 6d 6c 61 75 74 73 [erse.....Umlauts]
+  |     2344: 3a 20 c3 a4 c3 b6 c3 bc c3 9f 1c 02 37 00 08 32 [: ..........7..2]
+  |     2354: 30 31 38 30 37 32 37 1c 02 3c 00 0b 32 32 30 32 [0180727..<..2202]
+  |     2364: 30 33 2b 30 30 30 30 1c 02 3e 00 08 32 30 31 38 [03+0000..>..2018]
+  |     2374: 30 37 32 37 1c 02 78 00 11 6d 6f 6f 6e 20 69 6c [0727..x..moon il]
+  |     2384: 6c 75 73 74 72 61 74 69 6f 6e                   [lustration]
+  | + [IPTC directory, 218 bytes]
+  | | CurrentIPTCDigest = .......b....F..{
+  | | -- IPTCEnvelope record --
+  | | CodedCharacterSet = .%G
+  | | - Tag 0x005a, IPTCEnvelope record (3 bytes, string[0,32]):
+  | |     22b9: 1b 25 47                                        [.%G]
+  | | -- IPTCApplication record --
+  | | ApplicationRecordVersion = 4
+  | | - Tag 0x0000, IPTCApplication record (2 bytes, int16u):
+  | |     22c1: 00 04                                           [..]
+  | | Keywords = eclipse
+  | | - Tag 0x0019, IPTCApplication record (7 bytes, string[0,64]):
+  | |     22c8: 65 63 6c 69 70 73 65                            [eclipse]
+  | | Keywords = outdoors
+  | | - Tag 0x0019, IPTCApplication record (8 bytes, string[0,64]):
+  | |     22d4: 6f 75 74 64 6f 6f 72 73                         [outdoors]
+  | | Keywords = nature
+  | | - Tag 0x0019, IPTCApplication record (6 bytes, string[0,64]):
+  | |     22e1: 6e 61 74 75 72 65                               [nature]
+  | | Keywords = lunar eclipse
+  | | - Tag 0x0019, IPTCApplication record (13 bytes, string[0,64]):
+  | |     22ec: 6c 75 6e 61 72 20 65 63 6c 69 70 73 65          [lunar eclipse]
+  | | Keywords = space
+  | | - Tag 0x0019, IPTCApplication record (5 bytes, string[0,64]):
+  | |     22fe: 73 70 61 63 65                                  [space]
+  | | Keywords = outer space
+  | | - Tag 0x0019, IPTCApplication record (11 bytes, string[0,64]):
+  | |     2308: 6f 75 74 65 72 20 73 70 61 63 65                [outer space]
+  | | Keywords = night
+  | | - Tag 0x0019, IPTCApplication record (5 bytes, string[0,64]):
+  | |     2318: 6e 69 67 68 74                                  [night]
+  | | Keywords = astronomy
+  | | - Tag 0x0019, IPTCApplication record (9 bytes, string[0,64]):
+  | |     2322: 61 73 74 72 6f 6e 6f 6d 79                      [astronomy]
+  | | Keywords = universe
+  | | - Tag 0x0019, IPTCApplication record (8 bytes, string[0,64]):
+  | |     2330: 75 6e 69 76 65 72 73 65                         [universe]
+  | | Keywords = Umlauts: ........
+  | | - Tag 0x0019, IPTCApplication record (17 bytes, string[0,64]):
+  | |     233d: 55 6d 6c 61 75 74 73 3a 20 c3 a4 c3 b6 c3 bc c3 [Umlauts: .......]
+  | |     234d: 9f                                              [.]
+  | | DateCreated = 20180727
+  | | - Tag 0x0037, IPTCApplication record (8 bytes, digits[8]):
+  | |     2353: 32 30 31 38 30 37 32 37                         [20180727]
+  | | TimeCreated = 220203+0000
+  | | - Tag 0x003c, IPTCApplication record (11 bytes, string[11]):
+  | |     2360: 32 32 30 32 30 33 2b 30 30 30 30                [220203+0000]
+  | | DigitalCreationDate = 20180727
+  | | - Tag 0x003e, IPTCApplication record (8 bytes, digits[8]):
+  | |     2370: 32 30 31 38 30 37 32 37                         [20180727]
+  | | Caption-Abstract = moon illustration
+  | | - Tag 0x0078, IPTCApplication record (17 bytes, string[0,2000]):
+  | |     237d: 6d 6f 6f 6e 20 69 6c 6c 75 73 74 72 61 74 69 6f [moon illustratio]
+  | |     238d: 6e                                              [n]
+  | Warning = IPTCDigest is not current. XMP may be out of sync
+JPEG APP1 (399 bytes):
+      2392: 68 74 74 70 3a 2f 2f 6e 73 2e 61 64 6f 62 65 2e [http://ns.adobe.]
+      23a2: 63 6f 6d 2f 78 61 70 2f 31 2e 30 2f 00 3c 3f 78 [com/xap/1.0/.<?x]
+      23b2: 70 61 63 6b 65 74 20 62 65 67 69 6e 3d 22 ef bb [packet begin="..]
+      23c2: bf 22 20 69 64 3d 22 57 35 4d 30 4d 70 43 65 68 [." id="W5M0MpCeh]
+      23d2: 69 48 7a 72 65 53 7a 4e 54 63 7a 6b 63 39 64 22 [iHzreSzNTczkc9d"]
+      23e2: 3f 3e 0a 20 20 20 20 3c 78 3a 78 6d 70 6d 65 74 [?>.    <x:xmpmet]
+      23f2: 61 20 78 6d 6c 6e 73 3a 78 3d 22 61 64 6f 62 65 [a xmlns:x="adobe]
+      [snip 287 bytes]
+  + [XMP directory, 370 bytes]
+  | XMPToolkit = Adobe XMP Core 6.1.10
+  | Rating = 3
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmp:Rating'
+JPEG DQT (65 bytes):
+      2525: 00 05 04 04 04 04 03 05 04 04 04 06 05 05 06 07 [................]
+      2535: 0c 08 07 07 07 07 0e 0a 0b 09 0c 11 0f 12 11 11 [................]
+      2545: 0f 10 10 13 15 1b 17 13 14 1a 15 11 11 18 20 18 [.............. .]
+      2555: 1a 1c 1d 1f 1f 1f 13 17 22 24 21 1e 24 1c 1e 1f [........"$!.$...]
+      2565: 1e                                              [.]
+JPEG DQT (65 bytes):
+      256a: 01 03 03 03 04 04 04 08 04 04 08 10 0b 09 0b 10 [................]
+      257a: 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 [................]
+      258a: 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 [................]
+      259a: 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 [................]
+      25aa: 10                                              [.]
+JPEG SOF0 (15 bytes):
+      25af: 08 0a ef 16 ee 03 01 11 00 02 11 01 03 11 01    [...............]
+  ImageWidth = 5870
+  ImageHeight = 2799
+  EncodingProcess = 0
+  BitsPerSample = 8
+  ColorComponents = 3
+  YCbCrSubSampling = 1 1
+JPEG DHT (27 bytes):
+      25c2: 00 01 00 02 03 01 01 01 01 00 00 00 00 00 00 00 [................]
+      25d2: 00 00 03 04 01 02 05 06 07 08 09                [...........]
+JPEG DHT (78 bytes):
+      25e1: 10 01 00 02 02 00 04 04 04 03 06 03 05 05 05 02 [................]
+      25f1: 0f 00 01 02 03 11 04 12 21 31 05 22 41 51 06 13 [........!1."AQ..]
+      2601: 32 61 42 71 81 07 14 23 52 91 a1 b1 c1 d1 33 62 [2aBq...#R.....3b]
+      2611: 72 e1 f0 08 15 24 43 82 53 92 a2 c2 f1 16 34 44 [r....$C.S.....4D]
+      2621: a3 b2 d2 17 25 35 63 73 64 75 83 93 b3 e2       [....%5csdu....]
+JPEG DHT (25 bytes):
+      2633: 01 01 01 01 01 01 01 01 01 00 00 00 00 00 00 00 [................]
+      2643: 00 00 01 02 03 04 05 06 07                      [.........]
+JPEG DHT (57 bytes):
+      2650: 11 01 01 01 01 00 02 01 03 02 04 04 05 04 01 01 [................]
+      2660: 09 00 01 11 02 03 21 31 04 12 41 05 51 13 22 61 [......!1..A.Q."a]
+      2670: 71 32 81 91 d1 06 a1 b1 e1 f0 14 23 42 c1 33 f1 [q2.........#B.3.]
+      2680: 43 52 16 92 24 34 15 53 62                      [CR..$4.Sb]
+JPEG SOS
+JPEG EOI

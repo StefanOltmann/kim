@@ -1,0 +1,1249 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+ "http://www.w3.org/TR/1998/REC-html40-19980424/loose.dtd">
+<html>
+<head>
+<title>
+HTML Dump (full/media_91.webp)</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+<!--
+/* character style ID's */
+.D { color: #000000 } /* default color */
+.V { color: #ff0000 } /* duplicate block 1 */
+.W { color: #004400 } /* normal block 1 */
+.X { color: #ff4488 } /* duplicate block 2 */
+.Y { color: #448844 } /* normal block 2 */
+.U { color: #cc8844 } /* unused data block */
+.H { color: #0000ff } /* highlighted tag name */
+.F { color: #aa00dd } /* actual offset differs */
+.M { text-decoration: underline } /* maker notes data */
+.tt { /* tooltip text */
+    visibility: hidden;
+    position: absolute;
+    white-space: nowrap;
+    top: 0;
+    left: 0;
+    font-family: Verdana, sans-serif;
+    font-size: .7em;
+    padding: 2px 4px;
+    border: 1px solid gray;
+    z-index: 3;
+}
+.tb { /* tooltip background */
+    visibility: hidden;
+    position: absolute;
+    background: #ffffdd;
+    zoom: 1;
+    -moz-opacity: 0.8;
+    -khtml-opacity: 0.8;
+    -ms-filter: 'progid:DXImageTransform.Microsoft.Alpha(Opacity=80)';
+    filter: alpha(opacity=80);
+    opacity: 0.8;
+    z-index: 2;
+}
+/* table styles */
+table.dump {
+  border-top: 1px solid gray;
+  border-bottom: 1px solid gray;
+}
+table.dump td { padding: .2em .3em }
+td.c2 {
+  border-left: 1px solid gray;
+  border-right: 1px solid gray;
+}
+pre   { margin: 0 }
+table { font-size: .9em }
+body  { color: black; background: white }
+-->
+</style>
+<script language="JavaScript" type="text/JavaScript">
+<!-- Begin
+// tooltip positioning constants
+var TMAR = 4;   // top/left margins
+var BMAR = 16;  // bottom/right margins (scrollbars may overhang inner dimensions)
+var XOFF = 10;  // x offset from cursor
+var YOFF = 40;  // y offset
+var YMIN = 10;  // minimum y offset
+var YTOP = 20;  // y offset when above cursor
+// common variables
+var safari1 = navigator.userAgent.indexOf("Safari/312.6") >= 0;
+var ie6 = navigator.userAgent.toLowerCase().indexOf('msie 6') >= 0;
+var mspan = new Array;
+var clicked = 0;
+var hlist, tt, tb, firstOutEvt, lastInEvt;
+
+function GetElementsByClass(classname, tagname) {
+  var found = new Array();
+  var list = document.getElementsByTagName(tagname);
+  var len = list.length;
+  for (var i=0, j=0; i<len; ++i) {
+    var classes = list[i].className.split(' ');
+    for (var k=0; k<classes.length; ++k) {
+      if (classes[k] == classname) {
+        found[j++] = list[i];
+        break;
+      }
+    }
+  }
+  return found;
+}
+
+// click mouse
+function doClick(e)
+{
+  if (!clicked) {
+    firstOutEvt = lastInEvt = undefined;
+    high(e, 2);
+    if (hlist) clicked = 1;
+  } else {
+    clicked = 0;
+    if (firstOutEvt) high(firstOutEvt, 0);
+    if (lastInEvt) high(lastInEvt, 1);
+  }
+}
+
+// move tooltip
+function move(e)
+{
+  if (!tt) return;
+  if (ie6 && (tt.style.top  == '' || tt.style.top  == 0) &&
+             (tt.style.left == '' || tt.style.left == 0))
+  {
+    tt.style.width  = tt.offsetWidth  + 'px';
+    tt.style.height = tt.offsetHeight + 'px';
+  }
+  var w, h;
+  // browser inconsistencies make getting window size more complex than it should be,
+  // and even then we don't know if it is smaller due to scrollbar width
+  if (typeof(window.innerWidth) == 'number') {
+    w = window.innerWidth;
+    h = window.innerHeight;
+  } else if (document.documentElement && document.documentElement.clientWidth) {
+    w = document.documentElement.clientWidth;
+    h = document.documentElement.clientHeight;
+  } else {
+    w = document.body.clientWidth;
+    h = document.body.clientHeight;
+  }
+  var x = e.clientX + XOFF;
+  var y = e.clientY + YOFF;
+  if (safari1) { // patch for people still using OS X 10.3.9
+    x -= document.body.scrollLeft + document.documentElement.scrollLeft;
+    y -= document.body.scrollTop  + document.documentElement.scrollTop;
+  }
+  var mx = w - BMAR - tt.offsetWidth;
+  var my = h - BMAR - tt.offsetHeight;
+  if (y > my + YOFF - YMIN) y = e.clientY - YTOP - tt.offsetHeight;
+  if (x > mx) x = mx;
+  if (y > my) y = my;
+  if (x < TMAR) x = TMAR;
+  if (y < TMAR) y = TMAR;
+  x += document.body.scrollLeft + document.documentElement.scrollLeft;
+  y += document.body.scrollTop  + document.documentElement.scrollTop;
+  tb.style.width  = tt.offsetWidth  + 'px';
+  tb.style.height = tt.offsetHeight + 'px';
+  tt.style.top  = tb.style.top  = y + 'px';
+  tt.style.left = tb.style.left = x + 'px';
+  tt.style.visibility = tb.style.visibility = 'visible';
+}
+
+// highlight/unhighlight text
+function high(e,on) {
+  if (on) {
+    lastInEvt = e;
+  } else {
+    if (!firstOutEvt) firstOutEvt = e;
+  }
+  if (clicked) return;
+  var targ;
+  if (e.target) targ = e.target;
+  else if (e.srcElement) targ = e.srcElement;
+  if (targ.nodeType == 3) targ = targ.parentNode; // defeat Safari bug
+  if (!targ.name) targ = targ.parentNode; // go up another level if necessary
+  if (targ.name && document.getElementsByName) {
+    // un-highlight current objects
+    if (hlist) {
+      for (var i=0; i<hlist.length; ++i) {
+        for (var j=0; j<hlist[i].length; ++j) {
+          hlist[i][j].style.background = 'transparent';
+        }
+      }
+      hlist = null;
+    }
+    if (tt) {
+      // hide old tooltip
+      tt.style.visibility = tb.style.visibility = 'hidden';
+      tt = null;
+    }
+    if (on) {
+      if (targ.name.substring(0,1) == 't') {
+        // show our tooltip (ID is different than name to avoid confusing IE)
+        tt = document.getElementById('p' + targ.name.substring(1));
+        if (tt) {
+          tb = document.getElementById('tb');
+          move(e);
+        }
+      }
+      // highlight anchor elements with the same name
+      hlist = new Array;
+      hlist.push(document.getElementsByName(targ.name));
+      // is this an IFD pointer?
+      var pos = targ.className.indexOf('Offset_');
+      if (pos > 0) {
+        // add elements from this IFD to our highlight list
+        hlist.push(document.getElementsByClassName(targ.className.substr(pos+7)));
+      }
+      // use class name to highlight span elements if necessary
+      for (var i=0; i<mspan.length; ++i) {
+        if (mspan[i] != targ.name) continue;
+        // add these span elements to our highlight list
+        hlist.push(GetElementsByClass(targ.name, 'span'));
+        break;
+      }
+      for (var i=0; i<hlist.length; ++i) {
+        for (var j=0; j<hlist[i].length; ++j) {
+          hlist[i][j].style.background = on == 2 ? '#ffbbbb' : '#ffcc99';
+        }
+      }
+    }
+  }
+}
+
+// End --->
+</script></head>
+<body><noscript><b class=V>--&gt;
+Enable JavaScript for active highlighting and information tool tips!
+</b></noscript>
+<table class=dump cellspacing=0 cellpadding=2>
+<tr><td valign='top'><pre> 0000
+ 0010
+ 0020
+ 0030
+ 0040
+ 0050
+ 0060
+ 0070
+ 0080
+ 0090
+ 00a0
+ 00b0
+ 00c0
+ 00d0
+ 00e0
+ 00f0
+ 0100
+ 0110
+ 0120
+ 0130
+ 0140
+ 0150
+ 0160
+ 0170
+ 0180
+ 0190
+ 01a0
+ 01b0
+ 01c0
+ 01d0
+ 01e0
+ 01f0
+ 0200
+ 0210
+ 0220
+ 0230
+ 0240
+ 0250
+ 0260
+ 0270
+ 0280
+ 0290
+ 02a0
+ 02b0
+ 02c0
+ 02d0
+ 02e0
+ 02f0
+ 0300
+ 0310
+ 0320
+ 0330
+ 0340
+ 0350
+ 0360
+ 0370
+ 0380
+ 0390
+ 03a0
+ 03b0
+ 03c0
+ 03d0
+ 03e0
+ 03f0
+ 0400
+ 0410
+ 0420
+ 0430
+ 0440
+ 0450
+ 0460
+ 0470
+ 0480
+ 0490
+ 04a0
+ 04b0
+ 04c0
+ 04d0
+ 04e0
+ 04f0
+ 0500
+ 0510
+ 0520
+ 0530
+ 0540
+ 0550
+ 0560
+ 0570
+ 0580
+ 0590
+ 05a0
+ 05b0
+ 05c0
+ 05d0
+ 05e0
+ 05f0
+ 0600
+ 0610
+ 0620
+ 0630
+ 0640
+ 0650
+ 0660
+ 0670
+ 0680
+ 0690
+ 06a0
+ 06b0
+ 06c0
+ 06d0
+ 06e0
+ 06f0
+ 0700
+ 0710
+ 0720
+ 0730
+ 0740
+ 0750
+ 0760
+ 0770
+ 0780
+ 0790
+ 07a0
+ 07b0
+ 07c0
+ 07d0
+ 07e0
+ 07f0
+  ...
+ 0830
+ 0840
+ 0850
+ 0860
+ 0870
+ 0880
+ 0890
+ 08a0
+ 08b0
+ 08c0
+ 08d0
+ 08e0
+ 08f0
+ 0900
+ 0910
+ 0920
+ 0930
+ 0940
+ 0950
+ 0960
+ 0970
+ 0980
+ 0990
+ 09a0
+ 09b0
+ 09c0
+ 09d0
+ 09e0
+ 09f0
+ 0a00
+ 0a10
+ 0a20
+ 0a30
+ 0a40
+ 0a50
+ 0a60
+ 0a70
+ 0a80
+ 0a90
+ 0aa0
+ 0ab0
+ 0ac0
+ 0ad0
+ 0ae0
+ 0af0
+ 0b00
+ 0b10
+ 0b20
+ 0b30
+ 0b40
+ 0b50
+ 0b60
+ 0b70
+ 0b80
+ 0b90
+ 0ba0
+ 0bb0
+ 0bc0
+ 0bd0
+ 0be0
+ 0bf0
+ 0c00
+ 0c10
+ 0c20
+ 0c30
+ 0c40
+ 0c50
+ 0c60
+ 0c70
+ 0c80
+ 0c90
+ 0ca0
+ 0cb0
+ 0cc0
+ 0cd0
+ 0ce0
+ 0cf0
+ 0d00
+ 0d10
+ 0d20
+ 0d30
+ 0d40
+ 0d50
+ 0d60
+ 0d70
+ 0d80
+ 0d90
+ 0da0
+ 0db0
+ 0dc0
+ 0dd0
+ 0de0
+ 0df0
+ 0e00
+ 0e10
+ 0e20
+ 0e30
+ 0e40
+ 0e50
+ 0e60
+ 0e70
+ 0e80
+ 0e90
+ 0ea0
+ 0eb0
+ 0ec0
+ 0ed0
+ 0ee0
+ 0ef0
+ 0f00
+ 0f10
+ 0f20
+ 0f30
+ 0f40
+ 0f50
+ 0f60
+ 0f70
+ 0f80
+ 0f90
+ 0fa0
+ 0fb0
+ 0fc0
+ 0fd0
+ 0fe0
+ 0ff0
+ 1000
+ 1010
+ 1020
+</pre></td><td valign="top"><pre onmouseover="high(event,1)" onmouseout="high(event,0)" onmousemove="move(event)" onmousedown="doClick(event)"><a name=t0 class=U>52 49 46 46 1c 10 00 00  57 45 42 50 56 50 38 58
+0a 00 00 00 16 00 00 00  2f 00 00 2f 00 00 41 4e
+49 4d 06 00 00 00 ff ff  ff ff 00 00 41 4e 4d 46
+14 02 00 00 00 00 00 00  00 00 2f 00 00 2f 00 00
+c8 00 00 00 56 50 38 20  fc 01 00 00 30 0a 00 9d
+01 2a 30 00 30 00 3e 91  40 9c 4a 25 a3 a2 a1 a7
+29 20 b0 12 09 62 00 b6  fb 2f 82 bf fc bc 00 81
+e5 04 86 09 15 8e cb 73  93 a7 f9 e1 4b f5 86 75
+46 99 ad 4e 0f 11 49 fd  b3 1e 3b c0 aa 55 9b fa
+95 93 05 eb 8b 38 ee d7  9b 41 13 4e 78 57 9c ad
+f0 c1 97 32 70 c0 00 fe  fd a4 df 21 d2 c9 8f aa
+ca df 4c 35 35 3b e0 b6  13 f3 b0 53 d5 f6 9d 3e
+23 46 86 b3 68 de fd 89  66 77 5d 77 1a 4a 58 c1
+5f 05 9c e2 e5 8b e6 09  d4 4c af 50 39 7f 3e 06
+80 7b f7 a0 3c 66 09 27  20 f4 5e dd 1f 2b 0b d7
+e7 43 06 ad 38 57 87 f9  15 35 d4 a6 23 9a 0d 3e
+53 06 e5 45 47 9a 10 c5  c4 30 ed 3f d1 22 7e 70
+3a 4f a5 95 69 80 c4 b7  8c 5e 2a 14 07 ad 00 f7
+af 56 83 78 25 0b c8 ef  79 e6 ac 7b 06 8e 42 d3
+c9 21 0c 2f f6 54 28 b7  04 1a 72 0d 41 c2 6c e4
+50 80 3a 27 2f e7 42 2e  ea 1f f7 1f 5c 7c e2 11
+dd 64 52 d1 0a ce 02 4c  67 a4 56 e0 e9 1a 30 93
+69 d3 f2 7a c5 85 fb 92  c8 9b d9 e0 19 e2 da bd
+6c eb 38 1e af 4c 06 35  5c 6b 2d db f8 f6 ec 9e
+e2 54 17 1b 69 69 8b 11  c6 c7 75 fc a3 44 14 99
+5c 26 d1 d5 1b d2 7d a8  c5 f8 41 4b a9 d0 09 14
+00 4c d2 f1 8c e9 5b 34  0a 42 61 a3 30 6a b3 11
+fc d6 77 4f 1d 85 a4 03  8c 98 4d 6b a5 82 a5 f7
+08 fc c9 95 35 62 87 1c  09 3b 5f 4c 01 30 ab 07
+a4 17 5e 40 de d6 3a d5  00 9d 08 63 58 42 04 97
+9b ab d7 fe c4 ec 00 c5  4c d7 71 cb 9a e8 b4 c9
+df e4 32 80 d3 ef 18 db  36 e7 03 98 19 e6 56 6b
+1c ab 7c ec 80 2e 74 aa  79 2e 80 e6 e7 b6 d9 22
+8e e4 f7 69 e4 22 e1 02  1d da 3d 44 29 af fc 58
+6e cd dc 12 2a e9 01 0e  a2 ac c8 88 a6 0f 13 0b
+91 f1 65 44 43 51 07 94  f2 4b b2 61 5a 19 ed cc
+16 1d 50 f5 08 00 00 00  41 4e 4d 46 98 02 00 00
+00 00 00 00 00 00 2f 00  00 2f 00 00 c8 00 00 00
+56 50 38 20 80 02 00 00  10 0d 00 9d 01 2a 30 00
+30 00 3e 91 44 99 4a 25  a4 22 21 a7 38 0b 68 b0
+12 09 6c 00 9d 32 84 73  47 b9 7e 33 7b 02 52 df
+bd 6b 08 9b 68 71 e1 5d  69 ba 6f 28 d9 96 6e 87
+14 b9 1e d4 36 d0 79 30  da fe 29 4e 9a ef 8f f7
+df 12 e4 2c 32 11 a4 3f  c8 e5 42 0b c6 cc 32 86
+87 45 ae bc 82 4d 68 51  1b a1 42 60 4d 7c e2 2e
+53 dc 80 df 38 ea 5f af  50 00 f9 76 85 59 23 19
+b6 90 0c da d0 75 01 f8  66 8c a2 a7 09 d9 87 77
+5d 34 ec d2 22 31 44 b2  41 2c 69 ff de 05 55 11
+5b dc 97 6a 64 ce 8d 6f  7f fc f5 f7 61 c5 04 f2
+9f 0d c1 d8 b4 40 ce 89  ee c2 18 04 f9 ec 4c 99
+8c 12 19 15 20 7e 34 bd  0e 3e 14 79 8e 02 cd d2
+9f 37 b6 68 f7 58 4d 7a  67 2e f5 d2 58 be 5a e6
+e8 e2 7c b7 13 ae f8 c4  9f fc ba b3 bd ca ba 25
+7c 5a 85 fc ad 97 56 38  d5 7d 0a 21 b0 bf ba 2e
+7c fa 5a ce 34 8e ae 07  06 2f 1e b2 12 f3 9f db
+ac 46 32 bd 9c d4 7a 2b  9a 46 d8 55 90 72 66 01
+04 b1 d8 1e dc 6b 2f d4  f9 dd 7c 36 6f 77 27 14
+d1 93 b8 16 11 b2 5f 3a  4e 34 83 7d 13 44 09 5c
+cf 71 3a 7e 1d 04 aa 3e  73 d7 4f cd 1a c1 36 44
+ce f5 9d 98 45 6f 81 e4  89 04 f7 17 a7 5e a0 7a
+91 61 d4 e9 66 16 e3 ab  cf 0f dd fe 21 92 13 29
+f0 8d 4f b4 4e e1 a3 74  72 f2 f5 a6 e6 12 65 f4
+d2 ce bb fe c4 c3 dc 3b  55 87 0c 93 91 2f 3e 3f
+fe 07 0e 06 2f 14 13 aa  83 07 69 9c 6d d5 49 27
+15 4c bb ae c4 33 a3 6a  bd 7e 17 35 7b fc d6 3d
+cd 8b f8 4c af 91 e7 e7  8b 24 14 8b fd 8e 2a 9c
+cb b9 94 96 88 f9 ec 08  62 c9 f0 0f ae 88 41 14
+b9 fc fd 18 16 d8 bf 69  28 4e 8a c3 b3 75 3d 2a
+5e c8 9b 94 51 f3 64 2c  fe a1 c4 80 44 58 f9 c8
+cf 07 7b c3 36 85 e4 23  e6 2e bc f7 5d 12 1d 46
+13 0d 4f 91 89 81 23 80  36 54 3f 8d fa b1 cb 18
+b0 a4 8f d1 9a 1c d4 18  41 ca 7b b8 dc 36 43 de
+ff bb e2 50 f8 d9 dd bc  03 d4 b7 97 38 e2 21 60
+2c f1 ed b1 30 30 b3 41  b2 e9 be bb e0 5d 6d 90
+f6 67 3e 75 be 51 98 8b  c8 b9 b5 fe 4d c9 db bc
+57 1d 2e ba 2a 63 ac 22  ff 7f 82 55 34 32 8b 57
+89 94 b5 2d f5 ee 23 5c  6d 5f a4 dd d8 2b 72 e4
+94 7b 0d 82 ae 6b dd 3f  4f a9 7a 67 7c 7f 30 ce
+f0 de e3 4b 6a c0 00 00  58 4d 50 20 34 0b 00 00
+3c 3f 78 70 61 63 6b 65  74 20 62 65 67 69 6e 3d
+27 ef bb bf 27 20 69 64  3d 27 57 35 4d 30 4d 70
+43 65 68 69 48 7a 72 65  53 7a 4e 54 63 7a 6b 63
+39 64 27 3f 3e 0a 3c 78  3a 78 6d 70 6d 65 74 61
+20 78 6d 6c 6e 73 3a 78  3d 27 61 64 6f 62 65 3a
+6e 73 3a 6d 65 74 61 2f  27 20 78 3a 78 6d 70 74
+6b 3d 27 49 6d 61 67 65  3a 3a 45 78 69 66 54 6f
+6f 6c 20 31 33 2e 35 39  27 3e 0a 3c 72 64 66 3a
+52 44 46 20 78 6d 6c 6e  73 3a 72 64 66 3d 27 68
+74 74 70 3a 2f 2f 77 77  77 2e 77 33 2e 6f 72 67
+2f 31 39 39 39 2f 30 32  2f 32 32 2d 72 64 66 2d
+73 79 6e 74 61 78 2d 6e  73 23 27 3e 0a 0a 20 3c
+72 64 66 3a 44 65 73 63  72 69 70 74 69 6f 6e 20
+72 64 66 3a 61 62 6f 75  74 3d 27 27 0a 20 20 78
+6d 6c 6e 73 3a 64 63 3d  27 68 74 74 70 3a 2f 2f
+70 75 72 6c 2e 6f 72 67  2f 64 63 2f 65 6c 65 6d
+65 6e 74 73 2f 31 2e 31  2f 27 3e 0a 20 20 3c 64
+63 3a 74 69 74 6c 65 3e  0a 20 20 20 3c 72 64 66
+3a 41 6c 74 3e 0a 20 20  20 20 3c 72 64 66 3a 6c
+69 20 78 6d 6c 3a 6c 61  6e 67 3d 27 78 2d 64 65
+66 61 75 6c 74 27 3e 41  6e 69 6d 61 74 65 64 20
+66 69 78 74 75 72 65 3c  2f 72 64 66 3a 6c 69 3e
+0a 20 20 20 3c 2f 72 64  66 3a 41 6c 74 3e 0a 20
+20 3c 2f 64 63 3a 74 69  74 6c 65 3e 0a 20 3c 2f
+72 64 66 3a 44 65 73 63  72 69 70 74 69 6f 6e 3e
+0a 3c 2f 72 64 66 3a 52  44 46 3e 0a 3c 2f 78 3a
+78 6d 70 6d 65 74 61 3e  0a 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 0a 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 0a 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 0a  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+                 [snip 3 lines]                 
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 0a 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 0a 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 0a 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+0a 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 0a 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 0a 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 0a
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 0a 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 0a 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 0a 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 0a 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  0a 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 0a 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 0a 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 0a  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 0a 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 0a 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 0a 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 0a 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20
+0a 3c 3f 78 70 61 63 6b  65 74 20 65 6e 64 3d 27
+77 27 3f 3e</a>
+</pre></td><td class=c2 valign="top"><pre onmouseover="high(event,1)" onmouseout="high(event,0)" onmousemove="move(event)" onmousedown="doClick(event)"><a name=t0 class=U>RIFF....WEBPVP8X
+......../../..AN
+IM..........ANMF
+........../../..
+....VP8 ....0...
+.*0.0.&gt;.@.J%....
+) ...b.../......
+.......s....K..u
+F..N..I...;..U..
+.....8...A.NxW..
+...2p......!....
+..L55;.....S...&gt;
+#F..h...fw]w.JX.
+_........L.P9.&gt;.
+.{..&lt;f.' .^..+..
+.C..8W...5..#..&gt;
+S..EG....0.?."~p
+:O..i....^*.....
+.V.x%...y..{..B.
+.!./.T(...r.A.l.
+P.:'/.B.....\|..
+.dR....Lg.V...0.
+i..z............
+l.8..L.5\k-.....
+.T..ii....u..D..
+\&amp;....}...AK....
+.L....[4.Ba.0j..
+..wO......Mk....
+....5b...;_L.0..
+..^@..:....cXB..
+........L.q.....
+..2.....6.....Vk
+..|...t.y......"
+...i."....=D)..X
+n...*...........
+..eDCQ...K.aZ...
+..P.....ANMF....
+....../../......
+VP8 .........*0.
+0.&gt;.D.J%."!.8.h.
+..l..2.sG.~3{.R.
+.k..hq.]i.o(..n.
+....6.y0..)N....
+...,2..?..B...2.
+.E...MhQ..B`M|..
+S...8._.P..v.Y#.
+.....u..f......w
+]4.."1D.A,i...U.
+[..jd..o....a...
+.....@........L.
+.... ~4..&gt;.y....
+.7.h.XMzg...X.Z.
+..|............%
+|Z....V8.}.!....
+|.Z.4..../......
+.F2...z+.F.U.rf.
+.....k/...|6ow'.
+......_:N4.}.D.\
+.q:~...&gt;s.O...6D
+....Eo.......^.z
+.a..f.......!..)
+..O.N..tr.....e.
+.......;U..../&gt;?
+..../.....i.m.I'
+.L...3.j.~.5{..=
+...L.....$....*.
+........b.....A.
+.......i(N...u=*
+^...Q.d,....DX..
+..{.6..#....]..F
+..O...#.6T?.....
+........A.{..6C.
+...P........8.!`
+,...00.A.....]m.
+.g&gt;u.Q......M...
+W...*c."...U42.W
+...-..#\m_...+r.
+.{...k.?O.zg|.0.
+...Kj...XMP 4...
+&lt;?xpacket begin=
+'...' id='W5M0Mp
+CehiHzreSzNTczkc
+9d'?&gt;.&lt;x:xmpmeta
+ xmlns:x='adobe:
+ns:meta/' x:xmpt
+k='Image::ExifTo
+ol 13.59'&gt;.&lt;rdf:
+RDF xmlns:rdf='h
+ttp://www.w3.org
+/1999/02/22-rdf-
+syntax-ns#'&gt;.. &lt;
+rdf:Description 
+rdf:about=''.  x
+mlns:dc='http://
+purl.org/dc/elem
+ents/1.1/'&gt;.  &lt;d
+c:title&gt;.   &lt;rdf
+:Alt&gt;.    &lt;rdf:l
+i xml:lang='x-de
+fault'&gt;Animated 
+fixture&lt;/rdf:li&gt;
+.   &lt;/rdf:Alt&gt;. 
+ &lt;/dc:title&gt;. &lt;/
+rdf:Description&gt;
+.&lt;/rdf:RDF&gt;.&lt;/x:
+xmpmeta&gt;.       
+                
+                
+                
+                
+                
+             .  
+                
+                
+                
+                
+                
+                
+  .             
+                
+                
+                
+                
+                
+       .        
+                
+                
+                
+     [snip]     
+                
+                
+                
+                
+                
+                
+ .              
+                
+                
+                
+                
+                
+      .         
+                
+                
+                
+                
+                
+           .    
+                
+                
+                
+                
+                
+                
+.               
+                
+                
+                
+                
+                
+     .          
+                
+                
+                
+                
+                
+          .     
+                
+                
+                
+                
+                
+               .
+                
+                
+                
+                
+                
+                
+    .           
+                
+                
+                
+                
+                
+         .      
+                
+                
+                
+                
+                
+              . 
+                
+                
+                
+                
+                
+                
+   .            
+                
+                
+                
+                
+                
+        .       
+                
+                
+                
+                
+                
+             .  
+                
+                
+                
+                
+                
+                
+  .             
+                
+                
+                
+                
+                
+       .        
+                
+                
+                
+                
+                
+            .   
+                
+                
+                
+                
+                
+                
+ .              
+                
+                
+                
+                
+                
+      .         
+                
+                
+                
+                
+                
+           .    
+                
+                
+                
+                
+                
+                
+.&lt;?xpacket end='
+w'?&gt;</a>
+</pre></td><td valign="top"><pre onmouseover="high(event,1)" onmouseout="high(event,0)" onmousemove="move(event)" onmousedown="doClick(event)"><a name=t0 class=U>[unknown data]</a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre></td></tr></table>
+<div id=tb class=tb> </div>
+<div id=p0 class=tt>[unknown data]<br>Size: 4132 bytes</div>
+</body></html>

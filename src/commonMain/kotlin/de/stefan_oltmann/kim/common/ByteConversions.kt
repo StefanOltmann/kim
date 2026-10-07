@@ -51,6 +51,14 @@ private fun writeBytes(
     }
 }
 
+/**
+ * Reads up to 8 bytes starting at [offset] as an unsigned number in the
+ * given [byteOrder], so callers with already-buffered bytes get the same
+ * conversion the ByteReader extensions provide.
+ */
+internal fun ByteArray.readUnsignedInt(offset: Int, byteCount: Int, byteOrder: ByteOrder): Long =
+    readBytes(this, offset, byteCount, byteOrder)
+
 private fun readBytes(
     source: ByteArray,
     offset: Int,

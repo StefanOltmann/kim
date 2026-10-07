@@ -17,14 +17,18 @@
  */
 package de.stefan_oltmann.kim.format.tiff.taginfo
 
+import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.decodeLatin1BytesToString
+import de.stefan_oltmann.kim.common.decodeStrictUtf8
 import de.stefan_oltmann.kim.common.decodeUtf16BytesToString
 import de.stefan_oltmann.kim.common.encodeToLatin1Bytes
 import de.stefan_oltmann.kim.common.isEquals
+import de.stefan_oltmann.kim.common.requireLatin1Encodable
 import de.stefan_oltmann.kim.common.slice
 import de.stefan_oltmann.kim.common.startsWithUtf16BigEndianBom
+import de.stefan_oltmann.kim.common.startsWithUtf16LittleEndianBom
 import de.stefan_oltmann.kim.format.tiff.TiffField
 import de.stefan_oltmann.kim.format.tiff.constant.TiffDirectoryType
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeAscii
@@ -50,6 +54,13 @@ public class TagInfoGpsText(
 
         if (value !is String)
             throw ImageWriteException("GPS text value not String: $value")
+
+        /*
+         * The written value must represent the input: a character beyond
+         * Latin-1 fails the write like in ByteWriter.writeString, it is
+         * never silently replaced by a '?' placeholder.
+         */
+        value.requireLatin1Encodable()
 
         val asciiBytes = value.encodeToLatin1Bytes()
 
@@ -94,6 +105,38 @@ public class TagInfoGpsText(
             count = TEXT_ENCODING_BYTE_LENGTH
         )
 
+        /*
+         * The charset code 0x03 announces UTF-8: decoding the payload as
+         * Latin-1 would render every multi-byte sequence as mojibake, so
+         * the prefix selects the UTF-8 decoder.
+         */
+        if (encodingPrefixBytes.contentEquals(TEXT_ENCODING_UTF8_BYTES)) {
+
+            val bytesWithoutPrefix = bytes.copyOfRange(
+                fromIndex = TEXT_ENCODING_BYTE_LENGTH,
+                toIndex = bytes.size
+            )
+
+            if (bytesWithoutPrefix.all { it == ZERO_BYTE })
+                return ""
+
+            /*
+             * A terminating NUL character cuts the text like in ASCII.
+             * Malformed sequences fail the read: replacement decoding
+             * would fabricate U+FFFD into the comment text.
+             */
+            val decodedString = bytesWithoutPrefix.decodeStrictUtf8(
+                "The UTF-8 charset UserComment"
+            )
+
+            val terminatorIndex = decodedString.indexOf('\u0000')
+
+            return if (terminatorIndex > -1)
+                decodedString.take(terminatorIndex)
+            else
+                decodedString
+        }
+
         val hasEncoding =
             encodingPrefixBytes.contentEquals(TEXT_ENCODING_ASCII_BYTES) ||
                 encodingPrefixBytes.contentEquals(TEXT_ENCODING_UNDEFINED_BYTES)
@@ -136,9 +179,25 @@ public class TagInfoGpsText(
                 toIndex = bytes.size
             )
 
-            val decodedString = payload.decodeUtf16BytesToString(
-                littleEndian = !payload.startsWithUtf16BigEndianBom()
-            )
+            /*
+             * A byte order mark decides the order. Without one, BOM-less
+             * writers follow the byte order of the surrounding TIFF
+             * structure - a fixed little-endian fallback garbles the
+             * big-endian payloads of MM files.
+             */
+            val littleEndian =
+                when {
+                    payload.startsWithUtf16BigEndianBom() -> false
+                    payload.startsWithUtf16LittleEndianBom() -> true
+                    else -> entry.byteOrder == ByteOrder.LITTLE_ENDIAN
+                }
+
+            /*
+             * The mark states the encoding - it is not text content, so
+             * it is stripped from the decoded value.
+             */
+            val decodedString = payload.decodeUtf16BytesToString(littleEndian = littleEndian)
+                .trimStart('\uFEFF')
 
             /* A terminating NUL character cuts the text like in ASCII. */
             val terminatorIndex = decodedString.indexOf('\u0000')
@@ -168,7 +227,8 @@ public class TagInfoGpsText(
 
         /**
          * Code for UTF-16. The byte order is signaled by a BOM in the
-         * payload and defaults to little endian, like ExifTool assumes.
+         * payload; without a BOM, the byte order of the surrounding TIFF
+         * structure applies.
          */
         private val TEXT_ENCODING_UNICODE_BYTES =
             byteArrayOf(0x55, 0x4E, 0x49, 0x43, 0x4F, 0x44, 0x45, 0x00)
@@ -180,5 +240,11 @@ public class TagInfoGpsText(
          */
         private val TEXT_ENCODING_UNDEFINED_BYTES =
             byteArrayOf(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00)
+
+        /**
+         * Code for UTF-8, written by current phones and editing tools.
+         */
+        private val TEXT_ENCODING_UTF8_BYTES =
+            byteArrayOf(0x55, 0x54, 0x46, 0x2D, 0x38, 0x00, 0x00, 0x00)
     }
 }

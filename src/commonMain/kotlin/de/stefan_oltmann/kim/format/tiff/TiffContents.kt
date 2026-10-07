@@ -17,6 +17,8 @@
  */
 package de.stefan_oltmann.kim.format.tiff
 
+import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.geotiff.GeoTiffDirectory
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
@@ -45,14 +47,52 @@ public data class TiffContents(
     public fun findMakerNoteSubDirectory(directoryType: Int): TiffDirectory? =
         makerNoteSubDirectories.find { it.type == directoryType }
 
+    /**
+     * The EXIF thumbnail from the root chain: the IFD1 directory when the
+     * file has one, falling back to IFD0 for the Fujifilm MVTG structure
+     * of QuickTime videos. Sub-IFD previews are deliberately not
+     * thumbnails - the Sony ARW for example carries a large preview
+     * beside a small real IFD1 thumbnail, and ExifTool reports the
+     * latter.
+     */
     public fun getExifThumbnailBytes(): ByteArray? =
-        directories.firstNotNullOfOrNull { it.thumbnailBytes }
+        directories.firstOrNull { it.type == TiffConstants.TIFF_DIRECTORY_TYPE_IFD1 }
+            ?.thumbnailBytes
+            ?: directories.firstOrNull {
+                it.type == TiffConstants.TIFF_DIRECTORY_TYPE_IFD0
+            }?.thumbnailBytes
 
     public fun createOutputSet(): TiffOutputSet {
 
         val result = TiffOutputSet(header.byteOrder)
 
         for (directory in directories) {
+
+            /*
+             * The writer never re-emits the SubIFDs pointer, and the
+             * reader folds the sub-IFDs into the chain-IFD number
+             * space - a rewrite would silently restructure the file
+             * and displace the real chain directories. The conversion
+             * refuses the file instead of corrupting it.
+             */
+            if (directory.findField(ExifTag.EXIF_TAG_SUB_IFDS_OFFSET) != null)
+                throw ImageWriteException(
+                    "The directory ${TiffDirectory.description(directory.type)} carries " +
+                        "a SubIFDs pointer, which a rewrite cannot preserve."
+                )
+
+            /*
+             * The tile capture was never implemented, so the writer can
+             * only drop the tile field group - a rewrite would emit a
+             * TIFF whose IFD references no image data. Like the SubIFDs
+             * pointer, the conversion refuses the file instead of
+             * corrupting it.
+             */
+            if (directory.hasTileImageData())
+                throw ImageWriteException(
+                    "The directory ${TiffDirectory.description(directory.type)} carries " +
+                        "tiled image data, which a rewrite cannot preserve."
+                )
 
             /*
              * Certain cameras write some directories more than once.

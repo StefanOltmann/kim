@@ -17,6 +17,7 @@
 package de.stefan_oltmann.kim.output
 
 import de.stefan_oltmann.kim.common.ByteOrder
+import de.stefan_oltmann.kim.common.requireLatin1Encodable
 
 /*
  * For easier implementation of the [ByteWriter] in
@@ -95,5 +96,12 @@ internal fun ByteWriter.writeLong(
 internal fun ByteWriter.writeString(
     value: String
 ) {
-    value.forEach { write(it.code.toByte()) }
+    /*
+     * Only Latin-1 maps a character to its own byte. Anything beyond it
+     * fails per the write policy - see [requireLatin1Encodable].
+     */
+    value.requireLatin1Encodable()
+
+    for (char in value)
+        write(char.code)
 }
