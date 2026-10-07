@@ -47,7 +47,9 @@ class ExifToolDumpComparisonTest {
 
     private val makerNoteTestFiles: List<Int> = listOf(
         1, 15, 18, 21, 23, 28, 31, 34, 39, 41, 42, 48, 49, 50, 53,
-        57, 58, 60, 62, 63, 64, 65, 72, 73, 74, 75, 83, 86, 87, 88
+        57, 58, 60, 62, 63, 64, 65, 72, 73, 74, 75, 83, 86, 87, 88,
+        KimTestData.WEBP_WITH_MAKERNOTE_INDEX,
+        KimTestData.JXL_WITH_MAKERNOTE_INDEX
     )
     private val entryLineRegex = Regex("""^[\s|]*\d+\)\s+""")
     private val subDirectoryRegex = Regex("""^[\s|]*\d+\)\s+(\w+) \(SubDirectory\) -->$""")
