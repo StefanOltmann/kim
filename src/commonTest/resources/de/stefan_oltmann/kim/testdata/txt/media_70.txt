@@ -1,4 +1,4 @@
-File format : TIFF
+File format : DNG
 Resolution  : 3664 x 2752
 ---- TIFF ----
 Version 42

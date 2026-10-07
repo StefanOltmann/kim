@@ -22,6 +22,7 @@ import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaMetadata
+import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.MetadataUpdater
 import de.stefan_oltmann.kim.format.TiffPreviewExtractor
 import de.stefan_oltmann.kim.format.arw.ArwPreviewExtractor
@@ -247,13 +248,53 @@ public object Kim {
              * We re-apply the MediaFormat here, because we don't want to report
              * "TIFF" for every TIFF-based RAW format like CR2.
              */
-            return@use (
+            val metadata =
                 if (readTrailerMetadata && mediaFormat == MediaFormat.JPEG)
                     JpegImageParser.parseMetadata(detection.reader, readTrailerMetadata = true)
                 else
                     imageParser.parseMetadata(byteReader = detection.reader)
-                ).withMediaFormat(mediaFormat = mediaFormat)
+
+            /*
+             * NEF, ARW and DNG files carry the plain TIFF magic, so the
+             * header detection labels them TIFF. The parsed structure
+             * identifies them - the DNGVersion tag marks a DNG, the
+             * vendor maker notes mark NEF and ARW - like ExifTool
+             * reports the specific format for the same bytes.
+             */
+            val reportedFormat =
+                if (mediaFormat == MediaFormat.TIFF)
+                    refineTiffFormat(metadata) ?: mediaFormat
+                else
+                    mediaFormat
+
+            return@use metadata.withMediaFormat(mediaFormat = reportedFormat)
         }
+    }
+
+    /**
+     * Refines a TIFF-detected metadata result to the specific TIFF-based
+     * format, or returns NULL when the structure identifies no specific
+     * format: the DNGVersion tag marks a DNG, a Nikon or Sony maker note
+     * marks NEF or ARW.
+     */
+    private fun refineTiffFormat(metadata: MediaMetadata): MediaFormat? {
+
+        val exif = metadata.exif ?: return null
+
+        if (metadata.findTiffField(TiffTag.TIFF_TAG_DNG_VERSION) != null)
+            return MediaFormat.DNG
+
+        val hasMakerNote = exif.makerNoteDirectory != null
+
+        val make = metadata.findStringValue(TiffTag.TIFF_TAG_MAKE)
+
+        if (hasMakerNote && make?.startsWith("NIKON", ignoreCase = true) == true)
+            return MediaFormat.NEF
+
+        if (hasMakerNote && make?.startsWith("SONY", ignoreCase = true) == true)
+            return MediaFormat.ARW
+
+        return null
     }
 
     /**

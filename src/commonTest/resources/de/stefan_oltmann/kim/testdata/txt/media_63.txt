@@ -1,4 +1,4 @@
-File format : TIFF
+File format : ARW
 Resolution  : 4272 x 2848
 ---- TIFF ----
 Version 42

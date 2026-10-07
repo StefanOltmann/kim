@@ -1,4 +1,4 @@
-File format : TIFF
+File format : NEF
 Resolution  : 4992 x 3280
 ---- TIFF ----
 Version 42
