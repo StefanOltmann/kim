@@ -188,22 +188,24 @@ public class TiffOutputSet(
 
                     exifDirectory.add(ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL, exifDateString)
                     exifDirectory.add(ExifTag.EXIF_TAG_DATE_TIME_DIGITIZED, exifDateString)
-                }
 
-                /*
-                 * The written tags are defined by Exif 2.3, so validators
-                 * require the ExifVersion. Like ExifTool, it is added
-                 * when the EXIF does not carry one yet.
-                 */
-                if (exifDirectory.findField(ExifTag.EXIF_TAG_EXIF_VERSION) == null)
-                    exifDirectory.add(
-                        TiffOutputField(
-                            tag = ExifTag.EXIF_TAG_EXIF_VERSION.tag,
-                            fieldType = FieldTypeUndefined,
-                            count = EXIF_VERSION_FIELD_LENGTH,
-                            bytes = CURRENT_EXIF_VERSION_BYTES
+                    /*
+                     * The written tags are defined by Exif 2.3, so validators
+                     * require the ExifVersion. Like ExifTool, it is added
+                     * when the EXIF does not carry one yet. A pure removal
+                     * adds nothing - injecting an ExifVersion into a file
+                     * without one would falsely signal a modification.
+                     */
+                    if (exifDirectory.findField(ExifTag.EXIF_TAG_EXIF_VERSION) == null)
+                        exifDirectory.add(
+                            TiffOutputField(
+                                tag = ExifTag.EXIF_TAG_EXIF_VERSION.tag,
+                                fieldType = FieldTypeUndefined,
+                                count = EXIF_VERSION_FIELD_LENGTH,
+                                bytes = CURRENT_EXIF_VERSION_BYTES
+                            )
                         )
-                    )
+                }
             }
 
             is MetadataUpdate.Description -> {

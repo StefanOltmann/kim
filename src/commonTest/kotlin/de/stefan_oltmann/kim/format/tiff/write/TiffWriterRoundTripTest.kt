@@ -780,6 +780,23 @@ class TiffWriterRoundTripTest {
         assertTrue(outputSet.getDirectories().isEmpty())
     }
 
+    /**
+     * Removing a taken date from a file without one must not inject
+     * anything: an ExifVersion field (and with it a whole EXIF block)
+     * added by a pure removal would falsely signal a modification and
+     * add bytes to a file that needed none.
+     */
+    @Test
+    fun testApplyUpdatesTakenDateRemovalInjectsNothing() {
+
+        val outputSet = TiffOutputSet()
+
+        outputSet.applyUpdates(setOf(MetadataUpdate.TakenDate(null)))
+
+        assertNull(outputSet.findField(ExifTag.EXIF_TAG_EXIF_VERSION.tag))
+        assertNull(outputSet.findField(ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL.tag))
+    }
+
     @Test
     fun testAddDirectoryRejectsDuplicates() {
 
