@@ -47,8 +47,20 @@ public data class TiffContents(
     public fun findMakerNoteSubDirectory(directoryType: Int): TiffDirectory? =
         makerNoteSubDirectories.find { it.type == directoryType }
 
+    /**
+     * The EXIF thumbnail from the root chain: the IFD1 directory when the
+     * file has one, falling back to IFD0 for the Fujifilm MVTG structure
+     * of QuickTime videos. Sub-IFD previews are deliberately not
+     * thumbnails - the Sony ARW for example carries a large preview
+     * beside a small real IFD1 thumbnail, and ExifTool reports the
+     * latter.
+     */
     public fun getExifThumbnailBytes(): ByteArray? =
-        directories.firstNotNullOfOrNull { it.thumbnailBytes }
+        directories.firstOrNull { it.type == TiffConstants.TIFF_DIRECTORY_TYPE_IFD1 }
+            ?.thumbnailBytes
+            ?: directories.firstOrNull {
+                it.type == TiffConstants.TIFF_DIRECTORY_TYPE_IFD0
+            }?.thumbnailBytes
 
     public fun createOutputSet(): TiffOutputSet {
 
