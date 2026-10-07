@@ -72,6 +72,28 @@ Little-endian (Intel, II)
 ---- IPTC ----
 Keywords (25) = 'Umlauts: äöüß'
 
+---- PrintIM ----
+PrintIMVersion    : 0250
+PrintIM_0x0001    : 1310740
+PrintIM_0x0002    : 1
+PrintIM_0x0003    : 136
+PrintIM_0x0007    : 0
+PrintIM_0x0008    : 0
+PrintIM_0x0009    : 0
+PrintIM_0x000a    : 0
+PrintIM_0x000b    : 208
+PrintIM_0x000c    : 0
+PrintIM_0x000d    : 0
+PrintIM_0x000e    : 232
+PrintIM_0x0100    : 1
+PrintIM_0x0101    : 255
+PrintIM_0x0102    : 131
+PrintIM_0x0103    : 131
+PrintIM_0x0104    : 131
+PrintIM_0x0105    : 131
+PrintIM_0x0106    : 131
+PrintIM_0x0107    : 8421504
+PrintIM_0x0110    : 128
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
     <x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Adobe XMP Core 6.1.10">

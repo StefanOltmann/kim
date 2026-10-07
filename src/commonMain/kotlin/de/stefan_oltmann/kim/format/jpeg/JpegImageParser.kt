@@ -30,6 +30,7 @@ import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
+import de.stefan_oltmann.kim.format.printim.PrintImParser
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
 import de.stefan_oltmann.kim.format.jpeg.segment.App13Segment
@@ -200,6 +201,8 @@ public object JpegImageParser : ImageParser {
 
         val iccProfile = getIccProfile(segments)
 
+        val printIm = exif?.let { contents -> PrintImParser.parseFrom(contents) }
+
         return MediaMetadata(
             mediaFormat = MediaFormat.JPEG,
             imageSize = imageSize,
@@ -207,7 +210,8 @@ public object JpegImageParser : ImageParser {
             exifBytes = exifBytes,
             iptc = iptc,
             xmp = xmp,
-            iccProfile = iccProfile
+            iccProfile = iccProfile,
+            printIm = printIm
         )
     }
 

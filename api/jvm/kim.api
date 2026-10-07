@@ -205,6 +205,7 @@ public final class de/stefan_oltmann/kim/format/MediaMetadata {
 	public final fun getImageSize ()Lde/stefan_oltmann/kim/model/ImageSize;
 	public final fun getIptc ()Lde/stefan_oltmann/kim/format/jpeg/iptc/IptcMetadata;
 	public final fun getMediaFormat ()Lde/stefan_oltmann/kim/model/MediaFormat;
+	public final fun getPrintIm ()Lde/stefan_oltmann/kim/format/printim/PrintImDirectory;
 	public final fun getXmp ()Ljava/lang/String;
 	public fun toString ()Ljava/lang/String;
 }
@@ -1089,6 +1090,39 @@ public abstract class de/stefan_oltmann/kim/format/png/chunk/PngTextChunk : de/s
 	public abstract fun getKeyword ()Ljava/lang/String;
 	public abstract fun getText ()Ljava/lang/String;
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/stefan_oltmann/kim/format/printim/PrintImDirectory {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;)Lde/stefan_oltmann/kim/format/printim/PrintImDirectory;
+	public static synthetic fun copy$default (Lde/stefan_oltmann/kim/format/printim/PrintImDirectory;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lde/stefan_oltmann/kim/format/printim/PrintImDirectory;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEntries ()Ljava/util/List;
+	public final fun getVersion ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/stefan_oltmann/kim/format/printim/PrintImEntry {
+	public fun <init> (II)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun copy (II)Lde/stefan_oltmann/kim/format/printim/PrintImEntry;
+	public static synthetic fun copy$default (Lde/stefan_oltmann/kim/format/printim/PrintImEntry;IIILjava/lang/Object;)Lde/stefan_oltmann/kim/format/printim/PrintImEntry;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getTag ()I
+	public final fun getValue ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/stefan_oltmann/kim/format/printim/PrintImParser {
+	public static final field INSTANCE Lde/stefan_oltmann/kim/format/printim/PrintImParser;
+	public static final field PRINTIM_TAG I
+	public static final fun parse ([B)Lde/stefan_oltmann/kim/format/printim/PrintImDirectory;
+	public final fun parseFrom (Lde/stefan_oltmann/kim/format/tiff/TiffContents;)Lde/stefan_oltmann/kim/format/printim/PrintImDirectory;
 }
 
 public final class de/stefan_oltmann/kim/format/quicktime/QuickTimeImageParser : de/stefan_oltmann/kim/format/ImageParser {

@@ -170,6 +170,11 @@ Little-endian (Intel, II)
 0000002642 0x0000 DriveMode = 1
 0000002642 0x0000 DriveSpeed = 8
 
+---- PrintIM ----
+PrintIMVersion    : 0250
+PrintIM_0x0002    : 1
+PrintIM_0x0003    : 34
+PrintIM_0x0101    : 0
 ---- XMP ----
 <?xpacket begin='﻿' id='W5M0MpCehiHzreSzNTczkc9d'?>
 <x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:xmp="http://ns.adobe.com/xap/1.0/"><xmp:Rating>0</xmp:Rating></rdf:Description></rdf:RDF></x:xmpmeta>

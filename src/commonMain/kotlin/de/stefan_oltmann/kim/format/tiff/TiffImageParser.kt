@@ -24,6 +24,7 @@ import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.icc.IccProfile
 import de.stefan_oltmann.kim.format.icc.IccProfileParser
+import de.stefan_oltmann.kim.format.printim.PrintImParser
 import de.stefan_oltmann.kim.format.MediaMetadata
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
 import de.stefan_oltmann.kim.format.jpeg.JpegSegmentAnalyzer
@@ -70,7 +71,8 @@ public object TiffImageParser : ImageParser {
                 exifBytes = null,
                 iptc = getIptc(contents),
                 xmp = xmp,
-                iccProfile = getIccProfile(contents)
+                iccProfile = getIccProfile(contents),
+                printIm = PrintImParser.parseFrom(contents)
             )
         }
 
