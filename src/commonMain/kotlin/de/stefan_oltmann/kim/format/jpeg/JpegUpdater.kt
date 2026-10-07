@@ -107,13 +107,25 @@ internal object JpegUpdater : MetadataUpdater {
             val carriedIptcDigestResource = kimMetadata.iptc?.nonIptcBlocks
                 ?.any { it.blockType == IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DIGEST } == true
 
-            if (iptc != null && carriedIptcDigestResource) {
+            /*
+             * MWG-style writers may declare the digest only in the XMP
+             * (xmpNote:IPTCDigest) without carrying the Photoshop 0x0425
+             * resource. Whenever the file declares a digest in either
+             * place, both markers must be refreshed together - a stale
+             * xmpNote digest makes digest-aware tools report the stores
+             * as out of sync although they agree.
+             */
+            val declaredIptcDigest = carriedIptcDigestResource ||
+                xmpMeta.getIptcDigest() != null
+
+            if (iptc != null && declaredIptcDigest) {
 
                 val digestBytes = Md5.digest(IptcWriter.writeIptcBlockData(iptc.records))
 
                 xmpMeta.setIptcDigest(digestBytes.toHex())
 
-                iptcWithDigest = iptc.withIptcDigestResource(digestBytes)
+                if (carriedIptcDigestResource)
+                    iptcWithDigest = iptc.withIptcDigestResource(digestBytes)
             }
 
             val updatedXmp = XmpWriter.updateXmp(xmpMeta, updates, true)
