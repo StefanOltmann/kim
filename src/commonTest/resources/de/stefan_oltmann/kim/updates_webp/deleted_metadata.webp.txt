@@ -20,5 +20,5 @@ RedTRC (rTRC)
 GreenTRC (gTRC)
 BlueTRC (bTRC)
 Chromaticity (chrm)
-DeviceModelDescription = GIMP
-DeviceDescription = sRGB
+DeviceMfgDesc = GIMP
+DeviceModelDesc = sRGB

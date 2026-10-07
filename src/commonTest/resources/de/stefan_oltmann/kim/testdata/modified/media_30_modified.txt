@@ -85,12 +85,12 @@ MediaBlackPoint = 0.0 0.0 0.0
 RedMatrixColumn = 0.436065673828125 0.2224884033203125 0.013916015625
 GreenMatrixColumn = 0.3851470947265625 0.7168731689453125 0.097076416015625
 BlueMatrixColumn = 0.14306640625 0.06060791015625 0.7140960693359375
-DeviceModelDescription = IEC http://www.iec.ch
-DeviceDescription = IEC 61966-2.1 Default RGB colour space - sRGB
+DeviceMfgDesc = IEC http://www.iec.ch
+DeviceModelDesc = IEC 61966-2.1 Default RGB colour space - sRGB
 ViewingCondDesc = Reference Viewing Condition in IEC61966-2.1
-ViewingCondDesc (view)
+ViewingConditions (view)
 Luminance = 76.03646850585938 80.0 87.12461853027344
-meas (meas)
+Measurement (meas)
 Technology (tech)
 RedTRC (rTRC)
 GreenTRC (gTRC)

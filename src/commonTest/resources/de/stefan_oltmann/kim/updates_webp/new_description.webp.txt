@@ -81,8 +81,8 @@ RedTRC (rTRC)
 GreenTRC (gTRC)
 BlueTRC (bTRC)
 Chromaticity (chrm)
-DeviceModelDescription = GIMP
-DeviceDescription = sRGB
+DeviceMfgDesc = GIMP
+DeviceModelDesc = sRGB
 ---- XMP ----
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
 <x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core for KMP 2.0.2">
