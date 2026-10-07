@@ -24,6 +24,7 @@ import de.stefan_oltmann.kim.common.decodeStrictUtf8
 import de.stefan_oltmann.kim.common.decodeUtf16BytesToString
 import de.stefan_oltmann.kim.common.encodeToLatin1Bytes
 import de.stefan_oltmann.kim.common.isEquals
+import de.stefan_oltmann.kim.common.requireLatin1Encodable
 import de.stefan_oltmann.kim.common.slice
 import de.stefan_oltmann.kim.common.startsWithUtf16BigEndianBom
 import de.stefan_oltmann.kim.format.tiff.TiffField
@@ -51,6 +52,13 @@ public class TagInfoGpsText(
 
         if (value !is String)
             throw ImageWriteException("GPS text value not String: $value")
+
+        /*
+         * The written value must represent the input: a character beyond
+         * Latin-1 fails the write like in ByteWriter.writeString, it is
+         * never silently replaced by a '?' placeholder.
+         */
+        value.requireLatin1Encodable()
 
         val asciiBytes = value.encodeToLatin1Bytes()
 

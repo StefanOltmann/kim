@@ -19,3 +19,27 @@ package de.stefan_oltmann.kim.common
 internal expect fun ByteArray.decodeLatin1BytesToString(): String
 
 internal expect fun String.encodeToLatin1Bytes(): ByteArray
+
+/* The highest code point a single Latin-1 byte represents. */
+private const val MAX_LATIN1_CHAR_CODE: Int = 0xFF
+
+/**
+ * Throws an [ImageWriteException] naming the first character that has no
+ * single-byte Latin-1 representation.
+ *
+ * This is the single authority of the write policy for single-byte text:
+ * only Latin-1 maps a character to its own byte, and truncating anything
+ * beyond it - to the low byte or a '?' placeholder - would silently emit
+ * data that no longer represents the input. The Latin-1 decoding paths
+ * keep their lossy behavior; only write paths call this check.
+ */
+internal fun String.requireLatin1Encodable() {
+
+    val invalidChar = firstOrNull { char -> char.code > MAX_LATIN1_CHAR_CODE }
+
+    if (invalidChar != null)
+        throw ImageWriteException(
+            "The character U+${invalidChar.code.toString(HEX_RADIX).uppercase()} cannot be " +
+                "written as a single byte."
+        )
+}

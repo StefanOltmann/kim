@@ -16,11 +16,15 @@
 package de.stefan_oltmann.kim.format.tiff.taginfo
 
 import de.stefan_oltmann.kim.common.ByteOrder
+import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.format.tiff.TiffField
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
+import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeUndefined
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 /**
  * Tests the charset dispatch of text fields with the 8-byte encoding
@@ -75,6 +79,36 @@ class TagInfoGpsTextTest {
         assertEquals(
             "plain",
             ExifTag.EXIF_TAG_USER_COMMENT.getValue(undefinedField(bytes))
+        )
+    }
+
+    /**
+     * The write policy forbids writing data that no longer represents the
+     * input: a character beyond Latin-1 must fail the write like in
+     * ByteWriter.writeString - a silent '?' placeholder would destroy the
+     * text without any error.
+     */
+    @Test
+    fun testEncodeValueRejectsNonLatin1Characters() {
+
+        assertFailsWith<ImageWriteException> {
+            GpsTag.GPS_TAG_GPS_PROCESSING_METHOD.encodeValue("\u4eac")
+        }
+    }
+
+    /**
+     * Latin-1 text keeps encoding as the ASCII charset prefix followed by
+     * the single-byte characters.
+     */
+    @Test
+    fun testEncodeValueKeepsLatin1Text() {
+
+        assertContentEquals(
+            expected = byteArrayOf(
+                0x41, 0x53, 0x43, 0x49, 0x49, 0x00, 0x00, 0x00, /* "ASCII" */
+                0x63, 0x61, 0x66, 0xE9.toByte() /* "café" in Latin-1 */
+            ),
+            actual = GpsTag.GPS_TAG_GPS_PROCESSING_METHOD.encodeValue("café")
         )
     }
 }
