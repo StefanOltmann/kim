@@ -1,0 +1,159 @@
+  ExifToolVersion = 13.59
+  FileName = media_44_modified.jpg
+  Directory = modified
+  FileSize = 1294
+  FileModifyDate = 1789668880.55903
+  FileAccessDate = 1791131090.9802
+  FileCreateDate = 1789668880.55202
+  FilePermissions = 33206
+  FileType = JPEG
+  FileTypeExtension = JPG
+  MIMEType = image/jpeg
+JPEG APP1 (278 bytes):
+      0006: 45 78 69 66 00 00 4d 4d 00 2a 00 00 00 08 00 04 [Exif..MM.*......]
+      0016: 01 12 00 03 00 00 00 01 00 08 00 00 01 32 00 02 [.............2..]
+      0026: 00 00 00 14 00 00 00 40 87 69 00 04 00 00 00 01 [.......@.i......]
+      0036: 00 00 00 54 88 25 00 04 00 00 00 01 00 00 00 9c [...T.%..........]
+      0046: 00 00 00 00 00 00 32 30 32 33 3a 30 35 3a 31 30 [......2023:05:10]
+      0056: 20 31 33 3a 33 37 3a 34 32 00 00 02 90 03 00 02 [ 13:37:42.......]
+      0066: 00 00 00 14 00 00 00 74 90 04 00 02 00 00 00 14 [.......t........]
+      [snip 166 bytes]
+  ExifByteOrder = MM
+  + [IFD0 directory with 4 entries, Big-endian]
+  | 0)  Orientation = 8
+  |     - Tag 0x0112 (2 bytes, int16u[1]):
+  |         001e: 00 08                                           [..]
+  | 1)  ModifyDate = 2023:05:10 13:37:42
+  |     - Tag 0x0132 (20 bytes, string[20]):
+  |         004c: 32 30 32 33 3a 30 35 3a 31 30 20 31 33 3a 33 37 [2023:05:10 13:37]
+  |         005c: 3a 34 32 00                                     [:42.]
+  | 2)  ExifOffset (SubDirectory) -->
+  |     - Tag 0x8769 (4 bytes, int32u[1]):
+  |         0036: 00 00 00 54                                     [...T]
+  | + [ExifIFD directory with 2 entries, Big-endian]
+  | | 0)  DateTimeOriginal = 2023:05:10 13:37:42
+  | |     - Tag 0x9003 (20 bytes, string[20]):
+  | |         0080: 32 30 32 33 3a 30 35 3a 31 30 20 31 33 3a 33 37 [2023:05:10 13:37]
+  | |         0090: 3a 34 32 00                                     [:42.]
+  | | 1)  CreateDate = 2023:05:10 13:37:42
+  | |     - Tag 0x9004 (20 bytes, string[20]):
+  | |         0094: 32 30 32 33 3a 30 35 3a 31 30 20 31 33 3a 33 37 [2023:05:10 13:37]
+  | |         00a4: 3a 34 32 00                                     [:42.]
+  | 3)  GPSInfo (SubDirectory) -->
+  |     - Tag 0x8825 (4 bytes, int32u[1]):
+  |         0042: 00 00 00 9c                                     [....]
+  | + [GPS directory with 5 entries, Big-endian]
+  | | 0)  GPSVersionID = 2 3 0 0
+  | |     - Tag 0x0000 (4 bytes, int8u[4]):
+  | |         00b2: 02 03 00 00                                     [....]
+  | | 1)  GPSLatitudeRef = N
+  | |     - Tag 0x0001 (2 bytes, string[2]):
+  | |         00be: 4e 00                                           [N.]
+  | | 2)  GPSLatitude = 53 13 9.8076 (53/1 13/1 24519/2500)
+  | |     - Tag 0x0002 (24 bytes, rational64u[3]):
+  | |         00ec: 00 00 00 35 00 00 00 01 00 00 00 0d 00 00 00 01 [...5............]
+  | |         00fc: 00 00 5f c7 00 00 09 c4                         [.._.....]
+  | | 3)  GPSLongitudeRef = E
+  | |     - Tag 0x0003 (2 bytes, string[2]):
+  | |         00d6: 45 00                                           [E.]
+  | | 4)  GPSLongitude = 8 14 22.7796 (8/1 14/1 56949/2500)
+  | |     - Tag 0x0004 (24 bytes, rational64u[3]):
+  | |         0104: 00 00 00 08 00 00 00 01 00 00 00 0e 00 00 00 01 [................]
+  | |         0114: 00 00 de 75 00 00 09 c4                         [...u....]
+JPEG APP13 (64 bytes):
+      0120: 50 68 6f 74 6f 73 68 6f 70 20 33 2e 30 00 38 42 [Photoshop 3.0.8B]
+      0130: 49 4d 04 04 00 00 00 00 00 25 1c 01 5a 00 03 1b [IM.......%..Z...]
+      0140: 25 47 1c 02 00 00 02 00 04 1c 02 19 00 11 55 6d [%G............Um]
+      0150: 6c 61 75 74 73 3a 20 c3 a4 c3 b6 c3 bc c3 9f 00 [lauts: .........]
+  + [Photoshop directory, 50 bytes]
+  | IPTCData (SubDirectory) -->
+  | - Tag 0x0404 (37 bytes):
+  |     013a: 1c 01 5a 00 03 1b 25 47 1c 02 00 00 02 00 04 1c [..Z...%G........]
+  |     014a: 02 19 00 11 55 6d 6c 61 75 74 73 3a 20 c3 a4 c3 [....Umlauts: ...]
+  |     015a: b6 c3 bc c3 9f                                  [.....]
+  | + [IPTC directory, 37 bytes]
+  | | CurrentIPTCDigest = H....V.*31.y.~%.
+  | | -- IPTCEnvelope record --
+  | | CodedCharacterSet = .%G
+  | | - Tag 0x005a, IPTCEnvelope record (3 bytes, string[0,32]):
+  | |     013f: 1b 25 47                                        [.%G]
+  | | -- IPTCApplication record --
+  | | ApplicationRecordVersion = 4
+  | | - Tag 0x0000, IPTCApplication record (2 bytes, int16u):
+  | |     0147: 00 04                                           [..]
+  | | Keywords = Umlauts: ........
+  | | - Tag 0x0019, IPTCApplication record (17 bytes, string[0,64]):
+  | |     014e: 55 6d 6c 61 75 74 73 3a 20 c3 a4 c3 b6 c3 bc c3 [Umlauts: .......]
+  | |     015e: 9f                                              [.]
+JPEG APP1 (399 bytes):
+      0164: 68 74 74 70 3a 2f 2f 6e 73 2e 61 64 6f 62 65 2e [http://ns.adobe.]
+      0174: 63 6f 6d 2f 78 61 70 2f 31 2e 30 2f 00 3c 3f 78 [com/xap/1.0/.<?x]
+      0184: 70 61 63 6b 65 74 20 62 65 67 69 6e 3d 22 ef bb [packet begin="..]
+      0194: bf 22 20 69 64 3d 22 57 35 4d 30 4d 70 43 65 68 [." id="W5M0MpCeh]
+      01a4: 69 48 7a 72 65 53 7a 4e 54 63 7a 6b 63 39 64 22 [iHzreSzNTczkc9d"]
+      01b4: 3f 3e 0a 20 20 20 20 3c 78 3a 78 6d 70 6d 65 74 [?>.    <x:xmpmet]
+      01c4: 61 20 78 6d 6c 6e 73 3a 78 3d 22 61 64 6f 62 65 [a xmlns:x="adobe]
+      [snip 287 bytes]
+  + [XMP directory, 370 bytes]
+  | XMPToolkit = Adobe XMP Core 6.1.10
+  | Rating = 3
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmp:Rating'
+  Warning = [minor] Skipped unknown 40 bytes after JPEG RST5 segment
+JPEG RST5
+JPEG COM (17 bytes):
+      0321: 74 61 76 69 73 6f 40 67 6f 6f 67 6c 65 2e 63 6f [taviso@google.co]
+      0331: 6d                                              [m]
+  Comment = taviso@google.com
+  Warning = [minor] Skipped unknown 50 bytes after JPEG DQT segment
+JPEG DQT (65 bytes):
+      0336: 00 ef 0b 0c 01 0c 0a a6 0e 0d 58 12 12 10 13 18 [..........X.....]
+      0346: 28 1a 18 16 16 18 31 c9 25 1d 28 3a 33 3d 3c 39 [(.....1.%.(:3=<9]
+      0356: 33 04 37 40 48 5c 4e 40 44 57 45 37 38 50 ff db [3.7@H\N@DWE78P..]
+      0366: 00 43 01 ee 12 12 18 fb 04 2f 1a 1a 2f 63 42 38 [.C......./../cB8]
+      0376: 42                                              [B]
+JPEG SOF2 (15 bytes):
+      03ad: 08 0c 05 0b 04 03 01 21 00 02 11 01 03 11 01    [.......!.......]
+  ImageWidth = 2820
+  ImageHeight = 3077
+  EncodingProcess = 2
+  BitsPerSample = 8
+  ColorComponents = 3
+  YCbCrSubSampling = 2 1
+JPEG DHT (19 bytes):
+      03c0: 00 01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+      03d0: 00 07 03                                        [...]
+JPEG DHT (19 bytes):
+      03d7: 01 01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+      03e7: 00 03 05                                        [...]
+JPEG DRI (2 bytes):
+      03ee: 00 01                                           [..]
+JPEG DHT (22 bytes):
+      03f4: 11 00 02 03 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+      0404: 00 01 01 03 14 f0                               [......]
+JPEG SOS
+JPEG DHT (23 bytes):
+      041b: 11 00 01 05 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+      042b: 00 00 01 02 20 31 a1                            [.... 1.]
+JPEG SOS
+JPEG DHT (21 bytes):
+      0443: 10 00 03 01 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+      0453: 00 00 02 32 92                                  [...2.]
+JPEG SOS
+JPEG marker 0x3b
+JPEG RST2
+JPEG SOS
+JPEG DHT (22 bytes):
+      049a: 11 00 02 03 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+      04aa: 00 00 01 51 61 f0                               [...Qa.]
+JPEG APP0 (6 bytes):
+      04b4: 01 af 01 01 3f 10                               [....?.]
+  Warning = [minor] Unknown APP0 segment
+JPEG DHT (21 bytes):
+      04c1: 11 01 00 03 00 00 00 00 00 00 00 00 00 00 00 00 [................]
+      04d1: 00 01 30 91 d1                                  [..0..]
+JPEG SOS
+JPEG DHT (22 bytes):
+      04e8: 10 01 00 03 01 00 00 00 00 00 00 00 00 00 00 00 [................]
+      04f8: 00 01 00 21 71 c1                               [...!q.]
+JPEG SOS
+  Warning = JPEG format error

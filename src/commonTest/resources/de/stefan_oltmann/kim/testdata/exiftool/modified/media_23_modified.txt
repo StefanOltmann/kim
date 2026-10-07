@@ -1,0 +1,209 @@
+  ExifToolVersion = 13.59
+  FileName = media_23_modified.jpg
+  Directory = modified
+  FileSize = 7710745
+  FileModifyDate = 1789668880.47105
+  FileAccessDate = 1791131084.60216
+  FileCreateDate = 1789668880.46305
+  FilePermissions = 33206
+  FileType = JPEG
+  FileTypeExtension = JPG
+  MIMEType = image/jpeg
+JPEG APP0 (14 bytes):
+      0006: 4a 46 49 46 00 01 01 00 00 01 00 01 00 00       [JFIF..........]
+  + [BinaryData directory, 9 bytes, Big-endian]
+  | JFIFVersion = 1 1
+  | - Tag 0x0000 (2 bytes, int8u[2]):
+  |     000b: 01 01                                           [..]
+  | ResolutionUnit = 0
+  | - Tag 0x0002 (1 bytes, int8u[1]):
+  |     000d: 00                                              [.]
+  | XResolution = 1
+  | - Tag 0x0003 (2 bytes, int16u[1]):
+  |     000e: 00 01                                           [..]
+  | YResolution = 1
+  | - Tag 0x0005 (2 bytes, int16u[1]):
+  |     0010: 00 01                                           [..]
+  | ThumbnailWidth = 0
+  | - Tag 0x0007 (1 bytes, int8u[1]):
+  |     0012: 00                                              [.]
+  | ThumbnailHeight = 0
+  | - Tag 0x0008 (1 bytes, int8u[1]):
+  |     0013: 00                                              [.]
+JPEG APP1 (556 bytes):
+      0018: 45 78 69 66 00 00 4d 4d 00 2a 00 00 00 08 00 06 [Exif..MM.*......]
+      0028: 01 0f 00 02 00 00 00 08 00 00 00 56 01 10 00 02 [...........V....]
+      0038: 00 00 00 05 00 00 00 5e 01 12 00 03 00 00 00 01 [.......^........]
+      0048: 00 08 00 00 01 32 00 02 00 00 00 14 00 00 00 64 [.....2.........d]
+      0058: 87 69 00 04 00 00 00 01 00 00 00 78 88 25 00 04 [.i.........x.%..]
+      0068: 00 00 00 01 00 00 01 b4 00 00 00 00 4e 6f 74 68 [............Noth]
+      0078: 69 6e 67 00 41 30 36 33 00 00 32 30 32 33 3a 30 [ing.A063..2023:0]
+      [snip 444 bytes]
+  ExifByteOrder = MM
+  + [IFD0 directory with 6 entries, Big-endian]
+  | 0)  Make = Nothing
+  |     - Tag 0x010f (8 bytes, string[8]):
+  |         0074: 4e 6f 74 68 69 6e 67 00                         [Nothing.]
+  | 1)  Model = A063
+  |     - Tag 0x0110 (5 bytes, string[5]):
+  |         007c: 41 30 36 33 00                                  [A063.]
+  | 2)  Orientation = 8
+  |     - Tag 0x0112 (2 bytes, int16u[1]):
+  |         0048: 00 08                                           [..]
+  | 3)  ModifyDate = 2023:05:10 13:37:42
+  |     - Tag 0x0132 (20 bytes, string[20]):
+  |         0082: 32 30 32 33 3a 30 35 3a 31 30 20 31 33 3a 33 37 [2023:05:10 13:37]
+  |         0092: 3a 34 32 00                                     [:42.]
+  | 4)  ExifOffset (SubDirectory) -->
+  |     - Tag 0x8769 (4 bytes, int32u[1]):
+  |         0060: 00 00 00 78                                     [...x]
+  | + [ExifIFD directory with 13 entries, Big-endian]
+  | | 0)  ExposureTime = 0.04 (40/1000)
+  | |     - Tag 0x829a (8 bytes, rational64u[1]):
+  | |         0172: 00 00 00 28 00 00 03 e8                         [...(....]
+  | | 1)  FNumber = 1.88 (188/100)
+  | |     - Tag 0x829d (8 bytes, rational64u[1]):
+  | |         017a: 00 00 00 bc 00 00 00 64                         [.......d]
+  | | 2)  ISO = 1939
+  | |     - Tag 0x8827 (2 bytes, int16u[1]):
+  | |         00b8: 07 93                                           [..]
+  | | 3)  DateTimeOriginal = 2023:05:10 13:37:42
+  | |     - Tag 0x9003 (20 bytes, string[20]):
+  | |         0182: 32 30 32 33 3a 30 35 3a 31 30 20 31 33 3a 33 37 [2023:05:10 13:37]
+  | |         0192: 3a 34 32 00                                     [:42.]
+  | | 4)  CreateDate = 2023:05:10 13:37:42
+  | |     - Tag 0x9004 (20 bytes, string[20]):
+  | |         0196: 32 30 32 33 3a 30 35 3a 31 30 20 31 33 3a 33 37 [2023:05:10 13:37]
+  | |         01a6: 3a 34 32 00                                     [:42.]
+  | | 5)  OffsetTime = +01:00
+  | |     - Tag 0x9010 (7 bytes, string[7]):
+  | |         01aa: 2b 30 31 3a 30 30 00                            [+01:00.]
+  | | 6)  OffsetTimeOriginal = +01:00
+  | |     - Tag 0x9011 (7 bytes, string[7]):
+  | |         01b2: 2b 30 31 3a 30 30 00                            [+01:00.]
+  | | 7)  OffsetTimeDigitized = +01:00
+  | |     - Tag 0x9012 (7 bytes, string[7]):
+  | |         01ba: 2b 30 31 3a 30 30 00                            [+01:00.]
+  | | 8)  ApertureValue = 1.88 (188/100)
+  | |     - Tag 0x9202 (8 bytes, rational64u[1]):
+  | |         01c2: 00 00 00 bc 00 00 00 64                         [.......d]
+  | | 9)  Flash = 0
+  | |     - Tag 0x9209 (2 bytes, int16u[1]):
+  | |         010c: 00 00                                           [..]
+  | | 10) FocalLength = 5.59 (559/100)
+  | |     - Tag 0x920a (8 bytes, rational64u[1]):
+  | |         01ca: 00 00 02 2f 00 00 00 64                         [.../...d]
+  | | 11) MakerNoteUnknownText = NTDebugStart,MOTION:,ID:0,LUX:348.46936NTDebugEnd
+  | |     - Tag 0x927c (49 bytes, undef[49]):
+  | |         013f: 4e 54 44 65 62 75 67 53 74 61 72 74 2c 4d 4f 54 [NTDebugStart,MOT]
+  | |         014f: 49 4f 4e 3a 2c 49 44 3a 30 2c 4c 55 58 3a 33 34 [ION:,ID:0,LUX:34]
+  | |         015f: 38 2e 34 36 39 33 36 4e 54 44 65 62 75 67 45 6e [8.46936NTDebugEn]
+  | |         016f: 64                                              [d]
+  | | 12) WhiteBalance = 0
+  | |     - Tag 0xa403 (2 bytes, int16u[1]):
+  | |         0130: 00 00                                           [..]
+  | 5)  GPSInfo (SubDirectory) -->
+  |     - Tag 0x8825 (4 bytes, int32u[1]):
+  |         006c: 00 00 01 b4                                     [....]
+  | + [GPS directory with 5 entries, Big-endian]
+  | | 0)  GPSVersionID = 2 3 0 0
+  | |     - Tag 0x0000 (4 bytes, int8u[4]):
+  | |         01dc: 02 03 00 00                                     [....]
+  | | 1)  GPSLatitudeRef = N
+  | |     - Tag 0x0001 (2 bytes, string[2]):
+  | |         01e8: 4e 00                                           [N.]
+  | | 2)  GPSLatitude = 53 13 9.8076 (53/1 13/1 24519/2500)
+  | |     - Tag 0x0002 (24 bytes, rational64u[3]):
+  | |         0214: 00 00 00 35 00 00 00 01 00 00 00 0d 00 00 00 01 [...5............]
+  | |         0224: 00 00 5f c7 00 00 09 c4                         [.._.....]
+  | | 3)  GPSLongitudeRef = E
+  | |     - Tag 0x0003 (2 bytes, string[2]):
+  | |         0200: 45 00                                           [E.]
+  | | 4)  GPSLongitude = 8 14 22.7796 (8/1 14/1 56949/2500)
+  | |     - Tag 0x0004 (24 bytes, rational64u[3]):
+  | |         022c: 00 00 00 08 00 00 00 01 00 00 00 0e 00 00 00 01 [................]
+  | |         023c: 00 00 de 75 00 00 09 c4                         [...u....]
+JPEG APP13 (64 bytes):
+      0248: 50 68 6f 74 6f 73 68 6f 70 20 33 2e 30 00 38 42 [Photoshop 3.0.8B]
+      0258: 49 4d 04 04 00 00 00 00 00 25 1c 01 5a 00 03 1b [IM.......%..Z...]
+      0268: 25 47 1c 02 00 00 02 00 04 1c 02 19 00 11 55 6d [%G............Um]
+      0278: 6c 61 75 74 73 3a 20 c3 a4 c3 b6 c3 bc c3 9f 00 [lauts: .........]
+  + [Photoshop directory, 50 bytes]
+  | IPTCData (SubDirectory) -->
+  | - Tag 0x0404 (37 bytes):
+  |     0262: 1c 01 5a 00 03 1b 25 47 1c 02 00 00 02 00 04 1c [..Z...%G........]
+  |     0272: 02 19 00 11 55 6d 6c 61 75 74 73 3a 20 c3 a4 c3 [....Umlauts: ...]
+  |     0282: b6 c3 bc c3 9f                                  [.....]
+  | + [IPTC directory, 37 bytes]
+  | | CurrentIPTCDigest = H....V.*31.y.~%.
+  | | -- IPTCEnvelope record --
+  | | CodedCharacterSet = .%G
+  | | - Tag 0x005a, IPTCEnvelope record (3 bytes, string[0,32]):
+  | |     0267: 1b 25 47                                        [.%G]
+  | | -- IPTCApplication record --
+  | | ApplicationRecordVersion = 4
+  | | - Tag 0x0000, IPTCApplication record (2 bytes, int16u):
+  | |     026f: 00 04                                           [..]
+  | | Keywords = Umlauts: ........
+  | | - Tag 0x0019, IPTCApplication record (17 bytes, string[0,64]):
+  | |     0276: 55 6d 6c 61 75 74 73 3a 20 c3 a4 c3 b6 c3 bc c3 [Umlauts: .......]
+  | |     0286: 9f                                              [.]
+JPEG APP1 (399 bytes):
+      028c: 68 74 74 70 3a 2f 2f 6e 73 2e 61 64 6f 62 65 2e [http://ns.adobe.]
+      029c: 63 6f 6d 2f 78 61 70 2f 31 2e 30 2f 00 3c 3f 78 [com/xap/1.0/.<?x]
+      02ac: 70 61 63 6b 65 74 20 62 65 67 69 6e 3d 22 ef bb [packet begin="..]
+      02bc: bf 22 20 69 64 3d 22 57 35 4d 30 4d 70 43 65 68 [." id="W5M0MpCeh]
+      02cc: 69 48 7a 72 65 53 7a 4e 54 63 7a 6b 63 39 64 22 [iHzreSzNTczkc9d"]
+      02dc: 3f 3e 0a 20 20 20 20 3c 78 3a 78 6d 70 6d 65 74 [?>.    <x:xmpmet]
+      02ec: 61 20 78 6d 6c 6e 73 3a 78 3d 22 61 64 6f 62 65 [a xmlns:x="adobe]
+      [snip 287 bytes]
+  + [XMP directory, 370 bytes]
+  | XMPToolkit = Adobe XMP Core 6.1.10
+  | Rating = 3
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmp:Rating'
+JPEG DQT (65 bytes):
+      041f: 00 02 01 01 01 01 01 02 01 01 01 02 02 02 02 02 [................]
+      042f: 04 03 02 02 02 02 05 04 04 03 04 06 05 06 06 06 [................]
+      043f: 05 06 06 06 07 09 08 06 07 09 07 06 06 08 0b 08 [................]
+      044f: 09 0a 0a 0a 0a 0a 06 08 0b 0c 0b 0a 0c 09 0a 0a [................]
+      045f: 0a                                              [.]
+JPEG DQT (65 bytes):
+      0464: 01 02 02 02 02 02 02 05 03 03 05 0a 07 06 07 0a [................]
+      0474: 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a [................]
+      0484: 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a [................]
+      0494: 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a [................]
+      04a4: 0a                                              [.]
+JPEG SOF0 (15 bytes):
+      04a9: 08 20 00 18 00 03 01 22 00 02 11 01 03 11 01    [. .....".......]
+  ImageWidth = 6144
+  ImageHeight = 8192
+  EncodingProcess = 0
+  BitsPerSample = 8
+  ColorComponents = 3
+  YCbCrSubSampling = 2 2
+JPEG DHT (29 bytes):
+      04bc: 00 00 01 05 01 01 01 01 01 01 00 00 00 00 00 00 [................]
+      04cc: 00 00 01 02 03 04 05 06 07 08 09 0a 0b          [.............]
+JPEG DHT (179 bytes):
+      04dd: 10 00 02 01 03 03 02 04 03 05 05 04 04 00 00 01 [................]
+      04ed: 7d 01 02 03 00 04 11 05 12 21 31 41 06 13 51 61 [}........!1A..Qa]
+      04fd: 07 22 71 14 32 81 91 a1 08 23 42 b1 c1 15 52 d1 [."q.2....#B...R.]
+      050d: f0 24 33 62 72 82 09 0a 16 17 18 19 1a 25 26 27 [.$3br........%&']
+      051d: 28 29 2a 34 35 36 37 38 39 3a 43 44 45 46 47 48 [()*456789:CDEFGH]
+      052d: 49 4a 53 54 55 56 57 58 59 5a 63 64 65 66 67 68 [IJSTUVWXYZcdefgh]
+      053d: 69 6a 73 74 75 76 77 78 79 7a 83 84 85 86 87 88 [ijstuvwxyz......]
+      [snip 67 bytes]
+JPEG DHT (29 bytes):
+      0594: 01 00 03 01 01 01 01 01 01 01 01 01 00 00 00 00 [................]
+      05a4: 00 00 01 02 03 04 05 06 07 08 09 0a 0b          [.............]
+JPEG DHT (179 bytes):
+      05b5: 11 00 02 01 02 04 04 03 04 07 05 04 04 00 01 02 [................]
+      05c5: 77 00 01 02 03 11 04 05 21 31 06 12 41 51 07 61 [w.......!1..AQ.a]
+      05d5: 71 13 22 32 81 08 14 42 91 a1 b1 c1 09 23 33 52 [q."2...B.....#3R]
+      05e5: f0 15 62 72 d1 0a 16 24 34 e1 25 f1 17 18 19 1a [..br...$4.%.....]
+      05f5: 26 27 28 29 2a 35 36 37 38 39 3a 43 44 45 46 47 [&'()*56789:CDEFG]
+      0605: 48 49 4a 53 54 55 56 57 58 59 5a 63 64 65 66 67 [HIJSTUVWXYZcdefg]
+      0615: 68 69 6a 73 74 75 76 77 78 79 7a 82 83 84 85 86 [hijstuvwxyz.....]
+      [snip 67 bytes]
+JPEG SOS
+JPEG EOI

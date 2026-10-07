@@ -1,0 +1,221 @@
+  ExifToolVersion = 13.59
+  FileName = media_46_modified.jpg
+  Directory = modified
+  FileSize = 68274
+  FileModifyDate = 1789668880.56003
+  FileAccessDate = 1791131091.4058
+  FileCreateDate = 1789668880.56003
+  FilePermissions = 33206
+  FileType = JPEG
+  FileTypeExtension = JPG
+  MIMEType = image/jpeg
+JPEG APP0 (14 bytes):
+      0006: 4a 46 49 46 00 01 02 01 01 2c 01 2c 00 c9       [JFIF.....,.,..]
+  + [BinaryData directory, 9 bytes, Big-endian]
+  | JFIFVersion = 1 2
+  | - Tag 0x0000 (2 bytes, int8u[2]):
+  |     000b: 01 02                                           [..]
+  | ResolutionUnit = 1
+  | - Tag 0x0002 (1 bytes, int8u[1]):
+  |     000d: 01                                              [.]
+  | XResolution = 300
+  | - Tag 0x0003 (2 bytes, int16u[1]):
+  |     000e: 01 2c                                           [.,]
+  | YResolution = 300
+  | - Tag 0x0005 (2 bytes, int16u[1]):
+  |     0010: 01 2c                                           [.,]
+  | ThumbnailWidth = 0
+  | - Tag 0x0007 (1 bytes, int8u[1]):
+  |     0012: 00                                              [.]
+  | ThumbnailHeight = 201
+  | - Tag 0x0008 (1 bytes, int8u[1]):
+  |     0013: c9                                              [.]
+JPEG APP1 (4062 bytes):
+      0018: 45 78 69 66 00 00 4d 4d 00 2a 00 00 00 08 00 05 [Exif..MM.*......]
+      0028: 01 12 00 03 00 00 00 01 00 08 00 00 01 31 00 02 [.............1..]
+      0038: 00 00 00 14 00 00 00 4a 01 32 00 02 00 00 00 14 [.......J.2......]
+      0048: 00 00 00 5e 87 69 00 04 00 00 00 01 00 00 00 72 [...^.i.........r]
+      0058: 88 25 00 04 00 00 00 01 00 00 00 b8 00 00 01 2a [.%.............*]
+      0068: 41 64 6f 62 65 20 50 68 6f 74 6f 73 68 6f 70 20 [Adobe Photoshop ]
+      0078: 37 2e 30 00 32 30 32 33 3a 30 35 3a 31 30 20 31 [7.0.2023:05:10 1]
+      [snip 3950 bytes]
+  ExifByteOrder = MM
+  + [IFD0 directory with 5 entries, Big-endian]
+  | 0)  Orientation = 8
+  |     - Tag 0x0112 (2 bytes, int16u[1]):
+  |         0030: 00 08                                           [..]
+  | 1)  Software = Adobe Photoshop 7.0
+  |     - Tag 0x0131 (20 bytes, string[20]):
+  |         0068: 41 64 6f 62 65 20 50 68 6f 74 6f 73 68 6f 70 20 [Adobe Photoshop ]
+  |         0078: 37 2e 30 00                                     [7.0.]
+  | 2)  ModifyDate = 2023:05:10 13:37:42
+  |     - Tag 0x0132 (20 bytes, string[20]):
+  |         007c: 32 30 32 33 3a 30 35 3a 31 30 20 31 33 3a 33 37 [2023:05:10 13:37]
+  |         008c: 3a 34 32 00                                     [:42.]
+  | 3)  ExifOffset (SubDirectory) -->
+  |     - Tag 0x8769 (4 bytes, int32u[1]):
+  |         0054: 00 00 00 72                                     [...r]
+  | + [ExifIFD directory with 2 entries, Big-endian]
+  | | 0)  DateTimeOriginal = 2023:05:10 13:37:42
+  | |     - Tag 0x9003 (20 bytes, string[20]):
+  | |         00ae: 32 30 32 33 3a 30 35 3a 31 30 20 31 33 3a 33 37 [2023:05:10 13:37]
+  | |         00be: 3a 34 32 00                                     [:42.]
+  | | 1)  CreateDate = 2023:05:10 13:37:42
+  | |     - Tag 0x9004 (20 bytes, string[20]):
+  | |         00c2: 32 30 32 33 3a 30 35 3a 31 30 20 31 33 3a 33 37 [2023:05:10 13:37]
+  | |         00d2: 3a 34 32 00                                     [:42.]
+  | 4)  GPSInfo (SubDirectory) -->
+  |     - Tag 0x8825 (4 bytes, int32u[1]):
+  |         0060: 00 00 00 b8                                     [....]
+  | + [GPS directory with 5 entries, Big-endian]
+  | | 0)  GPSVersionID = 2 3 0 0
+  | |     - Tag 0x0000 (4 bytes, int8u[4]):
+  | |         00e0: 02 03 00 00                                     [....]
+  | | 1)  GPSLatitudeRef = N
+  | |     - Tag 0x0001 (2 bytes, string[2]):
+  | |         00ec: 4e 00                                           [N.]
+  | | 2)  GPSLatitude = 53 13 9.8076 (53/1 13/1 24519/2500)
+  | |     - Tag 0x0002 (24 bytes, rational64u[3]):
+  | |         0118: 00 00 00 35 00 00 00 01 00 00 00 0d 00 00 00 01 [...5............]
+  | |         0128: 00 00 5f c7 00 00 09 c4                         [.._.....]
+  | | 3)  GPSLongitudeRef = E
+  | |     - Tag 0x0003 (2 bytes, string[2]):
+  | |         0104: 45 00                                           [E.]
+  | | 4)  GPSLongitude = 8 14 22.7796 (8/1 14/1 56949/2500)
+  | |     - Tag 0x0004 (24 bytes, rational64u[3]):
+  | |         0130: 00 00 00 08 00 00 00 01 00 00 00 0e 00 00 00 01 [................]
+  | |         0140: 00 00 de 75 00 00 09 c4                         [...u....]
+  + [IFD1 directory with 6 entries, Big-endian]
+  | 0)  Compression = 6
+  |     - Tag 0x0103 (2 bytes, int16u[1]):
+  |         0152: 00 06                                           [..]
+  | 1)  XResolution = 8.451011715e-05 (72/851969)
+  |     - Tag 0x011a (8 bytes, rational64u[1]):
+  |         0196: 00 00 00 48 00 0d 00 01                         [...H....]
+  | 2)  YResolution = 72 (72/1)
+  |     - Tag 0x011b (8 bytes, rational64u[1]):
+  |         019e: 00 00 00 48 00 00 00 01                         [...H....]
+  | 3)  ResolutionUnit = 2
+  |     - Tag 0x0128 (2 bytes, int16u[1]):
+  |         0176: 00 02                                           [..]
+  | 4)  ThumbnailOffset = 392
+  |     - Tag 0x0201 (4 bytes, int32u[1]):
+  |         0182: 00 00 01 88                                     [....]
+  | 5)  ThumbnailLength = 3664
+  |     - Tag 0x0202 (4 bytes, int32u[1]):
+  |         018e: 00 00 0e 50                                     [...P]
+JPEG APP13 (4992 bytes):
+      0ffa: 50 68 6f 74 6f 73 68 d6 70 20 33 2e 30 00 38 42 [Photosh.p 3.0.8B]
+      100a: 49 4d 04 25 00 00 00 00 00 10 00 00 00 00 00 00 [IM.%............]
+      101a: 9f 00 00 00 00 00 00 00 00 00 38 42 49 4d 03 ed [..........8BIM..]
+      102a: 00 00 00 00 00 10 01 2c 00 00 00 01 00 02 01 2c [.......,.......,]
+      103a: 00 00 00 01 00 02 38 42 49 4d 04 26 00 00 00 00 [......8BIM.&....]
+      104a: 00 0e 00 00 00 00 b4 00 00 00 00 00 3f 80 00 ed [............?...]
+      105a: 38 42 49 4d 04 0d 00 00 00 00 00 04 00 00 00 1e [8BIM............]
+      [snip 4880 bytes]
+  Warning = [minor] Unknown APP13 segment
+JPEG APP1 (4678 bytes):
+      237e: 68 74 74 70 3a 2f 2f 6e 73 2e 61 64 6f 62 c9 2e [http://ns.adob..]
+      238e: 63 6f 6d 2f 78 61 70 2f 31 2e 30 2f 00 3c 3f 78 [com/xap/1.0/.<?x]
+      239e: 70 61 63 6b 65 74 20 62 65 67 69 6e 3d 27 ef bb [packet begin='..]
+      23ae: bf 27 20 69 64 3d 27 57 35 4d 30 4d 70 43 65 68 [.' id='W5M0MpCeh]
+      23be: 69 48 7a 72 65 53 7a 4e 54 63 7a 6b 63 39 64 27 [iHzreSzNTczkc9d']
+      23ce: 3f 3e 0a 3c 3f 61 64 6f 62 65 2d 78 61 70 2d 66 [?>.<?adobe-xap-f]
+      23de: 69 6c 74 65 72 73 20 65 73 63 3d 22 43 52 22 3f [ilters esc="CR"?]
+      [snip 4566 bytes]
+  + [XMP directory, 4678 bytes]
+  | About = uuid:78e0b320-5bbd-11db-a7.2-b5383aj58de6
+  | Warning = XMP format error (no closing tag for xapMM:DocumentID)
+  Warning = Non-standard header for APP1 XMP segment
+JPEG APP14 (36 bytes):
+      35c8: 41 64 6f 62 65 00 64 00 00 00 00 00 03 00 15 04 [Adobe.d.........]
+      35d8: 01 02 54 05 00 00 00 00 00 00 00 00 00 00 00 00 [..T.............]
+      35e8: 00 00 00 00                                     [....]
+  + [BinaryData directory, 31 bytes, Big-endian]
+  | DCTEncodeVersion = 100
+  | - Tag 0x0000 (2 bytes, int16u[1]):
+  |     35cd: 00 64                                           [.d]
+  | APP14Flags0 = 0
+  | - Tag 0x0001 (2 bytes, int16u[1]):
+  |     35cf: 00 00                                           [..]
+  | APP14Flags1 = 0
+  | - Tag 0x0002 (2 bytes, int16u[1]):
+  |     35d1: 00 00                                           [..]
+  | ColorTransform = 0
+  | - Tag 0x0003 (1 bytes, int8u[1]):
+  |     35d3: 00                                              [.]
+JPEG APP13 (64 bytes):
+      35f0: 50 68 6f 74 6f 73 68 6f 70 20 33 2e 30 00 38 42 [Photoshop 3.0.8B]
+      3600: 49 4d 04 04 00 00 00 00 00 25 1c 01 5a 00 03 1b [IM.......%..Z...]
+      3610: 25 47 1c 02 00 00 02 00 04 1c 02 19 00 11 55 6d [%G............Um]
+      3620: 6c 61 75 74 73 3a 20 c3 a4 c3 b6 c3 bc c3 9f 00 [lauts: .........]
+  + [Photoshop directory, 50 bytes]
+  | IPTCData (SubDirectory) -->
+  | - Tag 0x0404 (37 bytes):
+  |     360a: 1c 01 5a 00 03 1b 25 47 1c 02 00 00 02 00 04 1c [..Z...%G........]
+  |     361a: 02 19 00 11 55 6d 6c 61 75 74 73 3a 20 c3 a4 c3 [....Umlauts: ...]
+  |     362a: b6 c3 bc c3 9f                                  [.....]
+  | + [IPTC directory, 37 bytes]
+  | | CurrentIPTCDigest = H....V.*31.y.~%.
+  | | -- IPTCEnvelope record --
+  | | CodedCharacterSet = .%G
+  | | - Tag 0x005a, IPTCEnvelope record (3 bytes, string[0,32]):
+  | |     360f: 1b 25 47                                        [.%G]
+  | | -- IPTCApplication record --
+  | | ApplicationRecordVersion = 4
+  | | - Tag 0x0000, IPTCApplication record (2 bytes, int16u):
+  | |     3617: 00 04                                           [..]
+  | | Keywords = Umlauts: ........
+  | | - Tag 0x0019, IPTCApplication record (17 bytes, string[0,64]):
+  | |     361e: 55 6d 6c 61 75 74 73 3a 20 c3 a4 c3 b6 c3 bc c3 [Umlauts: .......]
+  | |     362e: 9f                                              [.]
+JPEG APP1 (399 bytes):
+      3634: 68 74 74 70 3a 2f 2f 6e 73 2e 61 64 6f 62 65 2e [http://ns.adobe.]
+      3644: 63 6f 6d 2f 78 61 70 2f 31 2e 30 2f 00 3c 3f 78 [com/xap/1.0/.<?x]
+      3654: 70 61 63 6b 65 74 20 62 65 67 69 6e 3d 22 ef bb [packet begin="..]
+      3664: bf 22 20 69 64 3d 22 57 35 4d 30 4d 70 43 65 68 [." id="W5M0MpCeh]
+      3674: 69 48 7a 72 65 53 7a 4e 54 63 7a 6b 63 39 64 22 [iHzreSzNTczkc9d"]
+      3684: 3f 3e 0a 20 20 20 20 3c 78 3a 78 6d 70 6d 65 74 [?>.    <x:xmpmet]
+      3694: 61 20 78 6d 6c 6e 73 3a 78 3d 22 61 64 6f 62 65 [a xmlns:x="adobe]
+      [snip 287 bytes]
+  + [XMP directory, 370 bytes]
+  | XMPToolkit = Adobe XMP Core 6.1.10
+  | Rating = 3
+  | - Tag 'x:xmpmeta/rdf:RDF/rdf:Description/xmp:Rating'
+JPEG DQT (65 bytes):
+      37c7: 00 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 [................]
+      37d7: 01 01 18 01 01 01 01 01 a7 01 01 01 01 01 01 01 [................]
+      37e7: 01 01 01 01 01 01 01 01 01 01 01 01 02 02 02 02 [................]
+      37f7: 02 02 02 02 02 02 02 03 03 03 03 03 03 03 03 03 [................]
+      3807: 03                                              [.]
+JPEG SOF2 (9 bytes):
+      380c: 08 01 97 01 45 01 01 11 00                      [....E....]
+  ImageWidth = 325
+  ImageHeight = 407
+  EncodingProcess = 2
+  BitsPerSample = 8
+  ColorComponents = 1
+JPEG DHT (191 bytes):
+      3819: 00 00 00 06 03 01 01 00 00 00 00 00 00 00 00 00 [................]
+      3829: 00 00 04 05 06 07 08 02 03 09 01 0a 10 00 01 04 [................]
+      3839: 01 03 03 04 01 03 04 02 03 01 01 00 00 03 01 02 [................]
+      3849: 04 05 00 11 12 06 21 13 07 10 31 22 14 15 20 41 [......!...1".. A]
+      3859: 32 30 40 23 16 42 24 33 25 17 50 08 11 00 02 01 [20@#.B$3%.P.....]
+      3869: 02 03 05 04 06 07 05 06 05 03 02 07 00 01 02 03 [................]
+      3879: 00 11 21 12 04 31 41 51 22 13 61 71 32 05 10 81 [..!..1AQ".aq2...]
+      [snip 79 bytes]
+JPEG SOS
+JPEG SOS
+JPEG SOS
+JPEG APP0 (13058 bytes):
+      6027: b1 e3 96 37 f8 81 8f 76 0c 97 ab 4f a4 d3 b0 cb [...7...v...O....]
+      6037: 66 e9 bc a1 d7 77 28 6d d4 15 fe 62 29 85 8a 5c [f....w(m...b)..\]
+      6047: 00 63 3b c1 be 0c 2d 52 65 0c 45 ef 1c b6 b1 c3 [.c;...-Re.E.....]
+      6057: ba e3 29 ae a4 44 66 b1 59 14 8b c7 2a fb 4b 22 [..)..Df.Y...*.K"]
+      6067: 6c 37 14 35 3a 5e 50 4f c4 d3 5f f4 db f2 fb d1 [l7.5:^PO.._.....]
+      6077: 1f ba b2 4d cc 00 b7 1d 87 8e d2 54 56 5b df 4c [...M.......TV[.L]
+      6087: 48 91 33 78 94 91 62 52 dd 87 6b 47 f3 12 66 f9 [H.3x..bR..kG..f.]
+      [snip 12946 bytes]
+  Warning = [minor] Unknown APP0 segment
+JPEG SOS
+  Warning = JPEG format error

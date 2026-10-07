@@ -28,6 +28,23 @@ minimal note in the dump ("No EXIF or TIFF information found in image").
 To regenerate the dumps, run the commands above for every test file in
 `testdata/full` (all formats, excluding the `.txt` companion files).
 
+## Dumps of the rewritten goldens
+
+The `modified/` subfolder holds the same `-v4 -u -U` text dumps for the
+rewritten goldens in [`../modified`](../modified). These are the
+independent witness for the write path: the goldens were produced by
+Kim's own writer, so a writer and reader defect that agrees with itself
+is only visible to an outside parser.
+`ExifToolDumpComparisonTest.testModifiedMakerNoteValuesMatchExifToolDumps` compares them field by field against
+Kim's parse. Only the text dumps are committed - the HTML dumps of the
+rewritten files are not needed by any test.
+
+To regenerate them:
+
+```bash
+exiftool.exe -v4 -u -U "testdata/modified/media_N_modified.ext" > testdata/exiftool/modified/media_N_modified.txt
+```
+
 ## Attribution
 
 The dumps were generated with [ExifTool](https://exiftool.org) by Phil
