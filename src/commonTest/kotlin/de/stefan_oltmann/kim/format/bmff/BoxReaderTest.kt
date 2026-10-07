@@ -558,7 +558,8 @@ class BoxReaderTest {
 
         val box = ByteArrayByteWriter()
 
-        box.writeInt(1, BMFF_BYTE_ORDER) /* size 1 = largesize form */
+        /* size 1 = largesize form */
+        box.writeInt(1, BMFF_BYTE_ORDER)
         box.write(BoxType.JXLP.bytes)
         box.writeLong(fragmentPayload.size.toLong() + 16L, BMFF_BYTE_ORDER)
         box.write(fragmentPayload)

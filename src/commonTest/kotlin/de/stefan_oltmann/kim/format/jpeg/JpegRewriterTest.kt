@@ -637,13 +637,19 @@ class JpegRewriterTest {
 
         /* APP0 JFIF segment. */
         val jfifSegment = JpegConstants.JFIF0_SIGNATURE + byteArrayOf(
-            0x01, /* version 1.2 */
+            /* version 1.2 */
+            0x01,
             0x02,
-            0x01, /* density units */
-            0x00, 0x01, /* x density */
-            0x00, 0x01, /* y density */
-            0x00, /* thumbnail width */
-            0x00 /* thumbnail height */
+            /* density units */
+            0x01,
+            /* x density */
+            0x00, 0x01,
+            /* y density */
+            0x00, 0x01,
+            /* thumbnail width */
+            0x00,
+            /* thumbnail height */
+            0x00
         )
 
         byteWriter.write(

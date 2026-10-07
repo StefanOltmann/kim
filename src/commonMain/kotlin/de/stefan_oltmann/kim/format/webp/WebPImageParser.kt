@@ -110,7 +110,8 @@ public object WebPImageParser : ImageParser {
                 imageSize = imageSize,
                 exif = exifChunk?.tiffContents,
                 exifBytes = exifChunk?.bytes,
-                iptc = null, /*  not supported by WebP */
+                /*  not supported by WebP */
+                iptc = null,
                 xmp = xmp,
                 iccProfile = iccProfile
             )

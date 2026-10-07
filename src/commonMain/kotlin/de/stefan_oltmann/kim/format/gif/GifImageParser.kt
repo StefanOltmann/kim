@@ -110,8 +110,10 @@ public object GifImageParser : ImageParser {
             mediaFormat = MediaFormat.GIF,
             imageSize = imageSize,
             exif = null,
-            exifBytes = null, /*  GIF does not support EXIF data */
-            iptc = null, /*  GIF does not support IPTC data */
+            /*  GIF does not support EXIF data */
+            exifBytes = null,
+            /*  GIF does not support IPTC data */
+            iptc = null,
             xmp = xmp
         )
     }

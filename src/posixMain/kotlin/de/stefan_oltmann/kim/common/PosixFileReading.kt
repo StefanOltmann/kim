@@ -84,8 +84,10 @@ internal fun readFileAsByteArray(filePath: String): ByteArray = memScoped {
 
         val bytesReadCount: ULong = fread(
             buffer.refTo(0),
-            1.toULong(), /*  Number of items */
-            fileSize.toULong(), /*  Size to read */
+            /*  Number of items */
+            1.toULong(),
+            /*  Size to read */
+            fileSize.toULong(),
             file
         )
 

@@ -102,7 +102,8 @@ public class ItemLocationBox(
         indexSize = if (version in 1..2)
             baseOffsetSizeAndIndexSize and LOWER_NIBBLE_MASK
         else
-            0 /*  Unused */
+            /*  Unused */
+            0
 
         /*
          * The spec allows field sizes of 0, 1, 2, 4 and 8 bytes only. The

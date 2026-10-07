@@ -37,61 +37,103 @@ public object JpegConstants {
     public const val MAX_PAYLOAD_BYTES_PER_SEGMENT: Int = MAX_SEGMENT_SIZE - 2
 
     public val JFIF0_SIGNATURE: ByteArray = byteArrayOf(
-        0x4a, /* J */
-        0x46, /* F */
-        0x49, /* I */
-        0x46, /* F */
+        /* J */
+        0x4a,
+        /* F */
+        0x46,
+        /* I */
+        0x49,
+        /* F */
+        0x46,
         0x0
     )
 
     public val JFIF0_SIGNATURE_ALTERNATIVE: ByteArray = byteArrayOf(
-        0x4A, /* J */
-        0x46, /* F */
-        0x49, /* I */
-        0x46, /* F */
+        /* J */
+        0x4A,
+        /* F */
+        0x46,
+        /* I */
+        0x49,
+        /* F */
+        0x46,
         0x20
     )
 
     public val EXIF_IDENTIFIER_CODE: ByteArray = byteArrayOf(
-        0x45, /* E */
-        0x78, /* x */
-        0x69, /* i */
-        0x66, /* f */
-        0, /* NUL */
-        0 /* NUL */
+        /* E */
+        0x45,
+        /* x */
+        0x78,
+        /* i */
+        0x69,
+        /* f */
+        0x66,
+        /* NUL */
+        0,
+        /* NUL */
+        0
     )
 
     public const val EXIF_IDENTIFIER_CODE_HEX: String = "457869660000"
 
     public val XMP_IDENTIFIER: ByteArray = byteArrayOf(
-        0x68, /* h */
-        0x74, /* t */
-        0x74, /* t */
-        0x70, /* p */
-        0x3A, /* : */
-        0x2F, /* / */
-        0x2F, /* / */
-        0x6E, /* n */
-        0x73, /* s */
-        0x2E, /* . */
-        0x61, /* a */
-        0x64, /* d */
-        0x6F, /* o */
-        0x62, /* b */
-        0x65, /* e */
-        0x2E, /* . */
-        0x63, /* c */
-        0x6F, /* o */
-        0x6D, /* m */
-        0x2F, /* / */
-        0x78, /* x */
-        0x61, /* a */
-        0x70, /* p */
-        0x2F, /* / */
-        0x31, /* 1 */
-        0x2E, /* . */
-        0x30, /* 0 */
-        0x2F, /* / */
+        /* h */
+        0x68,
+        /* t */
+        0x74,
+        /* t */
+        0x74,
+        /* p */
+        0x70,
+        /* : */
+        0x3A,
+        /* / */
+        0x2F,
+        /* / */
+        0x2F,
+        /* n */
+        0x6E,
+        /* s */
+        0x73,
+        /* . */
+        0x2E,
+        /* a */
+        0x61,
+        /* d */
+        0x64,
+        /* o */
+        0x6F,
+        /* b */
+        0x62,
+        /* e */
+        0x65,
+        /* . */
+        0x2E,
+        /* c */
+        0x63,
+        /* o */
+        0x6F,
+        /* m */
+        0x6D,
+        /* / */
+        0x2F,
+        /* x */
+        0x78,
+        /* a */
+        0x61,
+        /* p */
+        0x70,
+        /* / */
+        0x2F,
+        /* 1 */
+        0x31,
+        /* . */
+        0x2E,
+        /* 0 */
+        0x30,
+        /* / */
+        0x2F,
         0
     )
 
@@ -224,19 +266,31 @@ public object JpegConstants {
     )
 
     public val APP13_IDENTIFIER: ByteArray = byteArrayOf(
-        0x50, /* P */
-        0x68, /* h */
-        0x6F, /* o */
-        0x74, /* t */
-        0x6F, /* o */
-        0x73, /* s */
-        0x68, /* h */
-        0x6F, /* o */
-        0x70, /* p */
+        /* P */
+        0x50,
+        /* h */
+        0x68,
+        /* o */
+        0x6F,
+        /* t */
+        0x74,
+        /* o */
+        0x6F,
+        /* s */
+        0x73,
+        /* h */
+        0x68,
+        /* o */
+        0x6F,
+        /* p */
+        0x70,
         0x20, //
-        0x33, /* 3 */
-        0x2E, /* . */
-        0x30, /* 0 */
+        /* 3 */
+        0x33,
+        /* . */
+        0x2E,
+        /* 0 */
+        0x30,
         0
     )
 

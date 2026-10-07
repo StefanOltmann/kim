@@ -83,7 +83,10 @@ public object Cr3PreviewExtractor {
      */
     private const val PRVW_BYTES_BEFORE_JPEG =
         PRVW_UNKNOWN_BYTES + PRVW_SIZE_BYTES +
-            4 /* marker */ + PRVW_HEADER_BYTES + 4 /* JPEG size field */
+            /* marker */
+            4 + PRVW_HEADER_BYTES +
+            /* JPEG size field */
+            4
 
     @Throws(ImageReadException::class)
     @JvmStatic
@@ -304,7 +307,8 @@ public object Cr3PreviewExtractor {
 
         when (size) {
 
-            0L -> size = available /*  The last box extends to the end of the file. */
+            /*  The last box extends to the end of the file. */
+            0L -> size = available
 
             1L -> {
                 size = byteReader.read8BytesAsLong("largesize", BMFF_BYTE_ORDER)

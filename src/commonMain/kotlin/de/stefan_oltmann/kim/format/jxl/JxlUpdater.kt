@@ -142,7 +142,8 @@ internal object JxlUpdater : MetadataUpdater {
             boxes = allBoxes,
             byteWriter = byteWriter,
             exifBytes = exifBytes,
-            xmp = null /*  No change to XMP */
+            /*  No change to XMP */
+            xmp = null
         )
 
         return@tryWithImageWriteException byteWriter.toByteArray()
