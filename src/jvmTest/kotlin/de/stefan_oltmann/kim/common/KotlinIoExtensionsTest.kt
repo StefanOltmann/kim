@@ -67,6 +67,27 @@ class KotlinIoExtensionsTest {
         assertContentEquals(byteArrayOf(9, 8, 7), destination.readBytes())
     }
 
+    /**
+     * The copy must transfer to the real end of data, not to the stat
+     * snapshot size: a snapshot invalidated by concurrent growth would
+     * end the copy "successfully" with the file tail silently missing.
+     * More than one chunk must cross the chunked loop.
+     */
+    @Test
+    fun testCopyToTransfersContentBeyondMultipleChunks() {
+
+        val source = tempDir() / "source.bin"
+        val destination = tempDir() / "destination.bin"
+
+        val bytes = ByteArray(2 * 64 * 1024 + 17) { index -> (index % 199).toByte() }
+
+        source.writeBytes(bytes)
+
+        source.copyTo(destination)
+
+        assertContentEquals(bytes, destination.readBytes())
+    }
+
     @Test
     fun testCopyToRejectsMissingSource() {
 
