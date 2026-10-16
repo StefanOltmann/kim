@@ -112,6 +112,15 @@ import kotlin.coroutines.cancellation.CancellationException
  * completely, nothing is fabricated from the incomplete remainder, and the
  * raw bytes survive any rewrite byte-exact.
  *
+ * # Blocks that are not interpreted on purpose
+ *
+ * The Print Image Matching block (EXIF tag 0xC4A5) and the Multi-Picture
+ * Format block (the JPEG APP2 "MPF\0" segment) are legacy structures that
+ * many cameras write faulty. Interpreting them fails whole photos for
+ * garbage the camera itself produced, so Kim deliberately leaves them
+ * unparsed: they are transferred byte-exact on write, and
+ * [deleteMetadata] removes them with the rest of the metadata.
+ *
  * # Read/update symmetry
  *
  * Reading a file is a promise that editing is possible. If a file contains
@@ -527,8 +536,10 @@ public object Kim {
     }
 
     /**
-     * Removes all metadata of the file, keeping the ICC chunks that affect
-     * how the image is displayed.
+     * Removes all metadata of the file, keeping healthy ICC profiles that
+     * affect how the image is displayed. For JPG, APP2 segments that do
+     * not carry a healthy ICC profile are deleted as well, and a faulty
+     * profile lets its chunks go instead of staying in the file.
      *
      * The file must be readable; if the file or its metadata is corrupt
      * or cannot be parsed, the operation fails and the file is left
@@ -549,8 +560,10 @@ public object Kim {
     }
 
     /**
-     * Removes all metadata of the file, keeping the ICC chunks that affect
-     * how the image is displayed.
+     * Removes all metadata of the file, keeping healthy ICC profiles that
+     * affect how the image is displayed. For JPG, APP2 segments that do
+     * not carry a healthy ICC profile are deleted as well, and a faulty
+     * profile lets its chunks go instead of staying in the file.
      *
      * The file must be readable; if the file or its metadata is corrupt
      * or cannot be parsed, the operation fails and the file is left

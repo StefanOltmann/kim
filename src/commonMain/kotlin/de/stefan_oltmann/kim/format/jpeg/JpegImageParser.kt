@@ -39,9 +39,6 @@ import de.stefan_oltmann.kim.format.jpeg.segment.Segment
 import de.stefan_oltmann.kim.format.jpeg.segment.SofnSegment
 import de.stefan_oltmann.kim.format.jpeg.segment.UnknownSegment
 import de.stefan_oltmann.kim.format.jpeg.xmp.JpegXmpParser
-import de.stefan_oltmann.kim.format.mpf.MpfDirectory
-import de.stefan_oltmann.kim.format.mpf.MpfParser
-import de.stefan_oltmann.kim.format.printim.PrintImParser
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.format.xmp.requireValidXmpPacket
@@ -203,10 +200,6 @@ public object JpegImageParser : ImageParser {
 
         val iccProfile = getIccProfile(segments)
 
-        val printIm = exif?.let { contents -> PrintImParser.parseFrom(contents) }
-
-        val mpf = getMpf(segments)
-
         return MediaMetadata(
             mediaFormat = MediaFormat.JPEG,
             imageSize = imageSize,
@@ -214,9 +207,7 @@ public object JpegImageParser : ImageParser {
             exifBytes = exifBytes,
             iptc = iptc,
             xmp = xmp,
-            iccProfile = iccProfile,
-            printIm = printIm,
-            mpf = mpf
+            iccProfile = iccProfile
         )
     }
 
@@ -467,19 +458,6 @@ public object JpegImageParser : ImageParser {
 
         return IccProfileParser.parse(profileBytes.toByteArray())
     }
-
-    /**
-     * Extracts and parses the Multi-Picture Format index from the
-     * "MPF\u0000" APP2 segment, or NULL when the file carries none.
-     */
-    private fun getMpf(segments: List<Segment>): MpfDirectory? =
-
-        segments.filterIsInstance<GenericSegment>()
-            .firstOrNull { segment ->
-                segment.marker == JpegConstants.JPEG_APP2_MARKER &&
-                    segment.segmentBytes.startsWith(JpegConstants.MPF_IDENTIFIER)
-            }
-            ?.let { segment -> MpfParser.parse(segment.segmentBytes) }
 
     private fun getIptc(segments: List<Segment>): IptcMetadata? {
 

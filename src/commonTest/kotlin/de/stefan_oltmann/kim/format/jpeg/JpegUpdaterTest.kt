@@ -34,6 +34,7 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
@@ -158,8 +159,8 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
 
     /**
      * Verifies that deleting the metadata removes the EXIF, XMP, IPTC and
-     * comment segments, but keeps the ICC segment that affects how the
-     * image is displayed.
+     * comment segments, but keeps the healthy ICC segment that affects
+     * how the image is displayed.
      */
     @Test
     fun testDeleteMetadataKeepsIccSegment() {
@@ -178,6 +179,49 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
 
         /* The ICC profile affects the display and must be kept. */
         assertTrue(containsIccProfile(newBytes))
+    }
+
+    /**
+     * The delete rule keeps only identified healthy ICC profiles among
+     * the APP2 segments: other payloads like the FlashPix chunks of
+     * media_50 or the Multi-Picture Format block are metadata and must
+     * vanish with the rest.
+     */
+    @Test
+    fun testDeleteMetadataRemovesNonIccApp2Segments() {
+
+        /* media_50.jpg carries three FlashPix APP2 chunks beside its EXIF. */
+        val deletedBytes = Kim.deleteMetadata(KimTestData.getBytesOf(50))
+
+        assertFalse(
+            containsApp2Segment(deletedBytes),
+            "media_50 still carries an APP2 segment after deletion."
+        )
+    }
+
+    /**
+     * An identified ICC profile that fails Kim's parse is not a healthy
+     * profile anymore and gets deleted with the other metadata instead
+     * of being kept as uninterpretable bytes.
+     */
+    @Test
+    fun testDeleteMetadataRemovesBrokenIccProfile() {
+
+        val deletedBytes = Kim.deleteMetadata(
+            KimTestData.getBytesOf(KimTestData.JPEG_BROKEN_ICC_INDEX)
+        )
+
+        assertFalse(
+            containsApp2Segment(deletedBytes),
+            "The faulty ICC profile must vanish on deletion."
+        )
+
+        val metadata = assertNotNull(
+            Kim.readMetadata(deletedBytes),
+            "The file must stay readable after the faulty profile is gone."
+        )
+
+        assertNull(metadata.iccProfile, "No ICC profile may remain after deletion.")
     }
 
     /**
@@ -537,6 +581,33 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
         }
 
         fail("JPEG bytes contain no EXIF segment.")
+    }
+
+    /**
+     * Returns whether the JPEG bytes contain any APP2 segment.
+     */
+    private fun containsApp2Segment(jpegBytes: ByteArray): Boolean {
+
+        var offset = JpegConstants.SOI.size
+
+        while (offset + SEGMENT_HEADER_BYTES <= jpegBytes.size) {
+
+            val marker = (jpegBytes[offset].toInt() and 0xFF) shl 8 or
+                (jpegBytes[offset + 1].toInt() and 0xFF)
+
+            if (marker == JpegConstants.SOS_MARKER || marker == JpegConstants.EOI_MARKER)
+                break
+
+            val segmentLength = (jpegBytes[offset + 2].toInt() and 0xFF) shl 8 or
+                (jpegBytes[offset + 3].toInt() and 0xFF)
+
+            if (marker == JpegConstants.JPEG_APP2_MARKER)
+                return true
+
+            offset += SEGMENT_MARKER_BYTES + segmentLength
+        }
+
+        return false
     }
 
     private companion object {
