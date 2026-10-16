@@ -12,15 +12,15 @@
 
 Kim is a Kotlin Multiplatform library for reading and writing image metadata.
 
-This lib is used in production by my online [EXIF Viewer](https://stefan-oltmann.de/exif-viewer),
+This lib is used in production by [PixRater](https://apps.microsoft.com/detail/9p4p6w5smzgs),
+[EXIF Viewer](https://stefan-oltmann.de/exif-viewer),
 [Thumbnail Fixer Pro](https://apps.microsoft.com/detail/9p9hdfltk63l), and
 [Quick Metadata Remover](https://apps.microsoft.com/detail/9ngnvr157ztg).
 
 ## Features
 
 * JPG: Read & Write EXIF, IPTC & XMP
-    + Also read the ICC color profile (APP2), the Multi-Picture Format (MPF) index
-      and the Print Image Matching (PrintIM) block
+    + Also read the ICC color profile (APP2)
 * PNG: Read & Write `eXIf` chunk & XMP
     + Also read the compressed `zxIf` chunk variant and non-standard EXIF & IPTC
       from `tEXt`/`zTXt` chunks
@@ -38,7 +38,7 @@ This lib is used in production by my online [EXIF Viewer](https://stefan-oltmann
 * ICC: Read color profiles from JPG, PNG, TIFF & WebP files, exposing the profile
   fields and the decoded tag table entries
 * MakerNote reading for Canon, Nikon, Sony, Fujifilm, Apple, Olympus, OM System,
-  Panasonic, Pentax, Ricoh, Samsung, Sigma and Leica cameras, including the
+  Panasonic, Pentax, Ricoh, Samsung, Sigma, and Leica cameras, including the
   sub-directories with camera settings, white balance, AF, flash and lens data, the
   camera-encrypted Nikon data and the model specific Canon CameraInfo and
   CustomFunctions records
@@ -48,6 +48,15 @@ This lib is used in production by my online [EXIF Viewer](https://stefan-oltmann
 * Convenient `Kim.update()` API to perform updates to the relevant places
     + JPG: Lossless rotation by modifying only one byte (where present)
 * `Kim.deleteMetadata()` API to remove all metadata, keeping the ICC profile
+
+## Files Kim does not interpret
+
+The Print Image Matching (PrintIM) block and the Multi-Picture Format (MPF)
+block are legacy structures that many cameras write faulty. Interpreting
+them fails whole photos for garbage the camera itself produced, so Kim
+deliberately leaves these blocks unparsed: they are transferred byte-exact
+on write, and `Kim.deleteMetadata()` removes them with the rest of the
+metadata.
 
 ## Installation
 
@@ -194,7 +203,7 @@ See the [example project](examples/kim-kotlin-jvm-sample/src/main/kotlin/Main.kt
 
 ### Update metadata using `Kim.update()` API
 
-`Kim.update()` applies the given updates to all formats that can represent them, so EXIF, IPTC and
+`Kim.update()` applies the given updates to all formats that can represent them, so EXIF, IPTC, and
 XMP are updated simultaneously in one call. The metadata storages duplicate the same logical values.
 Updating only one of them would let the copies drift apart, which is why partial updates do not
 exist.
@@ -245,7 +254,7 @@ for more samples.
 #### Streaming update
 
 The update can stream the file from a `ByteReader` to a `ByteWriter`. The image data of JPEG, PNG,
-GIF and JPEG XL files with split codestream boxes (`jxlp`) is streamed in bounded chunks. WebP files
+GIF, and JPEG XL files with split codestream boxes (`jxlp`) is streamed in bounded chunks. WebP files
 buffer their chunks in memory, and JPEG XL files with a single codestream box (`jxlc`) buffer the
 codestream, because the metadata is stored behind the image data. A single-update overload exists
 for both the byte array and the streaming variant.
@@ -348,7 +357,7 @@ Java projects.
   oversized XMP uses Adobe Extended XMP (main packet plus GUID-referenced extension segments),
   oversized IPTC is split across multiple APP13 segments exactly like Photoshop does.
 * Updates buffer the file content in memory for WebP files and for JPEG XL files with a single
-  codestream box (`jxlc`). JPEG, PNG, GIF and JPEG XL files with split codestream boxes (`jxlp`) are
+  codestream box (`jxlc`). JPEG, PNG, GIF, and JPEG XL files with split codestream boxes (`jxlp`) are
   streamed in bounded chunks.
 * JPEG XL files whose EXIF or XMP is stored in brotli-compressed (`brob`) boxes
   are rejected with an `ImageReadException`, because brotli decompression is
@@ -358,7 +367,7 @@ Java projects.
 * There is right now no convenient tooling for GeoTiff like there is for GPS.
 * PDF files are detected by the format detection, but their metadata is not parsed.
 * Videos: QuickTime `ilst` tags (title, keywords as written by Apple tools) and the QuickTime GPS
-  tag are not read yet; such videos report the XMP packet, the display resolution and - when
+  tag are not read yet; such videos report the XMP packet, the display resolution, and - when
   present - the Fujifilm metadata only.
 
 ### Regarding HEIC & AVIF metadata

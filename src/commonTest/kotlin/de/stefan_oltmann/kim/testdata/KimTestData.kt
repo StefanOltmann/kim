@@ -119,6 +119,38 @@ object KimTestData {
     const val PNG_FUZZ_CANDIDATE_INDEX: Int = 95
     const val GIF_FUZZ_CANDIDATE_INDEX: Int = 96
 
+    /*
+     * media_97 is media_20 with one PrintIM entry-count byte flipped, so
+     * the block declares 276 entries without carrying their bytes: ExifTool
+     * 12.70 reports "Bad PrintIM size" for it and every other byte of
+     * media_20 stays identical. Writing faulty PrintIM blocks is
+     * widespread camera behavior, so this is the fixture that pins that a
+     * faulty block is kept as-is and deleted with the EXIF.
+     */
+    const val JPEG_BROKEN_PRINTIM_INDEX: Int = 97
+
+    /*
+     * media_98 is media_15 with one byte of the TIFF byte order marker
+     * inside the "MPF\0" APP2 segment flipped, so the Multi-Picture
+     * Format block declares a structure nobody can decode anymore:
+     * ExifTool 12.70 no longer reports any MPF0 or MPImage group for it
+     * and every other byte of media_15 stays identical. Cameras write
+     * faulty such blocks, so this is the fixture that pins that the
+     * block is kept as-is and deleted with the other metadata.
+     */
+    const val JPEG_BROKEN_MPF_INDEX: Int = 98
+
+    /*
+     * media_99 is media_2 with the 'acsp' file signature byte inside the
+     * ICC APP2 segment flipped, so the profile no longer passes Kim's
+     * ICC parse (and only that one byte differs from media_2). ExifTool
+     * 12.70 tolerates the signature loss and still decodes the profile,
+     * so this fixture defines "faulty" by Kim's IccProfileParser: Kim
+     * deletes such a profile with the other metadata instead of keeping
+     * a profile that fails its own health check.
+     */
+    const val JPEG_BROKEN_ICC_INDEX: Int = 99
+
     @Suppress("MagicNumber")
     val mediaIdsWithExifThumbnail: Set<Int> = setOf(
         2, 3, 4, 5, 6, 7, 10, 12, 15, 16, 19, 20, 21,

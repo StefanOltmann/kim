@@ -16,13 +16,17 @@
  */
 package de.stefan_oltmann.kim.format.jpeg
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.Md5
+import de.stefan_oltmann.kim.common.getRemainingBytes
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toHex
+import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
+import de.stefan_oltmann.kim.format.icc.IccProfileParser
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcConstants
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
@@ -136,16 +140,104 @@ internal object JpegUpdater : MetadataUpdater {
         JpegRewriter.updateMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
 
             /*
-             * Remove the EXIF, XMP, IPTC and comment segments. The ICC
-             * segment is kept, because it affects how the image is displayed.
+             * Remove the EXIF, XMP, IPTC and comment segments, and every
+             * APP2 segment that does not carry a healthy ICC profile:
+             * foreign payloads and faulty profiles are uninterpretable
+             * metadata, while the healthy profile affects how the image is
+             * displayed and stays.
              */
-            val segmentsWithoutMetadata = segments.filterNot { segment ->
-                segment.isExifSegment() || segment.isIptcSegment() || segment.isXmpSegment() ||
-                    segment.marker == JpegConstants.COM_MARKER_1
-            }
+            val healthyIccSegmentIndexes = findHealthyIccSegmentIndexes(segments)
+
+            val segmentsWithoutMetadata = segments
+                .withIndex()
+                .filterNot { (index, segment) ->
+                    (segment.marker == JpegConstants.JPEG_APP2_MARKER &&
+                        index !in healthyIccSegmentIndexes) ||
+                        segment.isExifSegment() || segment.isIptcSegment() || segment.isXmpSegment() ||
+                        segment.marker == JpegConstants.COM_MARKER_1
+                }
+                .map { it.value }
 
             JpegRewriter.writeSegments(outputWriter, segmentsWithoutMetadata)
         }
+    }
+
+    /**
+     * Returns the list positions of the APP2 segments that assemble into
+     * a healthy ICC profile: the chunk sequence is complete and the
+     * assembled profile parses. An empty set deletes every APP2 segment,
+     * also when a single faulty chunk made the assembled profile
+     * unparseable.
+     */
+    private fun findHealthyIccSegmentIndexes(segments: List<JFIFPieceSegment>): Set<Int> {
+
+        data class IccChunk(
+            val position: Int,
+            val index: Int,
+            val total: Int,
+            val payload: ByteArray
+        )
+
+        val chunks = mutableListOf<IccChunk>()
+
+        for ((position, segment) in segments.withIndex()) {
+
+            if (segment.marker != JpegConstants.JPEG_APP2_MARKER)
+                continue
+
+            val segmentBytes = segment.segmentBytes
+
+            if (!segmentBytes.startsWith(JpegConstants.ICC_PROFILE_IDENTIFIER))
+                continue
+
+            if (segmentBytes.size < JpegConstants.ICC_IDENTIFIER_LENGTH +
+                JpegConstants.ICC_SEQUENCE_BYTE_COUNT
+            )
+                return emptySet()
+
+            val index = segmentBytes[JpegConstants.ICC_CHUNK_SEQUENCE_OFFSET].toUInt8()
+            val total = segmentBytes[JpegConstants.ICC_CHUNK_SEQUENCE_OFFSET + 1].toUInt8()
+
+            if (total < 1 || index < 1 || index > total)
+                return emptySet()
+
+            chunks.add(
+                IccChunk(
+                    position = position,
+                    index = index,
+                    total = total,
+                    payload = segmentBytes.getRemainingBytes(
+                        JpegConstants.ICC_IDENTIFIER_LENGTH + JpegConstants.ICC_SEQUENCE_BYTE_COUNT
+                    )
+                )
+            )
+        }
+
+        if (chunks.isEmpty())
+            return emptySet()
+
+        /*
+         * The chunk sequence must be complete and consistent: a missing,
+         * duplicated or out-of-range chunk means corrupt metadata, which
+         * deletes the profile instead of keeping a truncated one.
+         */
+        val total = chunks.first().total
+
+        if (chunks.size != total || chunks.map { chunk -> chunk.index }.sorted() != (1..total).toList())
+            return emptySet()
+
+        val profileBytes = ByteArrayByteWriter()
+
+        chunks.sortedBy { chunk -> chunk.index }
+            .forEach { chunk -> profileBytes.write(chunk.payload) }
+
+        try {
+            IccProfileParser.parse(profileBytes.toByteArray())
+        } catch (_: ImageReadException) {
+            return emptySet()
+        }
+
+        return chunks.map { chunk -> chunk.position }.toSet()
     }
 
     @Throws(ImageWriteException::class)

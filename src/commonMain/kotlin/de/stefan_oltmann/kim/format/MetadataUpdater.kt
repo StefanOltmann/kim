@@ -49,8 +49,10 @@ public interface MetadataUpdater {
     )
 
     /**
-     * Removes all metadata of the file, keeping the ICC chunks that affect
-     * how the image is displayed.
+     * Removes all metadata of the file, keeping healthy ICC profiles that
+     * affect how the image is displayed. For JPG, APP2 segments that do
+     * not carry a healthy ICC profile are deleted as well, and a faulty
+     * profile lets its chunks go instead of staying in the file.
      */
     @Throws(ImageWriteException::class)
     public fun deleteMetadata(
