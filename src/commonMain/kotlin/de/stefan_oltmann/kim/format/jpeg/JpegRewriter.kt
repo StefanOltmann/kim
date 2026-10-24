@@ -130,9 +130,20 @@ public object JpegRewriter {
 
         var removedFirstExif = false
 
+        /*
+         * The start of an independent EXIF block ends the removal for
+         * good: every EXIF segment behind it belongs to that foreign
+         * block - removing a continuation there would truncate the block
+         * mid-TIFF and destroy data Kim never interpreted.
+         */
+        var removalStopped = false
+
         val oldSegmentsWithoutExif = segments.filterNot { piece ->
 
             if (piece !is JFIFPieceSegment || !piece.isExifSegment())
+                return@filterNot false
+
+            if (removalStopped)
                 return@filterNot false
 
             /*
@@ -143,8 +154,10 @@ public object JpegRewriter {
             val isContinuation =
                 JpegUtils.findExifContinuationHeaderEnd(piece.marker, piece.segmentBytes) != null
 
-            if (removedFirstExif && !isContinuation)
+            if (removedFirstExif && !isContinuation) {
+                removalStopped = true
                 return@filterNot false
+            }
 
             removedFirstExif = true
 

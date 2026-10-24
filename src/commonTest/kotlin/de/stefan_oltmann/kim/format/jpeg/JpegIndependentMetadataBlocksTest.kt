@@ -123,6 +123,61 @@ class JpegIndependentMetadataBlocksTest {
         )
     }
 
+    /**
+     * Regression test: the second, independent EXIF block can itself
+     * span segments. The removal of the first block stops at the second
+     * block's head, but it must stop for good: a continuation segment
+     * behind that head belongs to the foreign block, and removing it
+     * would truncate that block mid-TIFF - destroying data Kim never
+     * interpreted.
+     */
+    @Test
+    fun testUpdatePreservesTheSecondBlockContinuations() {
+
+        val firstExif = JFIFPieceSegment(
+            marker = JpegConstants.JPEG_APP1_MARKER,
+            segmentBytes = buildIndependentExifPayload("Kim")
+        )
+
+        /* Mid-TIFF bytes of block 1: no byte order marker, so a continuation. */
+        val firstContinuation = JFIFPieceSegment(
+            marker = JpegConstants.JPEG_APP1_MARKER,
+            segmentBytes = "Exif\u0000\u0000CONT1-DATA".encodeToByteArray()
+        )
+
+        val secondExif = JFIFPieceSegment(
+            marker = JpegConstants.JPEG_APP1_MARKER,
+            segmentBytes = buildIndependentExifPayload("M2")
+        )
+
+        val secondContinuation = JFIFPieceSegment(
+            marker = JpegConstants.JPEG_APP1_MARKER,
+            segmentBytes = "Exif\u0000\u0000CONT2-DATA".encodeToByteArray()
+        )
+
+        val bytes = buildJpeg(firstExif, firstContinuation, secondExif, secondContinuation)
+
+        val updatedBytes = Kim.update(
+            bytes = bytes,
+            update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT)
+        )
+
+        /* The independent second block survived byte-exact ... */
+        assertTrue(
+            updatedBytes.containsBytes(secondExif.segmentBytes),
+            "The independent second EXIF block was removed by the update."
+        )
+
+        /* ... together with its own continuation segments. */
+        assertTrue(
+            updatedBytes.containsBytes(secondContinuation.segmentBytes),
+            "The continuation of the independent second EXIF block was removed by the update."
+        )
+
+        /* The continuation of the replaced first block is still gone. */
+        assertFalse(updatedBytes.containsBytes(firstContinuation.segmentBytes))
+    }
+
     @Test
     fun testUpdatePreservesIndependentSecondXmpPacket() {
 
