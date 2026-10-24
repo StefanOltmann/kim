@@ -72,13 +72,17 @@ public data class TiffContents(
              * The writer never re-emits the SubIFDs pointer, and the
              * reader folds the sub-IFDs into the chain-IFD number
              * space - a rewrite would silently restructure the file
-             * and displace the real chain directories. The conversion
-             * refuses the file instead of corrupting it.
+             * and displace the real chain directories. The refusal is
+             * structural: a surviving SubIFD directory type refuses the
+             * file even after a partially failed read dropped the
+             * pointer field.
              */
-            if (directory.findField(ExifTag.EXIF_TAG_SUB_IFDS_OFFSET) != null)
+            if (directory.findField(ExifTag.EXIF_TAG_SUB_IFDS_OFFSET) != null ||
+                directory.type in SUB_IFD_DIRECTORY_TYPES
+            )
                 throw ImageWriteException(
-                    "The directory ${TiffDirectory.description(directory.type)} carries " +
-                        "a SubIFDs pointer, which a rewrite cannot preserve."
+                    "The directory ${TiffDirectory.description(directory.type)} is part " +
+                        "of the SubIFD structure, which a rewrite cannot preserve."
                 )
 
             /*
@@ -149,5 +153,21 @@ public data class TiffContents(
         }
 
         return sb.toString()
+    }
+
+    private companion object {
+
+        /*
+         * The directory types the reader assigns to directories folded
+         * out of a SubIFDs array. They share the number space with the
+         * chain IFD types, so the refusal must refuse every occurrence.
+         */
+        val SUB_IFD_DIRECTORY_TYPES = setOf(
+            TiffConstants.EXIF_SUB_IFD0,
+            TiffConstants.EXIF_SUB_IFD1,
+            TiffConstants.EXIF_SUB_IFD2,
+            TiffConstants.EXIF_SUB_IFD3,
+            TiffConstants.EXIF_SUB_IFD4
+        )
     }
 }

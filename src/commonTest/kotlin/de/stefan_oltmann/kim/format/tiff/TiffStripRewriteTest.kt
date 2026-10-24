@@ -19,6 +19,7 @@ import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
+import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
@@ -150,6 +151,41 @@ class TiffStripRewriteTest {
         )
 
         val tiffContents = TiffReader.read(ByteArrayByteReader(tiffBytes))
+
+        assertFailsWith<ImageWriteException> {
+            tiffContents.createOutputSet()
+        }
+    }
+
+    /**
+     * Regression test: when a partially failed read drops the SubIFDs
+     * pointer field, the already-read sub-IFDs survive with their folded
+     * directory types. The refusal must be structural and key on those
+     * types - a pointer-only check would let the rewrite restructure the
+     * file and displace the real chain directories.
+     */
+    @Test
+    fun testCreateOutputSetRefusesSubIfdDirectoriesWithoutPointer() {
+
+        /*
+         * The directory state a partially failed read leaves behind: a
+         * SubIFD-derived directory without any pointer field.
+         */
+        val subIfdDirectory = TiffDirectory(
+            type = TiffConstants.EXIF_SUB_IFD0,
+            entries = emptyList(),
+            offset = 8,
+            nextDirectoryOffset = 0,
+            byteOrder = ByteOrder.LITTLE_ENDIAN
+        )
+
+        val tiffContents = TiffContents(
+            header = TiffHeader(ByteOrder.LITTLE_ENDIAN, 42, 8),
+            directories = listOf(subIfdDirectory),
+            makerNoteDirectory = null,
+            makerNoteSubDirectories = emptyList(),
+            geoTiffDirectory = null
+        )
 
         assertFailsWith<ImageWriteException> {
             tiffContents.createOutputSet()
