@@ -25,7 +25,7 @@ import de.stefan_oltmann.kim.common.readBytes
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
-import org.junit.Test
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
