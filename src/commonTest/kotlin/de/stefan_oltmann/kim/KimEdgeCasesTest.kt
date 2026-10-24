@@ -18,7 +18,10 @@ package de.stefan_oltmann.kim
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
+import de.stefan_oltmann.kim.common.convertToSummary
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.model.GpsCoordinates
+import de.stefan_oltmann.kim.model.LocationShown
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
@@ -26,6 +29,7 @@ import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class KimEdgeCasesTest {
@@ -36,6 +40,48 @@ class KimEdgeCasesTest {
     fun testReadMetadataFromEmptyBytes() {
 
         assertNull(Kim.readMetadata(byteArrayOf()))
+    }
+
+    /**
+     * Regression test: when one update set carries both a plain
+     * GpsCoordinates update and the combined
+     * GpsCoordinatesAndLocationShown update, the combined one decides
+     * the coordinates - it writes position and location as one logical
+     * change. Letting the plain update win by set iteration order would
+     * pair the combined update's location with a position its caller
+     * never chose, and the outcome would depend on how the set was
+     * built.
+     */
+    @Test
+    fun testCombinedGpsUpdateWinsOverPlainGpsUpdate() {
+
+        val combined = MetadataUpdate.GpsCoordinatesAndLocationShown(
+            gpsCoordinates = GpsCoordinates(latitude = 10.0, longitude = 11.0),
+            locationShown = LocationShown(
+                name = "Home",
+                street = null,
+                city = "Oldenburg",
+                state = null,
+                country = "Germany"
+            )
+        )
+
+        /* The plain update iterates LAST, so it would win by order. */
+        val updates = linkedSetOf(
+            combined,
+            MetadataUpdate.GpsCoordinates(GpsCoordinates(latitude = 20.0, longitude = 21.0))
+        )
+
+        val updatedBytes = Kim.update(
+            bytes = KimTestData.getBytesOf(1),
+            updates = updates
+        )
+
+        val summary = assertNotNull(Kim.readMetadata(updatedBytes)).convertToSummary()
+
+        assertEquals(10.0, summary.gpsCoordinates?.latitude)
+        assertEquals(11.0, summary.gpsCoordinates?.longitude)
+        assertEquals("Oldenburg", summary.locationShown?.city)
     }
 
     @Test
