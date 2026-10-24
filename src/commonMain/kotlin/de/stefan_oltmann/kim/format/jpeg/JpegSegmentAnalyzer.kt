@@ -134,9 +134,13 @@ public object JpegSegmentAnalyzer {
 
             positionCounter += 2
 
+            /*
+             * Only the negative check applies: skipping the segment
+             * below fails loudly when the content ends inside it.
+             */
             JpegUtils.validateSegmentContentLength(
                 remainingSegmentLength,
-                byteReader.contentLength - positionCounter
+                Long.MAX_VALUE
             )
 
             byteReader.skipBytes("skip segment", remainingSegmentLength)

@@ -18,6 +18,7 @@ package de.stefan_oltmann.kim.jvm
 import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.convertToSummary
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlinx.datetime.TimeZone
@@ -80,6 +81,39 @@ class KimJvmTest {
         )
 
         assertNotNull(metadata)
+    }
+
+    /**
+     * The stream length is documented as a hint that must never gate the
+     * reads. An understated length - a lying HTTP Content-Length header
+     * or a stale provider size - must neither cut the JPEG header walk
+     * short nor reject a segment that reaches past the hint: the real
+     * read decides, and the metadata result matches the exact-length
+     * read.
+     */
+    @Test
+    fun testReadMetadataWithUnderstatedStreamLength() {
+
+        val jpegBytes = KimTestData.getBytesOf(1)
+
+        val exact = assertNotNull(Kim.readMetadata(jpegBytes))
+
+        val understated = assertNotNull(
+            KimJvm.readMetadata(
+                inputStream = jpegBytes.inputStream(),
+                length = 500L
+            )
+        )
+
+        assertEquals(
+            exact.exif?.directories?.size,
+            understated.exif?.directories?.size
+        )
+
+        assertEquals(
+            exact.convertToSummary().takenDate,
+            understated.convertToSummary().takenDate
+        )
     }
 
     /**

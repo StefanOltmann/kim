@@ -70,13 +70,6 @@ public object JpegImageParser : ImageParser {
             return null
 
         /*
-         * Counted in Long space, so streams larger than the signed Int
-         * range cannot wrap the counter and silently disable the
-         * truncation checks below.
-         */
-        var readBytesCount = magicNumberBytes.size.toLong()
-
-        /*
          * The consumed bytes are only counted here, so the scanner must not
          * buffer a potentially unbounded inter-marker gap.
          */
@@ -87,31 +80,36 @@ public object JpegImageParser : ImageParser {
 
             val scan = scanner.nextMarker(zeroIsFillByte = true) ?: break
 
-            readBytesCount += scan.consumedCount
-
             if (scan.marker == JpegConstants.SOS_MARKER || scan.marker == JpegConstants.EOI_MARKER)
                 break
 
-            /* If we don't have enough bytes for the segment count we are done reading. */
-            if (byteReader.contentLength - readBytesCount < 2)
+            /*
+             * The content length is only a hint for stream sources, so
+             * the length bytes are read for real: the walk ends at the
+             * actual end of the data, never at a hint that understates
+             * the content.
+             */
+            val segmentLengthBytes = byteReader.readBytes(2)
+
+            /* The data ends between the marker and its length field. */
+            if (segmentLengthBytes.size < 2)
                 break
 
             /* Note: Segment length includes size bytes */
             val segmentLength =
-                byteReader.read2BytesAsInt("segmentLength", JpegConstants.JPEG_BYTE_ORDER) - 2
+                segmentLengthBytes.toUInt16(JpegConstants.JPEG_BYTE_ORDER) - 2
 
-            readBytesCount += 2
-
-            val remainingByteCount = byteReader.contentLength - readBytesCount
-
-            JpegUtils.validateSegmentContentLength(segmentLength, remainingByteCount)
+            /*
+             * Only the negative check applies: skipping or reading the
+             * segment below fails loudly when the content ends inside
+             * the segment.
+             */
+            JpegUtils.validateSegmentContentLength(segmentLength, Long.MAX_VALUE)
 
             /* We are only looking for a SOF segment. */
             if (!JpegConstants.SOFN_MARKERS.contains(scan.marker)) {
 
                 byteReader.skipBytes("skip segment", segmentLength)
-
-                readBytesCount += segmentLength.toLong()
 
                 continue
             }

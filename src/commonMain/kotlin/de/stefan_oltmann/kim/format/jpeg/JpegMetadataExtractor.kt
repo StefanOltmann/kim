@@ -78,21 +78,12 @@ public object JpegMetadataExtractor : MetadataExtractor {
 
         val scanner = JpegMarkerScanner(byteReader)
 
-        /*
-         * Counted in Long space, so streams larger than the signed Int
-         * range cannot wrap the counter and silently disable the
-         * truncation checks below.
-         */
-        var readBytesCount = 0L
-
         @Suppress("LoopWithTooManyJumpStatements")
         do {
 
             val scan = scanner.nextMarker(zeroIsFillByte = true) ?: break
 
             bytes.write(scan.consumedBytes)
-
-            readBytesCount += scan.consumedBytes.size
 
             /*
              * The header budget bounds hostile files with huge gaps or
@@ -113,8 +104,6 @@ public object JpegMetadataExtractor : MetadataExtractor {
             bytes.write(segmentLengthFirstByte)
             bytes.write(segmentLengthSecondByte)
 
-            readBytesCount += 2
-
             /* Next 2-bytes are <segment-size>: [high-byte] [low-byte] */
             var segmentLength: Int = byteArrayOf(segmentLengthFirstByte, segmentLengthSecondByte)
                 .toUInt16(ByteOrder.BIG_ENDIAN)
@@ -122,9 +111,12 @@ public object JpegMetadataExtractor : MetadataExtractor {
             /* Segment length includes size bytes, so subtract two */
             segmentLength -= 2
 
-            val remainingByteCount = byteReader.contentLength - readBytesCount
-
-            JpegUtils.validateSegmentContentLength(segmentLength, remainingByteCount)
+            /*
+             * Only the negative check applies: the actual read below
+             * fails loudly when the content ends inside the segment -
+             * the content length is only a hint for stream sources.
+             */
+            JpegUtils.validateSegmentContentLength(segmentLength, Long.MAX_VALUE)
 
             val segmentBytes = byteReader.readBytes(segmentLength)
 

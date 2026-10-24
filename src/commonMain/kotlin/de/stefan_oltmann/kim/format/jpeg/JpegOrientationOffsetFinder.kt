@@ -19,6 +19,7 @@ package de.stefan_oltmann.kim.format.jpeg
 import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.toSingleNumberHexes
+import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
@@ -66,19 +67,30 @@ public object JpegOrientationOffsetFinder {
             if (scan.marker == JpegConstants.SOS_MARKER || scan.marker == JpegConstants.EOI_MARKER)
                 break
 
-            /* If we don't have enough bytes for the segment count we are done reading. */
-            if (byteReader.contentLength - positionCounter < 2)
+            /*
+             * The content length is only a hint for stream sources, so
+             * the length bytes are read for real: the walk ends at the
+             * actual end of the data, never at a hint that understates
+             * the content.
+             */
+            val segmentLengthBytes = byteReader.readBytes(2)
+
+            /* The data ends between the marker and its length field. */
+            if (segmentLengthBytes.size < 2)
                 break
 
             /* Note: Segment length includes size bytes */
             val segmentLength =
-                byteReader.read2BytesAsInt("segmentLength", JPEG_BYTE_ORDER) - 2
+                segmentLengthBytes.toUInt16(JPEG_BYTE_ORDER) - 2
 
             positionCounter += 2
 
-            val remainingByteCount = byteReader.contentLength - positionCounter
-
-            JpegUtils.validateSegmentContentLength(segmentLength, remainingByteCount)
+            /*
+             * Only the negative check applies: skipping or reading the
+             * segment below fails loudly when the content ends inside
+             * the segment.
+             */
+            JpegUtils.validateSegmentContentLength(segmentLength, Long.MAX_VALUE)
 
             /* We are only looking for the EXIF segment. */
             if (scan.marker != JpegConstants.JPEG_APP1_MARKER) {
