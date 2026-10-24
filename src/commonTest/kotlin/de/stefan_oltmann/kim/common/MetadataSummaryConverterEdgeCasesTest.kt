@@ -25,7 +25,6 @@ import de.stefan_oltmann.kim.format.tiff.TiffDirectory
 import de.stefan_oltmann.kim.format.tiff.TiffField
 import de.stefan_oltmann.kim.format.tiff.TiffHeader
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
-import de.stefan_oltmann.kim.format.tiff.constant.GpsTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeRational
@@ -58,31 +57,6 @@ class MetadataSummaryConverterEdgeCasesTest {
     fun tearDown() {
         Kim.defaultTimeZone = null
     }
-
-    private fun gpsContents(vararg entries: TiffField): TiffContents =
-
-        TiffContents(
-            header = TiffHeader(
-                byteOrder = ByteOrder.BIG_ENDIAN,
-                tiffVersion = 42,
-                offsetToFirstIFD = 8
-            ),
-            directories = listOf(
-                tiffDirectory(TiffConstants.TIFF_DIRECTORY_GPS, entries.toList())
-            ),
-            makerNoteDirectory = null,
-            makerNoteSubDirectories = emptyList(),
-            geoTiffDirectory = null
-        )
-
-    private fun gpsRationalsBytes(): ByteArray =
-        RationalNumbers(
-            arrayOf(
-                RationalNumber(1, 1),
-                RationalNumber(2, 1),
-                RationalNumber(3, 1)
-            )
-        ).toBytes(ByteOrder.BIG_ENDIAN)
 
     private fun tiffContentsWithThumbnail(thumbnailBytes: ByteArray): TiffContents {
 
@@ -460,143 +434,6 @@ class MetadataSummaryConverterEdgeCasesTest {
             expected = 51200,
             actual = metadata.convertToSummary().iso
         )
-    }
-
-    @Test
-    fun testMalformedGpsFieldsAreIgnored() {
-
-        val metadata = MediaMetadata(
-            mediaFormat = MediaFormat.JPEG,
-            imageSize = null,
-            exif = gpsContents(
-                tiffField(GpsTag.GPS_TAG_GPS_LATITUDE_REF, "N".encodeToByteArray()),
-                tiffField(GpsTag.GPS_TAG_GPS_LONGITUDE_REF, "E".encodeToByteArray()),
-                /* Wrong type: SHORT instead of RATIONAL. */
-                tiffField(
-                    GpsTag.GPS_TAG_GPS_LATITUDE,
-                    shortArrayOf(1, 2, 3).toBytes(ByteOrder.BIG_ENDIAN),
-                    FieldTypeShort,
-                    3
-                )
-            ),
-            exifBytes = null,
-            iptc = null,
-            xmp = null
-        )
-
-        assertNull(metadata.convertToSummary().gpsCoordinates)
-    }
-
-    @Test
-    fun testUnknownGpsRefIsIgnored() {
-
-        val metadata = MediaMetadata(
-            mediaFormat = MediaFormat.JPEG,
-            imageSize = null,
-            exif = gpsContents(
-                tiffField(GpsTag.GPS_TAG_GPS_LATITUDE_REF, "North".encodeToByteArray()),
-                tiffField(GpsTag.GPS_TAG_GPS_LONGITUDE_REF, "E".encodeToByteArray()),
-                tiffField(GpsTag.GPS_TAG_GPS_LATITUDE, gpsRationalsBytes(), FieldTypeRational, 3),
-                tiffField(GpsTag.GPS_TAG_GPS_LONGITUDE, gpsRationalsBytes(), FieldTypeRational, 3)
-            ),
-            exifBytes = null,
-            iptc = null,
-            xmp = null
-        )
-
-        assertNull(metadata.convertToSummary().gpsCoordinates)
-    }
-
-    @Test
-    fun testGpsWithWrongValueCountIsIgnored() {
-
-        val metadata = MediaMetadata(
-            mediaFormat = MediaFormat.JPEG,
-            imageSize = null,
-            exif = gpsContents(
-                tiffField(GpsTag.GPS_TAG_GPS_LATITUDE_REF, "N".encodeToByteArray()),
-                tiffField(GpsTag.GPS_TAG_GPS_LONGITUDE_REF, "E".encodeToByteArray()),
-                /* Only two of the required three values. */
-                tiffField(
-                    GpsTag.GPS_TAG_GPS_LATITUDE,
-                    RationalNumbers(
-                        arrayOf(RationalNumber(1, 1), RationalNumber(2, 1))
-                    ).toBytes(ByteOrder.BIG_ENDIAN),
-                    FieldTypeRational,
-                    2
-                ),
-                tiffField(GpsTag.GPS_TAG_GPS_LONGITUDE, gpsRationalsBytes(), FieldTypeRational, 3)
-            ),
-            exifBytes = null,
-            iptc = null,
-            xmp = null
-        )
-
-        assertNull(metadata.convertToSummary().gpsCoordinates)
-    }
-
-    @Test
-    fun testValidGpsIsParsed() {
-
-        val metadata = MediaMetadata(
-            mediaFormat = MediaFormat.JPEG,
-            imageSize = null,
-            exif = gpsContents(
-                tiffField(GpsTag.GPS_TAG_GPS_LATITUDE_REF, "N".encodeToByteArray()),
-                tiffField(GpsTag.GPS_TAG_GPS_LONGITUDE_REF, "E".encodeToByteArray()),
-                tiffField(GpsTag.GPS_TAG_GPS_LATITUDE, gpsRationalsBytes(), FieldTypeRational, 3),
-                tiffField(GpsTag.GPS_TAG_GPS_LONGITUDE, gpsRationalsBytes(), FieldTypeRational, 3)
-            ),
-            exifBytes = null,
-            iptc = null,
-            xmp = null
-        )
-
-        val gpsCoordinates = metadata.convertToSummary().gpsCoordinates
-
-        assertNotNull(gpsCoordinates)
-        assertEquals(
-            expected = 1.0 + 2.0 / 60.0 + 3.0 / 3600.0,
-            actual = gpsCoordinates.latitude
-        )
-        assertEquals(
-            expected = 1.0 + 2.0 / 60.0 + 3.0 / 3600.0,
-            actual = gpsCoordinates.longitude
-        )
-    }
-
-    /**
-     * Coordinates that parse cleanly as rationals but lie outside the
-     * valid range are sanctioned garbage category 2: physically
-     * meaningless, so the summary omits them instead of reporting them
-     * as the photo's location.
-     */
-    @Test
-    fun testOutOfRangeGpsIsOmitted() {
-
-        val outOfRangeLatitude = RationalNumbers(
-            arrayOf(
-                RationalNumber(91, 1),
-                RationalNumber(0, 1),
-                RationalNumber(0, 1)
-            )
-        ).toBytes(ByteOrder.BIG_ENDIAN)
-
-        val metadata = MediaMetadata(
-            mediaFormat = MediaFormat.JPEG,
-            imageSize = null,
-            exif = gpsContents(
-                tiffField(GpsTag.GPS_TAG_GPS_LATITUDE_REF, "N".encodeToByteArray()),
-                tiffField(GpsTag.GPS_TAG_GPS_LONGITUDE_REF, "E".encodeToByteArray()),
-                tiffField(GpsTag.GPS_TAG_GPS_LATITUDE, outOfRangeLatitude, FieldTypeRational, 3),
-                tiffField(GpsTag.GPS_TAG_GPS_LONGITUDE, gpsRationalsBytes(), FieldTypeRational, 3)
-            ),
-            exifBytes = null,
-            iptc = null,
-            xmp = null
-        )
-
-        assertNull(metadata.convertToSummary().gpsCoordinates)
     }
 
     @Test

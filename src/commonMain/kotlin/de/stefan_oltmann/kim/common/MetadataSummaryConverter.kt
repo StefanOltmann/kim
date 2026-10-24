@@ -111,6 +111,13 @@ public object MetadataSummaryConverter {
         val takenDateMillis: Long? = extractTakenDateMillisFromExif(mediaMetadata)
             ?: xmpMetadata?.takenDate
 
+        /*
+         * The XMP position wins over the EXIF one, the reverse of the
+         * taken date above: a position corrected after the capture
+         * (geotagging tools write it into the XMP packet) must replace
+         * the camera's original EXIF fix in the summary, not the other
+         * way around.
+         */
         val gpsCoordinates: GpsCoordinates? = xmpMetadata?.gpsCoordinates
             ?: extractGpsCoordinatesFromExif(mediaMetadata)
 
