@@ -16,6 +16,7 @@
 package de.stefan_oltmann.kim.format.tiff.makernote
 
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageException
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.format.tiff.TiffDirectory
 import de.stefan_oltmann.kim.format.tiff.TiffField
@@ -366,8 +367,9 @@ class MakerNotePreservationTest {
 
     /**
      * Regression test: the indices in [unrewritableIndices] must stay
-     * unrewritable. If the underlying files become parseable, this test
-     * fails and forces re-inclusion into [testMakerNoteSurvivesUpdateByteIdentically].
+     * unrewritable with the documented failure type. If the underlying
+     * files become parseable, this test fails and forces re-inclusion
+     * into [testMakerNoteSurvivesUpdateByteIdentically].
      */
     @Test
     fun testUnrewritableIndicesAreStillUnrewritable() {
@@ -376,22 +378,16 @@ class MakerNotePreservationTest {
 
             val bytes = KimTestData.getBytesOf(index)
 
-            var threw = false
-
-            try {
+            assertFailsWith<ImageException>(
+                message = "media_$index was marked unrewritable but Kim.update did not fail " +
+                    "with an ImageException. Remove $index from unrewritableIndices " +
+                    "if it became rewritable."
+            ) {
                 Kim.update(
                     bytes = bytes,
                     update = MetadataUpdate.TakenDate(TEST_TAKEN_DATE_MILLIS)
                 )
-            } catch (_: Exception) {
-                threw = true
             }
-
-            assertTrue(
-                threw,
-                "media_$index was marked unrewritable but Kim.update succeeded. " +
-                    "Remove $index from unrewritableIndices."
-            )
         }
     }
 
