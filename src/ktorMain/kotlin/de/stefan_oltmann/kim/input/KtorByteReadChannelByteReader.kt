@@ -17,7 +17,6 @@
 package de.stefan_oltmann.kim.input
 
 import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.cancel
 import io.ktor.utils.io.readAvailable
 import kotlinx.coroutines.runBlocking
 

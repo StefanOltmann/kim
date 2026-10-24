@@ -27,7 +27,6 @@ import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNull

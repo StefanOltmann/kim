@@ -21,9 +21,9 @@ import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-import kotlin.test.assertFailsWith
 
 /**
  * The ICC color profile travels in APP2 chunks that number themselves

@@ -23,9 +23,9 @@ import de.stefan_oltmann.kim.format.AbstractUpdaterTest
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8X
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
+import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.model.MetadataUpdate
-import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test

@@ -23,9 +23,9 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.KotlinIoSourceByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.KotlinIoSinkByteWriter
-import kotlin.random.Random
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
+import kotlin.random.Random
 
 /**
  * A utility for transferring all metadata chunks from one file to another.
