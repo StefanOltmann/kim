@@ -15,6 +15,7 @@
  */
 package de.stefan_oltmann.kim.format.tiff
 
+import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.RationalNumbers
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
@@ -554,6 +555,40 @@ class MakerNoteTest {
          * tests; TagInfoAscii, TagInfoUndefineds and TagInfoInt64 in the
          * manufacturer specific tests.
          */
+    }
+
+    /**
+     * The Panasonic RW2 stores its MakerNote inside the EXIF of the
+     * embedded JPEG preview. Real camera files carry the tolerated EXIF
+     * header variants there (lowercase "exif", missing second NUL, up to
+     * four garbage prefix bytes), which the main JPEG read path accepts
+     * like ExifTool does - the embedded read must accept them too, or
+     * the MakerNote is silently dropped from the RAW.
+     *
+     * The fixture wraps the ExifTool-extracted preview of media_64 with
+     * its APP1 identifier lowercased; ExifTool reads the same
+     * AFPointPosition from it.
+     */
+    @Test
+    fun testEmbeddedJpegMakerNoteToleratesLowercaseExifHeader() {
+
+        val bytes = Resource(
+            "de/stefan_oltmann/kim/testdata/tiff_with_lowercase_exif_preview.tiff"
+        ).readBytes()
+
+        val metadata = assertNotNull(Kim.readMetadata(bytes))
+
+        val makerNoteDirectory = assertNotNull(
+            assertNotNull(metadata.exif).makerNoteDirectory
+        )
+        assertEquals(TiffConstants.TIFF_MAKER_NOTE_PANASONIC, makerNoteDirectory.type)
+
+        val afPointPositionField = makerNoteDirectory.findField(PanasonicTag.AF_POINT_POSITION)
+        assertNotNull(afPointPositionField)
+        assertEquals(
+            listOf(0.5, 0.5),
+            (afPointPositionField.value as RationalNumbers).values.map { it.doubleValue() }
+        )
     }
 
     @Test
