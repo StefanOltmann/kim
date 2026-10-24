@@ -36,6 +36,7 @@ import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 /**
  * Tests for MakerNote parsing, with the expected values verified
@@ -98,6 +99,54 @@ class MakerNoteTest {
         val versionField = makerNoteDirectory.findField(NikonTag.MAKER_NOTE_VERSION)
         assertNotNull(versionField)
         assertEquals("0210", versionField.valueBytes.decodeToString())
+    }
+
+    /**
+     * Regression test: MakerNote value offsets come from unsigned LONGs
+     * and are resolved against a non-zero base. A stored offset with the
+     * high bit set must not wrap through the sign into a position before
+     * the base and decode those bytes as the field value: the field is
+     * unreadable and is skipped like every other corrupt field.
+     *
+     * The fixture derives from the NEF's MakerNote by overwriting the
+     * stored offset of the Lens entry with 0xFFFFFFF0: ExifTool reports
+     * "Error reading value for MakerNotes entry 31, ID 0x0084 Lens" for
+     * exactly those bytes.
+     */
+    @Test
+    fun testMakerNoteValueOffsetWithHighBitSetIsSkipped() {
+
+        val original = KimTestData.getBytesOf(KimTestData.NEF_TEST_IMAGE_INDEX)
+
+        val originalMakerNote = Kim.readMetadata(original)?.exif?.makerNoteDirectory
+        assertNotNull(originalMakerNote)
+
+        val lensEntry = originalMakerNote.findField(NikonTag.LENS)
+        assertNotNull(lensEntry)
+
+        /* The unpatched entry resolves to the lens rationals. */
+        assertEquals(
+            listOf(18.0, 55.0, 3.5, 5.6),
+            (lensEntry.value as RationalNumbers).values.map { it.doubleValue() }
+        )
+
+        /* The stored value offset is the last four bytes of the entry. */
+        val storedOffsetPosition = lensEntry.offset + STORED_VALUE_OFFSET_IN_ENTRY
+
+        val patched = original.copyOf()
+        convertHexStringToByteArray("fffffff0").copyInto(
+            destination = patched,
+            destinationOffset = storedOffsetPosition
+        )
+
+        val patchedMakerNote = Kim.readMetadata(patched)?.exif?.makerNoteDirectory
+        assertNotNull(patchedMakerNote)
+
+        /* The wrap must not fabricate a Lens value from unrelated bytes. */
+        assertNull(patchedMakerNote.findField(NikonTag.LENS))
+
+        /* The rest of the MakerNote still reads. */
+        assertNotNull(patchedMakerNote.findField(NikonTag.QUALITY))
     }
 
     @Test
@@ -547,5 +596,14 @@ class MakerNoteTest {
         val metadata = Kim.readMetadata(KimTestData.getBytesOf(index))
 
         return requireNotNull(metadata?.exif)
+    }
+
+    companion object {
+
+        /*
+         * A TIFF entry stores tag, type, count, then the value or the
+         * value offset: the stored offset is the last four bytes.
+         */
+        private const val STORED_VALUE_OFFSET_IN_ENTRY = 8
     }
 }

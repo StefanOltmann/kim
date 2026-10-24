@@ -785,13 +785,14 @@ public object TiffReader {
             /*
              * Ignore corrupt offsets.
              *
-             * Offsets come from unsigned LONGs, so they can resolve beyond
-             * the signed Int range, and the end position can wrap around.
-             * Both checks therefore run in Long space.
+             * The stored offset comes from an unsigned LONG: keeping the
+             * sign bit would resolve it backwards from a non-zero value
+             * base and decode unrelated bytes as the field value. The
+             * masked value can exceed the addressable range once the
+             * base is added, so the check runs in Long space.
              */
-            val resolvedOffset = valueOffsetBase.toLong() + valueOrOffset.toLong()
-
-            val endPos = resolvedOffset + valueLength
+            val resolvedOffset =
+                valueOffsetBase.toLong() + (valueOrOffset.toLong() and 0xFFFFFFFFL)
 
             val valueBytes: ByteArray = if (!isLocalValue) {
 
@@ -801,7 +802,7 @@ public object TiffReader {
                  * so an offset is corrupt when the real read comes back
                  * short, not when the hint says so.
                  */
-                if (resolvedOffset < 0 || endPos < 0) {
+                if (resolvedOffset > Int.MAX_VALUE) {
                     rejectUnreadableField(tag)
                     continue
                 }
