@@ -173,9 +173,18 @@ public object BaseMediaFileFormatImageParser : ImageParser {
             copyByteReader.replayByteReader()
         }
 
-        check(byteReader.contentLength == byteReaderToUse.contentLength) {
-            "Content length is different: ${byteReader.contentLength} != ${byteReaderToUse.contentLength}"
-        }
+        /*
+         * The content length of stream sources is only a hint, and a
+         * one-shot stream of unknown size reports Long.MAX_VALUE - the
+         * replay, in contrast, knows the real retained byte count.
+         * Comparing both is only meaningful when the caller supplied a
+         * real size, so an unknown-length stream must not fail a valid
+         * Samsung-layout file here.
+         */
+        if (byteReader.contentLength != Long.MAX_VALUE)
+            check(byteReader.contentLength == byteReaderToUse.contentLength) {
+                "Content length is different: ${byteReader.contentLength} != ${byteReaderToUse.contentLength}"
+            }
 
         if (!onPositionBeforeMinimumOffset)
             position = 0

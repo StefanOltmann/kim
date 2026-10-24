@@ -63,6 +63,26 @@ class KimJvmTest {
     }
 
     /**
+     * A stream of unknown length (chunked HTTP, contentLength 0) must
+     * read a Samsung-layout HEIC: its mdat sits before the meta box, so
+     * the parser replays its retained buffer, and the replay's content
+     * length is the retained byte count - comparing it against the
+     * caller's unknown-length hint would fail a perfectly valid file.
+     */
+    @Test
+    fun testReadMetadataOfSamsungHeicFromStreamOfUnknownLength() {
+
+        val heicBytes = KimTestData.getBytesOf(KimTestData.HEIC_TEST_IMAGE_FROM_SAMSUNG_INDEX)
+
+        val metadata = KimJvm.readMetadata(
+            inputStream = heicBytes.inputStream(),
+            length = 0L
+        )
+
+        assertNotNull(metadata)
+    }
+
+    /**
      * The documented stream contract: the call closes the stream, so a
      * subsequent read fails instead of silently working on a stream the
      * caller believed was still usable. A ByteArrayInputStream ignores
