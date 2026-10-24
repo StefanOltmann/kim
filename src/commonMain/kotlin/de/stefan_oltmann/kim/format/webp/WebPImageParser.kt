@@ -158,8 +158,6 @@ public object WebPImageParser : ImageParser {
 
         val chunks = mutableListOf<WebPChunk>()
 
-        var haveSeenVp8xHeader = false
-
         @Suppress("LoopWithTooManyJumpStatements")
         while (true) {
 
@@ -243,9 +241,6 @@ public object WebPImageParser : ImageParser {
             if (!isImageChunk)
                 chunks.add(chunk)
 
-            if (chunkType == WebPChunkType.VP8X)
-                haveSeenVp8xHeader = true
-
             /*
              * After reading the header we can decide if we need to
              * read the rest of the file for metadata.
@@ -253,20 +248,14 @@ public object WebPImageParser : ImageParser {
             if (stopAfterMetadataRead) {
 
                 /*
-                 * Legacy files (without VP8X header) have no metadata chunks:
-                 * the VP8/VP8L image chunk is their only chunk.
-                 * In extended files the metadata chunks follow the image chunk.
-                 */
-                val isLegacyImageChunk =
-                    (chunkType == WebPChunkType.VP8 || chunkType == WebPChunkType.VP8L) &&
-                        !haveSeenVp8xHeader
-
-                if (isLegacyImageChunk)
-                    break
-
-                /*
                  * If the header reveals that there is no metadata at all
                  * we don't need to read the whole file.
+                 *
+                 * Legacy files (no VP8X header) get no early exit: real
+                 * world writers put EXIF/XMP chunks behind the image data
+                 * of legacy files as well - ExifTool reads them - so the
+                 * walk continues, streaming image payloads and trailing
+                 * junk through in bounded chunks without buffering them.
                  */
                 val hasNoMetadata = chunk is WebPChunkVP8X &&
                     !chunk.hasIcc && !chunk.hasExif && !chunk.hasXmp
