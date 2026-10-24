@@ -564,8 +564,10 @@ class TiffReaderTest {
 
     /**
      * Regression test: strip offsets come from unsigned LONGs and can
-     * resolve beyond the signed Int range in hostile files. Reading the
-     * image data must degrade to NULL instead of crashing.
+     * resolve beyond the signed Int range in hostile files. The metadata
+     * read must survive the hostile offset without crashing, and a
+     * rewrite-preparing read must refuse the uncapturable strip instead
+     * of degrading it to NULL.
      */
     @Test
     fun testReadSkipsStripWithNegativeResolvedOffset() {
@@ -583,8 +585,7 @@ class TiffReaderTest {
         )
 
         val tiffContents = TiffReader.read(
-            byteReader = ByteArrayByteReader(bytes),
-            readTiffImageBytes = true
+            byteReader = ByteArrayByteReader(bytes)
         )
 
         val directory = tiffContents.directories.first()
@@ -592,7 +593,15 @@ class TiffReaderTest {
         assertNotNull(directory.getStripImageDataElements())
 
         /* The hostile offset must not crash the reader nor produce bytes. */
-        assertEquals(null, directory.tiffImageBytes)
+        assertNull(directory.tiffImageBytes)
+
+        /* A rewrite cannot capture the strip, so the read must refuse it. */
+        assertFailsWith<ImageReadException> {
+            TiffReader.read(
+                byteReader = ByteArrayByteReader(bytes),
+                readTiffImageBytes = true
+            )
+        }
     }
 
     /**

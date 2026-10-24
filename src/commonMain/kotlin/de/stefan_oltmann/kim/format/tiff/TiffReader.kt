@@ -408,8 +408,23 @@ public object TiffReader {
                         "cannot be captured for a rewrite."
                 )
 
-            if (readTiffImageBytes && directory.hasStripImageData())
-                directory.tiffImageBytes = readStripBytes(byteReader, directory)
+            if (readTiffImageBytes && directory.hasStripImageData()) {
+
+                val stripBytes = readStripBytes(byteReader, directory)
+
+                /*
+                 * A rewrite cannot restore strip image data that the file
+                 * does not fully contain: the directory would describe an
+                 * image whose bytes are missing. Failing here mirrors the
+                 * tile refusal above instead of writing that hollow file.
+                 */
+                if (stripBytes == null)
+                    throw ImageReadException(
+                        "Strip image data could not be captured for a rewrite."
+                    )
+
+                directory.tiffImageBytes = stripBytes
+            }
 
             addDirectory(directory)
 

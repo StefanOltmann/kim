@@ -23,8 +23,10 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
+import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 /**
@@ -193,6 +195,37 @@ class TiffStripRewriteTest {
     }
 
     /**
+     * Regression test: a striped TIFF whose last strip is truncated cannot
+     * be captured for a rewrite. The lenient read path degrades the strip
+     * to NULL, so `createOutputSet` would emit a structurally valid TIFF
+     * whose IFD references no image data at all. The read must refuse like
+     * the tiled path does.
+     *
+     * The fixture is the corpus GeoTIFF, whose single strip occupies the
+     * file end: its IFD declares StripOffsets 444 with StripByteCounts 14
+     * (as ExifTool reports), so removing the trailing bytes leaves the
+     * declared strip extending past the file end while every metadata
+     * field stays intact.
+     */
+    @Test
+    fun testTruncatedStripImageByteCaptureFailsTheRead() {
+
+        val tiffBytes = KimTestData.getBytesOf(KimTestData.GEOTIFF_PIXEL_SCALING_INDEX)
+
+        val truncatedBytes = tiffBytes.copyOfRange(0, tiffBytes.size - STRIP_TRUNCATION_BYTES)
+
+        /* The metadata view is unaffected by the missing strip bytes. */
+        assertNotNull(TiffReader.read(ByteArrayByteReader(truncatedBytes)))
+
+        assertFailsWith<ImageReadException> {
+            TiffReader.read(
+                ByteArrayByteReader(truncatedBytes),
+                readTiffImageBytes = true
+            )
+        }
+    }
+
+    /**
      * The minimal tiled TIFF fixture: IFD0 with the tile image field
      * set and tile bytes behind it.
      */
@@ -233,4 +266,14 @@ class TiffStripRewriteTest {
             /* tile bytes, never captured */
             "00112233445566778899aabbccddeeff"
     )
+
+    companion object {
+
+        /*
+         * The corpus GeoTIFF's strip occupies the last 14 bytes, so
+         * removing the trailing 8 leaves it short of its declared
+         * StripByteCounts.
+         */
+        private const val STRIP_TRUNCATION_BYTES = 8
+    }
 }
