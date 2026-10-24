@@ -131,10 +131,14 @@ internal fun ByteArray.head(endIndex: Int): ByteArray {
 
 internal fun ByteArray.isEquals(start: Int, other: ByteArray, otherStart: Int, length: Int): Boolean {
 
-    if (size < start + length)
+    /*
+     * Long arithmetic so a hostile length cannot overflow the Int
+     * addition and slip past the bound as a wrapped-around negative.
+     */
+    if (size.toLong() < start.toLong() + length)
         return false
 
-    if (other.size < otherStart + length)
+    if (other.size.toLong() < otherStart.toLong() + length)
         return false
 
     for (index in 0 until length)
