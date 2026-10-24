@@ -57,6 +57,13 @@ public open class AndroidInputStreamByteReader(
      */
     internal fun readBytesLegacy(count: Int): ByteArray {
 
+        /*
+         * The same guard the base class applies on API 33+, so the
+         * programming error surfaces as the same exception type on
+         * every Android version.
+         */
+        require(count >= 0) { "Count must not be negative: $count" }
+
         val result = ByteArray(count)
 
         var bytesRead = 0
