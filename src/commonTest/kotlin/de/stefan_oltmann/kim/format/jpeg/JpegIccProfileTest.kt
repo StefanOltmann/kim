@@ -16,11 +16,14 @@
 package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.test.assertFailsWith
 
 /**
  * The ICC color profile travels in APP2 chunks that number themselves
@@ -88,5 +91,68 @@ class JpegIccProfileTest {
 
         assertTrue(iccProfile.entries.isNotEmpty())
         assertNotNull(iccProfile.description)
+    }
+
+    /**
+     * An APP2 segment that carries the ICC identifier but not the two
+     * chunk-sequence bytes behind it must fail with a message that names
+     * the truncated ICC chunk header - the incidental index error of the
+     * unguarded read is reported as a generic "Failed to read image."
+     * instead.
+     */
+    @Test
+    fun testTruncatedIccChunkHeaderFailsWithADescriptiveError() {
+
+        val bytes = buildMinimalJpegWithApp2(
+            app2Payload = "ICC_PROFILE\u0000".encodeToByteArray()
+        )
+
+        val exception = assertFailsWith<ImageReadException> {
+            Kim.readMetadata(bytes)
+        }
+
+        assertTrue(
+            exception.message?.contains("ICC") == true,
+            "Unexpected message: ${exception.message}"
+        )
+    }
+
+    /**
+     * Assembles a minimal scannable JPEG whose APP2 segment carries the
+     * given payload, for tests that need one specific APP2 variant.
+     */
+    private fun buildMinimalJpegWithApp2(app2Payload: ByteArray): ByteArray {
+
+        val app2Length = 2 + app2Payload.size
+
+        val sos = convertHexStringToByteArray("ffda0008010100003f00")
+
+        val imageData = convertHexStringToByteArray(
+            "112233445566778899aabbccddeeff" +
+                "112233445566778899aabbccddeeff01"
+        )
+
+        val bytes = ByteArray(4 + app2Length + sos.size + imageData.size + 2)
+
+        var pos = 0
+        /* SOI */
+        bytes[pos++] = 0xff.toByte()
+        bytes[pos++] = 0xd8.toByte()
+        /* APP2 */
+        bytes[pos++] = 0xff.toByte()
+        bytes[pos++] = 0xe2.toByte()
+        bytes[pos++] = (app2Length shr 8).toByte()
+        bytes[pos++] = app2Length.toByte()
+        app2Payload.copyInto(bytes, pos)
+        pos += app2Payload.size
+        sos.copyInto(bytes, pos)
+        pos += sos.size
+        imageData.copyInto(bytes, pos)
+        pos += imageData.size
+        /* EOI */
+        bytes[pos++] = 0xff.toByte()
+        bytes[pos] = 0xd9.toByte()
+
+        return bytes
     }
 }

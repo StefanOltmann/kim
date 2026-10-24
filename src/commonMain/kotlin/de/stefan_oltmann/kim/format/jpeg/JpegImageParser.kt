@@ -433,6 +433,21 @@ public object JpegImageParser : ImageParser {
             if (!segmentBytes.startsWith(JpegConstants.ICC_PROFILE_IDENTIFIER))
                 continue
 
+            /*
+             * The chunk header is the identifier plus the two sequence
+             * bytes; a segment that ends inside it is corrupt metadata
+             * and fails with a message that names the cause instead of
+             * the incidental index error of the unguarded read.
+             */
+            if (segmentBytes.size <
+                JpegConstants.ICC_IDENTIFIER_LENGTH + JpegConstants.ICC_SEQUENCE_BYTE_COUNT
+            )
+                throw ImageReadException(
+                    "The APP2 ICC chunk header is truncated: " +
+                        "${segmentBytes.size} of " +
+                        "${JpegConstants.ICC_IDENTIFIER_LENGTH + JpegConstants.ICC_SEQUENCE_BYTE_COUNT} bytes."
+                )
+
             val index = segmentBytes[JpegConstants.ICC_CHUNK_SEQUENCE_OFFSET].toUInt8()
             val total = segmentBytes[JpegConstants.ICC_CHUNK_SEQUENCE_OFFSET + 1].toUInt8()
 
