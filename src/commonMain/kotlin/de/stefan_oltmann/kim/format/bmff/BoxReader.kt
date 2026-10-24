@@ -270,6 +270,17 @@ public object BoxReader {
     )
 
     /**
+     * Whether the scan buffers this box's payload instead of skipping
+     * it, because its content feeds the metadata parse: the moov box of
+     * videos and the boxes that carry XMP or identify the format.
+     */
+    private fun isMetadataPayloadBox(type: BoxType): Boolean =
+        type == BoxType.MOOV ||
+            type == BoxType.UUID ||
+            type == BoxType.XMP_ ||
+            type == BoxType.FTYP
+
+    /**
      * Reads one box payload according to the scan mode: skipped boxes
      * stream through in bounded chunks, the video-scan file-level meta
      * box is buffered with the metadata budget so its item children can
@@ -294,17 +305,7 @@ public object BoxReader {
 
         var payloadTruncated = false
 
-        /*
-         * The payload boxes the video scan buffers instead of skipping,
-         * because their content feeds the metadata parse.
-         */
-        val isMetadataPayloadBox =
-            type == BoxType.MOOV ||
-                type == BoxType.UUID ||
-                type == BoxType.XMP_ ||
-                type == BoxType.FTYP
-
-        val isSkippableDataBox = skipDataBoxPayloads && !isMetadataPayloadBox
+        val isSkippableDataBox = skipDataBoxPayloads && !isMetadataPayloadBox(type)
 
         val source: PayloadSource = when {
 
@@ -689,15 +690,7 @@ public object BoxReader {
              * padding and unknown boxes of arbitrary size are streamed
              * through in bounded chunks instead.
              */
-            val isMetadataPayloadBox = skipDataBoxPayloads &&
-                (
-                    type == BoxType.MOOV ||
-                        type == BoxType.UUID ||
-                        type == BoxType.XMP_ ||
-                        type == BoxType.FTYP
-                    )
-
-            val isSkippableDataBox = skipDataBoxPayloads && !isMetadataPayloadBox
+            val isSkippableDataBox = skipDataBoxPayloads && !isMetadataPayloadBox(type)
 
             retainedBoxBytes = requireBufferSizeAllowed(
                 type = type,
