@@ -321,6 +321,10 @@ class JpegAndReaderEdgeCasesTest {
         assertFailsWith<ImageReadException> {
             JpegMetadataExtractor.extractMetadataBytes(ByteArrayByteReader(bytes))
         }
+
+        assertFailsWith<ImageReadException> {
+            JpegOrientationOffsetFinder.findOrientationOffset(ByteArrayByteReader(bytes))
+        }
     }
 
     /**
@@ -351,6 +355,10 @@ class JpegAndReaderEdgeCasesTest {
 
         assertFailsWith<ImageReadException> {
             JpegMetadataExtractor.extractMetadataBytes(ByteArrayByteReader(bytes))
+        }
+
+        assertFailsWith<ImageReadException> {
+            JpegOrientationOffsetFinder.findOrientationOffset(ByteArrayByteReader(bytes))
         }
     }
 

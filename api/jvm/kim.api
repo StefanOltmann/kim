@@ -815,6 +815,11 @@ public final class de/stefan_oltmann/kim/format/jpeg/JpegMetadataExtractor : de/
 	public fun extractMetadataBytes (Lde/stefan_oltmann/kim/input/ByteReader;)[B
 }
 
+public final class de/stefan_oltmann/kim/format/jpeg/JpegOrientationOffsetFinder {
+	public static final field INSTANCE Lde/stefan_oltmann/kim/format/jpeg/JpegOrientationOffsetFinder;
+	public final fun findOrientationOffset (Lde/stefan_oltmann/kim/input/ByteReader;)Ljava/lang/Long;
+}
+
 public final class de/stefan_oltmann/kim/format/jpeg/JpegRewriter {
 	public static final field INSTANCE Lde/stefan_oltmann/kim/format/jpeg/JpegRewriter;
 	public static final fun updateExifMetadata (Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;Lde/stefan_oltmann/kim/format/tiff/write/TiffOutputSet;)V
