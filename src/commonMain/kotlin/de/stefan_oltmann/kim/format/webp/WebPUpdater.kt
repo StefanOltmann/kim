@@ -23,7 +23,6 @@ import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
 import de.stefan_oltmann.kim.format.exifBytesWithThumbnail
 import de.stefan_oltmann.kim.format.updatedExifBytes
-import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8X
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
@@ -68,30 +67,17 @@ internal object WebPUpdater : MetadataUpdater {
          * Remove the EXIF and XMP chunks. The ICCP chunk is kept, because it
          * affects how the image is displayed.
          */
-        val modifiedChunks = chunks.toMutableList()
-
-        modifiedChunks.removeAll { chunk ->
+        val modifiedChunks = chunks.filterNot { chunk ->
             chunk.type == WebPChunkType.EXIF || chunk.type == WebPChunkType.XMP
         }
 
-        val headerChunk = modifiedChunks.firstOrNull()
-            ?: throw ImageWriteException("No chunks to write!")
+        if (modifiedChunks.isEmpty())
+            throw ImageWriteException("No chunks to write!")
 
-        /* Clear the metadata flags of the VP8X header. */
-        if (headerChunk is WebPChunkVP8X) {
-
-            modifiedChunks[0] = WebPChunkVP8X(
-                bytes = WebPChunkVP8X.createBytes(
-                    hasIcc = headerChunk.hasIcc,
-                    hasAlpha = headerChunk.hasAlpha,
-                    hasExif = false,
-                    hasXmp = false,
-                    hasAnimation = headerChunk.hasAnimation,
-                    imageSize = headerChunk.imageSize
-                )
-            )
-        }
-
+        /*
+         * The VP8X flags are rebuilt by the writer from the final chunk
+         * list, so the cleared EXIF/XMP flags need no handling here.
+         */
         WebPWriter.writeImage(
             chunks = modifiedChunks,
             byteWriter = byteWriter,
