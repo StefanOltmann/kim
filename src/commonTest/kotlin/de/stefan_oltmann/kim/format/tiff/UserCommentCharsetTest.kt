@@ -19,6 +19,7 @@ import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
@@ -47,6 +48,30 @@ class UserCommentCharsetTest {
         assertEquals(
             expected = "Kommentar Unicode Тест",
             actual = userComment.value.toString()
+        )
+    }
+
+    /**
+     * A UserComment that announces the UTF-8 charset but carries a
+     * malformed sequence cannot be decoded strictly; the field value
+     * degrades to its raw bytes instead of failing the read. The fixture
+     * derives from the ExifTool-written unicode variant by patching the
+     * charset code and the first payload bytes; the ExifTool binary reads
+     * it back with "Invalid EXIF text encoding for UserComment".
+     */
+    @Test
+    fun testReadsMalformedUtf8UserCommentAsRawBytes() {
+
+        val bytes = KimTestData.getBytesOf("usercomment_malformed_utf8.jpg")
+
+        val metadata = assertNotNull(Kim.readMetadata(bytes))
+
+        val userComment = assertNotNull(metadata.findTiffField(ExifTag.EXIF_TAG_USER_COMMENT))
+
+        /* The field keeps the raw bytes; no text is fabricated. */
+        assertContentEquals(
+            expected = userComment.valueBytes,
+            actual = userComment.value as ByteArray
         )
     }
 }
