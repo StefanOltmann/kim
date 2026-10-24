@@ -352,14 +352,19 @@ public object BoxReader {
                 stopAfterMetadataRead &&
                 byteReader.isRetaining -> {
 
-                val retained = readPayloadUpToEof(
+                /*
+                 * The retaining reader keeps every consumed byte for the
+                 * Samsung-layout reposition, so the payload only has to
+                 * be streamed through in bounded chunks - buffering it
+                 * here as well would hold the image data twice.
+                 */
+                val skippedByteCount = skipPayloadUpToEof(
                     byteReader,
-                    remainingBytesToReadInThisBox.toInt()
+                    remainingBytesToReadInThisBox
                 )
 
-                payloadTruncated = retained.size < remainingBytesToReadInThisBox
+                payloadTruncated = skippedByteCount < remainingBytesToReadInThisBox
 
-                /* The reader itself retains the bytes. */
                 PayloadSource.of(ByteArray(0))
             }
 
