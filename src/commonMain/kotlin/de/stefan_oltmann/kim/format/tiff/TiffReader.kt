@@ -635,6 +635,13 @@ public object TiffReader {
      * unreadable MakerNote sub-directories, which ExifTool skips while
      * keeping the MakerNote as an opaque binary block, an unreadable
      * field cannot be preserved at all.
+     *
+     * Every other field is dropped instead of failing the read: ExifTool
+     * warns and continues for a field without a completely readable
+     * value, whether the count or the value offset is impossible or the
+     * data ends inside the value. The [de.stefan_oltmann.kim.Kim]
+     * documentation whitelists exactly this drop as a documented
+     * exception to the strict read policy.
      */
     private fun rejectUnreadableField(tag: Int) {
 
@@ -797,10 +804,9 @@ public object TiffReader {
             val valueBytes: ByteArray = if (!isLocalValue) {
 
                 /*
-                 * Except for fields that a rewrite cannot afford to lose.
-                 * The content length is only a hint for stream sources,
-                 * so an offset is corrupt when the real read comes back
-                 * short, not when the hint says so.
+                 * A resolved offset above the signed range stays a
+                 * corruption case, like a negative offset: the field
+                 * follows the field-level policy.
                  */
                 if (resolvedOffset > Int.MAX_VALUE) {
                     rejectUnreadableField(tag)
@@ -810,6 +816,17 @@ public object TiffReader {
                 val bytes = byteReader.readBytes(resolvedOffset.toInt(), valueLength)
 
                 if (bytes.size < valueLength) {
+
+                    /*
+                     * The bytes end inside the value: clean file-boundary
+                     * truncation, not corruption. The value cannot be
+                     * returned completely, so the field is dropped, and
+                     * nothing is fabricated from the missing remainder.
+                     * The content length of stream sources is only a
+                     * hint, so the real read decides here, never the
+                     * hint. Fields that a rewrite cannot afford to lose
+                     * still fail the read.
+                     */
                     rejectUnreadableField(tag)
                     continue
                 }

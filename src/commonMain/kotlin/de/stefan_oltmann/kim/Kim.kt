@@ -76,7 +76,7 @@ import kotlin.coroutines.cancellation.CancellationException
  * sidecars (XMP, JSON) from the read result, so a silent partial read loses
  * data anyway.
  *
- * There are exactly five kinds of garbage that may be dropped silently:
+ * There are exactly six kinds of garbage that may be dropped silently:
  *
  * 1. Corrupt embedded thumbnails and preview images: they are always
  *    restorable from the primary image data, so dropping them is not real
@@ -104,6 +104,16 @@ import kotlin.coroutines.cancellation.CancellationException
  *    represent them without fabricating a month or day, so the derived
  *    summary omits them. Like category 3, this drop happens at summary
  *    level only - the raw packet stays untouched on the metadata object.
+ *
+ * 6. Ordinary fields inside metadata-bearing directories whose value is
+ *    not completely readable: an impossible count or value offset
+ *    (corruption), or a value that the end of the data cuts off (a
+ *    boundary truncation). ExifTool drops such a field with a warning
+ *    ("Error reading value for ...") while the rest of the file reads,
+ *    and a value that is not completely present cannot be returned
+ *    completely. This exception never covers the MakerNote or the offset
+ *    fields that carry the Exif, GPS and Interop sub-IFDs - a rewrite
+ *    cannot afford to lose those, so they still fail the read.
  *
  * Dropping a MakerNote, EXIF, IPTC, or XMP content is real data loss and
  * must fail the read instead. Stopping a parse at the exact boundary where

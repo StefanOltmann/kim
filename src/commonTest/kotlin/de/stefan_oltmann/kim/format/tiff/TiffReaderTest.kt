@@ -563,6 +563,151 @@ class TiffReaderTest {
     }
 
     /**
+     * Regression test: a value offset beyond the file leaves the field
+     * without any readable byte. It is dropped like every other
+     * unrepresentable ordinary field while the rest of the directory
+     * reads.
+     */
+    @Test
+    fun testReadSkipsEntryWithValueOffsetBeyondEndOfFile() {
+
+        val bytes = convertHexStringToByteArray(
+            /* Header: II, version 42, IFD0 at offset 8 */
+            "49492a0008000000" +
+                /* 2 entries */
+                "0200" +
+                /* ImageDescription, ASCII, count 10, value offset 100 */
+                "0e0102000a00000064000000" +
+                /* BitsPerSample = 8 */
+                "020103000100000008000000" +
+                /* No next directory */
+                "00000000"
+        )
+
+        val tiffContents = TiffReader.read(ByteArrayByteReader(bytes))
+
+        assertNull(tiffContents.directories.first().findField(TiffTag.TIFF_TAG_IMAGE_DESCRIPTION))
+
+        assertNotNull(tiffContents.directories.first().findField(TiffTag.TIFF_TAG_BITS_PER_SAMPLE))
+    }
+
+    /**
+     * Regression test: a field value that the file's end cuts off cannot
+     * be returned completely, so the field is dropped like every other
+     * unrepresentable ordinary field while the rest of the directory
+     * reads, and nothing is fabricated from the missing remainder.
+     */
+    @Test
+    fun testReadSkipsFieldValueTruncatedAtEndOfFile() {
+
+        val bytes = convertHexStringToByteArray(
+            /* Header: II, version 42, IFD0 at offset 8 */
+            "49492a0008000000" +
+                /* 2 entries */
+                "0200" +
+                /* ImageDescription (0x010E), ASCII, count 10, value at 38 */
+                "0e0102000a00000026000000" +
+                /* BitsPerSample = 8 */
+                "020103000100000008000000" +
+                /* No next directory */
+                "00000000" +
+                /* Only four of the ten declared bytes exist. */
+                "61626364"
+        )
+
+        val tiffContents = TiffReader.read(ByteArrayByteReader(bytes))
+
+        assertNull(tiffContents.directories.first().findField(TiffTag.TIFF_TAG_IMAGE_DESCRIPTION))
+
+        /* The rest of the directory still reads. */
+        assertNotNull(tiffContents.directories.first().findField(TiffTag.TIFF_TAG_BITS_PER_SAMPLE))
+    }
+
+    /**
+     * Regression test: an ordinary Exif-IFD field with an impossible
+     * count is dropped like a field with an impossible value offset, and
+     * the rest of the Exif directory reads. This is the documented
+     * ExifTool-compatible exception to the strict read policy.
+     */
+    @Test
+    fun testReadSkipsExifFieldWithOverflowingCount() {
+
+        val bytes = convertHexStringToByteArray(
+            /* Header: II, version 42, IFD0 at offset 8 */
+            "49492a0008000000" +
+                /* 1 entry */
+                "0100" +
+                /* ExifOffset (0x8769), LONG, value 26 */
+                "69870400010000001a000000" +
+                /* No next directory */
+                "00000000" +
+                /* Exif IFD at 26: 2 entries */
+                "0200" +
+                /* DateTimeOriginal (0x9003), ASCII, count 0xFFFFFFFF */
+                "03900200ffffffff00000000" +
+                /* ExposureTime (0x829A), RATIONAL, count 1, value at 56 */
+                "9a8205000100000038000000" +
+                /* No next directory */
+                "00000000" +
+                /* ExposureTime = 1/100 */
+                "0100000064000000"
+        )
+
+        val tiffContents = TiffReader.read(ByteArrayByteReader(bytes))
+
+        assertNull(
+            TiffDirectory.findTiffField(
+                tiffContents.directories,
+                ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL
+            )
+        )
+
+        assertNotNull(
+            TiffDirectory.findTiffField(
+                tiffContents.directories,
+                ExifTag.EXIF_TAG_EXPOSURE_TIME
+            )
+        )
+    }
+
+    /**
+     * Regression test: a MakerNote value that the file's end cuts off is
+     * never dropped, because a rewrite cannot afford to lose the bytes
+     * that exist - the read fails instead, like for an unreadable
+     * MakerNote value.
+     */
+    @Test
+    fun testReadRejectsMakerNoteValueTruncatedAtEndOfFile() {
+
+        val bytes = convertHexStringToByteArray(
+            /* Header: II, version 42, IFD0 at offset 8 */
+            "49492a0008000000" +
+                /* 2 entries */
+                "0200" +
+                /* Make, ASCII, count 6, value "Canon" at 38 */
+                "0f0102000600000026000000" +
+                /* ExifOffset (0x8769), LONG, Exif IFD at 44 */
+                "69870400010000002c000000" +
+                /* No next directory */
+                "00000000" +
+                /* "Canon" including the terminator at 38 */
+                "43616e6f6e00" +
+                /* Exif IFD at 44: one MakerNote entry */
+                "0100" +
+                "7c920700100000003e000000" +
+                "00000000" +
+                /* Only six of the sixteen declared MakerNote bytes exist. */
+                "010203040506"
+        )
+
+        val exception = assertFailsWith<ImageReadException> {
+            TiffReader.read(ByteArrayByteReader(bytes))
+        }
+
+        assertEquals("Failed to read the MakerNote.", exception.message)
+    }
+
+    /**
      * Regression test: strip offsets come from unsigned LONGs and can
      * resolve beyond the signed Int range in hostile files. The metadata
      * read must survive the hostile offset without crashing, and a
