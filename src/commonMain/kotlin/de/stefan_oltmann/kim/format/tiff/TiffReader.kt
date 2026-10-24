@@ -307,7 +307,8 @@ public object TiffReader {
         valueOffsetBase: Int = 0,
         followNextDirectory: Boolean = true,
         preferPanasonicRawTags: Boolean = false,
-        depth: Int = 0
+        depth: Int = 0,
+        isSubIfdChild: Boolean = false
     ): Boolean {
 
         /* We don't want to visit a directory twice. */
@@ -384,7 +385,8 @@ public object TiffReader {
                 entries = fields,
                 offset = currentOffset,
                 nextDirectoryOffset = nextDirectoryOffset,
-                byteOrder = byteOrder
+                byteOrder = byteOrder,
+                isSubIfdChild = isSubIfdChild
             )
 
             /*
@@ -596,7 +598,16 @@ public object TiffReader {
                          */
                         followNextDirectory = false,
                         preferPanasonicRawTags = preferPanasonicRawTags,
-                        depth = depth + 1
+                        depth = depth + 1,
+                        /*
+                         * A directory reached through a SubIFDs offset - or
+                         * descending from a parent that was - belongs to
+                         * the SubIFD structure a rewrite cannot preserve.
+                         * The chain successors of such a directory inherit
+                         * the flag through readDirectory's chain walk.
+                         */
+                        isSubIfdChild = directory.isSubIfdChild ||
+                            offsetField == ExifTag.EXIF_TAG_SUB_IFDS_OFFSET
                     )
 
                 } catch (ex: ImageReadException) {

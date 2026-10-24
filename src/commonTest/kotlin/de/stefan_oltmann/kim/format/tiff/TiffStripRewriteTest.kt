@@ -26,6 +26,7 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -176,7 +177,8 @@ class TiffStripRewriteTest {
             entries = emptyList(),
             offset = 8,
             nextDirectoryOffset = 0,
-            byteOrder = ByteOrder.LITTLE_ENDIAN
+            byteOrder = ByteOrder.LITTLE_ENDIAN,
+            isSubIfdChild = true
         )
 
         val tiffContents = TiffContents(
@@ -190,6 +192,56 @@ class TiffStripRewriteTest {
         assertFailsWith<ImageWriteException> {
             tiffContents.createOutputSet()
         }
+    }
+
+    /**
+     * Regression test: a spec-legal root chain IFD0 -> IFD1 -> IFD2 must
+     * stay rewritable. The chain successor numbering shares its type ids
+     * with the folded SubIFD number space (IFD2 == EXIF_SUB_IFD1), so a
+     * type-keyed refusal rejected chain files that carry no SubIFDs
+     * pointer at all. The refusal must key on the SubIFDs provenance of
+     * the directory, not on the type id.
+     */
+    @Test
+    fun testChainIfdWithoutSubIfdsStaysRewritable() {
+
+        /*
+         * IFD0 (ImageWidth, next -> IFD1), IFD1 (ImageWidth, next -> IFD2)
+         * and IFD2 (ImageWidth, no successor).
+         */
+        val tiffBytes = convertHexStringToByteArray(
+            /* TIFF header, little endian */
+            "49492a00" +
+                /* IFD0 offset */
+                "08000000" +
+                /* IFD0 entry count */
+                "0100" +
+                /* ImageWidth = 4 */
+                "0001" + "0400" + "01000000" + "04000000" +
+                /* next IFD = 26 */
+                "1a000000" +
+                /* IFD1 entry count */
+                "0100" +
+                /* ImageWidth = 4 */
+                "0001" + "0400" + "01000000" + "04000000" +
+                /* next IFD = 44 */
+                "2c000000" +
+                /* IFD2 entry count */
+                "0100" +
+                /* ImageWidth = 4 */
+                "0001" + "0400" + "01000000" + "04000000" +
+                /* next IFD */
+                "00000000"
+        )
+
+        val tiffContents = TiffReader.read(ByteArrayByteReader(tiffBytes))
+
+        assertEquals(3, tiffContents.directories.size)
+
+        val outputSet = tiffContents.createOutputSet()
+
+        /* The rewrite keeps every directory of the chain. */
+        assertEquals(3, outputSet.getDirectories().size)
     }
 
     /**

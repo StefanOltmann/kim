@@ -47,7 +47,15 @@ public class TiffDirectory(
     public val entries: List<TiffField>,
     offset: Int,
     public val nextDirectoryOffset: Int,
-    public val byteOrder: ByteOrder
+    public val byteOrder: ByteOrder,
+    /**
+     * Whether the directory was reached through a SubIFDs offset field
+     * (or descends from one) instead of the root chain. The folded chain
+     * numbering shares its type ids with the SubIFD number space, so
+     * only this provenance tells a folded SubIFD - which a rewrite
+     * cannot preserve - from a legal chain successor of the same id.
+     */
+    public val isSubIfdChild: Boolean = false
 ) : TiffElement(
     debugDescription = "Directory " + description(type) + " @ $offset",
     offset = offset,
