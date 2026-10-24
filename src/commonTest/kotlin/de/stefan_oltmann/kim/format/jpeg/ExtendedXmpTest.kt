@@ -15,6 +15,7 @@
  */
 package de.stefan_oltmann.kim.format.jpeg
 
+import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
@@ -22,12 +23,14 @@ import de.stefan_oltmann.kim.common.Md5
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.jpeg.xmp.JpegXmpParser
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ExtendedXmpTest {
@@ -405,6 +408,44 @@ class ExtendedXmpTest {
 
         /* The output must remain readable. */
         assertNotNull(Kim.readMetadata(newBytes))
+    }
+
+    /**
+     * A file whose standard packet was lost while its extension segments
+     * survived carries bytes that the read skips and no tool can ever
+     * decode. An XMP-writing update must remove them even when no
+     * standard packet exists to replace.
+     *
+     * The fixture is an ExifTool-written oversized-XMP JPEG whose
+     * extension segments ExifTool reports as "Ignored non-standard
+     * extended XMP", with the standard XMP APP1 segment mechanically
+     * removed.
+     */
+    @Test
+    fun testUpdateRemovesOrphanExtendedXmpWithoutStandardPacket() {
+
+        val original = Resource(
+            "de/stefan_oltmann/kim/testdata/jpeg_with_orphan_extended_xmp.jpg"
+        ).readBytes()
+
+        /* Premise: the orphans exist, but no packet references them. */
+        assertTrue(
+            original.decodeToString().contains("http://ns.adobe.com/xmp/extension/")
+        )
+        assertNull(Kim.readMetadata(original)?.xmp)
+
+        val newBytes = Kim.update(
+            bytes = original,
+            update = MetadataUpdate.Title("Replacement Title")
+        )
+
+        assertFalse(
+            newBytes.decodeToString().contains("http://ns.adobe.com/xmp/extension/"),
+            "The orphan extension segments must be removed from the rewrite."
+        )
+
+        /* The output must remain readable and carry the new title. */
+        assertEquals(true, Kim.readMetadata(newBytes)?.xmp?.contains("Replacement Title"))
     }
 
     /**

@@ -283,7 +283,7 @@ public object JpegRewriter {
         }
 
         if (!removedFirstXmp)
-            return insertAfterLastAppSegments(this, newSegments)
+            return insertAfterLastAppSegments(output, newSegments)
 
         if (firstSurvivingXmpIndex < 0)
             return insertAfterLastAppSegments(output, newSegments)
