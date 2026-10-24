@@ -15,8 +15,11 @@
  */
 package de.stefan_oltmann.kim
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.time.Duration
 import kotlin.time.TimeSource
 
@@ -28,11 +31,15 @@ import kotlin.time.TimeSource
  * the largest photo and the workload also runs on small CI runners. The
  * numbers land in the test output - run this class alone and grep for
  * "BENCHMARK".
+ *
+ * The walk also asserts the parse contract - exactly the known-broken
+ * corpus files fail with an [ImageReadException], every other file
+ * parses - so a format regression cannot hide behind the timing output.
  */
 class MetadataParsingBenchmarkTest {
 
     @Test
-    fun parseCorpusRepeatedly() {
+    fun testCorpusParsesWhileBenchmarking() {
 
         val warmupPasses = 5
 
@@ -54,6 +61,22 @@ class MetadataParsingBenchmarkTest {
             repeat(warmupPasses) {
                 runCatching { Kim.readMetadata(bytes) }
             }
+
+            /*
+             * Exactly the known-unreadable files must fail: the broken
+             * JPEGs are rejected by the segment length validation, and
+             * media_80 stores its metadata in brob containers that
+             * cannot be read without brotli support (strict read policy).
+             */
+            if (id in KimTestData.brokenJpegIds || id == KimTestData.JXL_CONTAINER_COMPRESSED_INDEX)
+                assertFailsWith<ImageReadException> {
+                    Kim.readMetadata(bytes)
+                }
+            else
+                assertNotNull(
+                    Kim.readMetadata(bytes),
+                    "media_$id no longer parses; a format parser may be broken."
+                )
 
             val start = TimeSource.Monotonic.markNow()
 
