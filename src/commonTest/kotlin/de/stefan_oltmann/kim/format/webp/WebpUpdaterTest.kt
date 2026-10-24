@@ -25,6 +25,7 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.model.MetadataUpdate
+import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
@@ -292,6 +293,46 @@ class WebpUpdaterTest : AbstractUpdaterTest("webp") {
 
         /* ... while the written XMP is declared. */
         assertTrue(updatedVp8x.hasXmp)
+    }
+
+    /**
+     * Regression test: a legacy file (image data first, no VP8X) can
+     * carry an EXIF chunk. The updater reads the whole chunk list, keeps
+     * an EXIF chunk its update does not touch, so the freshly created
+     * VP8X must declare it - a false flag makes flag-honoring readers
+     * like libwebp ignore the surviving EXIF. The else branch already
+     * derives the ICC flag from the surviving chunks; the metadata flags
+     * must follow the same rule.
+     *
+     * The fixture was derived from media_59 by dropping the VP8X, ICCP
+     * and XMP chunks; ExifTool reads its EXIF.
+     */
+    @Test
+    fun testUpdateOfLegacyFileDeclaresTheSurvivingExifChunk() {
+
+        val bytes = Resource(
+            "de/stefan_oltmann/kim/testdata/webp_legacy_with_exif.webp"
+        ).readBytes()
+
+        /* Sanity: the chunk list carries a parseable EXIF chunk. */
+        val chunks = WebPImageParser.readChunks(
+            byteReader = ByteArrayByteReader(bytes),
+            stopAfterMetadataRead = false
+        )
+
+        val metadata = WebPImageParser.parseMetadataFromChunks(chunks)
+
+        assertNotNull(metadata.exifBytes)
+
+        val updatedBytes = Kim.update(
+            bytes = bytes,
+            updates = setOf(MetadataUpdate.Rating(ExifRating.FIVE_STARS))
+        )
+
+        assertTrue(
+            vp8xChunk(updatedBytes).hasExif,
+            "The fresh VP8X must declare the surviving EXIF chunk."
+        )
     }
 
     /**
