@@ -149,6 +149,47 @@ class MakerNotePreservationTest {
     }
 
     /**
+     * Regression test: a 0x927C entry in IFD0 must never capture the write
+     * anchor. The reader resolves the MakerNote tag inside the EXIF
+     * directory only, so the writer must pick the same field - a decoy
+     * entry in IFD0 would otherwise reflow the real MakerNote to a new
+     * offset, corrupting vendor-specific absolute offsets without failing
+     * the write.
+     */
+    @Test
+    fun testMakerNoteAnchorIgnoresDecoyEntryInIfd0() {
+
+        val bytes = DecoyMakerNoteJpeg.build()
+
+        val originalField = assertNotNull(
+            findMakerNoteField(bytes),
+            "The test JPEG must contain a MakerNote."
+        )
+
+        val updatedBytes = Kim.update(
+            bytes = bytes,
+            update = MetadataUpdate.TakenDate(TEST_TAKEN_DATE_MILLIS)
+        )
+
+        val updatedField = assertNotNull(
+            findMakerNoteField(updatedBytes),
+            "Update of the file with the decoy entry dropped the MakerNote."
+        )
+
+        assertContentEquals(
+            expected = originalField.valueBytes,
+            actual = updatedField.valueBytes,
+            message = "MakerNote bytes changed on update."
+        )
+
+        assertEquals(
+            expected = originalField.valueOffset,
+            actual = updatedField.valueOffset,
+            message = "MakerNote offset changed on update."
+        )
+    }
+
+    /**
      * Regression test: the MakerNote keeps its offset even when the
      * content before it grows beyond that offset.
      *
