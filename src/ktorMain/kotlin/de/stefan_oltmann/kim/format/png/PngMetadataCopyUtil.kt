@@ -23,6 +23,7 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.KotlinIoSourceByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.KotlinIoSinkByteWriter
+import kotlin.random.Random
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 
@@ -117,10 +118,14 @@ public object PngMetadataCopyUtil {
 
             /*
              * The atomic move did not happen, so the temporary file would
-             * leak into the destination directory forever.
+             * leak into the destination directory forever. A failing
+             * delete (the file held by a virus scanner, say) must not
+             * mask the original failure, so its outcome is discarded.
              */
-            if (SystemFileSystem.exists(tempFilePath))
-                SystemFileSystem.delete(tempFilePath)
+            runCatching {
+                if (SystemFileSystem.exists(tempFilePath))
+                    SystemFileSystem.delete(tempFilePath)
+            }
 
             throw ex
         }
@@ -166,10 +171,15 @@ public object PngMetadataCopyUtil {
      *
      * The parent may be NULL for bare relative destinations - building
      * the string naively produced a literal "null/..." directory name.
+     *
+     * A random infix makes every call unique: a deterministic name let
+     * two concurrent copies of the same destination interleave their
+     * writes into one file, and it truncated an unrelated user file
+     * that happened to carry exactly that name.
      */
     internal fun tempFilePathFor(destination: Path): Path {
 
-        val fileName = "${destination.name}.tmp"
+        val fileName = "${destination.name}.${Random.nextInt().toUInt()}.tmp"
 
         return if (destination.parent != null)
             Path("${destination.parent}/${fileName}")
