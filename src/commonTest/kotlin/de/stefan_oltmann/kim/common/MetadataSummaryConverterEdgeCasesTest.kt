@@ -316,6 +316,41 @@ class MetadataSummaryConverterEdgeCasesTest {
         assertEquals(expectedTakenDate, metadata.convertToSummary().takenDate)
     }
 
+    /**
+     * ASCII fields with an even byte count are routinely space padded, and
+     * the ASCII field type keeps trailing spaces as content. Like ExifTool,
+     * which trims this tag, a space-padded "05 " must still yield 50 ms -
+     * the padding must not cost the fraction the way a garbage value does.
+     */
+    @Test
+    fun testTakenDateSubSecondToleratesSpacePadding() {
+
+        val metadata = MediaMetadata(
+            mediaFormat = MediaFormat.JPEG,
+            imageSize = null,
+            exif = tiffContents(
+                tiffField(
+                    ExifTag.EXIF_TAG_DATE_TIME_ORIGINAL,
+                    "2020:08:30 18:43:00\u0000".encodeToByteArray()
+                ),
+                tiffField(
+                    ExifTag.EXIF_TAG_SUB_SEC_TIME_ORIGINAL,
+                    "05 ".encodeToByteArray()
+                )
+            ),
+            exifBytes = null,
+            iptc = null,
+            xmp = null
+        )
+
+        val expectedTakenDate = LocalDateTime
+            .parse("2020-08-30T18:43:00.05")
+            .toInstant(TimeZone.of("GMT+02:00"))
+            .toEpochMilliseconds()
+
+        assertEquals(expectedTakenDate, metadata.convertToSummary().takenDate)
+    }
+
     @Test
     fun testInvalidTakenDateIsIgnored() {
 

@@ -304,10 +304,13 @@ public object MetadataSummaryConverter {
              * fraction: "09" means 0.09 seconds. Converting it through a
              * number would strip the leading zeros and shift the taken
              * date by up to 900 ms, so the raw value is appended after
-             * validating it.
+             * validating it. Even byte counts are space padded in the
+             * wild, and ExifTool trims this tag, so the padding is
+             * removed before the digit check.
              */
             val takenDateSubSecond = metadata
                 .findStringValue(ExifTag.EXIF_TAG_SUB_SEC_TIME_ORIGINAL)
+                ?.trim()
                 ?.takeIf { subSecond ->
                     subSecond.isNotEmpty() &&
                         subSecond.length <= MAX_SUB_SECOND_DIGITS &&
