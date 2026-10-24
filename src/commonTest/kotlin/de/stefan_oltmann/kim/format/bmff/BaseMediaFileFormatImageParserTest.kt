@@ -198,6 +198,61 @@ class BaseMediaFileFormatImageParserTest {
     }
 
     /**
+     * Regression test: two extents of the SAME item that overlap must
+     * fail the read. The walk is forward-only, so a negative gap would
+     * read the continuation from whatever position the previous extent
+     * ended at - bytes the iloc never declared for the item - and
+     * assemble EXIF from the wrong region of the file. The cross-item
+     * overlap already fails in the item loop; this pins the same rule
+     * inside one item.
+     */
+    @Test
+    fun testOverlappingExtentsOfOneItemFailTheRead() {
+
+        val bytes = buildHeicFile(
+            iinfEntries = listOf(ItemSpec(itemId = 1, itemType = BMFFConstants.ITEM_TYPE_EXIF))
+        ) { mdatDataOffset ->
+
+            /*
+             * The first extent covers the TIFF header offset field and
+             * the TIFF header; the second starts four bytes before the
+             * first one ends. The bytes behind the first extent happen
+             * to complete a well-formed TIFF, so a silent wrong-position
+             * read would succeed instead of failing.
+             */
+            val ilocBox = box(
+                type = BoxType.ILOC,
+                payload = createIlocPayloadForItems(
+                    items = listOf(
+                        ItemSpec(
+                            itemId = 1,
+                            itemType = BMFFConstants.ITEM_TYPE_EXIF,
+                            extents = listOf(
+                                ExtentSpec(offset = mdatDataOffset, length = 12),
+                                ExtentSpec(offset = mdatDataOffset + 8, length = 6)
+                            )
+                        )
+                    )
+                )
+            )
+
+            /* Header offset field, TIFF header, empty IFD0, padding. */
+            val mdatPayload = convertHexStringToByteArray(
+                "00000000" +
+                    "49492a00" + "08000000" +
+                    "0000" + "00000000" +
+                    "0000000000000000"
+            )
+
+            Pair(ilocBox, mdatPayload)
+        }
+
+        assertFailsWith<ImageReadException> {
+            BaseMediaFileFormatImageParser.parseMetadata(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /**
      * Regression test: an item that starts before the end position of
      * the previously processed item must fail the read. The reader
      * would have to jump backwards and desync, and silently dropping

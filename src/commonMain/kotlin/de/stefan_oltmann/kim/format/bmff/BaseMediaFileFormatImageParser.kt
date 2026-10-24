@@ -342,11 +342,21 @@ public object BaseMediaFileFormatImageParser : ImageParser {
 
         for ((index, extent) in item.extents.withIndex()) {
 
+            val gapToSkip = extent.offset - currentPosition
+
             /*
              * Extents of an item do not need to be adjacent, so gaps
-             * between them are skipped without being interpreted.
+             * between them are skipped without being interpreted. An
+             * extent that starts inside the previous one would make the
+             * forward-only reader take its bytes from a position the
+             * iloc never declared, so it fails the read instead. The
+             * first extent is exempt: the caller positioned the reader,
+             * and the EXIF path already consumed its leading bytes.
              */
-            val gapToSkip = extent.offset - currentPosition
+            if (index > 0 && gapToSkip < 0)
+                throw ImageReadException(
+                    "The $label item has overlapping extents at ${extent.offset}."
+                )
 
             if (gapToSkip > 0)
                 byteReader.skipBytes("gap between extents", gapToSkip)
