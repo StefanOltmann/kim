@@ -16,6 +16,7 @@
  */
 package de.stefan_oltmann.kim.format.jpeg
 
+import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.Md5
@@ -34,6 +35,10 @@ import de.stefan_oltmann.kim.format.jpeg.iptc.createIptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.withIptcDigestResource
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
 import de.stefan_oltmann.kim.format.tiff.TiffContents
+import de.stefan_oltmann.kim.format.tiff.TiffField
+import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
+import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeShort
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.tiff.write.isExifUpdate
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
@@ -117,7 +122,12 @@ internal object JpegUpdater : MetadataUpdater {
              * modified segment.
              */
             val losslessOrientationApplied =
-                onlyOrientation != null && tryLosslessOrientationUpdate(segments, onlyOrientation.tiffOrientation)
+                onlyOrientation != null &&
+                    tryLosslessOrientationUpdate(
+                        segments = segments,
+                        exif = kimMetadata.exif,
+                        tiffOrientation = onlyOrientation.tiffOrientation
+                    )
 
             val outputSet = if (exifUpdates.isEmpty() || losslessOrientationApplied)
                 null
@@ -283,14 +293,23 @@ internal object JpegUpdater : MetadataUpdater {
     }
 
     /**
-     * Applies the orientation losslessly by swapping the orientation value
-     * byte in the EXIF segment of the given segments, if an orientation
-     * field exists.
+     * Applies the orientation losslessly by swapping its value byte in
+     * the first EXIF segment, when the parsed IFD0 field is the spec's
+     * SHORT entry with one value and that byte lies inside the segment.
+     *
+     * The strictly parsed field is the source of truth for the patch
+     * position, so the swap can only ever hit the byte the read resolved
+     * the value from: never a coincidental entry in bytes the parser
+     * skipped, and never a byte behind the segment. A byte that another
+     * parsed field claims as well - the MakerNote value bytes above all -
+     * takes the rewrite instead, which anchors the MakerNote at its
+     * original offset.
      *
      * Returns whether the swap was performed.
      */
     private fun tryLosslessOrientationUpdate(
         segments: MutableList<JFIFPieceSegment>,
+        exif: TiffContents?,
         tiffOrientation: TiffOrientation
     ): Boolean {
 
@@ -301,40 +320,101 @@ internal object JpegUpdater : MetadataUpdater {
 
         val exifSegment = segments[exifSegmentIndex]
 
-        /*
-         * The offset finder works on the raw file bytes, so the SOI and the
-         * segments up to and including the EXIF segment are rebuilt. This is
-         * cheap, because only the header is involved.
-         */
-        val headerByteWriter = ByteArrayByteWriter()
-
-        headerByteWriter.write(JpegConstants.SOI)
-
-        for (segment in segments.take(exifSegmentIndex + 1))
-            segment.write(headerByteWriter)
-
-        val headerBytes = headerByteWriter.toByteArray()
+        val orientationField =
+            exif?.findTiffField(TiffTag.TIFF_TAG_ORIENTATION) ?: return false
 
         /*
-         * Attention: A corrupt EXIF segment deliberately fails the update
-         * instead of falling back to the full rewrite. The rewrite would
-         * silently drop all unreadable EXIF data, which must never happen.
+         * Only the spec's SHORT entry with one value keeps its value
+         * inside the entry. Anything else takes the rewrite path, which
+         * rebuilds the entry correctly - patching a byte into a foreign
+         * layout would silently corrupt the value.
          */
-        val orientationOffset = JpegOrientationOffsetFinder
-            .findOrientationOffset(ByteArrayByteReader(headerBytes))
-            ?: return false
+        if (orientationField.fieldType !== FieldTypeShort ||
+            orientationField.count != 1 ||
+            orientationField.localValue == null
+        )
+            return false
 
-        val exifContentOffset = headerBytes.size - exifSegment.segmentBytes.size
+        val exifHeaderEnd =
+            JpegUtils.findExifHeaderEnd(exifSegment.segmentBytes) ?: return false
 
-        val relativeOffset = (orientationOffset - exifContentOffset).toInt()
+        /*
+         * The TIFF bytes of the first segment map 1:1 onto the front of
+         * the buffer the strict read parsed, so the parsed TIFF offsets
+         * address the segment bytes behind the Exif header. Little-endian
+         * files store the low value byte first, big-endian files store it
+         * one byte later.
+         */
+        val valueByteInEntry = TiffConstants.TIFF_ENTRY_VALUE_OFFSET +
+            if (orientationField.byteOrder == ByteOrder.BIG_ENDIAN) 1 else 0
+
+        val valueByteInTiff = orientationField.offset + valueByteInEntry
+
+        if (isClaimedByAnotherField(exif, orientationField, valueByteInTiff))
+            return false
+
+        val valueByteOffset = exifHeaderEnd + valueByteInTiff
+
+        /*
+         * A value byte at or behind the first segment's end belongs to a
+         * continuation segment: the in-place swap cannot reach it, the
+         * rewrite of the EXIF data can.
+         */
+        if (valueByteOffset >= exifSegment.segmentBytes.size)
+            return false
 
         val patchedExifBytes = exifSegment.segmentBytes.copyOf()
 
-        patchedExifBytes[relativeOffset] = tiffOrientation.value.toByte()
+        patchedExifBytes[valueByteOffset] = tiffOrientation.value.toByte()
 
         segments[exifSegmentIndex] = JFIFPieceSegment(exifSegment.marker, patchedExifBytes)
 
         return true
+    }
+
+    /**
+     * Whether the given TIFF-relative byte offset lies inside the entry
+     * bytes or the out-of-line value bytes of a parsed field other than
+     * [orientationField] itself.
+     *
+     * A crafted file can overlap the orientation entry with another
+     * structure, so a blind swap would silently change that structure -
+     * the MakerNote above all, whose value bytes must survive every
+     * write byte-exact. A byte that two parsed fields claim takes the
+     * rewrite path instead.
+     */
+    private fun isClaimedByAnotherField(
+        exif: TiffContents,
+        orientationField: TiffField,
+        byteOffset: Int
+    ): Boolean {
+
+        val directories = exif.directories +
+            listOfNotNull(exif.makerNoteDirectory) +
+            exif.makerNoteSubDirectories
+
+        for (directory in directories) {
+
+            for (field in directory.entries) {
+
+                if (field === orientationField)
+                    continue
+
+                val entryEnd = field.offset + TiffConstants.TIFF_ENTRY_LENGTH
+
+                if (byteOffset in field.offset until entryEnd)
+                    return true
+
+                val valueOffset = field.valueOffset ?: continue
+
+                val valueEnd = valueOffset + field.valueBytes.size
+
+                if (byteOffset in valueOffset until valueEnd)
+                    return true
+            }
+        }
+
+        return false
     }
 
 }
