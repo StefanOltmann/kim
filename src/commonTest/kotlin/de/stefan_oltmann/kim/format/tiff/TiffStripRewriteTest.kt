@@ -262,6 +262,35 @@ class TiffStripRewriteTest {
     }
 
     /**
+     * Regression test: a strip group of count 0 declares no image data
+     * at all. Capturing it as an empty, non-null array made the rewrite
+     * emit a degenerate StripByteCounts = 0 / StripOffsets pair instead
+     * of dropping the counterpart fields like the no-capture path does.
+     */
+    @Test
+    fun testZeroCountStripGroupCapturesNoImageBytes() {
+
+        val tiffContents = TiffReader.read(
+            ByteArrayByteReader(zeroCountStripTiffBytes()),
+            readTiffImageBytes = true
+        )
+
+        val ifd0 = assertNotNull(
+            tiffContents.directories.firstOrNull { directory ->
+                directory.type == TiffConstants.TIFF_DIRECTORY_TYPE_IFD0
+            }
+        )
+
+        assertNull(ifd0.tiffImageBytes)
+
+        /* The counterpart fields drop with the absent image bytes. */
+        val outputSet = tiffContents.createOutputSet()
+
+        assertNull(outputSet.findField(TiffTag.TIFF_TAG_STRIP_BYTE_COUNTS.tag))
+        assertNull(outputSet.findField(TiffTag.TIFF_TAG_ROWS_PER_STRIP.tag))
+    }
+
+    /**
      * The minimal tiled TIFF fixture: IFD0 with the tile image field
      * set and tile bytes behind it.
      */
@@ -301,6 +330,38 @@ class TiffStripRewriteTest {
 
             /* tile bytes, never captured */
             "00112233445566778899aabbccddeeff"
+    )
+
+    /**
+     * The minimal striped TIFF fixture whose strip group carries count 0:
+     * StripOffsets and StripByteCounts exist but describe no strip.
+     */
+    private fun zeroCountStripTiffBytes(): ByteArray = convertHexStringToByteArray(
+        /* TIFF header, little endian */
+        "49492a00" +
+            /* IFD0 offset */
+            "08000000" +
+
+            /* IFD0 with a count-0 strip group. Entry count. */
+            "0800" +
+            /* ImageWidth = 4 */
+            "0001" + "0300" + "01000000" + "04000000" +
+            /* ImageLength = 4 */
+            "0101" + "0300" + "01000000" + "04000000" +
+            /* BitsPerSample = 8 */
+            "0201" + "0300" + "01000000" + "08000000" +
+            /* Compression = none */
+            "0301" + "0300" + "01000000" + "01000000" +
+            /* Photometric = black is zero */
+            "0601" + "0300" + "01000000" + "01000000" +
+            /* StripOffsets, LONG, count 0 */
+            "1101" + "0400" + "00000000" + "00000000" +
+            /* SamplesPerPixel = 1 */
+            "1501" + "0300" + "01000000" + "01000000" +
+            /* StripByteCounts, LONG, count 0 */
+            "1701" + "0400" + "00000000" + "00000000" +
+            /* next IFD */
+            "00000000"
     )
 
     companion object {

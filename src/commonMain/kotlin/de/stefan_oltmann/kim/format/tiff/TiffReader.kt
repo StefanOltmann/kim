@@ -423,7 +423,14 @@ public object TiffReader {
                         "Strip image data could not be captured for a rewrite."
                     )
 
-                directory.tiffImageBytes = stripBytes
+                /*
+                 * A strip group of count 0 captures nothing: keeping the
+                 * empty array would emit a degenerate StripByteCounts = 0
+                 * pair, so the empty result is treated like no image data
+                 * and the counterpart fields drop with it.
+                 */
+                if (stripBytes.isNotEmpty())
+                    directory.tiffImageBytes = stripBytes
             }
 
             addDirectory(directory)
