@@ -84,17 +84,7 @@ public object MetadataSummaryConverter {
     ): MetadataSummary {
 
         val xmpMetadata: MetadataSummary? = mediaMetadata.xmp?.let { xmp ->
-            try {
-                XmpReader.readMetadata(xmp)
-            } catch (ex: Exception) {
-                if (ignoreBrokenXmp)
-                    null
-                else
-                    throw ImageReadException(
-                        "Failed to parse XMP data: ${ex.message}",
-                        ex
-                    )
-            }
+            parseXmpMetadataOrNull(xmp, ignoreBrokenXmp)
         }
 
         val orientation = if (ignoreOrientation)
@@ -238,6 +228,32 @@ public object MetadataSummaryConverter {
             thumbnailBytes = thumbnailBytes
         )
     }
+
+    /**
+     * Parses the XMP packet into a summary, or returns NULL for a packet
+     * that cannot be parsed when [ignoreBrokenXmp] is set.
+     *
+     * The parser is injectable so tests can pin the cancellation contract:
+     * a cancelled call is not a broken packet and must always propagate.
+     */
+    internal fun parseXmpMetadataOrNull(
+        xmp: String,
+        ignoreBrokenXmp: Boolean,
+        readXmpMetadata: (String) -> MetadataSummary = XmpReader::readMetadata
+    ): MetadataSummary? =
+        try {
+            readXmpMetadata(xmp)
+        } catch (ex: CancellationException) {
+            throw ex
+        } catch (ex: Exception) {
+            if (ignoreBrokenXmp)
+                null
+            else
+                throw ImageReadException(
+                    "Failed to parse XMP data: ${ex.message}",
+                    ex
+                )
+        }
 
     /**
      * EXIF strings are NUL-terminated and IPTC strings of fixed-length

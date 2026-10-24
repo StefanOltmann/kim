@@ -38,6 +38,7 @@ import de.stefan_oltmann.kim.testdata.tiffField
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -184,6 +185,26 @@ class MetadataSummaryConverterEdgeCasesTest {
 
         assertFailsWith<ImageReadException> {
             metadata.convertToSummary()
+        }
+    }
+
+    /**
+     * A cancelled XMP parse must stay a cancellation: swallowing it
+     * would silently drop the XMP fields with [ignoreBrokenXmp] and
+     * misreport the cancelled call as corrupt metadata without it.
+     */
+    @Test
+    fun testCancellationDuringXmpParsePropagates() {
+
+        for (ignoreBrokenXmp in listOf(false, true)) {
+            assertFailsWith<CancellationException> {
+                MetadataSummaryConverter.parseXmpMetadataOrNull(
+                    xmp = "<x:xmpmeta/>",
+                    ignoreBrokenXmp = ignoreBrokenXmp
+                ) {
+                    throw CancellationException("Injected cancellation.")
+                }
+            }
         }
     }
 
