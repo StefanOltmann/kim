@@ -126,6 +126,45 @@ class IptcParserTest {
     }
 
     /**
+     * Regression test: the CodedCharacterSet record declares the charset
+     * of the whole block, and nonconformant writers emit record-2
+     * datasets before the 1:90 envelope (ExifTool warns "IPTC charset
+     * tag not first" for exactly those files). A UTF-8 keyword in front
+     * of the envelope must not be Latin-1 decoded into mojibake - the
+     * strict read policy counts a misdecode like a silent drop.
+     */
+    @Test
+    fun testParseIptcAppliesTheCharsetFlagToRecordsBeforeTheEnvelope() {
+
+        /* Keywords (2:25) "Bräutigam" in UTF-8, then the padded 1:90. */
+        val blockData = convertHexStringToByteArray(
+            "1c0219000a4272c3a475746967616d" +
+                "1c015a000420" + "1b2547"
+        )
+
+        val iptcBlock = IptcBlock(
+            blockType = IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DATA,
+            blockNameBytes = IptcParser.EMPTY_BYTE_ARRAY,
+            blockData = blockData
+        )
+
+        val iptcBytes = IptcWriter.writeIptcBlocks(
+            blocks = listOf(iptcBlock),
+            includeApp13Identifier = false
+        )
+
+        val actualIptc = IptcParser.parseIptc(
+            bytes = iptcBytes,
+            startsWithApp13Header = false
+        )
+
+        assertEquals(
+            expected = listOf(IptcRecord(IptcTypes.KEYWORDS, "Bräutigam")),
+            actual = actualIptc.records
+        )
+    }
+
+    /**
      * The IPTC extended-length encoding stores the number of bytes of the
      * length field in its low bits. ExifTool reads any length field size
      * between 1 and 8; the two byte variant is the smallest one a writer
