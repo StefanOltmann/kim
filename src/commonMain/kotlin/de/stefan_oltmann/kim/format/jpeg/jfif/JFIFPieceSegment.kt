@@ -17,6 +17,7 @@
  */
 package de.stefan_oltmann.kim.format.jpeg.jfif
 
+import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toBytes
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
@@ -34,7 +35,7 @@ internal open class JFIFPieceSegment(
     constructor(marker: Int, segmentBytes: ByteArray) : this(
         marker = marker,
         markerBytes = marker.toShort().toBytes(JpegConstants.JPEG_BYTE_ORDER),
-        segmentLengthBytes = (segmentBytes.size + 2).toShort().toBytes(JpegConstants.JPEG_BYTE_ORDER),
+        segmentLengthBytes = toSegmentLengthBytes(segmentBytes),
         segmentBytes = segmentBytes
     )
 
@@ -67,4 +68,24 @@ internal open class JFIFPieceSegment(
     fun isXmpSegment(): Boolean =
         marker == JpegConstants.JPEG_APP1_MARKER && (segmentBytes.startsWith(JpegConstants.XMP_IDENTIFIER) ||
             segmentBytes.startsWith(JpegConstants.EXTENDED_XMP_IDENTIFIER))
+
+    companion object {
+
+        /**
+         * Bounds a freshly built payload at the 16-bit length field. The
+         * cast would wrap silently for larger payloads and serialize a
+         * corrupt JPEG, so the choke point rejects them instead.
+         */
+        private fun toSegmentLengthBytes(segmentBytes: ByteArray): ByteArray {
+
+            if (segmentBytes.size > JpegConstants.MAX_PAYLOAD_BYTES_PER_SEGMENT)
+                throw ImageWriteException(
+                    "Segment payload is too large for a single JPEG segment: " +
+                        "${segmentBytes.size} bytes " +
+                        "(maximum ${JpegConstants.MAX_PAYLOAD_BYTES_PER_SEGMENT})."
+                )
+
+            return (segmentBytes.size + 2).toShort().toBytes(JpegConstants.JPEG_BYTE_ORDER)
+        }
+    }
 }

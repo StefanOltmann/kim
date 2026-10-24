@@ -79,7 +79,7 @@ internal object JxlReader {
             mediaFormat = MediaFormat.JXL,
             /*
              * The image size lives inside the codestream, which the metadata
- * scan does not parse - see the limitations in the README.
+             * scan does not parse - see the limitations in the README.
              */
             imageSize = null,
             exif = exifBox?.tiffContents,

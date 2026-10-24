@@ -22,38 +22,56 @@ import de.stefan_oltmann.kim.input.ByteReader
  * The payload bytes of a box, materialized only when they are read.
  *
  * Payload that is already buffered inside a byte array is carried as a
- * window into that array, so the children of a container box parse from
+ * [Window] into that array, so the children of a container box parse from
  * the parent's buffer without copying the payload for every nesting
  * level - the payload array exists only if something actually reads it.
  */
-internal class PayloadSource private constructor(
-    private val bytes: ByteArray?,
-    private val windowArray: ByteArray?,
-    private val windowOffset: Int,
+internal sealed interface PayloadSource {
+
     val length: Int
-) {
 
     /**
-     * The payload bytes. For a window this copies the region out of the
+     * The payload bytes. For a [Window] this copies the region out of the
      * parent buffer, like the eager read did before.
      */
-    fun bytes(): ByteArray =
-        bytes ?: windowArray!!.copyOfRange(windowOffset, windowOffset + length)
+    fun bytes(): ByteArray
 
     /**
-     * A reader over the payload. A window reads through the parent
+     * A reader over the payload. A [Window] reads through the parent
      * buffer, so no copy happens for the child box walk.
      */
-    fun reader(): ByteReader =
-        bytes?.let { ByteArrayByteReader(it) }
-            ?: ByteArrayByteReader(windowArray!!, windowOffset, windowOffset + length)
+    fun reader(): ByteReader
+
+    class Bytes(
+        private val content: ByteArray
+    ) : PayloadSource {
+
+        override val length: Int = content.size
+
+        override fun bytes(): ByteArray = content
+
+        override fun reader(): ByteReader = ByteArrayByteReader(content)
+    }
+
+    class Window(
+        private val array: ByteArray,
+        private val offset: Int,
+        override val length: Int
+    ) : PayloadSource {
+
+        override fun bytes(): ByteArray =
+            array.copyOfRange(offset, offset + length)
+
+        override fun reader(): ByteReader =
+            ByteArrayByteReader(array, offset, offset + length)
+    }
 
     companion object {
 
         fun of(bytes: ByteArray): PayloadSource =
-            PayloadSource(bytes, null, 0, bytes.size)
+            Bytes(bytes)
 
         fun ofWindow(array: ByteArray, offset: Int, length: Int): PayloadSource =
-            PayloadSource(null, array, offset, length)
+            Window(array, offset, length)
     }
 }

@@ -155,6 +155,25 @@ class AndroidInputStreamByteReaderTest {
         assertEquals(true, closed)
     }
 
+    /**
+     * Regression test: the legacy loop must reject a negative count with
+     * the same guard the base class applies on API 33+ - a
+     * NegativeArraySizeException instead would be the same programming
+     * error surfaced as a different exception type per Android version.
+     */
+    @Test
+    fun testLegacyReadRejectsNegativeCount() {
+
+        val reader = AndroidInputStreamByteReader(
+            inputStream = PartialReadInputStream(byteArrayOf(1)),
+            contentLength = 1
+        )
+
+        assertFailsWith<IllegalArgumentException> {
+            reader.readBytesLegacy(-1)
+        }
+    }
+
     private companion object {
 
         /* The stub delivers at most this many bytes per read call */

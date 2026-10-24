@@ -307,7 +307,8 @@ public object TiffReader {
         valueOffsetBase: Int = 0,
         followNextDirectory: Boolean = true,
         preferPanasonicRawTags: Boolean = false,
-        depth: Int = 0
+        depth: Int = 0,
+        isSubIfdChild: Boolean = false
     ): Boolean {
 
         /* We don't want to visit a directory twice. */
@@ -384,7 +385,8 @@ public object TiffReader {
                 entries = fields,
                 offset = currentOffset,
                 nextDirectoryOffset = nextDirectoryOffset,
-                byteOrder = byteOrder
+                byteOrder = byteOrder,
+                isSubIfdChild = isSubIfdChild
             )
 
             /*
@@ -408,8 +410,30 @@ public object TiffReader {
                         "cannot be captured for a rewrite."
                 )
 
-            if (readTiffImageBytes && directory.hasStripImageData())
-                directory.tiffImageBytes = readStripBytes(byteReader, directory)
+            if (readTiffImageBytes && directory.hasStripImageData()) {
+
+                val stripBytes = readStripBytes(byteReader, directory)
+
+                /*
+                 * A rewrite cannot restore strip image data that the file
+                 * does not fully contain: the directory would describe an
+                 * image whose bytes are missing. Failing here mirrors the
+                 * tile refusal above instead of writing that hollow file.
+                 */
+                if (stripBytes == null)
+                    throw ImageReadException(
+                        "Strip image data could not be captured for a rewrite."
+                    )
+
+                /*
+                 * A strip group of count 0 captures nothing: keeping the
+                 * empty array would emit a degenerate StripByteCounts = 0
+                 * pair, so the empty result is treated like no image data
+                 * and the counterpart fields drop with it.
+                 */
+                if (stripBytes.isNotEmpty())
+                    directory.tiffImageBytes = stripBytes
+            }
 
             addDirectory(directory)
 
@@ -574,7 +598,16 @@ public object TiffReader {
                          */
                         followNextDirectory = false,
                         preferPanasonicRawTags = preferPanasonicRawTags,
-                        depth = depth + 1
+                        depth = depth + 1,
+                        /*
+                         * A directory reached through a SubIFDs offset - or
+                         * descending from a parent that was - belongs to
+                         * the SubIFD structure a rewrite cannot preserve.
+                         * The chain successors of such a directory inherit
+                         * the flag through readDirectory's chain walk.
+                         */
+                        isSubIfdChild = directory.isSubIfdChild ||
+                            offsetField == ExifTag.EXIF_TAG_SUB_IFDS_OFFSET
                     )
 
                 } catch (ex: ImageReadException) {
@@ -620,6 +653,13 @@ public object TiffReader {
      * unreadable MakerNote sub-directories, which ExifTool skips while
      * keeping the MakerNote as an opaque binary block, an unreadable
      * field cannot be preserved at all.
+     *
+     * Every other field is dropped instead of failing the read: ExifTool
+     * warns and continues for a field without a completely readable
+     * value, whether the count or the value offset is impossible or the
+     * data ends inside the value. The [de.stefan_oltmann.kim.Kim]
+     * documentation whitelists exactly this drop as a documented
+     * exception to the strict read policy.
      */
     private fun rejectUnreadableField(tag: Int) {
 
@@ -770,23 +810,23 @@ public object TiffReader {
             /*
              * Ignore corrupt offsets.
              *
-             * Offsets come from unsigned LONGs, so they can resolve beyond
-             * the signed Int range, and the end position can wrap around.
-             * Both checks therefore run in Long space.
+             * The stored offset comes from an unsigned LONG: keeping the
+             * sign bit would resolve it backwards from a non-zero value
+             * base and decode unrelated bytes as the field value. The
+             * masked value can exceed the addressable range once the
+             * base is added, so the check runs in Long space.
              */
-            val resolvedOffset = valueOffsetBase.toLong() + valueOrOffset.toLong()
-
-            val endPos = resolvedOffset + valueLength
+            val resolvedOffset =
+                valueOffsetBase.toLong() + (valueOrOffset.toLong() and 0xFFFFFFFFL)
 
             val valueBytes: ByteArray = if (!isLocalValue) {
 
                 /*
-                 * Except for fields that a rewrite cannot afford to lose.
-                 * The content length is only a hint for stream sources,
-                 * so an offset is corrupt when the real read comes back
-                 * short, not when the hint says so.
+                 * A resolved offset above the signed range stays a
+                 * corruption case, like a negative offset: the field
+                 * follows the field-level policy.
                  */
-                if (resolvedOffset < 0 || endPos < 0) {
+                if (resolvedOffset > Int.MAX_VALUE) {
                     rejectUnreadableField(tag)
                     continue
                 }
@@ -794,6 +834,17 @@ public object TiffReader {
                 val bytes = byteReader.readBytes(resolvedOffset.toInt(), valueLength)
 
                 if (bytes.size < valueLength) {
+
+                    /*
+                     * The bytes end inside the value: clean file-boundary
+                     * truncation, not corruption. The value cannot be
+                     * returned completely, so the field is dropped, and
+                     * nothing is fabricated from the missing remainder.
+                     * The content length of stream sources is only a
+                     * hint, so the real read decides here, never the
+                     * hint. Fields that a rewrite cannot afford to lose
+                     * still fail the read.
+                     */
                     rejectUnreadableField(tag)
                     continue
                 }

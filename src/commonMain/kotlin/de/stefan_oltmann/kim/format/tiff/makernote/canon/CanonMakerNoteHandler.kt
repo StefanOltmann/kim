@@ -98,8 +98,7 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
         "EOS R6 Mark III" to canonCameraInfo(CanonCameraInfoR6m3Tag.ALL),
         "EOS R6" to canonCameraInfo(CanonCameraInfoR6Tag.ALL),
         "G5 X Mark II" to canonCameraInfo(CanonCameraInfoG5XIITag.ALL),
-        "PowerShot" to canonCameraInfo(CanonCameraInfoPowerShot2Tag.ALL),
-        "Unknown32" to canonCameraInfo(CanonCameraInfoUnknown32Tag.ALL)
+        "PowerShot" to canonCameraInfo(CanonCameraInfoPowerShot2Tag.ALL)
     )
 
     /**

@@ -372,9 +372,24 @@ public class TiffOutputSet(
         )
     }
 
-    /** Returns the MakerNote output field, or NULL when none was added. */
-    public fun findMakerNoteField(): TiffOutputField? =
-        findField(ExifTag.EXIF_TAG_MAKER_NOTE.tag)
+    /**
+     * Returns the MakerNote output field, or NULL when none was added.
+     *
+     * A field in the EXIF directory wins over one in any other directory,
+     * mirroring the reader's directory-type-bound lookup: a decoy 0x927C
+     * entry in another directory must never capture the write anchor that
+     * pins the real MakerNote to its original offset. Sets built by hand
+     * may carry the field in any directory, so the EXIF directory is only
+     * preferred, not required.
+     */
+    public fun findMakerNoteField(): TiffOutputField? {
+
+        val exifDirectory =
+            directories.firstOrNull { it.type == TiffConstants.TIFF_DIRECTORY_EXIF }
+
+        return exifDirectory?.findField(ExifTag.EXIF_TAG_MAKER_NOTE.tag)
+            ?: findField(ExifTag.EXIF_TAG_MAKER_NOTE.tag)
+    }
 
     /** Returns the output field with the given tag id, searching all directories. */
     public fun findField(tag: Int): TiffOutputField? =

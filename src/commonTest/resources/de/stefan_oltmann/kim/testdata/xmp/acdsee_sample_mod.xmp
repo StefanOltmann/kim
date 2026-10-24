@@ -71,14 +71,6 @@
           <rdf:li>John</rdf:li>
         </rdf:Bag>
       </Iptc4xmpExt:PersonInImage>
-      <acdsee:keywords>
-        <rdf:Bag>
-          <rdf:li>Braut</rdf:li>
-          <rdf:li>Bräutigam</rdf:li>
-          <rdf:li>Paar</rdf:li>
-          <rdf:li>After-Party</rdf:li>
-        </rdf:Bag>
-      </acdsee:keywords>
       <dc:creator>
         <rdf:Seq>
           <rdf:li>Stefan Oltmann                                                                                                                                                                                                                                                 </rdf:li>

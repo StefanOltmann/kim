@@ -75,7 +75,8 @@ tasks.named("check") {
         tasks.named("allTests"),
         tasks.named("koverVerify"),
         tasks.named("detekt"),
-        tasks.named("checkTextFiles")
+        tasks.named("checkTextFiles"),
+        tasks.named("checkCopyrightNotices")
     )
 }
 
@@ -595,6 +596,54 @@ val checkTextFiles: TaskProvider<Task> = tasks.register("checkTextFiles") {
             "${violations.size} text file violation(s) - expected UTF-8 without BOM, LF line " +
                 "endings, no NUL bytes and a final newline (see .editorconfig); fix the files, " +
                 "the check never rewrites them:\n$shown$more"
+        )
+    }
+}
+// endregion
+
+// region Check copyright notices
+/*
+ * Check-only guard so NOTICE.txt stays complete: every copyright holder that a source file
+ * header names must be credited in NOTICE.txt as well, otherwise the attribution a downstream
+ * legal review checks is incomplete. It never rewrites anything - adding the name to NOTICE.txt
+ * or fixing the header stays a deliberate decision.
+ */
+val checkCopyrightNotices: TaskProvider<Task> = tasks.register("checkCopyrightNotices") {
+
+    group = "verification"
+    description = "Checks that every copyright holder named in a source header under src/ occurs in NOTICE.txt."
+
+    doLast {
+
+        val noticeText = rootDir.resolve("NOTICE.txt").readText()
+
+        /*
+         * Source headers write "Copyright <year>[-<year>] <holder>"; the holder may span
+         * several words ("The Apache Software Foundation").
+         */
+        val holderRegex = Regex("""(?m)^\s*(?:/\*|\*)?\s*Copyright \d{4}(?:-\d{4})?\s+(.+?)\s*$""")
+
+        val holders = sortedSetOf<String>()
+
+        rootDir.resolve("src").walkTopDown()
+            .filter { it.isFile && it.extension == "kt" }
+            .forEach { file ->
+                file.forEachLine { line ->
+                    val match = holderRegex.find(line)
+                    if (match != null)
+                        holders += match.groupValues[1]
+                }
+            }
+
+        val missingHolders = holders.filter { holder -> holder !in noticeText }
+
+        if (missingHolders.isEmpty())
+            return@doLast
+
+        throw GradleException(
+            "NOTICE.txt does not credit the copyright holder(s) named in source headers: " +
+                "${missingHolders.joinToString(", ")}. Add them to NOTICE.txt or fix the " +
+                "headers - one of the two must reflect reality."
         )
     }
 }

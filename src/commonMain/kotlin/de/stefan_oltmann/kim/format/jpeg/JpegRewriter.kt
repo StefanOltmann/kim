@@ -130,9 +130,20 @@ public object JpegRewriter {
 
         var removedFirstExif = false
 
+        /*
+         * The start of an independent EXIF block ends the removal for
+         * good: every EXIF segment behind it belongs to that foreign
+         * block - removing a continuation there would truncate the block
+         * mid-TIFF and destroy data Kim never interpreted.
+         */
+        var removalStopped = false
+
         val oldSegmentsWithoutExif = segments.filterNot { piece ->
 
             if (piece !is JFIFPieceSegment || !piece.isExifSegment())
+                return@filterNot false
+
+            if (removalStopped)
                 return@filterNot false
 
             /*
@@ -143,8 +154,10 @@ public object JpegRewriter {
             val isContinuation =
                 JpegUtils.findExifContinuationHeaderEnd(piece.marker, piece.segmentBytes) != null
 
-            if (removedFirstExif && !isContinuation)
+            if (removedFirstExif && !isContinuation) {
+                removalStopped = true
                 return@filterNot false
+            }
 
             removedFirstExif = true
 
@@ -242,11 +255,13 @@ public object JpegRewriter {
      * only the first packet, so the new segments are inserted ahead of
      * the survivors when any exist.
      *
-     * Every extended-XMP segment is removed, including orphans whose
-     * GUID no surviving packet references: their content is
-     * undecodable without the lost main packet (the read already skips
-     * them silently, like ExifTool), so keeping them would preserve
-     * bytes no tool can ever decode.
+     * Extended-XMP segments in front of a surviving packet are removed,
+     * including orphans whose GUID no packet references: their content
+     * is undecodable without the lost main packet (the read already
+     * skips them silently, like ExifTool), so keeping them would
+     * preserve bytes no tool can ever decode. Extended segments behind
+     * a surviving packet belong to that foreign packet - they are
+     * referenced by its GUID, so they survive with it.
      *
      * Without surviving packets the new segments go behind the last
      * APP segment, exactly like the single-packet case always did.
@@ -267,8 +282,14 @@ public object JpegRewriter {
                 continue
             }
 
-            if (piece.segmentBytes.startsWith(JpegConstants.EXTENDED_XMP_IDENTIFIER))
+            if (piece.segmentBytes.startsWith(JpegConstants.EXTENDED_XMP_IDENTIFIER)) {
+
+                /* The extension chunks of a surviving packet stay with it. */
+                if (firstSurvivingXmpIndex >= 0)
+                    output.add(piece)
+
                 continue
+            }
 
             if (removedFirstXmp) {
 
@@ -283,7 +304,7 @@ public object JpegRewriter {
         }
 
         if (!removedFirstXmp)
-            return insertAfterLastAppSegments(this, newSegments)
+            return insertAfterLastAppSegments(output, newSegments)
 
         if (firstSurvivingXmpIndex < 0)
             return insertAfterLastAppSegments(output, newSegments)

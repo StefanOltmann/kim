@@ -15,7 +15,13 @@
  */
 package de.stefan_oltmann.kim.input
 
+import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.writeFully
+import kotlinx.coroutines.runBlocking
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -108,5 +114,48 @@ class KtorByteReadChannelByteReaderTest {
         )
 
         assertEquals(Long.MAX_VALUE, reader.contentLength)
+    }
+
+    /**
+     * Regression test: bytes the channel already delivered must be
+     * readable without waiting for the full buffer size or the channel
+     * close - a bidirectional protocol that wrote a header and keeps
+     * the channel open must not stall the very first read.
+     */
+    @Test
+    fun testReadReturnsAvailableBytesWithoutWaitingForTheBufferMax() {
+
+        val bytes = byteArrayOf(1, 2, 3, 4)
+
+        /* autoFlush makes the written bytes immediately readable. */
+        val channel = ByteChannel(autoFlush = true)
+
+        /* The channel delivers the bytes but never closes. */
+        runBlocking {
+            channel.writeFully(bytes)
+        }
+
+        val reader = KtorByteReadChannelByteReader(
+            channel = channel,
+            contentLength = bytes.size.toLong()
+        )
+
+        val executor = Executors.newSingleThreadExecutor()
+
+        try {
+            val future = executor.submit(Callable { reader.readBytes(bytes.size) })
+
+            /*
+             * The old refill parked until 32 KB arrived or the channel
+             * closed, so this future only completed on timeout.
+             */
+            assertEquals(
+                expected = bytes.toList(),
+                actual = future.get(5, TimeUnit.SECONDS).toList()
+            )
+        } finally {
+            channel.cancel(null)
+            executor.shutdownNow()
+        }
     }
 }

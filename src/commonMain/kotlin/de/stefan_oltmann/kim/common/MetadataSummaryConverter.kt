@@ -84,17 +84,7 @@ public object MetadataSummaryConverter {
     ): MetadataSummary {
 
         val xmpMetadata: MetadataSummary? = mediaMetadata.xmp?.let { xmp ->
-            try {
-                XmpReader.readMetadata(xmp)
-            } catch (ex: Exception) {
-                if (ignoreBrokenXmp)
-                    null
-                else
-                    throw ImageReadException(
-                        "Failed to parse XMP data: ${ex.message}",
-                        ex
-                    )
-            }
+            parseXmpMetadataOrNull(xmp, ignoreBrokenXmp)
         }
 
         val orientation = if (ignoreOrientation)
@@ -111,6 +101,13 @@ public object MetadataSummaryConverter {
         val takenDateMillis: Long? = extractTakenDateMillisFromExif(mediaMetadata)
             ?: xmpMetadata?.takenDate
 
+        /*
+         * The XMP position wins over the EXIF one, the reverse of the
+         * taken date above: a position corrected after the capture
+         * (geotagging tools write it into the XMP packet) must replace
+         * the camera's original EXIF fix in the summary, not the other
+         * way around.
+         */
         val gpsCoordinates: GpsCoordinates? = xmpMetadata?.gpsCoordinates
             ?: extractGpsCoordinatesFromExif(mediaMetadata)
 
@@ -233,6 +230,32 @@ public object MetadataSummaryConverter {
     }
 
     /**
+     * Parses the XMP packet into a summary, or returns NULL for a packet
+     * that cannot be parsed when [ignoreBrokenXmp] is set.
+     *
+     * The parser is injectable so tests can pin the cancellation contract:
+     * a cancelled call is not a broken packet and must always propagate.
+     */
+    internal fun parseXmpMetadataOrNull(
+        xmp: String,
+        ignoreBrokenXmp: Boolean,
+        readXmpMetadata: (String) -> MetadataSummary = XmpReader::readMetadata
+    ): MetadataSummary? =
+        try {
+            readXmpMetadata(xmp)
+        } catch (ex: CancellationException) {
+            throw ex
+        } catch (ex: Exception) {
+            if (ignoreBrokenXmp)
+                null
+            else
+                throw ImageReadException(
+                    "Failed to parse XMP data: ${ex.message}",
+                    ex
+                )
+        }
+
+    /**
      * EXIF strings are NUL-terminated and IPTC strings of fixed-length
      * datasets are NUL-padded, so the trailing NUL bytes are container
      * structure and are removed. Trailing SPACES are kept: ExifTool
@@ -281,10 +304,13 @@ public object MetadataSummaryConverter {
              * fraction: "09" means 0.09 seconds. Converting it through a
              * number would strip the leading zeros and shift the taken
              * date by up to 900 ms, so the raw value is appended after
-             * validating it.
+             * validating it. Even byte counts are space padded in the
+             * wild, and ExifTool trims this tag, so the padding is
+             * removed before the digit check.
              */
             val takenDateSubSecond = metadata
                 .findStringValue(ExifTag.EXIF_TAG_SUB_SEC_TIME_ORIGINAL)
+                ?.trim()
                 ?.takeIf { subSecond ->
                     subSecond.isNotEmpty() &&
                         subSecond.length <= MAX_SUB_SECOND_DIGITS &&

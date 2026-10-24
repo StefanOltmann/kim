@@ -19,7 +19,6 @@ package de.stefan_oltmann.kim.format.tiff
 
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.decodeStrictUtf8
-import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaMetadata
@@ -27,6 +26,7 @@ import de.stefan_oltmann.kim.format.icc.IccProfile
 import de.stefan_oltmann.kim.format.icc.IccProfileParser
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants
 import de.stefan_oltmann.kim.format.jpeg.JpegSegmentAnalyzer
+import de.stefan_oltmann.kim.format.jpeg.JpegUtils
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
@@ -117,6 +117,12 @@ public object TiffImageParser : ImageParser {
     /**
      * Extracts the payload of the first APP1 EXIF segment of the given JPEG bytes.
      *
+     * The EXIF header variants of real camera files (lowercase "exif",
+     * a missing second NUL, up to four garbage prefix bytes) are accepted
+     * like [JpegUtils.findExifHeaderEnd] accepts them everywhere else -
+     * a strict match here would silently drop the MakerNote of the
+     * embedded preview.
+     *
      * Preview bytes that contain no APP1 EXIF segment yield NULL, so a
      * well-formed preview simply carrying no EXIF leaves the file
      * readable. Bytes that are not a scannable JPEG at all fail the
@@ -129,32 +135,35 @@ public object TiffImageParser : ImageParser {
             ByteArrayByteReader(jpegBytes)
         )
 
-        val exifSegment = segments.firstOrNull { info ->
+        val exifSegment = segments.firstNotNullOfOrNull { info ->
 
             if (info.marker != JpegConstants.JPEG_APP1_MARKER)
-                return@firstOrNull false
+                return@firstNotNullOfOrNull null
 
             /*
              * Long arithmetic, so offsets of huge files cannot overflow
              * the bounds check.
              */
             if (info.offset + info.length > jpegBytes.size)
-                return@firstOrNull false
+                return@firstNotNullOfOrNull null
 
             val segmentBytes = jpegBytes.copyOfRange(
                 info.offset.toInt() + 4,
                 info.offset.toInt() + info.length.toInt()
             )
 
-            segmentBytes.startsWith(JpegConstants.EXIF_IDENTIFIER_CODE)
-
+            JpegUtils.findExifHeaderEnd(segmentBytes)?.let { headerEnd ->
+                info to headerEnd
+            }
         } ?: return null
 
-        val payloadStart = exifSegment.offset.toInt() + 4 + JpegConstants.EXIF_IDENTIFIER_CODE.size
+        val (segment, headerEnd) = exifSegment
+
+        val payloadStart = segment.offset.toInt() + 4 + headerEnd
 
         return jpegBytes.copyOfRange(
             payloadStart,
-            exifSegment.offset.toInt() + exifSegment.length.toInt()
+            segment.offset.toInt() + segment.length.toInt()
         )
     }
 

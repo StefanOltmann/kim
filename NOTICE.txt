@@ -16,6 +16,13 @@ Apache License, Version 2.0.
 Since 2026, the project is independently maintained and 
 developed by Stefan Oltmann.
 
+Portions of the ISOBMFF/box parsing code were contributed by
+Ramon Bouckaert.
+Copyright 2025-2026 Ramon Bouckaert
+
+The Fujifilm MakerNote tag table was contributed by Gnod.
+Copyright 2026 Gnod
+
 -----------------------------------------------------------------------
 
 This product includes a modified portion of 'Apache Commons Imaging'

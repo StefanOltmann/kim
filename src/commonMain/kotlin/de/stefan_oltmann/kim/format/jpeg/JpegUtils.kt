@@ -188,13 +188,6 @@ internal object JpegUtils {
 
         byteReader.readAndVerifyBytes("JPEG SOI (0xFFD8)", JpegConstants.SOI)
 
-        /*
-         * Counted in Long space, so streams larger than the signed Int
-         * range cannot wrap the counter and silently disable the
-         * truncation checks below.
-         */
-        var readBytesCount = JpegConstants.SOI.size.toLong()
-
         var headerSegmentBytes = 0
 
         while (true) {
@@ -207,8 +200,6 @@ internal object JpegUtils {
             val scan = scanner.nextMarker(zeroIsFillByte = false)
                 ?: return segments to null
 
-            readBytesCount += scan.consumedCount
-
             /* The EOI marker means the file has no image data. */
             if (scan.marker == JpegConstants.EOI_MARKER)
                 return segments to null
@@ -216,24 +207,30 @@ internal object JpegUtils {
             if (scan.marker == JpegConstants.SOS_MARKER)
                 return segments to scan.markerBytes
 
-            /* If we don't have enough bytes for the segment count we are done reading. */
-            if (byteReader.contentLength - readBytesCount < 2)
+            /*
+             * The content length is only a hint for stream sources, so
+             * the length bytes are read for real: the walk ends at the
+             * actual end of the data, never at a hint that understates
+             * the content and would drop the segments behind it.
+             */
+            val segmentLengthBytes = byteReader.readBytes(2)
+
+            /* The data ends between the marker and its length field. */
+            if (segmentLengthBytes.size < 2)
                 return segments to null
-
-            val segmentLengthBytes = byteReader.readBytes("segmentLengthBytes", 2)
-
-            readBytesCount += 2L
 
             val segmentLength = segmentLengthBytes.toUInt16(JPEG_BYTE_ORDER)
 
             val segmentContentLength = segmentLength - 2
 
-            val remainingByteCount = byteReader.contentLength - readBytesCount
+            /*
+             * Only the negative check applies: the actual read of the
+             * segment data below fails loudly when the content ends
+             * inside the segment.
+             */
+            validateSegmentContentLength(segmentContentLength, Long.MAX_VALUE)
 
-            validateSegmentContentLength(segmentContentLength, remainingByteCount)
             val segmentData = byteReader.readBytes("segmentData", segmentContentLength)
-
-            readBytesCount += segmentContentLength.toLong()
 
             if (keepMarker(scan.marker)) {
 

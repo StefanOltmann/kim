@@ -125,4 +125,16 @@ public sealed interface MetadataUpdate {
         val personsInImage: Set<String>
     ) : MetadataUpdate
 
+    /**
+     * Sets or deletes simple properties in an application-defined namespace,
+     * so a host application can carry its own fields through the same update
+     * pipeline without KIM knowing them. A NULL value deletes the property;
+     * the prefix is a suggestion that is only applied when the URI is new.
+     */
+    public data class CustomProperties(
+        val namespace: String,
+        val prefix: String,
+        val properties: Map<String, String?>
+    ) : MetadataUpdate
+
 }

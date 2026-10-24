@@ -24,6 +24,7 @@ import kotlinx.cinterop.refTo
 import platform.posix.FILE
 import platform.posix.SEEK_END
 import platform.posix.fclose
+import platform.posix.ferror
 import platform.posix.fopen
 import platform.posix.fread
 import platform.posix.fseek
@@ -105,7 +106,13 @@ internal class PosixFileByteReader(
             file
         )
 
-        return if (bytesReadCount == 1.toULong()) buffer[0] else null
+        if (bytesReadCount == 1.toULong())
+            return buffer[0]
+
+        /* A short read is the clean end only when feof, not ferror, says so. */
+        ensureNoReadError("read a byte of")
+
+        return null
     }
 
     override fun readBytes(count: Int): ByteArray {
@@ -130,11 +137,17 @@ internal class PosixFileByteReader(
                 file
             )
 
-            /* The real end of the data was reached. */
-            if (bytesReadCount == 0.toULong())
-                break
-
+            /*
+             * A partial chunk is the end of the data or a read error -
+             * the clean end only when feof, not ferror, is set. The
+             * partial bytes still count: they are the available prefix.
+             */
             totalRead += bytesReadCount.convert<Int>()
+
+            if (bytesReadCount < chunkSize.toULong()) {
+                ensureNoReadError("read $chunkSize bytes of")
+                break
+            }
         }
 
         /* A short array reports the end of the data, never zero padding. */
@@ -143,5 +156,22 @@ internal class PosixFileByteReader(
 
     override fun close() {
         fclose(file)
+    }
+
+    /*
+     * fread signals a read error (bad sector, network stall, EISDIR) the
+     * same way it signals the end of the data: a short read. Without the
+     * ferror check the error would surface as a clean end, and the file's
+     * remaining content would be lost silently - kotlinx.io's FileSource
+     * checks the same pair of flags.
+     */
+    private fun ensureNoReadError(operation: String) {
+
+        if (ferror(file) == 0)
+            return
+
+        throw ImageReadException(
+            "Failed to $operation file: $filePath (${posixErrorMessage()})"
+        )
     }
 }

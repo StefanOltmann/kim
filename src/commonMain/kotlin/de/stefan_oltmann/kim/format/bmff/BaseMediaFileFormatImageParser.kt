@@ -149,7 +149,7 @@ public object BaseMediaFileFormatImageParser : ImageParser {
          * We currently do this by having a copy of all bytes
          * in buffer and input everything we read so far in again.
          * A bounded alternative would need a seekable source on
-     * every platform, which cloud streams do not provide.
+         * every platform, which cloud streams do not provide.
          *
          * If minOffset is null, there is no metadata to read from metadata offsets. The only
          * metadata we have is in UUID boxes, which we have already read into memory by this point.
@@ -173,9 +173,18 @@ public object BaseMediaFileFormatImageParser : ImageParser {
             copyByteReader.replayByteReader()
         }
 
-        check(byteReader.contentLength == byteReaderToUse.contentLength) {
-            "Content length is different: ${byteReader.contentLength} != ${byteReaderToUse.contentLength}"
-        }
+        /*
+         * The content length of stream sources is only a hint, and a
+         * one-shot stream of unknown size reports Long.MAX_VALUE - the
+         * replay, in contrast, knows the real retained byte count.
+         * Comparing both is only meaningful when the caller supplied a
+         * real size, so an unknown-length stream must not fail a valid
+         * Samsung-layout file here.
+         */
+        if (byteReader.contentLength != Long.MAX_VALUE)
+            check(byteReader.contentLength == byteReaderToUse.contentLength) {
+                "Content length is different: ${byteReader.contentLength} != ${byteReaderToUse.contentLength}"
+            }
 
         if (!onPositionBeforeMinimumOffset)
             position = 0
@@ -342,11 +351,21 @@ public object BaseMediaFileFormatImageParser : ImageParser {
 
         for ((index, extent) in item.extents.withIndex()) {
 
+            val gapToSkip = extent.offset - currentPosition
+
             /*
              * Extents of an item do not need to be adjacent, so gaps
-             * between them are skipped without being interpreted.
+             * between them are skipped without being interpreted. An
+             * extent that starts inside the previous one would make the
+             * forward-only reader take its bytes from a position the
+             * iloc never declared, so it fails the read instead. The
+             * first extent is exempt: the caller positioned the reader,
+             * and the EXIF path already consumed its leading bytes.
              */
-            val gapToSkip = extent.offset - currentPosition
+            if (index > 0 && gapToSkip < 0)
+                throw ImageReadException(
+                    "The $label item has overlapping extents at ${extent.offset}."
+                )
 
             if (gapToSkip > 0)
                 byteReader.skipBytes("gap between extents", gapToSkip)

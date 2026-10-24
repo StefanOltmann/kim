@@ -27,6 +27,7 @@ import de.stefan_oltmann.xmp.XMPConst
 import de.stefan_oltmann.xmp.XMPLocation
 import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
+import de.stefan_oltmann.xmp.XMPSchemaRegistry
 import de.stefan_oltmann.xmp.XmpDate
 import de.stefan_oltmann.xmp.XmpGps
 import de.stefan_oltmann.xmp.options.SerializeOptions
@@ -145,12 +146,12 @@ public object XmpWriter {
 
                 /*
                  * The reader treats acdsee:keywords as a first-class
-                 * keyword source, so deleting only dc:subject would leave
+                 * keyword source, so updating only dc:subject would leave
                  * the old keywords readable on ACDSee-processed files -
-                 * the delete must clear the ACDSee copy too.
+                 * every update must clear the ACDSee copy, the replacement
+                 * as much as the deletion.
                  */
-                if (update.keywords.isEmpty())
-                    deleteProperty(XMPConst.NS_ACDSEE, XMPConst.XMP_ACDSEE_KEYWORDS)
+                deleteProperty(XMPConst.NS_ACDSEE, XMPConst.XMP_ACDSEE_KEYWORDS)
 
                 setKeywords(update.keywords)
             }
@@ -160,6 +161,9 @@ public object XmpWriter {
 
             is MetadataUpdate.Persons ->
                 setPersonsInImage(update.personsInImage)
+
+            is MetadataUpdate.CustomProperties ->
+                applyCustomProperties(update)
         }
     }
 
@@ -223,6 +227,26 @@ public object XmpWriter {
         writePackageWrapper: Boolean
     ): String =
         updateXmp(xmpMeta, setOf(update), writePackageWrapper)
+
+    /**
+     * Sets or deletes the given simple properties in the custom namespace.
+     * A NULL value deletes the property. setProperty throws for unregistered
+     * schema namespaces, so the namespace is registered first; the call is
+     * idempotent for a known URI and keeps its registered prefix, so repeated
+     * writes never drift to different prefixes.
+     */
+    private fun XMPMeta.applyCustomProperties(update: MetadataUpdate.CustomProperties) {
+
+        XMPSchemaRegistry.registerNamespace(update.namespace, update.prefix)
+
+        for ((name, value) in update.properties) {
+
+            if (value == null)
+                deleteProperty(update.namespace, name)
+            else
+                setProperty(update.namespace, name, value)
+        }
+    }
 
     /**
      * Writes the GPS coordinates, or deletes them for NULL. Coordinates

@@ -72,13 +72,19 @@ public data class TiffContents(
              * The writer never re-emits the SubIFDs pointer, and the
              * reader folds the sub-IFDs into the chain-IFD number
              * space - a rewrite would silently restructure the file
-             * and displace the real chain directories. The conversion
-             * refuses the file instead of corrupting it.
+             * and displace the real chain directories. The refusal is
+             * structural and keys on the SubIFDs provenance: the folded
+             * type ids are shared with legal chain successors (IFD2
+             * carries the same id as EXIF_SUB_IFD1), so a type-keyed
+             * check would reject chain files that carry no SubIFDs
+             * pointer at all.
              */
-            if (directory.findField(ExifTag.EXIF_TAG_SUB_IFDS_OFFSET) != null)
+            if (directory.findField(ExifTag.EXIF_TAG_SUB_IFDS_OFFSET) != null ||
+                directory.isSubIfdChild
+            )
                 throw ImageWriteException(
-                    "The directory ${TiffDirectory.description(directory.type)} carries " +
-                        "a SubIFDs pointer, which a rewrite cannot preserve."
+                    "The directory ${TiffDirectory.description(directory.type)} is part " +
+                        "of the SubIFD structure, which a rewrite cannot preserve."
                 )
 
             /*

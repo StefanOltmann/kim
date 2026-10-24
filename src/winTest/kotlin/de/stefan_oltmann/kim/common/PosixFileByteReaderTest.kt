@@ -27,6 +27,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 /**
  * The streaming file reader must deliver the same bytes as an in-memory
@@ -106,6 +107,34 @@ class PosixFileByteReaderTest {
 
         assertFailsWith<ImageReadException> {
             PosixFileByteReader("this-path-does-not-exist.kim")
+        }
+    }
+
+    /**
+     * Regression test: the ferror/feof discrimination of the read paths
+     * must not break the clean end of the data - readByte reports NULL
+     * and readBytes an empty array at the boundary, the end-of-data
+     * contract every parser relies on.
+     */
+    @Test
+    fun testEndOfFileRemainsACleanEnd() {
+
+        val bytes = byteArrayOf(1, 2, 3, 4, 5)
+
+        val filePath = writeTempFile(bytes)
+
+        val reader = PosixFileByteReader(filePath)
+
+        try {
+
+            reader.readBytes(bytes.size)
+
+            assertNull(reader.readByte())
+
+            assertEquals(0, reader.readBytes(BEYOND_END_READ_COUNT).size)
+
+        } finally {
+            reader.close()
         }
     }
 

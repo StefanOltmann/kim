@@ -22,12 +22,13 @@ import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.common.copyTo
 import de.stefan_oltmann.kim.common.exists
 import de.stefan_oltmann.kim.common.readBytes
+import de.stefan_oltmann.kim.common.writeBytes
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
-import org.junit.Test
-import kotlin.test.assertEquals
+import kotlin.test.Test
 import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.test.fail
@@ -109,7 +110,8 @@ class PngMetadataCopyUtilTest {
             Path("out.png")
         )
 
-        assertEquals("out.png.tmp", tempFilePath.name)
+        assertTrue(tempFilePath.name.startsWith("out.png."))
+        assertTrue(tempFilePath.name.endsWith(".tmp"))
 
         assertNull(tempFilePath.parent)
     }
@@ -125,11 +127,70 @@ class PngMetadataCopyUtilTest {
             Path("build/sub/dir/out.png")
         )
 
-        assertEquals("out.png.tmp", tempFilePath.name)
+        assertTrue(tempFilePath.name.startsWith("out.png."))
+        assertTrue(tempFilePath.name.endsWith(".tmp"))
 
         assertTrue(
-            tempFilePath.toString().replace('\\', '/').endsWith("sub/dir/out.png.tmp")
+            tempFilePath.toString().replace('\\', '/').startsWith("build/sub/dir/out.png.")
         )
+    }
+
+    /**
+     * Regression test: every call must produce its own temporary path. A
+     * deterministic name lets two concurrent copies of the same
+     * destination interleave their writes into one file, publishing a
+     * corrupted PNG.
+     */
+    @Test
+    fun testTempFilePathsAreUniquePerCall() {
+
+        val destination = Path("build/out.png")
+
+        val first = PngMetadataCopyUtil.tempFilePathFor(destination)
+        val second = PngMetadataCopyUtil.tempFilePathFor(destination)
+
+        assertNotEquals(first.name, second.name)
+    }
+
+    /**
+     * Regression test: a user file that happens to carry the deterministic
+     * temp name must survive a copy untouched - the old deterministic
+     * name truncated it and the atomic move consumed it.
+     */
+    @Test
+    fun testCopyDoesNotTouchAnExistingTmpFileOfTheOldName() {
+
+        val destinationDirectory = Path("build/tmp-name-guard-${System.nanoTime()}")
+
+        SystemFileSystem.createDirectories(destinationDirectory)
+
+        val destination = Path("$destinationDirectory/out.png")
+
+        Path(getFullImageDiskPath(51)).copyTo(destination)
+
+        val markerBytes = "user data".encodeToByteArray()
+
+        val preExistingTmp = Path("$destinationDirectory/out.png.tmp")
+
+        preExistingTmp.writeBytes(markerBytes)
+
+        try {
+
+            PngMetadataCopyUtil.copy(
+                source = Path(getFullImageDiskPath(52)),
+                destination = destination
+            )
+
+            assertTrue(
+                markerBytes.contentEquals(preExistingTmp.readBytes()),
+                "The pre-existing out.png.tmp was modified by the copy."
+            )
+        } finally {
+
+            SystemFileSystem.delete(destination, mustExist = false)
+            SystemFileSystem.delete(preExistingTmp, mustExist = false)
+            SystemFileSystem.delete(destinationDirectory, mustExist = false)
+        }
     }
 
     /**
@@ -180,12 +241,12 @@ class PngMetadataCopyUtilTest {
         Path(getFullImageDiskPath(51)).copyTo(destination)
 
         /*
-         * A directory at the temporary file's path makes the write step
-         * fail while both files read cleanly.
+         * A destination held open without FILE_SHARE_DELETE makes the
+         * atomic move fail on Windows while both input files read
+         * cleanly. (The temporary path is unique per call, so blocking
+         * exactly that path is not possible anymore.)
          */
-        SystemFileSystem.createDirectories(
-            Path(PngMetadataCopyUtil.tempFilePathFor(destination).toString())
-        )
+        val heldDestination = java.io.RandomAccessFile(destination.toString(), "rw")
 
         try {
 
@@ -194,7 +255,7 @@ class PngMetadataCopyUtilTest {
                 destination = destination
             )
 
-            fail("Expected the copy to fail on the blocked temporary file.")
+            fail("Expected the copy to fail on the held destination.")
 
         } catch (ex: Throwable) {
 
@@ -203,12 +264,7 @@ class PngMetadataCopyUtilTest {
                 "A write failure surfaced as ImageReadException: $ex"
             )
         } finally {
-
-            /* The copy's cleanup may already have removed the directory. */
-            SystemFileSystem.delete(
-                path = Path(PngMetadataCopyUtil.tempFilePathFor(destination).toString()),
-                mustExist = false
-            )
+            heldDestination.close()
         }
     }
 

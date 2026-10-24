@@ -161,8 +161,14 @@ public object WebPWriter {
                     bytes = WebPChunkVP8X.createBytes(
                         hasIcc = hasIccChunk,
                         hasAlpha = hasAlpha,
-                        hasExif = exifBytes != null,
-                        hasXmp = xmp != null,
+                        /*
+                         * A legacy file can also carry metadata chunks its
+                         * update does not touch: they survive the rewrite,
+                         * so the fresh header must declare them like the
+                         * header replacement above does.
+                         */
+                        hasExif = hasExifChunk,
+                        hasXmp = hasXmpChunk,
                         hasAnimation = false,
                         imageSize = headerChunk.imageSize
                     )

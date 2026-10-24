@@ -81,49 +81,31 @@ public object MediaFormatMagicNumbers {
     )
 
     /** 4 bytes + "ftypheic". */
-    public val heic: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftypheic".encodeToByteArray().toList())
+    public val heic: List<Byte?> = ftypBrand("heic")
 
     /** A HEIC brand. */
-    public val mif1: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftypmif1".encodeToByteArray().toList())
+    public val mif1: List<Byte?> = ftypBrand("mif1")
 
     /** A HEIC brand. */
-    public val msf1: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftypmsf1".encodeToByteArray().toList())
+    public val msf1: List<Byte?> = ftypBrand("msf1")
 
     /** A HEIC brand. */
-    public val heix: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftypheix".encodeToByteArray().toList())
+    public val heix: List<Byte?> = ftypBrand("heix")
 
     /** A HEIC brand. */
-    public val hevc: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftyphevc".encodeToByteArray().toList())
+    public val hevc: List<Byte?> = ftypBrand("hevc")
 
     /** A HEIC brand. */
-    public val hevx: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftyphevx".encodeToByteArray().toList())
+    public val hevx: List<Byte?> = ftypBrand("hevx")
 
     /** 4 bytes + "ftypavif". */
-    public val avif: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftypavif".encodeToByteArray().toList())
+    public val avif: List<Byte?> = ftypBrand("avif")
 
     /** 4 bytes + "ftypavis". */
-    public val avis: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftypavis".encodeToByteArray().toList())
+    public val avis: List<Byte?> = ftypBrand("avis")
 
     /** 4 bytes + "ftypcrx". */
-    public val cr3: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftypcrx".encodeToByteArray().toList())
+    public val cr3: List<Byte?> = ftypBrand("crx")
 
     /** The regular ISOBMFF-based JPEG XL. */
     public val jxl: List<Byte> = byteListOf(
@@ -136,69 +118,43 @@ public object MediaFormatMagicNumbers {
     )
 
     /** The current MP4 standard. */
-    public val mp42: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftypmp42".encodeToByteArray().toList())
+    public val mp42: List<Byte?> = ftypBrand("mp42")
 
     /** The older MP4 standard. */
-    public val mp41: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftypmp41".encodeToByteArray().toList())
+    public val mp41: List<Byte?> = ftypBrand("mp41")
 
     /** The generic MP4 format (without closer specification). */
-    public val isom: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftypisom".encodeToByteArray().toList())
+    public val isom: List<Byte?> = ftypBrand("isom")
 
     /** MP4, similar to ISOM. */
-    public val iso2: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftypiso2".encodeToByteArray().toList())
+    public val iso2: List<Byte?> = ftypBrand("iso2")
 
     /** Apple MPEG-4 video (iTunes). */
-    public val m4v: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftypm4v".encodeToByteArray().toList())
+    public val m4v: List<Byte?> = ftypBrand("m4v")
 
     /** Adobe Flash video. */
-    public val f4v: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftypf4v".encodeToByteArray().toList())
+    public val f4v: List<Byte?> = ftypBrand("f4v")
 
     /** MP4 as written by newer iPhone generations. */
-    public val mp71: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftypmp71".encodeToByteArray().toList())
+    public val mp71: List<Byte?> = ftypBrand("mp71")
 
     /** Sony MP4. */
-    public val msnv: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftypMSNV".encodeToByteArray().toList())
+    public val msnv: List<Byte?> = ftypBrand("MSNV")
 
     /** MPEG-DASH self-initializing segment. */
-    public val dash: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftypdash".encodeToByteArray().toList())
+    public val dash: List<Byte?> = ftypBrand("dash")
 
     /** MP4 baseline profile. */
-    public val iso5: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftypiso5".encodeToByteArray().toList())
+    public val iso5: List<Byte?> = ftypBrand("iso5")
 
     /** MP4 extended profile. */
-    public val iso6: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftypiso6".encodeToByteArray().toList())
+    public val iso6: List<Byte?> = ftypBrand("iso6")
 
     /** MP4, often used for H.264 encoded files. */
-    public val avc1: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftypavc1".encodeToByteArray().toList())
+    public val avc1: List<Byte?> = ftypBrand("avc1")
 
     /** QuickTime video, the usual ftyp for MOV files. */
-    public val qt: List<Byte?> = byteListOf(
-        null, null, null, null
-    ).plus("ftypqt  ".encodeToByteArray().toList())
+    public val qt: List<Byte?> = ftypBrand("qt  ")
 
     /** The 'naked' code stream without metadata. */
     public val pdf: List<Byte> = byteListOf(
@@ -210,4 +166,13 @@ public object MediaFormatMagicNumbers {
 
     private fun byteListOf(vararg ints: Int): List<Byte> =
         ints.map { it.toByte() }
+
+    /**
+     * The ISOBMFF signatures: 4 wildcard major-brand size/indicator bytes
+     * followed by "ftyp" and the brand. QuickTime carries trailing spaces
+     * in its brand, so the builder takes the brand verbatim.
+     */
+    private fun ftypBrand(brand: String): List<Byte?> =
+        byteListOf(null, null, null, null)
+            .plus(("ftyp$brand").encodeToByteArray().toList())
 }

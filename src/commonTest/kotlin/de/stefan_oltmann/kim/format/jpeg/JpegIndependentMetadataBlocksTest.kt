@@ -123,6 +123,61 @@ class JpegIndependentMetadataBlocksTest {
         )
     }
 
+    /**
+     * Regression test: the second, independent EXIF block can itself
+     * span segments. The removal of the first block stops at the second
+     * block's head, but it must stop for good: a continuation segment
+     * behind that head belongs to the foreign block, and removing it
+     * would truncate that block mid-TIFF - destroying data Kim never
+     * interpreted.
+     */
+    @Test
+    fun testUpdatePreservesTheSecondBlockContinuations() {
+
+        val firstExif = JFIFPieceSegment(
+            marker = JpegConstants.JPEG_APP1_MARKER,
+            segmentBytes = buildIndependentExifPayload("Kim")
+        )
+
+        /* Mid-TIFF bytes of block 1: no byte order marker, so a continuation. */
+        val firstContinuation = JFIFPieceSegment(
+            marker = JpegConstants.JPEG_APP1_MARKER,
+            segmentBytes = "Exif\u0000\u0000CONT1-DATA".encodeToByteArray()
+        )
+
+        val secondExif = JFIFPieceSegment(
+            marker = JpegConstants.JPEG_APP1_MARKER,
+            segmentBytes = buildIndependentExifPayload("M2")
+        )
+
+        val secondContinuation = JFIFPieceSegment(
+            marker = JpegConstants.JPEG_APP1_MARKER,
+            segmentBytes = "Exif\u0000\u0000CONT2-DATA".encodeToByteArray()
+        )
+
+        val bytes = buildJpeg(firstExif, firstContinuation, secondExif, secondContinuation)
+
+        val updatedBytes = Kim.update(
+            bytes = bytes,
+            update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT)
+        )
+
+        /* The independent second block survived byte-exact ... */
+        assertTrue(
+            updatedBytes.containsBytes(secondExif.segmentBytes),
+            "The independent second EXIF block was removed by the update."
+        )
+
+        /* ... together with its own continuation segments. */
+        assertTrue(
+            updatedBytes.containsBytes(secondContinuation.segmentBytes),
+            "The continuation of the independent second EXIF block was removed by the update."
+        )
+
+        /* The continuation of the replaced first block is still gone. */
+        assertFalse(updatedBytes.containsBytes(firstContinuation.segmentBytes))
+    }
+
     @Test
     fun testUpdatePreservesIndependentSecondXmpPacket() {
 
@@ -159,6 +214,76 @@ class JpegIndependentMetadataBlocksTest {
         assertTrue(
             updatedBytes.containsBytes(secondXmp.segmentBytes),
             "The independent second XMP packet was removed by the update."
+        )
+    }
+
+    /**
+     * Regression test: the second, independent XMP packet can itself be
+     * split per Adobe extended-XMP - its main packet references the
+     * extension chunks by GUID. Those chunks are not orphans of the
+     * replaced first packet: they belong to the surviving foreign
+     * packet, and dropping them would truncate data Kim never
+     * interpreted.
+     */
+    @Test
+    fun testUpdatePreservesTheSecondPacketExtensions() {
+
+        val firstPacket =
+            """<x:xmpmeta xmlns:x="adobe:ns:meta/">""" +
+                """<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">""" +
+                """<rdf:Description rdf:about=""/></rdf:RDF></x:xmpmeta>"""
+
+        val guid = "00112233445566778899AABBCCDDEEFF"
+
+        val secondPacket =
+            """<x:xmpmeta xmlns:x="adobe:ns:meta/">""" +
+                """<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">""" +
+                """<rdf:Description rdf:about="" xmlns:xmpNote="http://ns.adobe.com/xmp/note/" """ +
+                """xmpNote:HasExtendedXMP="$guid"/></rdf:RDF></x:xmpmeta>"""
+
+        val firstXmp = JFIFPieceSegment(
+            marker = JpegConstants.JPEG_APP1_MARKER,
+            segmentBytes = JpegConstants.XMP_IDENTIFIER + firstPacket.encodeToByteArray()
+        )
+
+        val secondXmp = JFIFPieceSegment(
+            marker = JpegConstants.JPEG_APP1_MARKER,
+            segmentBytes = JpegConstants.XMP_IDENTIFIER + secondPacket.encodeToByteArray()
+        )
+
+        val extensionData = "EXT-BYTES".encodeToByteArray()
+
+        val secondExtension = JFIFPieceSegment(
+            marker = JpegConstants.JPEG_APP1_MARKER,
+            segmentBytes = JpegConstants.EXTENDED_XMP_IDENTIFIER +
+                guid.encodeToByteArray() +
+                byteArrayOf(
+                    (extensionData.size shr 24).toByte(),
+                    (extensionData.size shr 16).toByte(),
+                    (extensionData.size shr 8).toByte(),
+                    extensionData.size.toByte()
+                ) +
+                byteArrayOf(0, 0, 0, 0) +
+                extensionData
+        )
+
+        val bytes = buildJpeg(firstXmp, secondXmp, secondExtension)
+
+        val updatedBytes = Kim.update(
+            bytes = bytes,
+            update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT)
+        )
+
+        /* The independent second packet survived byte-exact ... */
+        assertTrue(
+            updatedBytes.containsBytes(secondXmp.segmentBytes),
+            "The independent second XMP packet was removed by the update."
+        )
+
+        /* ... together with the extension chunks it references. */
+        assertTrue(
+            updatedBytes.containsBytes(secondExtension.segmentBytes),
+            "The extended-XMP chunks of the surviving second packet were removed by the update."
         )
     }
 }

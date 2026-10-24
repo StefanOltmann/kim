@@ -17,10 +17,8 @@
 package de.stefan_oltmann.kim.input
 
 import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.cancel
-import io.ktor.utils.io.readBuffer
+import io.ktor.utils.io.readAvailable
 import kotlinx.coroutines.runBlocking
-import kotlinx.io.readByteArray
 
 /**
  * This class allows streaming data from a cloud service and read only
@@ -56,7 +54,7 @@ public class KtorByteReadChannelByteReader(
     override val contentLength: Long =
         if (contentLength > 0) contentLength else Long.MAX_VALUE
 
-    private var buffer: ByteArray = byteArrayOf()
+    private var buffer: ByteArray = ByteArray(0)
     private var bufferOffset = 0
     private var bufferLimit = 0
 
@@ -97,18 +95,16 @@ public class KtorByteReadChannelByteReader(
     }
 
     override fun close() {
-        runBlocking {
-            channel.cancel()
-        }
+        channel.cancel(null)
     }
 
     /*
      * Refills the buffer from the channel when it is exhausted.
      *
-     * A zero-byte refill means the channel delivered no data even though
-     * it was not flagged closed before the read (premature server close
-     * or a race). Both cases are treated as end-of-data, reported as
-     * false, instead of serving an empty buffer.
+     * A negative read count means the channel closed without delivering
+     * any more data (premature server close or a race). That case is
+     * treated as end-of-data, reported as false, instead of serving an
+     * empty buffer.
      */
     private fun ensureBuffered(): Boolean {
 
@@ -118,10 +114,27 @@ public class KtorByteReadChannelByteReader(
         if (channel.isClosedForRead)
             return false
 
-        buffer = runBlocking {
-            channel.readBuffer(max = bufferSize).readByteArray()
+        if (buffer.size != bufferSize.toInt())
+            buffer = ByteArray(bufferSize.toInt())
+
+        /*
+         * readAvailable suspends only until the first bytes arrive and
+         * returns whatever the channel buffered up to the maximum -
+         * waiting for the full buffer size or the channel close would
+         * stall the first read of a channel that delivered a header and
+         * stays open.
+         */
+        val readByteCount = runBlocking {
+            channel.readAvailable(buffer, 0, buffer.size)
         }
-        bufferLimit = buffer.size
+
+        if (readByteCount < 0) {
+            bufferLimit = 0
+            bufferOffset = 0
+            return false
+        }
+
+        bufferLimit = readByteCount
         bufferOffset = 0
 
         return bufferLimit > 0

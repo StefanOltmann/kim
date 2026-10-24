@@ -15,6 +15,8 @@
  */
 package de.stefan_oltmann.kim.format.webp
 
+import com.goncalossilva.resources.Resource
+import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8X
@@ -24,16 +26,18 @@ import de.stefan_oltmann.kim.model.ImageSize
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class WebPImageParserTest {
 
     /**
-     * Legacy WebP files (VP8/VP8L) must stop reading after
-     * the image chunk when only metadata is needed.
+     * Trailing junk behind the image chunk of a legacy file is scanned
+     * chunk by chunk - real world writers put metadata there - but never
+     * buffered: only the image chunk object survives in the result.
      */
     @Test
-    fun testReadChunksStopsAfterVp8Chunk() {
+    fun testReadChunksScansButDoesNotBufferTrailingJunk() {
 
         /* A valid minimal VP8 key frame header. */
         val vp8Payload = byteArrayOf(
@@ -67,8 +71,30 @@ class WebPImageParserTest {
         assertEquals(1, chunks.size)
         assertEquals(WebPChunkType.VP8, chunks.single().type)
 
-        /* The trailing junk must not be read. */
-        assertTrue(countingReader.bytesRead < file.size)
+        /* The whole trailing region was scanned without buffering it. */
+        assertEquals(file.size.toLong(), countingReader.bytesRead)
+    }
+
+    /**
+     * Regression test: a legacy file can carry metadata chunks behind its
+     * image chunk - ExifTool reads them, and the strict read policy counts
+     * their silent loss as a defect. The walk continues past the image
+     * chunk and finds them; unknown trailing junk is scanned but never
+     * buffered.
+     *
+     * The fixture was derived from media_59 by dropping the VP8X, ICCP
+     * and XMP chunks; ExifTool reads its EXIF.
+     */
+    @Test
+    fun testReadFindsExifBehindTheImageChunkOfALegacyFile() {
+
+        val bytes = Resource(
+            "de/stefan_oltmann/kim/testdata/webp_legacy_with_exif.webp"
+        ).readBytes()
+
+        val metadata = assertNotNull(Kim.readMetadata(bytes))
+
+        assertNotNull(metadata.exifBytes)
     }
 
     /**

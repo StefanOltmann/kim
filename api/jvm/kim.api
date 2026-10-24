@@ -1164,7 +1164,8 @@ public final class de/stefan_oltmann/kim/format/tiff/TiffContents {
 
 public final class de/stefan_oltmann/kim/format/tiff/TiffDirectory : de/stefan_oltmann/kim/format/tiff/TiffElement {
 	public static final field Companion Lde/stefan_oltmann/kim/format/tiff/TiffDirectory$Companion;
-	public fun <init> (ILjava/util/List;IILde/stefan_oltmann/kim/common/ByteOrder;)V
+	public fun <init> (ILjava/util/List;IILde/stefan_oltmann/kim/common/ByteOrder;Z)V
+	public synthetic fun <init> (ILjava/util/List;IILde/stefan_oltmann/kim/common/ByteOrder;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun createOutputDirectory (Lde/stefan_oltmann/kim/common/ByteOrder;)Lde/stefan_oltmann/kim/format/tiff/write/TiffOutputDirectory;
 	public static final fun description (I)Ljava/lang/String;
 	public final fun findField (Lde/stefan_oltmann/kim/format/tiff/taginfo/TagInfo;)Lde/stefan_oltmann/kim/format/tiff/TiffField;
@@ -1183,6 +1184,7 @@ public final class de/stefan_oltmann/kim/format/tiff/TiffDirectory : de/stefan_o
 	public final fun hasJpegImageData ()Z
 	public final fun hasStripImageData ()Z
 	public final fun hasTileImageData ()Z
+	public final fun isSubIfdChild ()Z
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -13485,6 +13487,21 @@ public final class de/stefan_oltmann/kim/model/MetadataSummary$Companion {
 }
 
 public abstract interface class de/stefan_oltmann/kim/model/MetadataUpdate {
+}
+
+public final class de/stefan_oltmann/kim/model/MetadataUpdate$CustomProperties : de/stefan_oltmann/kim/model/MetadataUpdate {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Lde/stefan_oltmann/kim/model/MetadataUpdate$CustomProperties;
+	public static synthetic fun copy$default (Lde/stefan_oltmann/kim/model/MetadataUpdate$CustomProperties;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lde/stefan_oltmann/kim/model/MetadataUpdate$CustomProperties;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getNamespace ()Ljava/lang/String;
+	public final fun getPrefix ()Ljava/lang/String;
+	public final fun getProperties ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class de/stefan_oltmann/kim/model/MetadataUpdate$Description : de/stefan_oltmann/kim/model/MetadataUpdate {

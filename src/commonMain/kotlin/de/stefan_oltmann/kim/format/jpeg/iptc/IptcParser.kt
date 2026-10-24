@@ -162,12 +162,44 @@ public object IptcParser {
         val foreignDatasets: List<ByteArray>
     )
 
+    /**
+     * A record-2 text dataset whose value is not decoded yet - the
+     * charset flag that decides the decoding is only known after the
+     * whole block was walked.
+     */
+    private class PendingRecord(
+        val iptcType: IptcType,
+        val data: ByteArray
+    )
+
     private fun parseIPTCBlock(bytes: ByteArray): BlockContent {
 
         var isUtf8 = false
 
-        val records = mutableListOf<IptcRecord>()
+        /*
+         * The 1:90 CodedCharacterSet dataset declares the charset of the
+         * whole block, but nonconformant writers emit it behind record-2
+         * datasets (ExifTool warns "IPTC charset tag not first" for
+         * those files). Text records are therefore collected undecoded
+         * and rendered with the resolved flag - decoding inside the walk
+         * would Latin-1 misdecode every dataset in front of the envelope
+         * into mojibake.
+         */
+        val pendingRecords = mutableListOf<PendingRecord>()
         val foreignDatasets = mutableListOf<ByteArray>()
+
+        fun buildContent() = BlockContent(
+            records = pendingRecords.map { record ->
+                IptcRecord(
+                    iptcType = record.iptcType,
+                    value = if (isUtf8)
+                        record.data.decodeStrictUtf8("An UTF-8 flagged IPTC record")
+                    else
+                        record.data.decodeLatin1BytesToString()
+                )
+            },
+            foreignDatasets = foreignDatasets
+        )
 
         var index = 0
 
@@ -232,7 +264,7 @@ public object IptcParser {
                  * so far (the clean boundary case).
                  */
                 if (index + lengthFieldSize > bytes.size)
-                    return BlockContent(records, foreignDatasets)
+                    return buildContent()
 
                 recordLength = 0
 
@@ -311,18 +343,12 @@ public object IptcParser {
                 continue
             }
 
-            records.add(
-                IptcRecord(
-                    iptcType = getIptcType(recordType),
-                    value = if (isUtf8)
-                        recordData.decodeStrictUtf8("An UTF-8 flagged IPTC record")
-                    else
-                        recordData.decodeLatin1BytesToString()
-                )
+            pendingRecords.add(
+                PendingRecord(iptcType = getIptcType(recordType), data = recordData)
             )
         }
 
-        return BlockContent(records, foreignDatasets)
+        return buildContent()
     }
 
     private fun parseAllIptcBlocks(
@@ -471,11 +497,12 @@ public object IptcParser {
     private fun isUtf8(codedCharset: ByteArray): Boolean {
 
         /*
-         * The record value may be padded with spaces, so they are
-         * stripped before comparing against the escape sequence.
+         * The record value may be padded with spaces or NUL bytes to an
+         * even length, so both are stripped before comparing against the
+         * escape sequence.
          */
         val significantBytes = codedCharset
-            .filter { it != ' '.code.toByte() }
+            .filter { it != ' '.code.toByte() && it != 0.toByte() }
             .toByteArray()
 
         return UTF8_CHARACTER_ESCAPE_SEQUENCE.contentEquals(significantBytes)
