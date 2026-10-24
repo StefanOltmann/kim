@@ -497,11 +497,12 @@ public object IptcParser {
     private fun isUtf8(codedCharset: ByteArray): Boolean {
 
         /*
-         * The record value may be padded with spaces, so they are
-         * stripped before comparing against the escape sequence.
+         * The record value may be padded with spaces or NUL bytes to an
+         * even length, so both are stripped before comparing against the
+         * escape sequence.
          */
         val significantBytes = codedCharset
-            .filter { it != ' '.code.toByte() }
+            .filter { it != ' '.code.toByte() && it != 0.toByte() }
             .toByteArray()
 
         return UTF8_CHARACTER_ESCAPE_SEQUENCE.contentEquals(significantBytes)

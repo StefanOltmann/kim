@@ -126,6 +126,42 @@ class IptcParserTest {
     }
 
     /**
+     * Regression test: like the space padding, a NUL-padded "ESC % G"
+     * value must not prevent the UTF-8 detection - writers pad the
+     * escape sequence to even lengths with either byte.
+     */
+    @Test
+    fun testParseIptcDetectsUtf8WithNulPaddedCodedCharacterSet() {
+
+        /* CodedCharacterSet (1:90) with a NUL-padded "ESC % G" value. */
+        val blockData = convertHexStringToByteArray(
+            "1c015a00041b254700" +
+                "1c02190011c38475c39f6572737420736368c3b66e21"
+        )
+
+        val iptcBlock = IptcBlock(
+            blockType = IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DATA,
+            blockNameBytes = IptcParser.EMPTY_BYTE_ARRAY,
+            blockData = blockData
+        )
+
+        val iptcBytes = IptcWriter.writeIptcBlocks(
+            blocks = listOf(iptcBlock),
+            includeApp13Identifier = false
+        )
+
+        val actualIptc = IptcParser.parseIptc(
+            bytes = iptcBytes,
+            startsWithApp13Header = false
+        )
+
+        assertEquals(
+            expected = listOf(IptcRecord(IptcTypes.KEYWORDS, TEST_KEYWORD)),
+            actual = actualIptc.records
+        )
+    }
+
+    /**
      * Regression test: the CodedCharacterSet record declares the charset
      * of the whole block, and nonconformant writers emit record-2
      * datasets before the 1:90 envelope (ExifTool warns "IPTC charset
