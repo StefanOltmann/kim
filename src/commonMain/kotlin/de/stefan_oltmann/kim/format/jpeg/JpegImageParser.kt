@@ -279,6 +279,18 @@ public object JpegImageParser : ImageParser {
 
             if (!haveFirstSegment) {
 
+                /*
+                 * EXIF lives in APP1 segments: a segment of another marker
+                 * that merely carries "Exif"-identified content is not an
+                 * EXIF block, which ExifTool ignores as well. The lossless
+                 * orientation swap patches the first APP1 EXIF segment, so
+                 * only that segment's content may feed the parse - any
+                 * other choice would hand the swap offsets that address
+                 * another buffer than the patched one.
+                 */
+                if (segment.marker != JpegConstants.JPEG_APP1_MARKER)
+                    continue
+
                 val headerEnd = JpegUtils.findExifHeaderEnd(segmentBytes)
                     ?: continue
 

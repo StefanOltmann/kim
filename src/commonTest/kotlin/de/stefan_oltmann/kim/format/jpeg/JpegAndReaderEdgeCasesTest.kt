@@ -16,13 +16,17 @@
 package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
+import de.stefan_oltmann.kim.common.toBytes
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.jpeg.JpegSegmentAnalyzer.JpegSegmentInfo
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.tiff.TiffReader
+import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
+import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputField
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
@@ -31,6 +35,7 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
+import de.stefan_oltmann.kim.testdata.KimTestData
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -349,6 +354,65 @@ class JpegAndReaderEdgeCasesTest {
         }
     }
 
+    /**
+     * EXIF lives in APP1 segments, and a segment of another marker that
+     * merely carries "Exif"-identified content is not an EXIF block:
+     * ExifTool ignores such an APP2 copy and reports the APP1's
+     * orientation, validated with the ExifTool binary on exactly this
+     * shape. The fixture derives from the corpus file by duplicating its
+     * APP1 EXIF payload into a leading APP2 segment with the orientation
+     * value flipped, so whichever block the read picks is observable.
+     *
+     * The lossless orientation swap patches the first APP1 EXIF segment,
+     * so a read that parsed a different segment's content would hand the
+     * swap offsets that address another buffer than the patched one -
+     * the first-EXIF match must require the APP1 marker like the
+     * continuation match does.
+     */
+    @Test
+    fun testExifIsReadOnlyFromApp1Segments() {
+
+        val originalBytes = KimTestData.getBytesOf(1)
+
+        val originalMetadata = assertNotNull(Kim.readMetadata(originalBytes))
+
+        assertEquals(
+            expected = TiffOrientation.STANDARD.value.toShort(),
+            actual = originalMetadata.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)
+        )
+
+        val orientationField = assertNotNull(
+            originalMetadata.findTiffField(TiffTag.TIFF_TAG_ORIENTATION)
+        )
+
+        val exifBytes = assertNotNull(originalMetadata.exifBytes)
+
+        /*
+         * The duplicate flips the value byte of the SHORT entry, whose
+         * position depends on the directory's byte order.
+         */
+        val valueByteIndex = orientationField.offset +
+            TiffConstants.TIFF_ENTRY_VALUE_OFFSET +
+            if (orientationField.byteOrder == ByteOrder.BIG_ENDIAN) 1 else 0
+
+        val duplicatedBytes = exifBytes.copyOf()
+
+        duplicatedBytes[valueByteIndex] = TiffOrientation.ROTATE_RIGHT.value.toByte()
+
+        val craftedBytes = insertExifSegmentAfterSoi(
+            originalBytes = originalBytes,
+            marker = JpegConstants.JPEG_APP2_MARKER,
+            tiffBytes = duplicatedBytes
+        )
+
+        assertEquals(
+            expected = TiffOrientation.STANDARD.value.toShort(),
+            actual = Kim.readMetadata(craftedBytes)
+                ?.findShortValue(TiffTag.TIFF_TAG_ORIENTATION),
+            message = "The EXIF must come from the APP1 segment, not from the APP2 copy."
+        )
+    }
+
     @Test
     fun testTiffReaderRejectsMismatchedByteOrder() {
 
@@ -621,6 +685,31 @@ class JpegAndReaderEdgeCasesTest {
         writer.write(byteArrayOf((length ushr 8).toByte(), length.toByte()))
         writer.write(app1Payload)
         writer.write(JpegConstants.EOI)
+
+        return writer.toByteArray()
+    }
+
+    /**
+     * Builds a copy of the file with an extra APP segment right behind
+     * the SOI marker that carries the given TIFF bytes behind the EXIF
+     * identifier - the shape of a foreign segment that fakes an EXIF
+     * block.
+     */
+    private fun insertExifSegmentAfterSoi(
+        originalBytes: ByteArray,
+        marker: Int,
+        tiffBytes: ByteArray
+    ): ByteArray {
+
+        val segmentBytes = JpegConstants.EXIF_IDENTIFIER_CODE + tiffBytes
+
+        val writer = ByteArrayByteWriter()
+
+        writer.write(JpegConstants.SOI)
+        writer.write(marker.toShort().toBytes(JpegConstants.JPEG_BYTE_ORDER))
+        writer.write((segmentBytes.size + 2).toShort().toBytes(JpegConstants.JPEG_BYTE_ORDER))
+        writer.write(segmentBytes)
+        writer.write(originalBytes.copyOfRange(JpegConstants.SOI.size, originalBytes.size))
 
         return writer.toByteArray()
     }
