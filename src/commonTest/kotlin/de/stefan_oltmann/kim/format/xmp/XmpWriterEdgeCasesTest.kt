@@ -27,6 +27,7 @@ import de.stefan_oltmann.xmp.XMPConst
 import de.stefan_oltmann.xmp.XMPMeta
 import de.stefan_oltmann.xmp.XMPMetaFactory
 import de.stefan_oltmann.xmp.XMPRegionArea
+import de.stefan_oltmann.xmp.XMPSchemaRegistry
 import de.stefan_oltmann.xmp.XmpDate
 import de.stefan_oltmann.xmp.XmpFaceRegion
 import kotlinx.datetime.TimeZone
@@ -398,10 +399,128 @@ class XmpWriterEdgeCasesTest {
         }
     }
 
+    /**
+     * A custom namespace update writes the given simple properties, so a
+     * host application can carry app-defined fields through the same
+     * update pipeline without KIM knowing them.
+     */
+    @Test
+    fun testCustomPropertiesAreWrittenToTheGivenNamespace() {
+
+        apply(
+            MetadataUpdate.CustomProperties(
+                namespace = TEST_NS_SET,
+                prefix = "kimtest",
+                properties = mapOf(
+                    "alpha" to "1",
+                    "beta" to "-2.5"
+                )
+            )
+        )
+
+        val serialized =
+            XmpWriter.updateXmp(xmpMeta, emptySet(), writePackageWrapper = false)
+
+        val written = XMPMetaFactory.parseFromString(serialized)
+
+        assertEquals("1", written.getPropertyString(TEST_NS_SET, "alpha"))
+        assertEquals("-2.5", written.getPropertyString(TEST_NS_SET, "beta"))
+    }
+
+    /**
+     * A NULL value deletes the property, like the nullable scalar updates
+     * do - the host application's reset path relies on it.
+     */
+    @Test
+    fun testCustomPropertiesNullValueDeletesTheProperty() {
+
+        apply(
+            MetadataUpdate.CustomProperties(
+                namespace = TEST_NS_DELETE,
+                prefix = "kimtest",
+                properties = mapOf("alpha" to "1")
+            )
+        )
+
+        apply(
+            MetadataUpdate.CustomProperties(
+                namespace = TEST_NS_DELETE,
+                prefix = "kimtest",
+                properties = mapOf("alpha" to null)
+            )
+        )
+
+        assertNull(xmpMeta.getPropertyString(TEST_NS_DELETE, "alpha"))
+    }
+
+    /**
+     * One update may set and delete at once, so a host application can
+     * write its cleared marker next to deleting the reset fields.
+     */
+    @Test
+    fun testCustomPropertiesCanSetAndDeleteInTheSameUpdate() {
+
+        apply(
+            MetadataUpdate.CustomProperties(
+                namespace = TEST_NS_MIXED,
+                prefix = "kimtest",
+                properties = mapOf(
+                    "alpha" to "1",
+                    "beta" to "2"
+                )
+            )
+        )
+
+        apply(
+            MetadataUpdate.CustomProperties(
+                namespace = TEST_NS_MIXED,
+                prefix = "kimtest",
+                properties = mapOf(
+                    "beta" to null,
+                    "gamma" to "3"
+                )
+            )
+        )
+
+        assertEquals("1", xmpMeta.getPropertyString(TEST_NS_MIXED, "alpha"))
+        assertNull(xmpMeta.getPropertyString(TEST_NS_MIXED, "beta"))
+        assertEquals("3", xmpMeta.getPropertyString(TEST_NS_MIXED, "gamma"))
+    }
+
+    /**
+     * The suggested prefix is only applied for a new URI: a namespace
+     * that is already registered keeps its registered prefix, so two
+     * writes of the same URI never produce different prefixes.
+     */
+    @Test
+    fun testCustomPropertiesKeepTheRegisteredPrefix() {
+
+        XMPSchemaRegistry.registerNamespace(TEST_NS_PREFIX, "first")
+
+        val serialized =
+            XmpWriter.updateXmp(
+                xmpMeta = XMPMetaFactory.create(),
+                update = MetadataUpdate.CustomProperties(
+                    namespace = TEST_NS_PREFIX,
+                    prefix = "second",
+                    properties = mapOf("alpha" to "1")
+                ),
+                writePackageWrapper = false
+            )
+
+        assertTrue(serialized.contains("first:alpha"), "Serialized: $serialized")
+        assertFalse(serialized.contains("second:alpha"), "Serialized: $serialized")
+    }
+
     private companion object {
 
         const val XMP_NS_EXIF = "http://ns.adobe.com/exif/1.0/"
         const val XMP_NS_XMP = "http://ns.adobe.com/xap/1.0/"
         const val XMP_NS_IPTC_EXT = "http://iptc.org/std/Iptc4xmpExt/2008-02-29/"
+
+        const val TEST_NS_SET = "https://example.com/kim/test/set/1.0/"
+        const val TEST_NS_DELETE = "https://example.com/kim/test/delete/1.0/"
+        const val TEST_NS_MIXED = "https://example.com/kim/test/mixed/1.0/"
+        const val TEST_NS_PREFIX = "https://example.com/kim/test/prefix/1.0/"
     }
 }
