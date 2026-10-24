@@ -567,6 +567,16 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
             data = byteArrayOf(0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0)
         )
 
+        /*
+         * The store the update merges lives in front of the image data;
+         * the trailing chunk is its stale duplicate.
+         */
+        writeChunk(
+            byteWriter = byteWriter,
+            typeName = "tEXt",
+            data = (RAW_IPTC_TEXT_PREFIX + iptcBytes.toHex()).encodeToByteArray()
+        )
+
         writeChunk(
             byteWriter = byteWriter,
             typeName = "IDAT",
@@ -616,6 +626,70 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
             } < updatedChunks.indexOfFirst { it.type == PngChunkType.IDAT },
             "The rewritten IPTC chunk must sit in front of the image data."
         )
+    }
+
+    /**
+     * Regression test: an update that writes IPTC into a file whose only
+     * IPTC store sits behind the image data must fail the write. The
+     * streaming updater never saw that store, so it cannot merge the
+     * records the update does not touch - silently dropping the trailing
+     * chunk would destroy them, exactly like trailing EXIF and XMP the
+     * same update refuses.
+     */
+    @Test
+    fun testUpdateWithIptcOnlyBehindImageDataFailsTheWrite() {
+
+        val iptcBytes = IptcWriter.writeIptcBlocks(
+            blocks = listOf(
+                IptcBlock(
+                    blockType = IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DATA,
+                    blockNameBytes = byteArrayOf(),
+                    blockData = IptcWriter.writeIptcBlockData(
+                        listOf(
+                            IptcRecord(IptcTypes.KEYWORDS, "old"),
+                            IptcRecord(IptcTypes.CAPTION_ABSTRACT, "Foreign caption")
+                        )
+                    )
+                )
+            ),
+            includeApp13Identifier = false
+        )
+
+        val byteWriter = ByteArrayByteWriter()
+
+        byteWriter.write(PngConstants.PNG_SIGNATURE)
+
+        /* 1x1 pixel, 8 bit RGBA, no interlace. */
+        writeChunk(
+            byteWriter = byteWriter,
+            typeName = "IHDR",
+            data = byteArrayOf(0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0)
+        )
+
+        writeChunk(
+            byteWriter = byteWriter,
+            typeName = "IDAT",
+            data = byteArrayOf(1, 2, 3, 4)
+        )
+
+        writeChunk(
+            byteWriter = byteWriter,
+            typeName = "tEXt",
+            data = (RAW_IPTC_TEXT_PREFIX + iptcBytes.toHex()).encodeToByteArray()
+        )
+
+        writeChunk(
+            byteWriter = byteWriter,
+            typeName = "IEND",
+            data = byteArrayOf()
+        )
+
+        assertFailsWith<ImageWriteException> {
+            Kim.update(
+                bytes = byteWriter.toByteArray(),
+                update = MetadataUpdate.Keywords(setOf("new"))
+            )
+        }
     }
 
     /**

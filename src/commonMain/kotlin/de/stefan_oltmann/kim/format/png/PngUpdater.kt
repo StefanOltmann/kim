@@ -141,8 +141,17 @@ internal object PngUpdater : MetadataUpdater {
                      * image data - where ExifTool relocates it, too - a
                      * trailing chunk is a stale duplicate of the same
                      * store, because the first chunk is authoritative.
+                     * A file whose only IPTC store sat behind the image
+                     * data was never seen by the streaming update, so
+                     * merging is impossible and the write fails like it
+                     * does for trailing EXIF and XMP instead of silently
+                     * destroying the records the update does not touch.
                      */
-                    !(removeStaleIptc && keyword == PngConstants.IPTC_KEYWORD)
+                    !(
+                        removeStaleIptc &&
+                            metadata.iptc != null &&
+                            keyword == PngConstants.IPTC_KEYWORD
+                        )
             }
         }
     }
