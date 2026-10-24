@@ -202,11 +202,11 @@ public object PngWriter {
      * metadata. All other chunks - including unknown ones and text chunks
      * unrelated to the change - stream through untouched.
      *
-     * Attention: A candidate chunk whose content cannot be parsed is
-     * preserved, because Kim must never destroy data it does not
-     * understand. With [failOnStaleMetadata] a stale candidate is never
-     * dropped silently: the caller never saw its content, so the write
-     * fails instead of losing it.
+     * Attention: A candidate text chunk whose content cannot be parsed
+     * fails the write instead of being dropped, so a rewrite never
+     * discards data it does not understand. With [failOnStaleMetadata] a
+     * stale candidate is never dropped silently either: the caller never
+     * saw its content, so the write fails instead of losing it.
      */
     private fun copyChunksSkippingMetadata(
         byteReader: ByteReader,
