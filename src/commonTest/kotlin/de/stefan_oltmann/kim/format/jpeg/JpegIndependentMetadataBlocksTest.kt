@@ -216,4 +216,74 @@ class JpegIndependentMetadataBlocksTest {
             "The independent second XMP packet was removed by the update."
         )
     }
+
+    /**
+     * Regression test: the second, independent XMP packet can itself be
+     * split per Adobe extended-XMP - its main packet references the
+     * extension chunks by GUID. Those chunks are not orphans of the
+     * replaced first packet: they belong to the surviving foreign
+     * packet, and dropping them would truncate data Kim never
+     * interpreted.
+     */
+    @Test
+    fun testUpdatePreservesTheSecondPacketExtensions() {
+
+        val firstPacket =
+            """<x:xmpmeta xmlns:x="adobe:ns:meta/">""" +
+                """<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">""" +
+                """<rdf:Description rdf:about=""/></rdf:RDF></x:xmpmeta>"""
+
+        val guid = "00112233445566778899AABBCCDDEEFF"
+
+        val secondPacket =
+            """<x:xmpmeta xmlns:x="adobe:ns:meta/">""" +
+                """<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">""" +
+                """<rdf:Description rdf:about="" xmlns:xmpNote="http://ns.adobe.com/xmp/note/" """ +
+                """xmpNote:HasExtendedXMP="$guid"/></rdf:RDF></x:xmpmeta>"""
+
+        val firstXmp = JFIFPieceSegment(
+            marker = JpegConstants.JPEG_APP1_MARKER,
+            segmentBytes = JpegConstants.XMP_IDENTIFIER + firstPacket.encodeToByteArray()
+        )
+
+        val secondXmp = JFIFPieceSegment(
+            marker = JpegConstants.JPEG_APP1_MARKER,
+            segmentBytes = JpegConstants.XMP_IDENTIFIER + secondPacket.encodeToByteArray()
+        )
+
+        val extensionData = "EXT-BYTES".encodeToByteArray()
+
+        val secondExtension = JFIFPieceSegment(
+            marker = JpegConstants.JPEG_APP1_MARKER,
+            segmentBytes = JpegConstants.EXTENDED_XMP_IDENTIFIER +
+                guid.encodeToByteArray() +
+                byteArrayOf(
+                    (extensionData.size shr 24).toByte(),
+                    (extensionData.size shr 16).toByte(),
+                    (extensionData.size shr 8).toByte(),
+                    extensionData.size.toByte()
+                ) +
+                byteArrayOf(0, 0, 0, 0) +
+                extensionData
+        )
+
+        val bytes = buildJpeg(firstXmp, secondXmp, secondExtension)
+
+        val updatedBytes = Kim.update(
+            bytes = bytes,
+            update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT)
+        )
+
+        /* The independent second packet survived byte-exact ... */
+        assertTrue(
+            updatedBytes.containsBytes(secondXmp.segmentBytes),
+            "The independent second XMP packet was removed by the update."
+        )
+
+        /* ... together with the extension chunks it references. */
+        assertTrue(
+            updatedBytes.containsBytes(secondExtension.segmentBytes),
+            "The extended-XMP chunks of the surviving second packet were removed by the update."
+        )
+    }
 }
