@@ -146,12 +146,12 @@ public object XmpWriter {
 
                 /*
                  * The reader treats acdsee:keywords as a first-class
-                 * keyword source, so deleting only dc:subject would leave
+                 * keyword source, so updating only dc:subject would leave
                  * the old keywords readable on ACDSee-processed files -
-                 * the delete must clear the ACDSee copy too.
+                 * every update must clear the ACDSee copy, the replacement
+                 * as much as the deletion.
                  */
-                if (update.keywords.isEmpty())
-                    deleteProperty(XMPConst.NS_ACDSEE, XMPConst.XMP_ACDSEE_KEYWORDS)
+                deleteProperty(XMPConst.NS_ACDSEE, XMPConst.XMP_ACDSEE_KEYWORDS)
 
                 setKeywords(update.keywords)
             }

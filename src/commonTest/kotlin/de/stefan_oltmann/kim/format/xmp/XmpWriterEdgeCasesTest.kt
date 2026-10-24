@@ -119,6 +119,29 @@ class XmpWriterEdgeCasesTest {
     }
 
     /**
+     * A keyword replacement carries the same drift risk as the deletion:
+     * the reader prefers dc:subject but falls back to acdsee:keywords, so
+     * the stale ACDSee copy would resurface the replaced-away keywords the
+     * moment dc:subject is empty again - every keyword update must clear
+     * the ACDSee copy, not only the deletion.
+     */
+    @Test
+    fun testKeywordReplacementClearsTheAcdSeeCopy() {
+
+        val updated = XmpWriter.updateXmp(
+            existingXmp = KimTestData.getXmp("acdsee_sample.xmp"),
+            updates = setOf(MetadataUpdate.Keywords(setOf("Wedding"))),
+            writePackageWrapper = false
+        )
+
+        val updatedMeta = XMPMetaFactory.parseFromString(updated)
+
+        assertNull(updatedMeta.getProperty(XMPConst.NS_ACDSEE, XMPConst.XMP_ACDSEE_KEYWORDS))
+
+        assertEquals(setOf("Wedding"), XmpReader.readMetadata(updated).keywords)
+    }
+
+    /**
      * External writers store both date properties, and the EXIF path
      * rewrites both on a TakenDate update - the XMP set branch must keep
      * the digitized date in sync instead of letting it drift behind.
