@@ -38,6 +38,7 @@ import de.stefan_oltmann.kim.testdata.BmffTestBoxes
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.box
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.hdlrBox
 import de.stefan_oltmann.kim.testdata.BmffTestBoxes.iinfBox
+import de.stefan_oltmann.kim.testdata.BmffTestBoxes.writeBox
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -67,9 +68,42 @@ class BoxReaderTest {
             box(BoxType.FTYP, "heic\u0000\u0000\u0000\u0000mif1".encodeToByteArray()) +
                 box(BoxType.FREE, oversizedPayload)
 
-        assertFailsWith<ImageReadException> {
+        val exception = assertFailsWith<ImageReadException> {
             BoxReader.scanMetadataBoxes(ByteArrayByteReader(bytes))
         }
+
+        assertTrue(
+            exception.message?.contains("exceeds the metadata budget of") == true,
+            "The per-box budget must be the failing reason: ${exception.message}"
+        )
+    }
+
+    /**
+     * The per-box limit alone leaves a degenerate file of many
+     * just-under-the-limit boxes accumulating O (file size) retained
+     * bytes in the metadata scan. Every buffered payload shares one
+     * cumulative budget, like the PNG and JPEG readers already enforce.
+     */
+    @Test
+    fun testCumulativeBoxPayloadBudgetFailsTheScan() {
+
+        /* Every box stays within the per-box budget. */
+        val megabyte = ByteArray(1024 * 1024)
+
+        val writer = ByteArrayByteWriter()
+
+        repeat(17) { writeBox(writer, BoxType.FREE, megabyte) }
+
+        val bytes = writer.toByteArray()
+
+        val exception = assertFailsWith<ImageReadException> {
+            BoxReader.scanMetadataBoxes(ByteArrayByteReader(bytes))
+        }
+
+        assertTrue(
+            exception.message?.contains("in total") == true,
+            "The cumulative budget must be the failing reason: ${exception.message}"
+        )
     }
 
     /**

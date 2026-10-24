@@ -79,6 +79,15 @@ public object BoxReader {
      */
     internal const val MAX_METADATA_BOX_BYTES: Int = 16 * 1024 * 1024
 
+    /*
+     * The cumulative counterpart of the per-box limit: the scan buffers
+     * the payload of every non-image box until the metadata it hunts for
+     * is found, so a file of many just-under-the-limit boxes would
+     * accumulate O (file size) retained bytes without it - the PNG and
+     * JPEG readers enforce the same budget for their metadata chunks.
+     */
+    internal const val MAX_RETAINED_BOX_BYTES: Int = 16 * 1024 * 1024
+
     /* The JXL codestream signature the first JXLP fragment starts with. */
     private const val JXL_HEADER_SIGNATURE_LENGTH: Int = 6
 
@@ -558,6 +567,8 @@ public object BoxReader {
 
         var haveSeenJxlpBox = false
 
+        var retainedBoxBytes: Long = 0
+
         val boxes = mutableListOf<Box>()
 
         var position: Long = positionOffset
@@ -683,9 +694,12 @@ public object BoxReader {
 
             val isSkippableDataBox = skipDataBoxPayloads && !isMetadataPayloadBox
 
-            requireBufferSizeAllowed(
-                type, isSkippableDataBox, remainingBytesToReadInThisBox,
-                enforceBudget = stopAfterMetadataRead || skipDataBoxPayloads
+            retainedBoxBytes = requireBufferSizeAllowed(
+                type = type,
+                isSkippableDataBox = isSkippableDataBox,
+                remainingBytesToReadInThisBox = remainingBytesToReadInThisBox,
+                enforceBudget = stopAfterMetadataRead || skipDataBoxPayloads,
+                retainedBoxBytes = retainedBoxBytes
             )
 
             /*
@@ -868,35 +882,60 @@ public object BoxReader {
     }
 
     /**
-     * Rejects a payload that must not be buffered: boxes beyond the
-     * Int range would overflow the read count in every mode, and in the
-     * scan modes every non-image box beyond the metadata budget is
-     * hostile input - a hostile meta, moov or free box must not exhaust
-     * the memory on constrained targets.
+     * Rejects a payload that must not be buffered and returns the new
+     * cumulative total of buffered payload bytes.
+     *
+     * Boxes beyond the Int range would overflow the read count in every
+     * mode, and in the scan modes every buffered non-image box beyond
+     * the per-box budget is hostile input - a hostile meta, moov or free
+     * box must not exhaust the memory on constrained targets. The
+     * per-box limit alone would still let a file of many
+     * just-under-the-limit boxes accumulate O (file size) retained
+     * bytes in the scan modes, so the buffered payloads share one
+     * cumulative budget, like the PNG and JPEG readers enforce.
      *
      * The budget is intentionally not enforced in the full-read modes:
      * there the caller explicitly asked for the whole file to be
      * buffered (the JXL rewrite and the public readAllBoxes), and the
      * JXL image data lives in jxlp/jxlc boxes, which are image data
      * just like mdat and never budget-bound.
+     *
+     * @param type The type of the box whose payload would be buffered
+     * @param isSkippableDataBox Whether the scan streams the payload
+     * through in bounded chunks instead of buffering it
+     * @param remainingBytesToReadInThisBox The validated extent of the
+     * box payload
+     * @param enforceBudget Whether the metadata budget of the scan
+     * modes applies
+     * @param retainedBoxBytes The total buffered payload bytes of the
+     * box list read so far
+     *
+     * @return The cumulative total including this box when its payload
+     * is buffered, the given total otherwise
      */
     private fun requireBufferSizeAllowed(
         type: BoxType,
         isSkippableDataBox: Boolean,
         remainingBytesToReadInThisBox: Long,
-        enforceBudget: Boolean
-    ) {
+        enforceBudget: Boolean,
+        retainedBoxBytes: Long
+    ): Long {
 
-        if (isSkippableDataBox)
-            return
+        val isImageDataBox =
+            type == BoxType.MDAT || type == BoxType.JXLP || type == BoxType.JXLC
+
+        /*
+         * A file-level meta box of the video scan is buffered even
+         * though the scan counts it as skippable data; every other
+         * skippable box streams through in bounded chunks.
+         */
+        if (isSkippableDataBox && type != BoxType.META)
+            return retainedBoxBytes
 
         if (remainingBytesToReadInThisBox > Int.MAX_VALUE)
             throw ImageReadException(
                 "Box $type is too large: $remainingBytesToReadInThisBox bytes."
             )
-
-        val isImageDataBox =
-            type == BoxType.MDAT || type == BoxType.JXLP || type == BoxType.JXLC
 
         if (enforceBudget && !isImageDataBox && remainingBytesToReadInThisBox > MAX_METADATA_BOX_BYTES) {
 
@@ -906,6 +945,18 @@ public object BoxReader {
                     "$MAX_METADATA_BOX_BYTES bytes."
             )
         }
+
+        if (!enforceBudget || isImageDataBox)
+            return retainedBoxBytes
+
+        val newRetainedBoxBytes = retainedBoxBytes + remainingBytesToReadInThisBox
+
+        if (newRetainedBoxBytes > MAX_RETAINED_BOX_BYTES)
+            throw ImageReadException(
+                "The BMFF box payloads exceed $MAX_RETAINED_BOX_BYTES bytes in total."
+            )
+
+        return newRetainedBoxBytes
     }
 
     /**
