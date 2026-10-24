@@ -440,6 +440,47 @@ class BaseMediaFileFormatImageParserTest {
     }
 
     /**
+     * A UUID box truncated inside its 16 UUID bytes must fail the read
+     * like a truncated packet does: the tolerant short read would
+     * mismatch the Adobe XMP identifier, and the XMP the box was
+     * carrying would silently vanish from the read result instead of
+     * surfacing as unreadable.
+     */
+    @Test
+    fun testUuidBoxTruncatedInsideTheUuidFailsTheRead() {
+
+        val ftypBox =
+            box(BoxType.FTYP, "heic\u0000\u0000\u0000\u0000mif1".encodeToByteArray())
+
+        /* A meta box without metadata items, so only the UUID box carries XMP. */
+        val metaBox = box(
+            type = BoxType.META,
+            payload = byteArrayOf(0, 0, 0, 0) +
+                hdlrBox() +
+                pitmBox(itemId = 1) +
+                iinfBox(entries = emptyList()) +
+                box(BoxType.ILOC, createIlocPayloadForItems(items = emptyList()))
+        )
+
+        /* Only the first 8 of the 16 Adobe XMP UUID bytes made it into the file. */
+        val truncatedUuid =
+            convertHexStringToByteArray(BMFFConstants.XMP_UUID).copyOf(8)
+
+        val uuidBox = box(
+            type = BoxType.UUID,
+            payload = truncatedUuid
+        )
+
+        val mdatBox = box(type = BoxType.MDAT, payload = ByteArray(32))
+
+        val bytes = ftypBox + metaBox + uuidBox + mdatBox
+
+        assertFailsWith<ImageReadException> {
+            BaseMediaFileFormatImageParser.parseMetadata(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /**
      * When the file declares XMP twice - as a metadata item and in a
      * UUID box - the authoritative packet is ambiguous. Picking one
      * would silently drop the other from sidecar exports, so the read

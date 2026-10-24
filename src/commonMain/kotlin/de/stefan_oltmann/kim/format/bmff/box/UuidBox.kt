@@ -22,6 +22,7 @@ import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.input.readBytes
 import de.stefan_oltmann.kim.input.readRemainingBytes
 
 /**
@@ -49,7 +50,13 @@ public class UuidBox(
 
         val byteReader = ByteArrayByteReader(payload)
 
-        uuid = byteReader.readBytes(UUID_LENGTH)
+        /*
+         * The named variant fails the read when the payload ends inside
+         * the UUID: a silently shortened UUID would mismatch the Adobe
+         * XMP identifier, and the XMP the box carries would vanish from
+         * the read result without an error.
+         */
+        uuid = byteReader.readBytes("uuid", UUID_LENGTH)
         uuidAsHex = uuid.toHex()
 
         data = byteReader.readRemainingBytes()
