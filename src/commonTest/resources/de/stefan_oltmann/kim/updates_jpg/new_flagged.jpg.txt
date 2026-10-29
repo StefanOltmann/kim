@@ -195,9 +195,6 @@ Little-endian (Intel, II)
 0000001588 0x001d SelfTimer2 = 0
 0000001596 0x0021 FlashOutput = 0
 
----- Directory MakerNoteCanonCameraInfo @ 1636 ----
-0000001999 0x016b LensSerialNumber = [0x00, 0x6e, 0x02, 0x00, 0x00]
-
 ---- Directory MakerNoteCanonTimeInfo @ 17234 ----
 0000017238 0x0001 TimeZone = 0
 0000017242 0x0002 TimeZoneCity = 32766

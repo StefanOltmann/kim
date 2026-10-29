@@ -67,6 +67,31 @@ class MakerNoteTest {
         )
     }
 
+    /**
+     * Regression test: the CameraInfo fallback for an unknown Canon
+     * model read the 0x16b LensSerialNumber from a fixed offset that
+     * belongs to other cameras' layouts, fabricating a value from
+     * arbitrary payload bytes for every blob large enough to contain
+     * the offset.
+     *
+     * The ExifTool dumps of the EOS M3 (media_28) and the EOS R3
+     * (media_83) list zero fields in their CameraInfo sub-directories:
+     * an unknown model must report no CameraInfo fields at all, so the
+     * sub-directory must not appear.
+     */
+    @Test
+    fun testUnknownModelCameraInfoExtractsNoFields() {
+
+        for (index in listOf(28, KimTestData.CR3_TEST_IMAGE_INDEX)) {
+
+            val cameraInfoDirectory = getTiffContents(index)
+                .makerNoteSubDirectories
+                .find { it.type == TiffConstants.TIFF_MAKER_NOTE_CANON_CAMERA_INFO }
+
+            assertNull(cameraInfoDirectory, "media_$index unexpectedly has a CameraInfo directory")
+        }
+    }
+
     @Test
     fun testNikonMakerNoteLittleEndianParsing() {
 
