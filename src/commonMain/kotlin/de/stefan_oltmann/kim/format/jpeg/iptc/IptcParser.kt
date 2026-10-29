@@ -179,11 +179,13 @@ public object IptcParser {
         /*
          * The 1:90 CodedCharacterSet dataset declares the charset of the
          * whole block, but nonconformant writers emit it behind record-2
-         * datasets (ExifTool warns "IPTC charset tag not first" for
-         * those files). Text records are therefore collected undecoded
-         * and rendered with the resolved flag - decoding inside the walk
-         * would Latin-1 misdecode every dataset in front of the envelope
-         * into mojibake.
+         * datasets. Text records are therefore collected undecoded and
+         * rendered with the resolved flag: decoding inside the walk would
+         * Latin-1 misdecode every dataset in front of the envelope into
+         * mojibake, which the strict read policy counts as corruption.
+         * ExifTool decodes with a running charset instead, so records in
+         * front of a late envelope stay Latin-1 there - a deliberate
+         * divergence in favor of the declared charset.
          */
         val pendingRecords = mutableListOf<PendingRecord>()
         val foreignDatasets = mutableListOf<ByteArray>()
