@@ -357,6 +357,8 @@ Java projects.
   following ExifTool as the reference implementation:
   oversized XMP uses Adobe Extended XMP (main packet plus GUID-referenced extension segments),
   oversized IPTC is split across multiple APP13 segments exactly like Photoshop does.
+  Oversized EXIF is the exception: such a write fails with an `ImageWriteException`,
+  although the reader accepts multi-segment EXIF that other tools wrote.
 * Updates buffer the file content in memory for WebP files and for JPEG XL files with a single
   codestream box (`jxlc`). JPEG, PNG, GIF, and JPEG XL files with split codestream boxes (`jxlp`) are
   streamed in bounded chunks.
