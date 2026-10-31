@@ -140,6 +140,31 @@ class IccProfileParserTest {
     }
 
     /**
+     * A "text" entry whose value ends with the type header has no text
+     * payload; decoding it as an empty string would fabricate a value.
+     * Like the truncated number values it must fail the parse.
+     */
+    @Test
+    fun testRejectsTextValueWithoutPayload() {
+
+        val bytes = fixture.bytes
+
+        val textValue = ByteArray(8)
+
+        "text".forEachIndexed { index, char -> textValue[index] = char.code.toByte() }
+
+        val withTextEntry = bytes + textValue
+
+        fixture.writeUInt32(withTextEntry, 0, withTextEntry.size)
+        fixture.writeUInt32(withTextEntry, fixture.firstEntryOffset + 4, bytes.size)
+        fixture.writeUInt32(withTextEntry, fixture.firstEntryOffset + 8, textValue.size)
+
+        assertFailsWith<ImageReadException> {
+            IccProfileParser.parse(withTextEntry)
+        }
+    }
+
+    /**
      * A record count and size whose product exceeds 32 bits overflows a
      * signed Int multiplication - possibly to zero - so the record table
      * would claim fewer bytes than it does. The read must fail instead.
