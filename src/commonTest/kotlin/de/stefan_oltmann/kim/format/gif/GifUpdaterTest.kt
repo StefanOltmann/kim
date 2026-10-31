@@ -27,10 +27,12 @@ import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.containsBytes
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class GifUpdaterTest : AbstractUpdaterTest(
@@ -320,6 +322,106 @@ class GifUpdaterTest : AbstractUpdaterTest(
     }
 
     /**
+     * XMP behind the first frame in the contiguous Adobe binding must be
+     * removed by deleteMetadata like any other XMP: the skip path has to
+     * understand the framing the read path accepts, or the walk over the
+     * payload desyncs and rejects a healthy file.
+     */
+    @Test
+    fun testDeleteMetadataWithTrailingContiguousXmp() {
+
+        val deletedBytes = Kim.deleteMetadata(gif89aWithTrailingContiguousXmp())
+
+        /* The output is the file without the XMP application extension. */
+        assertContentEquals(gif89aWithoutMetadata(), deletedBytes)
+
+        val metadata = assertNotNull(Kim.readMetadata(deletedBytes))
+
+        assertEquals(ImageSize(1, 1), metadata.imageSize)
+
+        assertNull(metadata.xmp)
+    }
+
+    /**
+     * The sub-block walk treats the contiguous packet as size-prefixed
+     * blocks. When a jump lands exactly on the magic trailer's own final
+     * 0x00 the chain ends one byte early and the real block terminator is
+     * rejected as an unknown introducer - for a file the read path accepts.
+     * deleteMetadata must succeed for every packet length, so the skip is
+     * framing-aware like the read.
+     */
+    @Test
+    fun testDeleteMetadataWithTrailingContiguousXmpUnluckyLength() {
+
+        /*
+         * The 62-byte packet makes the first walk jump (size '<' = 60) land
+         * on the trailing 0xFF, whose 255-byte jump lands exactly on the
+         * trailer's final 0x00.
+         */
+        val deletedBytes = Kim.deleteMetadata(
+            gif89aWithTrailingContiguousXmp(packetSuffix = byteArrayOf(0x41, 0x41, 0x41, 0xFF.toByte()))
+        )
+
+        assertContentEquals(gif89aWithoutMetadata(), deletedBytes)
+
+        assertNull(assertNotNull(Kim.readMetadata(deletedBytes)).xmp)
+    }
+
+    /**
+     * Builds a GIF89a file with a single 1x1 image and an XMP application
+     * extension behind it in the contiguous Adobe framing, optionally with
+     * bytes appended between the packet envelope and the magic trailer.
+     */
+    private fun gif89aWithTrailingContiguousXmp(
+        packetSuffix: ByteArray = ByteArray(0)
+    ): ByteArray {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        byteWriter.write("GIF89a".encodeToByteArray())
+        byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0))
+        byteWriter.write(byteArrayOf(GifConstants.IMAGE_SEPARATOR))
+        byteWriter.write(byteArrayOf(0, 0, 0, 0, 1, 0, 1, 0, 0))
+        byteWriter.write(byteArrayOf(2))
+        byteWriter.write(byteArrayOf(2, 2, 0x44, 0))
+
+        /* XMP application extension behind the first frame. */
+        byteWriter.write(byteArrayOf(GifConstants.EXTENSION_INTRODUCER, 0xFF.toByte()))
+        byteWriter.write(11)
+        byteWriter.write("XMP DataXMP".encodeToByteArray())
+
+        byteWriter.write(CONTIGUOUS_XMP_PACKET.encodeToByteArray())
+        byteWriter.write(packetSuffix)
+
+        /* The magic trailer and the block terminator close the extension. */
+        byteWriter.write(ByteArray(256) { (0xFF - it).toByte() })
+        byteWriter.write(byteArrayOf(GifConstants.BLOCK_TERMINATOR))
+        byteWriter.write(byteArrayOf(GifConstants.GIF_TERMINATOR))
+
+        return byteWriter.toByteArray()
+    }
+
+    /**
+     * Builds the same GIF as [gif89aWithTrailingContiguousXmp] without any
+     * metadata: the header, the logical screen, the 1x1 image and the
+     * trailer.
+     */
+    private fun gif89aWithoutMetadata(): ByteArray {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        byteWriter.write("GIF89a".encodeToByteArray())
+        byteWriter.write(byteArrayOf(1, 0, 1, 0, 0, 0, 0))
+        byteWriter.write(byteArrayOf(GifConstants.IMAGE_SEPARATOR))
+        byteWriter.write(byteArrayOf(0, 0, 0, 0, 1, 0, 1, 0, 0))
+        byteWriter.write(byteArrayOf(2))
+        byteWriter.write(byteArrayOf(2, 2, 0x44, 0))
+        byteWriter.write(byteArrayOf(GifConstants.GIF_TERMINATOR))
+
+        return byteWriter.toByteArray()
+    }
+
+    /**
      * An extension block with a label this library does not know must
      * survive an update byte-exact. Historically the parser skipped only
      * introducer and label, so the stream desynced and a 0x2C inside such
@@ -363,5 +465,13 @@ class GifUpdaterTest : AbstractUpdaterTest(
     private companion object {
 
         const val STALE_COMMENT: String = "stale comment"
+
+        /**
+         * The packet the contiguous Adobe binding writes: the envelope
+         * only, no <?xpacket ?> wrapper. The file carries the magic
+         * trailer behind it, like every contiguous XMP extension.
+         */
+        const val CONTIGUOUS_XMP_PACKET: String =
+            """<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF/></x:xmpmeta>"""
     }
 }

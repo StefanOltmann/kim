@@ -586,6 +586,24 @@ internal fun ByteReader.readGifBytesUntilFirstTerminator(fieldName: String): Byt
 }
 
 /**
+ * Discards the bytes of a contiguous GIF data area up to and including
+ * the terminating 0x00 without buffering them, so skipping a large
+ * metadata payload costs no memory. [readGifBytesUntilFirstTerminator]
+ * returns the same bytes instead.
+ */
+internal fun ByteReader.skipGifBytesUntilFirstTerminator(fieldName: String) {
+
+    while (true) {
+
+        val byte = readByte()
+            ?: throw ImageReadException("Unexpected end of file behind the $fieldName.")
+
+        if (byte == GifConstants.BLOCK_TERMINATOR)
+            return
+    }
+}
+
+/**
  * The byte length of a GIF color table for the given 3-bit size field:
  * 2^(N+1) entries of 3 bytes each.
  */
