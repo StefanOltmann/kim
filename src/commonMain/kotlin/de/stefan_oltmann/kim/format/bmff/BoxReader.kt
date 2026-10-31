@@ -171,7 +171,8 @@ public object BoxReader {
      * without buffering the whole file. The first JXLP box contains the
      * codestream header, so every following JXLP box is image data. The
      * cut box is returned with an empty payload, because its content is
-     * streamed by the caller.
+     * streamed by the caller. The metadata budget applies like in the
+     * scan modes, because the update buffers every box before the cut.
      *
      * @param byteReader The reader as source for the bytes
      */
@@ -647,7 +648,10 @@ public object BoxReader {
             /*
              * The first JXLP box contains the codestream header, so every
              * following JXLP box is image data. It is returned with an empty
-             * payload, because the caller streams its content.
+             * payload, because the caller streams its content. The cut sits
+             * behind the first fragment on purpose: real writers (libjxl)
+             * place the metadata boxes between the small header fragment
+             * and the bulk data, so an update must see them before the cut.
              */
             if (stopBeforeImageData && type == BoxType.JXLP && haveSeenJxlpBox) {
 
@@ -689,7 +693,7 @@ public object BoxReader {
                 type = type,
                 isSkippableDataBox = isSkippableDataBox,
                 remainingBytesToReadInThisBox = remainingBytesToReadInThisBox,
-                enforceBudget = stopAfterMetadataRead || skipDataBoxPayloads,
+                enforceBudget = stopAfterMetadataRead || skipDataBoxPayloads || stopBeforeImageData,
                 retainedBoxBytes = retainedBoxBytes
             )
 
