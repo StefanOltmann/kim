@@ -77,6 +77,41 @@ class TiffReaderTest {
     }
 
     /**
+     * A file cut exactly between the last complete directory entry and
+     * the structural 4-byte next-offset word: every field of the
+     * directory was read completely, so the clean-boundary rule returns
+     * the directory with the chain terminated instead of failing the
+     * whole read - nothing is fabricated from the missing word.
+     */
+    @Test
+    fun testReadReturnsDirectoryWhenBytesEndBeforeNextOffsetWord() {
+
+        /*
+         * TIFF header + IFD0 with one inline Make entry, then the file
+         * ends before the next-offset word.
+         */
+        val bytes = byteArrayOf(
+            /* TIFF header. */
+            0x49, 0x49, 0x2A, 0x00,
+            /* IFD0 offset. */
+            8, 0, 0, 0,
+            /* Entry count. */
+            1, 0,
+            /* Make tag, ASCII, count 4, inline value "Kim\0". */
+            0x0F, 0x01, 2, 0, 4, 0, 0, 0, 0x4B, 0x69, 0x6D, 0x00
+        )
+
+        val metadata = TiffReader.read(bytes)
+
+        val directory = metadata.directories.first()
+
+        assertEquals("Kim", directory.findField(TiffTag.TIFF_TAG_MAKE)?.toStringValue())
+
+        /* The chain is cleanly terminated. */
+        assertEquals(0, directory.nextDirectoryOffset)
+    }
+
+    /**
      * An offset field whose value exists but cannot be read (the value
      * points behind the end of the file) carries the whole Exif sub-IFD
      * on its back. Per the strict read policy the read must fail instead
