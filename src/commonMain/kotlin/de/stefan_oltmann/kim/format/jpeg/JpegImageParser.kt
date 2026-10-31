@@ -401,7 +401,7 @@ public object JpegImageParser : ImageParser {
         }
 
     /**
-     * Extracts and parses the ICC color profile from the APP2
+     * Collects the ICC profile of the file from the APP2 segments carrying
      * "ICC_PROFILE" chunks, or NULL when the file carries none.
      *
      * A profile larger than one segment is spread over consecutive
@@ -410,6 +410,13 @@ public object JpegImageParser : ImageParser {
      * sequence must be complete and consistent: a missing, duplicated
      * or out-of-range chunk means corrupt metadata, which fails the
      * read instead of parsing a truncated profile.
+     *
+     * A chunk sequence restarts at index 1: a tool that appended its
+     * own profile without removing the first leaves a second complete
+     * run in the file. Only the first run is parsed - like ExifTool,
+     * which reads the first profile - and the foreign segments of the
+     * later runs survive a rewrite byte-exact, because ICC is not
+     * metadata the model can hold twice.
      */
     private fun getIccProfile(segments: List<Segment>): IccProfile? {
 
@@ -419,7 +426,9 @@ public object JpegImageParser : ImageParser {
             val payload: ByteArray
         )
 
-        val chunks = mutableListOf<IccChunk>()
+        val runs = mutableListOf<List<IccChunk>>()
+
+        var currentRun = mutableListOf<IccChunk>()
 
         for (segment in segments.filterIsInstance<GenericSegment>()) {
 
@@ -454,7 +463,12 @@ public object JpegImageParser : ImageParser {
                     "Invalid ICC chunk sequence $index of $total in the APP2 segment."
                 )
 
-            chunks.add(
+            if (index == 1 && currentRun.isNotEmpty()) {
+                runs.add(currentRun)
+                currentRun = mutableListOf()
+            }
+
+            currentRun.add(
                 IccChunk(
                     index = index,
                     total = total,
@@ -465,8 +479,10 @@ public object JpegImageParser : ImageParser {
             )
         }
 
-        if (chunks.isEmpty())
-            return null
+        if (currentRun.isNotEmpty())
+            runs.add(currentRun)
+
+        val chunks = runs.firstOrNull() ?: return null
 
         val total = chunks.first().total
 
