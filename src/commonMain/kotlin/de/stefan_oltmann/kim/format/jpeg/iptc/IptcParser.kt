@@ -426,8 +426,15 @@ public object IptcParser {
             if (blockSize < 0 || blockSize > bytes.size)
                 throw ImageReadException("Invalid Block Size : " + blockSize + " > " + bytes.size)
 
-            val blockData: ByteArray = readTolerantly { byteReader.readBytes("block data", blockSize) }
-                ?: break
+            /*
+             * A short block data read is a truncation an update would
+             * destroy: the APP13 stream is rebuilt from the parsed blocks
+             * only, so the partial block cannot be dropped silently. Per
+             * the strict read policy this fails the read like the
+             * unparseable tail does, while an EOF between blocks still
+             * ends the parse gracefully.
+             */
+            val blockData: ByteArray = byteReader.readBytes("block data", blockSize)
 
             blocks.add(IptcBlock(blockType, blockNameBytes, blockData))
 
