@@ -20,7 +20,10 @@ import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.format.AbstractUpdaterTest
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcRecord
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcTypes
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.model.ExifRating
@@ -392,6 +395,60 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
                 ?.any { record -> record.value == "kept" } == true,
             "The keyword update was not applied to the IPTC."
         )
+    }
+
+    /**
+     * A second Photoshop stream that carries IPTC records survives an
+     * update byte-exact. The rewrite must insert the new stream at the
+     * position of the replaced one, or the survivor shadows the update:
+     * the read returns the first record-bearing stream of the file, so
+     * the new stream landing behind the survivor makes the user's edit
+     * silently disappear from the read view although the write reported
+     * success.
+     */
+    @Test
+    fun testUpdateKeywordStaysAheadOfSecondRecordBearingStream() {
+
+        val metadata = assertNotNull(Kim.readMetadata(originalBytes))
+
+        val originalIptc = assertNotNull(metadata.iptc)
+
+        /* A second record-bearing stream with a different keyword set. */
+        val staleRecords = originalIptc.records.map { record ->
+            if (record.iptcType == IptcTypes.KEYWORDS)
+                IptcRecord(IptcTypes.KEYWORDS, "stale")
+            else
+                record
+        }
+
+        val staleStreamBlocks = IptcWriter.writeIptcResourceBlocks(
+            IptcMetadata(records = staleRecords, rawBlocks = emptyList())
+        )
+
+        val app13Payload = "Photoshop 3.0\u0000".encodeToByteArray() + staleStreamBlocks
+
+        val segmentLength = app13Payload.size + 2
+
+        val staleStreamSegment = byteArrayOf(
+            0xFF.toByte(), 0xED.toByte(),
+            (segmentLength shr 8).toByte(), segmentLength.toByte()
+        ) + app13Payload
+
+        val bytesWithStaleStream = insertSegmentAfterJfif(originalBytes, staleStreamSegment)
+
+        val updatedBytes = Kim.update(
+            bytes = bytesWithStaleStream,
+            update = MetadataUpdate.Keywords(setOf("fresh"))
+        )
+
+        val updatedMetadata = assertNotNull(Kim.readMetadata(updatedBytes))
+
+        val keywords = updatedMetadata.iptc?.records
+            ?.filter { record -> record.iptcType == IptcTypes.KEYWORDS }
+            ?.map { record -> record.value }
+            .orEmpty()
+
+        assertEquals(setOf("fresh"), keywords.toSet())
     }
 
     /**

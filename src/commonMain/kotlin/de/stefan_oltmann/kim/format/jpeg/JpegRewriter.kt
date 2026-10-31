@@ -236,15 +236,52 @@ public object JpegRewriter {
 
                 writeSegments(
                     byteWriter = outputWriter,
-                    segments = insertAfterLastAppSegments(
-                        segments = segments.filterNot { piece ->
-                            isReplacedIptcSegment(piece, metadata)
-                        },
+                    segments = segments.replaceIptcSegments(
+                        metadata = metadata,
                         newSegments = createIptcSegments(metadata)
                     )
                 )
             }
         }
+    }
+
+    /**
+     * Replaces the Photoshop segments the given metadata was parsed from
+     * with the given new segments. Other Photoshop streams of the file
+     * survive byte-exact, and the new segments take the position of the
+     * replaced stream: the read returns the first record-bearing stream,
+     * so the replacement landing behind a surviving stream would make it
+     * shadow the update on the next read.
+     *
+     * Without a replaced stream the new segments go behind the last APP
+     * segment, like a stream that was not parsed from the file.
+     */
+    private fun List<JFIFPiece>.replaceIptcSegments(
+        metadata: IptcMetadata,
+        newSegments: List<JFIFPiece>
+    ): List<JFIFPiece> {
+
+        var firstReplacedIndex = -1
+
+        val output = mutableListOf<JFIFPiece>()
+
+        for (piece in this) {
+
+            if (isReplacedIptcSegment(piece, metadata)) {
+
+                if (firstReplacedIndex < 0)
+                    firstReplacedIndex = output.size
+
+                continue
+            }
+
+            output.add(piece)
+        }
+
+        if (firstReplacedIndex < 0)
+            return insertAfterLastAppSegments(output, newSegments)
+
+        return output.toMutableList().apply { addAll(firstReplacedIndex, newSegments) }
     }
 
     /**
@@ -502,9 +539,9 @@ public object JpegRewriter {
 
         if (iptc != null) {
 
-            updatedSegments = insertAfterLastAppSegments(
-                updatedSegments.filterNot { piece -> isReplacedIptcSegment(piece, iptc) },
-                createIptcSegments(iptc)
+            updatedSegments = updatedSegments.replaceIptcSegments(
+                metadata = iptc,
+                newSegments = createIptcSegments(iptc)
             )
         }
 
