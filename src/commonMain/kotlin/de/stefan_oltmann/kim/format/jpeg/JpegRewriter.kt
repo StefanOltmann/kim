@@ -20,6 +20,7 @@ package de.stefan_oltmann.kim.format.jpeg
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.common.getRemainingBytes
+import de.stefan_oltmann.kim.common.isEquals
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toBytes
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
@@ -29,6 +30,7 @@ import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPiece
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
+import de.stefan_oltmann.kim.format.xmp.XMP_PACKET_END_TAG
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.copyRemainingTo
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
@@ -292,6 +294,14 @@ public object JpegRewriter {
      * only the first packet, so the new segments are inserted ahead of
      * the survivors when any exist.
      *
+     * A packet naively split across several standard segments is one
+     * packet: the read concatenates the segments until the closing
+     * element appears, so every standard segment before that boundary
+     * is a continuation and is removed with the first packet - keeping
+     * it would leave the stale second half of the old packet behind
+     * the new one. A segment behind a complete packet is independent
+     * and survives.
+     *
      * Extended-XMP segments in front of a surviving packet are removed,
      * including orphans whose GUID no packet references: their content
      * is undecodable without the lost main packet (the read already
@@ -310,6 +320,7 @@ public object JpegRewriter {
         val output = mutableListOf<JFIFPiece>()
 
         var removedFirstXmp = false
+        var firstPacketClosed = false
         var firstSurvivingXmpIndex = -1
 
         for (piece in this) {
@@ -330,14 +341,34 @@ public object JpegRewriter {
 
             if (removedFirstXmp) {
 
-                if (firstSurvivingXmpIndex < 0)
-                    firstSurvivingXmpIndex = output.size
+                if (firstPacketClosed) {
 
-                output.add(piece)
+                    if (firstSurvivingXmpIndex < 0)
+                        firstSurvivingXmpIndex = output.size
+
+                    output.add(piece)
+                } else {
+
+                    /*
+                     * A continuation of the replaced packet: removed with
+                     * it. The segment that completes the packet flips the
+                     * boundary, so the following standard segments are
+                     * independent packets again.
+                     */
+                    firstPacketClosed = segmentClosesPacket(piece.segmentBytes)
+                }
+
                 continue
             }
 
             removedFirstXmp = true
+
+            /*
+             * The replaced packet closes within its first segment when
+             * the read's boundary element is present; otherwise the
+             * following standard segments continue it.
+             */
+            firstPacketClosed = segmentClosesPacket(piece.segmentBytes)
         }
 
         if (!removedFirstXmp)
@@ -349,6 +380,26 @@ public object JpegRewriter {
         output.addAll(firstSurvivingXmpIndex, newSegments)
 
         return output
+    }
+
+    /**
+     * Returns whether the standard XMP segment carries the closing
+     * element the read's concatenation loop stops at. The raw bytes are
+     * searched instead of decoding the XML, because the element is
+     * ASCII and a segment that cannot be decoded fails the read before
+     * any rewrite sees it.
+     */
+    private fun segmentClosesPacket(segmentBytes: ByteArray): Boolean {
+
+        val closeTag = XMP_PACKET_END_TAG.encodeToByteArray()
+
+        for (start in 0..segmentBytes.size - closeTag.size) {
+
+            if (segmentBytes.isEquals(start, closeTag, 0, closeTag.size))
+                return true
+        }
+
+        return false
     }
 
     /**
