@@ -422,6 +422,9 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
             }
         }
 
+        if (fields.isEmpty())
+            return
+
         addDirectory(
             TiffDirectory(
                 type = TIFF_MAKER_NOTE_CANON_FILTER_INFO,
