@@ -207,6 +207,48 @@ abstract class AbstractUpdaterTest(
         compare("new_gps_coordinates_and_location_shown.no_metadata.$format", newBytes)
     }
 
+    /**
+     * The combined update is documented as a one-shot change, so a plain
+     * [MetadataUpdate.LocationShown] in the same set must not override its
+     * location, no matter in which iteration order the caller passes them.
+     */
+    @Test
+    fun testUpdateCombinedLocationWinsOverPlainLocationShown() {
+
+        val competingLocation = LocationShown(
+            name = "Somewhere Else",
+            street = null,
+            city = null,
+            state = null,
+            country = null
+        )
+
+        val combined = MetadataUpdate.GpsCoordinatesAndLocationShown(
+            gpsCoordinates = crashBuildingGps,
+            locationShown = crashBuildingLocation
+        )
+
+        val plainLocation = MetadataUpdate.LocationShown(competingLocation)
+
+        /*
+         * Both relative orders: the written location must be the combined
+         * update's one in both, not the set's iteration order.
+         */
+        val orders = listOf(
+            setOf(combined, plainLocation),
+            setOf(plainLocation, combined)
+        )
+
+        for (updates in orders) {
+
+            val newBytes = Kim.update(bytes = originalBytes, updates = updates)
+
+            val summary = assertNotNull(Kim.readMetadata(newBytes)).convertToSummary()
+
+            assertEquals(crashBuildingLocation, summary.locationShown)
+        }
+    }
+
     @Test
     fun testUpdateTitle() {
 

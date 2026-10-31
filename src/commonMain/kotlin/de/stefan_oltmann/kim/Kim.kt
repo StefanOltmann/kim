@@ -538,16 +538,19 @@ public object Kim {
             throw ImageWriteException("You did not specify any updates.")
 
         /*
-         * The combined position-and-location update writes the coordinates
-         * as part of one logical change, so a plain GpsCoordinates update
-         * of the same set must not overwrite them - which one wins would
-         * otherwise depend on the set's iteration order.
+         * The combined position-and-location update writes both values as
+         * part of one logical change, so a plain GpsCoordinates or
+         * LocationShown update of the same set must not overwrite either
+         * half - which one wins would otherwise depend on the set's
+         * iteration order.
          */
         val effectiveUpdates: Set<MetadataUpdate> =
             if (updates.none { it is MetadataUpdate.GpsCoordinatesAndLocationShown })
                 updates
             else
-                updates.filterNot { it is MetadataUpdate.GpsCoordinates }.toSet()
+                updates.filterNot {
+                    it is MetadataUpdate.GpsCoordinates || it is MetadataUpdate.LocationShown
+                }.toSet()
 
         val detection = detectFormatAndReplayHeader(byteReader)
 
