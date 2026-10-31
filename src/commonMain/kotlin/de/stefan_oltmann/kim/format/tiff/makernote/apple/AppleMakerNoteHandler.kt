@@ -221,6 +221,15 @@ internal object AppleMakerNoteHandler : MakerNoteHandler() {
 
             val byteCount = valueMarker and 0x0F
 
+            /*
+             * A plist integer holds at most 8 bytes; the markers 0x19 to
+             * 0x1F lie beyond that and would write behind the value
+             * array. Like the other degradation branches the value is
+             * skipped instead of dropping the whole directory.
+             */
+            if (byteCount > 8)
+                continue
+
             val valueBytes = readInt(valueOffset, byteCount) ?: return
 
             val absoluteOffset = getAbsoluteValueOffset(field)

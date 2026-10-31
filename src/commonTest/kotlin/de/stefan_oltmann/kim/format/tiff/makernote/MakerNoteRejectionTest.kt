@@ -163,6 +163,168 @@ class MakerNoteRejectionTest {
     }
 
     /**
+     * Regression test: an integer marker whose byte count exceeds the 8
+     * bytes the plist integer model holds (0x19 to 0x1F) previously
+     * wrote behind the start of the value array and dropped the whole
+     * RunTime directory. Like the other degradation branches the value
+     * is skipped instead, so the well-formed entries survive.
+     */
+    @Test
+    fun testAppleRunTimeSkipsInvalidIntegerMarker() {
+
+        val bytes = buildTiffWithAppleRunTime(firstValueMarker = 0x1F)
+
+        val metadata = assertNotNull(Kim.readMetadata(bytes))
+
+        val exif = assertNotNull(metadata.exif)
+
+        val runTimeDirectory = assertNotNull(
+            exif.findMakerNoteSubDirectory(TiffConstants.TIFF_MAKER_NOTE_APPLE_RUN_TIME),
+            "The RunTime directory was dropped although only one value is invalid."
+        )
+
+        /* The invalid first value is skipped, the second one survives. */
+        assertEquals(1, runTimeDirectory.entries.size)
+    }
+
+    /**
+     * A well-formed RunTime blob produces a directory with one entry per
+     * dictionary value.
+     */
+    @Test
+    fun testAppleRunTimeParsesValidEntries() {
+
+        val bytes = buildTiffWithAppleRunTime(firstValueMarker = 0x12)
+
+        val metadata = assertNotNull(Kim.readMetadata(bytes))
+
+        val exif = assertNotNull(metadata.exif)
+
+        val runTimeDirectory = assertNotNull(
+            exif.findMakerNoteSubDirectory(TiffConstants.TIFF_MAKER_NOTE_APPLE_RUN_TIME)
+        )
+
+        assertEquals(2, runTimeDirectory.entries.size)
+    }
+
+    /**
+     * Builds a minimal little-endian TIFF with an Apple MakerNote whose
+     * IFD carries a RunTime tag with a binary property list of one
+     * dictionary, two keys and two integer values. The first value's
+     * marker byte is parameterized, so the tests can corrupt it alone.
+     */
+    private fun buildTiffWithAppleRunTime(firstValueMarker: Byte): ByteArray {
+
+        val out = ByteArrayByteWriter()
+
+        val appleSignature = "Apple iOS\u0000\u0000\u0001".encodeToByteArray()
+
+        /*
+         * Binary plist: the dictionary with its key and value object
+         * references, the key and value objects, the offset table and
+         * the trailer with the plist header fields.
+         */
+        val blob =
+            byteArrayOf(
+                /* Object 0: dictionary with two entries. */
+                0xD2.toByte(), 1, 2, 3, 4,
+                /* Object 1: key "abc". */
+                0x53, 0x61, 0x62, 0x63,
+                /* Object 2: the first integer value. */
+                firstValueMarker, 1, 2, 3, 4,
+                /* Object 3: key "def". */
+                0x53, 0x64, 0x65, 0x66,
+                /* Object 4: the second integer value. */
+                0x12, 5, 6, 7, 8,
+                /* Offset table: one byte per object. */
+                0, 5, 9, 14, 18
+            ) +
+                /* Trailer: offset size, object ref size. */
+                byteArrayOf(1, 1) +
+                /* Number of objects, big endian like every plist trailer value. */
+                byteArrayOf(0, 0, 0, 0, 0, 0, 0, 5) +
+                /* Top object. */
+                byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0) +
+                /* Offset table offset. */
+                byteArrayOf(0, 0, 0, 0, 0, 0, 0, 23)
+
+        /*
+         * MakerNote: signature, byte order and an IFD whose single entry
+         * points at the blob. The stored value offset is relative to the
+         * MakerNote start, which is where the blob sits.
+         */
+        val blobOffsetInMakerNote = appleSignature.size + 2 + (2 + ENTRY_LENGTH + 4)
+        val blobSize = blob.size
+
+        val makerNote = appleSignature +
+            byteArrayOf(0x49, 0x49) +
+            /* Entry count. */
+            byteArrayOf(1, 0) +
+            /* RunTime tag, UNDEFINED, blob size, blob offset. */
+            byteArrayOf(3, 0, 7, 0) +
+            int32LittleEndian(blobSize) +
+            int32LittleEndian(blobOffsetInMakerNote) +
+            /* No next IFD. */
+            byteArrayOf(0, 0, 0, 0) +
+            blob
+
+        val ifd0Offset = 8
+        val ifd0Size = 2 + 2 * ENTRY_LENGTH + 4
+        val makeDataOffset = ifd0Offset + ifd0Size
+        val exifIfdOffset = makeDataOffset + 6
+        val exifIfdSize = 2 + ENTRY_LENGTH + 4
+        val makerNoteOffset = exifIfdOffset + exifIfdSize
+
+        /* TIFF header */
+        out.write(byteArrayOf(0x49, 0x49, 0x2A, 0x00))
+        out.writeInt(ifd0Offset, ByteOrder.LITTLE_ENDIAN)
+
+        /* IFD0: Make + Exif IFD pointer. */
+        out.write2BytesAsInt(2, ByteOrder.LITTLE_ENDIAN)
+
+        out.write2BytesAsInt(TiffTag.TIFF_TAG_MAKE.tag, ByteOrder.LITTLE_ENDIAN)
+        out.write2BytesAsInt(TYPE_ASCII, ByteOrder.LITTLE_ENDIAN)
+        out.writeInt(6, ByteOrder.LITTLE_ENDIAN)
+        out.writeInt(makeDataOffset, ByteOrder.LITTLE_ENDIAN)
+
+        out.write2BytesAsInt(ExifTag.EXIF_TAG_EXIF_OFFSET.tag, ByteOrder.LITTLE_ENDIAN)
+        out.write2BytesAsInt(TYPE_LONG, ByteOrder.LITTLE_ENDIAN)
+        out.writeInt(1, ByteOrder.LITTLE_ENDIAN)
+        out.writeInt(exifIfdOffset, ByteOrder.LITTLE_ENDIAN)
+
+        /* No next IFD. */
+        out.writeInt(0, ByteOrder.LITTLE_ENDIAN)
+
+        out.write("Apple\u0000".encodeToByteArray())
+
+        /* Exif IFD: MakerNote pointing at the blob. */
+        out.write2BytesAsInt(1, ByteOrder.LITTLE_ENDIAN)
+
+        out.write2BytesAsInt(ExifTag.EXIF_TAG_MAKER_NOTE.tag, ByteOrder.LITTLE_ENDIAN)
+        out.write2BytesAsInt(TYPE_UNDEFINED, ByteOrder.LITTLE_ENDIAN)
+        out.writeInt(makerNote.size, ByteOrder.LITTLE_ENDIAN)
+        out.writeInt(makerNoteOffset, ByteOrder.LITTLE_ENDIAN)
+
+        /* No next IFD. */
+        out.writeInt(0, ByteOrder.LITTLE_ENDIAN)
+
+        out.write(makerNote)
+
+        return out.toByteArray()
+    }
+
+    /**
+     * Returns the little-endian bytes of the given 32-bit value.
+     */
+    private fun int32LittleEndian(value: Int): ByteArray =
+        byteArrayOf(
+            (value and 0xFF).toByte(),
+            ((value shr 8) and 0xFF).toByte(),
+            ((value shr 16) and 0xFF).toByte(),
+            ((value shr 24) and 0xFF).toByte()
+        )
+
+    /**
      * Regression test: a MakerNote whose IFD cannot be read at all (here:
      * an insane entry count running past the end of the file) must keep
      * the MakerNote as an opaque block instead of rejecting the whole
