@@ -18,6 +18,7 @@ package de.stefan_oltmann.kim.format.tiff
 import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ByteOrder
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.RationalNumbers
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
@@ -36,6 +37,7 @@ import de.stefan_oltmann.kim.format.tiff.makernote.olympus.OlympusTag
 import de.stefan_oltmann.kim.format.tiff.makernote.panasonic.PanasonicTag
 import de.stefan_oltmann.kim.format.tiff.makernote.sony.SonyTag
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.input.DefaultRandomAccessByteReader
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -155,6 +157,38 @@ class MakerNoteTest {
             addedDirectories.none { it.type == TiffConstants.TIFF_MAKER_NOTE_CANON_FILTER_INFO },
             "An empty FilterInfo directory was added: $addedDirectories"
         )
+    }
+
+    /**
+     * The footer probe computes its position from two file-controlled
+     * values whose sum can wrap the Int range for a hostile MakerNote
+     * geometry. The wrapped negative offset tripped the reader's offset
+     * requirement as a raw IllegalArgumentException instead of the
+     * documented ImageException contract. The probe is an optimization,
+     * so it skips when the position leaves the Int range - the call then
+     * gives up silently or fails with the documented contract.
+     */
+    @Test
+    fun testFooterProbeWithNearIntMaxGeometryStaysImageException() {
+
+        val exception = runCatching {
+            CanonMakerNoteHandler.read(
+                byteReader = DefaultRandomAccessByteReader(
+                    ByteArrayByteReader(ByteArray(8))
+                ),
+                makerNoteValueOffset = Int.MAX_VALUE - 4,
+                makerNoteLength = 16,
+                byteOrder = ByteOrder.LITTLE_ENDIAN,
+                model = null,
+                addDirectory = { }
+            )
+        }.exceptionOrNull()
+
+        if (exception != null)
+            assertTrue(
+                exception is ImageReadException,
+                "Unexpected exception type: ${exception::class.simpleName}: ${exception.message}"
+            )
     }
 
     @Test

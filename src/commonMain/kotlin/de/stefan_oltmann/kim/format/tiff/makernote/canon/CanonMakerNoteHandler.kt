@@ -267,8 +267,21 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
         if (makerNoteLength < 8)
             return 0
 
+        /*
+         * Both values are file-controlled and individually validated, so
+         * their sum can wrap the Int range for a hostile geometry. The
+         * probe is an optimization, not a correctness requirement, so it
+         * skips when the position leaves the Int range instead of
+         * tripping the reader's offset requirement with a raw
+         * IllegalArgumentException.
+         */
+        val footerPosition = makerNoteValueOffset.toLong() + makerNoteLength - 8
+
+        if (footerPosition > Int.MAX_VALUE)
+            return 0
+
         val footerBytes = byteReader.readBytes(
-            makerNoteValueOffset + makerNoteLength - 8,
+            footerPosition.toInt(),
             8
         )
 
