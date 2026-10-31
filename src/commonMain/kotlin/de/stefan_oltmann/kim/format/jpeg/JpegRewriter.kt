@@ -223,6 +223,11 @@ public object JpegRewriter {
     /**
      * Reads a JPEG image, replaces the IPTC data in the App13 segment, but leaves the other
      * data in that segment (if present) unchanged and writes the result to a stream.
+     *
+     * Attention: Only [de.stefan_oltmann.kim.Kim.update] maintains the
+     * IPTCDigest resource (0x0425) and the `xmpNote:IPTCDigest` XMP
+     * property. This low-level write re-emits the digest blocks the
+     * given metadata carries as they are.
      */
     @JvmStatic
     public fun writeIPTC(byteReader: ByteReader, byteWriter: ByteWriter, metadata: IptcMetadata) {

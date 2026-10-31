@@ -18,11 +18,16 @@ package de.stefan_oltmann.kim.format.jpeg
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.Md5
 import de.stefan_oltmann.kim.common.toHex
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcBlock
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcConstants
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
+import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.MetadataUpdate
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
@@ -73,6 +78,66 @@ class JpegIptcDigestTest {
         assertEquals(
             digest,
             Md5.digest(IptcWriter.writeIptcBlockData(iptc.records)).toHex()
+        )
+    }
+
+    /**
+     * A digest resource whose data has a foreign size is still the file's
+     * declared digest slot: a legacy tool may have written it padded. The
+     * update must replace its data with the current digest regardless of
+     * the old size, or the stale MD5 survives the rewrite and digest-aware
+     * tools permanently flag the file as out of sync.
+     */
+    @Test
+    fun testUpdateReplacesForeignSizeDigestResource() {
+
+        val originalBytes = KimTestData.getBytesOf(index = 5)
+
+        /* Build a file whose digest resource carries padded 20-byte data. */
+        val originalIptc = assertNotNull(Kim.readMetadata(originalBytes)).iptc
+
+        val paddedBlocks = assertNotNull(originalIptc).nonIptcBlocks.map { block ->
+            if (block.blockType == IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DIGEST)
+                IptcBlock(block.blockType, block.blockNameBytes, block.blockData + ByteArray(4))
+            else
+                block
+        }
+
+        val byteWriter = ByteArrayByteWriter()
+
+        JpegRewriter.writeIPTC(
+            byteReader = ByteArrayByteReader(originalBytes),
+            byteWriter = byteWriter,
+            metadata = IptcMetadata(
+                records = originalIptc.records,
+                rawBlocks = paddedBlocks
+            )
+        )
+
+        val fixtureBytes = byteWriter.toByteArray()
+
+        /* Sanity: the fixture really carries the padded digest slot. */
+        val fixtureIptc = assertNotNull(Kim.readMetadata(fixtureBytes)).iptc
+
+        val paddedDigestBlock = assertNotNull(fixtureIptc).nonIptcBlocks
+            .first { it.blockType == IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DIGEST }
+
+        assertEquals(20, paddedDigestBlock.blockData.size)
+
+        val updatedBytes = Kim.update(
+            bytes = fixtureBytes,
+            updates = setOf(MetadataUpdate.Keywords(setOf("fresh")))
+        )
+
+        val updatedIptc = assertNotNull(Kim.readMetadata(updatedBytes)).iptc
+
+        val digestResource = assertNotNull(updatedIptc).nonIptcBlocks.firstOrNull { block ->
+            block.blockType == IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DIGEST
+        }
+
+        assertContentEquals(
+            Md5.digest(IptcWriter.writeIptcBlockData(updatedIptc.records)),
+            assertNotNull(digestResource, "The Photoshop IPTCDigest resource is missing.").blockData
         )
     }
 }
