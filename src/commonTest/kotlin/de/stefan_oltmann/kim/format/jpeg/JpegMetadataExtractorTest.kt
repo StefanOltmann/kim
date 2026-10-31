@@ -94,6 +94,31 @@ class JpegMetadataExtractorTest {
         }
     }
 
+    /**
+     * The gap accumulation itself must be bounded: a file whose bytes
+     * end inside a gap beyond the budget has no marker behind it, so
+     * the scan returns NULL and the budget check after the write never
+     * runs - the whole gap was buffered for nothing. The scan must
+     * throw at the bound instead of accumulating it first.
+     */
+    @Test
+    fun testExtractMetadataBytesRejectsGapBeyondBudgetAtEof() {
+
+        val budget = JpegUtils.MAX_HEADER_SEGMENT_BYTES
+
+        /* SOI, then a gap beyond the budget that never ends in a marker. */
+        val bytes = byteArrayOf(
+            /* SOI */
+            0xFF.toByte(), 0xD8.toByte(),
+            /* Fill byte, treated as a marker. */
+            0xFF.toByte(), 0x00.toByte()
+        ) + ByteArray(budget + 1)
+
+        assertFailsWith<ImageReadException> {
+            JpegMetadataExtractor.extractMetadataBytes(ByteArrayByteReader(bytes))
+        }
+    }
+
     private companion object {
 
         /* Media 45 and 47 contain invalid segment lengths. */

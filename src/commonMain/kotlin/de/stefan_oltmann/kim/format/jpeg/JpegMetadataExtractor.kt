@@ -76,7 +76,16 @@ public object JpegMetadataExtractor : MetadataExtractor {
         bytes: ByteArrayByteWriter
     ) {
 
-        val scanner = JpegMarkerScanner(byteReader)
+        /*
+         * The retained gap is bounded by the header budget: a file whose
+         * bytes end inside a huge gap has no marker behind it, so the
+         * budget check after the scan never runs and the whole gap
+         * would be buffered for nothing.
+         */
+        val scanner = JpegMarkerScanner(
+            byteReader = byteReader,
+            maxRetainedBytes = MAX_HEADER_SEGMENT_BUDGET
+        )
 
         @Suppress("LoopWithTooManyJumpStatements")
         do {
