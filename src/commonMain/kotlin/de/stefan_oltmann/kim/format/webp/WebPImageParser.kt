@@ -17,6 +17,7 @@
 package de.stefan_oltmann.kim.format.webp
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.MAX_METADATA_BYTE_BUDGET
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
 import de.stefan_oltmann.kim.format.MediaMetadata
@@ -188,11 +189,26 @@ public object WebPImageParser : ImageParser {
              * the size headers of the image chunks are needed. Everything
              * else is pure image data and skipped in bounded chunks.
              */
-            val keepFullPayload =
-                !stopAfterMetadataRead ||
-                    chunkType == WebPChunkType.EXIF ||
+            val isMetadataChunk =
+                chunkType == WebPChunkType.EXIF ||
                     chunkType == WebPChunkType.XMP ||
                     chunkType == WebPChunkType.ICCP
+
+            val keepFullPayload =
+                !stopAfterMetadataRead || isMetadataChunk
+
+            /*
+             * The declared chunk size is file-controlled and the payload
+             * buffers whole, so a metadata chunk beyond the shared
+             * metadata budget is hostile input and fails the read - the
+             * image bitstream of large chunks is skipped instead.
+             */
+            if (keepFullPayload && isMetadataChunk && chunkSize > MAX_METADATA_BYTE_BUDGET)
+                throw ImageReadException(
+                    "The WebP $chunkType chunk carries $chunkSize bytes of " +
+                        "payload, which exceeds the metadata budget of " +
+                        "$MAX_METADATA_BYTE_BUDGET bytes."
+                )
 
             val bytes: ByteArray = if (keepFullPayload) {
 

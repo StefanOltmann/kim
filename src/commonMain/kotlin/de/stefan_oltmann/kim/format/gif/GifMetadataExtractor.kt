@@ -18,6 +18,7 @@
 package de.stefan_oltmann.kim.format.gif
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.MAX_METADATA_BYTE_BUDGET
 import de.stefan_oltmann.kim.common.toSingleNumberHexes
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.MetadataExtractor
@@ -98,7 +99,19 @@ public object GifMetadataExtractor : MetadataExtractor {
             },
             onExtensionBlock = { extensionLabel ->
                 val chunk = GifImageParser.readExtensionChunk(byteReader, extensionLabel)
+
                 bytes.addAll(chunk.bytes.toList())
+
+                /*
+                 * The extensions accumulate in the output, so a file of
+                 * many just-under-the-budget extensions must hit the
+                 * cumulative budget too, like the PNG extractor does.
+                 */
+                if (bytes.size > MAX_METADATA_BYTE_BUDGET)
+                    throw ImageReadException(
+                        "The GIF metadata exceeds the $MAX_METADATA_BYTE_BUDGET byte budget."
+                    )
+
                 false
             },
             onTrailerBlock = {

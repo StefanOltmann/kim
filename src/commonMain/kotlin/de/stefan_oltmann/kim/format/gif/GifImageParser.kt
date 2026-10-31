@@ -18,6 +18,7 @@
 package de.stefan_oltmann.kim.format.gif
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.MAX_METADATA_BYTE_BUDGET
 import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.common.tryWithImageReadException
@@ -437,12 +438,18 @@ public object GifImageParser : ImageParser {
                             )
 
                         payloadBlocks = listOf(firstSubBlock) +
-                            byteReader.parseGifSubChunksUntilEmpty("application extension")
+                            byteReader.parseGifSubChunksUntilEmpty(
+                                "application extension",
+                                MAX_METADATA_BYTE_BUDGET
+                            )
                     }
                 } else {
 
                     payloadBlocks =
-                        byteReader.parseGifSubChunksUntilEmpty("application extension")
+                        byteReader.parseGifSubChunksUntilEmpty(
+                                "application extension",
+                                MAX_METADATA_BYTE_BUDGET
+                            )
 
                     contiguouslyFramed = false
                 }
@@ -460,13 +467,19 @@ public object GifImageParser : ImageParser {
             GifConstants.COMMENT_EXTENSION_LABEL ->
                 GifChunkCommentExtension(
                     byteArrayOf(GifConstants.EXTENSION_INTRODUCER, GifConstants.COMMENT_EXTENSION_LABEL),
-                    byteReader.parseGifSubChunksUntilEmpty("comment extension")
+                    byteReader.parseGifSubChunksUntilEmpty(
+                    "comment extension",
+                    MAX_METADATA_BYTE_BUDGET
+                )
                 )
 
             GifConstants.PLAIN_TEXT_EXTENSION_LABEL ->
                 GifChunkPlainTextExtension(
                     byteArrayOf(GifConstants.EXTENSION_INTRODUCER, GifConstants.PLAIN_TEXT_EXTENSION_LABEL),
-                    byteReader.parseGifSubChunksUntilEmpty("plain text extension")
+                    byteReader.parseGifSubChunksUntilEmpty(
+                    "plain text extension",
+                    MAX_METADATA_BYTE_BUDGET
+                )
                 )
 
             else ->
@@ -474,16 +487,32 @@ public object GifImageParser : ImageParser {
                     GifChunkType.UNKNOWN_EXTENSION,
                     joinGifSubChunks(
                         byteArrayOf(GifConstants.EXTENSION_INTRODUCER, extensionLabel),
-                        byteReader.parseGifSubChunksUntilEmpty("unknown extension")
+                        byteReader.parseGifSubChunksUntilEmpty(
+                        "unknown extension",
+                        MAX_METADATA_BYTE_BUDGET
+                    )
                     )
                 )
         }
 
+    /**
+     * Parses a chain of size-prefixed sub-blocks.
+     *
+     * When [maxRetainedBytes] is given, the chain's accumulated payload
+     * is validated against it: the chain is file-controlled, so the
+     * sub-block count is not, and extensions buffer before the filter
+     * decides - a chain beyond the metadata budget is hostile input and
+     * fails the read. Image data callers pass no bound, because large
+     * frames are legitimate.
+     */
     internal fun ByteReader.parseGifSubChunksUntilEmpty(
-        fieldName: String
+        fieldName: String,
+        maxRetainedBytes: Int? = null
     ): List<ByteArray> {
 
         val subChunks = mutableListOf<ByteArray>()
+
+        var retainedBytes = 0
 
         while (true) {
 
@@ -494,6 +523,14 @@ public object GifImageParser : ImageParser {
                 break
 
             val subChunkBytes = this.readBytes("$fieldName sub chunk", subChunkSize)
+
+            retainedBytes += subChunkSize
+
+            if (maxRetainedBytes != null && retainedBytes > maxRetainedBytes)
+                throw ImageReadException(
+                    "The GIF $fieldName carries more than $maxRetainedBytes bytes " +
+                        "of payload, which exceeds the metadata budget."
+                )
 
             subChunks.add(byteArrayOf(subChunkSize.toByte()) + subChunkBytes)
         }

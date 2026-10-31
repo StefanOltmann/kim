@@ -19,6 +19,7 @@ package de.stefan_oltmann.kim.format.png
 
 import de.stefan_oltmann.kim.common.HEX_RADIX
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.MAX_METADATA_BYTE_BUDGET
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.ImageParser
@@ -62,7 +63,7 @@ public object PngImageParser : ImageParser {
      * path's header segment budget, a hostile file of oversized
      * metadata chunks must not accumulate unboundedly.
      */
-    internal const val MAX_RETAINED_CHUNK_BYTES: Int = 16 * 1024 * 1024
+    internal const val MAX_RETAINED_CHUNK_BYTES: Int = MAX_METADATA_BYTE_BUDGET
 
     /* Note that [\\p{Cntrl}] does not work for Kotlin/JS. */
     private val controlCharRegex = Regex("""[\x00-\x1F\x7F-\x9F]""")

@@ -69,4 +69,33 @@ class GifMetadataExtractorTest {
         }
     }
 
+    /**
+     * A hostile comment extension beyond the shared metadata byte
+     * budget must fail the extraction instead of buffering without any
+     * bound - the PNG reader rejects the same attack at the budget.
+     */
+    @Test
+    fun testExtractMetadataBytesRejectsOversizedExtension() {
+
+        /* 67000 x 255 bytes lie beyond the 16 MiB budget. */
+        val bytes = gif89aWithLargeCommentExtension(subBlockCount = 67_000)
+
+        assertFailsWith<ImageReadException> {
+            GifMetadataExtractor.extractMetadataBytes(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /**
+     * An extension just below the budget is a legitimate file and must
+     * keep working, so the budget is not set too low.
+     */
+    @Test
+    fun testExtractMetadataBytesAcceptsExtensionBelowBudget() {
+
+        /* 65530 x 255 bytes keep the accumulated output below the 16 MiB budget. */
+        val bytes = gif89aWithLargeCommentExtension(subBlockCount = 65_530)
+
+        GifMetadataExtractor.extractMetadataBytes(ByteArrayByteReader(bytes))
+    }
+
 }
