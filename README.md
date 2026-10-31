@@ -245,6 +245,7 @@ The supported update types are:
 | `MetadataUpdate.Keywords`                       | Keywords                                            |
 | `MetadataUpdate.Faces`                          | Faces (XMP-mwg-rs regions)                          |
 | `MetadataUpdate.Persons`                        | Persons in image                                    |
+| `MetadataUpdate.CustomProperties`               | Simple properties in an application-defined XMP namespace (XMP only) |
 
 An update call without any updates is rejected with an `ImageWriteException`.
 
