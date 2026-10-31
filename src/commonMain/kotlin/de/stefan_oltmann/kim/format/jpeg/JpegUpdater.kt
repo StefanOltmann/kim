@@ -177,77 +177,20 @@ internal object JpegUpdater : MetadataUpdater {
      * a healthy ICC profile: the chunk sequence is complete and the
      * assembled profile parses. An empty set deletes every APP2 segment,
      * also when a single faulty chunk made the assembled profile
-     * unparseable.
+     * unparseable. The assembly rules live in [JpegIccChunkAssembler],
+     * so the read and the delete decision cannot drift apart.
      */
     private fun findHealthyIccSegmentIndexes(segments: List<JFIFPieceSegment>): Set<Int> {
 
-        data class IccChunk(
-            val position: Int,
-            val index: Int,
-            val total: Int,
-            val payload: ByteArray
-        )
-
-        val chunks = mutableListOf<IccChunk>()
-
-        for ((position, segment) in segments.withIndex()) {
-
-            if (segment.marker != JpegConstants.JPEG_APP2_MARKER)
-                continue
-
-            val segmentBytes = segment.segmentBytes
-
-            if (!segmentBytes.startsWith(JpegConstants.ICC_PROFILE_IDENTIFIER))
-                continue
-
-            if (segmentBytes.size < JpegConstants.ICC_IDENTIFIER_LENGTH +
-                JpegConstants.ICC_SEQUENCE_BYTE_COUNT
-            )
-                return emptySet()
-
-            val index = segmentBytes[JpegConstants.ICC_CHUNK_SEQUENCE_OFFSET].toUInt8()
-            val total = segmentBytes[JpegConstants.ICC_CHUNK_SEQUENCE_OFFSET + 1].toUInt8()
-
-            if (total < 1 || index < 1 || index > total)
-                return emptySet()
-
-            chunks.add(
-                IccChunk(
-                    position = position,
-                    index = index,
-                    total = total,
-                    payload = segmentBytes.getRemainingBytes(
-                        JpegConstants.ICC_IDENTIFIER_LENGTH + JpegConstants.ICC_SEQUENCE_BYTE_COUNT
-                    )
-                )
-            )
-        }
-
-        if (chunks.isEmpty())
-            return emptySet()
-
-        /*
-         * The chunk sequence must be complete and consistent: a missing,
-         * duplicated or out-of-range chunk means corrupt metadata, which
-         * deletes the profile instead of keeping a truncated one.
-         */
-        val total = chunks.first().total
-
-        if (chunks.size != total || chunks.map { chunk -> chunk.index }.sorted() != (1..total).toList())
-            return emptySet()
-
-        val profileBytes = ByteArrayByteWriter()
-
-        chunks.sortedBy { chunk -> chunk.index }
-            .forEach { chunk -> profileBytes.write(chunk.payload) }
+        val chunks = JpegIccChunkAssembler.collectFirstRun(segments) ?: return emptySet()
 
         try {
-            IccProfileParser.parse(profileBytes.toByteArray())
+            IccProfileParser.parse(JpegIccChunkAssembler.assemble(chunks))
         } catch (_: ImageReadException) {
             return emptySet()
         }
 
-        return chunks.map { chunk -> chunk.position }.toSet()
+        return chunks.map { chunk -> chunk.segmentPosition }.toSet()
     }
 
     @Throws(ImageWriteException::class)

@@ -143,6 +143,29 @@ class JpegIccProfileTest {
     }
 
     /**
+     * The read and the delete decision share the ICC chunk-assembly
+     * rules: what the read accepts as the profile is exactly what
+     * deleteMetadata keeps. A divergence between the two copies would
+     * delete profiles the reader accepted or keep profiles it rejected.
+     * The rendered dumps compare every field, because the data class
+     * compares its number arrays by reference.
+     */
+    @Test
+    fun testDeleteKeepsExactlyTheProfileTheReadAccepted() {
+
+        val originalProfile = assertNotNull(Kim.readMetadata(KimTestData.getBytesOf(2))).iccProfile
+
+        val deletedProfile = assertNotNull(
+            Kim.readMetadata(Kim.deleteMetadata(KimTestData.getBytesOf(2)))
+        ).iccProfile
+
+        assertEquals(
+            assertNotNull(originalProfile).toString(),
+            assertNotNull(deletedProfile).toString()
+        )
+    }
+
+    /**
      * Returns the APP2 payload of the first ICC profile segment of the
      * given JPEG bytes, including the identifier and sequence bytes.
      */
