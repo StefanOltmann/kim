@@ -57,6 +57,73 @@ class JxlUpdaterTest : AbstractUpdaterTest("jxl") {
     }
 
     /**
+     * Metadata behind the last codestream fragment of a jxlp file is real
+     * content: the metadata scan must walk past the codestream like it
+     * does for jxlc files, or the read reports a file without its metadata
+     * and a sidecar export silently loses it - while the update path
+     * fails loudly because it never saw the metadata either.
+     */
+    @Test
+    fun testReadJxlpMetadataBehindCodestream() {
+
+        val bytes = createJxlpFileWithMetadataOnlyBehindCodestream()
+
+        val metadata = assertNotNull(Kim.readMetadata(bytes))
+
+        assertNotNull(metadata.exif)
+        assertNotNull(metadata.xmp)
+    }
+
+    /**
+     * Builds a jxlp file whose only Exif and xml boxes come after the
+     * codestream boxes.
+     */
+    private fun createJxlpFileWithMetadataOnlyBehindCodestream(): ByteArray {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        /* JXL file signature. */
+        byteWriter.write(
+            byteArrayOf(0, 0, 0, 0x0C, 0x4A, 0x58, 0x4C, 0x20, 0x0D, 0x0A, 0x87.toByte(), 0x0A)
+        )
+
+        writeBox(
+            byteWriter = byteWriter,
+            type = BoxType.FTYP,
+            payload = "jxl ".encodeToByteArray() + byteArrayOf(0, 0, 0, 0) + "jxl ".encodeToByteArray()
+        )
+
+        /* The header box with index zero and the codestream signature. */
+        writeBox(
+            byteWriter = byteWriter,
+            type = BoxType.JXLP,
+            payload = byteArrayOf(0, 0, 0, 0, 0xFF.toByte(), 0x0A)
+        )
+
+        /* A data box, which is pure image data. */
+        writeBox(
+            byteWriter = byteWriter,
+            type = BoxType.JXLP,
+            payload = byteArrayOf(0, 0, 0, 1, 1, 2, 3, 4)
+        )
+
+        /* The only metadata of the file, behind the codestream. */
+        writeBox(
+            byteWriter = byteWriter,
+            type = BoxType.EXIF,
+            payload = byteArrayOf(0, 0, 0, 0) + minimalTiffBytes()
+        )
+
+        writeBox(
+            byteWriter = byteWriter,
+            type = BoxType.XML,
+            payload = DUPLICATE_XMP.encodeToByteArray()
+        )
+
+        return byteWriter.toByteArray()
+    }
+
+    /**
      * Exif that exists only behind the codestream is never seen by the
      * update: dropping it would silently destroy it, exactly like the
      * PNG case, so the update must be refused instead.

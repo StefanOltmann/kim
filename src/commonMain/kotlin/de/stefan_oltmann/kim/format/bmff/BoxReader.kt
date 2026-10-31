@@ -610,13 +610,6 @@ public object BoxReader {
 
             position += BMFFConstants.BOX_HEADER_LENGTH
 
-            /*
-             * If we read an JXL file and we already have seen the header,
-             * all remaining JXLP boxes are image data that we can skip.
-             */
-            if (stopAfterMetadataRead && type == BoxType.JXLP && haveSeenJxlHeaderBox)
-                break
-
             var largeSize: Long? = null
 
             val actualLength: Long = when (size) {
