@@ -80,6 +80,14 @@ public object WebPWriter {
             modifiedChunks.removeAll { it.type == WebPChunkType.XMP }
 
         /*
+         * The removals can drain a list that carried no image chunk, so
+         * the emptiness guard has to run again - a raw NoSuchElementException
+         * from the first-chunk lookup would escape the exception contract.
+         */
+        if (modifiedChunks.isEmpty())
+            throw ImageWriteException("No chunks to write!")
+
+        /*
          * The metadata flags are derived from the chunks that will
          * actually be written - not from the old header flags, which can
          * be stale when a file claims EXIF or XMP without carrying the
