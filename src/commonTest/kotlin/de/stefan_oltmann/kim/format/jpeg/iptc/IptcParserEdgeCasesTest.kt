@@ -424,6 +424,39 @@ class IptcParserEdgeCasesTest {
     }
 
     /**
+     * A final 8BIM block whose header is complete but whose data is
+     * short is a truncation an update would destroy: the APP13 stream
+     * is rebuilt from the parsed blocks only, so dropping the partial
+     * block here would silently lose its bytes on the next rewrite.
+     * Per the strict read policy this fails the read like the
+     * unparseable tail does.
+     */
+    @Test
+    fun testParseRejectsTruncatedBlockData() {
+
+        /*
+         * A complete block, followed by a header that declares 30 data
+         * bytes of which only two remain. The declared size stays below
+         * the total stream length, so only the short block data read
+         * can catch the truncation.
+         */
+        val truncatedBlockHeader = byteArrayOf(
+            0x38, 0x42, 0x49, 0x4D,
+            0x04, 0x04,
+            0,
+            0,
+            0, 0, 0, 30
+        ) + byteArrayOf(0x1C, 0x02)
+
+        assertFailsWith<ImageReadException> {
+            IptcParser.parseIptc(
+                bytes = wrapIn8BimBlock(captionRecord("kept")) + truncatedBlockHeader,
+                startsWithApp13Header = false
+            )
+        }
+    }
+
+    /**
      * An odd-sized block without its trailing padding byte must be
      * kept and the parse must stop gracefully.
      */

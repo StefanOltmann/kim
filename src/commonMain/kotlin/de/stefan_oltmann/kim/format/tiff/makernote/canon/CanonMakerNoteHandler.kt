@@ -66,6 +66,12 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
         "EOS-1D" to canonCameraInfo(CanonCameraInfo1DTag.ALL),
         "EOS 5D Mark II" to canonCameraInfo(CanonCameraInfo5DmkIITag.ALL),
         "EOS 5D Mark III" to canonCameraInfo(CanonCameraInfo5DmkIIITag.ALL),
+        /*
+         * Like ExifTool, the lens serial number at 0x16b is only read
+         * for the 5DS and 5DS R. The entry must stay in front of
+         * "EOS 5D", because the model match is a contains check.
+         */
+        "EOS 5DS" to canonCameraInfo(CanonCameraInfoUnknownTag.ALL),
         "EOS 5D" to canonCameraInfo(CanonCameraInfo5DTag.ALL),
         "EOS 6D" to canonCameraInfo(CanonCameraInfo6DTag.ALL),
         "EOS 7D" to canonCameraInfo(CanonCameraInfo7DTag.ALL),
@@ -122,10 +128,16 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
                     fields
             }
         ),
+        /*
+         * Without a known model there is no readable layout: the
+         * ExifTool fallback tags are conditional on the model or on
+         * value bytes, so a fixed-offset read would fabricate fields
+         * from foreign layouts.
+         */
         MakerNoteBlobPointer(
             0x000d,
             TIFF_MAKER_NOTE_CANON_CAMERA_INFO,
-            CanonCameraInfoUnknownTag.ALL,
+            emptyList(),
             1,
             modelTables = CAMERA_INFO_MODELS
         ),
@@ -255,8 +267,21 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
         if (makerNoteLength < 8)
             return 0
 
+        /*
+         * Both values are file-controlled and individually validated, so
+         * their sum can wrap the Int range for a hostile geometry. The
+         * probe is an optimization, not a correctness requirement, so it
+         * skips when the position leaves the Int range instead of
+         * tripping the reader's offset requirement with a raw
+         * IllegalArgumentException.
+         */
+        val footerPosition = makerNoteValueOffset.toLong() + makerNoteLength - 8
+
+        if (footerPosition > Int.MAX_VALUE)
+            return 0
+
         val footerBytes = byteReader.readBytes(
-            makerNoteValueOffset + makerNoteLength - 8,
+            footerPosition.toInt(),
             8
         )
 
@@ -409,6 +434,9 @@ internal object CanonMakerNoteHandler : MakerNoteHandler() {
                 pos = nextPos
             }
         }
+
+        if (fields.isEmpty())
+            return
 
         addDirectory(
             TiffDirectory(

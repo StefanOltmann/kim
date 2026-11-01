@@ -65,14 +65,12 @@ internal object WebPUpdater : MetadataUpdater {
 
         /*
          * Remove the EXIF and XMP chunks. The ICCP chunk is kept, because it
-         * affects how the image is displayed.
+         * affects how the image is displayed. A list drained completely is
+         * rejected by the writer's emptiness guard.
          */
         val modifiedChunks = chunks.filterNot { chunk ->
             chunk.type == WebPChunkType.EXIF || chunk.type == WebPChunkType.XMP
         }
-
-        if (modifiedChunks.isEmpty())
-            throw ImageWriteException("No chunks to write!")
 
         /*
          * The VP8X flags are rebuilt by the writer from the final chunk

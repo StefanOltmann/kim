@@ -377,8 +377,21 @@ public object TiffReader {
                 throw ex
             }
 
+            /*
+             * The bytes can end exactly between the last complete entry
+             * and this structural trailer word. Every field of the
+             * directory was read, so per the clean-boundary rule the
+             * complete directory is returned with the chain terminated -
+             * nothing is fabricated from the missing word.
+             */
             val nextDirectoryOffset =
-                byteReader.read4BytesAsInt("Next directory offset", byteOrder)
+                try {
+                    byteReader.read4BytesAsInt("Next directory offset", byteOrder)
+                } catch (ex: CancellationException) {
+                    throw ex
+                } catch (_: ImageReadException) {
+                    0
+                }
 
             val directory = TiffDirectory(
                 type = currentType,

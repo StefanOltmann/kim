@@ -18,6 +18,7 @@ package de.stefan_oltmann.kim.format.jpeg
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
+import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -104,7 +105,7 @@ class JpegIccProfileTest {
     fun testTruncatedIccChunkHeaderFailsWithADescriptiveError() {
 
         val bytes = buildMinimalJpegWithApp2(
-            app2Payload = "ICC_PROFILE\u0000".encodeToByteArray()
+            app2Payloads = arrayOf("ICC_PROFILE\u0000".encodeToByteArray())
         )
 
         val exception = assertFailsWith<ImageReadException> {
@@ -118,12 +119,87 @@ class JpegIccProfileTest {
     }
 
     /**
-     * Assembles a minimal scannable JPEG whose APP2 segment carries the
-     * given payload, for tests that need one specific APP2 variant.
+     * A tool that appended its own ICC profile without removing the
+     * first leaves two complete chunk sequences in the file. The read
+     * must parse the first profile instead of failing the whole read:
+     * the second profile is foreign-but-preserved content, ExifTool
+     * reads the first profile the same way, and the foreign segments
+     * survive a rewrite byte-exact.
      */
-    private fun buildMinimalJpegWithApp2(app2Payload: ByteArray): ByteArray {
+    @Test
+    fun testTwoCompleteIccProfilesParseTheFirst() {
 
-        val app2Length = 2 + app2Payload.size
+        val profilePayload = findIccApp2Payload(KimTestData.getBytesOf(2))
+
+        val bytes = buildMinimalJpegWithApp2(
+            app2Payloads = arrayOf(profilePayload, profilePayload)
+        )
+
+        val metadata = assertNotNull(Kim.readMetadata(bytes))
+
+        val iccProfile = assertNotNull(metadata.iccProfile)
+
+        assertEquals("GIMP built-in sRGB", iccProfile.description)
+    }
+
+    /**
+     * The read and the delete decision share the ICC chunk-assembly
+     * rules: what the read accepts as the profile is exactly what
+     * deleteMetadata keeps. A divergence between the two copies would
+     * delete profiles the reader accepted or keep profiles it rejected.
+     * The rendered dumps compare every field, because the data class
+     * compares its number arrays by reference.
+     */
+    @Test
+    fun testDeleteKeepsExactlyTheProfileTheReadAccepted() {
+
+        val originalProfile = assertNotNull(Kim.readMetadata(KimTestData.getBytesOf(2))).iccProfile
+
+        val deletedProfile = assertNotNull(
+            Kim.readMetadata(Kim.deleteMetadata(KimTestData.getBytesOf(2)))
+        ).iccProfile
+
+        assertEquals(
+            assertNotNull(originalProfile).toString(),
+            assertNotNull(deletedProfile).toString()
+        )
+    }
+
+    /**
+     * Returns the APP2 payload of the first ICC profile segment of the
+     * given JPEG bytes, including the identifier and sequence bytes.
+     */
+    private fun findIccApp2Payload(jpegBytes: ByteArray): ByteArray {
+
+        var index = 2
+
+        while (index + 4 <= jpegBytes.size) {
+
+            if (jpegBytes[index] != 0xFF.toByte() || jpegBytes[index + 1] != 0xE2.toByte()) {
+                index++
+                continue
+            }
+
+            val segmentLength =
+                ((jpegBytes[index + 2].toInt() and 0xFF) shl 8) or
+                    (jpegBytes[index + 3].toInt() and 0xFF)
+
+            val payload = jpegBytes.copyOfRange(index + 4, index + 2 + segmentLength)
+
+            if (payload.startsWith(JpegConstants.ICC_PROFILE_IDENTIFIER))
+                return payload
+
+            index += 2 + segmentLength
+        }
+
+        error("The test file carries no ICC APP2 segment.")
+    }
+
+    /**
+     * Assembles a minimal scannable JPEG whose APP2 segments carry the
+     * given payloads, for tests that need specific APP2 variants.
+     */
+    private fun buildMinimalJpegWithApp2(vararg app2Payloads: ByteArray): ByteArray {
 
         val sos = convertHexStringToByteArray("ffda0008010100003f00")
 
@@ -132,19 +208,29 @@ class JpegIccProfileTest {
                 "112233445566778899aabbccddeeff01"
         )
 
-        val bytes = ByteArray(4 + app2Length + sos.size + imageData.size + 2)
+        val bytes = ByteArray(
+            2 + app2Payloads.sumOf { payload -> 4 + payload.size } +
+                sos.size + imageData.size + 2
+        )
 
         var pos = 0
         /* SOI */
         bytes[pos++] = 0xff.toByte()
         bytes[pos++] = 0xd8.toByte()
-        /* APP2 */
-        bytes[pos++] = 0xff.toByte()
-        bytes[pos++] = 0xe2.toByte()
-        bytes[pos++] = (app2Length shr 8).toByte()
-        bytes[pos++] = app2Length.toByte()
-        app2Payload.copyInto(bytes, pos)
-        pos += app2Payload.size
+
+        for (app2Payload in app2Payloads) {
+
+            val app2Length = 2 + app2Payload.size
+
+            /* APP2 */
+            bytes[pos++] = 0xff.toByte()
+            bytes[pos++] = 0xe2.toByte()
+            bytes[pos++] = (app2Length shr 8).toByte()
+            bytes[pos++] = app2Length.toByte()
+            app2Payload.copyInto(bytes, pos)
+            pos += app2Payload.size
+        }
+
         sos.copyInto(bytes, pos)
         pos += sos.size
         imageData.copyInto(bytes, pos)

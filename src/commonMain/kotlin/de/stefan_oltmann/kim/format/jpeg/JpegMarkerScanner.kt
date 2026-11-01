@@ -15,6 +15,7 @@
  */
 package de.stefan_oltmann.kim.format.jpeg
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.input.ByteReader
 
 /**
@@ -25,7 +26,8 @@ import de.stefan_oltmann.kim.input.ByteReader
  */
 internal class JpegMarkerScanner(
     private val byteReader: ByteReader,
-    private val keepConsumedBytes: Boolean = true
+    private val keepConsumedBytes: Boolean = true,
+    private val maxRetainedBytes: Int = Int.MAX_VALUE
 ) {
 
     /**
@@ -52,10 +54,21 @@ internal class JpegMarkerScanner(
             /*
              * Callers that only need the count must not accumulate an
              * unbounded gap of junk bytes (e.g. a truncated file without
-             * any further marker).
+             * any further marker). Callers that retain the bytes bound
+             * the retention, because a gap beyond the bound is hostile
+             * input the caller's budget would reject only after the
+             * whole gap was buffered.
              */
-            if (keepConsumedBytes)
+            if (keepConsumedBytes) {
+
+                if (consumedCount > maxRetainedBytes)
+                    throw ImageReadException(
+                        "The JPEG marker scan retains more than " +
+                            "$maxRetainedBytes bytes without finding a marker."
+                    )
+
                 consumed.add(current)
+            }
 
             consumedCount++
 

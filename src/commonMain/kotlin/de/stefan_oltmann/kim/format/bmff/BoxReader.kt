@@ -19,6 +19,7 @@
 package de.stefan_oltmann.kim.format.bmff
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.MAX_METADATA_BYTE_BUDGET
 import de.stefan_oltmann.kim.common.readUnsignedInt
 import de.stefan_oltmann.kim.format.bmff.BMFFConstants.BMFF_BYTE_ORDER
 import de.stefan_oltmann.kim.format.bmff.box.Box
@@ -77,7 +78,7 @@ public object BoxReader {
      * hostile input rather than a legitimate file: no real photo or
      * video carries metadata-sized boxes anywhere near it.
      */
-    internal const val MAX_METADATA_BOX_BYTES: Int = 16 * 1024 * 1024
+    internal const val MAX_METADATA_BOX_BYTES: Int = MAX_METADATA_BYTE_BUDGET
 
     /*
      * The cumulative counterpart of the per-box limit: the scan buffers
@@ -86,7 +87,7 @@ public object BoxReader {
      * accumulate O (file size) retained bytes without it - the PNG and
      * JPEG readers enforce the same budget for their metadata chunks.
      */
-    internal const val MAX_RETAINED_BOX_BYTES: Int = 16 * 1024 * 1024
+    internal const val MAX_RETAINED_BOX_BYTES: Int = MAX_METADATA_BYTE_BUDGET
 
     /* The JXL codestream signature the first JXLP fragment starts with. */
     private const val JXL_HEADER_SIGNATURE_LENGTH: Int = 6
@@ -171,7 +172,8 @@ public object BoxReader {
      * without buffering the whole file. The first JXLP box contains the
      * codestream header, so every following JXLP box is image data. The
      * cut box is returned with an empty payload, because its content is
-     * streamed by the caller.
+     * streamed by the caller. The metadata budget applies like in the
+     * scan modes, because the update buffers every box before the cut.
      *
      * @param byteReader The reader as source for the bytes
      */
@@ -610,13 +612,6 @@ public object BoxReader {
 
             position += BMFFConstants.BOX_HEADER_LENGTH
 
-            /*
-             * If we read an JXL file and we already have seen the header,
-             * all remaining JXLP boxes are image data that we can skip.
-             */
-            if (stopAfterMetadataRead && type == BoxType.JXLP && haveSeenJxlHeaderBox)
-                break
-
             var largeSize: Long? = null
 
             val actualLength: Long = when (size) {
@@ -654,7 +649,10 @@ public object BoxReader {
             /*
              * The first JXLP box contains the codestream header, so every
              * following JXLP box is image data. It is returned with an empty
-             * payload, because the caller streams its content.
+             * payload, because the caller streams its content. The cut sits
+             * behind the first fragment on purpose: real writers (libjxl)
+             * place the metadata boxes between the small header fragment
+             * and the bulk data, so an update must see them before the cut.
              */
             if (stopBeforeImageData && type == BoxType.JXLP && haveSeenJxlpBox) {
 
@@ -696,7 +694,7 @@ public object BoxReader {
                 type = type,
                 isSkippableDataBox = isSkippableDataBox,
                 remainingBytesToReadInThisBox = remainingBytesToReadInThisBox,
-                enforceBudget = stopAfterMetadataRead || skipDataBoxPayloads,
+                enforceBudget = stopAfterMetadataRead || skipDataBoxPayloads || stopBeforeImageData,
                 retainedBoxBytes = retainedBoxBytes
             )
 

@@ -17,6 +17,7 @@
 package de.stefan_oltmann.kim.format.png
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.MAX_METADATA_BYTE_BUDGET
 import de.stefan_oltmann.kim.common.toInt
 import de.stefan_oltmann.kim.common.toSingleNumberHexes
 import de.stefan_oltmann.kim.common.tryWithImageReadException
@@ -136,6 +137,16 @@ public object PngMetadataExtractor : MetadataExtractor {
 
             /* CRC bytes. */
             byteReader.readAndAddBytes(bytes, INT32_BYTE_SIZE)
+
+            /*
+             * The chunks accumulate in the output, so a file of many
+             * just-under-the-budget chunks must hit the cumulative
+             * budget, like the BMFF scan's retained-byte budget does.
+             */
+            if (bytes.size > MAX_METADATA_BYTE_BUDGET)
+                throw ImageReadException(
+                    "The PNG metadata exceeds the $MAX_METADATA_BYTE_BUDGET byte budget."
+                )
         }
 
         /* Write the end tag. */

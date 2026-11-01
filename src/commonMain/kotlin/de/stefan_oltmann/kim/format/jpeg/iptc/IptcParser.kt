@@ -179,11 +179,13 @@ public object IptcParser {
         /*
          * The 1:90 CodedCharacterSet dataset declares the charset of the
          * whole block, but nonconformant writers emit it behind record-2
-         * datasets (ExifTool warns "IPTC charset tag not first" for
-         * those files). Text records are therefore collected undecoded
-         * and rendered with the resolved flag - decoding inside the walk
-         * would Latin-1 misdecode every dataset in front of the envelope
-         * into mojibake.
+         * datasets. Text records are therefore collected undecoded and
+         * rendered with the resolved flag: decoding inside the walk would
+         * Latin-1 misdecode every dataset in front of the envelope into
+         * mojibake, which the strict read policy counts as corruption.
+         * ExifTool decodes with a running charset instead, so records in
+         * front of a late envelope stay Latin-1 there - a deliberate
+         * divergence in favor of the declared charset.
          */
         val pendingRecords = mutableListOf<PendingRecord>()
         val foreignDatasets = mutableListOf<ByteArray>()
@@ -424,8 +426,15 @@ public object IptcParser {
             if (blockSize < 0 || blockSize > bytes.size)
                 throw ImageReadException("Invalid Block Size : " + blockSize + " > " + bytes.size)
 
-            val blockData: ByteArray = readTolerantly { byteReader.readBytes("block data", blockSize) }
-                ?: break
+            /*
+             * A short block data read is a truncation an update would
+             * destroy: the APP13 stream is rebuilt from the parsed blocks
+             * only, so the partial block cannot be dropped silently. Per
+             * the strict read policy this fails the read like the
+             * unparseable tail does, while an EOF between blocks still
+             * ends the parse gracefully.
+             */
+            val blockData: ByteArray = byteReader.readBytes("block data", blockSize)
 
             blocks.add(IptcBlock(blockType, blockNameBytes, blockData))
 

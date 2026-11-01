@@ -1,6 +1,6 @@
 # Kim - Kotlin Image Metadata
 
-[![Kotlin](https://img.shields.io/badge/kotlin-2.4.20-blue.svg?logo=kotlin)](https://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.4.21-blue.svg?logo=kotlin)](https://kotlinlang.org)
 ![JVM](https://img.shields.io/badge/-JVM-gray.svg?style=flat)
 ![Android](https://img.shields.io/badge/-Android-gray.svg?style=flat)
 ![iOS](https://img.shields.io/badge/-iOS-gray.svg?style=flat)
@@ -245,6 +245,7 @@ The supported update types are:
 | `MetadataUpdate.Keywords`                       | Keywords                                            |
 | `MetadataUpdate.Faces`                          | Faces (XMP-mwg-rs regions)                          |
 | `MetadataUpdate.Persons`                        | Persons in image                                    |
+| `MetadataUpdate.CustomProperties`               | Simple properties in an application-defined XMP namespace (XMP only) |
 
 An update call without any updates is rejected with an `ImageWriteException`.
 
@@ -356,6 +357,8 @@ Java projects.
   following ExifTool as the reference implementation:
   oversized XMP uses Adobe Extended XMP (main packet plus GUID-referenced extension segments),
   oversized IPTC is split across multiple APP13 segments exactly like Photoshop does.
+  Oversized EXIF is the exception: such a write fails with an `ImageWriteException`,
+  although the reader accepts multi-segment EXIF that other tools wrote.
 * Updates buffer the file content in memory for WebP files and for JPEG XL files with a single
   codestream box (`jxlc`). JPEG, PNG, GIF, and JPEG XL files with split codestream boxes (`jxlp`) are
   streamed in bounded chunks.

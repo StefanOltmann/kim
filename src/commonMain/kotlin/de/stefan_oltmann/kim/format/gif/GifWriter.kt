@@ -201,16 +201,15 @@ public object GifWriter {
      * Copies an application extension, dropping the XMP one. The first
      * sub-block carries the application identifier, which decides between
      * the XMP extension that must be dropped and extensions such as the
-     * NETSCAPE looping extension that must be kept.
+     * NETSCAPE looping extension that must be kept. The introducer and
+     * label are only written once the extension is known to be kept, so a
+     * dropped XMP extension leaves no fragment in the output.
      */
     private fun copyApplicationExtensionBlock(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
         failOnTrailingXmp: Boolean
     ) {
-
-        byteWriter.write(GifConstants.EXTENSION_INTRODUCER)
-        byteWriter.write(GifConstants.APPLICATION_EXTENSION_LABEL)
 
         val firstSubBlockSizeByte = byteReader.readByte()
             ?: throw ImageReadException("Unexpected end of file behind a GIF application extension.")
@@ -220,6 +219,8 @@ public object GifWriter {
         /* An empty chain cannot identify an application, so it is kept. */
         if (firstSubBlockSize == 0) {
 
+            byteWriter.write(GifConstants.EXTENSION_INTRODUCER)
+            byteWriter.write(GifConstants.APPLICATION_EXTENSION_LABEL)
             byteWriter.write(firstSubBlockSizeByte)
 
             return
@@ -257,15 +258,64 @@ public object GifWriter {
                         "and must be discarded."
                 )
 
-            byteReader.transferExactly(null, remainingFirstSubBlockLength)
-            byteReader.transferGifSubBlocks(byteWriter = null)
+            skipTrailingXmpPayload(byteReader, remainingFirstSubBlockLength)
 
         } else {
 
+            byteWriter.write(GifConstants.EXTENSION_INTRODUCER)
+            byteWriter.write(GifConstants.APPLICATION_EXTENSION_LABEL)
             byteWriter.write(firstSubBlockSizeByte)
             byteWriter.write(identifierBytes)
             byteReader.transferExactly(byteWriter, remainingFirstSubBlockLength)
             byteReader.transferGifSubBlocks(byteWriter)
+        }
+    }
+
+    /**
+     * Skips the payload of a trailing XMP application extension without
+     * writing anything, so the deleted extension leaves no fragment in
+     * the output.
+     *
+     * The packet is either framed contiguously like the Adobe binding
+     * writes it (packet, magic trailer, block terminator) or in
+     * size-prefixed sub-blocks like older Kim releases wrote them - the
+     * read path accepts both. The first data byte decides: a contiguous
+     * packet starts with the '<' of the XML, a sub-blocked one with its
+     * first sub-block's size byte. A sub-block walk over a contiguous
+     * packet would desync for packet lengths whose jumps land on the
+     * magic trailer's own final 0x00, so the contiguous form is skipped
+     * by its structure instead.
+     */
+    private fun skipTrailingXmpPayload(
+        byteReader: ByteReader,
+        remainingFirstSubBlockLength: Long
+    ) {
+
+        byteReader.transferExactly(null, remainingFirstSubBlockLength)
+
+        val firstDataByte = byteReader.readByte()
+            ?: throw ImageReadException("Unexpected end of file behind the XMP identifier.")
+
+        if (firstDataByte == GifConstants.XML_TAG_START) {
+
+            /*
+             * Contiguous binding: the packet carries no 0x00, so the first
+             * 0x00 is the magic trailer's last byte and the block
+             * terminator follows it.
+             */
+            byteReader.skipGifBytesUntilFirstTerminator("XMP packet")
+
+            val terminator = byteReader.readByte()
+                ?: throw ImageReadException("Unexpected end of file behind the XMP packet.")
+
+            if (terminator != GifConstants.BLOCK_TERMINATOR)
+                throw ImageReadException("The XMP packet has no block terminator.")
+
+        } else {
+
+            /* Sub-blocked framing: the first data byte is a sub-block size. */
+            byteReader.transferExactly(null, firstDataByte.toUInt8().toLong())
+            byteReader.transferGifSubBlocks(byteWriter = null)
         }
     }
 

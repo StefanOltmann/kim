@@ -18,7 +18,9 @@ package de.stefan_oltmann.kim.format.webp
 import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.MAX_METADATA_BYTE_BUDGET
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
+import de.stefan_oltmann.kim.format.webp.WebPChunkType
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8X
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
@@ -152,6 +154,70 @@ class WebPImageParserTest {
 
         assertEquals(3, chunks.size)
         assertEquals(WebPChunkType.EXIF, chunks.last().type)
+    }
+
+    /**
+     * A metadata chunk beyond the shared metadata byte budget must fail
+     * the metadata scan instead of buffering its payload without any
+     * bound - the PNG reader rejects the same attack at the budget.
+     */
+    @Test
+    fun testMetadataScanRejectsOversizedExifChunk() {
+
+        /* A minimal valid TIFF followed by budget-exceeding padding. */
+        val tiffBytes = convertHexStringToByteArray(
+            "49492a0008000000" + "0100" + "01000100010000002a000000" + "00000000"
+        )
+
+        val oversizedPayload = tiffBytes +
+            ByteArray(MAX_METADATA_BYTE_BUDGET + 1 - tiffBytes.size)
+
+        val exifChunk = "EXIF".encodeToByteArray() +
+            intToBytesLE(oversizedPayload.size) +
+            oversizedPayload
+
+        val file = "RIFF".encodeToByteArray() +
+            intToBytesLE(exifChunk.size + "WEBP".length) +
+            "WEBP".encodeToByteArray() +
+            exifChunk
+
+        assertFailsWith<ImageReadException> {
+            WebPImageParser.readChunks(
+                byteReader = ByteArrayByteReader(file),
+                stopAfterMetadataRead = true
+            )
+        }
+    }
+
+    /**
+     * A metadata chunk just below the budget is a legitimate file and
+     * must keep scanning, so the budget is not set too low.
+     */
+    @Test
+    fun testMetadataScanAcceptsExifChunkBelowBudget() {
+
+        val tiffBytes = convertHexStringToByteArray(
+            "49492a0008000000" + "0100" + "01000100010000002a000000" + "00000000"
+        )
+
+        val paddedPayload = tiffBytes +
+            ByteArray(MAX_METADATA_BYTE_BUDGET - tiffBytes.size)
+
+        val exifChunk = "EXIF".encodeToByteArray() +
+            intToBytesLE(paddedPayload.size) +
+            paddedPayload
+
+        val file = "RIFF".encodeToByteArray() +
+            intToBytesLE(exifChunk.size + "WEBP".length) +
+            "WEBP".encodeToByteArray() +
+            exifChunk
+
+        val chunks = WebPImageParser.readChunks(
+            byteReader = ByteArrayByteReader(file),
+            stopAfterMetadataRead = true
+        )
+
+        assertEquals(WebPChunkType.EXIF, chunks.single().type)
     }
 
     private fun intToBytesLE(value: Int): ByteArray = byteArrayOf(

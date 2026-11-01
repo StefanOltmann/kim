@@ -401,7 +401,7 @@ public object JpegImageParser : ImageParser {
         }
 
     /**
-     * Extracts and parses the ICC color profile from the APP2
+     * Collects the ICC profile of the file from the APP2 segments carrying
      * "ICC_PROFILE" chunks, or NULL when the file carries none.
      *
      * A profile larger than one segment is spread over consecutive
@@ -409,79 +409,25 @@ public object JpegImageParser : ImageParser {
      * identifier) against their total (second byte). The chunk
      * sequence must be complete and consistent: a missing, duplicated
      * or out-of-range chunk means corrupt metadata, which fails the
-     * read instead of parsing a truncated profile.
+     * read instead of parsing a truncated profile. The assembly rules
+     * live in [JpegIccChunkAssembler], so the read and the delete
+     * decision cannot drift apart.
      */
     private fun getIccProfile(segments: List<Segment>): IccProfile? {
 
-        data class IccChunk(
-            val index: Int,
-            val total: Int,
-            val payload: ByteArray
+        val chunks = JpegIccChunkAssembler.collectFirstRun(
+            segments.filterIsInstance<GenericSegment>().map { segment ->
+                JFIFPieceSegment(segment.marker, segment.segmentBytes)
+            }
+        ) ?: throw ImageReadException(
+            "The APP2 ICC chunk sequence is corrupt."
         )
 
-        val chunks = mutableListOf<IccChunk>()
-
-        for (segment in segments.filterIsInstance<GenericSegment>()) {
-
-            if (segment.marker != JpegConstants.JPEG_APP2_MARKER)
-                continue
-
-            val segmentBytes = segment.segmentBytes
-
-            if (!segmentBytes.startsWith(JpegConstants.ICC_PROFILE_IDENTIFIER))
-                continue
-
-            /*
-             * The chunk header is the identifier plus the two sequence
-             * bytes; a segment that ends inside it is corrupt metadata
-             * and fails with a message that names the cause instead of
-             * the incidental index error of the unguarded read.
-             */
-            if (segmentBytes.size <
-                JpegConstants.ICC_IDENTIFIER_LENGTH + JpegConstants.ICC_SEQUENCE_BYTE_COUNT
-            )
-                throw ImageReadException(
-                    "The APP2 ICC chunk header is truncated: " +
-                        "${segmentBytes.size} of " +
-                        "${JpegConstants.ICC_IDENTIFIER_LENGTH + JpegConstants.ICC_SEQUENCE_BYTE_COUNT} bytes."
-                )
-
-            val index = segmentBytes[JpegConstants.ICC_CHUNK_SEQUENCE_OFFSET].toUInt8()
-            val total = segmentBytes[JpegConstants.ICC_CHUNK_SEQUENCE_OFFSET + 1].toUInt8()
-
-            if (total < 1 || index < 1 || index > total)
-                throw ImageReadException(
-                    "Invalid ICC chunk sequence $index of $total in the APP2 segment."
-                )
-
-            chunks.add(
-                IccChunk(
-                    index = index,
-                    total = total,
-                    payload = segmentBytes.getRemainingBytes(
-                        JpegConstants.ICC_IDENTIFIER_LENGTH + JpegConstants.ICC_SEQUENCE_BYTE_COUNT
-                    )
-                )
-            )
-        }
-
+        /* An empty list means the file carries no ICC chunk. */
         if (chunks.isEmpty())
             return null
 
-        val total = chunks.first().total
-
-        if (chunks.size != total || chunks.map { it.index }.sorted() != (1..total).toList())
-            throw ImageReadException(
-                "The ICC profile spans ${chunks.size} of $total declared chunks - " +
-                    "the chunk sequence is incomplete."
-            )
-
-        val profileBytes = ByteArrayByteWriter()
-
-        chunks.sortedBy { chunk -> chunk.index }
-            .forEach { chunk -> profileBytes.write(chunk.payload) }
-
-        return IccProfileParser.parse(profileBytes.toByteArray())
+        return IccProfileParser.parse(JpegIccChunkAssembler.assemble(chunks))
     }
 
     private fun getIptc(segments: List<Segment>): IptcMetadata? {

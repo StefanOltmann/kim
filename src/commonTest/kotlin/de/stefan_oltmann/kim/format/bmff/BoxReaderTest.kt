@@ -129,6 +129,65 @@ class BoxReaderTest {
     }
 
     /**
+     * The streaming update cuts a jxlp file at the second codestream
+     * fragment, because real writers (libjxl) place the metadata boxes
+     * between the small header fragment and the bulk data: the update
+     * must see them before the cut, so it can rewrite them in place.
+     * The cut box carries an empty payload, because its content streams
+     * on write.
+     */
+    @Test
+    fun testUpdateReadCutsJxlpBehindTheMetadata() {
+
+        val bytes =
+            box(BoxType.FTYP, "jxl \u0000\u0000\u0000\u0000jxl ".encodeToByteArray()) +
+                box(BoxType.JXLP, byteArrayOf(0, 0, 0, 0, 0xFF.toByte(), 0x0A)) +
+                box(BoxType.EXIF, byteArrayOf(0, 0, 0, 0)) +
+                box(BoxType.JXLP, byteArrayOf(0, 0, 0, 1, 1, 2, 3, 4)) +
+                box(BoxType.JXLP, byteArrayOf(0, 0, 0, 2, 5, 6, 7, 8))
+
+        val boxes = BoxReader.readBoxesForUpdate(ByteArrayByteReader(bytes))
+
+        /* The metadata between the fragments is buffered for the rewrite. */
+        assertTrue(boxes.any { it.type == BoxType.EXIF })
+
+        val jxlpBoxes = boxes.filter { it.type == BoxType.JXLP }
+
+        assertEquals(2, jxlpBoxes.size)
+
+        /* The header fragment is buffered, the cut fragment streams. */
+        assertTrue(jxlpBoxes[0].payload.isNotEmpty())
+        assertTrue(jxlpBoxes[1].payload.isEmpty())
+    }
+
+    /**
+     * The streaming update buffers the boxes before the image data, so
+     * the metadata budget must apply there like in the scan modes: a
+     * hostile oversized xml box before the codestream is rejected
+     * instead of being buffered without any bound.
+     */
+    @Test
+    fun testUpdateReadRejectsOversizedMetadataBox() {
+
+        val oversizedXml = ByteArray(17 * 1024 * 1024)
+
+        val bytes =
+            box(BoxType.FTYP, "jxl \u0000\u0000\u0000\u0000jxl ".encodeToByteArray()) +
+                box(BoxType.XML, oversizedXml) +
+                box(BoxType.JXLP, byteArrayOf(0, 0, 0, 0, 0xFF.toByte(), 0x0A)) +
+                box(BoxType.JXLP, byteArrayOf(0, 0, 0, 1, 1, 2, 3, 4))
+
+        val exception = assertFailsWith<ImageReadException> {
+            BoxReader.readBoxesForUpdate(ByteArrayByteReader(bytes))
+        }
+
+        assertTrue(
+            exception.message?.contains("exceeds the metadata budget of") == true,
+            "The per-box budget must be the failing reason: ${exception.message}"
+        )
+    }
+
+    /**
      * The box walk must end at the delegate's real end of data, never at
      * the length hint: a provider can understate the size, and boxes
      * behind the hinted boundary would silently vanish from the parse -

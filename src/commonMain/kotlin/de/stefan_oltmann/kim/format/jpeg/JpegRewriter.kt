@@ -20,6 +20,7 @@ package de.stefan_oltmann.kim.format.jpeg
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.common.getRemainingBytes
+import de.stefan_oltmann.kim.common.isEquals
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toBytes
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
@@ -29,6 +30,7 @@ import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPiece
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
+import de.stefan_oltmann.kim.format.xmp.XMP_PACKET_END_TAG
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.copyRemainingTo
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
@@ -221,6 +223,11 @@ public object JpegRewriter {
     /**
      * Reads a JPEG image, replaces the IPTC data in the App13 segment, but leaves the other
      * data in that segment (if present) unchanged and writes the result to a stream.
+     *
+     * Attention: Only [de.stefan_oltmann.kim.Kim.update] maintains the
+     * IPTCDigest resource (0x0425) and the `xmpNote:IPTCDigest` XMP
+     * property. This low-level write re-emits the digest blocks the
+     * given metadata carries as they are.
      */
     @JvmStatic
     public fun writeIPTC(byteReader: ByteReader, byteWriter: ByteWriter, metadata: IptcMetadata) {
@@ -236,15 +243,52 @@ public object JpegRewriter {
 
                 writeSegments(
                     byteWriter = outputWriter,
-                    segments = insertAfterLastAppSegments(
-                        segments = segments.filterNot { piece ->
-                            isReplacedIptcSegment(piece, metadata)
-                        },
+                    segments = segments.replaceIptcSegments(
+                        metadata = metadata,
                         newSegments = createIptcSegments(metadata)
                     )
                 )
             }
         }
+    }
+
+    /**
+     * Replaces the Photoshop segments the given metadata was parsed from
+     * with the given new segments. Other Photoshop streams of the file
+     * survive byte-exact, and the new segments take the position of the
+     * replaced stream: the read returns the first record-bearing stream,
+     * so the replacement landing behind a surviving stream would make it
+     * shadow the update on the next read.
+     *
+     * Without a replaced stream the new segments go behind the last APP
+     * segment, like a stream that was not parsed from the file.
+     */
+    private fun List<JFIFPiece>.replaceIptcSegments(
+        metadata: IptcMetadata,
+        newSegments: List<JFIFPiece>
+    ): List<JFIFPiece> {
+
+        var firstReplacedIndex = -1
+
+        val output = mutableListOf<JFIFPiece>()
+
+        for (piece in this) {
+
+            if (isReplacedIptcSegment(piece, metadata)) {
+
+                if (firstReplacedIndex < 0)
+                    firstReplacedIndex = output.size
+
+                continue
+            }
+
+            output.add(piece)
+        }
+
+        if (firstReplacedIndex < 0)
+            return insertAfterLastAppSegments(output, newSegments)
+
+        return output.toMutableList().apply { addAll(firstReplacedIndex, newSegments) }
     }
 
     /**
@@ -254,6 +298,14 @@ public object JpegRewriter {
      * belong to other tools and survive byte-exact - Kim keeps reading
      * only the first packet, so the new segments are inserted ahead of
      * the survivors when any exist.
+     *
+     * A packet naively split across several standard segments is one
+     * packet: the read concatenates the segments until the closing
+     * element appears, so every standard segment before that boundary
+     * is a continuation and is removed with the first packet - keeping
+     * it would leave the stale second half of the old packet behind
+     * the new one. A segment behind a complete packet is independent
+     * and survives.
      *
      * Extended-XMP segments in front of a surviving packet are removed,
      * including orphans whose GUID no packet references: their content
@@ -273,6 +325,7 @@ public object JpegRewriter {
         val output = mutableListOf<JFIFPiece>()
 
         var removedFirstXmp = false
+        var firstPacketClosed = false
         var firstSurvivingXmpIndex = -1
 
         for (piece in this) {
@@ -293,14 +346,34 @@ public object JpegRewriter {
 
             if (removedFirstXmp) {
 
-                if (firstSurvivingXmpIndex < 0)
-                    firstSurvivingXmpIndex = output.size
+                if (firstPacketClosed) {
 
-                output.add(piece)
+                    if (firstSurvivingXmpIndex < 0)
+                        firstSurvivingXmpIndex = output.size
+
+                    output.add(piece)
+                } else {
+
+                    /*
+                     * A continuation of the replaced packet: removed with
+                     * it. The segment that completes the packet flips the
+                     * boundary, so the following standard segments are
+                     * independent packets again.
+                     */
+                    firstPacketClosed = segmentClosesPacket(piece.segmentBytes)
+                }
+
                 continue
             }
 
             removedFirstXmp = true
+
+            /*
+             * The replaced packet closes within its first segment when
+             * the read's boundary element is present; otherwise the
+             * following standard segments continue it.
+             */
+            firstPacketClosed = segmentClosesPacket(piece.segmentBytes)
         }
 
         if (!removedFirstXmp)
@@ -312,6 +385,26 @@ public object JpegRewriter {
         output.addAll(firstSurvivingXmpIndex, newSegments)
 
         return output
+    }
+
+    /**
+     * Returns whether the standard XMP segment carries the closing
+     * element the read's concatenation loop stops at. The raw bytes are
+     * searched instead of decoding the XML, because the element is
+     * ASCII and a segment that cannot be decoded fails the read before
+     * any rewrite sees it.
+     */
+    private fun segmentClosesPacket(segmentBytes: ByteArray): Boolean {
+
+        val closeTag = XMP_PACKET_END_TAG.encodeToByteArray()
+
+        for (start in 0..segmentBytes.size - closeTag.size) {
+
+            if (segmentBytes.isEquals(start, closeTag, 0, closeTag.size))
+                return true
+        }
+
+        return false
     }
 
     /**
@@ -502,9 +595,9 @@ public object JpegRewriter {
 
         if (iptc != null) {
 
-            updatedSegments = insertAfterLastAppSegments(
-                updatedSegments.filterNot { piece -> isReplacedIptcSegment(piece, iptc) },
-                createIptcSegments(iptc)
+            updatedSegments = updatedSegments.replaceIptcSegments(
+                metadata = iptc,
+                newSegments = createIptcSegments(iptc)
             )
         }
 

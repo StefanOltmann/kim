@@ -18,6 +18,7 @@ package de.stefan_oltmann.kim.format.icc
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.decodeStrictUtf8
 import de.stefan_oltmann.kim.common.decodeUtf16BytesToString
+import de.stefan_oltmann.kim.common.getRemainingBytes
 import de.stefan_oltmann.kim.common.slice
 import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.common.tryWithImageReadException
@@ -249,12 +250,23 @@ public object IccProfileParser {
 
             "mluc" -> DecodedValue(decodeMultiLanguageUnicode(valueBytes), null)
 
-            "text" -> DecodedValue(
-                valueBytes.slice(MIN_VALUE_HEADER_SIZE, valueBytes.size - MIN_VALUE_HEADER_SIZE)
-                    .decodeStrictUtf8("The ICC text value")
-                    .trimEnd('\u0000'),
-                null
-            )
+            "text" -> {
+
+                val textBytes = valueBytes.getRemainingBytes(MIN_VALUE_HEADER_SIZE)
+
+                /*
+                 * An empty payload would decode to a fabricated empty
+                 * value - like the truncated number values it fails the
+                 * parse instead.
+                 */
+                if (textBytes.isEmpty())
+                    throw ImageReadException("The ICC text value is truncated.")
+
+                DecodedValue(
+                    textBytes.decodeStrictUtf8("The ICC text value").trimEnd('\u0000'),
+                    null
+                )
+            }
 
             "XYZ " -> DecodedValue(
                 null,
@@ -270,7 +282,25 @@ public object IccProfileParser {
                 )
             )
 
-            "sig" -> DecodedValue(stringAt(valueBytes, MIN_VALUE_HEADER_SIZE, FIELD_SIZE), null)
+            /*
+             * Note: The real signature type is "sig " with a padding
+             * space, which never matches here and stays undecoded like
+             * the other SubDirectory types. This branch only catches the
+             * corrupt "sig" spelling, and its 4-byte payload is validated
+             * so a corrupt entry cannot fabricate an empty value.
+             */
+            "sig" -> {
+
+                /*
+                 * The signature payload behind the type header is exactly
+                 * 4 bytes; anything shorter would slice to an empty read
+                 * and fabricate an empty value.
+                 */
+                if (valueBytes.size < MIN_VALUE_HEADER_SIZE + FIELD_SIZE)
+                    throw ImageReadException("The ICC signature value is truncated.")
+
+                DecodedValue(stringAt(valueBytes, MIN_VALUE_HEADER_SIZE, FIELD_SIZE), null)
+            }
 
             "date" -> DecodedValue(decodeDateTime(valueBytes), null)
 

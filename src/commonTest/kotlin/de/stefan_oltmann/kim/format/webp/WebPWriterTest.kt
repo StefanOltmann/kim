@@ -17,9 +17,11 @@
 package de.stefan_oltmann.kim.format.webp
 
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.tiff.write.TiffWriter
+import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkExif
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8L
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkVP8X
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
@@ -27,6 +29,7 @@ import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
 import de.stefan_oltmann.kim.testdata.ModifiedBytesVerifier
 import de.stefan_oltmann.kim.testdata.indexOfBytes
+import de.stefan_oltmann.kim.testdata.minimalTiffBytes
 import kotlinx.datetime.TimeZone
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -36,6 +39,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class WebPWriterTest {
@@ -219,6 +223,27 @@ class WebPWriterTest {
         val vp8x = readVp8xChunk(byteWriter.toByteArray())
 
         assertTrue(vp8x.hasAlpha)
+    }
+
+    /**
+     * A chunk list without any image chunk is rejected: when the metadata
+     * replacement drains the list completely, the writer must answer with
+     * the documented ImageWriteException instead of escaping the contract
+     * with a raw NoSuchElementException from the first-chunk lookup.
+     */
+    @Test
+    fun testWriteImageWithOnlyMetadataChunksIsRejected() {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        assertFailsWith<ImageWriteException> {
+            WebPWriter.writeImage(
+                chunks = listOf(WebPChunkExif(minimalTiffBytes())),
+                byteWriter = byteWriter,
+                exifBytes = byteArrayOf(0x49, 0x49, 0x2A, 0),
+                xmp = null
+            )
+        }
     }
 
     /**

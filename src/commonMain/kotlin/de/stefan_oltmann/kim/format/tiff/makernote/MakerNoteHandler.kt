@@ -231,6 +231,14 @@ internal open class MakerNoteHandler {
                         }?.value
                         ?: pointer
 
+                /*
+                 * An empty tag table has nothing to read. Like ExifTool,
+                 * an unknown model reports no fields instead of reading
+                 * offsets of a layout that does not apply.
+                 */
+                if (effectivePointer.tagTable.isEmpty())
+                    continue
+
                 val blobBytes = if (effectivePointer.encrypted)
                     NikonDecryptor.decrypt(
                         data = field.valueBytes,

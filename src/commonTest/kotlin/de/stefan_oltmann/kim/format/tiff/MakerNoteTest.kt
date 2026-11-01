@@ -17,10 +17,14 @@ package de.stefan_oltmann.kim.format.tiff
 
 import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ByteOrder
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.RationalNumbers
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
+import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeLong
 import de.stefan_oltmann.kim.format.tiff.makernote.apple.AppleTag
+import de.stefan_oltmann.kim.format.tiff.makernote.canon.CanonMakerNoteHandler
 import de.stefan_oltmann.kim.format.tiff.makernote.canon.CanonTag
 import de.stefan_oltmann.kim.format.tiff.makernote.fujifilm.FujiFilmTag
 import de.stefan_oltmann.kim.format.tiff.makernote.nikon.NikonTag
@@ -33,11 +37,13 @@ import de.stefan_oltmann.kim.format.tiff.makernote.olympus.OlympusTag
 import de.stefan_oltmann.kim.format.tiff.makernote.panasonic.PanasonicTag
 import de.stefan_oltmann.kim.format.tiff.makernote.sony.SonyTag
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.input.DefaultRandomAccessByteReader
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 /**
  * Tests for MakerNote parsing, with the expected values verified
@@ -65,6 +71,124 @@ class MakerNoteTest {
             "EF-S55-250mm f/4-5.6 IS STM",
             makerNoteDirectory.findField(CanonTag.LENS_MODEL)?.value
         )
+    }
+
+    /**
+     * Regression test: the CameraInfo fallback for an unknown Canon
+     * model read the 0x16b LensSerialNumber from a fixed offset that
+     * belongs to other cameras' layouts, fabricating a value from
+     * arbitrary payload bytes for every blob large enough to contain
+     * the offset.
+     *
+     * The ExifTool dumps of the EOS M3 (media_28) and the EOS R3
+     * (media_83) list zero fields in their CameraInfo sub-directories:
+     * an unknown model must report no CameraInfo fields at all, so the
+     * sub-directory must not appear.
+     */
+    @Test
+    fun testUnknownModelCameraInfoExtractsNoFields() {
+
+        for (index in listOf(28, KimTestData.CR3_TEST_IMAGE_INDEX)) {
+
+            val cameraInfoDirectory = getTiffContents(index)
+                .makerNoteSubDirectories
+                .find { it.type == TiffConstants.TIFF_MAKER_NOTE_CANON_CAMERA_INFO }
+
+            assertNull(cameraInfoDirectory, "media_$index unexpectedly has a CameraInfo directory")
+        }
+    }
+
+    /**
+     * The FilterInfo of media_53 is corrupt ("Invalid FilterInfo data"
+     * per ExifTool) and yields no decodable field, so no FilterInfo
+     * sub-directory may appear for it.
+     */
+    @Test
+    fun testEmptyFilterInfoExtractsNoDirectory() {
+
+        val filterInfoDirectory = getTiffContents(53)
+            .makerNoteSubDirectories
+            .find { it.type == TiffConstants.TIFF_MAKER_NOTE_CANON_FILTER_INFO }
+
+        assertNull(filterInfoDirectory, "media_53 unexpectedly has a FilterInfo directory")
+    }
+
+    /**
+     * A FilterInfo blob that declares zero filters yields no decodable
+     * field, so like the parallel CustomFunctions reader it must not
+     * add an empty sub-directory - the dump comparison and consumers
+     * would see a directory that no reference tool reports.
+     */
+    @Test
+    fun testFilterInfoWithZeroFiltersAddsNoDirectory() {
+
+        /* FilterInfo blob: two header values and a zero filter count. */
+        val blob = ByteArray(8)
+
+        val filterInfoField = TiffField(
+            offset = 0,
+            tag = 0x4024,
+            directoryType = TiffConstants.TIFF_MAKER_NOTE_CANON,
+            fieldType = FieldTypeLong,
+            count = blob.size,
+            localValue = null,
+            valueOffset = 0,
+            valueBytes = blob,
+            byteOrder = ByteOrder.LITTLE_ENDIAN,
+            sortHint = 0
+        )
+
+        val addedDirectories = mutableListOf<TiffDirectory>()
+
+        CanonMakerNoteHandler.readSubDirectories(
+            directory = TiffDirectory(
+                type = TiffConstants.TIFF_MAKER_NOTE_CANON,
+                entries = listOf(filterInfoField),
+                offset = 0,
+                nextDirectoryOffset = 0,
+                byteOrder = ByteOrder.LITTLE_ENDIAN
+            ),
+            byteOrder = ByteOrder.LITTLE_ENDIAN,
+            model = null,
+            addDirectory = { directory -> addedDirectories.add(directory) }
+        )
+
+        assertTrue(
+            addedDirectories.none { it.type == TiffConstants.TIFF_MAKER_NOTE_CANON_FILTER_INFO },
+            "An empty FilterInfo directory was added: $addedDirectories"
+        )
+    }
+
+    /**
+     * The footer probe computes its position from two file-controlled
+     * values whose sum can wrap the Int range for a hostile MakerNote
+     * geometry. The wrapped negative offset tripped the reader's offset
+     * requirement as a raw IllegalArgumentException instead of the
+     * documented ImageException contract. The probe is an optimization,
+     * so it skips when the position leaves the Int range - the call then
+     * gives up silently or fails with the documented contract.
+     */
+    @Test
+    fun testFooterProbeWithNearIntMaxGeometryStaysImageException() {
+
+        val exception = runCatching {
+            CanonMakerNoteHandler.read(
+                byteReader = DefaultRandomAccessByteReader(
+                    ByteArrayByteReader(ByteArray(8))
+                ),
+                makerNoteValueOffset = Int.MAX_VALUE - 4,
+                makerNoteLength = 16,
+                byteOrder = ByteOrder.LITTLE_ENDIAN,
+                model = null,
+                addDirectory = { }
+            )
+        }.exceptionOrNull()
+
+        if (exception != null)
+            assertTrue(
+                exception is ImageReadException,
+                "Unexpected exception type: ${exception::class.simpleName}: ${exception.message}"
+            )
     }
 
     @Test

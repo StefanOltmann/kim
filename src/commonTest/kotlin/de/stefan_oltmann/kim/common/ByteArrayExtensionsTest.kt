@@ -19,6 +19,8 @@ package de.stefan_oltmann.kim.common
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class ByteArrayExtensionsTest {
 
@@ -130,5 +132,33 @@ class ByteArrayExtensionsTest {
                 -92, -69, 6, -93, -44, 47, -93, 117
             ).toSingleNumberHexes()
         )
+    }
+
+    @Test
+    fun testIsEquals() {
+
+        val data = byteArrayOf(1, 2, 3, 4)
+        val other = byteArrayOf(0, 2, 3, 4, 5)
+
+        assertTrue(data.isEquals(1, other, 1, 3))
+        assertFalse(data.isEquals(1, other, 0, 3))
+
+        /* A range reaching past the end of the receiver is too long. */
+        assertFalse(data.isEquals(2, other, 1, 3))
+    }
+
+    /**
+     * A hostile length must read as "too long" instead of overflowing
+     * the start-plus-length addition into a wrapped-around negative
+     * bound that lets the comparison loop run past the end of the
+     * arrays.
+     */
+    @Test
+    fun testIsEqualsWithOverflowingLengthReadsAsTooLong() {
+
+        val data = byteArrayOf(1, 2, 3, 4)
+        val other = byteArrayOf(9, 2, 3, 4, 9)
+
+        assertFalse(data.isEquals(1, other, 1, Int.MAX_VALUE))
     }
 }

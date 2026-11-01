@@ -188,6 +188,11 @@ internal fun createIptcMetadata(
  * 16 raw MD5 bytes) with the given digest, so the MWG sync
  * indicator matches the rewritten IPTC data - like ExifTool
  * maintains it when the IPTC is written.
+ *
+ * The replacement happens regardless of the old data's size: 16 bytes
+ * is the spec-defined size, but a padded block from a legacy tool is
+ * still the file's declared digest slot, and leaving it would keep the
+ * stale digest through the rewrite.
  */
 internal fun IptcMetadata.withIptcDigestResource(digestBytes: ByteArray): IptcMetadata {
 
@@ -195,9 +200,7 @@ internal fun IptcMetadata.withIptcDigestResource(digestBytes: ByteArray): IptcMe
         return this
 
     val blocks = nonIptcBlocks.map { block ->
-        if (block.blockType == IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DIGEST &&
-            block.blockData.size == digestBytes.size
-        )
+        if (block.blockType == IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DIGEST)
             IptcBlock(block.blockType, block.blockNameBytes, digestBytes)
         else
             block
