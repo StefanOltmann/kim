@@ -302,9 +302,18 @@ public class RationalNumber {
             val low: RationalNumber
             val high: RationalNumber
 
+            /*
+             * The double-to-Int conversion saturates at the Int bounds,
+             * so the successor/predecessor computations below would
+             * overflow into a negative component for values whose
+             * reciprocal (or value itself) exceeds the Int range. The
+             * clamp keeps every rational component within Int bounds.
+             */
+            val intBound = Int.MAX_VALUE - 1
+
             if (absValue >= 1) {
 
-                val approx = absValue.toInt()
+                val approx = absValue.toInt().coerceAtMost(intBound)
 
                 low = if (approx < absValue)
                     RationalNumber(approx, 1)
@@ -315,7 +324,7 @@ public class RationalNumber {
 
             } else {
 
-                val approx = (1.0 / absValue).toInt()
+                val approx = (1.0 / absValue).toInt().coerceAtMost(intBound)
 
                 low = if (1.0 / approx < absValue)
                     RationalNumber(1, approx)
