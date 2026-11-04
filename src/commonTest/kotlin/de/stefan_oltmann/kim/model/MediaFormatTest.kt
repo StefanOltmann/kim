@@ -17,6 +17,7 @@
  */
 package de.stefan_oltmann.kim.model
 
+import de.stefan_oltmann.kim.format.MetadataUpdater
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -468,5 +469,21 @@ class MediaFormatTest {
             expected = MediaFormat.DNG,
             actual = MediaFormat.byFileNameExtension("image.dng")
         )
+    }
+
+    /**
+     * The public writability mirror and the internal updater lookup must
+     * agree on every format: a format added to one list but not the other
+     * makes the public API lie about the write capability.
+     */
+    @Test
+    fun testWritabilityMirrorMatchesTheUpdaterLookup() {
+
+        for (format in MediaFormat.entries)
+            assertEquals(
+                expected = MetadataUpdater.forFormat(format) != null,
+                actual = format.isMetadataEmbeddable(),
+                message = "Writability mismatch for $format"
+            )
     }
 }
