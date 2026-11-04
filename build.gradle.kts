@@ -648,3 +648,18 @@ val checkCopyrightNotices: TaskProvider<Task> = tasks.register("checkCopyrightNo
     }
 }
 // endregion
+
+// endregion
+
+// region Test JVM configuration
+
+/*
+ * The ByteArrayByteWriter overflow regression test allocates a 1.1 GB
+ * buffer to reach the Int-overflow boundary of the growth arithmetic, so
+ * the JVM test worker needs more than the 512 MB default heap.
+ */
+tasks.withType<Test>().configureEach {
+    maxHeapSize = "4g"
+}
+
+// endregion

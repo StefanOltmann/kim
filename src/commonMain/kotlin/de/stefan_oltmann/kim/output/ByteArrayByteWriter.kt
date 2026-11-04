@@ -79,9 +79,19 @@ public class ByteArrayByteWriter(
 
         val currentCapacity = bytes.size
 
-        if (position + requiredCapacity > currentCapacity) {
+        /*
+         * Both computations run in Long space: the guard must not wrap
+         * once position + requiredCapacity reaches 2^31, and the doubled
+         * new capacity exceeds the Int range for buffers above ~1.5 GiB.
+         * The largest array size the JVM guarantees is the natural upper
+         * bound.
+         */
+        if (position.toLong() + requiredCapacity > currentCapacity) {
 
-            val newCapacity = (currentCapacity + requiredCapacity) * 2
+            val newCapacity = ((currentCapacity + requiredCapacity).toLong() * 2L)
+                .coerceAtMost(Int.MAX_VALUE.toLong() - 2)
+                .toInt()
+
             val newBytes = ByteArray(newCapacity)
 
             bytes.copyInto(newBytes)
