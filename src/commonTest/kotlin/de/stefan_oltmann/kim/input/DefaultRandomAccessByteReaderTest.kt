@@ -407,4 +407,36 @@ class DefaultRandomAccessByteReaderTest {
 
         assertTrue(exception.message?.contains("exceeds the supported maximum") == true)
     }
+
+    /**
+     * A single readByte at a hostile far offset must not drive a huge
+     * up-front allocation: readByte routed directly to readToIndex,
+     * which sized the buffer to the full distance in one piece, defeating
+     * the class's own geometric allocation cap (2 GB spike / OOM).
+     */
+    private var allocatedTotal: Int = 0
+
+    @Test
+    fun testReadByteAtHostileFarOffsetDoesNotAllocateHugeBuffer() {
+
+        /* Delegate delivers nothing but claims the full distance. */
+        val delegate = object : ByteReader {
+            override val contentLength: Long = 2_000_000_000L
+            override fun readByte(): Byte? = null
+            override fun readBytes(count: Int): ByteArray {
+                allocatedTotal += count
+                return ByteArray(minOf(count, 0))
+            }
+            override fun close() {}
+        }
+
+        val reader = DefaultRandomAccessByteReader(delegate)
+
+        reader.moveTo(1_999_999_999)
+
+        assertNull(reader.readByte())
+
+        /* The bounded growth delivers at most a few geometric steps. */
+        assertTrue(allocatedTotal < 10_000_000, "allocated: $allocatedTotal")
+    }
 }

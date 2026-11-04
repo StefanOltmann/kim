@@ -74,10 +74,12 @@ public class DefaultRandomAccessByteReader(
 
     override fun readByte(): Byte? {
 
-        val endIndex = currentPosition + 1
-
-        if (endIndex > bufferPosition)
-            readToIndex(endIndex)
+        /*
+         * Routed through the bounded steps like every read: a direct
+         * readToIndex call would allocate the full distance to a hostile
+         * offset in one piece, defeating the class's own allocation cap.
+         */
+        ensureBufferedUpTo(currentPosition + 1)
 
         if (currentPosition >= bufferPosition)
             return null
