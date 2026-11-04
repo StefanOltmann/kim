@@ -140,6 +140,64 @@ class IccProfileParserTest {
     }
 
     /**
+     * A "sig " typed value decodes its 4-byte signature payload behind
+     * the type header, byte-exact like ExifTool renders it (Technology
+     * = "CRT " on media_3) - the padding space is content, and the type
+     * is spelled with its padding space in the value.
+     */
+    @Test
+    fun testParsesSigValue() {
+
+        val bytes = fixture.bytes
+
+        val sigValue = ByteArray(12)
+
+        "sig ".forEachIndexed { index, char -> sigValue[index] = char.code.toByte() }
+        "CRT ".forEachIndexed { index, char -> sigValue[8 + index] = char.code.toByte() }
+
+        val withSigEntry = bytes + sigValue
+
+        fixture.writeUInt32(withSigEntry, 0, withSigEntry.size)
+        fixture.writeUInt32(withSigEntry, fixture.firstEntryOffset + 4, bytes.size)
+        fixture.writeUInt32(withSigEntry, fixture.firstEntryOffset + 8, sigValue.size)
+
+        /* Retarget the first entry from "desc" to "tech" (Technology). */
+        "tech".forEachIndexed { index, char ->
+            withSigEntry[fixture.firstEntryOffset + index] = char.code.toByte()
+        }
+
+        val profile = IccProfileParser.parse(withSigEntry)
+
+        assertEquals("CRT ", profile.findEntry("Technology")?.value)
+    }
+
+    /**
+     * A "sig " typed value whose payload is missing would fabricate an
+     * empty signature: like the truncated number values it fails the
+     * parse.
+     */
+    @Test
+    fun testRejectsSigValueWithoutPayload() {
+
+        val bytes = fixture.bytes
+
+        /* Point the first entry at a "sig " value with no payload. */
+        val sigValue = ByteArray(8)
+
+        "sig ".forEachIndexed { index, char -> sigValue[index] = char.code.toByte() }
+
+        val withSigEntry = bytes + sigValue
+
+        fixture.writeUInt32(withSigEntry, 0, withSigEntry.size)
+        fixture.writeUInt32(withSigEntry, fixture.firstEntryOffset + 4, bytes.size)
+        fixture.writeUInt32(withSigEntry, fixture.firstEntryOffset + 8, sigValue.size)
+
+        assertFailsWith<ImageReadException> {
+            IccProfileParser.parse(withSigEntry)
+        }
+    }
+
+    /**
      * A "text" entry whose value ends with the type header has no text
      * payload; decoding it as an empty string would fabricate a value.
      * Like the truncated number values it must fail the parse.

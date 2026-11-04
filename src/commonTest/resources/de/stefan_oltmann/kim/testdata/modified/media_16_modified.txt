@@ -97,7 +97,7 @@ ViewingCondDesc = Reference Viewing Condition in IEC61966-2.1
 ViewingConditions (view)
 Luminance = 76.03646850585938 80.0 87.12461853027344
 Measurement (meas)
-Technology (tech)
+Technology = CRT 
 RedTRC (rTRC)
 GreenTRC (gTRC)
 BlueTRC (bTRC)

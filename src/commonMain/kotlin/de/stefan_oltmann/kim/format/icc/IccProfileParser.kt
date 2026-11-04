@@ -283,13 +283,12 @@ public object IccProfileParser {
             )
 
             /*
-             * Note: The real signature type is "sig " with a padding
-             * space, which never matches here and stays undecoded like
-             * the other SubDirectory types. This branch only catches the
-             * corrupt "sig" spelling, and its 4-byte payload is validated
-             * so a corrupt entry cannot fabricate an empty value.
+             * The signature type is spelled with its padding space, like
+             * every 4-byte ICC type signature: ExifTool renders such
+             * values (Technology = "CRT " on media_3) with the padding
+             * space as content, so the decode stays byte-exact.
              */
-            "sig" -> {
+            "sig " -> {
 
                 /*
                  * The signature payload behind the type header is exactly

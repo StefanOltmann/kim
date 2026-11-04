@@ -279,7 +279,11 @@ class IccExifToolDumpComparisonTest {
 
         when (tagEntry.type) {
 
-            "text", "desc", "mluc", "sig" ->
+            /*
+             * "sig " carries the padding space of the 4-byte ICC type
+             * signature, like ExifTool renders it (Technology = "CRT ").
+             */
+            "text", "desc", "mluc", "sig", "sig " ->
                 assertEquals(
                     expected = tagEntry.value,
                     actual = kimValue,
