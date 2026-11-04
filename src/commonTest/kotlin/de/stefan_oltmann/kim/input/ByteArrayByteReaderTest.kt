@@ -102,4 +102,22 @@ class ByteArrayByteReaderTest {
             actual = reader.readBytes(offset = Int.MAX_VALUE - 1, length = 10).size
         )
     }
+
+    /**
+     * A hostile relative offset that overflows the Int addition with the
+     * window start must return a clamped empty read instead of throwing
+     * from copyOfRange - the same Long-space rule the random access
+     * sibling applies.
+     */
+    @Test
+    fun testWindowedReadBytesWithOverflowingOffsetReturnsEmpty() {
+
+        val bytes = ByteArray(100)
+
+        val reader = ByteArrayByteReader(bytes, windowStart = 50, windowEnd = 100)
+
+        val result = reader.readBytes(offset = Int.MAX_VALUE - 40, length = 1)
+
+        assertEquals(0, result.size)
+    }
 }
