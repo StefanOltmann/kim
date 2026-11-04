@@ -99,11 +99,34 @@ public object QuickTimeImageParser : ImageParser {
         val movieBox = movieBoxes.firstOrNull()
             ?: throw ImageReadException("Illegal ISOBMFF: Has no 'moov' Box.")
 
-        val userDataBox = movieBox.boxes.filterIsInstance<UserDataBox>().firstOrNull()
+        /*
+         * Multiple udta boxes leave no way to tell which one is
+         * authoritative - the same ambiguity rule the duplicate moov and
+         * XMP boxes follow.
+         */
+        val userDataBoxes = movieBox.boxes.filterIsInstance<UserDataBox>()
 
-        val mvtgBox = userDataBox?.boxes?.find { it.type == BoxType.MVTG }
+        if (userDataBoxes.size > 1)
+            throw ImageReadException(
+                "The video contains multiple udta boxes, " +
+                    "so the metadata that an update applies to is ambiguous."
+            )
 
-        val exif = mvtgBox?.let { QuickTimeMvtgReader.read(it.payload) }
+        val userDataBox = userDataBoxes.firstOrNull()
+
+        /*
+         * Multiple MVTG boxes leave no way to tell which one is
+         * authoritative - the same ambiguity rule as above.
+         */
+        val mvtgBoxes = userDataBox?.boxes?.filter { it.type == BoxType.MVTG } ?: emptyList()
+
+        if (mvtgBoxes.size > 1)
+            throw ImageReadException(
+                "The video contains multiple MVTG boxes, " +
+                    "so the metadata that an update applies to is ambiguous."
+            )
+
+        val exif = mvtgBoxes.firstOrNull()?.let { QuickTimeMvtgReader.read(it.payload) }
 
         /*
          * The XMP packet lives either in a UUID box with the Adobe XMP UUID
@@ -135,7 +158,7 @@ public object QuickTimeImageParser : ImageParser {
             mediaFormat = null,
             imageSize = findVideoTrackImageSize(movieBox),
             exif = exif,
-            exifBytes = mvtgBox?.payload,
+            exifBytes = mvtgBoxes.firstOrNull()?.payload,
             /* Not existent in MOV & MP4. */
             iptc = null,
             xmp = xmp
