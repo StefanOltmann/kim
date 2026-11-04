@@ -44,6 +44,19 @@ public class KtorByteReadChannelByteReader(
     private val bufferSize: Long = READ_CHANNEL_BUFFER_SIZE
 ) : ByteReader {
 
+    init {
+        /*
+         * A zero or negative buffer size would make every read fill
+         * nothing - the reader would report permanent EOF and a metadata
+         * read of a healthy stream would fail as "empty data",
+         * misattributing the configuration mistake to the input. A size
+         * beyond the Int range would truncate or wrap at first use.
+         */
+        require(bufferSize in 1..Int.MAX_VALUE.toLong()) {
+            "Invalid buffer size: $bufferSize."
+        }
+    }
+
     /*
      * A non-positive hint means the size is unknown (a chunked upload
      * without Content-Length). It is reported as unbounded, so parsers
