@@ -250,4 +250,46 @@ public data class MetadataSummary(
 
         public val emptySummary: MetadataSummary = MetadataSummary()
     }
+
+    /**
+     * Renders every property on the "Name = value" pattern the other
+     * metadata sections use, with the thumbnail bytes rendered as their
+     * size: the un-overridden data-class default would print a platform
+     * identity hash for the byte array, which is nondeterministic
+     * between runs and platforms.
+     */
+    override fun toString(): String {
+
+        val line = { name: String, value: Any? ->
+            if (value != null) "$name = $value" else null
+        }
+
+        return listOfNotNull(
+            line("mediaFormat", mediaFormat),
+            line("widthPx", widthPx),
+            line("heightPx", heightPx),
+            line("orientation", orientation),
+            line("takenDate", takenDate),
+            line("gpsCoordinates", gpsCoordinates),
+            line("locationShown", locationShown),
+            line("cameraMake", cameraMake),
+            line("cameraModel", cameraModel),
+            line("lensMake", lensMake),
+            line("lensModel", lensModel),
+            line("iso", iso),
+            line("exposureTime", exposureTime),
+            line("fNumber", fNumber),
+            line("focalLength", focalLength),
+            line("filmSimulation", filmSimulation),
+            line("title", title),
+            line("description", description),
+            line("flagged", flagged.takeIf { it }),
+            line("rating", rating),
+            line("keywords", keywords.takeIf { it.isNotEmpty() }),
+            line("faces", faces.takeIf { it.isNotEmpty() }),
+            line("personsInImage", personsInImage.takeIf { it.isNotEmpty() }),
+            line("thumbnailImageSize", thumbnailImageSize),
+            line("thumbnailBytes", thumbnailBytes?.size?.toString() + " bytes")
+        ).joinToString(separator = "\n")
+    }
 }
