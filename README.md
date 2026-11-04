@@ -231,20 +231,20 @@ val updatedBytes = Kim.update(
 
 The supported update types are:
 
-| Update                                          | Sets                                                |
-|-------------------------------------------------|-----------------------------------------------------|
-| `MetadataUpdate.Orientation`                    | Rotation (JPG supports a lossless single-byte swap) |
-| `MetadataUpdate.TakenDate`                      | Date taken                                          |
-| `MetadataUpdate.GpsCoordinates`                 | GPS coordinates                                     |
-| `MetadataUpdate.LocationShown`                  | Location shown                                      |
-| `MetadataUpdate.GpsCoordinatesAndLocationShown` | GPS coordinates and location                        |
-| `MetadataUpdate.Title`                          | Title                                               |
-| `MetadataUpdate.Description`                    | Description                                         |
-| `MetadataUpdate.Flagged`                        | The `XMP:pick` flag                                 |
-| `MetadataUpdate.Rating`                         | Star rating                                         |
-| `MetadataUpdate.Keywords`                       | Keywords                                            |
-| `MetadataUpdate.Faces`                          | Faces (XMP-mwg-rs regions)                          |
-| `MetadataUpdate.Persons`                        | Persons in image                                    |
+| Update                                          | Sets                                                                 |
+|-------------------------------------------------|----------------------------------------------------------------------|
+| `MetadataUpdate.Orientation`                    | Rotation (JPG supports a lossless single-byte swap)                  |
+| `MetadataUpdate.TakenDate`                      | Date taken                                                           |
+| `MetadataUpdate.GpsCoordinates`                 | GPS coordinates                                                      |
+| `MetadataUpdate.LocationShown`                  | Location shown                                                       |
+| `MetadataUpdate.GpsCoordinatesAndLocationShown` | GPS coordinates and location                                         |
+| `MetadataUpdate.Title`                          | Title                                                                |
+| `MetadataUpdate.Description`                    | Description                                                          |
+| `MetadataUpdate.Flagged`                        | The `XMP:pick` flag                                                  |
+| `MetadataUpdate.Rating`                         | Star rating                                                          |
+| `MetadataUpdate.Keywords`                       | Keywords                                                             |
+| `MetadataUpdate.Faces`                          | Faces (XMP-mwg-rs regions)                                           |
+| `MetadataUpdate.Persons`                        | Persons in image                                                     |
 | `MetadataUpdate.CustomProperties`               | Simple properties in an application-defined XMP namespace (XMP only) |
 
 An update call without any updates is rejected with an `ImageWriteException`.
@@ -255,7 +255,8 @@ for more samples.
 #### Streaming update
 
 The update can stream the file from a `ByteReader` to a `ByteWriter`. The image data of JPEG, PNG,
-GIF, and JPEG XL files with split codestream boxes (`jxlp`) is streamed in bounded chunks. WebP files
+GIF, and JPEG XL files with split codestream boxes (`jxlp`) is streamed in bounded chunks. WebP
+files
 buffer their chunks in memory, and JPEG XL files with a single codestream box (`jxlc`) buffer the
 codestream, because the metadata is stored behind the image data. A single-update overload exists
 for both the byte array and the streaming variant.
@@ -360,7 +361,8 @@ Java projects.
   Oversized EXIF is the exception: such a write fails with an `ImageWriteException`,
   although the reader accepts multi-segment EXIF that other tools wrote.
 * Updates buffer the file content in memory for WebP files and for JPEG XL files with a single
-  codestream box (`jxlc`). JPEG, PNG, GIF, and JPEG XL files with split codestream boxes (`jxlp`) are
+  codestream box (`jxlc`). JPEG, PNG, GIF, and JPEG XL files with split codestream boxes (`jxlp`)
+  are
   streamed in bounded chunks.
 * JPEG XL files whose EXIF or XMP is stored in brotli-compressed (`brob`) boxes
   are rejected with an `ImageReadException`, because brotli decompression is

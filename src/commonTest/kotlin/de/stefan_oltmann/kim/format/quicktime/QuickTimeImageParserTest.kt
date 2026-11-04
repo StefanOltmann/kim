@@ -21,9 +21,9 @@ import de.stefan_oltmann.kim.common.convertToSummary
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.makernote.fujifilm.FujiFilmTag
+import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.ImageSize
 import de.stefan_oltmann.kim.model.MediaFormat
-import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.testdata.KimTestData
 import de.stefan_oltmann.kim.testdata.QuickTimeTestVideos
 import kotlinx.datetime.TimeZone
@@ -615,8 +615,8 @@ class QuickTimeImageParserTest {
 
         assertTrue(
             exception.message?.contains("ambiguous") == true &&
-            (exception.message?.contains("MVTG") == true ||
-             exception.message?.contains("udta") == true),
+                (exception.message?.contains("MVTG") == true ||
+                    exception.message?.contains("udta") == true),
             "Unexpected message: ${exception.message}"
         )
     }

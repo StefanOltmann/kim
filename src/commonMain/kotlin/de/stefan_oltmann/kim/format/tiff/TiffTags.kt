@@ -27,9 +27,6 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.makernote.apple.AppleRunTimeTag
 import de.stefan_oltmann.kim.format.tiff.makernote.apple.AppleTag
-import de.stefan_oltmann.kim.format.tiff.makernote.leica.LeicaTag
-import de.stefan_oltmann.kim.format.tiff.makernote.pentax.PentaxTag
-import de.stefan_oltmann.kim.format.tiff.makernote.sigma.SigmaTag
 import de.stefan_oltmann.kim.format.tiff.makernote.canon.CanonAfInfo2Tag
 import de.stefan_oltmann.kim.format.tiff.makernote.canon.CanonAfMicroAdjTag
 import de.stefan_oltmann.kim.format.tiff.makernote.canon.CanonAmbienceTag
@@ -97,6 +94,7 @@ import de.stefan_oltmann.kim.format.tiff.makernote.fujifilm.FujiFilmDriveSetting
 import de.stefan_oltmann.kim.format.tiff.makernote.fujifilm.FujiFilmFocusSettingsTag
 import de.stefan_oltmann.kim.format.tiff.makernote.fujifilm.FujiFilmPrioritySettingsTag
 import de.stefan_oltmann.kim.format.tiff.makernote.fujifilm.FujiFilmTag
+import de.stefan_oltmann.kim.format.tiff.makernote.leica.LeicaTag
 import de.stefan_oltmann.kim.format.tiff.makernote.nikon.NikonAfInfo2Tag
 import de.stefan_oltmann.kim.format.tiff.makernote.nikon.NikonColorBalance2Tag
 import de.stefan_oltmann.kim.format.tiff.makernote.nikon.NikonColorBalance4Tag
@@ -128,6 +126,8 @@ import de.stefan_oltmann.kim.format.tiff.makernote.panasonic.PanasonicFaceDetInf
 import de.stefan_oltmann.kim.format.tiff.makernote.panasonic.PanasonicFaceRecInfoTag
 import de.stefan_oltmann.kim.format.tiff.makernote.panasonic.PanasonicTag
 import de.stefan_oltmann.kim.format.tiff.makernote.panasonic.PanasonicTimeInfoTag
+import de.stefan_oltmann.kim.format.tiff.makernote.pentax.PentaxTag
+import de.stefan_oltmann.kim.format.tiff.makernote.sigma.SigmaTag
 import de.stefan_oltmann.kim.format.tiff.makernote.sony.SonyCameraInfo3Tag
 import de.stefan_oltmann.kim.format.tiff.makernote.sony.SonyFaceInfoATag
 import de.stefan_oltmann.kim.format.tiff.makernote.sony.SonyMoreSettingsTag

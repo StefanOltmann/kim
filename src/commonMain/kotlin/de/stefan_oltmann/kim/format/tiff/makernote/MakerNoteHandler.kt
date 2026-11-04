@@ -23,6 +23,7 @@ import de.stefan_oltmann.kim.format.tiff.TiffDirectory
 import de.stefan_oltmann.kim.format.tiff.TiffField
 import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
+import de.stefan_oltmann.kim.format.tiff.makernote.MakerNoteHandler.Companion.MAX_DETECTABLE_ENTRY_COUNT
 import de.stefan_oltmann.kim.format.tiff.makernote.nikon.NikonDecryptor
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.input.RandomAccessByteReader

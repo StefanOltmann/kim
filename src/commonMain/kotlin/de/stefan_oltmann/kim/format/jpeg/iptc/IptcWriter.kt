@@ -401,8 +401,10 @@ public object IptcWriter {
         when (header.recordNumber) {
             IptcConstants.IPTC_ENVELOPE_RECORD_NUMBER ->
                 header.datasetNumber in ENVELOPE_STRING_DATASETS
+
             NEWS_PHOTO_RECORD_NUMBER ->
                 header.datasetNumber == NEWS_PHOTO_PICTURE_NUMBER_DATASET
+
             else -> false
         }
 

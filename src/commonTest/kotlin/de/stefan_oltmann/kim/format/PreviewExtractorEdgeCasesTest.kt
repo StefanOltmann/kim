@@ -15,8 +15,8 @@
  */
 package de.stefan_oltmann.kim.format
 
-import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ByteOrder
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.toBytes
 import de.stefan_oltmann.kim.format.arw.ArwPreviewExtractor
 import de.stefan_oltmann.kim.format.cr2.Cr2PreviewExtractor

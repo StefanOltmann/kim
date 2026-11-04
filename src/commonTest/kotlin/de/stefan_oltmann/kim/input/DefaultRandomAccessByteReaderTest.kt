@@ -428,6 +428,7 @@ class DefaultRandomAccessByteReaderTest {
                 allocatedTotal += count
                 return ByteArray(minOf(count, 0))
             }
+
             override fun close() {
                 /* Nothing to do. */
             }

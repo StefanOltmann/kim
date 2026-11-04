@@ -15,7 +15,6 @@
  */
 package de.stefan_oltmann.kim.format.tiff.makernote.sigma
 
-import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.format.tiff.TiffDirectory
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.makernote.MakerNoteHandler
