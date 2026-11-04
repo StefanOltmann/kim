@@ -20,9 +20,10 @@ import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.bmff.PayloadSource
 
 /**
- * User Data box
+ * ISO/IEC 14496-12 udta box
  *
- * This box contains multiple UUID boxes.
+ * The User Data Box is a container for arbitrary user-data boxes, such
+ * as the MVTG box carrying QuickTime metadata or an XMP_ box.
  */
 public class UserDataBox internal constructor(
     offset: Long,
