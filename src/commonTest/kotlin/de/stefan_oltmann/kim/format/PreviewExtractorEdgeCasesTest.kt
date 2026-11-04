@@ -15,6 +15,7 @@
  */
 package de.stefan_oltmann.kim.format
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.toBytes
 import de.stefan_oltmann.kim.format.arw.ArwPreviewExtractor
@@ -32,6 +33,7 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.testdata.tiffContents
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 
 class PreviewExtractorEdgeCasesTest {
@@ -91,33 +93,37 @@ class PreviewExtractorEdgeCasesTest {
     }
 
     /**
-     * A preview length that reaches beyond the end of the file must yield
-     * NULL instead of the truncated bytes of a damaged file.
+     * A preview length that reaches beyond the end of the file is a
+     * truncated preview: RAW files are never written by this library and
+     * their preview is the only way applications can display them, so it
+     * fails the extraction instead of yielding unusable bytes.
      */
     @Test
-    fun testCr2WithPreviewBeyondFileEndReturnsNull() {
+    fun testCr2WithPreviewBeyondFileEndFails() {
 
         val contents = cr2Contents(previewStart = 8, previewLength = 1_000)
 
         val reader = ByteArrayByteReader(ByteArray(64))
 
-        assertNull(Cr2PreviewExtractor.extractPreviewImage(contents, reader))
+        assertFailsWith<ImageReadException> {
+            Cr2PreviewExtractor.extractPreviewImage(contents, reader)
+        }
     }
 
     /**
      * Some files carry random garbage in the preview tags. Data without
-     * the JPEG signature must yield NULL instead of unusable bytes.
+     * the JPEG signature is a broken preview and fails the extraction.
      */
     @Test
-    fun testCr2WithNonJpegPreviewDataReturnsNull() {
+    fun testCr2WithNonJpegPreviewDataFails() {
 
         val fileBytes = ByteArray(32) { 0x55 }
 
         val contents = cr2Contents(previewStart = 8, previewLength = 16)
 
-        assertNull(
+        assertFailsWith<ImageReadException> {
             Cr2PreviewExtractor.extractPreviewImage(contents, ByteArrayByteReader(fileBytes))
-        )
+        }
     }
 
     /**

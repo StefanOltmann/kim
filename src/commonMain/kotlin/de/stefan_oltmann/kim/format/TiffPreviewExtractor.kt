@@ -25,6 +25,11 @@ import de.stefan_oltmann.kim.input.RandomAccessByteReader
 
 /**
  * Extracts a preview image from a TIFF-based media file.
+ *
+ * NULL means the file carries no preview (the preview tags are absent or
+ * empty). A preview whose tags are filled but whose data is broken fails
+ * with [ImageReadException]: RAW files are never written by this library
+ * and their preview is the only way applications can display them.
  */
 public fun interface TiffPreviewExtractor {
 
@@ -75,12 +80,14 @@ public fun interface TiffPreviewExtractor {
         /**
          * Reads the claimed preview bytes and validates them.
          *
-         * Some files carry random garbage in the preview tags, so like
-         * [de.stefan_oltmann.kim.format.tiff.TiffReader] for thumbnails,
-         * out-of-bounds ranges and data without the JPEG signature are
-         * rejected with NULL instead of returning unusable bytes. The
-         * content length of stream readers is only a hint that may
-         * understate the data, so the real read decides.
+         * A preview whose tags are filled is part of the file's content:
+         * an out-of-bounds range, a truncated read or data without the
+         * JPEG signature is a broken preview and fails the extraction -
+         * RAW files are never written by this library and their preview
+         * is the only way applications can display them (see
+         * [de.stefan_oltmann.kim.Kim.extractPreviewImage]). The content
+         * length of stream readers is only a hint that may understate the
+         * data, so the real read decides.
          */
         internal fun readValidatedPreviewBytes(
             randomAccessByteReader: RandomAccessByteReader,
@@ -94,18 +101,23 @@ public fun interface TiffPreviewExtractor {
             val startIndex = start.toLong()
 
             if (startIndex < 0 || length <= 0)
-                return null
+                throw ImageReadException(
+                    "The preview range is invalid: start=$startIndex, length=$length."
+                )
 
             randomAccessByteReader.moveTo(startIndex.toInt())
 
             val previewBytes = randomAccessByteReader.readBytes(length)
 
-            /* A short read means the preview range does not exist. */
+            /* A short read means the preview is truncated. */
             if (previewBytes.size != length)
-                return null
+                throw ImageReadException(
+                    "The preview is truncated: ${previewBytes.size} of " +
+                        "$length bytes are present."
+                )
 
             if (!previewBytes.startsWith(MediaFormatMagicNumbers.jpeg))
-                return null
+                throw ImageReadException("The preview payload is not a JPEG.")
 
             return previewBytes
         }

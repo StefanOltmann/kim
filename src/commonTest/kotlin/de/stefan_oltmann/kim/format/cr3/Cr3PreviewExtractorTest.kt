@@ -200,11 +200,13 @@ class Cr3PreviewExtractorTest {
 
     /**
      * A hostile moov declaring more than the metadata budget must not be
-     * buffered on constrained targets - the preview degrades to NULL
-     * instead, exactly like an unparseable moov does.
+     * buffered on constrained targets. A RAW file is never written by
+     * this library and its preview is the only way applications can
+     * display it, so a moov that cannot be read fails the extraction
+     * instead of hiding the broken file behind a NULL.
      */
     @Test
-    fun testExtractDegradesToNullOnMoovBeyondTheMetadataBudget() {
+    fun testExtractFailsOnMoovBeyondTheMetadataBudget() {
 
         val moovPayload = ByteArray(17 * 1024 * 1024)
 
@@ -217,11 +219,11 @@ class Cr3PreviewExtractorTest {
             (moovSize and 0xFF).toByte()
         ) + "moov".encodeToByteArray() + moovPayload
 
-        assertNull(
+        assertFailsWith<ImageReadException> {
             Cr3PreviewExtractor.extractFullSizePreviewImage(
                 ByteArrayByteReader(bytes)
             )
-        )
+        }
     }
 
     /**
@@ -277,19 +279,19 @@ class Cr3PreviewExtractorTest {
     }
 
     @Test
-    fun testExtractWithoutTrackBoxReturnsNull() {
+    fun testExtractWithoutTrackBoxFails() {
 
         val bytes = box("moov", byteArrayOf())
 
-        assertNull(
+        assertFailsWith<ImageReadException> {
             Cr3PreviewExtractor.extractFullSizePreviewImage(
                 ByteArrayByteReader(bytes)
             )
-        )
+        }
     }
 
     @Test
-    fun testExtractWithoutMediaInformationBoxReturnsNull() {
+    fun testExtractWithoutMediaInformationBoxFails() {
 
         val mdiaPayload = byteArrayOf(0, 0, 0, 0)
 
@@ -303,15 +305,15 @@ class Cr3PreviewExtractorTest {
 
         val moovBox = box("moov", moovPayload)
 
-        assertNull(
+        assertFailsWith<ImageReadException> {
             Cr3PreviewExtractor.extractFullSizePreviewImage(
                 ByteArrayByteReader(moovBox)
             )
-        )
+        }
     }
 
     @Test
-    fun testExtractWithoutSampleTableBoxReturnsNull() {
+    fun testExtractWithoutSampleTableBoxFails() {
 
         val minfPayload = byteArrayOf()
 
@@ -329,15 +331,15 @@ class Cr3PreviewExtractorTest {
 
         val moovBox = box("moov", moovPayload)
 
-        assertNull(
+        assertFailsWith<ImageReadException> {
             Cr3PreviewExtractor.extractFullSizePreviewImage(
                 ByteArrayByteReader(moovBox)
             )
-        )
+        }
     }
 
     @Test
-    fun testExtractWithoutSampleSizesBoxReturnsNull() {
+    fun testExtractWithoutSampleSizesBoxFails() {
 
         val stblPayload = byteArrayOf()
 
@@ -359,15 +361,15 @@ class Cr3PreviewExtractorTest {
 
         val moovBox = box("moov", moovPayload)
 
-        assertNull(
+        assertFailsWith<ImageReadException> {
             Cr3PreviewExtractor.extractFullSizePreviewImage(
                 ByteArrayByteReader(moovBox)
             )
-        )
+        }
     }
 
     @Test
-    fun testExtractWithoutMediaDataBoxReturnsNull() {
+    fun testExtractWithoutMediaDataBoxFails() {
 
         val stblPayload = stszBox(10) + co64Box(100)
 
@@ -389,11 +391,11 @@ class Cr3PreviewExtractorTest {
 
         val moovBox = box("moov", moovPayload)
 
-        assertNull(
+        assertFailsWith<ImageReadException> {
             Cr3PreviewExtractor.extractFullSizePreviewImage(
                 ByteArrayByteReader(moovBox)
             )
-        )
+        }
     }
 
     /**
@@ -401,7 +403,7 @@ class Cr3PreviewExtractorTest {
      * must yield NULL instead of an exception from a negative slice.
      */
     @Test
-    fun testExtractFullSizePreviewRejectsOffsetBeforeMdat() {
+    fun testExtractFullSizePreviewFailsOnOffsetBeforeMdat() {
 
         val bytes = buildCr3File(
             mdatPayload = byteArrayOf(0, 0, 0, 0) +
@@ -411,11 +413,11 @@ class Cr3PreviewExtractorTest {
             co64Offset = { it - 6 }
         )
 
-        assertNull(
+        assertFailsWith<ImageReadException> {
             Cr3PreviewExtractor.extractFullSizePreviewImage(
                 ByteArrayByteReader(bytes)
             )
-        )
+        }
     }
 
     /**
@@ -424,7 +426,7 @@ class Cr3PreviewExtractorTest {
      * payload and return arbitrary bytes as a "preview".
      */
     @Test
-    fun testExtractFullSizePreviewRejectsOffsetBeyondFile() {
+    fun testExtractFullSizePreviewFailsOnOffsetBeyondFile() {
 
         val bytes = buildCr3File(
             mdatPayload = byteArrayOf(0xFF.toByte(), 0xD8.toByte()) + "jpeg".encodeToByteArray(),
@@ -432,11 +434,11 @@ class Cr3PreviewExtractorTest {
             co64Offset = { it + 1000 }
         )
 
-        assertNull(
+        assertFailsWith<ImageReadException> {
             Cr3PreviewExtractor.extractFullSizePreviewImage(
                 ByteArrayByteReader(bytes)
             )
-        )
+        }
     }
 
     /**
@@ -444,7 +446,7 @@ class Cr3PreviewExtractorTest {
      * must not be handed to the caller as one.
      */
     @Test
-    fun testExtractFullSizePreviewRejectsNonJpegContent() {
+    fun testExtractFullSizePreviewFailsOnNonJpegContent() {
 
         val bytes = buildCr3File(
             mdatPayload = "notajpeg".encodeToByteArray(),
@@ -452,20 +454,20 @@ class Cr3PreviewExtractorTest {
             co64Offset = { it }
         )
 
-        assertNull(
+        assertFailsWith<ImageReadException> {
             Cr3PreviewExtractor.extractFullSizePreviewImage(
                 ByteArrayByteReader(bytes)
             )
-        )
+        }
     }
 
     /**
      * A preview whose declared JPEG size exceeds the available UUID box
-     * bytes is truncated and must be rejected instead of returning the
-     * short array.
+     * bytes is truncated preview content: it fails the extraction
+     * instead of returning the short array.
      */
     @Test
-    fun testExtractSmallPreviewRejectsTruncatedJpeg() {
+    fun testExtractSmallPreviewFailsOnTruncatedJpeg() {
 
         val payload =
             byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0) +
@@ -483,11 +485,11 @@ class Cr3PreviewExtractorTest {
             uuidBytes(Cr3Reader.CR3_PREVIEW_UUID) + payload + truncatedJpeg
         )
 
-        assertNull(
+        assertFailsWith<ImageReadException> {
             Cr3PreviewExtractor.extractSmallPreviewImage(
                 ByteArrayByteReader(uuidBox)
             )
-        )
+        }
     }
 
     /**
@@ -547,7 +549,7 @@ class Cr3PreviewExtractorTest {
      * the preview degrades to NULL like every other missing structure.
      */
     @Test
-    fun testConstantSampleSizeStszReturnsNullPreview() {
+    fun testConstantSampleSizeStszFailsTheRead() {
 
         val stblPayload = box("stsz", ByteArray(12)) + co64Box(0x40)
 
@@ -563,9 +565,9 @@ class Cr3PreviewExtractorTest {
                 moovBox +
                 box("mdat", mdatPayload)
 
-        assertNull(
+        assertFailsWith<ImageReadException> {
             Cr3PreviewExtractor.extractFullSizePreviewImage(ByteArrayByteReader(bytes))
-        )
+        }
     }
 
     /**
@@ -617,12 +619,12 @@ class Cr3PreviewExtractorTest {
 
     /**
      * A stream that claims more bytes than it delivers fails the moov read
-     * mid-way. Without a parsed moov no preview window can be located, so
-     * the extraction must return null instead of continuing the box walk
-     * on a desynced reader position.
+     * mid-way. The moov is corrupt, so the extraction fails instead of
+     * continuing the box walk on a desynced reader position - a RAW file
+     * whose structure cannot be read has no displayable preview.
      */
     @Test
-    fun testShortDeliveringMoovStreamDegradesToNull() {
+    fun testShortDeliveringMoovStreamFails() {
 
         val bytes = buildCr3File(
             mdatPayload = byteArrayOf(0xFF.toByte(), 0xD8.toByte()) + "jpeg".encodeToByteArray(),
@@ -654,18 +656,18 @@ class Cr3PreviewExtractorTest {
             }
         }
 
-        assertNull(
+        assertFailsWith<ImageReadException> {
             Cr3PreviewExtractor.extractFullSizePreviewImage(shortDeliveringReader)
-        )
+        }
     }
 
     /**
      * A UUID box too short to even carry the 16 vendor UUID bytes is
-     * malformed. It must be skipped without reading past its end, so the
-     * preview extraction degrades to NULL instead of failing.
+     * malformed: the preview is broken and the extraction fails without
+     * reading past the box end.
      */
     @Test
-    fun testShortUuidBoxDegradesToNull() {
+    fun testShortUuidBoxFails() {
 
         val uuidBox = box("uuid", ByteArray(12))
 
@@ -674,9 +676,9 @@ class Cr3PreviewExtractorTest {
                 box("mdat", byteArrayOf(1, 2, 3, 4)) +
                 uuidBox
 
-        assertNull(
+        assertFailsWith<ImageReadException> {
             Cr3PreviewExtractor.extractSmallPreviewImage(ByteArrayByteReader(bytes))
-        )
+        }
     }
 
     /**
