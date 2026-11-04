@@ -27,6 +27,9 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.makernote.apple.AppleRunTimeTag
 import de.stefan_oltmann.kim.format.tiff.makernote.apple.AppleTag
+import de.stefan_oltmann.kim.format.tiff.makernote.leica.LeicaTag
+import de.stefan_oltmann.kim.format.tiff.makernote.pentax.PentaxTag
+import de.stefan_oltmann.kim.format.tiff.makernote.sigma.SigmaTag
 import de.stefan_oltmann.kim.format.tiff.makernote.canon.CanonAfInfo2Tag
 import de.stefan_oltmann.kim.format.tiff.makernote.canon.CanonAfMicroAdjTag
 import de.stefan_oltmann.kim.format.tiff.makernote.canon.CanonAmbienceTag
@@ -208,6 +211,9 @@ internal object TiffTags {
         TiffConstants.TIFF_MAKER_NOTE_NIKON to tagTables(NikonTag.ALL),
         TiffConstants.TIFF_MAKER_NOTE_FUJIFILM to tagTables(FujiFilmTag.ALL),
         TiffConstants.TIFF_MAKER_NOTE_APPLE to tagTables(AppleTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_PENTAX to tagTables(PentaxTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_SIGMA to tagTables(SigmaTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_LEICA to tagTables(LeicaTag.ALL),
         TiffConstants.TIFF_MAKER_NOTE_OLYMPUS to tagTables(OlympusTag.ALL),
         TiffConstants.TIFF_MAKER_NOTE_CANON_CAMERA_SETTINGS to tagTables(CanonCameraSettingsTag.ALL),
         TiffConstants.TIFF_MAKER_NOTE_CANON_FOCAL_LENGTH to tagTables(CanonFocalLengthTag.ALL),

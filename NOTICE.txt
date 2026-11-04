@@ -52,7 +52,8 @@ the Unsplash license (https://unsplash.com/license).
 These files are used as test data.
 
 The sample images media_62.nef, media_63.arw, media_64.rw2,
-media_56.orf, media_72.hif and media_83.cr3 are taken from 
+media_56.orf, media_72.hif, media_83.cr3, media_100.jpg, media_101.jpg,
+media_102.jpg and media_103.jpg are taken from 
 https://github.com/drewnoakes/metadata-extractor-images
 under the note "You are free to use these media files however you wish".
 

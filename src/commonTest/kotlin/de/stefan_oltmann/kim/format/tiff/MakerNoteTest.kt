@@ -40,6 +40,7 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.DefaultRandomAccessByteReader
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -189,6 +190,105 @@ class MakerNoteTest {
                 exception is ImageReadException,
                 "Unexpected exception type: ${exception::class.simpleName}: ${exception.message}"
             )
+    }
+
+    /**
+     * The Sigma MakerNote carries its IFD 10 bytes behind the makernote
+     * start and no byte order marker: the order is the one whose entry
+     * count is sane. The first corpus file (media_100, a Sigma DP1) is
+     * decoded field by field against the ExifTool dump.
+     */
+    @Test
+    fun testSigmaMakerNoteDecodesFromRealFile() {
+
+        val makerNoteDirectory = getTiffContents(100).makerNoteDirectory
+
+        assertNotNull(makerNoteDirectory)
+
+        assertEquals(TiffConstants.TIFF_MAKER_NOTE_SIGMA, makerNoteDirectory.type)
+
+        /* 58 entries per the ExifTool dump of media_100. */
+        assertEquals(58, makerNoteDirectory.entries.size)
+
+        /* SerialNumber = "1001403" per the ExifTool dump. */
+        assertContentEquals(
+            "1001403".encodeToByteArray() + ByteArray(5),
+            assertNotNull(makerNoteDirectory.entries.firstOrNull { it.tag == 0x0002 }).valueBytes
+        )
+    }
+
+    /**
+     * Pentax Type 5 MakerNotes (media_101, a Pentax K-1 Mark II) carry
+     * the byte order marker 8 bytes behind the makernote start and the
+     * IFD entry count directly behind it - not 4 bytes behind the
+     * signature.
+     */
+    @Test
+    fun testPentaxType5MakerNoteDecodesFromRealFile() {
+
+        val makerNoteDirectory = getTiffContents(101).makerNoteDirectory
+
+        assertNotNull(makerNoteDirectory)
+
+        assertEquals(TiffConstants.TIFF_MAKER_NOTE_PENTAX, makerNoteDirectory.type)
+
+        /* 114 entries per the ExifTool dump of media_101. */
+        assertEquals(114, makerNoteDirectory.entries.size)
+
+        /* PentaxVersion = 12.3.2.0 per the ExifTool dump. */
+        assertContentEquals(
+            byteArrayOf(0x0c, 0x03, 0x02, 0x00),
+            assertNotNull(makerNoteDirectory.entries.firstOrNull { it.tag == 0x0000 }).valueBytes
+        )
+    }
+
+    /**
+     * The Leica MakerNote of media_91 (a Leica C) starts with
+     * "LEICA   " and its IFD directly behind it, with no byte
+     * order marker: the order is the one whose entry count is sane.
+     */
+    @Test
+    fun testLeicaMakerNoteDecodesFromRealFile() {
+
+        val makerNoteDirectory = getTiffContents(102).makerNoteDirectory
+
+        assertNotNull(makerNoteDirectory)
+
+        assertEquals(TiffConstants.TIFF_MAKER_NOTE_LEICA, makerNoteDirectory.type)
+
+        /* 110 entries per the ExifTool dump of media_102. */
+        assertEquals(110, makerNoteDirectory.entries.size)
+
+        /* ImageQuality = 2 per the ExifTool dump. */
+        assertContentEquals(
+            byteArrayOf(2, 0),
+            assertNotNull(makerNoteDirectory.entries.firstOrNull { it.tag == 0x0001 }).valueBytes
+        )
+    }
+
+    /**
+     * Ricoh owns Pentax, so Ricoh cameras like the WG-20 (media_103)
+     * carry Pentax-form MakerNotes behind a RICOH make: like ExifTool,
+     * the handler decision follows the makernote signature, not the
+     * make.
+     */
+    @Test
+    fun testRicohMakeWithPentaxMakerNoteIsDecoded() {
+
+        val makerNoteDirectory = getTiffContents(103).makerNoteDirectory
+
+        assertNotNull(makerNoteDirectory)
+
+        assertEquals(TiffConstants.TIFF_MAKER_NOTE_PENTAX, makerNoteDirectory.type)
+
+        /* 67 entries per the ExifTool dump of media_103. */
+        assertEquals(67, makerNoteDirectory.entries.size)
+
+        /* PentaxVersion = 7.1.0.0 per the ExifTool dump. */
+        assertContentEquals(
+            byteArrayOf(0x07, 0x01, 0x00, 0x00),
+            assertNotNull(makerNoteDirectory.entries.firstOrNull { it.tag == 0x0000 }).valueBytes
+        )
     }
 
     @Test
