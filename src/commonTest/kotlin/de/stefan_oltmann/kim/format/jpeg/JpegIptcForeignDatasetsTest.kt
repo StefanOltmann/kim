@@ -18,7 +18,9 @@ package de.stefan_oltmann.kim.format.jpeg
 import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.Md5
+import de.stefan_oltmann.kim.common.encodeToLatin1Bytes
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcConstants
+import de.stefan_oltmann.kim.format.jpeg.iptc.IptcParser
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import kotlin.test.Test
@@ -33,6 +35,30 @@ import kotlin.test.assertTrue
  * byte-exact instead of silently dropping them.
  */
 class JpegIptcForeignDatasetsTest {
+
+    /** Envelope record dataset number of Destination. */
+    private val destinationDatasetNumber = 5
+
+    /**
+     * The value bytes of the envelope-record dataset with the given
+     * number among the raw foreign datasets. Both fixtures use the
+     * short length form, so the value starts behind the 5 header
+     * bytes (tag marker, record number, dataset number, 2-byte size).
+     */
+    private fun envelopeDatasetValue(
+        foreignDatasets: List<ByteArray>,
+        datasetNumber: Int
+    ): ByteArray {
+
+        val dataset = foreignDatasets.single { candidate ->
+            candidate.size > 4 &&
+                candidate[0] == IptcConstants.IPTC_RECORD_TAG_MARKER.toByte() &&
+                candidate[1] == IptcConstants.IPTC_ENVELOPE_RECORD_NUMBER.toByte() &&
+                candidate[2] == datasetNumber.toByte()
+        }
+
+        return dataset.copyOfRange(5, dataset.size)
+    }
 
     @Test
     fun testForeignIimDatasetsSurviveIptcRewrite() {
@@ -96,6 +122,131 @@ class JpegIptcForeignDatasetsTest {
                 IptcWriter.writeIptcBlockData(after.records, after.foreignDatasets)
             ).toList(),
             digestResource.blockData.toList()
+        )
+    }
+
+    /**
+     * The rewrite emits a UTF-8 IPTC stream. A foreign text dataset
+     * captured from a stream that declared no coded character set -
+     * the IIM default charset is then Latin-1 - must be re-emitted
+     * UTF-8-encoded, or every charset-honoring reader misdecodes it.
+     */
+    @Test
+    fun testForeignLatin1TextDatasetIsTranscodedToUtf8() {
+
+        val original = Resource(
+            "de/stefan_oltmann/kim/testdata/jpeg_with_latin1_iptc_destination.jpg"
+        ).readBytes()
+
+        val before = assertNotNull(assertNotNull(Kim.readMetadata(original)).iptc)
+
+        /*
+         * Fixture precondition: ExifTool wrote the Destination with the
+         * Latin-1 encoding of "München" and no CodedCharacterSet
+         * dataset, so the stream declares no charset at all.
+         */
+        assertEquals(
+            "München".encodeToLatin1Bytes().toList(),
+            envelopeDatasetValue(before.foreignDatasets, destinationDatasetNumber).toList()
+        )
+
+        val updated = Kim.update(
+            bytes = original,
+            updates = setOf(MetadataUpdate.Keywords(setOf("rewritten")))
+        )
+
+        val after = assertNotNull(assertNotNull(Kim.readMetadata(updated)).iptc)
+
+        /*
+         * The rewritten stream declares UTF-8 - the preserved dataset
+         * must carry the UTF-8 encoding of the same string, and the
+         * only CodedCharacterSet dataset present is the envelope's
+         * UTF-8 declaration.
+         */
+        val declarationsAfter = after.foreignDatasets.filter { candidate ->
+            candidate.size > 2 &&
+                candidate[0] == IptcConstants.IPTC_RECORD_TAG_MARKER.toByte() &&
+                candidate[1] == IptcConstants.IPTC_ENVELOPE_RECORD_NUMBER.toByte() &&
+                candidate[2] == IptcParser.CODED_CHARACTER_SET_IPTC_CODE.toByte()
+        }
+
+        assertEquals(
+            listOf(IptcParser.UTF8_CHARACTER_ESCAPE_SEQUENCE.toList()),
+            declarationsAfter.map { declaration ->
+                declaration.copyOfRange(5, declaration.size).toList()
+            }
+        )
+
+        assertEquals(
+            "München".encodeToByteArray().toList(),
+            envelopeDatasetValue(after.foreignDatasets, destinationDatasetNumber).toList()
+        )
+    }
+
+    /**
+     * An original CodedCharacterSet dataset that declares a non-UTF-8
+     * charset misdescribes the UTF-8 stream the rewrite emits and
+     * would flip the running charset of every dataset behind it. It is
+     * superseded by the envelope the writer emits and must not survive
+     * the rewrite, while the text datasets are transcoded.
+     */
+    @Test
+    fun testStaleNonUtf8CharsetDeclarationIsSuperseded() {
+
+        val original = Resource(
+            "de/stefan_oltmann/kim/testdata/jpeg_with_latin1_iptc_and_charset_declaration.jpg"
+        ).readBytes()
+
+        val before = assertNotNull(assertNotNull(Kim.readMetadata(original)).iptc)
+
+        /*
+         * Fixture precondition: the declaration is the ISO 2022 escape
+         * "ESC , A" (a Latin-1 designation, byte-exact 1B 2C 41) and
+         * the Destination is Latin-1 encoded. The parser captures the
+         * declaration like every other foreign dataset.
+         */
+        assertEquals(
+            listOf(0x1B, 0x2C, 0x41),
+            envelopeDatasetValue(
+                before.foreignDatasets,
+                IptcParser.CODED_CHARACTER_SET_IPTC_CODE
+            ).map { it.toInt() and 0xFF }
+        )
+
+        assertEquals(
+            "München".encodeToLatin1Bytes().toList(),
+            envelopeDatasetValue(before.foreignDatasets, destinationDatasetNumber).toList()
+        )
+
+        val updated = Kim.update(
+            bytes = original,
+            updates = setOf(MetadataUpdate.Keywords(setOf("rewritten")))
+        )
+
+        val after = assertNotNull(assertNotNull(Kim.readMetadata(updated)).iptc)
+
+        /*
+         * The stale declaration is superseded: the rewritten stream
+         * carries exactly one CodedCharacterSet dataset - the
+         * envelope's UTF-8 declaration.
+         */
+        val declarationsAfter = after.foreignDatasets.filter { candidate ->
+            candidate.size > 2 &&
+                candidate[0] == IptcConstants.IPTC_RECORD_TAG_MARKER.toByte() &&
+                candidate[1] == IptcConstants.IPTC_ENVELOPE_RECORD_NUMBER.toByte() &&
+                candidate[2] == IptcParser.CODED_CHARACTER_SET_IPTC_CODE.toByte()
+        }
+
+        assertEquals(
+            listOf(IptcParser.UTF8_CHARACTER_ESCAPE_SEQUENCE.toList()),
+            declarationsAfter.map { staleDeclaration ->
+                staleDeclaration.copyOfRange(5, staleDeclaration.size).toList()
+            }
+        )
+
+        assertEquals(
+            "München".encodeToByteArray().toList(),
+            envelopeDatasetValue(after.foreignDatasets, destinationDatasetNumber).toList()
         )
     }
 }

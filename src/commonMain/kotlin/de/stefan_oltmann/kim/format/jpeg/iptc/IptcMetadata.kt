@@ -32,8 +32,11 @@ public data class IptcMetadata(
     val sourceSegmentBytes: List<ByteArray> = emptyList(),
     /**
      * Raw bytes of the IIM datasets outside application record 2
-     * (envelope identifiers, NewsPhoto data), carried verbatim through
-     * IPTC rewrites.
+     * (envelope identifiers, the CodedCharacterSet declaration,
+     * NewsPhoto data), carried through IPTC rewrites. The rewrite
+     * supersedes the CodedCharacterSet declaration with its own UTF-8
+     * envelope and transcodes string datasets whose original stream
+     * declared no UTF-8 charset - see [IptcWriter.writeIptcBlockData].
      */
     val foreignDatasets: List<ByteArray> = emptyList()
 ) {
