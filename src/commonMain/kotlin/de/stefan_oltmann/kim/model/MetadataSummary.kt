@@ -246,11 +246,6 @@ public data class MetadataSummary(
         )
     }
 
-    public companion object {
-
-        public val emptySummary: MetadataSummary = MetadataSummary()
-    }
-
     /**
      * Renders every property on the "Name = value" pattern the other
      * metadata sections use, with the thumbnail bytes rendered as their
@@ -291,5 +286,10 @@ public data class MetadataSummary(
             line("thumbnailImageSize", thumbnailImageSize),
             line("thumbnailBytes", thumbnailBytes?.size?.toString() + " bytes")
         ).joinToString(separator = "\n")
+    }
+
+    public companion object {
+
+        public val emptySummary: MetadataSummary = MetadataSummary()
     }
 }

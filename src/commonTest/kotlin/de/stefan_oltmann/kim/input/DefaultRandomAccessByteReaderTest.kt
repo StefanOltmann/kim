@@ -30,6 +30,9 @@ class DefaultRandomAccessByteReaderTest {
 
     private val bytes = byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 
+    /** Total bytes the test delegate was asked to allocate. */
+    private var allocatedTotal: Int = 0
+
     /**
      * The unbounded length sentinel of stream readers reports "unknown
      * size", not a real content size. It must not fail the
@@ -414,8 +417,6 @@ class DefaultRandomAccessByteReaderTest {
      * which sized the buffer to the full distance in one piece, defeating
      * the class's own geometric allocation cap (2 GB spike / OOM).
      */
-    private var allocatedTotal: Int = 0
-
     @Test
     fun testReadByteAtHostileFarOffsetDoesNotAllocateHugeBuffer() {
 
@@ -427,7 +428,9 @@ class DefaultRandomAccessByteReaderTest {
                 allocatedTotal += count
                 return ByteArray(minOf(count, 0))
             }
-            override fun close() {}
+            override fun close() {
+                /* Nothing to do. */
+            }
         }
 
         val reader = DefaultRandomAccessByteReader(delegate)
