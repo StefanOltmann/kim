@@ -260,6 +260,19 @@ public object KimValueFormatter {
         if (seconds <= 0.0 || !seconds.isFinite() || seconds > MAX_EXPOSURE_TIME_SECONDS)
             return null
 
+        /*
+         * A tiny value saturates the reciprocal denominator at the Int
+         * bound - the KDoc names the resulting "1/2147483647 s" as
+         * nonsensical output, so such values return NULL like the other
+         * non-exposure inputs.
+         */
+        @Suppress("MagicNumber")
+        val maxDenominator = Int.MAX_VALUE - 1
+
+        @Suppress("MagicNumber")
+        if (seconds < 1.0 && 1.0 / seconds > maxDenominator)
+            return null
+
         @Suppress("MagicNumber")
         return if (seconds < 1.0) {
             "1/" + (0.5 + 1 / seconds).toInt() + " s"
