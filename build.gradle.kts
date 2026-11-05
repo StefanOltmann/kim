@@ -405,7 +405,8 @@ val writeVersion: TaskProvider<Task> = tasks.register("writeVersion") {
     group = "build"
     description = "Writes the current project version to build/version.txt"
     doLast {
-        File("build/version.txt").writeText(project.version.toString())
+        val versionFile = layout.buildDirectory.file("version.txt").get().asFile
+        versionFile.writeText(project.version.toString())
     }
 }
 
