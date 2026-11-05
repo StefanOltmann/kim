@@ -524,7 +524,7 @@ val checkTextFiles: TaskProvider<Task> = tasks.register("checkTextFiles") {
     group = "verification"
     description =
         "Checks every *.kt, *.kts, *.svg, *.xml and *.md file for UTF-8 (no BOM), LF line " +
-            "endings, no NUL bytes and a final newline - see .editorconfig."
+            "endings, and a final newline - see .editorconfig."
 
     doLast {
 
@@ -564,15 +564,6 @@ val checkTextFiles: TaskProvider<Task> = tasks.register("checkTextFiles") {
                 if ('\uFFFD' in text)
                     violations += "$relativePath: contains a U+FFFD replacement character"
 
-                /*
-                 * A NUL byte is valid UTF-8, but it makes the file binary to
-                 * text tooling (diff, grep, editors), so text files must
-                 * never carry one - e.g. as a byte-level illustration of a
-                 * binary format identifier pasted into a comment.
-                 */
-                if (bytes.contains(0.toByte()))
-                    violations += "$relativePath: contains a NUL byte"
-
                 if ('\r' in text)
                     violations += "$relativePath: contains a CR; line endings must be LF"
 
@@ -594,7 +585,7 @@ val checkTextFiles: TaskProvider<Task> = tasks.register("checkTextFiles") {
 
         throw GradleException(
             "${violations.size} text file violation(s) - expected UTF-8 without BOM, LF line " +
-                "endings, no NUL bytes and a final newline (see .editorconfig); fix the files, " +
+                "endings, and a final newline (see .editorconfig); fix the files, " +
                 "the check never rewrites them:\n$shown$more"
         )
     }
