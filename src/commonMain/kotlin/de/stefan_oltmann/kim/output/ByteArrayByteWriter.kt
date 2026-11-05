@@ -79,9 +79,14 @@ public class ByteArrayByteWriter(
 
         val currentCapacity = bytes.size
 
-        if (position + requiredCapacity > currentCapacity) {
+        /*
+         * The guard must not wrap once position + requiredCapacity reaches
+         * 2^31, so it runs in Long space too.
+         */
+        if (position.toLong() + requiredCapacity > currentCapacity) {
 
-            val newCapacity = (currentCapacity + requiredCapacity) * 2
+            val newCapacity = computeGrownCapacity(currentCapacity, requiredCapacity)
+
             val newBytes = ByteArray(newCapacity)
 
             bytes.copyInto(newBytes)
@@ -89,3 +94,15 @@ public class ByteArrayByteWriter(
         }
     }
 }
+
+/**
+ * Computes the capacity the in-memory buffer grows to when it cannot hold
+ * [requiredCapacity] more bytes by doubling past the required size. The
+ * arithmetic runs in Long space so capacities near the Int boundary cannot
+ * wrap to negative values; the result is capped at the largest array size
+ * the JVM guarantees.
+ */
+internal fun computeGrownCapacity(currentCapacity: Int, requiredCapacity: Int): Int =
+    ((currentCapacity + requiredCapacity).toLong() * 2L)
+        .coerceAtMost(Int.MAX_VALUE.toLong() - 2)
+        .toInt()

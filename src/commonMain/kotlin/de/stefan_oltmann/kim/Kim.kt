@@ -80,7 +80,10 @@ import kotlin.coroutines.cancellation.CancellationException
  *
  * 1. Corrupt embedded thumbnails and preview images: they are always
  *    restorable from the primary image data, so dropping them is not real
- *    data loss.
+ *    data loss. This holds only for formats Kim can rewrite: the preview
+ *    extractors of the read-only RAW formats (CR3, CR2, RAF, NEF, ARW,
+ *    RW2, ORF, DNG) deliberately fail on broken previews instead, because
+ *    there the preview is the only way applications can display the file.
  *
  * 2. GPS coordinates that were read cleanly but lie outside the valid
  *    range: they are physically meaningless.
@@ -369,6 +372,16 @@ public object Kim {
 
     /**
      * Extracts the embedded preview image of the file.
+     *
+     * Returns NULL when the file carries no preview at all. A preview
+     * that exists but is broken (wrong marker, truncated data, content
+     * that is not a JPEG) fails with [ImageReadException] instead:
+     * RAW files are never written by this library, so their preview is
+     * the only way applications can display them. The "corrupt previews
+     * are restorable from the primary image" whitelist of [readMetadata]
+     * therefore does not apply here - silently returning NULL would hide
+     * a damaged file behind an empty image slot. This holds for every
+     * RAW format (CR3, CR2, RAF, NEF, ARW, RW2, ORF, DNG).
      *
      * Attention: The given [ByteReader] is closed by this call, including
      * the stream below it, and must not be used afterwards.

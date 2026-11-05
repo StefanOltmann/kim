@@ -17,6 +17,7 @@ package de.stefan_oltmann.kim.model
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class MetadataSummaryTest {
 
@@ -48,5 +49,31 @@ class MetadataSummaryTest {
         val summary = MetadataSummary()
 
         assertEquals(0, summary.megaPixelCount)
+    }
+
+    /**
+     * toString must render deterministically: the un-overridden
+     * data-class default printed thumbnailBytes as a platform identity
+     * hash ([B@1a2b3c4), which differs between runs and platforms.
+     */
+    @Test
+    fun testToStringRendersThumbnailSizeInsteadOfIdentityHash() {
+
+        val summary = MetadataSummary(
+            mediaFormat = MediaFormat.JPEG,
+            cameraMake = "Canon",
+            thumbnailBytes = byteArrayOf(1, 2, 3, 4, 5)
+        )
+
+        val rendered = summary.toString()
+
+        assertTrue("thumbnailBytes = 5" in rendered, "rendered: $rendered")
+        assertTrue("@" !in rendered.substringAfter("thumbnailBytes"), "rendered: $rendered")
+
+        /* Deterministic: two identical summaries render identically. */
+        assertEquals(
+            rendered,
+            summary.copy().toString()
+        )
     }
 }

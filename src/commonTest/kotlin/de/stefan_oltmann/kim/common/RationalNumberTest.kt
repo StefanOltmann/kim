@@ -197,4 +197,24 @@ class RationalNumberTest {
         /* toString delegates to the array. */
         assertEquals("[1/2 (0.5), 3/4 (0.75)]", first.toString())
     }
+
+    /**
+     * A double so small that its reciprocal saturates the Int range must
+     * not overflow the successor computation into a negative denominator:
+     * valueOf(1e-30) returned RationalNumber(1, -2147483648) - a negative
+     * rational for a positive input.
+     */
+    @Test
+    fun testValueOfTinyDoubleStaysPositive() {
+
+        val positive = RationalNumber.valueOf(1e-30)
+
+        assertTrue(positive.numerator > 0, "numerator: $positive")
+        assertTrue(positive.divisor > 0, "denominator: $positive")
+
+        val negative = RationalNumber.valueOf(-1e-30)
+
+        assertTrue(negative.numerator < 0, "numerator: $negative")
+        assertTrue(negative.divisor > 0, "denominator: $negative")
+    }
 }

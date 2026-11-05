@@ -94,6 +94,7 @@ import de.stefan_oltmann.kim.format.tiff.makernote.fujifilm.FujiFilmDriveSetting
 import de.stefan_oltmann.kim.format.tiff.makernote.fujifilm.FujiFilmFocusSettingsTag
 import de.stefan_oltmann.kim.format.tiff.makernote.fujifilm.FujiFilmPrioritySettingsTag
 import de.stefan_oltmann.kim.format.tiff.makernote.fujifilm.FujiFilmTag
+import de.stefan_oltmann.kim.format.tiff.makernote.leica.LeicaTag
 import de.stefan_oltmann.kim.format.tiff.makernote.nikon.NikonAfInfo2Tag
 import de.stefan_oltmann.kim.format.tiff.makernote.nikon.NikonColorBalance2Tag
 import de.stefan_oltmann.kim.format.tiff.makernote.nikon.NikonColorBalance4Tag
@@ -125,6 +126,8 @@ import de.stefan_oltmann.kim.format.tiff.makernote.panasonic.PanasonicFaceDetInf
 import de.stefan_oltmann.kim.format.tiff.makernote.panasonic.PanasonicFaceRecInfoTag
 import de.stefan_oltmann.kim.format.tiff.makernote.panasonic.PanasonicTag
 import de.stefan_oltmann.kim.format.tiff.makernote.panasonic.PanasonicTimeInfoTag
+import de.stefan_oltmann.kim.format.tiff.makernote.pentax.PentaxTag
+import de.stefan_oltmann.kim.format.tiff.makernote.sigma.SigmaTag
 import de.stefan_oltmann.kim.format.tiff.makernote.sony.SonyCameraInfo3Tag
 import de.stefan_oltmann.kim.format.tiff.makernote.sony.SonyFaceInfoATag
 import de.stefan_oltmann.kim.format.tiff.makernote.sony.SonyMoreSettingsTag
@@ -208,6 +211,9 @@ internal object TiffTags {
         TiffConstants.TIFF_MAKER_NOTE_NIKON to tagTables(NikonTag.ALL),
         TiffConstants.TIFF_MAKER_NOTE_FUJIFILM to tagTables(FujiFilmTag.ALL),
         TiffConstants.TIFF_MAKER_NOTE_APPLE to tagTables(AppleTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_PENTAX to tagTables(PentaxTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_SIGMA to tagTables(SigmaTag.ALL),
+        TiffConstants.TIFF_MAKER_NOTE_LEICA to tagTables(LeicaTag.ALL),
         TiffConstants.TIFF_MAKER_NOTE_OLYMPUS to tagTables(OlympusTag.ALL),
         TiffConstants.TIFF_MAKER_NOTE_CANON_CAMERA_SETTINGS to tagTables(CanonCameraSettingsTag.ALL),
         TiffConstants.TIFF_MAKER_NOTE_CANON_FOCAL_LENGTH to tagTables(CanonFocalLengthTag.ALL),

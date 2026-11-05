@@ -61,12 +61,17 @@ public object OrfPreviewExtractor : TiffPreviewExtractor {
             return@extractPreviewImage null
 
         /*
-         * Long math, so the MakerNote relative offset cannot overflow.
+         * Long math, so the MakerNote relative offset cannot overflow: a
+         * sum beyond the Int range is a broken preview and fails the
+         * extraction instead of hiding the damaged file behind NULL.
          */
         val absoluteStart = makerNoteStart.toLong() + previewImageStart.toLong()
 
         if (absoluteStart > Int.MAX_VALUE)
-            return@extractPreviewImage null
+            throw ImageReadException(
+                "The ORF preview offset is invalid: " +
+                    "makerNote=$makerNoteStart + preview=$previewImageStart."
+            )
 
         return@tryWithImageReadException TiffPreviewExtractor.readValidatedPreviewBytes(
             randomAccessByteReader = randomAccessByteReader,

@@ -1089,8 +1089,19 @@ public object TiffReader {
                 make.contains("PENTAX", ignoreCase = true) || make.contains("SAMSUNG", ignoreCase = true) ->
                     PentaxMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
 
-                make.contains("RICOH", ignoreCase = true) ->
+                make.contains("RICOH", ignoreCase = true) -> {
+
+                    /*
+                     * Ricoh owns Pentax, so Ricoh cameras carry
+                     * Pentax-form MakerNotes (the WG-20 does) or Ricoh's
+                     * own forms: like ExifTool, the decision follows the
+                     * makernote signature, so both are tried. A handler
+                     * returns silently when its signature does not
+                     * match.
+                     */
+                    PentaxMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
                     RicohMakerNoteHandler.read(byteReader, makerNoteValueOffset, addDirectory)
+                }
 
                 make.contains("OLYMPUS", ignoreCase = true) ||
                     make.contains("OM Digital", ignoreCase = true) ||

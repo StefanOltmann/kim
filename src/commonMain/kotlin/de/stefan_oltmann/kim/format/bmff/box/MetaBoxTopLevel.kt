@@ -64,12 +64,8 @@ public class MetaBoxTopLevel internal constructor(
         get() = findMetadataItems().any { it.type == MetadataType.XMP }
 
     /**
-     * Returns the resolvable metadata items with all of their extents.
-     *
-     * An item may be fragmented into several extents, so the returned
-     * groups must be read extent by extent and concatenated before they
-     * can be parsed as one stream. Items are ordered by position, and
-     * the extents of each item are ordered by position as well.
+     * Constructs the box over an in-memory payload instead of a file
+     * region.
      */
     public constructor(
         offset: Long,
@@ -79,6 +75,14 @@ public class MetaBoxTopLevel internal constructor(
         depth: Int = 0
     ) : this(offset, size, largeSize, PayloadSource.of(payload), depth)
 
+    /**
+     * Returns the resolvable metadata items with all of their extents.
+     *
+     * An item may be fragmented into several extents, so the returned
+     * groups must be read extent by extent and concatenated before they
+     * can be parsed as one stream. Items are ordered by position, and
+     * the extents of each item are ordered by position as well.
+     */
     public fun findMetadataItems(): List<MetadataItem> {
 
         /*

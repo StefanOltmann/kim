@@ -23,6 +23,7 @@ import de.stefan_oltmann.kim.format.tiff.TiffDirectory
 import de.stefan_oltmann.kim.format.tiff.TiffField
 import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
+import de.stefan_oltmann.kim.format.tiff.makernote.MakerNoteHandler.Companion.MAX_DETECTABLE_ENTRY_COUNT
 import de.stefan_oltmann.kim.format.tiff.makernote.nikon.NikonDecryptor
 import de.stefan_oltmann.kim.format.tiff.taginfo.TagInfo
 import de.stefan_oltmann.kim.input.RandomAccessByteReader
@@ -89,6 +90,39 @@ internal open class MakerNoteHandler {
         )
 
         return readDirectory
+    }
+
+    /**
+     * Detects the byte order of a MakerNote IFD that carries no byte
+     * order marker: the 2-byte entry count at [entryCountOffset] is
+     * interpreted in both orders and the one whose count is sane wins,
+     * like ExifTool decides its "Unknown" byte order entries. A count
+     * beyond [MAX_DETECTABLE_ENTRY_COUNT] is not sane for a makernote
+     * directory.
+     */
+    protected fun detectMakerNoteByteOrder(
+        byteReader: RandomAccessByteReader,
+        entryCountOffset: Int
+    ): ByteOrder? {
+
+        val countBytes = byteReader.readBytes(entryCountOffset, 2)
+
+        if (countBytes.size < 2)
+            return null
+
+        val littleEndianCount = (countBytes[0].toInt() and 0xFF) or
+            ((countBytes[1].toInt() and 0xFF) shl 8)
+
+        val bigEndianCount = (countBytes[1].toInt() and 0xFF) or
+            ((countBytes[0].toInt() and 0xFF) shl 8)
+
+        if (littleEndianCount in 1..MAX_DETECTABLE_ENTRY_COUNT)
+            return ByteOrder.LITTLE_ENDIAN
+
+        if (bigEndianCount in 1..MAX_DETECTABLE_ENTRY_COUNT)
+            return ByteOrder.BIG_ENDIAN
+
+        return null
     }
 
     /**
@@ -461,4 +495,9 @@ internal open class MakerNoteHandler {
      */
     protected fun ByteArray.toInt64(offset: Int): Long =
         toLong(offset, ByteOrder.BIG_ENDIAN)
+
+    private companion object {
+
+        private const val MAX_DETECTABLE_ENTRY_COUNT: Int = 1000
+    }
 }

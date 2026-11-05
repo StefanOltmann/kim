@@ -40,6 +40,11 @@ import kotlin.jvm.JvmStatic
 
 /**
  * Extracts preview images from Canon CR3 files.
+ *
+ * NULL means the file carries no preview structure (no movie box, no
+ * Canon preview UUID box). A preview that exists but is broken fails
+ * with [ImageReadException]: RAW files are never written by this library
+ * and their preview is the only way applications can display them.
  */
 public object Cr3PreviewExtractor {
 
@@ -104,6 +109,13 @@ public object Cr3PreviewExtractor {
      * while the mdat is streamed past in bounded chunks. Memory stays
      * flat no matter how large the video data of the CR3 is.
      *
+     * Attention: Unlike the primary-image formats, a broken preview of a
+     * RAW file must fail the extraction instead of degrading to NULL.
+     * Kim never writes RAW files, so the preview is the only way
+     * applications can display them - silently returning NULL would hide
+     * a corrupt file behind an empty image slot. NULL is reserved for
+     * files that carry no preview structure at all.
+     *
      * See https://github.com/lclevy/canon_cr3/blob/master/readme.md
      */
     @Throws(ImageReadException::class)
@@ -126,27 +138,23 @@ public object Cr3PreviewExtractor {
                      * The movie box is small metadata, so buffering it is
                      * fine - unlike the mdat that follows it. A stream that
                      * claims more bytes than it delivers (e.g. an aborted
-                     * transfer) fails the moov read; without a parsed moov
-                     * no preview window can ever be located, so the preview
-                     * degrades to NULL right here - continuing the box walk
-                     * on the desynced reader position would only produce a
-                     * spurious error. A physically truncated file fails
-                     * loudly in the box header validation like every other
-                     * corrupt input.
+                     * transfer) fails the moov read. Without a parsed moov
+                     * no preview window can ever be located, and a moov
+                     * that cannot be parsed is a corrupt file: RAW files
+                     * are never written by this library and their preview
+                     * is the only way applications can display them, so
+                     * the corruption must surface instead of hiding the
+                     * broken file behind a NULL.
                      */
-                    movieBox = try {
-                        val payload = header.readData(byteReader)
+                    val payload = header.readData(byteReader)
 
-                        MovieBox(
-                            header.boxOffset,
-                            header.size,
-                            header.largeSize,
-                            payload,
-                            depth = 1
-                        )
-                    } catch (_: ImageReadException) {
-                        return@walkTopLevelBoxes true
-                    }
+                    movieBox = MovieBox(
+                        header.boxOffset,
+                        header.size,
+                        header.largeSize,
+                        payload,
+                        depth = 1
+                    )
 
                     false
                 }
@@ -173,27 +181,28 @@ public object Cr3PreviewExtractor {
 
                         /*
                          * Hostile or corrupt files can declare offsets that
-                         * reach beyond this mdat; such windows are not
-                         * captured here. The arithmetic runs in Long space,
-                         * so huge deltas cannot wrap into the valid range.
+                         * reach beyond this mdat. The arithmetic runs in
+                         * Long space, so huge deltas cannot wrap into the
+                         * valid range - and a window outside the data that
+                         * declares it is a broken preview, which fails the
+                         * extraction (see the class documentation).
                          */
-                        if (relativeOffset >= 0 &&
-                            relativeOffset + windowLength <= header.dataSize
-                        ) {
-
-                            byteReader.skipBytes("", relativeOffset)
-
-                            previewBytes = byteReader.readBytes("preview jpeg", windowLength)
-
-                            byteReader.skipBytes(
-                                "mdat tail",
-                                (header.dataSize - relativeOffset - windowLength)
+                        if (relativeOffset < 0 ||
+                            relativeOffset + windowLength > header.dataSize
+                        )
+                            throw ImageReadException(
+                                "The CR3 preview window lies outside the mdat: " +
+                                    "offset=$windowOffset, length=$windowLength."
                             )
 
-                        } else {
+                        byteReader.skipBytes("", relativeOffset)
 
-                            byteReader.skipBytes("mdat data", header.dataSize)
-                        }
+                        previewBytes = byteReader.readBytes("preview jpeg", windowLength)
+
+                        byteReader.skipBytes(
+                            "mdat tail",
+                            (header.dataSize - relativeOffset - windowLength)
+                        )
                     }
 
                     previewBytes != null
@@ -208,8 +217,22 @@ public object Cr3PreviewExtractor {
             }
         }
 
-        /* Only real JPEGs are previews - like in the other extractors. */
-        val preview = previewBytes?.takeIf { it.startsWith(MediaFormatMagicNumbers.jpeg) }
+        /*
+         * A parsed movie box declares a preview, so bytes that were never
+         * found (no mdat, or a window that never materialized) or bytes
+         * that are not a JPEG mean the preview is broken - which fails
+         * the extraction instead of hiding it behind NULL. Files without
+         * any movie box carry no preview structure and report NULL.
+         */
+        if (movieBox == null)
+            return@tryWithImageReadException null
+
+        val preview = previewBytes
+            ?.takeIf { it.startsWith(MediaFormatMagicNumbers.jpeg) }
+            ?: throw ImageReadException(
+                "The CR3 movie box declares a preview, but no valid JPEG " +
+                    "preview could be extracted from the file."
+            )
 
         return@tryWithImageReadException preview
     }
@@ -348,46 +371,42 @@ public object Cr3PreviewExtractor {
      *
      * Returns NULL when the structure is missing one of them.
      */
-    private fun computePreviewWindow(movieBox: MovieBox): Pair<Long, Int>? =
-        try {
-            computePreviewWindowFrom(movieBox)
-        } catch (_: ImageReadException) {
+    private fun computePreviewWindow(movieBox: MovieBox): Pair<Long, Int> =
+        computePreviewWindowFrom(movieBox)
 
-            /*
-             * A sample table that cannot be parsed is a structural miss,
-             * not a corrupt file: the preview degrades to NULL like every
-             * other missing structure instead of failing the read.
-             */
-            null
-        }
+    private fun computePreviewWindowFrom(movieBox: MovieBox): Pair<Long, Int> {
 
-    private fun computePreviewWindowFrom(movieBox: MovieBox): Pair<Long, Int>? {
-
+        /*
+         * Every structure below was reached through a parsed movie box,
+         * so a missing piece is a broken preview, not an absent one: the
+         * extraction fails (see the class documentation) instead of
+         * hiding the damaged file behind NULL.
+         */
         val firstTrack = movieBox.boxes.filterIsInstance<TrackBox>().firstOrNull()
-        firstTrack ?: return null
+            ?: throw ImageReadException("The CR3 movie box carries no track.")
 
         val mediaBox = firstTrack.mediaBox
 
         val mediaInformationContainer = mediaBox.boxes.find { it.type == BoxType.MINF }
-            ?: return null
+            ?: throw ImageReadException("The CR3 track carries no media information box.")
 
         val minfBoxes = BoxReader.readAllBoxes(
             byteReader = ByteArrayByteReader(mediaInformationContainer.payload)
         )
 
         val sampleTableBox = minfBoxes.find { it.type == BoxType.STBL }
-            ?: return null
+            ?: throw ImageReadException("The CR3 media information box carries no sample table.")
 
         val stblBoxes = BoxReader.readAllBoxes(
             byteReader = ByteArrayByteReader(sampleTableBox.payload)
         )
 
         val sampleSizesBox = stblBoxes.find { it.type == BoxType.STSZ }
-            ?: return null
+            ?: throw ImageReadException("The CR3 sample table carries no sample size box.")
 
         val chunkOffsetBox = stblBoxes.find { it.type == BoxType.CO64 }
             ?: stblBoxes.find { it.type == STCO_BOX_TYPE }
-            ?: return null
+            ?: throw ImageReadException("The CR3 sample table carries no chunk offset box.")
 
         val stszReader = ByteArrayByteReader(sampleSizesBox.payload)
 
@@ -412,7 +431,9 @@ public object Cr3PreviewExtractor {
                 .toLong() and 0xFFFFFFFFL
 
         if (offset < 0 || length <= 0)
-            return null
+            throw ImageReadException(
+                "The CR3 preview window is invalid: offset=$offset, length=$length."
+            )
 
         return offset to length
     }
@@ -440,14 +461,16 @@ public object Cr3PreviewExtractor {
             if (header.type == BoxType.UUID) {
 
                 /*
-                 * A box too short to carry the vendor UUID is malformed;
-                 * skipping it whole keeps the walk alive and degrades the
-                 * preview to NULL, exactly like the box object filter did
-                 * for such boxes before.
+                 * A box too short to carry the vendor UUID is malformed:
+                 * the preview is broken and the extraction fails (see the
+                 * class documentation) instead of degrading to NULL.
                  */
                 if (header.dataSize < UUID_LENGTH_BYTES) {
 
-                    byteReader.skipBytes("uuid box data", header.dataSize)
+                    throw ImageReadException(
+                        "The CR3 preview UUID box is truncated: " +
+                            "${header.dataSize} of $UUID_LENGTH_BYTES UUID bytes."
+                    )
                 } else {
 
                     /*
@@ -531,18 +554,22 @@ public object Cr3PreviewExtractor {
 
         /*
          * A JPEG size beyond the available bytes means the preview is
-         * truncated. The raw read would silently return a short array.
+         * truncated: broken preview content fails the extraction instead
+         * of returning the short array (see the class documentation).
          */
         if (jpegSize <= 0 ||
             jpegSize > data.size - PRVW_BYTES_BEFORE_JPEG
         )
-            return null
+            throw ImageReadException(
+                "The CR3 preview JPEG is truncated: it declares $jpegSize " +
+                    "bytes, but only ${data.size - PRVW_BYTES_BEFORE_JPEG} are present."
+            )
 
         val jpegBytes = payloadReader.readBytes("jpegBytes", jpegSize)
 
-        /* Only real JPEGs are previews - like in the other extractors. */
+        /* Only real JPEGs are previews - a broken payload fails loudly. */
         if (!jpegBytes.startsWith(MediaFormatMagicNumbers.jpeg))
-            return null
+            throw ImageReadException("The CR3 preview payload is not a JPEG.")
 
         return jpegBytes
     }

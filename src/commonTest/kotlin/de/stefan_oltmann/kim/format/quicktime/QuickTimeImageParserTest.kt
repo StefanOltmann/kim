@@ -21,6 +21,7 @@ import de.stefan_oltmann.kim.common.convertToSummary
 import de.stefan_oltmann.kim.format.tiff.constant.ExifTag
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.makernote.fujifilm.FujiFilmTag
+import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.model.ImageSize
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.testdata.KimTestData
@@ -597,5 +598,26 @@ class QuickTimeImageParserTest {
         val ftypSize = QuickTimeTestVideos.ftypBox().size
 
         return copyOfRange(ftypSize, size)
+    }
+
+    /**
+     * Two MVTG boxes leave no way to tell which one is authoritative -
+     * the same ambiguity rule the duplicate moov and XMP boxes follow.
+     */
+    @Test
+    fun testMultipleMvtgBoxesFailAsAmbiguous() {
+
+        val bytes = QuickTimeTestVideos.movWithTwoMvtgBoxes()
+
+        val exception = assertFailsWith<ImageReadException> {
+            Kim.readMetadata(ByteArrayByteReader(bytes))
+        }
+
+        assertTrue(
+            exception.message?.contains("ambiguous") == true &&
+                (exception.message?.contains("MVTG") == true ||
+                    exception.message?.contains("udta") == true),
+            "Unexpected message: ${exception.message}"
+        )
     }
 }

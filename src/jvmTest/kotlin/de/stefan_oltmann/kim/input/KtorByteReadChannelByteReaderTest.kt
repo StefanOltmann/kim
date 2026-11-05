@@ -24,6 +24,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 
 /*
@@ -156,6 +157,38 @@ class KtorByteReadChannelByteReaderTest {
         } finally {
             channel.cancel(null)
             executor.shutdownNow()
+        }
+    }
+
+    /**
+     * A zero or negative buffer size would make every read fill nothing
+     * - the reader would report permanent EOF and a metadata read of a
+     * healthy stream would fail as "empty data". The constructor must
+     * reject the configuration mistake instead.
+     */
+    @Test
+    fun testInvalidBufferSizesAreRejected() {
+
+        val channel = ByteReadChannel(byteArrayOf(1, 2, 3))
+
+        assertFailsWith<IllegalArgumentException> {
+            KtorByteReadChannelByteReader(channel, contentLength = 3, bufferSize = 0)
+        }
+
+        assertFailsWith<IllegalArgumentException> {
+            KtorByteReadChannelByteReader(
+                channel = ByteReadChannel(byteArrayOf(1, 2, 3)),
+                contentLength = 3,
+                bufferSize = -1
+            )
+        }
+
+        assertFailsWith<IllegalArgumentException> {
+            KtorByteReadChannelByteReader(
+                channel = ByteReadChannel(byteArrayOf(1, 2, 3)),
+                contentLength = 3,
+                bufferSize = Int.MAX_VALUE.toLong() + 1
+            )
         }
     }
 }

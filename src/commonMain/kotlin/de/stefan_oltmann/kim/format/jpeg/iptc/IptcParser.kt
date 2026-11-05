@@ -305,6 +305,19 @@ public object IptcParser {
                 recordType == CODED_CHARACTER_SET_IPTC_CODE
             ) {
                 isUtf8 = isUtf8(recordData)
+
+                /*
+                 * The declaration is also a dataset of the file: it is
+                 * captured like every other foreign dataset so an IPTC
+                 * rewrite can see which charset the original bytes
+                 * carry. The writer supersedes it with its own
+                 * envelope, so re-emitting it verbatim would only
+                 * duplicate the declaration on every rewrite.
+                 */
+                foreignDatasets.add(
+                    bytes.slice(datasetStartIndex, index - datasetStartIndex)
+                )
+
                 continue
             }
 
@@ -503,7 +516,12 @@ public object IptcParser {
         return true
     }
 
-    private fun isUtf8(codedCharset: ByteArray): Boolean {
+    /**
+     * Whether the given CodedCharacterSet value declares UTF-8. Shared
+     * with the writer, which needs the same check to decide whether the
+     * preserved foreign text datasets already carry UTF-8.
+     */
+    internal fun isUtf8(codedCharset: ByteArray): Boolean {
 
         /*
          * The record value may be padded with spaces or NUL bytes to an

@@ -19,6 +19,8 @@ package de.stefan_oltmann.kim.format.tiff.fieldtype
 
 import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.decodeLatin1BytesToString
+import de.stefan_oltmann.kim.common.encodeToLatin1Bytes
 import de.stefan_oltmann.kim.common.indexOfNullTerminator
 import de.stefan_oltmann.kim.common.slice
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
@@ -57,14 +59,18 @@ public data object FieldTypeAscii : FieldType<String> {
             return ""
 
         /*
-         * According to the Exiftool FAQ, http://www.metadataworkinggroup.org
-         * specifies that the TIFF ASCII fields are actually UTF-8.
-         * Exiftool however allows you to configure the charset used.
+         * The EXIF specification calls this type ASCII, but most cameras
+         * write Latin-1 bytes (Artist, Copyright, Software with umlauts),
+         * and the ExifTool reference decodes it as Latin-1. A UTF-8
+         * replacement decode would fabricate U+FFFD characters and
+         * present corrupted text as clean, which the strict read policy
+         * forbids. Latin-1 maps every byte to the same code point, so
+         * the decode cannot fail.
          */
         val string = bytes.slice(
             startIndex = 0,
             count = length
-        ).decodeToString()
+        ).decodeLatin1BytesToString()
 
         return string
     }
@@ -74,7 +80,13 @@ public data object FieldTypeAscii : FieldType<String> {
         if (data !is String)
             throw ImageWriteException("ASCII Data must be String")
 
-        val bytes = data.encodeToByteArray()
+        /*
+         * Latin-1 like the read side and the ExifTool reference: text
+         * beyond the Latin-1 range fails the write instead of being
+         * silently misencoded (the strict write policy of
+         * requireLatin1Encodable).
+         */
+        val bytes = data.encodeToLatin1Bytes()
 
         val result = bytes.copyOf(bytes.size + 1)
 

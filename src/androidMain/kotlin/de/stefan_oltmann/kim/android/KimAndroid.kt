@@ -106,6 +106,12 @@ public object KimAndroid {
             )
         )
 
+    /**
+     * Opens a reader for the given URI that [Kim.readMetadata] and
+     * [Kim.update] can stream from.
+     *
+     * The caller is responsible for closing the returned reader.
+     */
     @JvmStatic
     @Throws(ImageReadException::class)
     public fun createByteReader(
@@ -119,6 +125,12 @@ public object KimAndroid {
             length = length
         )
 
+    /**
+     * Opens a reader for the given URI that [Kim.readMetadata] and
+     * [Kim.update] can stream from.
+     *
+     * The caller is responsible for closing the returned reader.
+     */
     @JvmStatic
     @Throws(ImageReadException::class)
     public fun createByteReader(

@@ -15,7 +15,6 @@
  */
 package de.stefan_oltmann.kim.format.tiff.makernote.sigma
 
-import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.format.tiff.TiffDirectory
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.makernote.MakerNoteHandler
@@ -31,8 +30,11 @@ internal object SigmaMakerNoteHandler : MakerNoteHandler() {
     /**
      * Reads the MakerNote of a Sigma camera.
      *
-     * Sigma MakerNotes start with a signature and then the IFD entries
-     * directly.
+     * Sigma MakerNotes start with a signature and carry their IFD 10
+     * bytes behind the makernote start, with no byte order marker: the
+     * order is the one whose entry count is sane, like ExifTool decides
+     * its "Unknown" byte order entries. The value offsets are relative
+     * to the embedded TIFF header, like standard TIFF IFDs.
      */
     internal fun read(
         byteReader: RandomAccessByteReader,
@@ -43,16 +45,21 @@ internal object SigmaMakerNoteHandler : MakerNoteHandler() {
         if (!readMakerNoteSignature(byteReader, makerNoteValueOffset, SIGMA_MAKER_NOTE_SIGNATURE))
             return
 
-        val ifdOffset = SIGMA_MAKER_NOTE_SIGNATURE.length
+        val ifdOffset = 10
+
+        val byteOrder = detectMakerNoteByteOrder(
+            byteReader = byteReader,
+            entryCountOffset = makerNoteValueOffset + ifdOffset
+        ) ?: return
 
         readMakerNoteDirectory(
             byteReader = byteReader,
             directoryOffset = makerNoteValueOffset + ifdOffset,
-            valueOffsetBase = makerNoteValueOffset,
-            byteOrder = ByteOrder.LITTLE_ENDIAN,
+            /* Sigma value offsets address the embedded TIFF header. */
+            valueOffsetBase = 0,
+            byteOrder = byteOrder,
             directoryType = TiffConstants.TIFF_MAKER_NOTE_SIGMA,
             addDirectory = addDirectory
         )
     }
 }
-

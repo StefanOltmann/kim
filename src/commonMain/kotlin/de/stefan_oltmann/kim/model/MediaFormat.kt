@@ -61,6 +61,11 @@ public enum class MediaFormat(
 
     /**
      * If true, KIM can embed metadata into this kind of file.
+     *
+     * This mirrors the write-path lookup in
+     * [de.stefan_oltmann.kim.format.MetadataUpdater.forFormat] - the
+     * authoritative implementation - and the equivalence is pinned by
+     * MediaFormatTest so the two lists cannot drift silently.
      */
     public fun isMetadataEmbeddable(): Boolean =
         this == JPEG || this == GIF || this == PNG || this == WEBP || this == JXL

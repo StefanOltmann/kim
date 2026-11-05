@@ -79,6 +79,10 @@ object KimTestData {
      * was injected from media_1.jpg with ExifTool 13.59.
      */
     const val WEBP_WITH_MAKERNOTE_INDEX: Int = 89
+    const val SIGMA_TEST_IMAGE_INDEX: Int = 100
+    const val PENTAX_TEST_IMAGE_INDEX: Int = 101
+    const val LEICA_TEST_IMAGE_INDEX: Int = 102
+    const val RICOH_TEST_IMAGE_INDEX: Int = 103
     const val JXL_WITH_MAKERNOTE_INDEX: Int = 90
 
     /*

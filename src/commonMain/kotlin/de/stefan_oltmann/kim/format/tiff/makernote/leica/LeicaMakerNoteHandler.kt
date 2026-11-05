@@ -28,16 +28,50 @@ internal object LeicaMakerNoteHandler : MakerNoteHandler() {
     private const val LEICA_MAKER_NOTE_SIGNATURE = "LEICA\u0000"
 
     /**
+     * The signature of the Leica MakerNote form whose IFD follows the
+     * 8-byte signature directly, like the Leica C writes it.
+     */
+    private const val LEICA_8_BYTE_SIGNATURE = "LEICA\u0000\u0000\u0000"
+
+    /**
      * Reads the MakerNote of a Leica camera.
      *
-     * Most Leica MakerNotes start with a signature, a byte order
-     * marker and then the IFD entries.
+     * The "LEICA\0\0\0" form (like the Leica C) carries its IFD
+     * directly behind the 8-byte signature with no byte order marker:
+     * the order is the one whose entry count is sane. Its value offsets
+     * address the embedded TIFF header. The "LEICA\0" form carries an
+     * explicit byte order marker behind the signature.
+     *
+     * Attention: The Panasonic-derived Leica form (like the Leica T
+     * writes it) is not interpreted - no sample was validated against
+     * the reference decoder, and guessing layouts is how the vendor
+     * handlers diverged from the reference in the first place.
      */
     internal fun read(
         byteReader: RandomAccessByteReader,
         makerNoteValueOffset: Int,
         addDirectory: (TiffDirectory) -> Unit
     ) {
+
+        if (readMakerNoteSignature(byteReader, makerNoteValueOffset, LEICA_8_BYTE_SIGNATURE)) {
+
+            val byteOrder = detectMakerNoteByteOrder(
+                byteReader = byteReader,
+                entryCountOffset = makerNoteValueOffset + LEICA_8_BYTE_SIGNATURE.length
+            ) ?: return
+
+            readMakerNoteDirectory(
+                byteReader = byteReader,
+                directoryOffset = makerNoteValueOffset + LEICA_8_BYTE_SIGNATURE.length,
+                /* Leica value offsets address the embedded TIFF header. */
+                valueOffsetBase = 0,
+                byteOrder = byteOrder,
+                directoryType = TiffConstants.TIFF_MAKER_NOTE_LEICA,
+                addDirectory = addDirectory
+            )
+
+            return
+        }
 
         if (!readMakerNoteSignature(byteReader, makerNoteValueOffset, LEICA_MAKER_NOTE_SIGNATURE))
             return
@@ -56,4 +90,3 @@ internal object LeicaMakerNoteHandler : MakerNoteHandler() {
         )
     }
 }
-

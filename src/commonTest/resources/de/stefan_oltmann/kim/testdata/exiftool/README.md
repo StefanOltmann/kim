@@ -1,7 +1,7 @@
 # ExifTool dumps of the test files
 
 This folder contains the ExifTool reference dumps of every test file in
-[`../full`](../full) (`media_1` to `media_88`). They document how ExifTool
+[`../full`](../full) (`media_1` to `media_103`). They document how ExifTool
 sees the metadata structure of each file and are used to compare the space
 computation of the lossless EXIF writer with ExifTool.
 

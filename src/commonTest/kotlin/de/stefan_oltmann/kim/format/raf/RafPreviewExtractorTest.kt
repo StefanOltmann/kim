@@ -15,12 +15,12 @@
  */
 package de.stefan_oltmann.kim.format.raf
 
+import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
 import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
+import kotlin.test.assertFailsWith
 
 class RafPreviewExtractorTest {
 
@@ -44,47 +44,49 @@ class RafPreviewExtractorTest {
     }
 
     /**
-     * Hostile preview offsets and lengths must degrade to NULL instead
-     * of crashing or returning garbage.
+     * Hostile preview offsets and lengths are broken preview content:
+     * RAW files are never written by this library and their preview is
+     * the only way applications can display them, so they fail the
+     * extraction instead of hiding the damaged file behind NULL.
      */
     @Test
-    fun testExtractPreviewImageDegradesToNullForHostileRanges() {
+    fun testExtractPreviewImageFailsForHostileRanges() {
 
         fun readerOf(vararg bytes: Byte): ByteReader = ByteArrayByteReader(bytes)
 
         /* Offset beyond the file. */
-        assertNull(
+        assertFailsWith<ImageReadException> {
             RafPreviewExtractor.extractPreviewImage(
                 readerOf(*rafBytesWithJpegHeaderAt(1000, 16))
             )
-        )
+        }
 
         /* Length beyond the file. */
-        assertNull(
+        assertFailsWith<ImageReadException> {
             RafPreviewExtractor.extractPreviewImage(
                 readerOf(*rafBytesWithJpegHeaderAt(88, 1000))
             )
-        )
+        }
 
         /* Offset and length that overflow when summed. */
-        assertNull(
+        assertFailsWith<ImageReadException> {
             RafPreviewExtractor.extractPreviewImage(
                 readerOf(*rafBytesWithJpegHeaderAt(Int.MAX_VALUE, 100))
             )
-        )
+        }
     }
 
     /**
-     * A valid in-file preview range without JPEG data degrades to NULL.
+     * A valid in-file preview range without JPEG data is broken preview
+     * content and fails the extraction.
      */
     @Test
-    fun testExtractPreviewImageDegradesToNullWithoutJpegData() {
+    fun testExtractPreviewImageFailsWithoutJpegData() {
 
-        assertEquals(
-            null,
+        assertFailsWith<ImageReadException> {
             RafPreviewExtractor.extractPreviewImage(
                 ByteArrayByteReader(rafBytesWithJpegHeaderAt(88, 4))
             )
-        )
+        }
     }
 }

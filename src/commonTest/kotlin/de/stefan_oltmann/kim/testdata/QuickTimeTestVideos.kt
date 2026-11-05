@@ -72,6 +72,25 @@ internal object QuickTimeTestVideos {
     fun movWithXmpInMoov(xmpBytes: ByteArray): ByteArray =
         ftypBox() + box("moov", box("uuid", xmpUuidPayload(xmpBytes))) + mdatBox()
 
+    /** ftyp - moov[udta[MVTG], udta[MVTG]] - mdat: an ambiguous file. */
+    fun movWithTwoMvtgBoxes(): ByteArray {
+        /*
+         * A minimal valid MVTG payload: the 12-byte Fujifilm header, the
+         * little-endian marker and an IFD with zero entries.
+         */
+        val mvtgPayload = ByteArray(12) +
+            byteArrayOf(1, 0, 0, 0) +
+            byteArrayOf(0, 0, 0, 0, 0, 0)
+
+        return ftypBox() +
+            box(
+                "moov",
+                box("udta", box("MVTG", mvtgPayload)) +
+                    box("udta", box("MVTG", mvtgPayload))
+            ) +
+            mdatBox()
+    }
+
     /** ftyp - moov[udta[XMP_(XMP)]] - mdat, like ExifTool writes XMP into MOV videos. */
     fun movWithXmpUnderscoreInUdta(xmpBytes: ByteArray): ByteArray =
         ftypBox() +

@@ -48,6 +48,10 @@ class ExifToolDumpComparisonTest {
     private val makerNoteTestFiles: List<Int> = listOf(
         1, 15, 18, 21, 23, 28, 31, 34, 39, 41, 42, 48, 49, 50, 53,
         57, 58, 60, 62, 63, 64, 65, 72, 73, 74, 75, 83, 86, 87, 88,
+        KimTestData.SIGMA_TEST_IMAGE_INDEX,
+        KimTestData.PENTAX_TEST_IMAGE_INDEX,
+        KimTestData.LEICA_TEST_IMAGE_INDEX,
+        KimTestData.RICOH_TEST_IMAGE_INDEX,
         KimTestData.WEBP_WITH_MAKERNOTE_INDEX,
         KimTestData.JXL_WITH_MAKERNOTE_INDEX
     )
@@ -687,4 +691,3 @@ class ExifToolDumpComparisonTest {
     private fun ByteArray.headHex(): String =
         copyOfRange(0, minOf(32, size)).toHex()
 }
-

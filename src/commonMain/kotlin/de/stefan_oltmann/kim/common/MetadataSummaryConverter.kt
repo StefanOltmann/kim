@@ -413,7 +413,8 @@ public object MetadataSummaryConverter {
 
         return metadata.iptc?.records
             ?.filter { it.iptcType == IptcTypes.KEYWORDS }
-            ?.map { it.value }
+            ?.map { it.value.trimTrailingPadding() }
+            ?.filterNotNull()
             ?.toSet()
             ?: emptySet()
     }
@@ -428,14 +429,17 @@ public object MetadataSummaryConverter {
         val iptcCity = iptcRecords
             .find { it.iptcType == IptcTypes.CITY }
             ?.value
+            .trimTrailingPadding()
 
         val iptcState = iptcRecords
             .find { it.iptcType == IptcTypes.PROVINCE_STATE }
             ?.value
+            .trimTrailingPadding()
 
         val iptcCountry = iptcRecords
             .find { it.iptcType == IptcTypes.COUNTRY_PRIMARY_LOCATION_NAME }
             ?.value
+            .trimTrailingPadding()
 
         /* Don't create an object if everything is NULL */
         if (iptcCity.isNullOrBlank() && iptcState.isNullOrBlank() && iptcCountry.isNullOrBlank())

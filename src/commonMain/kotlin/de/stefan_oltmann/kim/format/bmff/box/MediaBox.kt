@@ -23,9 +23,10 @@ import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.bmff.PayloadSource
 
 /**
- * ISO/IEC 14496-12 movie box
+ * ISO/IEC 14496-12 mdia box
  *
- * The Movie Box is a container for several sub boxes.
+ * The Media Box is a container for the boxes describing one track's
+ * media, such as its header and its information containers.
  */
 public class MediaBox internal constructor(
     offset: Long,

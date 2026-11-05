@@ -35,8 +35,10 @@ internal object PentaxMakerNoteHandler : MakerNoteHandler() {
     /**
      * Reads the MakerNote of a Pentax or Samsung camera.
      *
-     * Pentax and Samsung MakerNotes start with a signature, a byte
-     * order marker and the IFD entries.
+     * Pentax and Samsung MakerNotes start with a signature and a byte
+     * order marker; the IFD entry count sits directly behind the marker
+     * (Pentax Type 5, like ExifTool's MakerNotePentax5 start offset),
+     * so the IFD starts 10 bytes behind the makernote start.
      */
     internal fun read(
         byteReader: RandomAccessByteReader,
@@ -51,7 +53,7 @@ internal object PentaxMakerNoteHandler : MakerNoteHandler() {
 
         val byteOrder = readMakerNoteByteOrder(byteReader) ?: return
 
-        val ifdOffset = PENTAX_MAKER_NOTE_SIGNATURE.length + 4
+        val ifdOffset = PENTAX_MAKER_NOTE_SIGNATURE.length + 2
 
         readMakerNoteDirectory(
             byteReader = byteReader,
@@ -63,4 +65,3 @@ internal object PentaxMakerNoteHandler : MakerNoteHandler() {
         )
     }
 }
-

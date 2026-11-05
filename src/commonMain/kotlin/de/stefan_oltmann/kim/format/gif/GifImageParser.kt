@@ -447,9 +447,9 @@ public object GifImageParser : ImageParser {
 
                     payloadBlocks =
                         byteReader.parseGifSubChunksUntilEmpty(
-                                "application extension",
-                                MAX_METADATA_BYTE_BUDGET
-                            )
+                            "application extension",
+                            MAX_METADATA_BYTE_BUDGET
+                        )
 
                     contiguouslyFramed = false
                 }
@@ -468,18 +468,18 @@ public object GifImageParser : ImageParser {
                 GifChunkCommentExtension(
                     byteArrayOf(GifConstants.EXTENSION_INTRODUCER, GifConstants.COMMENT_EXTENSION_LABEL),
                     byteReader.parseGifSubChunksUntilEmpty(
-                    "comment extension",
-                    MAX_METADATA_BYTE_BUDGET
-                )
+                        "comment extension",
+                        MAX_METADATA_BYTE_BUDGET
+                    )
                 )
 
             GifConstants.PLAIN_TEXT_EXTENSION_LABEL ->
                 GifChunkPlainTextExtension(
                     byteArrayOf(GifConstants.EXTENSION_INTRODUCER, GifConstants.PLAIN_TEXT_EXTENSION_LABEL),
                     byteReader.parseGifSubChunksUntilEmpty(
-                    "plain text extension",
-                    MAX_METADATA_BYTE_BUDGET
-                )
+                        "plain text extension",
+                        MAX_METADATA_BYTE_BUDGET
+                    )
                 )
 
             else ->
@@ -488,9 +488,9 @@ public object GifImageParser : ImageParser {
                     joinGifSubChunks(
                         byteArrayOf(GifConstants.EXTENSION_INTRODUCER, extensionLabel),
                         byteReader.parseGifSubChunksUntilEmpty(
-                        "unknown extension",
-                        MAX_METADATA_BYTE_BUDGET
-                    )
+                            "unknown extension",
+                            MAX_METADATA_BYTE_BUDGET
+                        )
                     )
                 )
         }

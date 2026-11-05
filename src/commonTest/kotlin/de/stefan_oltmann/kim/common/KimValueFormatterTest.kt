@@ -436,4 +436,22 @@ class KimValueFormatterTest {
         assertNull(KimValueFormatter.formatExposureTime(Double.POSITIVE_INFINITY))
         assertNull(KimValueFormatter.formatExposureTime(Double.NEGATIVE_INFINITY))
     }
+
+    /**
+     * A tiny positive exposure time saturates the reciprocal denominator
+     * at the Int bound - the KDoc names the resulting "1/2147483647 s"
+     * as nonsensical output, so such values must return NULL like the
+     * other non-exposure inputs.
+     */
+    @Test
+    fun testFormatExposureTimeReturnsNullForSaturatingReciprocal() {
+
+        assertNull(KimValueFormatter.formatExposureTime(1e-10))
+        assertNull(KimValueFormatter.formatExposureTime(4.65e-10))
+        assertNull(KimValueFormatter.formatExposureTime(Double.MIN_VALUE))
+
+        /* Still formats: sane short and long exposures. */
+        assertEquals("1/2 s", KimValueFormatter.formatExposureTime(0.5))
+        assertEquals("30'' s", KimValueFormatter.formatExposureTime(30.0))
+    }
 }

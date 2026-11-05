@@ -393,4 +393,26 @@ class TiffFieldMethodsTest {
             ).toDouble()
         )
     }
+
+    /**
+     * EXIF ASCII fields are de-facto Latin-1 on most cameras: content
+     * like "Düsseldorf" stored with high bytes must render the clean
+     * text like the ExifTool reference decodes it, not replacement
+     * characters from a UTF-8 decode of Latin-1 bytes.
+     */
+    @Test
+    fun testAsciiFieldDecodesLatin1BytesLikeExifTool() {
+
+        /*
+         * "Düsseldorf" encoded as Latin-1: the ü is a single
+         * 0xFC byte.
+         */
+        val latin1Bytes = byteArrayOf(
+            0x44, 0xFC.toByte(), 0x73, 0x73, 0x65, 0x6C, 0x64, 0x6F, 0x72, 0x66, 0x00
+        )
+
+        val field = tiffField(0x013B, FieldTypeAscii, latin1Bytes)
+
+        assertEquals("Düsseldorf", field.toStringValue())
+    }
 }

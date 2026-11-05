@@ -113,12 +113,17 @@ public class ByteArrayByteReader(
 
     override fun readBytes(offset: Int, length: Int): ByteArray {
 
-        require(offset >= 0) { "Offset must be positive: $offset" }
-        require(length > 0) { "Length must be positive: $length" }
+        require(offset >= 0) { "Offset must not be negative: $offset" }
+        require(length >= 0) { "Length must not be negative: $length" }
 
+        /*
+         * Long space, so a hostile offset cannot wrap the addition with
+         * the window start into a negative index that would crash
+         * copyOfRange - the same rule the random access sibling applies.
+         */
         return copyClamped(
             source = bytes,
-            fromIndex = (windowStartField + offset).toLong(),
+            fromIndex = windowStartField.toLong() + offset,
             count = length.toLong(),
             limit = windowEndField.toLong()
         )
