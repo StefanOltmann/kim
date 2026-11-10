@@ -21,6 +21,8 @@ import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EOI_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.RST0_MARKER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.RST7_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOI_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOS_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.markerDescription
@@ -33,9 +35,19 @@ import kotlin.jvm.JvmStatic
  * Algorithm to find segment offsets, types, and lengths.
  *
  * Offsets are absolute positions from the stream start and lengths include
- * the 2 marker bytes. The SOS segment reaches to the end of the file; an
- * EOI segment is only reported when the marker is physically present, so a
- * truncated file yields exactly the segments its bytes contain.
+ * the 2 marker bytes. In the default mode the SOS segment reaches to the
+ * end of the file; an EOI segment is only reported when the marker is
+ * physically present, so a truncated file yields exactly the segments its
+ * bytes contain.
+ *
+ * With [findSegmentInfos]' `fullScan` the scan continues behind the image
+ * data: the SOS segments cover only their scan headers, every length
+ * prefixed segment between the scans is reported individually, restart
+ * markers inside the entropy coded data stay unreported, and the scan
+ * ends at the first structural EOI marker. Nothing behind that EOI is
+ * reported. The full scan fails when the file does not end with the
+ * structural EOI marker, when an SOI marker appears inside the image
+ * data, or when a segment between the scans is truncated.
  *
  * **Attention:** Must be public API as this is used by https://stefan-oltmann.de/exif-viewer
  */
@@ -45,7 +57,8 @@ public object JpegSegmentAnalyzer {
     @Suppress("ComplexMethod")
     @JvmStatic
     public fun findSegmentInfos(
-        byteReader: ByteReader
+        byteReader: ByteReader,
+        fullScan: Boolean = false
     ): List<JpegSegmentInfo> = tryWithImageReadException {
 
         val soiMarker = byteReader.read2BytesAsInt("SOI", JPEG_BYTE_ORDER)
@@ -72,6 +85,16 @@ public object JpegSegmentAnalyzer {
          */
         val scanner = JpegMarkerScanner(byteReader, keepConsumedBytes = false)
 
+        /*
+         * Full scan stage behind the first SOS marker, where the entropy
+         * coded data, the segments between the scans and the structural
+         * EOI marker are walked.
+         */
+        var fullStage = false
+
+        /* Whether the full stage reached the structural EOI marker. */
+        var eoiSeen = false
+
         @Suppress("LoopWithTooManyJumpStatements")
         do {
 
@@ -79,7 +102,40 @@ public object JpegSegmentAnalyzer {
 
             positionCounter += scan.consumedCount
 
-            if (scan.marker == SOS_MARKER) {
+            if (fullStage) {
+
+                if (scan.marker == EOI_MARKER) {
+
+                    /* The structural EOI ends the whole scan. */
+
+                    segmentInfos.add(
+                        JpegSegmentInfo(
+                            offset = positionCounter - 2,
+                            marker = EOI_MARKER,
+                            length = 2
+                        )
+                    )
+
+                    eoiSeen = true
+
+                    break
+                }
+
+                if (scan.marker == SOI_MARKER)
+                    throw ImageReadException(
+                        "An SOI marker inside the image data is no readable structure."
+                    )
+
+                /*
+                 * Restart markers only occur inside the entropy coded
+                 * data and have no length field: they stay unreported
+                 * gap data of the scan ranges.
+                 */
+                if (scan.marker in RST0_MARKER..RST7_MARKER)
+                    continue
+            }
+
+            if (scan.marker == SOS_MARKER && !fullScan) {
 
                 val remainingBytesCount = byteReader.contentLength - positionCounter
 
@@ -147,7 +203,15 @@ public object JpegSegmentAnalyzer {
 
             positionCounter += remainingSegmentLength
 
+            if (fullScan && scan.marker == SOS_MARKER)
+                fullStage = true
+
         } while (true)
+
+        if (fullScan && !eoiSeen)
+            throw ImageReadException(
+                "The full scan requires the file to end with the structural EOI marker."
+            )
 
         return@findSegmentInfos segmentInfos
     }

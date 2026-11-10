@@ -829,7 +829,8 @@ public final class de/stefan_oltmann/kim/format/jpeg/JpegRewriter {
 
 public final class de/stefan_oltmann/kim/format/jpeg/JpegSegmentAnalyzer {
 	public static final field INSTANCE Lde/stefan_oltmann/kim/format/jpeg/JpegSegmentAnalyzer;
-	public static final fun findSegmentInfos (Lde/stefan_oltmann/kim/input/ByteReader;)Ljava/util/List;
+	public static final fun findSegmentInfos (Lde/stefan_oltmann/kim/input/ByteReader;Z)Ljava/util/List;
+	public static synthetic fun findSegmentInfos$default (Lde/stefan_oltmann/kim/input/ByteReader;ZILjava/lang/Object;)Ljava/util/List;
 }
 
 public final class de/stefan_oltmann/kim/format/jpeg/JpegSegmentAnalyzer$JpegSegmentInfo {
