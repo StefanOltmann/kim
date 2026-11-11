@@ -98,4 +98,10 @@ internal object GifUpdater : MetadataUpdater {
     override fun updateThumbnail(bytes: ByteArray, thumbnailBytes: ByteArray): ByteArray {
         throw ImageWriteException("Can't embed thumbnail into GIF.")
     }
+
+    /**
+     * GIF files carry no EXIF concept and no embedded thumbnail, so the
+     * deletion has nothing to remove and returns the file unchanged.
+     */
+    override fun deleteThumbnail(bytes: ByteArray): ByteArray = bytes
 }

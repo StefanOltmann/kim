@@ -575,6 +575,21 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
     }
 
     /**
+     * A file that carries EXIF without an embedded thumbnail is returned
+     * unchanged: there is nothing to remove and the rewrite must not
+     * restructure the file for nothing.
+     */
+    @Test
+    fun testDeleteThumbnailWithoutThumbnailReturnsTheFileUnchanged() {
+
+        /* media_1 carries EXIF and a MakerNote but no embedded thumbnail. */
+        assertContentEquals(
+            expected = KimTestData.getBytesOf(1),
+            actual = Kim.deleteThumbnail(KimTestData.getBytesOf(1))
+        )
+    }
+
+    /**
      * Builds an APP1 EXIF segment with a single orientation entry.
      */
     private fun buildExifSegmentWithOrientation(): ByteArray {

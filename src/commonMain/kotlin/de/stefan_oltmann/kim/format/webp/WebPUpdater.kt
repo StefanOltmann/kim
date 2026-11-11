@@ -22,6 +22,7 @@ import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
 import de.stefan_oltmann.kim.format.exifBytesWithThumbnail
+import de.stefan_oltmann.kim.format.tiffOutputSetWithoutThumbnail
 import de.stefan_oltmann.kim.format.updatedExifBytes
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
@@ -104,6 +105,39 @@ internal object WebPUpdater : MetadataUpdater {
         val metadata = WebPImageParser.parseMetadataFromChunks(chunks)
 
         val exifBytes = metadata.exifBytesWithThumbnail(thumbnailBytes)
+
+        val byteWriter = ByteArrayByteWriter()
+
+        WebPWriter.writeImage(
+            chunks = chunks,
+            byteWriter = byteWriter,
+            exifBytes = exifBytes,
+            /*  No change to XMP */
+            xmp = null
+        )
+
+        return@tryWithImageWriteException byteWriter.toByteArray()
+    }
+
+    /**
+     * The thumbnail lives in the EXIF chunk: the rewrite removes the
+     * thumbnail directory (IFD1) from the parsed set and replaces the
+     * chunk with the shrunk one, while a file without a thumbnail is
+     * returned unchanged.
+     */
+    override fun deleteThumbnail(bytes: ByteArray): ByteArray = tryWithImageWriteException {
+
+        if (!bytes.startsWithNullable(MediaFormatMagicNumbers.webP))
+            throw ImageWriteException("Provided input bytes are not WebP!")
+
+        val byteReader = ByteArrayByteReader(bytes)
+
+        val chunks = WebPImageParser.readChunks(byteReader, stopAfterMetadataRead = false)
+
+        val metadata = WebPImageParser.parseMetadataFromChunks(chunks)
+
+        val exifBytes = metadata.tiffOutputSetWithoutThumbnail()?.toTiffBytes()
+            ?: return bytes
 
         val byteWriter = ByteArrayByteWriter()
 

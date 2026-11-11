@@ -719,6 +719,32 @@ public object Kim {
         return@tryWithImageWriteException updater.updateThumbnail(bytes, thumbnailBytes)
     }
 
+    /**
+     * Removes the embedded thumbnail of the file, keeping every other
+     * metadata block: the EXIF, XMP, IPTC and ICC data stay untouched.
+     *
+     * A file without an embedded thumbnail is returned unchanged, so the
+     * operation is idempotent. GIF files carry no thumbnail concept and
+     * are returned unchanged as well.
+     *
+     * Attention: The thumbnail lives inside the EXIF data, so formats
+     * without an EXIF concept have nothing to remove.
+     */
+    @kotlin.jvm.JvmStatic
+    @Throws(ImageWriteException::class)
+    public fun deleteThumbnail(bytes: ByteArray): ByteArray = tryWithImageWriteException {
+
+        val mediaFormat = MediaFormat.detect(bytes)
+
+        if (mediaFormat == null)
+            throw ImageWriteException("Unknown or unsupported file format.")
+
+        val updater = MetadataUpdater.forFormat(mediaFormat)
+            ?: throw ImageWriteException("Can't delete thumbnail of $mediaFormat.")
+
+        return@tryWithImageWriteException updater.deleteThumbnail(bytes)
+    }
+
     /*
      * A single broken tag must not abort the preview fallback chain of
      * TIFF-family files, so extractor failures degrade to NULL here.

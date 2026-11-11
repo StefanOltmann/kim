@@ -355,6 +355,18 @@ val newBytes = Kim.updateThumbnail(
 )
 ```
 
+### Delete thumbnail using `Kim.deleteThumbnail()` API
+
+```kotlin
+val bytes: ByteArray = loadBytes()
+
+val newBytes = Kim.deleteThumbnail(bytes)
+```
+
+The embedded thumbnail lives inside the EXIF data, so every format with an EXIF concept supports
+the deletion. Everything else - EXIF, XMP, IPTC, ICC - stays untouched, and a file without an
+embedded thumbnail is returned unchanged.
+
 ### Using Java
 
 See the [Java example project](examples/kim-java-sample/src/main/java/Main.java) how to use Kim in

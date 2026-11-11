@@ -24,6 +24,7 @@ import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
 import de.stefan_oltmann.kim.format.exifBytesWithThumbnail
+import de.stefan_oltmann.kim.format.tiffOutputSetWithoutThumbnail
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcConstants
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
@@ -205,6 +206,40 @@ internal object PngUpdater : MetadataUpdater {
         val metadata = PngImageParser.parseMetadataFromChunks(chunks)
 
         val exifBytes = metadata.exifBytesWithThumbnail(thumbnailBytes)
+
+        val byteWriter = ByteArrayByteWriter()
+
+        PngWriter.writeImage(
+            chunks = chunks,
+            byteWriter = byteWriter,
+            exifBytes = exifBytes,
+            iptcBytes = null,
+            /*  No change to XMP */
+            xmp = null
+        )
+
+        return@tryWithImageWriteException byteWriter.toByteArray()
+    }
+
+    /**
+     * The thumbnail lives in the EXIF chunk: the rewrite removes the
+     * thumbnail directory (IFD1) from the parsed set and replaces the
+     * chunk with the shrunk one, while a file without a thumbnail is
+     * returned unchanged.
+     */
+    override fun deleteThumbnail(bytes: ByteArray): ByteArray = tryWithImageWriteException {
+
+        if (!bytes.startsWith(MediaFormatMagicNumbers.png))
+            throw ImageWriteException("Provided input bytes are not PNG!")
+
+        val byteReader = ByteArrayByteReader(bytes)
+
+        val chunks = PngImageParser.readChunks(byteReader, chunkTypeFilter = null)
+
+        val metadata = PngImageParser.parseMetadataFromChunks(chunks)
+
+        val exifBytes = metadata.tiffOutputSetWithoutThumbnail()?.toTiffBytes()
+            ?: return bytes
 
         val byteWriter = ByteArrayByteWriter()
 

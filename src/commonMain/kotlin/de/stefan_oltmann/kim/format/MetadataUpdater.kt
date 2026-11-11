@@ -85,6 +85,17 @@ public interface MetadataUpdater {
         thumbnailBytes: ByteArray
     ): ByteArray
 
+    /**
+     * Removes the embedded thumbnail of the file, keeping every other
+     * metadata block.
+     *
+     * A file without an embedded thumbnail is returned unchanged, so the
+     * operation is idempotent. GIF files carry no thumbnail concept and
+     * are returned unchanged as well.
+     */
+    @Throws(ImageWriteException::class)
+    public fun deleteThumbnail(bytes: ByteArray): ByteArray
+
     public companion object {
 
         /**
@@ -157,6 +168,28 @@ internal fun MediaMetadata.exifBytesWithThumbnail(
     outputSet.setThumbnailBytes(thumbnailBytes)
 
     return outputSet.toTiffBytes()
+}
+
+/**
+ * Removes the embedded thumbnail from the EXIF and returns the new EXIF
+ * bytes, or NULL when there is no embedded thumbnail to remove - the
+ * caller then leaves the stored bytes untouched. A file without EXIF
+ * has no thumbnail and returns NULL as well.
+ *
+ * The EXIF read from the file is the starting point, so fields Kim does
+ * not model survive the rewrite. The thumbnail directory is removed as
+ * a whole: its fields all describe the thumbnail, so a residue with a
+ * compression tag and no data would only misreport a thumbnail that no
+ * longer exists.
+ */
+internal fun MediaMetadata.tiffOutputSetWithoutThumbnail(): TiffOutputSet? {
+
+    val outputSet = exif?.createOutputSet() ?: return null
+
+    if (!outputSet.removeThumbnailDirectory())
+        return null
+
+    return outputSet
 }
 
 /**

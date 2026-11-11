@@ -4,6 +4,7 @@ public final class de/stefan_oltmann/kim/Kim {
 	public static final fun deleteMetadata ([BZ)[B
 	public static synthetic fun deleteMetadata$default (Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;ZILjava/lang/Object;)V
 	public static synthetic fun deleteMetadata$default ([BZILjava/lang/Object;)[B
+	public static final fun deleteThumbnail ([B)[B
 	public static final fun extractMetadataBytes (Lde/stefan_oltmann/kim/input/ByteReader;)Lkotlin/Pair;
 	public static final fun extractPreviewImage (Lde/stefan_oltmann/kim/input/ByteReader;)[B
 	public final fun getDefaultTimeZone ()Lkotlinx/datetime/TimeZone;
@@ -219,6 +220,7 @@ public abstract interface class de/stefan_oltmann/kim/format/MetadataUpdater {
 	public static final field Companion Lde/stefan_oltmann/kim/format/MetadataUpdater$Companion;
 	public abstract fun deleteMetadata (Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;Z)V
 	public static synthetic fun deleteMetadata$default (Lde/stefan_oltmann/kim/format/MetadataUpdater;Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;ZILjava/lang/Object;)V
+	public abstract fun deleteThumbnail ([B)[B
 	public abstract fun update (Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;Ljava/util/Set;)V
 	public abstract fun updateThumbnail ([B[B)[B
 }
@@ -13291,6 +13293,7 @@ public final class de/stefan_oltmann/kim/format/tiff/write/TiffOutputSet {
 	public final fun getOrCreateGPSDirectory ()Lde/stefan_oltmann/kim/format/tiff/write/TiffOutputDirectory;
 	public final fun getOrCreateRootDirectory ()Lde/stefan_oltmann/kim/format/tiff/write/TiffOutputDirectory;
 	public final fun getOrCreateThumbnailDirectory ()Lde/stefan_oltmann/kim/format/tiff/write/TiffOutputDirectory;
+	public final fun removeThumbnailDirectory ()Z
 	public final fun setGpsCoordinates (Lde/stefan_oltmann/kim/model/GpsCoordinates;)V
 	public final fun setThumbnailBytes ([B)V
 }

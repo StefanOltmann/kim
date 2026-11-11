@@ -25,6 +25,7 @@ import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
+import de.stefan_oltmann.kim.format.tiffOutputSetWithoutThumbnail
 import de.stefan_oltmann.kim.format.icc.IccProfileParser
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcConstants
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
@@ -375,4 +376,27 @@ internal object JpegUpdater : MetadataUpdater {
         return false
     }
 
+    /**
+     * The thumbnail lives in the EXIF: the rewrite removes the thumbnail
+     * directory (IFD1) from the parsed set and replaces the EXIF segment
+     * with the shrunk one, while a file without a thumbnail is returned
+     * unchanged.
+     */
+    override fun deleteThumbnail(bytes: ByteArray): ByteArray = tryWithImageWriteException {
+
+        val metadata = JpegImageParser.parseMetadata(ByteArrayByteReader(bytes))
+
+        val outputSet = metadata.tiffOutputSetWithoutThumbnail()
+            ?: return bytes
+
+        val byteWriter = ByteArrayByteWriter()
+
+        JpegRewriter.updateExifMetadata(
+            byteReader = ByteArrayByteReader(bytes),
+            byteWriter = byteWriter,
+            outputSet = outputSet
+        )
+
+        return@tryWithImageWriteException byteWriter.toByteArray()
+    }
 }
