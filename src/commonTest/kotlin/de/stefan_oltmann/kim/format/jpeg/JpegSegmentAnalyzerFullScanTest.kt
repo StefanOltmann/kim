@@ -17,9 +17,13 @@ package de.stefan_oltmann.kim.format.jpeg
 
 import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_APP1_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.COM_MARKER_1
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.DHP_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.DHT_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EOI_MARKER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EXP_MARKER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOF2_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOI_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOS_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.RST3_MARKER
@@ -632,6 +636,133 @@ class JpegSegmentAnalyzerFullScanTest {
                 fullScan = true
             )
         }
+    }
+
+    /**
+     * Hierarchical JPEG structure: the DHP marker defines the frame
+     * progression in the header and the EXP marker expands the reference
+     * components between the frames. Both are length-prefixed structure
+     * markers: the full scan reports them like every other segment at
+     * their byte-exact positions, so the hierarchical structure is
+     * addressable for a metadata copy.
+     */
+    @Test
+    fun testFullScanReportsHierarchicalProgressionMarkers() {
+
+        val writer = ByteArrayByteWriter()
+
+        writeSoi(writer)
+
+        val dhpOffset: Long = writer.toByteArray().size.toLong()
+
+        /* The DHP payload: precision, frame height, width and component count. */
+        writeSegment(
+            writer,
+            DHP_MARKER,
+            byteArrayOf(0x08, 0x00, 0x10, 0x00, 0x10, 0x01)
+        )
+
+        writeSegment(writer, SOF2_MARKER, byteArrayOf(0x08, 0x00, 0x10, 0x00, 0x10))
+
+        writeScanHeader(writer)
+
+        writer.write(byteArrayOf(0x11, 0x22, 0x33))
+
+        val app1Offset: Long = writer.toByteArray().size.toLong()
+
+        writeSegment(writer, JPEG_APP1_MARKER, SENTINEL)
+
+        val expOffset: Long = writer.toByteArray().size.toLong()
+
+        /* The EXP payload: the horizontal and vertical expansion factors. */
+        writeSegment(writer, EXP_MARKER, byteArrayOf(0x11))
+
+        writeScanHeader(writer)
+
+        writer.write(byteArrayOf(0x44, 0x55))
+
+        val comOffset: Long = writer.toByteArray().size.toLong()
+
+        writeSegment(writer, COM_MARKER_1, SENTINEL)
+
+        val eoiOffset: Long = writer.toByteArray().size.toLong()
+
+        writer.write(EOI_BYTES)
+
+        writer.write(SENTINEL)
+
+        val segmentInfos = JpegSegmentAnalyzer.findSegmentInfos(
+            ByteArrayByteReader(writer.toByteArray()),
+            fullScan = true
+        )
+
+        assertEquals(
+            expected = listOf(
+                SOI_MARKER, DHP_MARKER, SOF2_MARKER, SOS_MARKER,
+                JPEG_APP1_MARKER, EXP_MARKER, SOS_MARKER,
+                COM_MARKER_1, EOI_MARKER
+            ),
+            actual = segmentInfos.map { it.marker },
+            message = "The hierarchical structure must be reported segment by segment."
+        )
+
+        /*
+         * Every reported entry except the SOI is verified: the marker
+         * bytes must really sit at the reported offset, so a shifted
+         * offset cannot hide behind plausible lengths.
+         */
+        val bytes = writer.toByteArray()
+
+        for (segmentInfo in segmentInfos.drop(1)) {
+            assertContentEquals(
+                expected = byteArrayOf(
+                    (segmentInfo.marker ushr 8).toByte(),
+                    segmentInfo.marker.toByte()
+                ),
+                actual = bytes.copyOfRange(
+                    segmentInfo.offset.toInt(),
+                    segmentInfo.offset.toInt() + 2
+                ),
+                message = "The bytes at ${segmentInfo.offset} must be the reported marker."
+            )
+        }
+
+        assertEquals(
+            expected = dhpOffset,
+            actual = segmentInfos.first { it.marker == DHP_MARKER }.offset
+        )
+
+        assertEquals(
+            expected = app1Offset,
+            actual = segmentInfos.first { it.marker == JPEG_APP1_MARKER }.offset
+        )
+
+        assertEquals(
+            expected = expOffset,
+            actual = segmentInfos.first { it.marker == EXP_MARKER }.offset
+        )
+
+        assertEquals(
+            expected = eoiOffset,
+            actual = segmentInfos.last().offset
+        )
+
+        assertEquals(
+            expected = 10L,
+            actual = segmentInfos.first { it.marker == DHP_MARKER }.length,
+            message = "The DHP length must cover marker, length field and payload."
+        )
+
+        assertEquals(
+            expected = 5L,
+            actual = segmentInfos.first { it.marker == EXP_MARKER }.length,
+            message = "The EXP length must cover marker, length field and payload."
+        )
+
+        assertEquals(
+            expected = comOffset,
+            actual = segmentInfos.first { it.marker == COM_MARKER_1 }.offset
+        )
     }
 
     /**

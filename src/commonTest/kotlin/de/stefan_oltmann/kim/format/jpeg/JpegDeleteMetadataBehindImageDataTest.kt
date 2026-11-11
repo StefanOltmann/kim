@@ -19,10 +19,13 @@ import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.COM_MARKER_1
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.DHP_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.DHT_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EOI
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EOI_MARKER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EXP_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_APP1_MARKER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOF2_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOI
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import kotlin.test.Test
@@ -345,6 +348,52 @@ class JpegDeleteMetadataBehindImageDataTest {
         assertFailsWith<ImageWriteException> {
             Kim.deleteMetadata(inputBytes)
         }
+    }
+
+    /**
+     * Hierarchical JPEG structure: the DHP marker defines the frame
+     * progression in the header and the EXP marker expands the reference
+     * components between the frames. Both are structure markers and stay
+     * byte-exact, while the metadata segments between the frames go and
+     * the file ends at the structural EOI marker.
+     */
+    @Test
+    fun testDeleteMetadataKeepsHierarchicalProgressionStructure() {
+
+        val dhpBytes = segmentBytes(
+            DHP_MARKER,
+            byteArrayOf(0x08, 0x00, 0x10, 0x00, 0x10, 0x01)
+        )
+
+        val sof2Bytes = segmentBytes(
+            SOF2_MARKER,
+            byteArrayOf(0x08, 0x00, 0x10, 0x00, 0x10, 0x01, 0x01, 0x22, 0x00)
+        )
+
+        val app1Bytes = segmentBytes(JPEG_APP1_MARKER, SENTINEL)
+
+        val expBytes = segmentBytes(EXP_MARKER, byteArrayOf(0x11))
+
+        val commentBytes = segmentBytes(COM_MARKER_1, SENTINEL)
+
+        val entropy1Bytes = byteArrayOf(0x11, 0x22, 0x33)
+
+        val entropy2Bytes = byteArrayOf(0x44, 0x55)
+
+        val inputBytes = SOI + dhpBytes + sof2Bytes + SCAN_HEADER_BYTES +
+            entropy1Bytes + app1Bytes + expBytes + SCAN_HEADER_BYTES +
+            entropy2Bytes + commentBytes + EOI + SENTINEL + EOI
+
+        val expectedBytes = SOI + dhpBytes + sof2Bytes + SCAN_HEADER_BYTES +
+            entropy1Bytes + expBytes + SCAN_HEADER_BYTES + entropy2Bytes + EOI
+
+        val deletedBytes = Kim.deleteMetadata(inputBytes)
+
+        assertContentEquals(
+            expected = expectedBytes,
+            actual = deletedBytes,
+            message = "The hierarchical structure must survive, the metadata must go."
+        )
     }
 
     /**
