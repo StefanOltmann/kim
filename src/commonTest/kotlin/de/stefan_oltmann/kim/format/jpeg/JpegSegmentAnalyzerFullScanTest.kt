@@ -21,6 +21,7 @@ import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_APP1_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.COM_MARKER_1
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.DHP_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.DHT_MARKER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.DNL_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EOI_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EXP_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOF2_MARKER
@@ -32,6 +33,8 @@ import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
+import kotlin.test.assertTrue
+
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
@@ -672,6 +675,15 @@ class JpegSegmentAnalyzerFullScanTest {
 
         writeSegment(writer, JPEG_APP1_MARKER, SENTINEL)
 
+        /*
+         * The DNL marker names the scan line count of the finished scan:
+         * a scan-continuation case the issue 41 author names explicitly.
+         * It is a length-prefixed structure marker between the scans.
+         */
+        val dnlOffset: Long = writer.toByteArray().size.toLong()
+
+        writeSegment(writer, DNL_MARKER, byteArrayOf(0x00, 0x10))
+
         val expOffset: Long = writer.toByteArray().size.toLong()
 
         /* The EXP payload: the horizontal and vertical expansion factors. */
@@ -699,7 +711,7 @@ class JpegSegmentAnalyzerFullScanTest {
         assertEquals(
             expected = listOf(
                 SOI_MARKER, DHP_MARKER, SOF2_MARKER, SOS_MARKER,
-                JPEG_APP1_MARKER, EXP_MARKER, SOS_MARKER,
+                JPEG_APP1_MARKER, DNL_MARKER, EXP_MARKER, SOS_MARKER,
                 COM_MARKER_1, EOI_MARKER
             ),
             actual = segmentInfos.map { it.marker },
@@ -738,6 +750,17 @@ class JpegSegmentAnalyzerFullScanTest {
         )
 
         assertEquals(
+            expected = dnlOffset,
+            actual = segmentInfos.first { it.marker == DNL_MARKER }.offset
+        )
+
+        assertEquals(
+            expected = 6L,
+            actual = segmentInfos.first { it.marker == DNL_MARKER }.length,
+            message = "The DNL length must cover marker, length field and payload."
+        )
+
+        assertEquals(
             expected = expOffset,
             actual = segmentInfos.first { it.marker == EXP_MARKER }.offset
         )
@@ -762,6 +785,77 @@ class JpegSegmentAnalyzerFullScanTest {
         assertEquals(
             expected = comOffset,
             actual = segmentInfos.first { it.marker == COM_MARKER_1 }.offset
+        )
+    }
+
+    /**
+     * Layout 4 of the issue 41 author: another complete image follows
+     * the primary image. The full scan stops at the primary image's EOI
+     * marker and reports nothing behind it - the second image, whose
+     * file also ends with an EOI marker, must not confuse the boundary.
+     */
+    @Test
+    fun testFullScanStopsAtThePrimaryImageBeforeASecondImage() {
+
+        val writer = ByteArrayByteWriter()
+
+        writeSoi(writer)
+
+        writeScanHeader(writer)
+
+        writer.write(byteArrayOf(0x11, 0x22, 0x33))
+
+        val primaryEoiOffset: Long = writer.toByteArray().size.toLong()
+
+        writer.write(EOI_BYTES)
+
+        /* The second image: its own SOI, scan and EOI behind the primary one. */
+        val secondImageOffset: Long = writer.toByteArray().size.toLong()
+
+        writeSoi(writer)
+
+        writeScanHeader(writer)
+
+        writer.write(byteArrayOf(0x44, 0x55, 0x66))
+
+        writer.write(EOI_BYTES)
+
+        val segmentInfos = JpegSegmentAnalyzer.findSegmentInfos(
+            ByteArrayByteReader(writer.toByteArray()),
+            fullScan = true
+        )
+
+        assertEquals(
+            expected = listOf(SOI_MARKER, SOS_MARKER, EOI_MARKER),
+            actual = segmentInfos.map { it.marker },
+            message = "The full scan must stop at the primary image's EOI marker."
+        )
+
+        /*
+         * The reported EOI is the primary image's one at its byte-exact
+         * position, not the second image's trailing EOI marker.
+         */
+        assertEquals(
+            expected = primaryEoiOffset,
+            actual = segmentInfos.last().offset
+        )
+
+        assertContentEquals(
+            expected = EOI_BYTES,
+            actual = writer.toByteArray().copyOfRange(
+                segmentInfos.last().offset.toInt(),
+                segmentInfos.last().offset.toInt() + 2
+            )
+        )
+
+        /*
+         * The second image stays completely outside the reported ranges:
+         * its bytes begin behind the primary EOI and are not part of the
+         * primary image's structure.
+         */
+        assertTrue(
+            segmentInfos.last().offset + segmentInfos.last().length <= secondImageOffset,
+            "The second image must lie completely outside the reported ranges."
         )
     }
 

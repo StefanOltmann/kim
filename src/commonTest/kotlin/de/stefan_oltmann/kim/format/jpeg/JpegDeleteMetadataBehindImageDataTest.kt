@@ -17,10 +17,12 @@ package de.stefan_oltmann.kim.format.jpeg
 
 import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.testdata.containsBytes
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.COM_MARKER_1
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.DHP_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.DHT_MARKER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.DNL_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EOI
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EOI_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EXP_MARKER
@@ -30,6 +32,8 @@ import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOI
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
+import kotlin.test.assertFalse
+
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
@@ -372,6 +376,8 @@ class JpegDeleteMetadataBehindImageDataTest {
 
         val app1Bytes = segmentBytes(JPEG_APP1_MARKER, SENTINEL)
 
+        val dnlBytes = segmentBytes(DNL_MARKER, byteArrayOf(0x00, 0x10))
+
         val expBytes = segmentBytes(EXP_MARKER, byteArrayOf(0x11))
 
         val commentBytes = segmentBytes(COM_MARKER_1, SENTINEL)
@@ -381,11 +387,11 @@ class JpegDeleteMetadataBehindImageDataTest {
         val entropy2Bytes = byteArrayOf(0x44, 0x55)
 
         val inputBytes = SOI + dhpBytes + sof2Bytes + SCAN_HEADER_BYTES +
-            entropy1Bytes + app1Bytes + expBytes + SCAN_HEADER_BYTES +
+            entropy1Bytes + app1Bytes + dnlBytes + expBytes + SCAN_HEADER_BYTES +
             entropy2Bytes + commentBytes + EOI + SENTINEL + EOI
 
         val expectedBytes = SOI + dhpBytes + sof2Bytes + SCAN_HEADER_BYTES +
-            entropy1Bytes + expBytes + SCAN_HEADER_BYTES + entropy2Bytes + EOI
+            entropy1Bytes + dnlBytes + expBytes + SCAN_HEADER_BYTES + entropy2Bytes + EOI
 
         val deletedBytes = Kim.deleteMetadata(inputBytes)
 
@@ -393,6 +399,44 @@ class JpegDeleteMetadataBehindImageDataTest {
             expected = expectedBytes,
             actual = deletedBytes,
             message = "The hierarchical structure must survive, the metadata must go."
+        )
+    }
+
+    /**
+     * Layout 4 of the issue 41 author: another complete image follows
+     * the primary image. The deletion ends the file at the primary
+     * image's structural EOI marker, so the second image - including its
+     * own SOI marker - is discarded entirely and cannot confuse the
+     * boundary.
+     */
+    @Test
+    fun testDeleteMetadataDiscardsASecondImageBehindThePrimaryImage() {
+
+        /* The primary image and the second image behind its EOI marker. */
+        val secondImageBytes = SOI + SCAN_HEADER_BYTES +
+            byteArrayOf(0x44, 0x55, 0x66) + EOI
+
+        val inputBytes = SOI + SCAN_HEADER_BYTES +
+            byteArrayOf(0x11, 0x22, 0x33) + EOI + secondImageBytes
+
+        val expectedBytes = SOI + SCAN_HEADER_BYTES +
+            byteArrayOf(0x11, 0x22, 0x33) + EOI
+
+        val deletedBytes = Kim.deleteMetadata(inputBytes)
+
+        assertContentEquals(
+            expected = expectedBytes,
+            actual = deletedBytes,
+            message = "The file must end at the primary image's EOI marker."
+        )
+
+        /*
+         * The complete second image span must not survive: a leftover SOI
+         * behind the structural EOI would misreport the deletion.
+         */
+        assertFalse(
+            deletedBytes.containsBytes(secondImageBytes),
+            "The second image must be discarded entirely."
         )
     }
 
