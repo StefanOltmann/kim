@@ -60,12 +60,27 @@ public object JpegOrientationOffsetFinder {
         @Suppress("LoopWithTooManyJumpStatements")
         do {
 
-            val scan = scanner.nextMarker(zeroIsFillByte = true) ?: break
+            /*
+             * The walk must not end silently: like ExifTool's "JPEG
+             * format error", data that ends without the SOS marker or
+             * the EOI marker is a truncated file, and returning NULL
+             * would hide that behind a neutral fallback.
+             */
+            val scan = scanner.nextMarker(zeroIsFillByte = true)
+                ?: throw ImageReadException(JpegUtils.INCOMPLETE_HEADER_WALK_MESSAGE)
 
             positionCounter += scan.consumedCount
 
             if (scan.marker == JpegConstants.SOS_MARKER || scan.marker == JpegConstants.EOI_MARKER)
                 break
+
+            /*
+             * Standalone markers without a length word (TEM, RST0 to
+             * RST7) carry no payload: reading a length here would
+             * misinterpret the bytes behind them.
+             */
+            if (JpegUtils.isMarkerWithoutLengthWord(scan.marker))
+                continue
 
             /*
              * The content length is only a hint for stream sources, so
@@ -75,9 +90,9 @@ public object JpegOrientationOffsetFinder {
              */
             val segmentLengthBytes = byteReader.readBytes(2)
 
-            /* The data ends between the marker and its length field. */
+            /* The file ends inside the marker's length field. */
             if (segmentLengthBytes.size < 2)
-                break
+                throw ImageReadException(JpegUtils.INCOMPLETE_HEADER_WALK_MESSAGE)
 
             /* Note: Segment length includes size bytes */
             val segmentLength =

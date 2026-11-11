@@ -363,6 +363,41 @@ class JpegAndReaderEdgeCasesTest {
     }
 
     /**
+     * All JPEG readers must reject a file whose header walk reaches the
+     * end of the data without the SOS marker or the EOI marker: like
+     * ExifTool's "JPEG format error", the file is truncated, and
+     * returning the readable prefix or NULL would hide that behind a
+     * neutral fallback.
+     */
+    @Test
+    fun testReadersRejectFileEndingWithoutSosOrEoi() {
+
+        /*
+         * SOI, a valid APP0, a valid COM segment and the end of the
+         * data: the walk finds no SOS and no EOI. At least 16 bytes are
+         * required for the detection.
+         */
+        val bytes = byteArrayOf(
+            0xFF.toByte(), 0xD8.toByte(),
+            0xFF.toByte(), 0xE0.toByte(), 0x00, 0x04, 0x00, 0x00,
+            0xFF.toByte(), 0xFE.toByte(), 0x00, 0x08, 0x41, 0x41,
+            0x41, 0x41, 0x41, 0x41
+        )
+
+        assertFailsWith<ImageReadException> {
+            JpegImageParser.getImageSize(ByteArrayByteReader(bytes))
+        }
+
+        assertFailsWith<ImageReadException> {
+            JpegMetadataExtractor.extractMetadataBytes(ByteArrayByteReader(bytes))
+        }
+
+        assertFailsWith<ImageReadException> {
+            JpegOrientationOffsetFinder.findOrientationOffset(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /**
      * EXIF lives in APP1 segments, and a segment of another marker that
      * merely carries "Exif"-identified content is not an EXIF block:
      * ExifTool ignores such an APP2 copy and reports the APP1's

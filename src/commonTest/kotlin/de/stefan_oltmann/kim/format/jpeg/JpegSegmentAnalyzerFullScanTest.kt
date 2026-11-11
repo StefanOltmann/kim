@@ -22,6 +22,7 @@ import de.stefan_oltmann.kim.format.jpeg.JpegConstants.DHT_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EOI_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOI_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOS_MARKER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.RST3_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.TEM_MARKER
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
@@ -191,6 +192,62 @@ class JpegSegmentAnalyzerFullScanTest {
         assertEquals(TEM_MARKER, segmentInfos[1].marker)
         assertEquals(temOffset, segmentInfos[1].offset)
         assertEquals(2L, segmentInfos[1].length)
+
+        val sosInfo = segmentInfos[2]
+
+        assertEquals(SOS_MARKER, sosInfo.marker)
+        assertEquals(sosOffset, sosInfo.offset)
+
+        assertEquals(
+            expected = writer.toByteArray().size.toLong() - sosInfo.offset - 2,
+            actual = sosInfo.length,
+            message = "The default SOS segment must reach to the final EOI marker."
+        )
+
+        assertEquals(EOI_MARKER, segmentInfos[3].marker)
+        assertEquals(eoiOffset, segmentInfos[3].offset)
+    }
+
+    /**
+     * A restart marker has no length word anywhere per the ExifTool
+     * reference, although the spec places it only inside the entropy
+     * coded data: a stray restart marker in the header must be reported
+     * as a standalone two byte entry instead of reading the bytes behind
+     * it as a segment length.
+     */
+    @Test
+    fun testDefaultScanReportsRestartMarkerInHeaderWithoutLength() {
+
+        val writer = ByteArrayByteWriter()
+
+        writeSoi(writer)
+
+        writer.write(byteArrayOf(0xFF.toByte(), 0xD3.toByte()))
+
+        val sosOffset: Long = writer.toByteArray().size.toLong()
+
+        writeScanHeader(writer)
+
+        writer.write(byteArrayOf(0x11, 0x22))
+
+        val eoiOffset: Long = writer.toByteArray().size.toLong()
+
+        writer.write(EOI_BYTES)
+
+        val segmentInfos = JpegSegmentAnalyzer.findSegmentInfos(
+            ByteArrayByteReader(writer.toByteArray())
+        )
+
+        val markers = segmentInfos.map { it.marker }
+
+        assertEquals(
+            listOf(SOI_MARKER, RST3_MARKER, SOS_MARKER, EOI_MARKER),
+            markers
+        )
+
+        assertEquals(RST3_MARKER, segmentInfos[1].marker)
+        assertEquals(2L, segmentInfos[1].length)
+        assertEquals(RST3_MARKER_OFFSET, segmentInfos[1].offset)
 
         val sosInfo = segmentInfos[2]
 
@@ -616,6 +673,9 @@ class JpegSegmentAnalyzerFullScanTest {
 
         /** The standalone TEM marker, which has no length field. */
         val TEM_BYTES: ByteArray = byteArrayOf(0xFF.toByte(), 0x01)
+
+        /** The offset of the restart marker the header test writes behind the SOI. */
+        const val RST3_MARKER_OFFSET: Long = 2
 
         /**
          * The offsets and sizes of the committed fixture, which
