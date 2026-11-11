@@ -102,4 +102,28 @@ class JpegSegmentAnalyzerStreamingTest {
 
         assertEquals(byteArrayInfos, streamedInfos)
     }
+
+    /**
+     * A stream without a length hint reports an unbounded content
+     * length: the default scan must stream to the stream end instead of
+     * failing over the unknown byte count, and report the true SOS size
+     * with the EOI check at the stream end - like the walk over the byte
+     * array.
+     */
+    @Test
+    fun testDefaultScanOverUnboundedStreamMatchesTheByteArrayWalk() {
+
+        val streamedInfos = JpegSegmentAnalyzer.findSegmentInfos(
+            JvmInputStreamByteReader(
+                inputStream = jpegBytes.inputStream(),
+                contentLength = -1
+            )
+        )
+
+        val byteArrayInfos = JpegSegmentAnalyzer.findSegmentInfos(
+            ByteArrayByteReader(jpegBytes)
+        )
+
+        assertEquals(byteArrayInfos, streamedInfos)
+    }
 }

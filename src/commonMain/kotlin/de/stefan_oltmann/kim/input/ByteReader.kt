@@ -37,6 +37,13 @@ package de.stefan_oltmann.kim.input
  */
 public interface ByteReader : AutoCloseable {
 
+    /**
+     * The length of the content in bytes. A source without a length
+     * hint - a stream whose end nobody announced - reports
+     * Long.MAX_VALUE as unbounded: the end is then only revealed by the
+     * stream itself, and callers must not use the value for byte
+     * arithmetic behind the current position.
+     */
     public val contentLength: Long
 
     /**

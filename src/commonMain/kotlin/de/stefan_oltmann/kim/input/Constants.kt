@@ -18,3 +18,10 @@ package de.stefan_oltmann.kim.input
 
 /** Same as kotlin.io.DEFAULT_BUFFER_SIZE. */
 internal const val DEFAULT_BUFFER_SIZE: Int = 8 * 1024
+
+/**
+ * The content length a source without a length hint reports: no real
+ * file reaches this size, so readers can rely on it marking an unbounded
+ * source whose end only the stream itself reveals.
+ */
+internal const val UNBOUNDED_CONTENT_LENGTH: Long = Long.MAX_VALUE

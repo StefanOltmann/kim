@@ -40,7 +40,7 @@ public open class JvmInputStreamByteReader(
      * a missing hint would otherwise let them reject valid content.
      */
     override val contentLength: Long =
-        if (contentLength > 0) contentLength else Long.MAX_VALUE
+        if (contentLength > 0) contentLength else UNBOUNDED_CONTENT_LENGTH
 
     override fun readByte(): Byte? {
 

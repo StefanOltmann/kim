@@ -26,7 +26,10 @@ import de.stefan_oltmann.kim.format.jpeg.JpegConstants.RST7_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOI_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOS_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.markerDescription
+import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.input.ByteReader
+import de.stefan_oltmann.kim.input.DEFAULT_BUFFER_SIZE
+import de.stefan_oltmann.kim.input.UNBOUNDED_CONTENT_LENGTH
 import de.stefan_oltmann.kim.input.read2BytesAsInt
 import de.stefan_oltmann.kim.input.skipBytes
 import kotlin.jvm.JvmStatic
@@ -59,6 +62,18 @@ import kotlin.jvm.JvmStatic
  * **Attention:** Must be public API as this is used by https://stefan-oltmann.de/exif-viewer
  */
 public object JpegSegmentAnalyzer {
+
+    /**
+     * The value of the first byte of the EOI marker, which the unbounded
+     * path compares against the second-to-last byte of the stream.
+     */
+    private const val EOI_FIRST_BYTE_VALUE: Int = 0xFF
+
+    /**
+     * The value of the second byte of the EOI marker, which the
+     * unbounded path compares against the last byte of the stream.
+     */
+    private const val EOI_SECOND_BYTE_VALUE: Int = 0xD9
 
     @Throws(ImageReadException::class)
     @JvmStatic
@@ -203,6 +218,42 @@ public object JpegSegmentAnalyzer {
 
             if (scan.marker == SOS_MARKER && !fullScan) {
 
+                /*
+                 * A stream source without a length hint reports an
+                 * unbounded content length: the image data is transferred
+                 * to the stream end in bounded chunks instead of skipping
+                 * a byte count nobody knows, and the SOS entry reports
+                 * the true bytes behind the marker afterwards. The last
+                 * two transferred bytes are reserved for the EOI check
+                 * exactly like the known-length path reserves them, so
+                 * both paths report the same segments for the same bytes.
+                 */
+                if (byteReader.contentLength == UNBOUNDED_CONTENT_LENGTH) {
+
+                    val trailingBytes = transferImageDataUntilEnd(byteReader)
+
+                    if (!onSegment(
+                            JpegSegmentInfo(
+                                offset = positionCounter - 2,
+                                marker = scan.marker,
+                                length = trailingBytes.count
+                            )
+                        )
+                    )
+                        return
+
+                    if (trailingBytes.endsWithEoiMarker)
+                        onSegment(
+                            JpegSegmentInfo(
+                                offset = positionCounter + trailingBytes.count - 2,
+                                marker = EOI_MARKER,
+                                length = 2
+                            )
+                        )
+
+                    break
+                }
+
                 val remainingBytesCount = byteReader.contentLength - positionCounter
 
                 if (!onSegment(
@@ -286,6 +337,55 @@ public object JpegSegmentAnalyzer {
             throw ImageReadException(
                 "The full scan requires the file to end with the structural EOI marker."
             )
+    }
+
+    /**
+     * The result of streaming the image data behind the SOS marker to
+     * the end of an unbounded stream.
+     */
+    private class TrailingImageData(
+        val count: Long,
+        val endsWithEoiMarker: Boolean
+    )
+
+    /**
+     * Transfers the bytes behind the SOS marker to the stream end in
+     * bounded chunks and reports their count and whether the stream ends
+     * with the EOI marker. The last two bytes are reserved for the EOI
+     * check exactly like the known-length path reserves them, so both
+     * paths report the same segments for the same bytes.
+     */
+    private fun transferImageDataUntilEnd(byteReader: ByteReader): TrailingImageData {
+
+        var count = 0L
+
+        var lastByte = -1
+        var secondToLastByte = -1
+
+        while (true) {
+
+            val chunk = byteReader.readBytes(DEFAULT_BUFFER_SIZE)
+
+            if (chunk.isEmpty())
+                break
+
+            count += chunk.size
+
+            if (chunk.size >= 2) {
+
+                secondToLastByte = chunk[chunk.size - 2].toUInt8()
+                lastByte = chunk[chunk.size - 1].toUInt8()
+            } else {
+
+                secondToLastByte = lastByte
+                lastByte = chunk[0].toUInt8()
+            }
+        }
+
+        val endsWithEoiMarker =
+            secondToLastByte == EOI_FIRST_BYTE_VALUE && lastByte == EOI_SECOND_BYTE_VALUE
+
+        return TrailingImageData(count, endsWithEoiMarker)
     }
 
     /**
