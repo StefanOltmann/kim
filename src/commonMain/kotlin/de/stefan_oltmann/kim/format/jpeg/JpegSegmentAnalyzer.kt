@@ -25,6 +25,7 @@ import de.stefan_oltmann.kim.format.jpeg.JpegConstants.RST0_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.RST7_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOI_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOS_MARKER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.TEM_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.markerDescription
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.read2BytesAsInt
@@ -45,7 +46,9 @@ import kotlin.jvm.JvmStatic
  * prefixed segment between the scans is reported individually, restart
  * markers inside the entropy coded data stay unreported, and the scan
  * ends at the first structural EOI marker. Nothing behind that EOI is
- * reported. The full scan fails when the file does not end with the
+ * reported. The standalone TEM marker, which has no length field and
+ * carries no payload, is reported as a two byte entry in both modes.
+ * The full scan fails when the file does not end with the
  * structural EOI marker, when an SOI marker appears inside the image
  * data, or when a segment between the scans is truncated.
  *
@@ -133,6 +136,24 @@ public object JpegSegmentAnalyzer {
                  */
                 if (scan.marker in RST0_MARKER..RST7_MARKER)
                     continue
+            }
+
+            /*
+             * The TEM marker is a standalone marker like SOI and EOI: it
+             * has no length field and carries no payload, so the bytes
+             * behind it must not be read as a segment length.
+             */
+            if (scan.marker == TEM_MARKER) {
+
+                segmentInfos.add(
+                    JpegSegmentInfo(
+                        offset = positionCounter - 2,
+                        marker = TEM_MARKER,
+                        length = 2
+                    )
+                )
+
+                continue
             }
 
             if (scan.marker == SOS_MARKER && !fullScan) {

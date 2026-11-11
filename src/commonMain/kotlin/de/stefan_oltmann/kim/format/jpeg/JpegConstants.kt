@@ -231,7 +231,10 @@ public object JpegConstants {
 
     public const val DRI_MARKER: Int = 0xFFDD
 
-    /** TEM stands for comment marker and carries no payload. */
+    /**
+     * TEM is a standalone temporary marker: it has no length field and
+     * carries no payload.
+     */
     public const val TEM_MARKER: Int = 0xFF01
 
     public const val RST0_MARKER: Int = 0xFFD0

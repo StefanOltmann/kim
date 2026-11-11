@@ -22,6 +22,7 @@ import de.stefan_oltmann.kim.format.jpeg.JpegConstants.DHT_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EOI_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOI_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOS_MARKER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.TEM_MARKER
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
@@ -150,6 +151,60 @@ class JpegSegmentAnalyzerFullScanTest {
             actual = sosInfo.length,
             message = "The default SOS segment must reach to the final EOI marker."
         )
+    }
+
+    /**
+     * The TEM marker is a standalone marker without a length field and
+     * without payload, like SOI and EOI (GitHub issue 41 follow-up).
+     * In the header the default scan must not read the bytes behind it
+     * as a segment length but report the marker as a two byte entry.
+     */
+    @Test
+    fun testDefaultScanReportsTemMarkerInHeaderWithoutLength() {
+
+        val writer = ByteArrayByteWriter()
+
+        writeSoi(writer)
+
+        val temOffset: Long = writer.toByteArray().size.toLong()
+
+        writer.write(TEM_BYTES)
+
+        val sosOffset: Long = writer.toByteArray().size.toLong()
+
+        writeScanHeader(writer)
+
+        writer.write(byteArrayOf(0x11, 0x22))
+
+        val eoiOffset: Long = writer.toByteArray().size.toLong()
+
+        writer.write(EOI_BYTES)
+
+        val segmentInfos = JpegSegmentAnalyzer.findSegmentInfos(
+            ByteArrayByteReader(writer.toByteArray())
+        )
+
+        val markers = segmentInfos.map { it.marker }
+
+        assertEquals(listOf(SOI_MARKER, TEM_MARKER, SOS_MARKER, EOI_MARKER), markers)
+
+        assertEquals(TEM_MARKER, segmentInfos[1].marker)
+        assertEquals(temOffset, segmentInfos[1].offset)
+        assertEquals(2L, segmentInfos[1].length)
+
+        val sosInfo = segmentInfos[2]
+
+        assertEquals(SOS_MARKER, sosInfo.marker)
+        assertEquals(sosOffset, sosInfo.offset)
+
+        assertEquals(
+            expected = writer.toByteArray().size.toLong() - sosInfo.offset - 2,
+            actual = sosInfo.length,
+            message = "The default SOS segment must reach to the final EOI marker."
+        )
+
+        assertEquals(EOI_MARKER, segmentInfos[3].marker)
+        assertEquals(eoiOffset, segmentInfos[3].offset)
     }
 
     /**
@@ -285,6 +340,83 @@ class JpegSegmentAnalyzerFullScanTest {
         assertEquals(EOI_MARKER, segmentInfos[3].marker)
         assertEquals(eoiOffset, segmentInfos[3].offset)
         assertEquals(2L, segmentInfos[3].length)
+    }
+
+    /**
+     * The TEM marker is a standalone marker without a length field and
+     * without payload, like SOI and EOI (GitHub issue 41 follow-up).
+     * Behind the first SOS marker the full scan must not read the bytes
+     * behind it as a segment length but report the marker as a two byte
+     * entry, and the scan continues behind it up to the structural EOI
+     * marker.
+     */
+    @Test
+    fun testFullScanReportsTemMarkerBehindImageDataWithoutLength() {
+
+        val writer = ByteArrayByteWriter()
+
+        writeSoi(writer)
+
+        writeScanHeader(writer)
+
+        writer.write(byteArrayOf(0x11, 0x22, 0x33))
+
+        val temOffset: Long = writer.toByteArray().size.toLong()
+
+        writer.write(TEM_BYTES)
+
+        writer.write(byteArrayOf(0x44, 0x55))
+
+        writeSegment(writer, COM_MARKER_1, SENTINEL)
+
+        val eoiOffset: Long = writer.toByteArray().size.toLong()
+
+        writer.write(EOI_BYTES)
+
+        writer.write(SENTINEL)
+
+        val segmentInfos = JpegSegmentAnalyzer.findSegmentInfos(
+            ByteArrayByteReader(writer.toByteArray()),
+            fullScan = true
+        )
+
+        val markers = segmentInfos.map { it.marker }
+
+        assertEquals(
+            listOf(SOI_MARKER, SOS_MARKER, TEM_MARKER, COM_MARKER_1, EOI_MARKER),
+            markers
+        )
+
+        /*
+         * Every reported entry except the SOI is verified: the marker
+         * bytes must really sit at the reported offset, so a shifted
+         * offset cannot hide behind plausible lengths.
+         */
+        val bytes = writer.toByteArray()
+
+        for (segmentInfo in segmentInfos.drop(1)) {
+            assertContentEquals(
+                expected = byteArrayOf(
+                    (segmentInfo.marker ushr 8).toByte(),
+                    segmentInfo.marker.toByte()
+                ),
+                actual = bytes.copyOfRange(
+                    segmentInfo.offset.toInt(),
+                    segmentInfo.offset.toInt() + 2
+                ),
+                message = "The bytes at ${segmentInfo.offset} must be the reported marker."
+            )
+        }
+
+        assertEquals(TEM_MARKER, segmentInfos[2].marker)
+        assertEquals(temOffset, segmentInfos[2].offset)
+        assertEquals(2L, segmentInfos[2].length)
+
+        val eoiInfo = segmentInfos.last()
+
+        assertEquals(EOI_MARKER, eoiInfo.marker)
+        assertEquals(eoiOffset, eoiInfo.offset)
+        assertEquals(2L, eoiInfo.length)
     }
 
     /**
@@ -481,6 +613,9 @@ class JpegSegmentAnalyzerFullScanTest {
         val SOI_BYTES: ByteArray = byteArrayOf(0xFF.toByte(), 0xD8.toByte())
 
         val EOI_BYTES: ByteArray = byteArrayOf(0xFF.toByte(), 0xD9.toByte())
+
+        /** The standalone TEM marker, which has no length field. */
+        val TEM_BYTES: ByteArray = byteArrayOf(0xFF.toByte(), 0x01)
 
         /**
          * The offsets and sizes of the committed fixture, which
