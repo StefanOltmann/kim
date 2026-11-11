@@ -188,6 +188,15 @@ public object JpegConstants {
         0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45, 0x00
     )
 
+    /**
+     * The identifier the Adobe APP14 segment starts with. Its
+     * ColorTransform flag tells the decoder how to interpret the DCT
+     * data, so the identified segment is decoding structure.
+     */
+    public val ADOBE_IDENTIFIER: ByteArray = byteArrayOf(
+        0x41, 0x64, 0x6F, 0x62, 0x65
+    )
+
     /** Byte count of the ICC APP2 identifier including its terminating zero. */
     public const val ICC_IDENTIFIER_LENGTH: Int = 12
 

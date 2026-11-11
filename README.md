@@ -278,8 +278,9 @@ OutputStreamByteWriter(outputFile.outputStream()).use { outputStreamByteWriter -
 ### Delete metadata using `Kim.deleteMetadata()` API
 
 `Kim.deleteMetadata()` removes all metadata of a file, but keeps the ICC chunks, because they would
-change how the image is displayed. With `keepIccProfile = false` the ICC chunks go as well and the
-result is clean of metadata entirely.
+change how the image is displayed. The Adobe APP14 segment stays as well, since its ColorTransform
+flag tells the decoder how to interpret the image data. With `keepIccProfile = false` the ICC chunks
+go too, so the only thing left is the decoding directive.
 
 * JPG: removes all APPn & comment segments - wherever the file keeps them, also between scans and
   behind the image data - and ends the file at the structural EOI marker, so trailing bytes of

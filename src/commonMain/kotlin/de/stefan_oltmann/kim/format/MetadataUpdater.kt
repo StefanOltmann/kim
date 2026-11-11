@@ -57,6 +57,11 @@ public interface MetadataUpdater {
      * With [keepIccProfile] = false the ICC profile goes with the rest of
      * the metadata, so the result is clean of metadata entirely. Formats
      * without an ICC concept (GIF, JPEG XL) ignore the parameter.
+     *
+     * The Adobe APP14 segment stays in every mode: its ColorTransform
+     * flag tells the decoder how to interpret the DCT data, and losing
+     * it renders Adobe RGB and CMYK files with wrong colors - ExifTool
+     * protects the segment from "-all=" for the same reason.
      */
     @Throws(ImageWriteException::class)
     public fun deleteMetadata(

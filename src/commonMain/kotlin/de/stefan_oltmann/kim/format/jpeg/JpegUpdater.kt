@@ -157,13 +157,14 @@ internal object JpegUpdater : MetadataUpdater {
 
             /*
              * Remove every APP segment and comment - EXIF, XMP, IPTC and
-             * every foreign payload like vendor blocks, and the JFIF and
-             * Adobe blocks beside them. The only APP payload that stays
-             * is the known healthy ICC profile, whose chunks affect how
-             * the image is displayed; faulty profiles let their chunks
-             * go instead of staying in the file. With the ICC profile
-             * dropped, the healthy run is emptied, so no APP segment
-             * survives at all.
+             * every foreign payload like vendor blocks, and the JFIF
+             * block beside them. Two APP payloads stay: the known healthy
+             * ICC profile, whose chunks affect how the image is displayed
+             * (faulty profiles let their chunks go instead of staying in
+             * the file), and the Adobe APP14 segment, whose ColorTransform
+             * flag tells the decoder how to interpret the DCT data. With
+             * the ICC profile dropped, the healthy run is emptied, so
+             * only the decoding directive survives.
              */
             val healthyIccSegmentIndexes =
                 if (keepIccProfile)
@@ -177,7 +178,8 @@ internal object JpegUpdater : MetadataUpdater {
                     segment.marker == JpegConstants.COM_MARKER_1 ||
                         (segment.isAppSegment() &&
                             !(segment.marker == JpegConstants.JPEG_APP2_MARKER &&
-                                index in healthyIccSegmentIndexes))
+                                index in healthyIccSegmentIndexes) &&
+                            !segment.isAdobeApp14Segment())
                 }
                 .map { it.value }
 

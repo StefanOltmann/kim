@@ -601,6 +601,11 @@ public object Kim {
      * the metadata, so the result is clean of metadata entirely. Formats
      * without an ICC concept (GIF, JPEG XL) ignore the parameter.
      *
+     * The Adobe APP14 segment stays in every mode: its ColorTransform
+     * flag tells the decoder how to interpret the DCT data, and losing
+     * it renders Adobe RGB and CMYK files with wrong colors - ExifTool
+     * protects the segment from "-all=" for the same reason.
+     *
      * For JPG the metadata segments behind the image data are removed as
      * well, and the file ends at the structural EOI marker: every byte
      * behind it belongs to other tools and is discarded. A JPG that ends
@@ -640,6 +645,11 @@ public object Kim {
      * With [keepIccProfile] = false the ICC profile goes with the rest of
      * the metadata, so the result is clean of metadata entirely. Formats
      * without an ICC concept (GIF, JPEG XL) ignore the parameter.
+     *
+     * The Adobe APP14 segment stays in every mode: its ColorTransform
+     * flag tells the decoder how to interpret the DCT data, and losing
+     * it renders Adobe RGB and CMYK files with wrong colors - ExifTool
+     * protects the segment from "-all=" for the same reason.
      *
      * For JPG the metadata segments behind the image data are removed as
      * well, and the file ends at the structural EOI marker: every byte

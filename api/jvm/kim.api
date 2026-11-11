@@ -793,6 +793,7 @@ public final class de/stefan_oltmann/kim/format/jpeg/JpegConstants {
 	public static final field SOI_MARKER I
 	public static final field SOS_MARKER I
 	public static final field TEM_MARKER I
+	public final fun getADOBE_IDENTIFIER ()[B
 	public final fun getAPP13_IDENTIFIER ()[B
 	public final fun getEOI ()[B
 	public final fun getEXIF_IDENTIFIER_CODE ()[B

@@ -18,6 +18,7 @@ package de.stefan_oltmann.kim.format.jpeg
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.startsWith
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.ADOBE_IDENTIFIER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.COM_MARKER_1
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.DHT_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EOI
@@ -42,24 +43,31 @@ import kotlin.test.assertTrue
  * being clean of metadata).
  *
  * The known healthy ICC profile in front of the image data is the only
- * APP payload that survives: every other APP segment carries metadata,
- * whether it is EXIF, XMP, IPTC, a vendor block like the SCALADO APP4
- * segments of media_41 (115 KB with an embedded XMP) or the Nikon Image
- * Info of media_34, or the JFIF and Adobe blocks. What the ExifTool
- * binary removes for the corpus with "exiftool -all=", this delete
- * removes as well - beside the documented ICC exception, which ExifTool
- * only removes with "--icc_profile:all". Behind the image data nothing
- * is kept at all.
+ * APP payload that survives in front of the image data: the known
+ * healthy ICC profile and the Adobe APP14 segment. Every other APP
+ * segment carries metadata, whether it is EXIF, XMP, IPTC, a vendor
+ * block like the SCALADO APP4 segments of media_41 (115 KB with an
+ * embedded XMP) or the Nikon Image Info of media_34, or the JFIF block.
+ * The ICC profile goes too when the caller drops it with
+ * keepIccProfile = false; the APP14 segment stays in every mode, since
+ * its ColorTransform flag tells the decoder how to interpret the DCT
+ * data and there is no fallback for it. What the ExifTool binary
+ * removes for the corpus with "exiftool -all=", this delete removes as
+ * well - beside the documented ICC exception, which ExifTool only
+ * removes with "--icc_profile:all". Behind the image data nothing is
+ * kept at all.
  */
 class JpegDeleteMetadataKeepSetTest {
 
     /**
-     * The header keeps nothing but ICC chunks: the JFIF APP0 segment,
-     * the Adobe APP14 segment, the foreign APP7 payload and the EXIF
-     * segment are all metadata and go.
+     * The header keeps the Adobe APP14 segment and the ICC chunks: the
+     * ColorTransform flag of the APP14 segment tells the decoder how to
+     * interpret the DCT data, and losing it renders Adobe RGB and CMYK
+     * files with wrong colors. The JFIF APP0 segment, the foreign APP7
+     * payload, the comment and the EXIF segment are metadata and go.
      */
     @Test
-    fun testDeleteMetadataRemovesEveryAppSegmentFromTheHeader() {
+    fun testDeleteMetadataKeepsAdobeApp14InTheHeader() {
 
         val app0Bytes = segmentBytes(JPEG_APP0_MARKER, JFIF_PAYLOAD_BYTES)
 
@@ -77,14 +85,14 @@ class JpegDeleteMetadataKeepSetTest {
             exifBytes + app14Bytes + SCAN_HEADER_BYTES + entropyBytes +
             EOI + TRAILER_BYTES
 
-        val expectedBytes = SOI + SCAN_HEADER_BYTES + entropyBytes + EOI
+        val expectedBytes = SOI + app14Bytes + SCAN_HEADER_BYTES + entropyBytes + EOI
 
         val deletedBytes = Kim.deleteMetadata(inputBytes)
 
         assertContentEquals(
             expected = expectedBytes,
             actual = deletedBytes,
-            message = "No APP segment may survive in the header: only the ICC profile is kept."
+            message = "The Adobe APP14 segment is decoding structure and must survive."
         )
     }
 
@@ -92,8 +100,9 @@ class JpegDeleteMetadataKeepSetTest {
      * Behind the image data every APP segment and comment goes - the
      * APPn position between the scans is one no decoder reads, so even
      * an ICC chunk there is not the known profile the keep-rule
-     * protects. The decoding structures (the DHT segment) keep their
-     * bytes.
+     * protects, and the Adobe APP14 segment is not the decoding
+     * directive the decoder reads in front of the image data. The
+     * decoding structures (the DHT segment) keep their bytes.
      */
     @Test
     fun testDeleteMetadataRemovesAppAndCommentSegmentsBetweenScans() {
@@ -109,6 +118,8 @@ class JpegDeleteMetadataKeepSetTest {
             ICC_PROFILE_IDENTIFIER + byteArrayOf(0x01, 0x01) + FOREIGN_PAYLOAD_BYTES
         )
 
+        val app14Bytes = segmentBytes(JPEG_APP14_MARKER, ADOBE_PAYLOAD_BYTES)
+
         val commentBytes = segmentBytes(COM_MARKER_1, COMMENT_PAYLOAD_BYTES)
 
         val dhtBytes = segmentBytes(DHT_MARKER, byteArrayOf(0x00, 0x01))
@@ -116,7 +127,7 @@ class JpegDeleteMetadataKeepSetTest {
         val entropy2Bytes = byteArrayOf(0x44)
 
         val inputBytes = SOI + SCAN_HEADER_BYTES + entropy1Bytes +
-            app0Bytes + iptcBytes + iccChunkBytes + commentBytes + dhtBytes +
+            app0Bytes + iptcBytes + iccChunkBytes + app14Bytes + commentBytes + dhtBytes +
             SCAN_HEADER_BYTES + entropy2Bytes + EOI
 
         val expectedBytes = SOI + SCAN_HEADER_BYTES + entropy1Bytes +
@@ -133,10 +144,10 @@ class JpegDeleteMetadataKeepSetTest {
 
     /**
      * The whole corpus pins the keep-set: after the deletion only ICC
-     * PROFILE chunks of one complete healthy run remain, and the read
-     * no longer finds EXIF, IPTC or XMP in any file. The four files the
-     * full scan rejects end inside their image data and fail the
-     * deletion.
+     * PROFILE chunks of one complete healthy run and the Adobe APP14
+     * segments remain, and the read no longer finds EXIF, IPTC or XMP
+     * in any file. The four files the full scan rejects end inside their
+     * image data and fail the deletion.
      */
     @Test
     fun testDeleteMetadataLeavesOnlyTheKnownIccInTheCorpus() {
@@ -171,9 +182,14 @@ class JpegDeleteMetadataKeepSetTest {
                 if (!segment.isAppSegment())
                     continue
 
+                val isKeptStructure =
+                    (segment.marker == JPEG_APP2_MARKER &&
+                        segment.segmentBytes.startsWith(ICC_PROFILE_IDENTIFIER)) ||
+                        (segment.marker == JPEG_APP14_MARKER &&
+                            segment.segmentBytes.startsWith(ADOBE_IDENTIFIER))
+
                 assertTrue(
-                    segment.marker == JPEG_APP2_MARKER &&
-                        segment.segmentBytes.startsWith(ICC_PROFILE_IDENTIFIER),
+                    isKeptStructure,
                     "media_$index keeps a foreign " +
                         "${JpegConstants.markerDescription(segment.marker)} " +
                         "with payload ${segment.segmentBytes.toList().take(16)}"
@@ -214,9 +230,10 @@ class JpegDeleteMetadataKeepSetTest {
     }
 
     /**
-     * The ICC profile is the only APP payload the default deletion
-     * keeps: media_34 carries one, and with the profile dropped no APP
-     * segment survives at all - not even the ICC chunks.
+     * The ICC profile is the only APP payload the default deletion keeps
+     * beside the Adobe APP14 segment: media_34 carries both, and with
+     * the profile dropped only the decoding directive survives - not the
+     * ICC chunks.
      */
     @Test
     fun testDeleteMetadataKeepsIccChunksByDefaultAndDropsOnRequest() {
@@ -238,8 +255,11 @@ class JpegDeleteMetadataKeepSetTest {
             JpegUtils.readSegments(ByteArrayByteReader(iccDroppedBytes))
 
         assertTrue(
-            droppedSegments.none { segment -> segment.isAppSegment() },
-            "The requested deletion must drop every APP segment."
+            droppedSegments.all { segment ->
+                !segment.isAppSegment() || segment.marker == JPEG_APP14_MARKER
+            },
+            "The requested deletion must drop every APP segment but the " +
+                "Adobe APP14 decoding directive."
         )
     }
 
