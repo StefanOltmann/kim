@@ -279,7 +279,9 @@ OutputStreamByteWriter(outputFile.outputStream()).use { outputStreamByteWriter -
 `Kim.deleteMetadata()` removes all metadata of a file, but keeps the ICC chunks, because they would
 change how the image is displayed.
 
-* JPG: removes EXIF, XMP, IPTC & comment segments
+* JPG: removes EXIF, XMP, IPTC & comment segments - also behind the image data - and ends the
+  file at the structural EOI marker, so trailing bytes of other tools are discarded. A JPG that
+  ends inside its image data without the structural EOI marker is rejected
 * PNG: removes the `eXIf` chunk (including its compressed `zxIf` variant), all text chunks &
   the `tIME` chunk
 * WebP: removes EXIF & XMP chunks and clears the VP8X metadata flags

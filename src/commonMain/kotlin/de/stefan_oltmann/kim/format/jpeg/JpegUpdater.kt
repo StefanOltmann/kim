@@ -145,7 +145,14 @@ internal object JpegUpdater : MetadataUpdater {
         byteWriter: ByteWriter
     ) = tryWithImageWriteException {
 
-        JpegRewriter.updateMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
+        /*
+         * The rewrite covers the whole file: the header policy removes the
+         * metadata segments in front of the image data, and the walk
+         * behind the first SOS marker removes the metadata segments
+         * between the scans and ends the file at the structural EOI
+         * marker, discarding the bytes of other tools behind it.
+         */
+        JpegRewriter.deleteMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
 
             /*
              * Remove the EXIF, XMP, IPTC and comment segments, and every

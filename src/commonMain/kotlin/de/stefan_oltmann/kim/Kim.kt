@@ -586,6 +586,13 @@ public object Kim {
      * not carry a healthy ICC profile are deleted as well, and a faulty
      * profile lets its chunks go instead of staying in the file.
      *
+     * For JPG the metadata segments behind the image data are removed as
+     * well, and the file ends at the structural EOI marker: every byte
+     * behind it belongs to other tools and is discarded. A JPG that ends
+     * inside its image data without the structural EOI marker fails the
+     * operation, because its image data cannot be separated from the
+     * metadata behind it.
+     *
      * The file must be readable; if the file or its metadata is corrupt
      * or cannot be parsed, the operation fails and the file is left
      * untouched.
@@ -609,6 +616,13 @@ public object Kim {
      * affect how the image is displayed. For JPG, APP2 segments that do
      * not carry a healthy ICC profile are deleted as well, and a faulty
      * profile lets its chunks go instead of staying in the file.
+     *
+     * For JPG the metadata segments behind the image data are removed as
+     * well, and the file ends at the structural EOI marker: every byte
+     * behind it belongs to other tools and is discarded. A JPG that ends
+     * inside its image data without the structural EOI marker fails the
+     * operation, because its image data cannot be separated from the
+     * metadata behind it.
      *
      * The file must be readable; if the file or its metadata is corrupt
      * or cannot be parsed, the operation fails and the file is left
