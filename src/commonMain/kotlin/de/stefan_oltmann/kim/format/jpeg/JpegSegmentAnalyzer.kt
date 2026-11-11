@@ -52,17 +52,58 @@ import kotlin.jvm.JvmStatic
  * appears inside the image data, or when a segment between the scans is
  * truncated.
  *
+ * [forEachSegment] reports exactly these entries incrementally and stops
+ * the walk behind the last entry the caller accepts, so the enumeration
+ * stays bounded without building a list.
+ *
  * **Attention:** Must be public API as this is used by https://stefan-oltmann.de/exif-viewer
  */
 public object JpegSegmentAnalyzer {
 
     @Throws(ImageReadException::class)
-    @Suppress("ComplexMethod")
     @JvmStatic
     public fun findSegmentInfos(
         byteReader: ByteReader,
         fullScan: Boolean = false
     ): List<JpegSegmentInfo> = tryWithImageReadException {
+
+        val segmentInfos = mutableListOf<JpegSegmentInfo>()
+
+        walkSegments(byteReader, fullScan) { segmentInfo ->
+            segmentInfos.add(segmentInfo)
+            true
+        }
+
+        return@findSegmentInfos segmentInfos
+    }
+
+    /**
+     * Walks the segments of a JPEG file and reports each one to
+     * [onSegment] as soon as its boundaries are known. Returning false
+     * from [onSegment] stops the walk behind the last reported entry, so
+     * a caller that needs only the first entries bounds the enumeration
+     * without paying for the bytes behind them.
+     *
+     * The reported entries and the failure behavior are exactly the ones
+     * of [findSegmentInfos]; see its documentation for the scan modes.
+     */
+    @Throws(ImageReadException::class)
+    @JvmStatic
+    public fun forEachSegment(
+        byteReader: ByteReader,
+        fullScan: Boolean = false,
+        onSegment: (JpegSegmentInfo) -> Boolean
+    ): Unit = tryWithImageReadException {
+        walkSegments(byteReader, fullScan, onSegment)
+    }
+
+    @Throws(ImageReadException::class)
+    @Suppress("ComplexMethod")
+    private fun walkSegments(
+        byteReader: ByteReader,
+        fullScan: Boolean,
+        onSegment: (JpegSegmentInfo) -> Boolean
+    ) {
 
         val soiMarker = byteReader.read2BytesAsInt("SOI", JPEG_BYTE_ORDER)
 
@@ -70,15 +111,15 @@ public object JpegSegmentAnalyzer {
             "JPEG magic number mismatch: ${soiMarker.toHexString()}"
         }
 
-        val segmentInfos = mutableListOf<JpegSegmentInfo>()
-
-        segmentInfos.add(
-            JpegSegmentInfo(
-                offset = 0,
-                marker = SOI_MARKER,
-                length = 2
+        if (!onSegment(
+                JpegSegmentInfo(
+                    offset = 0,
+                    marker = SOI_MARKER,
+                    length = 2
+                )
             )
         )
+            return
 
         var positionCounter: Long = MediaFormatMagicNumbers.jpeg.size.toLong()
 
@@ -111,7 +152,7 @@ public object JpegSegmentAnalyzer {
 
                     /* The structural EOI ends the whole scan. */
 
-                    segmentInfos.add(
+                    onSegment(
                         JpegSegmentInfo(
                             offset = positionCounter - 2,
                             marker = EOI_MARKER,
@@ -147,13 +188,15 @@ public object JpegSegmentAnalyzer {
              */
             if (JpegUtils.isMarkerWithoutLengthWord(scan.marker)) {
 
-                segmentInfos.add(
-                    JpegSegmentInfo(
-                        offset = positionCounter - 2,
-                        marker = scan.marker,
-                        length = 2
+                if (!onSegment(
+                        JpegSegmentInfo(
+                            offset = positionCounter - 2,
+                            marker = scan.marker,
+                            length = 2
+                        )
                     )
                 )
+                    return
 
                 continue
             }
@@ -162,13 +205,15 @@ public object JpegSegmentAnalyzer {
 
                 val remainingBytesCount = byteReader.contentLength - positionCounter
 
-                segmentInfos.add(
-                    JpegSegmentInfo(
-                        offset = positionCounter - 2,
-                        marker = scan.marker,
-                        length = remainingBytesCount
+                if (!onSegment(
+                        JpegSegmentInfo(
+                            offset = positionCounter - 2,
+                            marker = scan.marker,
+                            length = remainingBytesCount
+                        )
                     )
                 )
+                    return
 
                 /*
                  * A file can end right at the SOS marker, without image
@@ -187,7 +232,7 @@ public object JpegSegmentAnalyzer {
 
                     /* Write the EOI marker if it's really there. */
 
-                    segmentInfos.add(
+                    onSegment(
                         JpegSegmentInfo(
                             offset = positionCounter - 2,
                             marker = EOI_MARKER,
@@ -203,16 +248,6 @@ public object JpegSegmentAnalyzer {
             val remainingSegmentLength =
                 byteReader.read2BytesAsInt("segmentLength", JPEG_BYTE_ORDER) - 2
 
-            segmentInfos.add(
-                JpegSegmentInfo(
-                    offset = positionCounter - 2,
-                    marker = scan.marker,
-                    length = remainingSegmentLength + 4L
-                )
-            )
-
-            positionCounter += 2
-
             /*
              * Only the negative check applies: skipping the segment
              * below fails loudly when the content ends inside it.
@@ -221,6 +256,22 @@ public object JpegSegmentAnalyzer {
                 remainingSegmentLength,
                 Long.MAX_VALUE
             )
+
+            /*
+             * The entry is complete with its length field, so a caller
+             * that stops here saves the payload read behind it.
+             */
+            if (!onSegment(
+                    JpegSegmentInfo(
+                        offset = positionCounter - 2,
+                        marker = scan.marker,
+                        length = remainingSegmentLength + 4L
+                    )
+                )
+            )
+                return
+
+            positionCounter += 2
 
             byteReader.skipBytes("skip segment", remainingSegmentLength)
 
@@ -235,8 +286,6 @@ public object JpegSegmentAnalyzer {
             throw ImageReadException(
                 "The full scan requires the file to end with the structural EOI marker."
             )
-
-        return@findSegmentInfos segmentInfos
     }
 
     /**
