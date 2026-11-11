@@ -17,7 +17,6 @@ package de.stefan_oltmann.kim.format.jpeg
 
 import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
-import de.stefan_oltmann.kim.testdata.containsBytes
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.COM_MARKER_1
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.DHP_MARKER
@@ -30,12 +29,12 @@ import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_APP1_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOF2_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOI
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.testdata.containsBytes
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
-import kotlin.test.assertFalse
-
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 

@@ -17,26 +17,25 @@ package de.stefan_oltmann.kim.format.jpeg
 
 import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.common.ImageReadException
-import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_APP1_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.COM_MARKER_1
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.DHP_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.DHT_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.DNL_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EOI_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EXP_MARKER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_APP1_MARKER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.RST3_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOF2_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOI_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOS_MARKER
-import de.stefan_oltmann.kim.format.jpeg.JpegConstants.RST3_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.TEM_MARKER
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
-import kotlin.test.assertTrue
-
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 /**
  * Tests the full scan mode of [JpegSegmentAnalyzer.findSegmentInfos]
