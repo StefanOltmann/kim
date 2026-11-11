@@ -19,6 +19,7 @@ import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EOI_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOI_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOS_MARKER
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.testdata.KimTestData
@@ -220,6 +221,57 @@ class JpegSegmentAnalyzerCorpusFullScanTest {
                         "not ${marker.toString(16)}."
                 )
         }
+
+        /*
+         * The copying contract of the issue 41 author: the caller copies
+         * the reported ranges and keeps the gaps between them as the
+         * compressed image data, so the ranges must tile the file in
+         * order without overlapping, and every length-prefixed entry must
+         * report exactly the length field the file itself carries - a
+         * drifted length would silently copy the wrong bytes.
+         */
+        var previousEnd = 0L
+
+        for (info in fullInfos) {
+
+            if (info.offset < previousEnd)
+                problems.add(
+                    "$listName: The ranges overlap: $info starts behind $previousEnd."
+                )
+
+            previousEnd = info.offset + info.length
+
+            val isStandaloneMarker =
+                info.marker == SOI_MARKER ||
+                    info.marker == EOI_MARKER ||
+                    JpegUtils.isMarkerWithoutLengthWord(info.marker)
+
+            if (isStandaloneMarker) {
+
+                if (info.length != 2L)
+                    problems.add(
+                        "$listName: The standalone marker $info must be 2 bytes."
+                    )
+            } else {
+
+                val lengthFieldAtOffset =
+                    byteArrayOf(
+                        bytes[info.offset.toInt() + 2],
+                        bytes[info.offset.toInt() + 3]
+                    ).toUInt16(JPEG_BYTE_ORDER)
+
+                if (info.length != lengthFieldAtOffset + 2L)
+                    problems.add(
+                        "$listName: The reported length $info must match the " +
+                            "length field ${lengthFieldAtOffset + 2L} the file carries."
+                    )
+            }
+        }
+
+        val firstInfo = fullInfos.first()
+
+        if (firstInfo.marker != SOI_MARKER || firstInfo.offset != 0L || firstInfo.length != 2L)
+            problems.add("$listName: The full scan must start with the SOI marker at 0.")
     }
 
     private fun checkHeaderPrefixInvariants(
