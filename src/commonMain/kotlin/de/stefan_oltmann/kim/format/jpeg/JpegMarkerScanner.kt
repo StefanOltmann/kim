@@ -17,6 +17,7 @@ package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.input.ByteReader
+import de.stefan_oltmann.kim.output.ByteWriter
 
 /**
  * Scans for JPEG markers, encapsulating the fill-byte walk that all JPEG
@@ -93,6 +94,100 @@ internal class JpegMarkerScanner(
                     consumedCount = consumedCount
                 )
             }
+
+            previous = current
+        }
+    }
+
+    /**
+     * Consumes bytes up to the next marker and transfers every byte that
+     * is not part of the marker to [gapWriter] in bounded chunks, so a
+     * caller can stream the gap - megabytes of entropy coded data
+     * included - without buffering it as a whole.
+     *
+     * The marker's own 2 bytes are returned in the [Scan] untransferred:
+     * the caller decides their fate, writes them for the markers it
+     * keeps, and skips them for the markers it drops. The [Scan]'s
+     * [Scan.consumedBytes] is always empty, because the gap went to the
+     * writer. NULL is returned when the stream ends without a marker,
+     * after every consumed byte was transferred.
+     *
+     * The detection and the zeroIsFillByte tolerance are the ones of
+     * [nextMarker], so both walks cannot drift apart.
+     *
+     * @param gapWriter The writer that receives every gap byte that is
+     * not part of the returned marker.
+     * @param zeroIsFillByte Whether a 0x00 behind a 0xFF is treated as more
+     * fill (the spec-conformant reading used by all metadata scanners) or as
+     * the second byte of a marker (the legacy tolerance of the rewriter).
+     */
+    fun transferToNextMarker(gapWriter: ByteWriter, zeroIsFillByte: Boolean): Scan? {
+
+        val gapBytes = ByteArray(DEFAULT_BUFFER_SIZE)
+
+        var gapCount = 0
+
+        fun flushGapBytes() {
+
+            if (gapCount > 0) {
+                gapWriter.write(gapBytes.copyOf(gapCount))
+                gapCount = 0
+            }
+        }
+
+        fun appendGapByte(byte: Byte) {
+
+            if (gapCount == gapBytes.size)
+                flushGapBytes()
+
+            gapBytes[gapCount] = byte
+
+            gapCount++
+        }
+
+        var previous = byteReader.readByte() ?: return null
+
+        var consumedCount = 1
+
+        while (true) {
+
+            val current = byteReader.readByte()
+                ?: run {
+                    /* The stream end without a marker leaves every read byte in the gap. */
+                    flushGapBytes()
+                    appendGapByte(previous)
+                    flushGapBytes()
+                    return null
+                }
+
+            consumedCount++
+
+            val isMarker =
+                previous == FILL_BYTE &&
+                    current != FILL_BYTE &&
+                    !(zeroIsFillByte && current == ZERO_BYTE)
+
+            if (isMarker) {
+
+                flushGapBytes()
+
+                val marker =
+                    (previous.toInt() and 0xFF) shl 8 or (current.toInt() and 0xFF)
+
+                return Scan(
+                    marker = marker,
+                    markerBytes = byteArrayOf(previous, current),
+                    consumedBytes = ByteArray(0),
+                    consumedCount = consumedCount
+                )
+            }
+
+            /*
+             * The previous byte is only a marker candidate: it is written
+             * as gap data here, one iteration behind the read position,
+             * so the marker's own first byte is never written.
+             */
+            appendGapByte(previous)
 
             previous = current
         }

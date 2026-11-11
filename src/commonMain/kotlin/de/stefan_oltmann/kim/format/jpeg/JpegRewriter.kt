@@ -23,7 +23,6 @@ import de.stefan_oltmann.kim.common.getRemainingBytes
 import de.stefan_oltmann.kim.common.isEquals
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toBytes
-import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
@@ -65,36 +64,6 @@ public object JpegRewriter {
      */
     private const val TRUNCATED_IMAGE_DATA_MESSAGE: String =
         "The JPEG data ends inside its image data without the structural EOI marker."
-
-    /**
-     * The value of the 0xFF byte that opens every marker and fills the
-     * data behind the scan headers.
-     */
-    private const val FILL_BYTE_VALUE: Int = 0xFF
-
-    /**
-     * The value of the 0x00 byte behind a 0xFF: the byte stuffing that
-     * encodes a literal 0xFF inside the entropy coded data.
-     */
-    private const val ZERO_BYTE_VALUE: Int = 0x00
-
-    /**
-     * The value of the TEM marker as second marker byte: a standalone
-     * marker without a length word inside the entropy coded data.
-     */
-    private const val TEM_BYTE_VALUE: Int = 0x01
-
-    /**
-     * The value of the restart marker RST0 as second marker byte, the
-     * lower bound of the RST0 to RST7 standalone markers.
-     */
-    private const val RST0_BYTE_VALUE: Int = 0xD0
-
-    /**
-     * The value of the restart marker RST7 as second marker byte, the
-     * upper bound of the RST0 to RST7 standalone markers.
-     */
-    private const val RST7_BYTE_VALUE: Int = 0xD7
 
     /**
      * Inserts the new segments at a place where readers look for
@@ -672,26 +641,40 @@ public object JpegRewriter {
             marker = JpegConstants.SOS_MARKER
         )
 
+        /*
+         * The consumed bytes are transferred to the writer by the scanner,
+         * so no unbounded inter-marker gap is buffered.
+         */
+        val scanner = JpegMarkerScanner(byteReader, keepConsumedBytes = false)
+
         while (true) {
 
-            val marker = transferImageDataUntilMarker(byteReader, byteWriter)
+            val scan = scanner.transferToNextMarker(byteWriter, zeroIsFillByte = true)
+                ?: throw ImageWriteException(TRUNCATED_IMAGE_DATA_MESSAGE)
 
-            when (marker) {
-
+            when {
                 /* The structural EOI ends the file: nothing behind it survives. */
-                JpegConstants.EOI_MARKER -> {
+                scan.marker == JpegConstants.EOI_MARKER -> {
                     byteWriter.write(JpegConstants.EOI)
                     return
                 }
 
-                JpegConstants.SOI_MARKER ->
+                scan.marker == JpegConstants.SOI_MARKER ->
                     throw ImageWriteException(
                         "An SOI marker inside the image data is no readable structure."
                     )
 
+                /*
+                 * Restart markers and the TEM marker carry no payload:
+                 * they are part of the entropy coded data and keep their
+                 * bytes.
+                 */
+                JpegUtils.isMarkerWithoutLengthWord(scan.marker) ->
+                    byteWriter.write(scan.markerBytes)
+
                 /* The scan header of the next progressive scan keeps its bytes. */
-                JpegConstants.SOS_MARKER ->
-                    writeSegmentBehindImageData(byteReader, byteWriter, marker)
+                scan.marker == JpegConstants.SOS_MARKER ->
+                    writeSegmentBehindImageData(byteReader, byteWriter, scan.marker)
 
                 /*
                  * The metadata segments between the scans are removed like
@@ -700,107 +683,13 @@ public object JpegRewriter {
                  * and the COM segment carries comments. The JFIF APP0
                  * marker is no metadata and stays.
                  */
-                in JpegConstants.JPEG_APP1_MARKER..JpegConstants.JPEG_APP15_MARKER,
-                JpegConstants.COM_MARKER_1 ->
+                scan.marker in JpegConstants.JPEG_APP1_MARKER..JpegConstants.JPEG_APP15_MARKER ||
+                    scan.marker == JpegConstants.COM_MARKER_1 ->
                     skipSegmentBehindImageData(byteReader)
 
                 /* Decoding structures between the scans (DHT, DNL...) keep their bytes. */
                 else ->
-                    writeSegmentBehindImageData(byteReader, byteWriter, marker)
-            }
-        }
-    }
-
-    /**
-     * Transfers the entropy coded data behind a scan header to the
-     * writer, including the restart markers, fill bytes and byte
-     * stuffings inside it, and returns the 2 byte structural marker that
-     * ends the run. The marker's bytes are consumed but not written, so
-     * the caller decides their fate.
-     */
-    private fun transferImageDataUntilMarker(
-        byteReader: ByteReader,
-        byteWriter: ByteWriter
-    ): Int {
-
-        val entropyBytes = ByteArray(DEFAULT_BUFFER_SIZE)
-
-        var entropyCount = 0
-
-        fun flushEntropyBytes() {
-
-            if (entropyCount > 0) {
-                byteWriter.write(entropyBytes.copyOf(entropyCount))
-                entropyCount = 0
-            }
-        }
-
-        fun appendEntropyByte(byteValue: Int) {
-
-            if (entropyCount == entropyBytes.size)
-                flushEntropyBytes()
-
-            entropyBytes[entropyCount] = byteValue.toByte()
-
-            entropyCount++
-        }
-
-        fun readByteValue(): Int {
-
-            val byteValue = byteReader.readByte()
-                ?: throw ImageWriteException(TRUNCATED_IMAGE_DATA_MESSAGE)
-
-            return byteValue.toUInt8()
-        }
-
-        var previous = readByteValue()
-
-        while (true) {
-
-            val current = readByteValue()
-
-            if (previous != FILL_BYTE_VALUE) {
-
-                appendEntropyByte(previous)
-
-                previous = current
-
-                continue
-            }
-
-            when {
-                /* A fill byte run: every FF but the marker's own one is data. */
-                current == FILL_BYTE_VALUE -> {
-                    appendEntropyByte(FILL_BYTE_VALUE)
-                    previous = current
-                }
-
-                /* The byte stuffing FF 00 is data. */
-                current == ZERO_BYTE_VALUE -> {
-                    appendEntropyByte(FILL_BYTE_VALUE)
-                    appendEntropyByte(ZERO_BYTE_VALUE)
-                    previous = readByteValue()
-                }
-
-                /*
-                 * Restart markers and the TEM marker carry no payload:
-                 * they are part of the run and keep their bytes.
-                 */
-                current in RST0_BYTE_VALUE..RST7_BYTE_VALUE ||
-                    current == TEM_BYTE_VALUE -> {
-                    appendEntropyByte(FILL_BYTE_VALUE)
-                    appendEntropyByte(current)
-                    previous = readByteValue()
-                }
-
-                else -> {
-                    flushEntropyBytes()
-
-                    /* The marker is the fill byte followed by the current byte. */
-                    val marker = (FILL_BYTE_VALUE shl 8) or current
-
-                    return marker
-                }
+                    writeSegmentBehindImageData(byteReader, byteWriter, scan.marker)
             }
         }
     }
