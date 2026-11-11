@@ -43,6 +43,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class JpegAndReaderEdgeCasesTest {
@@ -188,24 +189,26 @@ class JpegAndReaderEdgeCasesTest {
     @Test
     fun testReadMetadataRejectsCorruptExif() {
 
-        val bytes = convertHexStringToByteArray(
-            /* SOI */
-            "ffd8" +
-                /* APP0 JFIF */
-                "ffe00010" + "4a46494600010100000100010000" +
-                /* APP1 EXIF with broken IFD offset */
-                "ffe10012" + "457869660000" +
-                /* TIFF header, IFD offset outside the payload */
-                "49492a00" + "ffffff00" + "0000" +
-                /* SOS */
-                "ffda0008" + "010100003f00" +
-                /* Scan data and EOI */
-                "11223344" + "ffd9"
-        )
-
         assertFailsWith<ImageReadException> {
-            Kim.readMetadata(ByteArrayByteReader(bytes))
+            Kim.readMetadata(ByteArrayByteReader(corruptExifBytes()))
         }
+    }
+
+    /**
+     * The deletion is a destructive removal: the metadata content does
+     * not need to be parseable, so a corrupt EXIF payload is dropped
+     * like a valid one instead of blocking the cleanup - the result is
+     * the same clean file either way.
+     */
+    @Test
+    fun testDeleteMetadataRemovesCorruptExif() {
+
+        val deletedBytes = Kim.deleteMetadata(corruptExifBytes())
+
+        assertNull(
+            assertNotNull(Kim.readMetadata(ByteArrayByteReader(deletedBytes))).exif,
+            "The corrupt EXIF segment must not survive the deletion."
+        )
     }
 
     /*
@@ -216,7 +219,21 @@ class JpegAndReaderEdgeCasesTest {
     @Test
     fun testUpdateRejectsCorruptExifInsteadOfDroppingIt() {
 
-        val bytes = convertHexStringToByteArray(
+        assertFailsWith<ImageWriteException> {
+            Kim.update(
+                bytes = corruptExifBytes(),
+                update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_LEFT)
+            )
+        }
+    }
+
+    /**
+     * Returns the bytes of a file whose EXIF payload carries a broken
+     * TIFF IFD offset: the read and the update reject it, the deletion
+     * removes it.
+     */
+    private fun corruptExifBytes(): ByteArray =
+        convertHexStringToByteArray(
             /* SOI */
             "ffd8" +
                 /* APP0 JFIF */
@@ -230,14 +247,6 @@ class JpegAndReaderEdgeCasesTest {
                 /* Scan data and EOI */
                 "11223344" + "ffd9"
         )
-
-        assertFailsWith<ImageWriteException> {
-            Kim.update(
-                bytes = bytes,
-                update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_LEFT)
-            )
-        }
-    }
 
     /*
      * A corrupt IPTC stream must fail the read loudly instead of degrading

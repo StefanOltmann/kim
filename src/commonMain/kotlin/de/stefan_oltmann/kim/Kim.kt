@@ -149,10 +149,13 @@ import kotlin.coroutines.cancellation.CancellationException
  * reporting partial success - otherwise the failure only surfaces when the
  * user tries to edit, after the app already showed the photo.
  *
- * Kim only ever modifies files it can properly read. Both [update] and
- * [deleteMetadata] require a readable file and will fail if the file or
- * its existing metadata cannot be parsed. Corrupt or invalid files are
- * never touched in any way.
+ * Kim only ever modifies files it can properly read. [update] requires a
+ * readable file and will fail if the file or its existing metadata cannot
+ * be parsed. [deleteMetadata] requires a readable file structure, but not
+ * parseable metadata content: the removal is destructive anyway, so a
+ * corrupt EXIF or XMP payload is dropped like a valid one instead of
+ * blocking the cleanup. Structurally invalid files are never touched in
+ * any way.
  *
  * # Derived projections
  *
@@ -525,6 +528,14 @@ public object Kim {
      * only and copies the trailer verbatim. A stale trailer copy stays
      * visible through `readTrailerMetadata = true`.
      *
+     * Attention: JPEG metadata segments between the scans of a
+     * progressive file are left untouched as well, byte-exact where they
+     * sit - the region behind the first SOS marker is transferred without
+     * interpretation, like the ExifTool binary keeps those segments on an
+     * update. The fresh header copy the update writes comes first in the
+     * file, so readers take it over the stale between-scan copy. A
+     * [deleteMetadata] call removes the stale segments with the rest.
+     *
      * Attention: The given [ByteReader] and [ByteWriter] are not closed by
      * this call; the caller owns and closes both.
      *
@@ -597,9 +608,10 @@ public object Kim {
      * operation, because its image data cannot be separated from the
      * metadata behind it.
      *
-     * The file must be readable; if the file or its metadata is corrupt
-     * or cannot be parsed, the operation fails and the file is left
-     * untouched.
+     * The file's structure must be readable: truncated or structurally
+     * corrupt files fail and are left untouched. The metadata content
+     * itself does not need to be parseable, since it is removed anyway -
+     * a corrupt EXIF or XMP payload is dropped like a valid one.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -636,9 +648,10 @@ public object Kim {
      * operation, because its image data cannot be separated from the
      * metadata behind it.
      *
-     * The file must be readable; if the file or its metadata is corrupt
-     * or cannot be parsed, the operation fails and the file is left
-     * untouched.
+     * The file's structure must be readable: truncated or structurally
+     * corrupt files fail and are left untouched. The metadata content
+     * itself does not need to be parseable, since it is removed anyway -
+     * a corrupt EXIF or XMP payload is dropped like a valid one.
      *
      * Attention: The given [ByteReader] and [ByteWriter] are not closed by
      * this call; the caller owns and closes both.

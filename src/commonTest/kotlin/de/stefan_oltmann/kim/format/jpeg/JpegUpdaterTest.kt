@@ -483,6 +483,98 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
     }
 
     /**
+     * The metadata segments between the scans of a progressive file
+     * survive the update byte-exact where they sit: the region behind
+     * the first SOS marker is transferred without interpretation, like
+     * the ExifTool binary keeps those segments on an update. The fresh
+     * header copy the update writes comes first in the file, so readers
+     * take it over the stale between-scan copy.
+     */
+    @Test
+    fun testUpdateLeavesBetweenScanSegmentsVerbatim() {
+
+        val scanHeaderBytes = byteArrayOf(
+            0xFF.toByte(),
+            0xDA.toByte(),
+            0x00,
+            0x08,
+            0x01,
+            0x01,
+            0x00,
+            0x00,
+            0x3F,
+            0x00
+        )
+
+        /* A foreign APP1 payload the update does not rewrite. */
+        val betweenScanApp1Bytes = byteArrayOf(
+            0xFF.toByte(),
+            0xE1.toByte(),
+            0x00,
+            0x0A,
+            0x42,
+            0x45,
+            0x54,
+            0x57,
+            0x45,
+            0x45,
+            0x4E,
+            0x31
+        )
+
+        val betweenScanApp12Bytes = byteArrayOf(
+            0xFF.toByte(),
+            0xEC.toByte(),
+            0x00,
+            0x0B,
+            0x44,
+            0x75,
+            0x63,
+            0x6B,
+            0x79,
+            0x00,
+            0x73,
+            0x74,
+            0x75,
+            0x66,
+            0x66
+        )
+
+        /* Both APP segments sit between the two scans, behind the entropy data. */
+        val inputBytes = byteArrayOf(0xFF.toByte(), 0xD8.toByte()) +
+            buildExifSegmentWithOrientation() +
+            scanHeaderBytes + byteArrayOf(0x11, 0x22, 0x33, 0x44) +
+            betweenScanApp1Bytes + betweenScanApp12Bytes +
+            scanHeaderBytes + byteArrayOf(0x55, 0x66, 0x77, 0x88.toByte()) +
+            byteArrayOf(0xFF.toByte(), 0xD9.toByte())
+
+        val updatedBytes = Kim.update(
+            bytes = inputBytes,
+            update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_LEFT)
+        )
+
+        /* Both between-scan segments survive verbatim in the output. */
+        assertTrue(
+            updatedBytes.containsBytes(betweenScanApp1Bytes),
+            "The APP1 segment between the scans must survive byte-exact."
+        )
+
+        assertTrue(
+            updatedBytes.containsBytes(betweenScanApp12Bytes),
+            "The APP12 segment between the scans must survive byte-exact."
+        )
+
+        /*
+         * The header EXIF the update rewrote carries the fresh value,
+         * while the stale between-scan copy stays untouched beside it.
+         */
+        assertEquals(
+            expected = TiffOrientation.ROTATE_LEFT.value.toShort(),
+            actual = Kim.readMetadata(updatedBytes)?.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)
+        )
+    }
+
+    /**
      * Builds an APP1 EXIF segment with a single orientation entry.
      */
     private fun buildExifSegmentWithOrientation(): ByteArray {
