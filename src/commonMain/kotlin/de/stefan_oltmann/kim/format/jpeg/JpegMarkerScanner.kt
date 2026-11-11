@@ -17,6 +17,7 @@ package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.input.ByteReader
+import de.stefan_oltmann.kim.input.DEFAULT_BUFFER_SIZE
 import de.stefan_oltmann.kim.output.ByteWriter
 
 /**
