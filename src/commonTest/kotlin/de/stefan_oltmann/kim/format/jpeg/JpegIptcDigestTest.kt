@@ -67,7 +67,7 @@ class JpegIptcDigestTest {
 
         /*
          * The Photoshop IPTCDigest resource (0x0425) must carry the same
-         * digest, or tools flag the file as out of sync.
+         * digest bytes, or tools flag the file as out of sync.
          */
         val digestResource = iptc.nonIptcBlocks.firstOrNull { block ->
             block.blockType == IptcConstants.IMAGE_RESOURCE_BLOCK_IPTC_DIGEST
@@ -75,9 +75,10 @@ class JpegIptcDigestTest {
 
         assertNotNull(digestResource, "The Photoshop IPTCDigest resource is missing.")
 
-        assertEquals(
-            digest,
-            Md5.digest(IptcWriter.writeIptcBlockData(iptc.records)).toHex()
+        assertContentEquals(
+            expected = Md5.digest(IptcWriter.writeIptcBlockData(iptc.records)),
+            actual = digestResource.blockData,
+            message = "The Photoshop IPTCDigest resource carries stale digest bytes."
         )
     }
 

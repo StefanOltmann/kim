@@ -677,13 +677,12 @@ public object JpegRewriter {
                     writeSegmentBehindImageData(byteReader, byteWriter, scan.marker)
 
                 /*
-                 * The metadata segments between the scans are removed like
-                 * the header's metadata segments: the APP1 to APP15
-                 * segments carry EXIF, XMP, IPTC and foreign payloads,
-                 * and the COM segment carries comments. The JFIF APP0
-                 * marker is no metadata and stays.
+                 * Every APP segment and comment between the scans is
+                 * metadata: EXIF, XMP, IPTC and every foreign payload,
+                 * the JFIF and Adobe blocks beside them. The position is
+                 * one no decoder reads, so none of them stays.
                  */
-                scan.marker in JpegConstants.JPEG_APP1_MARKER..JpegConstants.JPEG_APP15_MARKER ||
+                scan.marker in JpegConstants.JPEG_APP0_MARKER..JpegConstants.JPEG_APP15_MARKER ||
                     scan.marker == JpegConstants.COM_MARKER_1 ->
                     skipSegmentBehindImageData(byteReader)
 

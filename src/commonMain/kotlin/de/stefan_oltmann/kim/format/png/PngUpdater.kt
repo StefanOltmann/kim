@@ -159,7 +159,8 @@ internal object PngUpdater : MetadataUpdater {
     @Throws(ImageWriteException::class)
     override fun deleteMetadata(
         byteReader: ByteReader,
-        byteWriter: ByteWriter
+        byteWriter: ByteWriter,
+        keepIccProfile: Boolean
     ) = tryWithImageWriteException {
 
         PngWriter.writeImageStreaming(
@@ -170,11 +171,13 @@ internal object PngUpdater : MetadataUpdater {
 
             /*
              * Remove the EXIF chunks and all text chunks, which carry XMP,
-             * IPTC and comments. The iCCP chunk is kept, because it affects
-             * how the image is displayed.
+             * IPTC and comments. The iCCP chunk is kept by default,
+             * because it affects how the image is displayed - with the
+             * profile dropped it goes with the rest of the metadata.
              */
             val chunksWithoutMetadata = chunks.filterNot { chunk ->
-                StaleChunkFilter.isMetadataChunkType(chunk.type)
+                StaleChunkFilter.isMetadataChunkType(chunk.type) ||
+                    (!keepIccProfile && chunk.type == PngChunkType.ICCP)
             }
 
             PngWriter.writeImage(

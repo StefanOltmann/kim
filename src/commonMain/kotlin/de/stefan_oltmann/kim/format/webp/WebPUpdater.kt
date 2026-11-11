@@ -58,23 +58,27 @@ internal object WebPUpdater : MetadataUpdater {
     @Throws(ImageWriteException::class)
     override fun deleteMetadata(
         byteReader: ByteReader,
-        byteWriter: ByteWriter
+        byteWriter: ByteWriter,
+        keepIccProfile: Boolean
     ) = tryWithImageWriteException {
 
         val chunks = WebPImageParser.readChunks(byteReader, stopAfterMetadataRead = false)
 
         /*
-         * Remove the EXIF and XMP chunks. The ICCP chunk is kept, because it
-         * affects how the image is displayed. A list drained completely is
-         * rejected by the writer's emptiness guard.
+         * Remove the EXIF and XMP chunks. The ICCP chunk is kept by
+         * default, because it affects how the image is displayed - with
+         * the profile dropped it goes with the rest of the metadata. A
+         * list drained completely is rejected by the writer's emptiness
+         * guard.
          */
         val modifiedChunks = chunks.filterNot { chunk ->
-            chunk.type == WebPChunkType.EXIF || chunk.type == WebPChunkType.XMP
+            chunk.type == WebPChunkType.EXIF || chunk.type == WebPChunkType.XMP ||
+                (!keepIccProfile && chunk.type == WebPChunkType.ICCP)
         }
 
         /*
          * The VP8X flags are rebuilt by the writer from the final chunk
-         * list, so the cleared EXIF/XMP flags need no handling here.
+         * list, so the cleared EXIF/XMP/ICCP flags need no handling here.
          */
         WebPWriter.writeImage(
             chunks = modifiedChunks,

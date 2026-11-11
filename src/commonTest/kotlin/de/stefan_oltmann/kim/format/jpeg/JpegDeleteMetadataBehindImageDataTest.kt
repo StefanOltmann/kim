@@ -332,6 +332,22 @@ class JpegDeleteMetadataBehindImageDataTest {
     }
 
     /**
+     * An SOI marker behind the first SOS marker is no structural JPEG
+     * boundary the image data knows: the deletion fails on it instead of
+     * walking over a corrupt structure.
+     */
+    @Test
+    fun testDeleteMetadataRejectsSoiInsideTheImageData() {
+
+        val inputBytes = SOI + SCAN_HEADER_BYTES + byteArrayOf(0x11, 0x22) +
+            SOI + byteArrayOf(0x33) + EOI
+
+        assertFailsWith<ImageWriteException> {
+            Kim.deleteMetadata(inputBytes)
+        }
+    }
+
+    /**
      * Returns the offset of the first occurrence of the needle, or -1.
      */
     private fun indexOf(bytes: ByteArray, needle: ByteArray): Int {

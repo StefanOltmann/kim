@@ -84,9 +84,14 @@ internal object JxlUpdater : MetadataUpdater {
     @Throws(ImageWriteException::class)
     override fun deleteMetadata(
         byteReader: ByteReader,
-        byteWriter: ByteWriter
+        byteWriter: ByteWriter,
+        keepIccProfile: Boolean
     ) = tryWithImageWriteException {
 
+        /*
+         * JPEG XL carries no ICC box in its box model, so keepIccProfile
+         * has nothing to keep or drop here and is ignored.
+         */
         JxlWriter.writeImageStreaming(byteReader, byteWriter) { boxes, outputWriter ->
 
             /*

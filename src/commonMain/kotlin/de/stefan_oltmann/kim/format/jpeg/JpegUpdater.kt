@@ -142,12 +142,13 @@ internal object JpegUpdater : MetadataUpdater {
     @Throws(ImageWriteException::class)
     override fun deleteMetadata(
         byteReader: ByteReader,
-        byteWriter: ByteWriter
+        byteWriter: ByteWriter,
+        keepIccProfile: Boolean
     ) = tryWithImageWriteException {
 
         /*
-         * The rewrite covers the whole file: the header policy removes the
-         * metadata segments in front of the image data, and the walk
+         * The rewrite covers the whole file: the header policy removes
+         * every metadata segment in front of the image data, and the walk
          * behind the first SOS marker removes the metadata segments
          * between the scans and ends the file at the structural EOI
          * marker, discarding the bytes of other tools behind it.
@@ -155,21 +156,28 @@ internal object JpegUpdater : MetadataUpdater {
         JpegRewriter.deleteMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
 
             /*
-             * Remove the EXIF, XMP, IPTC and comment segments, and every
-             * APP2 segment that does not carry a healthy ICC profile:
-             * foreign payloads and faulty profiles are uninterpretable
-             * metadata, while the healthy profile affects how the image is
-             * displayed and stays.
+             * Remove every APP segment and comment - EXIF, XMP, IPTC and
+             * every foreign payload like vendor blocks, and the JFIF and
+             * Adobe blocks beside them. The only APP payload that stays
+             * is the known healthy ICC profile, whose chunks affect how
+             * the image is displayed; faulty profiles let their chunks
+             * go instead of staying in the file. With the ICC profile
+             * dropped, the healthy run is emptied, so no APP segment
+             * survives at all.
              */
-            val healthyIccSegmentIndexes = findHealthyIccSegmentIndexes(segments)
+            val healthyIccSegmentIndexes =
+                if (keepIccProfile)
+                    findHealthyIccSegmentIndexes(segments)
+                else
+                    emptySet()
 
             val segmentsWithoutMetadata = segments
                 .withIndex()
                 .filterNot { (index, segment) ->
-                    (segment.marker == JpegConstants.JPEG_APP2_MARKER &&
-                        index !in healthyIccSegmentIndexes) ||
-                        segment.isExifSegment() || segment.isIptcSegment() || segment.isXmpSegment() ||
-                        segment.marker == JpegConstants.COM_MARKER_1
+                    segment.marker == JpegConstants.COM_MARKER_1 ||
+                        (segment.isAppSegment() &&
+                            !(segment.marker == JpegConstants.JPEG_APP2_MARKER &&
+                                index in healthyIccSegmentIndexes))
                 }
                 .map { it.value }
 

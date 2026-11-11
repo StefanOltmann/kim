@@ -65,8 +65,14 @@ internal object GifUpdater : MetadataUpdater {
 
     override fun deleteMetadata(
         byteReader: ByteReader,
-        byteWriter: ByteWriter
+        byteWriter: ByteWriter,
+        keepIccProfile: Boolean
     ) = tryWithImageWriteException {
+
+        /*
+         * GIF files carry no ICC profile concept, so keepIccProfile has
+         * nothing to keep or drop here and is ignored.
+         */
 
         GifWriter.writeImageStreaming(
             byteReader = byteReader,

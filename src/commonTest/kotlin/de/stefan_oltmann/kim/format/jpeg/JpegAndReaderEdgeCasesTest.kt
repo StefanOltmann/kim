@@ -38,6 +38,7 @@ import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
@@ -73,20 +74,20 @@ class JpegAndReaderEdgeCasesTest {
             ByteArrayByteReader(bytes)
         )
 
-        assertEquals(
-            expected = JpegSegmentInfo(
-                offset = 0,
-                marker = JpegConstants.SOI_MARKER,
-                length = 2
+        /*
+         * The exact walk result: the fill byte run before the APP0 marker
+         * is skipped, the APP0 segment keeps its length field position,
+         * and the SOS segment covers the marker without a scan header
+         * beside the trailing EOI marker.
+         */
+        assertContentEquals(
+            expected = listOf(
+                JpegSegmentInfo(offset = 0, marker = JpegConstants.SOI_MARKER, length = 2),
+                JpegSegmentInfo(offset = 3, marker = JpegConstants.JFIF_MARKER, length = 6),
+                JpegSegmentInfo(offset = 9, marker = JpegConstants.SOS_MARKER, length = 2),
+                JpegSegmentInfo(offset = 11, marker = JpegConstants.EOI_MARKER, length = 2)
             ),
-            actual = segmentInfos.first()
-        )
-
-        assertTrue(segmentInfos.size >= 3)
-
-        assertEquals(
-            expected = "0 = SOI (Start of Image) [2 bytes]",
-            actual = segmentInfos.first().toString()
+            actual = segmentInfos
         )
     }
 
@@ -140,6 +141,12 @@ class JpegAndReaderEdgeCasesTest {
         val metadata = Kim.readMetadata(ByteArrayByteReader(bytes))
 
         assertEquals(MediaFormat.JPEG, metadata?.mediaFormat)
+
+        /*
+         * The near-end APP1 segment was actually read: its minimal valid
+         * TIFF parses into an empty EXIF directory set.
+         */
+        assertNotNull(metadata?.exif)
     }
 
     /*

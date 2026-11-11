@@ -53,11 +53,16 @@ public interface MetadataUpdater {
      * affect how the image is displayed. For JPG, APP2 segments that do
      * not carry a healthy ICC profile are deleted as well, and a faulty
      * profile lets its chunks go instead of staying in the file.
+     *
+     * With [keepIccProfile] = false the ICC profile goes with the rest of
+     * the metadata, so the result is clean of metadata entirely. Formats
+     * without an ICC concept (GIF, JPEG XL) ignore the parameter.
      */
     @Throws(ImageWriteException::class)
     public fun deleteMetadata(
         byteReader: ByteReader,
-        byteWriter: ByteWriter
+        byteWriter: ByteWriter,
+        keepIccProfile: Boolean = true
     )
 
     /**

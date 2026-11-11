@@ -586,6 +586,10 @@ public object Kim {
      * not carry a healthy ICC profile are deleted as well, and a faulty
      * profile lets its chunks go instead of staying in the file.
      *
+     * With [keepIccProfile] = false the ICC profile goes with the rest of
+     * the metadata, so the result is clean of metadata entirely. Formats
+     * without an ICC concept (GIF, JPEG XL) ignore the parameter.
+     *
      * For JPG the metadata segments behind the image data are removed as
      * well, and the file ends at the structural EOI marker: every byte
      * behind it belongs to other tools and is discarded. A JPG that ends
@@ -599,13 +603,17 @@ public object Kim {
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
-    public fun deleteMetadata(bytes: ByteArray): ByteArray = tryWithImageWriteException {
+    public fun deleteMetadata(
+        bytes: ByteArray,
+        keepIccProfile: Boolean = true
+    ): ByteArray = tryWithImageWriteException {
 
         val byteWriter = ByteArrayByteWriter()
 
         deleteMetadata(
             byteReader = ByteArrayByteReader(bytes),
-            byteWriter = byteWriter
+            byteWriter = byteWriter,
+            keepIccProfile = keepIccProfile
         )
 
         return@tryWithImageWriteException byteWriter.toByteArray()
@@ -616,6 +624,10 @@ public object Kim {
      * affect how the image is displayed. For JPG, APP2 segments that do
      * not carry a healthy ICC profile are deleted as well, and a faulty
      * profile lets its chunks go instead of staying in the file.
+     *
+     * With [keepIccProfile] = false the ICC profile goes with the rest of
+     * the metadata, so the result is clean of metadata entirely. Formats
+     * without an ICC concept (GIF, JPEG XL) ignore the parameter.
      *
      * For JPG the metadata segments behind the image data are removed as
      * well, and the file ends at the structural EOI marker: every byte
@@ -642,7 +654,8 @@ public object Kim {
     @Throws(ImageWriteException::class)
     public fun deleteMetadata(
         byteReader: ByteReader,
-        byteWriter: ByteWriter
+        byteWriter: ByteWriter,
+        keepIccProfile: Boolean = true
     ): Unit = tryWithImageWriteException {
 
         val detection = detectFormatAndReplayHeader(byteReader)
@@ -653,7 +666,7 @@ public object Kim {
         val updater = MetadataUpdater.forFormat(detection.mediaFormat)
             ?: throw ImageWriteException("Can't delete metadata of ${detection.mediaFormat}.")
 
-        updater.deleteMetadata(detection.reader, byteWriter)
+        updater.deleteMetadata(detection.reader, byteWriter, keepIccProfile)
     }
 
     /**

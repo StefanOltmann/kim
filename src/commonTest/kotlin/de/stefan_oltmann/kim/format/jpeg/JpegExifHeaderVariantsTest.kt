@@ -18,12 +18,15 @@ package de.stefan_oltmann.kim.format.jpeg
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.MetadataSummaryConverter
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
+import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 /**
  * Tests EXIF segments whose identifier deviates from the spec.
@@ -102,5 +105,120 @@ class JpegExifHeaderVariantsTest {
         val ifd0 = assertNotNull(metadata.exif).directories.first()
 
         assertEquals("Canon", ifd0.findField(TiffTag.TIFF_TAG_MAKE)?.value.toString())
+    }
+
+    /**
+     * The deletion must remove the variant EXIF segment like the clean
+     * one: the tolerant header match is shared between the read and the
+     * delete decision, so a variant header can never survive the
+     * deletion of the metadata the read still parses.
+     */
+    @Test
+    fun testDeleteMetadataRemovesVariantExifSegment() {
+
+        val deletedBytes = Kim.deleteMetadata(
+            bytes = KimTestData.getBytesOf("exif_header_variant.jpg")
+        )
+
+        assertNull(
+            assertNotNull(Kim.readMetadata(deletedBytes)).exif,
+            "The variant EXIF segment must not survive the deletion."
+        )
+    }
+
+    /**
+     * The garbage-prefix tolerance of the identifier: up to four bytes
+     * in front of "Exif\0" have been seen in files of real cameras. The
+     * read parses such a segment, so the deletion must remove it too -
+     * a stricter delete match would leave metadata behind that the read
+     * still reports.
+     */
+    @Test
+    fun testReadAndDeleteHandleGarbagePrefixedExifIdentifier() {
+
+        val writer = ByteArrayByteWriter()
+
+        writer.write(byteArrayOf(0xFF.toByte(), 0xD8.toByte()))
+
+        /* The APP1 segment carries two garbage bytes in front of Exif\0\0. */
+        writer.write(
+            byteArrayOf(0xFF.toByte(), 0xE1.toByte())
+        )
+
+        val exifPayloadBytes = byteArrayOf(
+            0x41,
+            0x42,
+            0x45,
+            0x78,
+            0x69,
+            0x66,
+            0x00,
+            0x00
+        ) + MINIMAL_TIFF_BYTES
+
+        writer.write(
+            byteArrayOf(
+                0x00,
+                (exifPayloadBytes.size + 2).toByte()
+            )
+        )
+
+        writer.write(exifPayloadBytes)
+
+        writer.write(
+            byteArrayOf(
+                0xFF.toByte(),
+                0xDA.toByte(),
+                0x00,
+                0x08,
+                0x01,
+                0x01,
+                0x00,
+                0x00,
+                0x3F,
+                0x00
+            )
+        )
+
+        writer.write(byteArrayOf(0x11, 0x22))
+
+        writer.write(byteArrayOf(0xFF.toByte(), 0xD9.toByte()))
+
+        val bytes = writer.toByteArray()
+
+        /* The read parses the garbage-prefixed EXIF segment. */
+        val metadata = assertNotNull(Kim.readMetadata(ByteArrayByteReader(bytes)))
+
+        assertNotNull(metadata.exif, "The garbage-prefixed EXIF segment must be read.")
+
+        /* The deletion removes it: no EXIF stays readable afterwards. */
+        val deletedBytes = Kim.deleteMetadata(bytes)
+
+        assertNull(
+            assertNotNull(Kim.readMetadata(ByteArrayByteReader(deletedBytes))).exif,
+            "The garbage-prefixed EXIF segment must not survive the deletion."
+        )
+    }
+
+    private companion object {
+
+        /**
+         * A minimal valid little-endian TIFF: the byte order marker, the
+         * IFD offset 8, an empty IFD0 and no next IFD.
+         */
+        val MINIMAL_TIFF_BYTES: ByteArray = byteArrayOf(
+            0x49,
+            0x49,
+            0x2A,
+            0x00,
+            0x08,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00
+        )
     }
 }

@@ -20,6 +20,7 @@ import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 /**
  * The iCCP chunk carries the ICC color profile zlib compressed behind
@@ -43,5 +44,29 @@ class PngIccProfileTest {
         assertEquals("GIMP built-in sRGB", iccProfile.description)
         assertEquals("mntr", iccProfile.profileClass)
         assertEquals("RGB ", iccProfile.colorSpace)
+    }
+
+    /**
+     * The iCCP chunk is kept by the default deletion, and goes with the
+     * rest of the metadata when the caller drops the ICC profile: the
+     * read then finds no profile in the file anymore.
+     */
+    @Test
+    fun testDeleteMetadataKeepsIccpChunkByDefaultAndDropsItOnRequest() {
+
+        val deletedBytes = Kim.deleteMetadata(KimTestData.getBytesOf(51))
+
+        assertNotNull(
+            assertNotNull(Kim.readMetadata(deletedBytes)).iccProfile,
+            "The default deletion must keep the ICC profile."
+        )
+
+        val iccDroppedBytes =
+            Kim.deleteMetadata(bytes = KimTestData.getBytesOf(51), keepIccProfile = false)
+
+        assertNull(
+            assertNotNull(Kim.readMetadata(iccDroppedBytes)).iccProfile,
+            "The requested deletion must drop the ICC profile."
+        )
     }
 }
