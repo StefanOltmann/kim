@@ -195,6 +195,13 @@ public object Kim {
     internal val effectiveTimeZone: TimeZone
         get() = defaultTimeZone ?: TimeZone.currentSystemDefault()
 
+    /**
+     * Reads all metadata of the image.
+     *
+     * @param bytes The original file bytes to read.
+     *
+     * @return The parsed metadata, or NULL when the bytes are empty.
+     */
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
     public fun readMetadata(bytes: ByteArray): MediaMetadata? =
@@ -211,6 +218,12 @@ public object Kim {
      *
      * Attention: The given [ByteReader] is closed by this call, including
      * the stream below it, and must not be used afterwards.
+     *
+     * @param bytes The original file bytes to read.
+     * @param readTrailerMetadata Whether the APP1 EXIF and XMP segments
+     *        behind the JPEG image data are read as well.
+     *
+     * @return The parsed metadata, or NULL when the bytes are empty.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
@@ -231,6 +244,10 @@ public object Kim {
      *
      * Attention: The given [ByteReader] is closed by this call, including
      * the stream below it, and must not be used afterwards.
+     *
+     * @param byteReader The original file, streamed.
+     *
+     * @return The parsed metadata, or NULL for unknown bytes.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
@@ -246,6 +263,12 @@ public object Kim {
      *
      * Attention: The given [ByteReader] is closed by this call, including
      * the stream below it, and must not be used afterwards.
+     *
+     * @param byteReader The original file, streamed.
+     * @param readTrailerMetadata Whether the APP1 EXIF and XMP segments
+     *        behind the JPEG image data are read as well.
+     *
+     * @return The parsed metadata, or NULL for unknown bytes.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
@@ -342,6 +365,11 @@ public object Kim {
      *
      * Attention: The given [ByteReader] is closed by this call, including
      * the stream below it, and must not be used afterwards.
+     *
+     * @param byteReader The original file, streamed.
+     *
+     * @return The detected media format and its metadata bytes - the
+     *         bytes are empty for the formats listed above.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
@@ -388,6 +416,11 @@ public object Kim {
      *
      * Attention: The given [ByteReader] is closed by this call, including
      * the stream below it, and must not be used afterwards.
+     *
+     * @param byteReader The original file, streamed.
+     *
+     * @return The preview image bytes, or NULL when the file carries no
+     *         preview at all.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
@@ -457,6 +490,11 @@ public object Kim {
 
     /**
      * Updates the file with the desired change.
+     *
+     * @param bytes The original file bytes to modify.
+     * @param update The change to apply.
+     *
+     * @return The modified file bytes.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -473,6 +511,11 @@ public object Kim {
      * IPTC, and XMP are updated together in the same write. The storages
      * duplicate the same logical values, so updating only one of them would
      * let the copies drift apart - see [de.stefan_oltmann.kim.format.MetadataUpdater].
+     *
+     * @param bytes The original file bytes to modify.
+     * @param updates The changes to apply. Must not be empty.
+     *
+     * @return The modified file bytes.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -504,6 +547,10 @@ public object Kim {
      *
      * Attention: The given [ByteReader] and [ByteWriter] are not closed by
      * this call; the caller owns and closes both.
+     *
+     * @param byteReader The original file, streamed.
+     * @param byteWriter The destination the modified file is written to.
+     * @param update The change to apply.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -545,6 +592,10 @@ public object Kim {
      * [ImageWriteException], any bytes already written are incomplete
      * and must be discarded - stage the output in a temporary buffer or
      * file and publish it only after the call returned normally.
+     *
+     * @param byteReader The original file, streamed.
+     * @param byteWriter The destination the modified file is written to.
+     * @param updates The changes to apply. Must not be empty.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -617,6 +668,12 @@ public object Kim {
      * corrupt files fail and are left untouched. The metadata content
      * itself does not need to be parseable, since it is removed anyway -
      * a corrupt EXIF or XMP payload is dropped like a valid one.
+     *
+     * @param bytes The original file bytes to modify.
+     * @param keepIccProfile Whether the ICC profile stays (the default)
+     *        or is removed with the rest of the metadata.
+     *
+     * @return The modified file bytes.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -672,6 +729,11 @@ public object Kim {
      * [ImageWriteException], any bytes already written are incomplete
      * and must be discarded - stage the output in a temporary buffer or
      * file and publish it only after the call returned normally.
+     *
+     * @param byteReader The original file, streamed.
+     * @param byteWriter The destination the modified file is written to.
+     * @param keepIccProfile Whether the ICC profile stays (the default)
+     *        or is removed with the rest of the metadata.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -700,6 +762,11 @@ public object Kim {
      * Thumbnails exceeding that shared bound, or bytes without the JPEG
      * SOI marker, are rejected with an [ImageWriteException] - on every
      * format alike. The bytes are otherwise embedded as-is.
+     *
+     * @param bytes The original file bytes to modify.
+     * @param thumbnailBytes The JPEG bytes to embed as the new thumbnail.
+     *
+     * @return The modified file bytes.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -729,6 +796,11 @@ public object Kim {
      *
      * Attention: The thumbnail lives inside the EXIF data, so formats
      * without an EXIF concept have nothing to remove.
+     *
+     * @param bytes The original file bytes to modify.
+     *
+     * @return The modified file bytes - unchanged when the file carries
+     *         no embedded thumbnail.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
