@@ -47,7 +47,8 @@ This lib is used in production by [PixRater](https://apps.microsoft.com/detail/9
   [XMP Core for Kotlin Multiplatform](https://github.com/StefanOltmann/xmpcore)
 * Convenient `Kim.update()` API to perform updates to the relevant places
     + JPG: Lossless rotation by modifying only one byte (where present)
-* `Kim.deleteMetadata()` API to remove all metadata, keeping the ICC profile
+* `Kim.deleteMetadata()` API to remove all metadata, keeping the ICC profile (opt-out with
+  `keepIccProfile = false`)
 
 ## Files Kim does not interpret
 
@@ -277,12 +278,18 @@ OutputStreamByteWriter(outputFile.outputStream()).use { outputStreamByteWriter -
 ### Delete metadata using `Kim.deleteMetadata()` API
 
 `Kim.deleteMetadata()` removes all metadata of a file, but keeps the ICC chunks, because they would
-change how the image is displayed.
+change how the image is displayed. The Adobe APP14 segment stays as well, since its ColorTransform
+flag tells the decoder how to interpret the image data. With `keepIccProfile = false` the ICC chunks
+go too, so the only thing left is the decoding directive.
 
-* JPG: removes EXIF, XMP, IPTC & comment segments
+* JPG: removes all APPn & comment segments - wherever the file keeps them, also between scans and
+  behind the image data - and ends the file at the structural EOI marker, so trailing bytes of
+  other tools are discarded. A JPG that ends inside its image data without the structural EOI
+  marker is rejected
 * PNG: removes the `eXIf` chunk (including its compressed `zxIf` variant), all text chunks &
-  the `tIME` chunk
-* WebP: removes EXIF & XMP chunks and clears the VP8X metadata flags
+  the `tIME` chunk - with `keepIccProfile = false` the `iCCP` chunk goes too
+* WebP: removes EXIF & XMP chunks and clears the VP8X metadata flags - with `keepIccProfile =
+  false` the `ICCP` chunk goes too
 * JXL: removes Exif & xml boxes
 * GIF: removes the XMP application extension & comment extensions
 
@@ -290,6 +297,9 @@ change how the image is displayed.
 val bytes: ByteArray = loadBytes()
 
 val newBytes = Kim.deleteMetadata(bytes)
+
+/* Or drop the ICC profile with the rest of the metadata: */
+val cleanBytes = Kim.deleteMetadata(bytes, keepIccProfile = false)
 ```
 
 Like `Kim.update()`, `deleteMetadata()` also offers a streaming overload that writes to a
@@ -344,6 +354,18 @@ val newBytes = Kim.updateThumbnail(
     thumbnailBytes = thumbnailBytes
 )
 ```
+
+### Delete thumbnail using `Kim.deleteThumbnail()` API
+
+```kotlin
+val bytes: ByteArray = loadBytes()
+
+val newBytes = Kim.deleteThumbnail(bytes)
+```
+
+The embedded thumbnail lives inside the EXIF data, so every format with an EXIF concept supports
+the deletion. Everything else - EXIF, XMP, IPTC, ICC - stays untouched, and a file without an
+embedded thumbnail is returned unchanged.
 
 ### Using Java
 

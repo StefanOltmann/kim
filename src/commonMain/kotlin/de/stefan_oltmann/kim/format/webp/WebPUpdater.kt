@@ -22,6 +22,7 @@ import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
 import de.stefan_oltmann.kim.format.exifBytesWithThumbnail
+import de.stefan_oltmann.kim.format.tiffOutputSetWithoutThumbnail
 import de.stefan_oltmann.kim.format.updatedExifBytes
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
@@ -58,23 +59,27 @@ internal object WebPUpdater : MetadataUpdater {
     @Throws(ImageWriteException::class)
     override fun deleteMetadata(
         byteReader: ByteReader,
-        byteWriter: ByteWriter
+        byteWriter: ByteWriter,
+        keepIccProfile: Boolean
     ) = tryWithImageWriteException {
 
         val chunks = WebPImageParser.readChunks(byteReader, stopAfterMetadataRead = false)
 
         /*
-         * Remove the EXIF and XMP chunks. The ICCP chunk is kept, because it
-         * affects how the image is displayed. A list drained completely is
-         * rejected by the writer's emptiness guard.
+         * Remove the EXIF and XMP chunks. The ICCP chunk is kept by
+         * default, because it affects how the image is displayed - with
+         * the profile dropped it goes with the rest of the metadata. A
+         * list drained completely is rejected by the writer's emptiness
+         * guard.
          */
         val modifiedChunks = chunks.filterNot { chunk ->
-            chunk.type == WebPChunkType.EXIF || chunk.type == WebPChunkType.XMP
+            chunk.type == WebPChunkType.EXIF || chunk.type == WebPChunkType.XMP ||
+                (!keepIccProfile && chunk.type == WebPChunkType.ICCP)
         }
 
         /*
          * The VP8X flags are rebuilt by the writer from the final chunk
-         * list, so the cleared EXIF/XMP flags need no handling here.
+         * list, so the cleared EXIF/XMP/ICCP flags need no handling here.
          */
         WebPWriter.writeImage(
             chunks = modifiedChunks,
@@ -100,6 +105,39 @@ internal object WebPUpdater : MetadataUpdater {
         val metadata = WebPImageParser.parseMetadataFromChunks(chunks)
 
         val exifBytes = metadata.exifBytesWithThumbnail(thumbnailBytes)
+
+        val byteWriter = ByteArrayByteWriter()
+
+        WebPWriter.writeImage(
+            chunks = chunks,
+            byteWriter = byteWriter,
+            exifBytes = exifBytes,
+            /*  No change to XMP */
+            xmp = null
+        )
+
+        return@tryWithImageWriteException byteWriter.toByteArray()
+    }
+
+    /**
+     * The thumbnail lives in the EXIF chunk: the rewrite removes the
+     * thumbnail directory (IFD1) from the parsed set and replaces the
+     * chunk with the shrunk one, while a file without a thumbnail is
+     * returned unchanged.
+     */
+    override fun deleteThumbnail(bytes: ByteArray): ByteArray = tryWithImageWriteException {
+
+        if (!bytes.startsWithNullable(MediaFormatMagicNumbers.webP))
+            throw ImageWriteException("Provided input bytes are not WebP!")
+
+        val byteReader = ByteArrayByteReader(bytes)
+
+        val chunks = WebPImageParser.readChunks(byteReader, stopAfterMetadataRead = false)
+
+        val metadata = WebPImageParser.parseMetadataFromChunks(chunks)
+
+        val exifBytes = metadata.tiffOutputSetWithoutThumbnail()?.toTiffBytes()
+            ?: return bytes
 
         val byteWriter = ByteArrayByteWriter()
 

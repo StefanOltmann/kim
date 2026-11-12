@@ -17,6 +17,7 @@
 package de.stefan_oltmann.kim.format.jpeg
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.toUInt8
 import de.stefan_oltmann.kim.common.tryWithImageReadException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EOI_MARKER
@@ -27,6 +28,8 @@ import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOI_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOS_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.markerDescription
 import de.stefan_oltmann.kim.input.ByteReader
+import de.stefan_oltmann.kim.input.DEFAULT_BUFFER_SIZE
+import de.stefan_oltmann.kim.input.UNBOUNDED_CONTENT_LENGTH
 import de.stefan_oltmann.kim.input.read2BytesAsInt
 import de.stefan_oltmann.kim.input.skipBytes
 import kotlin.jvm.JvmStatic
@@ -45,21 +48,77 @@ import kotlin.jvm.JvmStatic
  * prefixed segment between the scans is reported individually, restart
  * markers inside the entropy coded data stay unreported, and the scan
  * ends at the first structural EOI marker. Nothing behind that EOI is
- * reported. The full scan fails when the file does not end with the
- * structural EOI marker, when an SOI marker appears inside the image
- * data, or when a segment between the scans is truncated.
+ * reported. Standalone markers without a length word (TEM everywhere, a
+ * stray restart marker in the header) carry no payload and are reported
+ * as two byte entries in both modes. The full scan fails when the file
+ * does not end with the structural EOI marker, when an SOI marker
+ * appears inside the image data, or when a segment between the scans is
+ * truncated.
+ *
+ * [forEachSegment] reports exactly these entries incrementally and stops
+ * the walk behind the last entry the caller accepts, so the enumeration
+ * stays bounded without building a list.
  *
  * **Attention:** Must be public API as this is used by https://stefan-oltmann.de/exif-viewer
  */
 public object JpegSegmentAnalyzer {
 
+    /**
+     * The value of the first byte of the EOI marker, which the unbounded
+     * path compares against the second-to-last byte of the stream.
+     */
+    private const val EOI_FIRST_BYTE_VALUE: Int = 0xFF
+
+    /**
+     * The value of the second byte of the EOI marker, which the
+     * unbounded path compares against the last byte of the stream.
+     */
+    private const val EOI_SECOND_BYTE_VALUE: Int = 0xD9
+
     @Throws(ImageReadException::class)
-    @Suppress("ComplexMethod")
     @JvmStatic
     public fun findSegmentInfos(
         byteReader: ByteReader,
         fullScan: Boolean = false
     ): List<JpegSegmentInfo> = tryWithImageReadException {
+
+        val segmentInfos = mutableListOf<JpegSegmentInfo>()
+
+        walkSegments(byteReader, fullScan) { segmentInfo ->
+            segmentInfos.add(segmentInfo)
+            true
+        }
+
+        return@findSegmentInfos segmentInfos
+    }
+
+    /**
+     * Walks the segments of a JPEG file and reports each one to
+     * [onSegment] as soon as its boundaries are known. Returning false
+     * from [onSegment] stops the walk behind the last reported entry, so
+     * a caller that needs only the first entries bounds the enumeration
+     * without paying for the bytes behind them.
+     *
+     * The reported entries and the failure behavior are exactly the ones
+     * of [findSegmentInfos]; see its documentation for the scan modes.
+     */
+    @Throws(ImageReadException::class)
+    @JvmStatic
+    public fun forEachSegment(
+        byteReader: ByteReader,
+        fullScan: Boolean = false,
+        onSegment: (JpegSegmentInfo) -> Boolean
+    ): Unit = tryWithImageReadException {
+        walkSegments(byteReader, fullScan, onSegment)
+    }
+
+    @Throws(ImageReadException::class)
+    @Suppress("ComplexMethod")
+    private fun walkSegments(
+        byteReader: ByteReader,
+        fullScan: Boolean,
+        onSegment: (JpegSegmentInfo) -> Boolean
+    ) {
 
         val soiMarker = byteReader.read2BytesAsInt("SOI", JPEG_BYTE_ORDER)
 
@@ -67,15 +126,15 @@ public object JpegSegmentAnalyzer {
             "JPEG magic number mismatch: ${soiMarker.toHexString()}"
         }
 
-        val segmentInfos = mutableListOf<JpegSegmentInfo>()
-
-        segmentInfos.add(
-            JpegSegmentInfo(
-                offset = 0,
-                marker = SOI_MARKER,
-                length = 2
+        if (!onSegment(
+                JpegSegmentInfo(
+                    offset = 0,
+                    marker = SOI_MARKER,
+                    length = 2
+                )
             )
         )
+            return
 
         var positionCounter: Long = MediaFormatMagicNumbers.jpeg.size.toLong()
 
@@ -108,7 +167,7 @@ public object JpegSegmentAnalyzer {
 
                     /* The structural EOI ends the whole scan. */
 
-                    segmentInfos.add(
+                    onSegment(
                         JpegSegmentInfo(
                             offset = positionCounter - 2,
                             marker = EOI_MARKER,
@@ -135,17 +194,77 @@ public object JpegSegmentAnalyzer {
                     continue
             }
 
+            /*
+             * Standalone markers without a length word (TEM everywhere,
+             * a stray restart marker in the header) carry no payload, so
+             * the bytes behind them must not be read as a segment
+             * length. They are reported as two byte entries like the
+             * other standalone markers SOI and EOI.
+             */
+            if (JpegUtils.isMarkerWithoutLengthWord(scan.marker)) {
+
+                if (!onSegment(
+                        JpegSegmentInfo(
+                            offset = positionCounter - 2,
+                            marker = scan.marker,
+                            length = 2
+                        )
+                    )
+                )
+                    return
+
+                continue
+            }
+
             if (scan.marker == SOS_MARKER && !fullScan) {
+
+                /*
+                 * A stream source without a length hint reports an
+                 * unbounded content length: the image data is transferred
+                 * to the stream end in bounded chunks instead of skipping
+                 * a byte count nobody knows, and the SOS entry reports
+                 * the true bytes behind the marker afterwards. The last
+                 * two transferred bytes are reserved for the EOI check
+                 * exactly like the known-length path reserves them, so
+                 * both paths report the same segments for the same bytes.
+                 */
+                if (byteReader.contentLength == UNBOUNDED_CONTENT_LENGTH) {
+
+                    val trailingBytes = transferImageDataUntilEnd(byteReader)
+
+                    if (!onSegment(
+                            JpegSegmentInfo(
+                                offset = positionCounter - 2,
+                                marker = scan.marker,
+                                length = trailingBytes.count
+                            )
+                        )
+                    )
+                        return
+
+                    if (trailingBytes.endsWithEoiMarker)
+                        onSegment(
+                            JpegSegmentInfo(
+                                offset = positionCounter + trailingBytes.count - 2,
+                                marker = EOI_MARKER,
+                                length = 2
+                            )
+                        )
+
+                    break
+                }
 
                 val remainingBytesCount = byteReader.contentLength - positionCounter
 
-                segmentInfos.add(
-                    JpegSegmentInfo(
-                        offset = positionCounter - 2,
-                        marker = scan.marker,
-                        length = remainingBytesCount
+                if (!onSegment(
+                        JpegSegmentInfo(
+                            offset = positionCounter - 2,
+                            marker = scan.marker,
+                            length = remainingBytesCount
+                        )
                     )
                 )
+                    return
 
                 /*
                  * A file can end right at the SOS marker, without image
@@ -164,7 +283,7 @@ public object JpegSegmentAnalyzer {
 
                     /* Write the EOI marker if it's really there. */
 
-                    segmentInfos.add(
+                    onSegment(
                         JpegSegmentInfo(
                             offset = positionCounter - 2,
                             marker = EOI_MARKER,
@@ -180,16 +299,6 @@ public object JpegSegmentAnalyzer {
             val remainingSegmentLength =
                 byteReader.read2BytesAsInt("segmentLength", JPEG_BYTE_ORDER) - 2
 
-            segmentInfos.add(
-                JpegSegmentInfo(
-                    offset = positionCounter - 2,
-                    marker = scan.marker,
-                    length = remainingSegmentLength + 4L
-                )
-            )
-
-            positionCounter += 2
-
             /*
              * Only the negative check applies: skipping the segment
              * below fails loudly when the content ends inside it.
@@ -198,6 +307,22 @@ public object JpegSegmentAnalyzer {
                 remainingSegmentLength,
                 Long.MAX_VALUE
             )
+
+            /*
+             * The entry is complete with its length field, so a caller
+             * that stops here saves the payload read behind it.
+             */
+            if (!onSegment(
+                    JpegSegmentInfo(
+                        offset = positionCounter - 2,
+                        marker = scan.marker,
+                        length = remainingSegmentLength + 4L
+                    )
+                )
+            )
+                return
+
+            positionCounter += 2
 
             byteReader.skipBytes("skip segment", remainingSegmentLength)
 
@@ -212,8 +337,55 @@ public object JpegSegmentAnalyzer {
             throw ImageReadException(
                 "The full scan requires the file to end with the structural EOI marker."
             )
+    }
 
-        return@findSegmentInfos segmentInfos
+    /**
+     * The result of streaming the image data behind the SOS marker to
+     * the end of an unbounded stream.
+     */
+    private class TrailingImageData(
+        val count: Long,
+        val endsWithEoiMarker: Boolean
+    )
+
+    /**
+     * Transfers the bytes behind the SOS marker to the stream end in
+     * bounded chunks and reports their count and whether the stream ends
+     * with the EOI marker. The last two bytes are reserved for the EOI
+     * check exactly like the known-length path reserves them, so both
+     * paths report the same segments for the same bytes.
+     */
+    private fun transferImageDataUntilEnd(byteReader: ByteReader): TrailingImageData {
+
+        var count = 0L
+
+        var lastByte = -1
+        var secondToLastByte = -1
+
+        while (true) {
+
+            val chunk = byteReader.readBytes(DEFAULT_BUFFER_SIZE)
+
+            if (chunk.isEmpty())
+                break
+
+            count += chunk.size
+
+            if (chunk.size >= 2) {
+
+                secondToLastByte = chunk[chunk.size - 2].toUInt8()
+                lastByte = chunk[chunk.size - 1].toUInt8()
+            } else {
+
+                secondToLastByte = lastByte
+                lastByte = chunk[0].toUInt8()
+            }
+        }
+
+        val endsWithEoiMarker =
+            secondToLastByte == EOI_FIRST_BYTE_VALUE && lastByte == EOI_SECOND_BYTE_VALUE
+
+        return TrailingImageData(count, endsWithEoiMarker)
     }
 
     /**

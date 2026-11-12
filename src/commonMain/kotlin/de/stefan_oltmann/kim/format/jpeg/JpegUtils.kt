@@ -20,6 +20,9 @@ package de.stefan_oltmann.kim.format.jpeg
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.RST0_MARKER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.RST7_MARKER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.TEM_MARKER
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.readAndVerifyBytes
@@ -35,6 +38,15 @@ internal object JpegUtils {
      */
     internal const val MAX_HEADER_SEGMENT_BYTES: Int = 16 * 1024 * 1024
 
+    /**
+     * The error for a header walk that reaches the end of the data
+     * without the SOS marker or the EOI marker: like ExifTool's "JPEG
+     * format error", the file is truncated, and returning the readable
+     * prefix or NULL would hide that behind a neutral fallback.
+     */
+    internal const val INCOMPLETE_HEADER_WALK_MESSAGE: String =
+        "The JPEG data ends without the SOS marker or the EOI marker."
+
     /*
      * The identifier is "Exif\0" plus one more byte. Some cameras omit
      * the second NUL, and up to four garbage bytes before the identifier
@@ -48,6 +60,17 @@ internal object JpegUtils {
     private const val BYTE_ORDER_MARKER_LENGTH: Int = 3
 
     private const val EXIF_HEADER_LENGTH: Int = 6
+
+    /**
+     * Whether the marker is a standalone marker without a length word
+     * and without payload: TEM and the restart markers RST0 to RST7 per
+     * ITU-T T.81 table B.3. ExifTool's markerLenBytes table is the
+     * behavioral reference: no length word is read for these markers
+     * anywhere, so the bytes behind them must not be interpreted as a
+     * segment length.
+     */
+    internal fun isMarkerWithoutLengthWord(marker: Int): Boolean =
+        marker == TEM_MARKER || marker in RST0_MARKER..RST7_MARKER
 
     /**
      * Fails the read when the segment length field of a JPEG segment
@@ -206,6 +229,15 @@ internal object JpegUtils {
 
             if (scan.marker == JpegConstants.SOS_MARKER)
                 return segments to scan.markerBytes
+
+            /*
+             * Standalone markers without a length word (TEM, RST0 to
+             * RST7) carry no payload: reading a length here would
+             * misinterpret the bytes behind them. They are not retained,
+             * so a rewrite drops them like the redundant fill bytes.
+             */
+            if (isMarkerWithoutLengthWord(scan.marker))
+                continue
 
             /*
              * The content length is only a hint for stream sources, so

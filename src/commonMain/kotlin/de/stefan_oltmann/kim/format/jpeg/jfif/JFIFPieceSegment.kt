@@ -69,6 +69,18 @@ internal open class JFIFPieceSegment(
         marker == JpegConstants.JPEG_APP1_MARKER && (segmentBytes.startsWith(JpegConstants.XMP_IDENTIFIER) ||
             segmentBytes.startsWith(JpegConstants.EXTENDED_XMP_IDENTIFIER))
 
+    /**
+     * Whether the segment is the Adobe APP14 segment, whose
+     * ColorTransform flag tells the decoder how to interpret the DCT
+     * data. The flag is a decoding directive without a safe fallback -
+     * losing it renders Adobe RGB and CMYK files with wrong colors - so
+     * the deletion keeps the identified segment in every mode, like the
+     * ExifTool binary protects it from "-all=".
+     */
+    fun isAdobeApp14Segment(): Boolean =
+        marker == JpegConstants.JPEG_APP14_MARKER &&
+            segmentBytes.startsWith(JpegConstants.ADOBE_IDENTIFIER)
+
     companion object {
 
         /**

@@ -90,7 +90,14 @@ public object JpegMetadataExtractor : MetadataExtractor {
         @Suppress("LoopWithTooManyJumpStatements")
         do {
 
-            val scan = scanner.nextMarker(zeroIsFillByte = true) ?: break
+            /*
+             * The walk must not end silently: like ExifTool's "JPEG
+             * format error", data that ends without the SOS marker or
+             * the EOI marker is a truncated file, and returning the
+             * readable prefix would hide that behind a neutral fallback.
+             */
+            val scan = scanner.nextMarker(zeroIsFillByte = true)
+                ?: throw ImageReadException(JpegUtils.INCOMPLETE_HEADER_WALK_MESSAGE)
 
             bytes.write(scan.consumedBytes)
 
@@ -107,8 +114,21 @@ public object JpegMetadataExtractor : MetadataExtractor {
             if (scan.marker == SOS_MARKER || scan.marker == EOI_MARKER)
                 break
 
-            val segmentLengthFirstByte = byteReader.readByte() ?: break
-            val segmentLengthSecondByte = byteReader.readByte() ?: break
+            /*
+             * Standalone markers without a length word (TEM, RST0 to
+             * RST7) carry no payload: their marker bytes are already in
+             * the retained prefix, but the bytes behind them must not be
+             * read as a segment length.
+             */
+            if (JpegUtils.isMarkerWithoutLengthWord(scan.marker))
+                continue
+
+            /* The file ends inside the marker's length field. */
+            val segmentLengthFirstByte = byteReader.readByte()
+                ?: throw ImageReadException(JpegUtils.INCOMPLETE_HEADER_WALK_MESSAGE)
+
+            val segmentLengthSecondByte = byteReader.readByte()
+                ?: throw ImageReadException(JpegUtils.INCOMPLETE_HEADER_WALK_MESSAGE)
 
             bytes.write(segmentLengthFirstByte)
             bytes.write(segmentLengthSecondByte)

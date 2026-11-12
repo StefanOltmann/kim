@@ -610,6 +610,70 @@ abstract class AbstractUpdaterTest(
         compare("new_thumbnail.no_metadata.$format", newBytes)
     }
 
+    /**
+     * The deletion removes the embedded thumbnail and keeps every other
+     * metadata block: the thumbnail embedded beforehand is gone
+     * afterwards, the EXIF block stays, and a repeated deletion returns
+     * the same bytes.
+     */
+    @Test
+    fun testDeleteThumbnail() {
+
+        if (!testThumbnail) {
+
+            /*
+             * GIF carries no thumbnail concept: there is nothing to
+             * remove and the file is returned unchanged.
+             */
+            assertContentEquals(originalBytes, Kim.deleteThumbnail(originalBytes))
+
+            return
+        }
+
+        /*
+         * The thumbnail is embedded first, so the deletion has a defined
+         * subject on every format: the committed original does not
+         * necessarily carry one.
+         */
+        val withThumbnail = Kim.updateThumbnail(
+            bytes = originalBytes,
+            thumbnailBytes = thumbnailBytes
+        )
+
+        assertNotNull(
+            Kim.readMetadata(withThumbnail)?.getExifThumbnailBytes(),
+            "The embedded thumbnail must exist before the deletion."
+        )
+
+        val newBytes = Kim.deleteThumbnail(withThumbnail)
+
+        assertNull(
+            Kim.readMetadata(newBytes)?.getExifThumbnailBytes(),
+            "The embedded thumbnail must not survive the deletion."
+        )
+
+        assertNotNull(
+            Kim.readMetadata(newBytes)?.exif,
+            "The EXIF block must survive the deletion."
+        )
+
+        /*
+         * The removal is idempotent: a second call finds no thumbnail and
+         * returns the same bytes.
+         */
+        assertContentEquals(newBytes, Kim.deleteThumbnail(newBytes))
+    }
+
+    /**
+     * A file without metadata carries no thumbnail: the deletion returns
+     * the bytes unchanged instead of rewriting the file for nothing.
+     */
+    @Test
+    fun testDeleteThumbnailWithoutMetadataIsANoOp() {
+
+        assertContentEquals(noMetadataBytes, Kim.deleteThumbnail(noMetadataBytes))
+    }
+
     private fun compare(fileName: String, actualBytes: ByteArray) {
 
         val updateDir = Path("build/updates_$format")

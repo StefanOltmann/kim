@@ -28,6 +28,7 @@ import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
+import de.stefan_oltmann.kim.testdata.containsBytes
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -35,6 +36,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 class WebpUpdaterTest : AbstractUpdaterTest("webp") {
 
@@ -561,6 +563,82 @@ class WebpUpdaterTest : AbstractUpdaterTest("webp") {
     }
 
     /**
+     * The VP8X chunk is container structure, not metadata: the deletion
+     * drops the ICC chunk only on request and always keeps VP8X, since
+     * without VP8X an ALPHA-carrying file would lose its alpha channel.
+     * The rebuilt flags must match the surviving chunks.
+     */
+    @Test
+    fun testDeleteMetadataDropsIccpOnRequestAndKeepsVp8xStructure() {
+
+        val iccDroppedBytes = Kim.deleteMetadata(
+            bytes = originalBytes,
+            keepIccProfile = false
+        )
+
+        assertEquals(
+            expected = setOf("VP8X", "VP8 "),
+            actual = chunkTypes(iccDroppedBytes),
+            message = "Only the container structure may survive the requested deletion."
+        )
+
+        val vp8xChunk = vp8xChunk(iccDroppedBytes)
+
+        /* The rebuilt flags must match the surviving chunks. */
+        assertFalse(vp8xChunk.hasIcc)
+        assertFalse(vp8xChunk.hasExif)
+        assertFalse(vp8xChunk.hasXmp)
+    }
+
+    /**
+     * The image chunk of a static WebP is image data: it survives the
+     * deletion byte-exact, header and payload.
+     */
+    @Test
+    fun testDeleteMetadataKeepsTheImageChunkByteExact() {
+
+        val deletedBytes = Kim.deleteMetadata(originalBytes)
+
+        assertTrue(
+            deletedBytes.containsBytes(chunkSpan(originalBytes, "VP8 ")),
+            "The VP8 image chunk must survive the deletion byte-exact."
+        )
+    }
+
+    /**
+     * The animation chunks of an animated WebP are image data: they
+     * survive the deletion byte-exact, while only the XMP chunk goes.
+     */
+    @Test
+    fun testDeleteMetadataKeepsTheAnimationChunksByteExact() {
+
+        val animatedBytes =
+            KimTestData.getBytesOf(KimTestData.ANIMATED_WEBP_TEST_IMAGE_INDEX)
+
+        /*
+         * The animation region spans the ANIM chunk and both ANMF frames
+         * behind it; the XMP chunk behind the animation is the metadata.
+         */
+        val animationRegion = animatedBytes.copyOfRange(
+            chunkOffset(animatedBytes, "ANIM"),
+            chunkOffset(animatedBytes, "XMP ")
+        )
+
+        val deletedBytes = Kim.deleteMetadata(animatedBytes)
+
+        assertEquals(
+            expected = setOf("VP8X", "ANIM", "ANMF"),
+            actual = chunkTypes(deletedBytes),
+            message = "The metadata must go, the animation chunks must stay."
+        )
+
+        assertTrue(
+            deletedBytes.containsBytes(animationRegion),
+            "The ANIM and ANMF chunks must survive the deletion byte-exact."
+        )
+    }
+
+    /**
      * A WebP truncated inside its last chunk must be rejected, because
      * streaming the chunk payloads would otherwise end early and the output
      * would declare more chunk bytes than were written.
@@ -591,6 +669,56 @@ class WebpUpdaterTest : AbstractUpdaterTest("webp") {
         assertFailsWith<ImageWriteException> {
             Kim.deleteMetadata(truncatedWebp)
         }
+    }
+
+    /**
+     * Returns the offset of the first chunk of the given type, or fails
+     * when the file carries no such chunk.
+     */
+    private fun chunkOffset(webpBytes: ByteArray, chunkType: String): Int {
+
+        var offset = WebPConstants.RIFF_SIGNATURE.size +
+            WebPConstants.CHUNK_SIZE_LENGTH +
+            WebPConstants.WEBP_SIGNATURE.size
+
+        while (offset + 8 <= webpBytes.size) {
+
+            val type = webpBytes.copyOfRange(offset, offset + WebPConstants.TYPE_LENGTH).decodeToString()
+
+            if (type == chunkType)
+                return offset
+
+            val chunkSize = (webpBytes[offset + 4].toInt() and 0xFF) or
+                ((webpBytes[offset + 5].toInt() and 0xFF) shl 8) or
+                ((webpBytes[offset + 6].toInt() and 0xFF) shl 16) or
+                ((webpBytes[offset + 7].toInt() and 0xFF) shl 24)
+
+            offset += WebPConstants.TYPE_LENGTH + WebPConstants.CHUNK_SIZE_LENGTH + chunkSize + chunkSize % 2
+        }
+
+        fail("No $chunkType chunk in the given WebP bytes.")
+    }
+
+    /**
+     * Returns the complete span of the first chunk of the given type:
+     * from its header start to the start of the chunk behind it, so a
+     * caller can assert the chunk survives verbatim.
+     */
+    private fun chunkSpan(webpBytes: ByteArray, chunkType: String): ByteArray {
+
+        val start = chunkOffset(webpBytes, chunkType)
+
+        val chunkSize = (webpBytes[start + 4].toInt() and 0xFF) or
+            ((webpBytes[start + 5].toInt() and 0xFF) shl 8) or
+            ((webpBytes[start + 6].toInt() and 0xFF) shl 16) or
+            ((webpBytes[start + 7].toInt() and 0xFF) shl 24)
+
+        val end = (
+            start + WebPConstants.TYPE_LENGTH + WebPConstants.CHUNK_SIZE_LENGTH +
+                chunkSize + chunkSize % 2
+            ).coerceAtMost(webpBytes.size)
+
+        return webpBytes.copyOfRange(start, end)
     }
 
     /**

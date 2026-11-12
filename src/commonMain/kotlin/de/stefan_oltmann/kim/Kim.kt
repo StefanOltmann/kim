@@ -149,10 +149,13 @@ import kotlin.coroutines.cancellation.CancellationException
  * reporting partial success - otherwise the failure only surfaces when the
  * user tries to edit, after the app already showed the photo.
  *
- * Kim only ever modifies files it can properly read. Both [update] and
- * [deleteMetadata] require a readable file and will fail if the file or
- * its existing metadata cannot be parsed. Corrupt or invalid files are
- * never touched in any way.
+ * Kim only ever modifies files it can properly read. [update] requires a
+ * readable file and will fail if the file or its existing metadata cannot
+ * be parsed. [deleteMetadata] requires a readable file structure, but not
+ * parseable metadata content: the removal is destructive anyway, so a
+ * corrupt EXIF or XMP payload is dropped like a valid one instead of
+ * blocking the cleanup. Structurally invalid files are never touched in
+ * any way.
  *
  * # Derived projections
  *
@@ -192,6 +195,13 @@ public object Kim {
     internal val effectiveTimeZone: TimeZone
         get() = defaultTimeZone ?: TimeZone.currentSystemDefault()
 
+    /**
+     * Reads all metadata of the image.
+     *
+     * @param bytes The original file bytes to read.
+     *
+     * @return The parsed metadata, or NULL when the bytes are empty.
+     */
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
     public fun readMetadata(bytes: ByteArray): MediaMetadata? =
@@ -208,6 +218,12 @@ public object Kim {
      *
      * Attention: The given [ByteReader] is closed by this call, including
      * the stream below it, and must not be used afterwards.
+     *
+     * @param bytes The original file bytes to read.
+     * @param readTrailerMetadata Whether the APP1 EXIF and XMP segments
+     *        behind the JPEG image data are read as well.
+     *
+     * @return The parsed metadata, or NULL when the bytes are empty.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
@@ -228,6 +244,10 @@ public object Kim {
      *
      * Attention: The given [ByteReader] is closed by this call, including
      * the stream below it, and must not be used afterwards.
+     *
+     * @param byteReader The original file, streamed.
+     *
+     * @return The parsed metadata, or NULL for unknown bytes.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
@@ -243,6 +263,12 @@ public object Kim {
      *
      * Attention: The given [ByteReader] is closed by this call, including
      * the stream below it, and must not be used afterwards.
+     *
+     * @param byteReader The original file, streamed.
+     * @param readTrailerMetadata Whether the APP1 EXIF and XMP segments
+     *        behind the JPEG image data are read as well.
+     *
+     * @return The parsed metadata, or NULL for unknown bytes.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
@@ -339,6 +365,11 @@ public object Kim {
      *
      * Attention: The given [ByteReader] is closed by this call, including
      * the stream below it, and must not be used afterwards.
+     *
+     * @param byteReader The original file, streamed.
+     *
+     * @return The detected media format and its metadata bytes - the
+     *         bytes are empty for the formats listed above.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
@@ -385,6 +416,11 @@ public object Kim {
      *
      * Attention: The given [ByteReader] is closed by this call, including
      * the stream below it, and must not be used afterwards.
+     *
+     * @param byteReader The original file, streamed.
+     *
+     * @return The preview image bytes, or NULL when the file carries no
+     *         preview at all.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageReadException::class)
@@ -454,6 +490,11 @@ public object Kim {
 
     /**
      * Updates the file with the desired change.
+     *
+     * @param bytes The original file bytes to modify.
+     * @param update The change to apply.
+     *
+     * @return The modified file bytes.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -470,6 +511,11 @@ public object Kim {
      * IPTC, and XMP are updated together in the same write. The storages
      * duplicate the same logical values, so updating only one of them would
      * let the copies drift apart - see [de.stefan_oltmann.kim.format.MetadataUpdater].
+     *
+     * @param bytes The original file bytes to modify.
+     * @param updates The changes to apply. Must not be empty.
+     *
+     * @return The modified file bytes.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -501,6 +547,10 @@ public object Kim {
      *
      * Attention: The given [ByteReader] and [ByteWriter] are not closed by
      * this call; the caller owns and closes both.
+     *
+     * @param byteReader The original file, streamed.
+     * @param byteWriter The destination the modified file is written to.
+     * @param update The change to apply.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -525,6 +575,14 @@ public object Kim {
      * only and copies the trailer verbatim. A stale trailer copy stays
      * visible through `readTrailerMetadata = true`.
      *
+     * Attention: JPEG metadata segments between the scans of a
+     * progressive file are left untouched as well, byte-exact where they
+     * sit - the region behind the first SOS marker is transferred without
+     * interpretation, like the ExifTool binary keeps those segments on an
+     * update. The fresh header copy the update writes comes first in the
+     * file, so readers take it over the stale between-scan copy. A
+     * [deleteMetadata] call removes the stale segments with the rest.
+     *
      * Attention: The given [ByteReader] and [ByteWriter] are not closed by
      * this call; the caller owns and closes both.
      *
@@ -534,6 +592,10 @@ public object Kim {
      * [ImageWriteException], any bytes already written are incomplete
      * and must be discarded - stage the output in a temporary buffer or
      * file and publish it only after the call returned normally.
+     *
+     * @param byteReader The original file, streamed.
+     * @param byteWriter The destination the modified file is written to.
+     * @param updates The changes to apply. Must not be empty.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -586,19 +648,46 @@ public object Kim {
      * not carry a healthy ICC profile are deleted as well, and a faulty
      * profile lets its chunks go instead of staying in the file.
      *
-     * The file must be readable; if the file or its metadata is corrupt
-     * or cannot be parsed, the operation fails and the file is left
-     * untouched.
+     * With [keepIccProfile] = false the ICC profile goes with the rest of
+     * the metadata, so the result is clean of metadata entirely. Formats
+     * without an ICC concept (GIF, JPEG XL) ignore the parameter.
+     *
+     * The Adobe APP14 segment stays in every mode: its ColorTransform
+     * flag tells the decoder how to interpret the DCT data, and losing
+     * it renders Adobe RGB and CMYK files with wrong colors - ExifTool
+     * protects the segment from "-all=" for the same reason.
+     *
+     * For JPG the metadata segments behind the image data are removed as
+     * well, and the file ends at the structural EOI marker: every byte
+     * behind it belongs to other tools and is discarded. A JPG that ends
+     * inside its image data without the structural EOI marker fails the
+     * operation, because its image data cannot be separated from the
+     * metadata behind it.
+     *
+     * The file's structure must be readable: truncated or structurally
+     * corrupt files fail and are left untouched. The metadata content
+     * itself does not need to be parseable, since it is removed anyway -
+     * a corrupt EXIF or XMP payload is dropped like a valid one.
+     *
+     * @param bytes The original file bytes to modify.
+     * @param keepIccProfile Whether the ICC profile stays (the default)
+     *        or is removed with the rest of the metadata.
+     *
+     * @return The modified file bytes.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
-    public fun deleteMetadata(bytes: ByteArray): ByteArray = tryWithImageWriteException {
+    public fun deleteMetadata(
+        bytes: ByteArray,
+        keepIccProfile: Boolean = true
+    ): ByteArray = tryWithImageWriteException {
 
         val byteWriter = ByteArrayByteWriter()
 
         deleteMetadata(
             byteReader = ByteArrayByteReader(bytes),
-            byteWriter = byteWriter
+            byteWriter = byteWriter,
+            keepIccProfile = keepIccProfile
         )
 
         return@tryWithImageWriteException byteWriter.toByteArray()
@@ -610,9 +699,26 @@ public object Kim {
      * not carry a healthy ICC profile are deleted as well, and a faulty
      * profile lets its chunks go instead of staying in the file.
      *
-     * The file must be readable; if the file or its metadata is corrupt
-     * or cannot be parsed, the operation fails and the file is left
-     * untouched.
+     * With [keepIccProfile] = false the ICC profile goes with the rest of
+     * the metadata, so the result is clean of metadata entirely. Formats
+     * without an ICC concept (GIF, JPEG XL) ignore the parameter.
+     *
+     * The Adobe APP14 segment stays in every mode: its ColorTransform
+     * flag tells the decoder how to interpret the DCT data, and losing
+     * it renders Adobe RGB and CMYK files with wrong colors - ExifTool
+     * protects the segment from "-all=" for the same reason.
+     *
+     * For JPG the metadata segments behind the image data are removed as
+     * well, and the file ends at the structural EOI marker: every byte
+     * behind it belongs to other tools and is discarded. A JPG that ends
+     * inside its image data without the structural EOI marker fails the
+     * operation, because its image data cannot be separated from the
+     * metadata behind it.
+     *
+     * The file's structure must be readable: truncated or structurally
+     * corrupt files fail and are left untouched. The metadata content
+     * itself does not need to be parseable, since it is removed anyway -
+     * a corrupt EXIF or XMP payload is dropped like a valid one.
      *
      * Attention: The given [ByteReader] and [ByteWriter] are not closed by
      * this call; the caller owns and closes both.
@@ -623,12 +729,18 @@ public object Kim {
      * [ImageWriteException], any bytes already written are incomplete
      * and must be discarded - stage the output in a temporary buffer or
      * file and publish it only after the call returned normally.
+     *
+     * @param byteReader The original file, streamed.
+     * @param byteWriter The destination the modified file is written to.
+     * @param keepIccProfile Whether the ICC profile stays (the default)
+     *        or is removed with the rest of the metadata.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
     public fun deleteMetadata(
         byteReader: ByteReader,
-        byteWriter: ByteWriter
+        byteWriter: ByteWriter,
+        keepIccProfile: Boolean = true
     ): Unit = tryWithImageWriteException {
 
         val detection = detectFormatAndReplayHeader(byteReader)
@@ -639,7 +751,7 @@ public object Kim {
         val updater = MetadataUpdater.forFormat(detection.mediaFormat)
             ?: throw ImageWriteException("Can't delete metadata of ${detection.mediaFormat}.")
 
-        updater.deleteMetadata(detection.reader, byteWriter)
+        updater.deleteMetadata(detection.reader, byteWriter, keepIccProfile)
     }
 
     /**
@@ -650,6 +762,11 @@ public object Kim {
      * Thumbnails exceeding that shared bound, or bytes without the JPEG
      * SOI marker, are rejected with an [ImageWriteException] - on every
      * format alike. The bytes are otherwise embedded as-is.
+     *
+     * @param bytes The original file bytes to modify.
+     * @param thumbnailBytes The JPEG bytes to embed as the new thumbnail.
+     *
+     * @return The modified file bytes.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
@@ -667,6 +784,37 @@ public object Kim {
             ?: throw ImageWriteException("Can't embed thumbnail into $mediaFormat.")
 
         return@tryWithImageWriteException updater.updateThumbnail(bytes, thumbnailBytes)
+    }
+
+    /**
+     * Removes the embedded thumbnail of the file, keeping every other
+     * metadata block: the EXIF, XMP, IPTC and ICC data stay untouched.
+     *
+     * A file without an embedded thumbnail is returned unchanged, so the
+     * operation is idempotent. GIF files carry no thumbnail concept and
+     * are returned unchanged as well.
+     *
+     * Attention: The thumbnail lives inside the EXIF data, so formats
+     * without an EXIF concept have nothing to remove.
+     *
+     * @param bytes The original file bytes to modify.
+     *
+     * @return The modified file bytes - unchanged when the file carries
+     *         no embedded thumbnail.
+     */
+    @kotlin.jvm.JvmStatic
+    @Throws(ImageWriteException::class)
+    public fun deleteThumbnail(bytes: ByteArray): ByteArray = tryWithImageWriteException {
+
+        val mediaFormat = MediaFormat.detect(bytes)
+
+        if (mediaFormat == null)
+            throw ImageWriteException("Unknown or unsupported file format.")
+
+        val updater = MetadataUpdater.forFormat(mediaFormat)
+            ?: throw ImageWriteException("Can't delete thumbnail of $mediaFormat.")
+
+        return@tryWithImageWriteException updater.deleteThumbnail(bytes)
     }
 
     /*

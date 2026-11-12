@@ -25,6 +25,7 @@ import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.exifBytesWithThumbnail
 import de.stefan_oltmann.kim.format.jxl.box.CompressedBox
+import de.stefan_oltmann.kim.format.tiffOutputSetWithoutThumbnail
 import de.stefan_oltmann.kim.format.updatedExifBytes
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
@@ -84,9 +85,14 @@ internal object JxlUpdater : MetadataUpdater {
     @Throws(ImageWriteException::class)
     override fun deleteMetadata(
         byteReader: ByteReader,
-        byteWriter: ByteWriter
+        byteWriter: ByteWriter,
+        keepIccProfile: Boolean
     ) = tryWithImageWriteException {
 
+        /*
+         * JPEG XL carries no ICC box in its box model, so keepIccProfile
+         * has nothing to keep or drop here and is ignored.
+         */
         JxlWriter.writeImageStreaming(byteReader, byteWriter) { boxes, outputWriter ->
 
             /*
@@ -135,6 +141,39 @@ internal object JxlUpdater : MetadataUpdater {
         val metadata = JxlReader.createMetadata(allBoxes)
 
         val exifBytes = metadata.exifBytesWithThumbnail(thumbnailBytes)
+
+        val byteWriter = ByteArrayByteWriter()
+
+        JxlWriter.writeImage(
+            boxes = allBoxes,
+            byteWriter = byteWriter,
+            exifBytes = exifBytes,
+            /*  No change to XMP */
+            xmp = null
+        )
+
+        return@tryWithImageWriteException byteWriter.toByteArray()
+    }
+
+    /**
+     * The thumbnail lives in the Exif box: the rewrite removes the
+     * thumbnail directory (IFD1) from the parsed set and replaces the
+     * box with the shrunk one, while a file without a thumbnail is
+     * returned unchanged.
+     */
+    override fun deleteThumbnail(bytes: ByteArray): ByteArray = tryWithImageWriteException {
+
+        if (!bytes.startsWith(MediaFormatMagicNumbers.jxl))
+            throw ImageWriteException("Provided input bytes are not JXL!")
+
+        val byteReader = ByteArrayByteReader(bytes)
+
+        val allBoxes = BoxReader.readAllBoxesForRewrite(byteReader)
+
+        val metadata = JxlReader.createMetadata(allBoxes)
+
+        val exifBytes = metadata.tiffOutputSetWithoutThumbnail()?.toTiffBytes()
+            ?: return bytes
 
         val byteWriter = ByteArrayByteWriter()
 

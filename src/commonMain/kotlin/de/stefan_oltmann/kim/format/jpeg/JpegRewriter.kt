@@ -23,6 +23,7 @@ import de.stefan_oltmann.kim.common.getRemainingBytes
 import de.stefan_oltmann.kim.common.isEquals
 import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.toBytes
+import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
@@ -47,6 +48,22 @@ import kotlin.jvm.JvmStatic
  * such files.
  */
 public object JpegRewriter {
+
+    /**
+     * The error for a streaming rewrite whose file ends before the SOS
+     * marker: a truncated header means writing the output would destroy
+     * the image data.
+     */
+    private const val TRUNCATED_HEADER_MESSAGE: String =
+        "JPEG file is truncated or invalid: no SOS marker found."
+
+    /**
+     * The error for the delete walk whose file ends inside its image
+     * data: without the structural EOI marker the image data cannot be
+     * separated from the metadata behind it.
+     */
+    private const val TRUNCATED_IMAGE_DATA_MESSAGE: String =
+        "The JPEG data ends inside its image data without the structural EOI marker."
 
     /**
      * Inserts the new segments at a place where readers look for
@@ -537,21 +554,203 @@ public object JpegRewriter {
         updateComputer: (MutableList<JFIFPieceSegment>, ByteWriter) -> Unit
     ) {
 
-        val (segments, sosMarkerBytes) = JpegUtils.readSegments(byteReader)
-
-        /*
-         * A truncated file can end before the SOS marker. Writing just the
-         * header would silently destroy the image data, so the update is
-         * rejected instead.
-         */
-        if (sosMarkerBytes == null)
-            throw ImageWriteException("JPEG file is truncated or invalid: no SOS marker found.")
+        val (segments, sosMarkerBytes) = readHeaderForStreaming(byteReader)
 
         updateComputer(segments.toMutableList(), byteWriter)
 
         byteWriter.write(sosMarkerBytes)
 
         byteReader.copyRemainingTo(byteWriter)
+    }
+
+    /**
+     * Streams a JPEG to the given writer with every metadata segment
+     * removed: the delete policy of the header, extended through the
+     * structural EOI marker (GitHub issue 41).
+     *
+     * The headerComputer receives the collected header segments and the
+     * output writer, and must write the complete header (SOI and all kept
+     * segments) to it, like [updateMetadataStreaming]'s computer. The
+     * entropy coded data behind the SOS marker is then transferred
+     * byte-exact - restart markers, fill bytes and byte stuffings
+     * included - while every APP1 to APP15 and COM segment between the
+     * scans is removed like the header's metadata segments, and the
+     * output ends at the structural EOI marker: every byte behind it
+     * belongs to other tools and is discarded.
+     *
+     * A file that ends inside its image data without the structural EOI
+     * marker fails, because the image data cannot be separated from the
+     * metadata behind it and the result would not be verifiably clean.
+     */
+    internal fun deleteMetadataStreaming(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter,
+        headerComputer: (MutableList<JFIFPieceSegment>, ByteWriter) -> Unit
+    ) {
+
+        /*
+         * The walk behind the header writes the SOS marker and its scan
+         * header by itself, so the headerComputer's output is followed
+         * directly by the image data.
+         */
+        val segments = readHeaderForStreaming(byteReader).first
+
+        headerComputer(segments.toMutableList(), byteWriter)
+
+        streamImageDataThroughStructuralEoi(byteReader, byteWriter)
+    }
+
+    /**
+     * Reads the header segments of a JPEG file up to the image data for
+     * one of the streaming rewrites, failing on a truncated file: writing
+     * just the header would silently destroy the image data.
+     */
+    private fun readHeaderForStreaming(
+        byteReader: ByteReader
+    ): Pair<List<JFIFPieceSegment>, ByteArray> {
+
+        val (segments, sosMarkerBytes) = JpegUtils.readSegments(byteReader)
+
+        if (sosMarkerBytes == null)
+            throw ImageWriteException(TRUNCATED_HEADER_MESSAGE)
+
+        return segments to sosMarkerBytes
+    }
+
+    /**
+     * Streams the region behind the first SOS marker to the writer: the
+     * walk writes the SOS marker and its scan header, transfers the
+     * entropy coded data byte-exact, removes every metadata segment
+     * between the scans, keeps the decoding structures and the scan
+     * headers of the following scans, and ends the output at the
+     * structural EOI marker.
+     */
+    private fun streamImageDataThroughStructuralEoi(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter
+    ) {
+
+        /*
+         * The scan header is transferred by its length field, so no byte
+         * inside its payload - a crafted EOI pair included - can end the
+         * file early. The entropy walk starts behind it.
+         */
+        writeSegmentBehindImageData(
+            byteReader = byteReader,
+            byteWriter = byteWriter,
+            marker = JpegConstants.SOS_MARKER
+        )
+
+        /*
+         * The consumed bytes are transferred to the writer by the scanner,
+         * so no unbounded inter-marker gap is buffered.
+         */
+        val scanner = JpegMarkerScanner(byteReader, keepConsumedBytes = false)
+
+        while (true) {
+
+            val scan = scanner.transferToNextMarker(byteWriter, zeroIsFillByte = true)
+                ?: throw ImageWriteException(TRUNCATED_IMAGE_DATA_MESSAGE)
+
+            when {
+                /* The structural EOI ends the file: nothing behind it survives. */
+                scan.marker == JpegConstants.EOI_MARKER -> {
+                    byteWriter.write(JpegConstants.EOI)
+                    return
+                }
+
+                scan.marker == JpegConstants.SOI_MARKER ->
+                    throw ImageWriteException(
+                        "An SOI marker inside the image data is no readable structure."
+                    )
+
+                /*
+                 * Restart markers and the TEM marker carry no payload:
+                 * they are part of the entropy coded data and keep their
+                 * bytes.
+                 */
+                JpegUtils.isMarkerWithoutLengthWord(scan.marker) ->
+                    byteWriter.write(scan.markerBytes)
+
+                /* The scan header of the next progressive scan keeps its bytes. */
+                scan.marker == JpegConstants.SOS_MARKER ->
+                    writeSegmentBehindImageData(byteReader, byteWriter, scan.marker)
+
+                /*
+                 * Every APP segment and comment between the scans is
+                 * metadata: EXIF, XMP, IPTC and every foreign payload,
+                 * the JFIF and Adobe blocks beside them. The position is
+                 * one no decoder reads, so none of them stays.
+                 */
+                scan.marker in JpegConstants.JPEG_APP0_MARKER..JpegConstants.JPEG_APP15_MARKER ||
+                    scan.marker == JpegConstants.COM_MARKER_1 ->
+                    skipSegmentBehindImageData(byteReader)
+
+                /* Decoding structures between the scans (DHT, DNL...) keep their bytes. */
+                else ->
+                    writeSegmentBehindImageData(byteReader, byteWriter, scan.marker)
+            }
+        }
+    }
+
+    /**
+     * Reads the length field and the payload of a segment behind the
+     * image data, failing when the file ends inside it.
+     */
+    private fun readSegmentBehindImageData(byteReader: ByteReader): ByteArray {
+
+        val segmentLengthBytes = byteReader.readBytes(2)
+
+        if (segmentLengthBytes.size != 2)
+            throw ImageWriteException("Truncated JPEG segment length behind the image data.")
+
+        val segmentContentLength =
+            segmentLengthBytes.toUInt16(JPEG_BYTE_ORDER) - 2
+
+        if (segmentContentLength < 0)
+            throw ImageWriteException(
+                "Illegal JPEG segment length behind the image data: $segmentContentLength"
+            )
+
+        val segmentBytes = byteReader.readBytes(segmentContentLength)
+
+        if (segmentBytes.size != segmentContentLength)
+            throw ImageWriteException(
+                "Truncated JPEG segment behind the image data: " +
+                    "${segmentBytes.size} of $segmentContentLength bytes."
+            )
+
+        return segmentBytes
+    }
+
+    /**
+     * Discards a metadata segment between the scans: its length field and
+     * payload are read only to keep the walk in sync with the file.
+     */
+    private fun skipSegmentBehindImageData(byteReader: ByteReader) {
+        readSegmentBehindImageData(byteReader)
+    }
+
+    /**
+     * Writes a segment behind the image data to the writer byte-exact.
+     * The 2 length bytes are reconstructed from the payload size, which
+     * they equal by definition of the segment length field.
+     */
+    private fun writeSegmentBehindImageData(
+        byteReader: ByteReader,
+        byteWriter: ByteWriter,
+        marker: Int
+    ) {
+
+        val payloadBytes = readSegmentBehindImageData(byteReader)
+
+        val segmentLength = (payloadBytes.size + 2).toShort()
+
+        byteWriter.write(marker.toShort().toBytes(JPEG_BYTE_ORDER))
+
+        byteWriter.write(segmentLength.toBytes(JPEG_BYTE_ORDER))
+
+        byteWriter.write(payloadBytes)
     }
 
     /**

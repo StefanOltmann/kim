@@ -38,10 +38,12 @@ import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class JpegAndReaderEdgeCasesTest {
@@ -73,20 +75,20 @@ class JpegAndReaderEdgeCasesTest {
             ByteArrayByteReader(bytes)
         )
 
-        assertEquals(
-            expected = JpegSegmentInfo(
-                offset = 0,
-                marker = JpegConstants.SOI_MARKER,
-                length = 2
+        /*
+         * The exact walk result: the fill byte run before the APP0 marker
+         * is skipped, the APP0 segment keeps its length field position,
+         * and the SOS segment covers the marker without a scan header
+         * beside the trailing EOI marker.
+         */
+        assertContentEquals(
+            expected = listOf(
+                JpegSegmentInfo(offset = 0, marker = JpegConstants.SOI_MARKER, length = 2),
+                JpegSegmentInfo(offset = 3, marker = JpegConstants.JFIF_MARKER, length = 6),
+                JpegSegmentInfo(offset = 9, marker = JpegConstants.SOS_MARKER, length = 2),
+                JpegSegmentInfo(offset = 11, marker = JpegConstants.EOI_MARKER, length = 2)
             ),
-            actual = segmentInfos.first()
-        )
-
-        assertTrue(segmentInfos.size >= 3)
-
-        assertEquals(
-            expected = "0 = SOI (Start of Image) [2 bytes]",
-            actual = segmentInfos.first().toString()
+            actual = segmentInfos
         )
     }
 
@@ -140,6 +142,12 @@ class JpegAndReaderEdgeCasesTest {
         val metadata = Kim.readMetadata(ByteArrayByteReader(bytes))
 
         assertEquals(MediaFormat.JPEG, metadata?.mediaFormat)
+
+        /*
+         * The near-end APP1 segment was actually read: its minimal valid
+         * TIFF parses into an empty EXIF directory set.
+         */
+        assertNotNull(metadata?.exif)
     }
 
     /*
@@ -181,24 +189,26 @@ class JpegAndReaderEdgeCasesTest {
     @Test
     fun testReadMetadataRejectsCorruptExif() {
 
-        val bytes = convertHexStringToByteArray(
-            /* SOI */
-            "ffd8" +
-                /* APP0 JFIF */
-                "ffe00010" + "4a46494600010100000100010000" +
-                /* APP1 EXIF with broken IFD offset */
-                "ffe10012" + "457869660000" +
-                /* TIFF header, IFD offset outside the payload */
-                "49492a00" + "ffffff00" + "0000" +
-                /* SOS */
-                "ffda0008" + "010100003f00" +
-                /* Scan data and EOI */
-                "11223344" + "ffd9"
-        )
-
         assertFailsWith<ImageReadException> {
-            Kim.readMetadata(ByteArrayByteReader(bytes))
+            Kim.readMetadata(ByteArrayByteReader(corruptExifBytes()))
         }
+    }
+
+    /**
+     * The deletion is a destructive removal: the metadata content does
+     * not need to be parseable, so a corrupt EXIF payload is dropped
+     * like a valid one instead of blocking the cleanup - the result is
+     * the same clean file either way.
+     */
+    @Test
+    fun testDeleteMetadataRemovesCorruptExif() {
+
+        val deletedBytes = Kim.deleteMetadata(corruptExifBytes())
+
+        assertNull(
+            assertNotNull(Kim.readMetadata(ByteArrayByteReader(deletedBytes))).exif,
+            "The corrupt EXIF segment must not survive the deletion."
+        )
     }
 
     /*
@@ -209,7 +219,21 @@ class JpegAndReaderEdgeCasesTest {
     @Test
     fun testUpdateRejectsCorruptExifInsteadOfDroppingIt() {
 
-        val bytes = convertHexStringToByteArray(
+        assertFailsWith<ImageWriteException> {
+            Kim.update(
+                bytes = corruptExifBytes(),
+                update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_LEFT)
+            )
+        }
+    }
+
+    /**
+     * Returns the bytes of a file whose EXIF payload carries a broken
+     * TIFF IFD offset: the read and the update reject it, the deletion
+     * removes it.
+     */
+    private fun corruptExifBytes(): ByteArray =
+        convertHexStringToByteArray(
             /* SOI */
             "ffd8" +
                 /* APP0 JFIF */
@@ -223,14 +247,6 @@ class JpegAndReaderEdgeCasesTest {
                 /* Scan data and EOI */
                 "11223344" + "ffd9"
         )
-
-        assertFailsWith<ImageWriteException> {
-            Kim.update(
-                bytes = bytes,
-                update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_LEFT)
-            )
-        }
-    }
 
     /*
      * A corrupt IPTC stream must fail the read loudly instead of degrading
@@ -348,6 +364,41 @@ class JpegAndReaderEdgeCasesTest {
         assertFailsWith<ImageReadException> {
             Kim.readMetadata(bytes)
         }
+
+        assertFailsWith<ImageReadException> {
+            JpegImageParser.getImageSize(ByteArrayByteReader(bytes))
+        }
+
+        assertFailsWith<ImageReadException> {
+            JpegMetadataExtractor.extractMetadataBytes(ByteArrayByteReader(bytes))
+        }
+
+        assertFailsWith<ImageReadException> {
+            JpegOrientationOffsetFinder.findOrientationOffset(ByteArrayByteReader(bytes))
+        }
+    }
+
+    /**
+     * All JPEG readers must reject a file whose header walk reaches the
+     * end of the data without the SOS marker or the EOI marker: like
+     * ExifTool's "JPEG format error", the file is truncated, and
+     * returning the readable prefix or NULL would hide that behind a
+     * neutral fallback.
+     */
+    @Test
+    fun testReadersRejectFileEndingWithoutSosOrEoi() {
+
+        /*
+         * SOI, a valid APP0, a valid COM segment and the end of the
+         * data: the walk finds no SOS and no EOI. At least 16 bytes are
+         * required for the detection.
+         */
+        val bytes = byteArrayOf(
+            0xFF.toByte(), 0xD8.toByte(),
+            0xFF.toByte(), 0xE0.toByte(), 0x00, 0x04, 0x00, 0x00,
+            0xFF.toByte(), 0xFE.toByte(), 0x00, 0x08, 0x41, 0x41,
+            0x41, 0x41, 0x41, 0x41
+        )
 
         assertFailsWith<ImageReadException> {
             JpegImageParser.getImageSize(ByteArrayByteReader(bytes))

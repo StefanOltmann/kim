@@ -1,7 +1,10 @@
 public final class de/stefan_oltmann/kim/Kim {
 	public static final field INSTANCE Lde/stefan_oltmann/kim/Kim;
-	public static final fun deleteMetadata (Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;)V
-	public static final fun deleteMetadata ([B)[B
+	public static final fun deleteMetadata (Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;Z)V
+	public static final fun deleteMetadata ([BZ)[B
+	public static synthetic fun deleteMetadata$default (Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;ZILjava/lang/Object;)V
+	public static synthetic fun deleteMetadata$default ([BZILjava/lang/Object;)[B
+	public static final fun deleteThumbnail ([B)[B
 	public static final fun extractMetadataBytes (Lde/stefan_oltmann/kim/input/ByteReader;)Lkotlin/Pair;
 	public static final fun extractPreviewImage (Lde/stefan_oltmann/kim/input/ByteReader;)[B
 	public final fun getDefaultTimeZone ()Lkotlinx/datetime/TimeZone;
@@ -215,13 +218,19 @@ public abstract interface class de/stefan_oltmann/kim/format/MetadataExtractor {
 
 public abstract interface class de/stefan_oltmann/kim/format/MetadataUpdater {
 	public static final field Companion Lde/stefan_oltmann/kim/format/MetadataUpdater$Companion;
-	public abstract fun deleteMetadata (Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;)V
+	public abstract fun deleteMetadata (Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;Z)V
+	public static synthetic fun deleteMetadata$default (Lde/stefan_oltmann/kim/format/MetadataUpdater;Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;ZILjava/lang/Object;)V
+	public abstract fun deleteThumbnail ([B)[B
 	public abstract fun update (Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;Ljava/util/Set;)V
 	public abstract fun updateThumbnail ([B[B)[B
 }
 
 public final class de/stefan_oltmann/kim/format/MetadataUpdater$Companion {
 	public final fun forFormat (Lde/stefan_oltmann/kim/model/MediaFormat;)Lde/stefan_oltmann/kim/format/MetadataUpdater;
+}
+
+public final class de/stefan_oltmann/kim/format/MetadataUpdater$DefaultImpls {
+	public static synthetic fun deleteMetadata$default (Lde/stefan_oltmann/kim/format/MetadataUpdater;Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;ZILjava/lang/Object;)V
 }
 
 public abstract interface class de/stefan_oltmann/kim/format/TiffPreviewExtractor {
@@ -786,6 +795,7 @@ public final class de/stefan_oltmann/kim/format/jpeg/JpegConstants {
 	public static final field SOI_MARKER I
 	public static final field SOS_MARKER I
 	public static final field TEM_MARKER I
+	public final fun getADOBE_IDENTIFIER ()[B
 	public final fun getAPP13_IDENTIFIER ()[B
 	public final fun getEOI ()[B
 	public final fun getEXIF_IDENTIFIER_CODE ()[B
@@ -831,6 +841,8 @@ public final class de/stefan_oltmann/kim/format/jpeg/JpegSegmentAnalyzer {
 	public static final field INSTANCE Lde/stefan_oltmann/kim/format/jpeg/JpegSegmentAnalyzer;
 	public static final fun findSegmentInfos (Lde/stefan_oltmann/kim/input/ByteReader;Z)Ljava/util/List;
 	public static synthetic fun findSegmentInfos$default (Lde/stefan_oltmann/kim/input/ByteReader;ZILjava/lang/Object;)Ljava/util/List;
+	public static final fun forEachSegment (Lde/stefan_oltmann/kim/input/ByteReader;ZLkotlin/jvm/functions/Function1;)V
+	public static synthetic fun forEachSegment$default (Lde/stefan_oltmann/kim/input/ByteReader;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
 public final class de/stefan_oltmann/kim/format/jpeg/JpegSegmentAnalyzer$JpegSegmentInfo {
@@ -13281,6 +13293,7 @@ public final class de/stefan_oltmann/kim/format/tiff/write/TiffOutputSet {
 	public final fun getOrCreateGPSDirectory ()Lde/stefan_oltmann/kim/format/tiff/write/TiffOutputDirectory;
 	public final fun getOrCreateRootDirectory ()Lde/stefan_oltmann/kim/format/tiff/write/TiffOutputDirectory;
 	public final fun getOrCreateThumbnailDirectory ()Lde/stefan_oltmann/kim/format/tiff/write/TiffOutputDirectory;
+	public final fun removeThumbnailDirectory ()Z
 	public final fun setGpsCoordinates (Lde/stefan_oltmann/kim/model/GpsCoordinates;)V
 	public final fun setThumbnailBytes ([B)V
 }

@@ -18,7 +18,10 @@ package de.stefan_oltmann.kim.format.jpeg
 import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.common.toUInt16
 import de.stefan_oltmann.kim.common.writeBytes
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EOI_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_BYTE_ORDER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOI_MARKER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOS_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.markerDescription
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
@@ -103,32 +106,75 @@ class JpegSegmentAnalyzerTest {
 
     /**
      * Analyzes the given JPEG bytes and checks the segment integrity.
+     *
+     * The reported ranges must tile the file from its start to its end,
+     * allowing gap bytes between the entries (redundant fill bytes, and
+     * junk around a stray standalone marker such as a TEM marker or a
+     * restart marker in the header) and the final EOI marker as the only
+     * unreported trailing bytes. Every length prefixed entry is
+     * additionally pinned to the length field the file itself carries
+     * behind the marker, so a wrong segment length cannot pass.
      */
     private fun analyze(bytes: ByteArray): List<JpegSegmentAnalyzer.JpegSegmentInfo> {
 
         val segmentInfos = JpegSegmentAnalyzer.findSegmentInfos(ByteArrayByteReader(bytes))
 
-        /* Integrity check to prevent persistance of wrong results. */
-        assertEquals(
-            expected = (bytes.size - missingEoiBytes(bytes)).toLong(),
-            actual = segmentInfos.sumOf { it.length },
-            message = "Sum of lengths should match bytes size."
-        )
+        var expectedOffset: Long = 0
 
-        /* Check that markers are correct. */
-        for ((offset, marker, _) in segmentInfos) {
+        for (segmentInfo in segmentInfos) {
 
+            assertTrue(
+                segmentInfo.offset >= expectedOffset,
+                "The reported ranges must be ordered and non-overlapping."
+            )
+
+            /* Check that markers are correct. */
             val markerAtOffset = byteArrayOf(
-                bytes[offset.toInt()],
-                bytes[offset.toInt() + 1]
+                bytes[segmentInfo.offset.toInt()],
+                bytes[segmentInfo.offset.toInt() + 1]
             ).toUInt16(JPEG_BYTE_ORDER)
 
             assertEquals(
-                expected = marker,
+                expected = segmentInfo.marker,
                 actual = markerAtOffset,
                 message = "Unexpected marker."
             )
+
+            /*
+             * Length prefixed entries carry their length in the 2 bytes
+             * behind the marker; the standalone markers and the default
+             * SOS entry, which reaches to the file end, do not.
+             */
+            val isLengthPrefixed = segmentInfo.marker != SOS_MARKER &&
+                segmentInfo.marker != SOI_MARKER &&
+                segmentInfo.marker != EOI_MARKER &&
+                !JpegUtils.isMarkerWithoutLengthWord(segmentInfo.marker)
+
+            if (isLengthPrefixed) {
+
+                /* Note: Segment length includes size bytes, not the marker. */
+                val lengthFieldAtOffset = byteArrayOf(
+                    bytes[segmentInfo.offset.toInt() + 2],
+                    bytes[segmentInfo.offset.toInt() + 3]
+                ).toUInt16(JPEG_BYTE_ORDER)
+
+                assertEquals(
+                    expected = segmentInfo.length - 2,
+                    actual = lengthFieldAtOffset.toLong(),
+                    message = "The reported length must match the segment's length field."
+                )
+            }
+
+            expectedOffset = segmentInfo.offset + segmentInfo.length
         }
+
+        val trailingBytes = bytes.size - expectedOffset
+
+        assertTrue(
+            trailingBytes == 0L || trailingBytes == 2L,
+            "The reported ranges must reach the end of the file, apart from " +
+                "the final EOI marker (trailing: $trailingBytes)."
+        )
 
         return segmentInfos
     }
@@ -194,19 +240,6 @@ class JpegSegmentAnalyzerTest {
 
         Path("build/$goldenFileName")
             .writeBytes(actualText.encodeToByteArray())
-    }
-
-    /**
-     * Returns the number of trailing bytes when the file lacks an EOI marker.
-     */
-    private fun missingEoiBytes(bytes: ByteArray): Int {
-
-        val lastBytes = bytes.copyOfRange(
-            bytes.size - JpegConstants.EOI.size,
-            bytes.size
-        )
-
-        return if (lastBytes.contentEquals(JpegConstants.EOI)) 0 else JpegConstants.EOI.size
     }
 
     /**

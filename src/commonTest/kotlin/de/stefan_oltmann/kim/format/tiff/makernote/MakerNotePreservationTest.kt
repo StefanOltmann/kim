@@ -111,6 +111,52 @@ class MakerNotePreservationTest {
     }
 
     /**
+     * Regression test: the thumbnail deletion goes through the same
+     * EXIF rewrite as the metadata update, so every MakerNote keeps its
+     * bytes and offset when only the embedded thumbnail is removed.
+     */
+    @Test
+    fun testMakerNoteSurvivesThumbnailDeletionByteIdentically() {
+
+        var checkedFileCount = 0
+
+        for (index in testMediaIndices) {
+
+            /* The same files the rewrite corpus excludes. */
+            if (index in unrewritableIndices)
+                continue
+
+            val bytes = KimTestData.getBytesOf(index)
+
+            val originalField = findMakerNoteField(bytes) ?: continue
+
+            val deletedBytes = Kim.deleteThumbnail(bytes)
+
+            val deletedField = findMakerNoteField(deletedBytes)
+                ?: fail("Thumbnail deletion of media_$index dropped the MakerNote.")
+
+            assertContentEquals(
+                expected = originalField.valueBytes,
+                actual = deletedField.valueBytes,
+                message = "MakerNote bytes of media_$index changed on thumbnail deletion."
+            )
+
+            assertEquals(
+                expected = originalField.valueOffset,
+                actual = deletedField.valueOffset,
+                message = "MakerNote offset of media_$index changed on thumbnail deletion."
+            )
+
+            checkedFileCount++
+        }
+
+        assertTrue(
+            checkedFileCount > 0,
+            "The test must check at least one file with a MakerNote."
+        )
+    }
+
+    /**
      * Regression test: like ExifTool, a file with a broken MakerNote
      * sub-directory is still updatable, and the MakerNote survives the
      * update byte for byte.

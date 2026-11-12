@@ -39,6 +39,7 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeShort
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.tiff.write.isExifUpdate
+import de.stefan_oltmann.kim.format.tiffOutputSetWithoutThumbnail
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
@@ -142,27 +143,44 @@ internal object JpegUpdater : MetadataUpdater {
     @Throws(ImageWriteException::class)
     override fun deleteMetadata(
         byteReader: ByteReader,
-        byteWriter: ByteWriter
+        byteWriter: ByteWriter,
+        keepIccProfile: Boolean
     ) = tryWithImageWriteException {
 
-        JpegRewriter.updateMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
+        /*
+         * The rewrite covers the whole file: the header policy removes
+         * every metadata segment in front of the image data, and the walk
+         * behind the first SOS marker removes the metadata segments
+         * between the scans and ends the file at the structural EOI
+         * marker, discarding the bytes of other tools behind it.
+         */
+        JpegRewriter.deleteMetadataStreaming(byteReader, byteWriter) { segments, outputWriter ->
 
             /*
-             * Remove the EXIF, XMP, IPTC and comment segments, and every
-             * APP2 segment that does not carry a healthy ICC profile:
-             * foreign payloads and faulty profiles are uninterpretable
-             * metadata, while the healthy profile affects how the image is
-             * displayed and stays.
+             * Remove every APP segment and comment - EXIF, XMP, IPTC and
+             * every foreign payload like vendor blocks, and the JFIF
+             * block beside them. Two APP payloads stay: the known healthy
+             * ICC profile, whose chunks affect how the image is displayed
+             * (faulty profiles let their chunks go instead of staying in
+             * the file), and the Adobe APP14 segment, whose ColorTransform
+             * flag tells the decoder how to interpret the DCT data. With
+             * the ICC profile dropped, the healthy run is emptied, so
+             * only the decoding directive survives.
              */
-            val healthyIccSegmentIndexes = findHealthyIccSegmentIndexes(segments)
+            val healthyIccSegmentIndexes =
+                if (keepIccProfile)
+                    findHealthyIccSegmentIndexes(segments)
+                else
+                    emptySet()
 
             val segmentsWithoutMetadata = segments
                 .withIndex()
                 .filterNot { (index, segment) ->
-                    (segment.marker == JpegConstants.JPEG_APP2_MARKER &&
-                        index !in healthyIccSegmentIndexes) ||
-                        segment.isExifSegment() || segment.isIptcSegment() || segment.isXmpSegment() ||
-                        segment.marker == JpegConstants.COM_MARKER_1
+                    segment.marker == JpegConstants.COM_MARKER_1 ||
+                        (segment.isAppSegment() &&
+                            !(segment.marker == JpegConstants.JPEG_APP2_MARKER &&
+                                index in healthyIccSegmentIndexes) &&
+                            !segment.isAdobeApp14Segment())
                 }
                 .map { it.value }
 
@@ -358,4 +376,27 @@ internal object JpegUpdater : MetadataUpdater {
         return false
     }
 
+    /**
+     * The thumbnail lives in the EXIF: the rewrite removes the thumbnail
+     * directory (IFD1) from the parsed set and replaces the EXIF segment
+     * with the shrunk one, while a file without a thumbnail is returned
+     * unchanged.
+     */
+    override fun deleteThumbnail(bytes: ByteArray): ByteArray = tryWithImageWriteException {
+
+        val metadata = JpegImageParser.parseMetadata(ByteArrayByteReader(bytes))
+
+        val outputSet = metadata.tiffOutputSetWithoutThumbnail()
+            ?: return bytes
+
+        val byteWriter = ByteArrayByteWriter()
+
+        JpegRewriter.updateExifMetadata(
+            byteReader = ByteArrayByteReader(bytes),
+            byteWriter = byteWriter,
+            outputSet = outputSet
+        )
+
+        return@tryWithImageWriteException byteWriter.toByteArray()
+    }
 }

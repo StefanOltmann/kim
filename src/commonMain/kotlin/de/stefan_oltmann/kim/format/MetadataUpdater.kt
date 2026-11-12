@@ -53,11 +53,21 @@ public interface MetadataUpdater {
      * affect how the image is displayed. For JPG, APP2 segments that do
      * not carry a healthy ICC profile are deleted as well, and a faulty
      * profile lets its chunks go instead of staying in the file.
+     *
+     * With [keepIccProfile] = false the ICC profile goes with the rest of
+     * the metadata, so the result is clean of metadata entirely. Formats
+     * without an ICC concept (GIF, JPEG XL) ignore the parameter.
+     *
+     * The Adobe APP14 segment stays in every mode: its ColorTransform
+     * flag tells the decoder how to interpret the DCT data, and losing
+     * it renders Adobe RGB and CMYK files with wrong colors - ExifTool
+     * protects the segment from "-all=" for the same reason.
      */
     @Throws(ImageWriteException::class)
     public fun deleteMetadata(
         byteReader: ByteReader,
-        byteWriter: ByteWriter
+        byteWriter: ByteWriter,
+        keepIccProfile: Boolean = true
     )
 
     /**
@@ -74,6 +84,17 @@ public interface MetadataUpdater {
         bytes: ByteArray,
         thumbnailBytes: ByteArray
     ): ByteArray
+
+    /**
+     * Removes the embedded thumbnail of the file, keeping every other
+     * metadata block.
+     *
+     * A file without an embedded thumbnail is returned unchanged, so the
+     * operation is idempotent. GIF files carry no thumbnail concept and
+     * are returned unchanged as well.
+     */
+    @Throws(ImageWriteException::class)
+    public fun deleteThumbnail(bytes: ByteArray): ByteArray
 
     public companion object {
 
@@ -147,6 +168,28 @@ internal fun MediaMetadata.exifBytesWithThumbnail(
     outputSet.setThumbnailBytes(thumbnailBytes)
 
     return outputSet.toTiffBytes()
+}
+
+/**
+ * Removes the embedded thumbnail from the EXIF and returns the new EXIF
+ * bytes, or NULL when there is no embedded thumbnail to remove - the
+ * caller then leaves the stored bytes untouched. A file without EXIF
+ * has no thumbnail and returns NULL as well.
+ *
+ * The EXIF read from the file is the starting point, so fields Kim does
+ * not model survive the rewrite. The thumbnail directory is removed as
+ * a whole: its fields all describe the thumbnail, so a residue with a
+ * compression tag and no data would only misreport a thumbnail that no
+ * longer exists.
+ */
+internal fun MediaMetadata.tiffOutputSetWithoutThumbnail(): TiffOutputSet? {
+
+    val outputSet = exif?.createOutputSet() ?: return null
+
+    if (!outputSet.removeThumbnailDirectory())
+        return null
+
+    return outputSet
 }
 
 /**

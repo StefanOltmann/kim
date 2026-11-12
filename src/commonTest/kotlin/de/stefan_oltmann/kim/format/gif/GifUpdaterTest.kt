@@ -25,6 +25,7 @@ import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.ImageSize
 import de.stefan_oltmann.kim.model.MetadataUpdate
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
+import de.stefan_oltmann.kim.testdata.KimTestData
 import de.stefan_oltmann.kim.testdata.containsBytes
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -34,6 +35,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 class GifUpdaterTest : AbstractUpdaterTest(
     format = "gif",
@@ -460,6 +462,118 @@ class GifUpdaterTest : AbstractUpdaterTest(
 
         assertEquals(ImageSize(1, 1), metadata.imageSize)
         assertEquals(null, metadata.xmp)
+    }
+
+    /**
+     * The corpus GIF carries an XMP application extension and two image
+     * blocks: the deletion removes the extension and keeps every image
+     * block byte-exact, so the frames the file displays stay untouched.
+     */
+    @Test
+    fun testDeleteMetadataKeepsImageBlocksByteExact() {
+
+        val bytes = KimTestData.getBytesOf(KimTestData.GIF_TEST_IMAGE_INDEX)
+
+        val imageBlocks = collectImageBlocks(bytes)
+
+        assertTrue(
+            imageBlocks.isNotEmpty(),
+            "The corpus GIF must carry image blocks."
+        )
+
+        val deletedBytes = Kim.deleteMetadata(bytes)
+
+        /*
+         * Every image block survives byte-exact: the deletion walks the
+         * block structure and touches only the metadata extensions.
+         */
+        for (imageBlock in imageBlocks) {
+
+            assertTrue(
+                deletedBytes.containsBytes(imageBlock),
+                "An image block must survive the deletion byte-exact."
+            )
+        }
+
+        assertNull(
+            assertNotNull(Kim.readMetadata(deletedBytes)).xmp,
+            "The XMP application extension must not survive the deletion."
+        )
+    }
+
+    /**
+     * Walks the GIF block structure per the GIF89a specification and
+     * returns the byte span of every image block: from its image
+     * descriptor through the optional local color table and the LZW data
+     * sub-blocks behind it. The walk handles the optional color tables
+     * and the size-prefixed sub-block framing, so the spans never desync
+     * into the middle of a block.
+     */
+    private fun collectImageBlocks(bytes: ByteArray): List<ByteArray> {
+
+        val imageBlocks = mutableListOf<ByteArray>()
+
+        /* Header (6 bytes) and logical screen descriptor (7 bytes). */
+        var position = 13
+
+        val screenPacked = bytes[10].toInt() and 0xFF
+
+        /* The optional global color table behind the screen descriptor. */
+        if (screenPacked and 0x80 != 0)
+            position += 3 * (1 shl (screenPacked and 0x07) + 1)
+
+        while (position < bytes.size) {
+
+            when (bytes[position].toInt() and 0xFF) {
+
+                /* The trailer ends the block structure. */
+                0x3B -> return imageBlocks
+
+                /*
+                 * Extensions: introducer and label, then size-prefixed
+                 * sub-blocks until the zero terminator.
+                 */
+                0x21 -> {
+                    position += 2
+
+                    while (bytes[position].toInt() and 0xFF != 0)
+                        position += (bytes[position].toInt() and 0xFF) + 1
+
+                    position++
+                }
+
+                /*
+                 * Image blocks: descriptor, optional local color table,
+                 * LZW minimum code size and the data sub-blocks.
+                 */
+                0x2C -> {
+                    val start = position
+
+                    position += 10
+
+                    val descriptorPacked = bytes[start + 9].toInt() and 0xFF
+
+                    if (descriptorPacked and 0x80 != 0)
+                        position += 3 * (1 shl (descriptorPacked and 0x07) + 1)
+
+                    position++
+
+                    while (bytes[position].toInt() and 0xFF != 0)
+                        position += (bytes[position].toInt() and 0xFF) + 1
+
+                    position++
+
+                    imageBlocks.add(bytes.copyOfRange(start, position))
+                }
+
+                else -> fail(
+                    "Unknown GIF block introducer 0x" +
+                        (bytes[position].toInt() and 0xFF).toString(16)
+                )
+            }
+        }
+
+        fail("The GIF block structure has no trailer.")
     }
 
     private companion object {

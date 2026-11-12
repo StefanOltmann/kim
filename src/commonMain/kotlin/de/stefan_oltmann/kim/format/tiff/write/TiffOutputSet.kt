@@ -285,6 +285,20 @@ public class TiffOutputSet(
     }
 
     /**
+     * Removes the thumbnail directory (IFD1) and returns whether one
+     * existed. The thumbnail data and the fields describing it form the
+     * whole directory, so the removal leaves no residue that would
+     * misreport a thumbnail that no longer exists - the ExifTool binary
+     * deletes the interchange-format tags on "-ThumbnailImage=" and
+     * leaves the shrunken directory behind, where Kim removes the
+     * directory as a whole.
+     */
+    public fun removeThumbnailDirectory(): Boolean =
+        directories.removeAll { directory ->
+            directory.type == TiffConstants.TIFF_DIRECTORY_TYPE_IFD1
+        }
+
+    /**
      * A convenience method to update GPS values in EXIF metadata.
      */
     public fun setGpsCoordinates(gpsCoordinates: GpsCoordinates?) {

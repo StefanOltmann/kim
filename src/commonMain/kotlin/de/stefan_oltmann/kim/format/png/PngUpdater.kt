@@ -29,6 +29,7 @@ import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
 import de.stefan_oltmann.kim.format.jpeg.iptc.createIptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.withIptcDigestResource
+import de.stefan_oltmann.kim.format.tiffOutputSetWithoutThumbnail
 import de.stefan_oltmann.kim.format.updatedExifBytes
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
@@ -159,7 +160,8 @@ internal object PngUpdater : MetadataUpdater {
     @Throws(ImageWriteException::class)
     override fun deleteMetadata(
         byteReader: ByteReader,
-        byteWriter: ByteWriter
+        byteWriter: ByteWriter,
+        keepIccProfile: Boolean
     ) = tryWithImageWriteException {
 
         PngWriter.writeImageStreaming(
@@ -170,11 +172,13 @@ internal object PngUpdater : MetadataUpdater {
 
             /*
              * Remove the EXIF chunks and all text chunks, which carry XMP,
-             * IPTC and comments. The iCCP chunk is kept, because it affects
-             * how the image is displayed.
+             * IPTC and comments. The iCCP chunk is kept by default,
+             * because it affects how the image is displayed - with the
+             * profile dropped it goes with the rest of the metadata.
              */
             val chunksWithoutMetadata = chunks.filterNot { chunk ->
-                StaleChunkFilter.isMetadataChunkType(chunk.type)
+                StaleChunkFilter.isMetadataChunkType(chunk.type) ||
+                    (!keepIccProfile && chunk.type == PngChunkType.ICCP)
             }
 
             PngWriter.writeImage(
@@ -202,6 +206,40 @@ internal object PngUpdater : MetadataUpdater {
         val metadata = PngImageParser.parseMetadataFromChunks(chunks)
 
         val exifBytes = metadata.exifBytesWithThumbnail(thumbnailBytes)
+
+        val byteWriter = ByteArrayByteWriter()
+
+        PngWriter.writeImage(
+            chunks = chunks,
+            byteWriter = byteWriter,
+            exifBytes = exifBytes,
+            iptcBytes = null,
+            /*  No change to XMP */
+            xmp = null
+        )
+
+        return@tryWithImageWriteException byteWriter.toByteArray()
+    }
+
+    /**
+     * The thumbnail lives in the EXIF chunk: the rewrite removes the
+     * thumbnail directory (IFD1) from the parsed set and replaces the
+     * chunk with the shrunk one, while a file without a thumbnail is
+     * returned unchanged.
+     */
+    override fun deleteThumbnail(bytes: ByteArray): ByteArray = tryWithImageWriteException {
+
+        if (!bytes.startsWith(MediaFormatMagicNumbers.png))
+            throw ImageWriteException("Provided input bytes are not PNG!")
+
+        val byteReader = ByteArrayByteReader(bytes)
+
+        val chunks = PngImageParser.readChunks(byteReader, chunkTypeFilter = null)
+
+        val metadata = PngImageParser.parseMetadataFromChunks(chunks)
+
+        val exifBytes = metadata.tiffOutputSetWithoutThumbnail()?.toTiffBytes()
+            ?: return bytes
 
         val byteWriter = ByteArrayByteWriter()
 
