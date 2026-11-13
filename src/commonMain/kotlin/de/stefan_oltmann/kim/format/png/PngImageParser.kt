@@ -369,7 +369,9 @@ public object PngImageParser : ImageParser {
      * and not decompressed. Deletion passes the types it is about to
      * drop, so a discarded chunk cannot fail the write with its parse
      * error - the metadata content does not need to be parseable when it
-     * is removed anyway.
+     * is removed anyway. The EXIF containers are the one exception when
+     * the orientation is preserved: their payload must be parseable, so
+     * the rotation can be read from it.
      */
     internal fun readChunksUntilImageData(
         byteReader: ByteReader,

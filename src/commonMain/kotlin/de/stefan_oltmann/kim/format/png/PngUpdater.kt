@@ -23,15 +23,20 @@ import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
+import de.stefan_oltmann.kim.format.minimalOrientationExifBytes
 import de.stefan_oltmann.kim.format.exifBytesWithThumbnail
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcConstants
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
 import de.stefan_oltmann.kim.format.jpeg.iptc.createIptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.withIptcDigestResource
+import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiffOutputSetWithoutThumbnail
 import de.stefan_oltmann.kim.format.updatedExifBytes
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
+import de.stefan_oltmann.kim.format.png.chunk.PngChunk
+import de.stefan_oltmann.kim.format.png.chunk.PngChunkExif
+import de.stefan_oltmann.kim.format.png.chunk.PngTextChunk
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.model.MetadataUpdate
@@ -162,7 +167,8 @@ internal object PngUpdater : MetadataUpdater {
     override fun deleteMetadata(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
-        keepIccProfile: Boolean
+        keepIccProfile: Boolean,
+        keepOrientationFlag: Boolean
     ) = tryWithImageWriteException {
 
         /*
@@ -173,12 +179,26 @@ internal object PngUpdater : MetadataUpdater {
          * decompressed. The ICC profile is only skipped when it is
          * discarded - a kept profile is parsed like the read parses it,
          * because it affects how the image is displayed and stays in the
-         * file.
+         * file. With orientation preservation the EXIF containers and
+         * the legacy text Exif chunks are parsed as well, since the
+         * rotation has to be known before they go.
          */
-        val skippedChunkTypes = if (keepIccProfile)
-            StaleChunkFilter.METADATA_CHUNK_TYPES
-        else
-            StaleChunkFilter.METADATA_CHUNK_TYPES + PngChunkType.ICCP
+        val skippedChunkTypes = buildList {
+
+            /* The time carries no orientation and is always dropped. */
+            add(PngChunkType.TIME)
+
+            if (!keepIccProfile)
+                add(PngChunkType.ICCP)
+
+            if (!keepOrientationFlag) {
+                add(PngChunkType.EXIF)
+                add(PngChunkType.ZXIF)
+                add(PngChunkType.TEXT)
+                add(PngChunkType.ZTXT)
+                add(PngChunkType.ITXT)
+            }
+        }
 
         PngWriter.writeImageStreaming(
             byteReader = byteReader,
@@ -187,8 +207,45 @@ internal object PngUpdater : MetadataUpdater {
             skippedChunkTypes = skippedChunkTypes
         ) { chunks, outputWriter ->
 
+            /*
+             * With orientation preservation the metadata chunks before
+             * the image data were parsed, so the rotation is known here:
+             * the EXIF container is replaced in place by a minimal chunk
+             * carrying only the orientation value, and every other
+             * metadata chunk goes. An absent or unrotated (1) orientation
+             * writes nothing - per the specification an absent tag means
+             * 1. The legacy text Exif chunks are modernized the same way.
+             */
+            val orientation = if (keepOrientationFlag)
+                PngImageParser.parseMetadataFromChunks(chunks)
+                    .findShortValue(TiffTag.TIFF_TAG_ORIENTATION)
+            else
+                null
+
+            val orientationExifBytes = minimalOrientationExifBytes(orientation)
+
+            val writtenChunks = buildList<PngChunk> {
+
+                var orientationWritten = false
+
+                for (chunk in chunks) {
+
+                    val isExifSource = chunk is PngChunkExif ||
+                        (chunk is PngTextChunk && chunk.getKeyword() == PngConstants.EXIF_KEYWORD)
+
+                    when {
+                        isExifSource && !orientationWritten && orientationExifBytes != null -> {
+                            add(PngChunkExif(PngChunkType.EXIF, orientationExifBytes, 0))
+                            orientationWritten = true
+                        }
+
+                        chunk.type !in StaleChunkFilter.METADATA_CHUNK_TYPES -> add(chunk)
+                    }
+                }
+            }
+
             PngWriter.writeImage(
-                chunks = chunks,
+                chunks = writtenChunks,
                 byteWriter = outputWriter
             )
 

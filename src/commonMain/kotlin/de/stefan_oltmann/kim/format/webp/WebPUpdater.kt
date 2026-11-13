@@ -21,9 +21,13 @@ import de.stefan_oltmann.kim.common.startsWithNullable
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
+import de.stefan_oltmann.kim.format.minimalOrientationExifBytes
 import de.stefan_oltmann.kim.format.exifBytesWithThumbnail
 import de.stefan_oltmann.kim.format.tiffOutputSetWithoutThumbnail
+import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.updatedExifBytes
+import de.stefan_oltmann.kim.format.webp.chunk.WebPChunk
+import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkExif
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
@@ -60,22 +64,39 @@ internal object WebPUpdater : MetadataUpdater {
     override fun deleteMetadata(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
-        keepIccProfile: Boolean
+        keepIccProfile: Boolean,
+        keepOrientationFlag: Boolean
     ) = tryWithImageWriteException {
 
         val chunks = WebPImageParser.readChunks(byteReader, stopAfterMetadataRead = false)
 
         /*
-         * Remove the EXIF and XMP chunks. The ICCP chunk is kept by
-         * default, because it affects how the image is displayed - with
-         * the profile dropped it goes with the rest of the metadata. A
-         * list drained completely is rejected by the writer's emptiness
-         * guard.
+         * With orientation preservation the EXIF chunk is replaced in
+         * place by a minimal chunk carrying only the orientation value.
+         * The XMP chunk and the ICCP chunk - when the profile is
+         * discarded - go entirely. A list drained completely is rejected
+         * by the writer's emptiness guard.
          */
-        val modifiedChunks = chunks.filterNot { chunk ->
-            chunk.type == WebPChunkType.EXIF || chunk.type == WebPChunkType.XMP ||
-                (!keepIccProfile && chunk.type == WebPChunkType.ICCP)
-        }
+        val orientation = if (keepOrientationFlag)
+            WebPImageParser.parseMetadataFromChunks(chunks)
+                .findShortValue(TiffTag.TIFF_TAG_ORIENTATION)
+        else
+            null
+
+        val orientationExifBytes = minimalOrientationExifBytes(orientation)
+
+        val modifiedChunks: List<WebPChunk> = chunks.map { chunk ->
+            when {
+                chunk is WebPChunkExif && orientationExifBytes != null ->
+                    WebPChunkExif(orientationExifBytes)
+
+                chunk.type == WebPChunkType.EXIF || chunk.type == WebPChunkType.XMP -> null
+
+                !keepIccProfile && chunk.type == WebPChunkType.ICCP -> null
+
+                else -> chunk
+            }
+        }.filterNotNull()
 
         /*
          * The VP8X flags are rebuilt by the writer from the final chunk

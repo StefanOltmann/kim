@@ -155,7 +155,9 @@ public object PngWriter {
      *
      * The [skippedChunkTypes] are consumed without being kept, verified
      * or decompressed: deletion passes the chunk types it discards, so
-     * their payloads cannot fail the write.
+     * their payloads cannot fail the write. The EXIF containers are the
+     * one exception when the orientation is preserved - their payload
+     * must be parseable, so the rotation can be read from it.
      */
     internal fun writeImageStreaming(
         byteReader: ByteReader,

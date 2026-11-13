@@ -26,6 +26,7 @@ import de.stefan_oltmann.kim.format.webp.WebPUpdater
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.model.MetadataUpdate
+import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.output.ByteWriter
 
 /**
@@ -62,12 +63,23 @@ public interface MetadataUpdater {
      * flag tells the decoder how to interpret the DCT data, and losing
      * it renders Adobe RGB and CMYK files with wrong colors - ExifTool
      * protects the segment from "-all=" for the same reason.
+     *
+     * With [keepOrientationFlag] a valid Exif orientation value (2-8)
+     * survives the removal: the metadata container carrying it is
+     * replaced in place by a minimal structure carrying only that value,
+     * so the rotation is not lost with the rest of the metadata. An
+     * absent or unrotated (1) orientation writes nothing - per the
+     * specification an absent tag means 1. The metadata container
+     * carrying the orientation must be parseable, so a corrupt payload
+     * fails the operation instead of losing the rotation silently.
+     * Formats without an orientation concept (GIF) ignore the parameter.
      */
     @Throws(ImageWriteException::class)
     public fun deleteMetadata(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
-        keepIccProfile: Boolean = true
+        keepIccProfile: Boolean = true,
+        keepOrientationFlag: Boolean = true
     )
 
     /**
@@ -134,6 +146,37 @@ internal fun MediaMetadata.updatedExifBytes(
         outputSet.toTiffBytes()
     else
         null
+}
+
+/*
+ * The orientation values worth preserving: per the specification an
+ * absent tag means 1, so only a real rotation (2-8) writes a structure,
+ * and values outside 1-8 are not trusted.
+ */
+private const val MIN_PRESERVED_ORIENTATION: Int = 2
+
+private const val MAX_PRESERVED_ORIENTATION: Int = 8
+
+/**
+ * Builds the bytes of a minimal EXIF structure carrying nothing but the
+ * given orientation value, or NULL when there is nothing worth writing:
+ * an absent tag means 1 per the specification, so an unrotated image
+ * gains nothing from a written chunk, and values outside 1-8 are not
+ * trusted.
+ */
+internal fun minimalOrientationExifBytes(orientation: Short?): ByteArray? {
+
+    if (orientation == null ||
+        orientation.toInt() !in MIN_PRESERVED_ORIENTATION..MAX_PRESERVED_ORIENTATION
+    )
+        return null
+
+    val outputSet = TiffOutputSet()
+
+    outputSet.getOrCreateRootDirectory()
+        .add(TiffTag.TIFF_TAG_ORIENTATION, orientation)
+
+    return outputSet.toTiffBytes()
 }
 
 /**

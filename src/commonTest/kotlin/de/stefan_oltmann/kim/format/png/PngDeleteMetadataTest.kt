@@ -103,18 +103,19 @@ class PngDeleteMetadataTest {
     }
 
     /**
-     * A malformed eXIf chunk is dropped like a valid one - the metadata
-     * content does not need to be parseable when it is removed anyway.
+     * A malformed eXIf chunk fails the deletion: the rotation has to be
+     * read from the EXIF content before it is removed, so the payload
+     * must be parseable even though the chunk itself is discarded.
      */
     @Test
-    fun testDeleteMetadataSkipsMalformedExifWhenDiscarded() {
+    fun testDeleteMetadataFailsOnMalformedExifWhenDiscarded() {
 
-        val newBytes = Kim.deleteMetadata(
-            buildPng(listOf("eXIf" to byteArrayOf(1, 2, 3))),
-            keepIccProfile = false
-        )
-
-        assertEquals(listOf("IHDR", "IDAT", "IEND"), storedChunkTypes(newBytes))
+        assertFailsWith<ImageWriteException> {
+            Kim.deleteMetadata(
+                buildPng(listOf("eXIf" to byteArrayOf(1, 2, 3))),
+                keepIccProfile = false
+            )
+        }
     }
 
     /**

@@ -66,12 +66,14 @@ internal object GifUpdater : MetadataUpdater {
     override fun deleteMetadata(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
-        keepIccProfile: Boolean
+        keepIccProfile: Boolean,
+        keepOrientationFlag: Boolean
     ) = tryWithImageWriteException {
 
         /*
-         * GIF files carry no ICC profile concept, so keepIccProfile has
-         * nothing to keep or drop here and is ignored.
+         * GIF files carry no ICC profile and no orientation concept, so
+         * keepIccProfile and keepOrientationFlag have nothing to keep or
+         * drop here and are ignored.
          */
 
         GifWriter.writeImageStreaming(
