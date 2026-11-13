@@ -26,8 +26,6 @@ import de.stefan_oltmann.kim.format.exifBytesWithThumbnail
 import de.stefan_oltmann.kim.format.tiffOutputSetWithoutThumbnail
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.updatedExifBytes
-import de.stefan_oltmann.kim.format.webp.chunk.WebPChunk
-import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkExif
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
@@ -94,10 +92,11 @@ internal object WebPUpdater : MetadataUpdater {
         )
 
         /*
-         * With orientation preservation the EXIF chunk is replaced in
-         * place by a minimal chunk carrying only the orientation value.
-         * A list drained completely is rejected by the writer's emptiness
-         * guard.
+         * With orientation preservation the rotation is known here: the
+         * writer removes every EXIF chunk and writes a minimal one
+         * carrying only the orientation value. Without preservation the
+         * writer omits EXIF entirely, like the XMP and the discarded ICC
+         * profile.
          */
         val orientation = if (keepOrientationFlag)
             WebPImageParser.parseMetadataFromChunks(chunks)
@@ -107,18 +106,10 @@ internal object WebPUpdater : MetadataUpdater {
 
         val orientationExifBytes = minimalOrientationExifBytes(orientation)
 
-        val modifiedChunks: List<WebPChunk> = chunks.map { chunk ->
-            when {
-                chunk is WebPChunkExif && orientationExifBytes != null ->
-                    WebPChunkExif(orientationExifBytes)
-
-                chunk.type == WebPChunkType.EXIF || chunk.type == WebPChunkType.XMP -> null
-
-                !keepIccProfile && chunk.type == WebPChunkType.ICCP -> null
-
-                else -> chunk
-            }
-        }.filterNotNull()
+        val modifiedChunks = chunks.filterNot { chunk ->
+            chunk.type == WebPChunkType.EXIF || chunk.type == WebPChunkType.XMP ||
+                (!keepIccProfile && chunk.type == WebPChunkType.ICCP)
+        }
 
         /*
          * The VP8X flags are rebuilt by the writer from the final chunk
@@ -127,7 +118,7 @@ internal object WebPUpdater : MetadataUpdater {
         WebPWriter.writeImage(
             chunks = modifiedChunks,
             byteWriter = byteWriter,
-            exifBytes = null,
+            exifBytes = orientationExifBytes,
             xmp = null
         )
     }

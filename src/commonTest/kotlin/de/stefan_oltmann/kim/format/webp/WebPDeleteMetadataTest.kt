@@ -17,8 +17,12 @@ package de.stefan_oltmann.kim.format.webp
 
 import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ByteOrder
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
+import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunk
+import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkExif
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.writeInt
@@ -84,6 +88,100 @@ class WebPDeleteMetadataTest {
         )
 
         return byteWriter.toByteArray()
+    }
+
+    /**
+     * Two EXIF chunks produce exactly one minimal EXIF chunk, carrying
+     * the orientation of the first one - the read path is first-wins,
+     * and the output can never hold double Exif.
+     */
+    @Test
+    fun testWebPWithTwoExifChunksWritesExactlyOneMinimalExif() {
+
+        /*
+         * The original carries its own EXIF chunk without an orientation
+         * tag - it is filtered out, so the two controlled sources remain.
+         */
+        val originalChunks = WebPImageParser.readChunks(
+            ByteArrayByteReader(
+                Resource("de/stefan_oltmann/kim/updates_webp/original.webp").readBytes()
+            ),
+            stopAfterMetadataRead = false
+        ).filterNot { it.type == WebPChunkType.EXIF }
+
+        val fixture = webPWithAppendedChunks(
+            originalChunks +
+                WebPChunkExif(exifBytesWith(6)) +
+                WebPChunkExif(exifBytesWith(5))
+        )
+
+        /* Precondition: the fixture really carries both chunks. */
+        assertEquals(2, storedChunkTypes(fixture).count { it == "EXIF" })
+
+        val newBytes = Kim.deleteMetadata(fixture)
+
+        val chunkTypes = storedChunkTypes(newBytes)
+
+        assertEquals(1, chunkTypes.count { it == "EXIF" })
+
+        val metadata = Kim.readMetadata(newBytes)
+
+        assertEquals(6, metadata?.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)?.toInt())
+    }
+
+    /**
+     * Builds a WebP whose chunk list is the committed original plus the
+     * given raw chunks, appended behind the image data. The RIFF wrapper
+     * is assembled by hand, because the writer collapses EXIF chunks to
+     * the one carried in exifBytes - which is exactly the duplication
+     * under test.
+     */
+    private fun webPWithAppendedChunks(chunks: List<WebPChunk>): ByteArray {
+
+        val chunkWriter = ByteArrayByteWriter()
+
+        for (chunk in chunks) {
+
+            chunkWriter.write(chunk.type.bytes)
+
+            chunkWriter.writeInt(chunk.bytes.size, ByteOrder.LITTLE_ENDIAN)
+
+            chunkWriter.write(chunk.bytes)
+
+            if (chunk.bytes.size % 2 != 0)
+                chunkWriter.write(0)
+        }
+
+        val chunkBlock = chunkWriter.toByteArray()
+
+        val byteWriter = ByteArrayByteWriter()
+
+        byteWriter.write("RIFF".encodeToByteArray())
+
+        byteWriter.writeInt(4 + chunkBlock.size, ByteOrder.LITTLE_ENDIAN)
+
+        byteWriter.write("WEBP".encodeToByteArray())
+        byteWriter.write(chunkBlock)
+
+        return byteWriter.toByteArray()
+    }
+
+    /**
+     * Builds EXIF bytes carrying a Make field and the given orientation,
+     * so the test can prove that everything besides the orientation is
+     * gone afterwards.
+     */
+    private fun exifBytesWith(orientation: Short): ByteArray {
+
+        val outputSet = TiffOutputSet()
+
+        outputSet.getOrCreateRootDirectory()
+            .add(TiffTag.TIFF_TAG_MAKE, "Canon")
+
+        outputSet.getOrCreateRootDirectory()
+            .add(TiffTag.TIFF_TAG_ORIENTATION, orientation)
+
+        return outputSet.toTiffBytes()
     }
 
     /**
