@@ -19,6 +19,8 @@ package de.stefan_oltmann.kim.format.png
 
 import de.stefan_oltmann.kim.common.HEX_RADIX
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.MAX_DECOMPRESSED_BYTE_COUNT
+import de.stefan_oltmann.kim.common.MAX_DECOMPRESSED_TEXT_BYTES
 import de.stefan_oltmann.kim.common.MAX_METADATA_BYTE_BUDGET
 import de.stefan_oltmann.kim.common.convertHexStringToByteArray
 import de.stefan_oltmann.kim.common.tryWithImageReadException
@@ -64,6 +66,24 @@ public object PngImageParser : ImageParser {
      * metadata chunks must not accumulate unboundedly.
      */
     internal const val MAX_RETAINED_CHUNK_BYTES: Int = MAX_METADATA_BYTE_BUDGET
+
+    /**
+     * The number of ancillary chunks one read stores, bounded exactly
+     * like the chunk cache of libpng: a file of many tiny chunks
+     * inflates the heap through object overhead alone, since every
+     * stored chunk costs more memory than its payload draws from the
+     * byte budgets. Critical chunks do not count - libpng streams the
+     * image data instead of caching it, and Kim keeps the critical
+     * chunks only for the rewrite.
+     *
+     * libpng stops storing further chunks beyond its limit; Kim fails
+     * the read instead - silently dropping metadata would violate the
+     * strict read policy.
+     *
+     * See png_set_chunk_cache_max in
+     * https://www.libpng.org/pub/png/libpng-manual.txt
+     */
+    internal const val MAX_STORED_CHUNK_COUNT: Int = 1000
 
     /* Note that [\\p{Cntrl}] does not work for Kotlin/JS. */
     private val controlCharRegex = Regex("""[\x00-\x1F\x7F-\x9F]""")
@@ -113,10 +133,9 @@ public object PngImageParser : ImageParser {
 
             /*
              * The EXIF chunk has been the standard location since 2017.
-             * Like ExifTool, only the first eXIf/zxIf chunk is
-             * authoritative: later ones are ignored entirely (not
-             * merged), and a text-chunk EXIF only serves as the fallback
-             * when no chunk exists.
+             * The chunk walk rejects duplicate eXIf chunks, so the first
+             * one is the only eXIf chunk of the file, and a text-chunk
+             * EXIF only serves as the fallback when no chunk exists.
              */
             val exifPair = chunks.filterIsInstance<PngChunkExif>()
                 .firstOrNull()
@@ -385,10 +404,25 @@ public object PngImageParser : ImageParser {
         var retainedChunkBytes = 0L
 
         /*
-         * Only the first EXIF chunk is parsed; like ExifTool, later ones
-         * are ignored instead of failing or merging the read.
+         * The types of the single-appearance chunks seen so far. A
+         * repeated one is corrupt per the chunk ordering rules of the
+         * PNG specification, and the hostile case - repeated iCCP chunks
+         * with decompression bombs - is rejected before the payload of
+         * the duplicate is even read, let alone decompressed.
          */
-        var haveParsedExifChunk = false
+        val seenSingleAppearanceChunks = mutableSetOf<PngChunkType>()
+
+        /*
+         * The text chunk types are the only ones that occur multiple
+         * times per file and still decompress, so a hostile file of
+         * repeated zTXt or iTXt bombs is bounded by one cumulative
+         * budget: every text decompression of this walk draws from it,
+         * whatever the walk keeps. The single-occurrence chunks are
+         * bounded by the per-operation limit alone.
+         */
+        var remainingTextBytes = MAX_DECOMPRESSED_TEXT_BYTES
+
+        var storedChunkCount = 0
 
         while (true) {
 
@@ -411,6 +445,22 @@ public object PngImageParser : ImageParser {
 
             val keep = chunkTypeFilter?.contains(chunkType) ?: true
 
+            /*
+             * The chunk ordering rules of the PNG specification allow
+             * these chunk types only once per datastream, so a second
+             * occurrence marks the file as corrupt and fails the read
+             * before its payload is read or verified.
+             */
+            if (
+                keep &&
+                chunkType in PngChunkType.SINGLE_APPEARANCE_CHUNK_TYPES &&
+                !seenSingleAppearanceChunks.add(chunkType)
+            )
+                throw ImageReadException(
+                    "The PNG file contains more than one $chunkType chunk, " +
+                        "which the PNG specification allows only once."
+                )
+
             var bytes: ByteArray? = null
 
             /*
@@ -418,7 +468,9 @@ public object PngImageParser : ImageParser {
              * hundreds of megabytes must fail without materializing its
              * payload first.
              */
-            if (keep && enforceRetainedBudget &&
+            if (
+                keep &&
+                enforceRetainedBudget &&
                 retainedChunkBytes + length > MAX_RETAINED_CHUNK_BYTES
             )
                 throw ImageReadException(
@@ -440,14 +492,26 @@ public object PngImageParser : ImageParser {
 
                 verifyChunkCrc(chunkType, bytes, crc)
 
-                val parseExif =
-                    (chunkType == PngChunkType.EXIF || chunkType == PngChunkType.ZXIF) &&
-                        !haveParsedExifChunk
+                val chunk = createChunk(
+                    chunkType = chunkType,
+                    bytes = bytes,
+                    crc = crc,
+                    textByteAllowance = minOf(MAX_DECOMPRESSED_BYTE_COUNT, remainingTextBytes)
+                )
 
-                if (parseExif)
-                    haveParsedExifChunk = true
+                chunks.add(chunk)
 
-                chunks.add(createChunk(chunkType, bytes, crc, parseExif))
+                remainingTextBytes -= chunk.decompressedByteCount
+
+                if (chunk.ancillary) {
+
+                    storedChunkCount++
+
+                    if (storedChunkCount > MAX_STORED_CHUNK_COUNT)
+                        throw ImageReadException(
+                            "The PNG file contains more than $MAX_STORED_CHUNK_COUNT chunks."
+                        )
+                }
             }
 
             if (PngChunkType.IEND == chunkType)
@@ -484,11 +548,18 @@ public object PngImageParser : ImageParser {
             )
     }
 
+    /**
+     * Builds the chunk object of the given chunk type.
+     *
+     * The [textByteAllowance] bounds how many bytes the compressed text
+     * chunks may inflate; the single-occurrence decompressing chunks are
+     * bounded by the per-operation limit alone.
+     */
     private fun createChunk(
         chunkType: PngChunkType,
         bytes: ByteArray,
         crc: Int,
-        parseExif: Boolean
+        textByteAllowance: Int
     ): PngChunk =
         when (chunkType) {
 
@@ -496,28 +567,24 @@ public object PngImageParser : ImageParser {
                 PngChunkText(PngChunkType.TEXT, bytes, crc)
 
             PngChunkType.ZTXT ->
-                PngChunkZtxt(bytes, crc)
+                PngChunkZtxt.of(bytes, crc, textByteAllowance)
 
             PngChunkType.IHDR ->
                 PngChunkIhdr(bytes, crc)
 
             PngChunkType.ITXT ->
-                PngChunkItxt(bytes, crc)
+                PngChunkItxt.of(bytes, crc, textByteAllowance)
 
             PngChunkType.ICCP ->
                 PngChunkIccp(bytes, crc)
 
             /*
-             * A later duplicate EXIF chunk is ignored like
-             * ExifTool does, so its bytes stay preserved but are
-             * never parsed - a corrupt duplicate must not fail
-             * the read of the authoritative first chunk.
+             * A duplicate of either type can no longer reach this walk,
+             * so the first eXIf or zxIf chunk is the only one parsed.
+             * zxIf carries the same TIFF payload compressed.
              */
             PngChunkType.EXIF, PngChunkType.ZXIF ->
-                if (parseExif)
-                    PngChunkExif(chunkType, bytes, crc)
-                else
-                    PngChunk(chunkType, bytes, crc)
+                PngChunkExif(chunkType, bytes, crc)
 
             else -> PngChunk(chunkType, bytes, crc)
         }

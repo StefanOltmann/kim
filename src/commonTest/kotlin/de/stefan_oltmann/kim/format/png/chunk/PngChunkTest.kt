@@ -145,7 +145,7 @@ class PngChunkTest {
             byteArrayOf(0) +
             text.encodeToByteArray()
 
-        val chunk = PngChunkItxt(bytes, 0)
+        val chunk = PngChunkItxt.of(bytes, 0)
 
         assertEquals(keyword, chunk.getKeyword())
         assertEquals(text, chunk.getText())
@@ -167,7 +167,7 @@ class PngChunkTest {
             byteArrayOf(0) +
             compressedItxtText
 
-        val chunk = PngChunkItxt(bytes, 0)
+        val chunk = PngChunkItxt.of(bytes, 0)
 
         assertEquals(keyword, chunk.getKeyword())
         assertEquals(text, chunk.getText())
@@ -195,7 +195,7 @@ class PngChunkTest {
             invalidUtf8Compressed
 
         assertFailsWith<ImageReadException> {
-            PngChunkItxt(bytes, 0)
+            PngChunkItxt.of(bytes, 0)
         }
     }
 
@@ -204,22 +204,22 @@ class PngChunkTest {
 
         /* Keyword is not terminated. */
         assertFailsWith<ImageReadException> {
-            PngChunkItxt("Keyword".encodeToByteArray(), 0)
+            PngChunkItxt.of("Keyword".encodeToByteArray(), 0)
         }
 
         /* Invalid compression flag. */
         assertFailsWith<ImageReadException> {
-            PngChunkItxt("Keyword\u0000\u0002\u0000\u0000\u0000".encodeToByteArray(), 0)
+            PngChunkItxt.of("Keyword\u0000\u0002\u0000\u0000\u0000".encodeToByteArray(), 0)
         }
 
         /* Compressed with unexpected method. */
         assertFailsWith<ImageReadException> {
-            PngChunkItxt("Keyword\u0000\u0001\u0001\u0000\u0000".encodeToByteArray(), 0)
+            PngChunkItxt.of("Keyword\u0000\u0001\u0001\u0000\u0000".encodeToByteArray(), 0)
         }
 
         /* Language tag is not terminated. */
         assertFailsWith<ImageReadException> {
-            PngChunkItxt("Keyword\u0000\u0000\u0000en".encodeToByteArray(), 0)
+            PngChunkItxt.of("Keyword\u0000\u0000\u0000en".encodeToByteArray(), 0)
         }
     }
 
@@ -234,7 +234,7 @@ class PngChunkTest {
             byteArrayOf(0) +
             compressedZtxtText
 
-        val chunk = PngChunkZtxt(bytes, 0)
+        val chunk = PngChunkZtxt.of(bytes, 0)
 
         assertEquals(keyword, chunk.getKeyword())
         assertEquals(text, chunk.getText())
@@ -260,7 +260,7 @@ class PngChunkTest {
             byteArrayOf(0) +
             latin1Compressed
 
-        val chunk = PngChunkZtxt(bytes, 0)
+        val chunk = PngChunkZtxt.of(bytes, 0)
 
         assertEquals("Müller", chunk.getText())
     }
@@ -270,12 +270,12 @@ class PngChunkTest {
 
         /* Keyword is not terminated. */
         assertFailsWith<ImageReadException> {
-            PngChunkZtxt("Keyword".encodeToByteArray(), 0)
+            PngChunkZtxt.of("Keyword".encodeToByteArray(), 0)
         }
 
         /* Unexpected compression method. */
         assertFailsWith<ImageReadException> {
-            PngChunkZtxt("Keyword\u0000\u0001".encodeToByteArray(), 0)
+            PngChunkZtxt.of("Keyword\u0000\u0001".encodeToByteArray(), 0)
         }
     }
 
@@ -288,7 +288,7 @@ class PngChunkTest {
     fun testZtxtChunkRejectsMissingCompressionMethod() {
 
         assertFailsWith<ImageReadException> {
-            PngChunkZtxt("Keyword\u0000".encodeToByteArray(), 0)
+            PngChunkZtxt.of("Keyword\u0000".encodeToByteArray(), 0)
         }
     }
 
@@ -302,7 +302,7 @@ class PngChunkTest {
         val bytes = "Comment\u0000\u0000".encodeToByteArray() + compressedBomb
 
         assertFailsWith<ImageReadException> {
-            PngChunkZtxt(bytes, 0)
+            PngChunkZtxt.of(bytes, 0)
         }
     }
 
@@ -315,7 +315,7 @@ class PngChunkTest {
     fun testItxtChunkRejectsMissingCompressionFields() {
 
         assertFailsWith<ImageReadException> {
-            PngChunkItxt("Keyword\u0000".encodeToByteArray(), 0)
+            PngChunkItxt.of("Keyword\u0000".encodeToByteArray(), 0)
         }
     }
 
@@ -327,7 +327,7 @@ class PngChunkTest {
     fun testItxtChunkRejectsUnterminatedLanguageTag() {
 
         assertFailsWith<ImageReadException> {
-            PngChunkItxt("Keyword\u0000\u0000\u0000".encodeToByteArray(), 0)
+            PngChunkItxt.of("Keyword\u0000\u0000\u0000".encodeToByteArray(), 0)
         }
     }
 

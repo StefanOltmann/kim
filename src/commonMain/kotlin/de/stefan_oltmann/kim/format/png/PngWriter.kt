@@ -19,6 +19,8 @@ package de.stefan_oltmann.kim.format.png
 
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.decodeLatin1BytesToString
+import de.stefan_oltmann.kim.common.indexOfNullTerminator
 import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.common.toInt
 import de.stefan_oltmann.kim.format.png.PngConstants.PNG_BYTE_ORDER
@@ -26,9 +28,6 @@ import de.stefan_oltmann.kim.format.png.PngCrc.continuePartialCrc
 import de.stefan_oltmann.kim.format.png.PngCrc.finishPartialCrc
 import de.stefan_oltmann.kim.format.png.PngCrc.startPartialCrc
 import de.stefan_oltmann.kim.format.png.chunk.PngChunk
-import de.stefan_oltmann.kim.format.png.chunk.PngChunkItxt
-import de.stefan_oltmann.kim.format.png.chunk.PngChunkText
-import de.stefan_oltmann.kim.format.png.chunk.PngChunkZtxt
 import de.stefan_oltmann.kim.format.png.chunk.PngTextChunk
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.transferExactly
@@ -300,16 +299,37 @@ public object PngWriter {
     }
 
     /**
-     * Returns the keyword of a text chunk payload, or NULL for chunk types
-     * without a keyword.
+     * Returns the keyword of a text chunk payload, or NULL for chunk
+     * types without a keyword.
+     *
+     * The keywords of all three text chunk types are Latin-1 and
+     * NUL-terminated, so the prefix is read directly and the payload
+     * behind the keyword is never parsed or decompressed here: the
+     * stale filter decides from the keyword alone, and a corrupt
+     * compressed body cannot fail the walk.
      */
-    private fun keywordOf(chunkType: PngChunkType, data: ByteArray): String? =
+    private fun keywordOf(chunkType: PngChunkType, payload: ByteArray): String? =
         when (chunkType) {
-            PngChunkType.TEXT -> PngChunkText(chunkType, data, 0).getKeyword()
-            PngChunkType.ZTXT -> PngChunkZtxt(data, 0).getKeyword()
-            PngChunkType.ITXT -> PngChunkItxt(data, 0).getKeyword()
+            PngChunkType.TEXT,
+            PngChunkType.ZTXT,
+            PngChunkType.ITXT ->
+                keywordPrefixOf(chunkType, payload)
+
             else -> null
         }
+
+    private fun keywordPrefixOf(
+        chunkType: PngChunkType,
+        payload: ByteArray
+    ): String {
+
+        val keywordTerminator = payload.indexOfNullTerminator()
+
+        if (keywordTerminator < 0)
+            throw ImageReadException("PNG $chunkType chunk keyword is not terminated.")
+
+        return payload.copyOfRange(0, keywordTerminator).decodeLatin1BytesToString()
+    }
 
     public fun writeImage(
         chunks: List<PngChunk>,
