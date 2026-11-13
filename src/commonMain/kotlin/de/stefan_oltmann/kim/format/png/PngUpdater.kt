@@ -23,6 +23,7 @@ import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
+import de.stefan_oltmann.kim.format.icc.IccProfileParser
 import de.stefan_oltmann.kim.format.minimalOrientationExifBytes
 import de.stefan_oltmann.kim.format.exifBytesWithThumbnail
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcConstants
@@ -36,6 +37,7 @@ import de.stefan_oltmann.kim.format.updatedExifBytes
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.format.png.chunk.PngChunk
 import de.stefan_oltmann.kim.format.png.chunk.PngChunkExif
+import de.stefan_oltmann.kim.format.png.chunk.PngChunkIccp
 import de.stefan_oltmann.kim.format.png.chunk.PngTextChunk
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
@@ -208,6 +210,17 @@ internal object PngUpdater : MetadataUpdater {
         ) { chunks, outputWriter ->
 
             /*
+             * A kept ICC profile whose content cannot be parsed is dropped
+             * like JPEG drops faulty profiles: the deletion never
+             * interprets ICC content, so garbage goes with the rest of
+             * the metadata instead of failing the operation or staying
+             * in the file.
+             */
+            val healthyChunks = chunks.filterNot { chunk ->
+                chunk is PngChunkIccp && !IccProfileParser.isParseable(chunk.profileBytes)
+            }
+
+            /*
              * With orientation preservation the metadata chunks before
              * the image data were parsed, so the rotation is known here:
              * the EXIF container is replaced in place by a minimal chunk
@@ -217,7 +230,7 @@ internal object PngUpdater : MetadataUpdater {
              * 1. The legacy text Exif chunks are modernized the same way.
              */
             val orientation = if (keepOrientationFlag)
-                PngImageParser.parseMetadataFromChunks(chunks)
+                PngImageParser.parseMetadataFromChunks(healthyChunks)
                     .findShortValue(TiffTag.TIFF_TAG_ORIENTATION)
             else
                 null
@@ -228,7 +241,7 @@ internal object PngUpdater : MetadataUpdater {
 
                 var orientationWritten = false
 
-                for (chunk in chunks) {
+                for (chunk in healthyChunks) {
 
                     val isExifSource = chunk is PngChunkExif ||
                         (chunk is PngTextChunk && chunk.getKeyword() == PngConstants.EXIF_KEYWORD)

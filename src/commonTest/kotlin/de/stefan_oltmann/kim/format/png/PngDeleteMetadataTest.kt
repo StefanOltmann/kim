@@ -27,6 +27,7 @@ import de.stefan_oltmann.kim.output.writeInt
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 /**
  * Tests the deletion of PNG metadata on hostile heads: the operation
@@ -119,9 +120,32 @@ class PngDeleteMetadataTest {
     }
 
     /**
-     * A malformed iCCP chunk that the deletion keeps is parsed like the
-     * read parses it: the profile stays in the file, so a corrupt
-     * payload fails the operation instead of being silently retained.
+     * A faulty ICC profile (the chunk decompresses, the content is not a
+     * parseable profile) is dropped like JPEG drops faulty profiles: the
+     * deletion never interprets ICC content, so a faulty profile lets
+     * its chunk go instead of staying in the file or failing the
+     * operation.
+     */
+    @Test
+    fun testDeleteMetadataDropsFaultyIccProfile() {
+
+        val newBytes = Kim.deleteMetadata(
+            Resource(
+                "de/stefan_oltmann/kim/testdata/png_with_faulty_icc_profile.png"
+            ).readBytes()
+        )
+
+        val chunkTypes = storedChunkTypes(newBytes)
+
+        assertEquals(0, chunkTypes.count { it == "iCCP" })
+
+        assertTrue(chunkTypes.contains("IDAT"), "The image data must survive.")
+    }
+
+    /**
+     * A malformed iCCP chunk whose payload is not zlib data fails the
+     * deletion: the chunk cannot even be framed, which is structural
+     * corruption rather than unparseable metadata content.
      */
     @Test
     fun testDeleteMetadataFailsOnMalformedIccpWhenKept() {

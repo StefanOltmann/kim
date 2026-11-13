@@ -23,10 +23,12 @@ import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunk
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkExif
+import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkIccp
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.writeInt
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -248,26 +250,37 @@ class WebPDeleteMetadataTest {
     }
 
     /**
-     * A corrupt ICCP chunk that the deletion keeps stays in the file
-     * byte-exact: the deletion never interprets the ICC content, so the
-     * corruption is preserved instead of hidden, and the operation
-     * succeeds.
+     * A corrupt ICCP chunk (the payload is not a parseable ICC profile)
+     * is dropped like JPEG drops faulty profiles, while the healthy
+     * profile of the original survives: the deletion keeps healthy
+     * profiles and lets faulty ones go instead of failing the operation
+     * or retaining garbage.
      */
     @Test
-    fun testDeleteMetadataKeepsCorruptIccpByteExact() {
+    fun testDeleteMetadataDropsFaultyIccpWhenKept() {
 
-        val corruptPayload = byteArrayOf(1, 2, 3)
+        val originalChunks = WebPImageParser.readChunks(
+            ByteArrayByteReader(
+                Resource("de/stefan_oltmann/kim/updates_webp/original.webp").readBytes()
+            ),
+            stopAfterMetadataRead = false
+        )
 
-        val newBytes = Kim.deleteMetadata(webPWithInjectedChunk(WebPChunkType.ICCP, corruptPayload))
+        val originalIccp = originalChunks.filterIsInstance<WebPChunkIccp>().single()
 
-        val iccpPayloads = WebPImageParser.readChunks(
+        val newBytes = Kim.deleteMetadata(webPWithCorruptIccp())
+
+        val survivingIccpChunks = WebPImageParser.readChunks(
             ByteArrayByteReader(newBytes),
             stopAfterMetadataRead = false
-        ).filter { it.type == WebPChunkType.ICCP }.map { it.bytes.toList() }
+        ).filter { it.type == WebPChunkType.ICCP }
 
-        assertTrue(
-            corruptPayload.toList() in iccpPayloads,
-            "The injected corrupt ICCP chunk must survive the deletion."
+        assertEquals(1, survivingIccpChunks.size)
+
+        assertContentEquals(
+            originalIccp.bytes,
+            survivingIccpChunks.single().bytes,
+            "The healthy profile must survive; the corrupt one must be gone."
         )
     }
 }

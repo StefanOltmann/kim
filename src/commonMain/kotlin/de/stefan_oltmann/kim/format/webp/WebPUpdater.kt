@@ -21,11 +21,13 @@ import de.stefan_oltmann.kim.common.startsWithNullable
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
+import de.stefan_oltmann.kim.format.icc.IccProfileParser
 import de.stefan_oltmann.kim.format.minimalOrientationExifBytes
 import de.stefan_oltmann.kim.format.exifBytesWithThumbnail
 import de.stefan_oltmann.kim.format.tiffOutputSetWithoutThumbnail
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.updatedExifBytes
+import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkIccp
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
@@ -92,6 +94,16 @@ internal object WebPUpdater : MetadataUpdater {
         )
 
         /*
+         * A kept ICC profile whose content cannot be parsed is dropped
+         * like JPEG drops faulty profiles: the deletion never interprets
+         * ICC content, so garbage goes with the rest of the metadata
+         * instead of failing the operation or staying in the file.
+         */
+        val healthyChunks = chunks.filterNot { chunk ->
+            chunk is WebPChunkIccp && !IccProfileParser.isParseable(chunk.bytes)
+        }
+
+        /*
          * With orientation preservation the rotation is known here: the
          * writer removes every EXIF chunk and writes a minimal one
          * carrying only the orientation value. Without preservation the
@@ -99,14 +111,14 @@ internal object WebPUpdater : MetadataUpdater {
          * profile.
          */
         val orientation = if (keepOrientationFlag)
-            WebPImageParser.parseMetadataFromChunks(chunks)
+            WebPImageParser.parseMetadataFromChunks(healthyChunks)
                 .findShortValue(TiffTag.TIFF_TAG_ORIENTATION)
         else
             null
 
         val orientationExifBytes = minimalOrientationExifBytes(orientation)
 
-        val modifiedChunks = chunks.filterNot { chunk ->
+        val modifiedChunks = healthyChunks.filterNot { chunk ->
             chunk.type == WebPChunkType.EXIF || chunk.type == WebPChunkType.XMP ||
                 (!keepIccProfile && chunk.type == WebPChunkType.ICCP)
         }

@@ -148,6 +148,19 @@ public object IccProfileParser {
         "B2A2" to "BToA2"
     )
 
+    /**
+     * Returns whether the given bytes parse as an ICC profile, or false
+     * when they cannot: the deletion flows use it to let a faulty
+     * profile go instead of failing the operation or retaining garbage.
+     */
+    internal fun isParseable(bytes: ByteArray): Boolean =
+        try {
+            parse(bytes)
+            true
+        } catch (_: ImageReadException) {
+            false
+        }
+
     @JvmStatic
     public fun parse(bytes: ByteArray): IccProfile =
 
