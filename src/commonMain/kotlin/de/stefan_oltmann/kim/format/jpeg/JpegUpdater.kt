@@ -25,7 +25,6 @@ import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
-import de.stefan_oltmann.kim.format.minimalOrientationExifBytes
 import de.stefan_oltmann.kim.format.icc.IccProfileParser
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcConstants
 import de.stefan_oltmann.kim.format.jpeg.iptc.IptcMetadata
@@ -33,6 +32,7 @@ import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
 import de.stefan_oltmann.kim.format.jpeg.iptc.createIptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.withIptcDigestResource
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
+import de.stefan_oltmann.kim.format.minimalOrientationExifBytes
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffField
 import de.stefan_oltmann.kim.format.tiff.TiffReader

@@ -21,12 +21,12 @@ import de.stefan_oltmann.kim.format.gif.GifUpdater
 import de.stefan_oltmann.kim.format.jpeg.JpegUpdater
 import de.stefan_oltmann.kim.format.jxl.JxlUpdater
 import de.stefan_oltmann.kim.format.png.PngUpdater
+import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.format.webp.WebPUpdater
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.model.MediaFormat
 import de.stefan_oltmann.kim.model.MetadataUpdate
-import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.output.ByteWriter
 
 /**

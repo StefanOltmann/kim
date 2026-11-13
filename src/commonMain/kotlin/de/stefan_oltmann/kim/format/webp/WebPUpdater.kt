@@ -21,11 +21,11 @@ import de.stefan_oltmann.kim.common.startsWithNullable
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
+import de.stefan_oltmann.kim.format.exifBytesWithThumbnail
 import de.stefan_oltmann.kim.format.icc.IccProfileParser
 import de.stefan_oltmann.kim.format.minimalOrientationExifBytes
-import de.stefan_oltmann.kim.format.exifBytesWithThumbnail
-import de.stefan_oltmann.kim.format.tiffOutputSetWithoutThumbnail
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
+import de.stefan_oltmann.kim.format.tiffOutputSetWithoutThumbnail
 import de.stefan_oltmann.kim.format.updatedExifBytes
 import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkIccp
 import de.stefan_oltmann.kim.format.xmp.XmpWriter

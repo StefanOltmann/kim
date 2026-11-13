@@ -21,12 +21,12 @@ import de.stefan_oltmann.kim.common.startsWith
 import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
-import de.stefan_oltmann.kim.format.minimalOrientationExifBytes
 import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.exifBytesWithThumbnail
 import de.stefan_oltmann.kim.format.jxl.box.CompressedBox
 import de.stefan_oltmann.kim.format.jxl.box.ExifBox
+import de.stefan_oltmann.kim.format.minimalOrientationExifBytes
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiffOutputSetWithoutThumbnail
 import de.stefan_oltmann.kim.format.updatedExifBytes
@@ -133,9 +133,9 @@ internal object JxlUpdater : MetadataUpdater {
                     box.type == BoxType.EXIF ||
                         box.type == BoxType.XML ||
                         box is CompressedBox && (
-                            box.actualType == BoxType.EXIF ||
-                                box.actualType == BoxType.XML
-                            )
+                        box.actualType == BoxType.EXIF ||
+                            box.actualType == BoxType.XML
+                        )
                 }
 
             JxlWriter.writeImage(

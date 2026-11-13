@@ -18,15 +18,14 @@ package de.stefan_oltmann.kim.format
 import com.goncalossilva.resources.Resource
 import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.format.jxl.JxlWriter
+import de.stefan_oltmann.kim.format.png.PngConstants
 import de.stefan_oltmann.kim.format.png.PngCrc.continuePartialCrc
 import de.stefan_oltmann.kim.format.png.PngCrc.finishPartialCrc
 import de.stefan_oltmann.kim.format.png.PngCrc.startPartialCrc
 import de.stefan_oltmann.kim.format.png.PngImageParser
-import de.stefan_oltmann.kim.format.png.PngConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
-import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
-import de.stefan_oltmann.kim.format.jxl.JxlWriter
 import de.stefan_oltmann.kim.format.webp.WebPImageParser
 import de.stefan_oltmann.kim.format.webp.WebPWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
