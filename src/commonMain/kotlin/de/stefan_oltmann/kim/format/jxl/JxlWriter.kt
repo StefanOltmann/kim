@@ -312,7 +312,8 @@ public object JxlWriter {
 
     /**
      * Writes the boxes as a complete JPEG XL file, replacing EXIF and XMP
-     * with the given data. NULL removes that kind of metadata.
+     * with the given data. Non-null data replaces every stored box of
+     * that kind; NULL keeps the stored boxes unchanged.
      */
     @Throws(ImageWriteException::class)
     @JvmStatic

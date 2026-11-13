@@ -47,7 +47,8 @@ public object PngWriter {
 
     /**
      * Reads the whole PNG from the reader and rewrites it with the given
-     * EXIF, IPTC and XMP data. NULL leaves that kind of metadata out.
+     * EXIF, IPTC and XMP data. Non-null data replaces every stored chunk
+     * of that kind; NULL keeps the stored chunks unchanged.
      */
     @Throws(ImageWriteException::class)
     public fun writeImage(
@@ -66,7 +67,8 @@ public object PngWriter {
 
     /**
      * Writes the chunks as a complete PNG file, replacing EXIF, IPTC and
-     * XMP with the given data. NULL leaves that kind of metadata out.
+     * XMP with the given data. Non-null data replaces every stored chunk
+     * of that kind; NULL keeps the stored chunks unchanged.
      */
     @Throws(ImageWriteException::class)
     public fun writeImage(
