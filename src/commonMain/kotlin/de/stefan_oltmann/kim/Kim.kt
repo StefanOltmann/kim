@@ -679,6 +679,10 @@ public object Kim {
      * metadata behind it. For PNG the file ends at the structural IEND
      * marker the same way: every byte behind it is discarded.
      *
+     * Display chunks like gAMA, sRGB and pHYs survive the deletion:
+     * removing them changes color rendering and display size. ExifTool's
+     * "-all=" removes them as well - a divergence Kim does not copy.
+     *
      * The file's structure must be readable: truncated or structurally
      * corrupt files fail and are left untouched. The metadata content
      * itself does not need to be parseable, since it is removed anyway -
@@ -738,6 +742,10 @@ public object Kim {
      * operation, because its image data cannot be separated from the
      * metadata behind it. For PNG the file ends at the structural IEND
      * marker the same way: every byte behind it is discarded.
+     *
+     * Display chunks like gAMA, sRGB and pHYs survive the deletion:
+     * removing them changes color rendering and display size. ExifTool's
+     * "-all=" removes them as well - a divergence Kim does not copy.
      *
      * The file's structure must be readable: truncated or structurally
      * corrupt files fail and are left untouched. The metadata content

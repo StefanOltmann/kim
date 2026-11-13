@@ -29,6 +29,12 @@ import kotlin.jvm.JvmStatic
 
 /**
  * Writes WebP files.
+ *
+ * Attention: The rewrite buffers the complete file in memory. The RIFF
+ * container requires the total content size at offset 4, and a ByteReader
+ * cannot be rewound - a streaming rewrite cannot emit a correct RIFF
+ * size. The buffering is bounded by the input size and carries no
+ * amplification.
  */
 public object WebPWriter {
 
