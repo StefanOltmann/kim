@@ -161,15 +161,18 @@ public object PngWriter {
      * one exception when the orientation is preserved - their payload
      * must be parseable, so the rotation can be read from it.
      *
-     * The file ends at the structural IEND marker: every byte behind it
-     * belongs to other tools and is discarded instead of being parsed
-     * and copied.
+     * With [discardBehindImageEndMarker] the file ends at the structural
+     * IEND marker: every byte behind it belongs to other tools and is
+     * discarded instead of being parsed and copied. Without it the walk
+     * keeps the conservative update behavior and preserves the chunks
+     * behind the marker untouched.
      */
     internal fun writeImageStreaming(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
         failOnStaleMetadata: Boolean,
         skippedChunkTypes: List<PngChunkType>,
+        discardBehindImageEndMarker: Boolean,
         updateComputer: (List<PngChunk>, ByteWriter) -> StaleChunkFilter
     ) {
 
@@ -213,7 +216,8 @@ public object PngWriter {
             byteReader,
             byteWriter,
             staleFilter,
-            failOnStaleMetadata
+            failOnStaleMetadata,
+            discardBehindImageEndMarker
         )
     }
 
@@ -223,10 +227,10 @@ public object PngWriter {
      * metadata. All other chunks - including unknown ones and text chunks
      * unrelated to the change - stream through untouched.
      *
-     * The structural IEND marker ends the file: the marker itself is
-     * written and every byte behind it belongs to other tools and is
-     * discarded - the walk returns instead of parsing the bytes behind
-     * it.
+     * With [discardBehindImageEndMarker] the structural IEND marker ends
+     * the output: the marker itself is written and the walk returns
+     * instead of parsing the bytes behind it. Without it the chunks
+     * behind the marker stream through like every other chunk.
      *
      * Attention: A candidate text chunk whose content cannot be parsed
      * fails the write instead of being dropped, so a rewrite never
@@ -238,7 +242,8 @@ public object PngWriter {
         byteReader: ByteReader,
         byteWriter: ByteWriter,
         staleFilter: StaleChunkFilter,
-        failOnStaleMetadata: Boolean
+        failOnStaleMetadata: Boolean,
+        discardBehindImageEndMarker: Boolean
     ) {
 
         while (true) {
@@ -268,12 +273,12 @@ public object PngWriter {
                 header.copyOfRange(PngConstants.TYPE_LENGTH, CHUNK_HEADER_LENGTH)
             )
 
-            if (chunkType == PngChunkType.IEND) {
+            if (chunkType == PngChunkType.IEND && discardBehindImageEndMarker) {
 
                 /*
-                 * The structural IEND marker ends the file: the marker
-                 * itself is written and every byte behind it belongs to
-                 * other tools and is discarded.
+                 * The structural IEND marker ends the deletion's output:
+                 * the marker itself is written and every byte behind it
+                 * belongs to other tools and is discarded.
                  */
                 byteWriter.write(header)
 

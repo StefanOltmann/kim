@@ -65,7 +65,8 @@ internal object PngUpdater : MetadataUpdater {
             byteReader = byteReader,
             byteWriter = byteWriter,
             failOnStaleMetadata = true,
-            skippedChunkTypes = emptyList()
+            skippedChunkTypes = emptyList(),
+            discardBehindImageEndMarker = false
         ) { chunks, outputWriter ->
 
             val metadata = PngImageParser.parseMetadataFromChunks(chunks)
@@ -206,7 +207,8 @@ internal object PngUpdater : MetadataUpdater {
             byteReader = byteReader,
             byteWriter = byteWriter,
             failOnStaleMetadata = false,
-            skippedChunkTypes = skippedChunkTypes
+            skippedChunkTypes = skippedChunkTypes,
+            discardBehindImageEndMarker = true
         ) { chunks, outputWriter ->
 
             /*

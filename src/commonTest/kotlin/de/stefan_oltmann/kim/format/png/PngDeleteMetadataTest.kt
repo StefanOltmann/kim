@@ -149,12 +149,13 @@ class PngDeleteMetadataTest {
     }
 
     /**
-     * The structural IEND marker ends the file on updates as well: the
-     * well-formed chunk appended behind it belongs to other tools and is
-     * discarded.
+     * An update is conservative: the well-formed chunk appended behind
+     * the structural IEND marker survives byte-exact, like ExifTool
+     * preserves trailing data on targeted edits. The deletion cuts the
+     * file at IEND instead.
      */
     @Test
-    fun testUpdateDiscardsChunksBehindIEND() {
+    fun testUpdatePreservesWellFormedChunkBehindIEND() {
 
         val baseBytes = buildPng(emptyList())
 
@@ -189,18 +190,13 @@ class PngDeleteMetadataTest {
         )
 
         /*
-         * The output ends with the standard IEND chunk - nothing behind
-         * it, and the trailing chunk's wire bytes are gone.
+         * The chunk behind IEND survives byte-exact at the end of the
+         * output.
          */
-        val iendChunkBytes = byteArrayOf(0, 0, 0, 0) + "IEND".encodeToByteArray() +
-            byteArrayOf(0xAE.toByte(), 0x42.toByte(), 0x60.toByte(), 0x82.toByte())
-
         assertContentEquals(
-            iendChunkBytes,
-            updatedBytes.copyOfRange(updatedBytes.size - iendChunkBytes.size, updatedBytes.size)
+            trailingBytes,
+            updatedBytes.copyOfRange(updatedBytes.size - trailingBytes.size, updatedBytes.size)
         )
-
-        assertFalse(updatedBytes.decodeToString().contains("ukN1"))
     }
 
     /**
