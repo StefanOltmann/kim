@@ -686,10 +686,13 @@ public object Kim {
      * The file's structure must be readable: truncated or structurally
      * corrupt files fail and are left untouched. The metadata content
      * itself does not need to be parseable, since it is removed anyway -
-     * a corrupt XMP payload is dropped like a valid one. The EXIF
-     * payload is the one exception when [keepOrientationFlag] preserves
-     * the rotation (the default): the orientation has to be read from
-     * it, so a corrupt EXIF payload fails the operation.
+     * a corrupt XMP payload is dropped like a valid one. Discarded
+     * blocks are skipped before their payloads are read, verified or
+     * decompressed, so an unwanted compressed block is removed without
+     * inflating it first. The EXIF payload is the one exception when
+     * [keepOrientationFlag] preserves the rotation (the default): the
+     * orientation has to be read from it, so a corrupt EXIF payload
+     * fails the operation.
      *
      * @param bytes The original file bytes to modify.
      * @param keepIccProfile Whether the ICC profile stays (the default)
@@ -750,10 +753,13 @@ public object Kim {
      * The file's structure must be readable: truncated or structurally
      * corrupt files fail and are left untouched. The metadata content
      * itself does not need to be parseable, since it is removed anyway -
-     * a corrupt XMP payload is dropped like a valid one. The EXIF
-     * payload is the one exception when [keepOrientationFlag] preserves
-     * the rotation (the default): the orientation has to be read from
-     * it, so a corrupt EXIF payload fails the operation.
+     * a corrupt XMP payload is dropped like a valid one. Discarded
+     * blocks are skipped before their payloads are read, verified or
+     * decompressed, so an unwanted compressed block is removed without
+     * inflating it first. The EXIF payload is the one exception when
+     * [keepOrientationFlag] preserves the rotation (the default): the
+     * orientation has to be read from it, so a corrupt EXIF payload
+     * fails the operation.
      *
      * Attention: The given [ByteReader] and [ByteWriter] are not closed by
      * this call; the caller owns and closes both.
