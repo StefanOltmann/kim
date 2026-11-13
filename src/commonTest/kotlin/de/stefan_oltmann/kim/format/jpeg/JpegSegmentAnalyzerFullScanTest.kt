@@ -47,7 +47,7 @@ import kotlin.test.assertTrue
  * "KIM_TEST_DATA" and one extra EOI marker. ExifTool 12.70 validates the
  * fixture: it reports `Comment = KIM_TEST_DATA` for the relocated
  * segment behind the image data and the payload as an unknown 15 byte
- * trailer at offset 0x31f9. GitHub issue 41 works with exactly this
+ * trailer at offset 0x31f9. The two scan modes diverge on exactly this
  * scenario: the default scan must keep reporting the SOS segment up to
  * the file end without an EOI, while the full scan must locate the COM
  * segment between the scans and the structural EOI in front of the
@@ -121,10 +121,10 @@ class JpegSegmentAnalyzerFullScanTest {
     }
 
     /**
-     * The default scan keeps the documented behavior on the same file
-     * (GitHub issue 41): the SOS segment reaches to the end of the file
-     * and no EOI is reported, because the final two bytes are the extra
-     * payload's trailing EOI and not the structural EOI.
+     * The default scan keeps the documented behavior on the same file:
+     * the SOS segment reaches to the end of the file and no EOI is
+     * reported, because the final two bytes are the extra payload's
+     * trailing EOI and not the structural EOI.
      */
     @Test
     fun testDefaultScanUnchangedForFileWithTrailingData() {
@@ -135,8 +135,8 @@ class JpegSegmentAnalyzerFullScanTest {
          * The default scan only reports an EOI marker that is physically
          * the last one in the file: here that marker is the payload's
          * extra EOI, so the structural EOI and the trailing payload stay
-         * hidden inside the SOS range. This is exactly the defect of
-         * GitHub issue 41 that the full scan resolves.
+         * hidden inside the SOS range. The full scan resolves exactly
+         * this defect.
          */
         val eoiInfo = segmentInfos.last()
         val eoiEntries = segmentInfos.filter { it.marker == EOI_MARKER }
@@ -162,9 +162,9 @@ class JpegSegmentAnalyzerFullScanTest {
 
     /**
      * The TEM marker is a standalone marker without a length field and
-     * without payload, like SOI and EOI (GitHub issue 41 follow-up).
-     * In the header the default scan must not read the bytes behind it
-     * as a segment length but report the marker as a two byte entry.
+     * without payload, like SOI and EOI. In the header the default scan
+     * must not read the bytes behind it as a segment length but report
+     * the marker as a two byte entry.
      */
     @Test
     fun testDefaultScanReportsTemMarkerInHeaderWithoutLength() {
@@ -407,8 +407,8 @@ class JpegSegmentAnalyzerFullScanTest {
 
     /**
      * The TEM marker is a standalone marker without a length field and
-     * without payload, like SOI and EOI (GitHub issue 41 follow-up).
-     * Behind the first SOS marker the full scan must not read the bytes
+     * without payload, like SOI and EOI. Behind the first SOS marker
+     * the full scan must not read the bytes
      * behind it as a segment length but report the marker as a two byte
      * entry, and the scan continues behind it up to the structural EOI
      * marker.
@@ -675,9 +675,9 @@ class JpegSegmentAnalyzerFullScanTest {
         writeSegment(writer, JPEG_APP1_MARKER, SENTINEL)
 
         /*
-         * The DNL marker names the scan line count of the finished scan:
-         * a scan-continuation case the issue 41 author names explicitly.
-         * It is a length-prefixed structure marker between the scans.
+         * The DNL marker names the scan line count of the finished
+         * scan, a scan-continuation case. It is a length-prefixed
+         * structure marker between the scans.
          */
         val dnlOffset: Long = writer.toByteArray().size.toLong()
 
@@ -788,10 +788,10 @@ class JpegSegmentAnalyzerFullScanTest {
     }
 
     /**
-     * Layout 4 of the issue 41 author: another complete image follows
-     * the primary image. The full scan stops at the primary image's EOI
-     * marker and reports nothing behind it - the second image, whose
-     * file also ends with an EOI marker, must not confuse the boundary.
+     * Another complete image follows the primary image. The full scan
+     * stops at the primary image's EOI marker and reports nothing
+     * behind it - the second image, whose file also ends with an EOI
+     * marker, must not confuse the boundary.
      */
     @Test
     fun testFullScanStopsAtThePrimaryImageBeforeASecondImage() {

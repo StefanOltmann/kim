@@ -223,12 +223,12 @@ class JpegSegmentAnalyzerCorpusFullScanTest {
         }
 
         /*
-         * The copying contract of the issue 41 author: the caller copies
-         * the reported ranges and keeps the gaps between them as the
-         * compressed image data, so the ranges must tile the file in
-         * order without overlapping, and every length-prefixed entry must
-         * report exactly the length field the file itself carries - a
-         * drifted length would silently copy the wrong bytes.
+         * The copying contract: the caller copies the reported ranges
+         * and keeps the gaps between them as the compressed image data,
+         * so the ranges must tile the file in order without overlapping,
+         * and every length-prefixed entry must report exactly the length
+         * field the file itself carries - a drifted length would silently
+         * copy the wrong bytes.
          */
         var previousEnd = 0L
 

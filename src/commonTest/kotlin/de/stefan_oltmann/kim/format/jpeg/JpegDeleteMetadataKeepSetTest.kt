@@ -39,8 +39,8 @@ import kotlin.test.assertTrue
 
 /**
  * Tests the set of APP segments [Kim.deleteMetadata] keeps in a JPEG
- * file (GitHub issue 41: the caller must be able to rely on the result
- * being clean of metadata).
+ * file. The caller must be able to rely on the result being clean of
+ * metadata.
  *
  * The known healthy ICC profile in front of the image data is the only
  * APP payload that survives in front of the image data: the known

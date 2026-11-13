@@ -40,7 +40,7 @@ import kotlin.test.assertTrue
 
 /**
  * Tests that [Kim.deleteMetadata] cleans a JPEG through the structural
- * EOI marker (GitHub issue 41).
+ * EOI marker.
  *
  * The metadata segments behind the image data are removed like the header
  * segments, the compressed image data stays byte-exact, and every byte
@@ -402,11 +402,10 @@ class JpegDeleteMetadataBehindImageDataTest {
     }
 
     /**
-     * Layout 4 of the issue 41 author: another complete image follows
-     * the primary image. The deletion ends the file at the primary
-     * image's structural EOI marker, so the second image - including its
-     * own SOI marker - is discarded entirely and cannot confuse the
-     * boundary.
+     * Another complete image follows the primary image. The deletion
+     * ends the file at the primary image's structural EOI marker, so
+     * the second image - including its own SOI marker - is discarded
+     * entirely and cannot confuse the boundary.
      */
     @Test
     fun testDeleteMetadataDiscardsASecondImageBehindThePrimaryImage() {
