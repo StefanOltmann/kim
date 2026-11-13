@@ -21,12 +21,17 @@ import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.format.png.PngCrc.continuePartialCrc
 import de.stefan_oltmann.kim.format.png.PngCrc.finishPartialCrc
 import de.stefan_oltmann.kim.format.png.PngCrc.startPartialCrc
+import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.model.MetadataUpdate
+import de.stefan_oltmann.kim.model.TiffOrientation
 import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.writeInt
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -101,6 +106,101 @@ class PngDeleteMetadataTest {
         )
 
         assertEquals(listOf("IHDR", "IDAT", "IEND"), storedChunkTypes(newBytes))
+    }
+
+    /**
+     * The structural IEND marker ends the file: a well-formed chunk
+     * appended behind it belongs to other tools and is discarded, like
+     * the bytes behind the JPEG structural EOI marker.
+     */
+    @Test
+    fun testDeleteMetadataDiscardsChunksBehindIEND() {
+
+        val baseBytes = buildPng(emptyList())
+
+        val trailingWriter = ByteArrayByteWriter()
+
+        writeChunk(
+            byteWriter = trailingWriter,
+            typeName = "ukN1",
+            data = byteArrayOf(0x11, 0x22, 0x33)
+        )
+
+        val newBytes = Kim.deleteMetadata(baseBytes + trailingWriter.toByteArray())
+
+        assertContentEquals(baseBytes, newBytes)
+    }
+
+    /**
+     * Trailing bytes behind the structural IEND marker that are not even
+     * chunk-framed cannot fail the deletion either: they belong to other
+     * tools and are discarded with the rest of the tail.
+     */
+    @Test
+    fun testDeleteMetadataDiscardsGarbageBehindIEND() {
+
+        val baseBytes = buildPng(emptyList())
+
+        val newBytes = Kim.deleteMetadata(
+            baseBytes + "KIM_TEST_DATA".encodeToByteArray()
+        )
+
+        assertContentEquals(baseBytes, newBytes)
+    }
+
+    /**
+     * The structural IEND marker ends the file on updates as well: the
+     * well-formed chunk appended behind it belongs to other tools and is
+     * discarded.
+     */
+    @Test
+    fun testUpdateDiscardsChunksBehindIEND() {
+
+        val baseBytes = buildPng(emptyList())
+
+        val trailingWriter = ByteArrayByteWriter()
+
+        writeChunk(
+            byteWriter = trailingWriter,
+            typeName = "ukN1",
+            data = byteArrayOf(0x11, 0x22, 0x33)
+        )
+
+        val trailingBytes = trailingWriter.toByteArray()
+
+        val bytesWithTrailingChunk = baseBytes + trailingBytes
+
+        /*
+         * Precondition: the fixture carries the chunk behind IEND as its
+         * tail - the parser stops at IEND and cannot see behind it, so
+         * this is asserted on the raw bytes.
+         */
+        assertContentEquals(
+            trailingBytes,
+            bytesWithTrailingChunk.copyOfRange(
+                baseBytes.size,
+                bytesWithTrailingChunk.size
+            )
+        )
+
+        val updatedBytes = Kim.update(
+            bytes = bytesWithTrailingChunk,
+            update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT)
+        )
+
+        /*
+         * The output ends with the standard IEND chunk - nothing behind
+         * it, and the trailing chunk's wire bytes are gone.
+         */
+        val iendChunkBytes = byteArrayOf(0, 0, 0, 0) + "IEND".encodeToByteArray() +
+            byteArrayOf(0xAE.toByte(), 0x42.toByte(), 0x60.toByte(), 0x82.toByte())
+
+        assertContentEquals(
+            iendChunkBytes,
+            updatedBytes.copyOfRange(updatedBytes.size - iendChunkBytes.size, updatedBytes.size)
+        )
+
+        assertFalse(updatedBytes.decodeToString().contains("ukN1"))
     }
 
     /**

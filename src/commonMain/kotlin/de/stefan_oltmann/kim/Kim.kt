@@ -676,7 +676,8 @@ public object Kim {
      * behind it belongs to other tools and is discarded. A JPG that ends
      * inside its image data without the structural EOI marker fails the
      * operation, because its image data cannot be separated from the
-     * metadata behind it.
+     * metadata behind it. For PNG the file ends at the structural IEND
+     * marker the same way: every byte behind it is discarded.
      *
      * The file's structure must be readable: truncated or structurally
      * corrupt files fail and are left untouched. The metadata content
@@ -735,7 +736,8 @@ public object Kim {
      * behind it belongs to other tools and is discarded. A JPG that ends
      * inside its image data without the structural EOI marker fails the
      * operation, because its image data cannot be separated from the
-     * metadata behind it.
+     * metadata behind it. For PNG the file ends at the structural IEND
+     * marker the same way: every byte behind it is discarded.
      *
      * The file's structure must be readable: truncated or structurally
      * corrupt files fail and are left untouched. The metadata content

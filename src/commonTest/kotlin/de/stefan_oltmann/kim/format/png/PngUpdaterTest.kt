@@ -45,6 +45,7 @@ import de.stefan_oltmann.kim.output.ByteArrayByteWriter
 import de.stefan_oltmann.kim.output.writeInt
 import de.stefan_oltmann.xmp.XMPMetaFactory
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
@@ -84,21 +85,32 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
 
     /**
      * Regression test: trailing bytes of a truncated chunk header after
-     * the IEND chunk mean a corrupt file. The rewrite must reject it
-     * instead of copying the partial header into a valid-looking output.
+     * the IEND chunk belong to other tools. The rewrite ends the file at
+     * the structural IEND marker and discards them, instead of copying
+     * the partial header into a valid-looking output.
      */
     @Test
-    fun testUpdateRejectsTruncatedTrailingChunkHeader() {
+    fun testUpdateDiscardsTruncatedTrailingBytesBehindIEND() {
 
         val corruptBytes = originalBytes +
             byteArrayOf(0, 0, 0, 0x1A.toByte())
 
-        assertFailsWith<ImageWriteException> {
-            Kim.update(
-                bytes = corruptBytes,
-                updates = setOf(MetadataUpdate.Title("x"))
-            )
-        }
+        val newBytes = Kim.update(
+            bytes = corruptBytes,
+            updates = setOf(MetadataUpdate.Title("x"))
+        )
+
+        /*
+         * The output ends with the standard IEND chunk - the truncated
+         * bytes behind it are gone.
+         */
+        val iendChunkBytes = byteArrayOf(0, 0, 0, 0) + "IEND".encodeToByteArray() +
+            byteArrayOf(0xAE.toByte(), 0x42.toByte(), 0x60.toByte(), 0x82.toByte())
+
+        assertContentEquals(
+            iendChunkBytes,
+            newBytes.copyOfRange(newBytes.size - iendChunkBytes.size, newBytes.size)
+        )
     }
 
     /**

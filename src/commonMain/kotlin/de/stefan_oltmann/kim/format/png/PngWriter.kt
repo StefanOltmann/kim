@@ -160,6 +160,10 @@ public object PngWriter {
      * their payloads cannot fail the write. The EXIF containers are the
      * one exception when the orientation is preserved - their payload
      * must be parseable, so the rotation can be read from it.
+     *
+     * The file ends at the structural IEND marker: every byte behind it
+     * belongs to other tools and is discarded instead of being parsed
+     * and copied.
      */
     internal fun writeImageStreaming(
         byteReader: ByteReader,
@@ -205,7 +209,12 @@ public object PngWriter {
          * From here on every chunk boundary is intact, so stale metadata
          * chunks can be dropped while streaming the tail.
          */
-        copyChunksSkippingMetadata(byteReader, byteWriter, staleFilter, failOnStaleMetadata)
+        copyChunksSkippingMetadata(
+            byteReader,
+            byteWriter,
+            staleFilter,
+            failOnStaleMetadata
+        )
     }
 
     /**
@@ -213,6 +222,11 @@ public object PngWriter {
      * those that [staleFilter] identifies as stale duplicates of rewritten
      * metadata. All other chunks - including unknown ones and text chunks
      * unrelated to the change - stream through untouched.
+     *
+     * The structural IEND marker ends the file: the marker itself is
+     * written and every byte behind it belongs to other tools and is
+     * discarded - the walk returns instead of parsing the bytes behind
+     * it.
      *
      * Attention: A candidate text chunk whose content cannot be parsed
      * fails the write instead of being dropped, so a rewrite never
@@ -253,6 +267,20 @@ public object PngWriter {
             val chunkType = PngChunkType.of(
                 header.copyOfRange(PngConstants.TYPE_LENGTH, CHUNK_HEADER_LENGTH)
             )
+
+            if (chunkType == PngChunkType.IEND) {
+
+                /*
+                 * The structural IEND marker ends the file: the marker
+                 * itself is written and every byte behind it belongs to
+                 * other tools and is discarded.
+                 */
+                byteWriter.write(header)
+
+                byteReader.transferExactly(byteWriter, dataLength.toLong() + CRC_LENGTH)
+
+                return
+            }
 
             if (StaleChunkFilter.isMetadataChunkType(chunkType)) {
 
