@@ -348,7 +348,12 @@ public object PngImageParser : ImageParser {
 
         readAndVerifySignature(byteReader)
 
-        return readChunksInternal(byteReader, chunkTypeFilter, imageDataHeaderWriter = null)
+        return readChunksInternal(
+            byteReader,
+            chunkTypeFilter,
+            imageDataHeaderWriter = null,
+            skipChunkTypes = emptyList()
+        )
     }
 
     /**
@@ -358,15 +363,28 @@ public object PngImageParser : ImageParser {
      * The length and type field of the first IDAT chunk are written to the
      * given writer, because they are consumed by the reader but belong to
      * the streamed image data.
+     *
+     * Chunks of a type in [skipChunkTypes] are skipped like the chunks
+     * outside a metadata filter: consumed, but not kept, not CRC-verified
+     * and not decompressed. Deletion passes the types it is about to
+     * drop, so a discarded chunk cannot fail the write with its parse
+     * error - the metadata content does not need to be parseable when it
+     * is removed anyway.
      */
     internal fun readChunksUntilImageData(
         byteReader: ByteReader,
-        imageDataHeaderWriter: ByteWriter
+        imageDataHeaderWriter: ByteWriter,
+        skipChunkTypes: List<PngChunkType>
     ): List<PngChunk> {
 
         readAndVerifySignature(byteReader)
 
-        return readChunksInternal(byteReader, chunkTypeFilter = null, imageDataHeaderWriter)
+        return readChunksInternal(
+            byteReader,
+            chunkTypeFilter = null,
+            imageDataHeaderWriter,
+            skipChunkTypes
+        )
     }
 
     /**
@@ -385,7 +403,8 @@ public object PngImageParser : ImageParser {
     private fun readChunksInternal(
         byteReader: ByteReader,
         chunkTypeFilter: List<PngChunkType>?,
-        imageDataHeaderWriter: ByteWriter?
+        imageDataHeaderWriter: ByteWriter?,
+        skipChunkTypes: List<PngChunkType>
     ): List<PngChunk> {
 
         val chunks = mutableListOf<PngChunk>()
@@ -443,7 +462,8 @@ public object PngImageParser : ImageParser {
                 break
             }
 
-            val keep = chunkTypeFilter?.contains(chunkType) ?: true
+            val keep = chunkType !in skipChunkTypes &&
+                (chunkTypeFilter?.contains(chunkType) ?: true)
 
             /*
              * The chunk ordering rules of the PNG specification allow

@@ -57,7 +57,8 @@ internal object PngUpdater : MetadataUpdater {
         PngWriter.writeImageStreaming(
             byteReader = byteReader,
             byteWriter = byteWriter,
-            failOnStaleMetadata = true
+            failOnStaleMetadata = true,
+            skippedChunkTypes = emptyList()
         ) { chunks, outputWriter ->
 
             val metadata = PngImageParser.parseMetadataFromChunks(chunks)
@@ -164,25 +165,30 @@ internal object PngUpdater : MetadataUpdater {
         keepIccProfile: Boolean
     ) = tryWithImageWriteException {
 
+        /*
+         * The chunks the operation discards are skipped before their
+         * payload is read: the metadata content does not need to be
+         * parseable for a deletion, so a malformed or duplicate chunk
+         * cannot fail the write, and a discarded profile is never
+         * decompressed. The ICC profile is only skipped when it is
+         * discarded - a kept profile is parsed like the read parses it,
+         * because it affects how the image is displayed and stays in the
+         * file.
+         */
+        val skippedChunkTypes = if (keepIccProfile)
+            StaleChunkFilter.METADATA_CHUNK_TYPES
+        else
+            StaleChunkFilter.METADATA_CHUNK_TYPES + PngChunkType.ICCP
+
         PngWriter.writeImageStreaming(
             byteReader = byteReader,
             byteWriter = byteWriter,
-            failOnStaleMetadata = false
+            failOnStaleMetadata = false,
+            skippedChunkTypes = skippedChunkTypes
         ) { chunks, outputWriter ->
 
-            /*
-             * Remove the EXIF chunks and all text chunks, which carry XMP,
-             * IPTC and comments. The iCCP chunk is kept by default,
-             * because it affects how the image is displayed - with the
-             * profile dropped it goes with the rest of the metadata.
-             */
-            val chunksWithoutMetadata = chunks.filterNot { chunk ->
-                StaleChunkFilter.isMetadataChunkType(chunk.type) ||
-                    (!keepIccProfile && chunk.type == PngChunkType.ICCP)
-            }
-
             PngWriter.writeImage(
-                chunks = chunksWithoutMetadata,
+                chunks = chunks,
                 byteWriter = outputWriter
             )
 

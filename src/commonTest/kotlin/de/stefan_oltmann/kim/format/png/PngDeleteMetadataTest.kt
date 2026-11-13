@@ -1,0 +1,192 @@
+/*
+ * Copyright 2026 Stefan Oltmann
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package de.stefan_oltmann.kim.format.png
+
+import com.goncalossilva.resources.Resource
+import de.stefan_oltmann.kim.Kim
+import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.format.png.PngCrc.continuePartialCrc
+import de.stefan_oltmann.kim.format.png.PngCrc.finishPartialCrc
+import de.stefan_oltmann.kim.format.png.PngCrc.startPartialCrc
+import de.stefan_oltmann.kim.input.ByteArrayByteReader
+import de.stefan_oltmann.kim.output.ByteArrayByteWriter
+import de.stefan_oltmann.kim.output.writeInt
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+
+/**
+ * Tests the deletion of PNG metadata on hostile heads: the operation
+ * discards the metadata chunks, so their payloads do not need to be
+ * parseable - a malformed or duplicate chunk is dropped like a valid
+ * one, and a discarded profile is never decompressed. Only a chunk the
+ * deletion keeps is parsed like the read does.
+ */
+class PngDeleteMetadataTest {
+
+    /**
+     * The payload of a malformed iCCP chunk: keyword, NUL terminator,
+     * compression method 0 - then bytes that are not zlib data.
+     */
+    private val malformedIccpPayload: ByteArray =
+        "test\u0000\u0000".encodeToByteArray() + byteArrayOf(1, 2, 3)
+
+    /**
+     * The payload of an iCCP chunk whose profile inflates beyond the
+     * per-operation decompression limit.
+     */
+    private val bombIccpPayload: ByteArray =
+        "test\u0000\u0000".encodeToByteArray() +
+            Resource("de/stefan_oltmann/kim/testdata/decompression_bomb.zlib").readBytes()
+
+    /**
+     * The committed reproducer carries two iCCP chunks whose profiles
+     * each inflate to 4 MiB. Deletion discards them, so both are skipped
+     * without decompression: the write succeeds and the file is clean of
+     * ICC chunks, with the image data intact.
+     */
+    @Test
+    fun testDeleteMetadataSkipsDuplicateIccpChunksWhenDiscarded() {
+
+        val bytes = Resource(
+            "de/stefan_oltmann/kim/testdata/png_with_duplicate_iccp_chunks.png"
+        ).readBytes()
+
+        val newBytes = Kim.deleteMetadata(bytes, keepIccProfile = false)
+
+        assertEquals(listOf("IHDR", "IDAT", "IEND"), storedChunkTypes(newBytes))
+    }
+
+    /**
+     * A malformed iCCP chunk whose payload is not zlib data is dropped
+     * like a valid one: the deletion does not parse the content it
+     * discards, so the payload cannot fail the write.
+     */
+    @Test
+    fun testDeleteMetadataSkipsMalformedIccpWhenDiscarded() {
+
+        val newBytes = Kim.deleteMetadata(
+            buildPng(listOf("iCCP" to malformedIccpPayload)),
+            keepIccProfile = false
+        )
+
+        assertEquals(listOf("IHDR", "IDAT", "IEND"), storedChunkTypes(newBytes))
+    }
+
+    /**
+     * A discarded iCCP chunk is never decompressed: its payload is a
+     * decompression bomb beyond the per-operation limit, and the
+     * deletion must not trip over what it drops.
+     */
+    @Test
+    fun testDeleteMetadataSkipsIccpDecompressionBombWhenDiscarded() {
+
+        val newBytes = Kim.deleteMetadata(
+            buildPng(listOf("iCCP" to bombIccpPayload)),
+            keepIccProfile = false
+        )
+
+        assertEquals(listOf("IHDR", "IDAT", "IEND"), storedChunkTypes(newBytes))
+    }
+
+    /**
+     * A malformed eXIf chunk is dropped like a valid one - the metadata
+     * content does not need to be parseable when it is removed anyway.
+     */
+    @Test
+    fun testDeleteMetadataSkipsMalformedExifWhenDiscarded() {
+
+        val newBytes = Kim.deleteMetadata(
+            buildPng(listOf("eXIf" to byteArrayOf(1, 2, 3))),
+            keepIccProfile = false
+        )
+
+        assertEquals(listOf("IHDR", "IDAT", "IEND"), storedChunkTypes(newBytes))
+    }
+
+    /**
+     * A malformed iCCP chunk that the deletion keeps is parsed like the
+     * read parses it: the profile stays in the file, so a corrupt
+     * payload fails the operation instead of being silently retained.
+     */
+    @Test
+    fun testDeleteMetadataFailsOnMalformedIccpWhenKept() {
+
+        assertFailsWith<ImageWriteException> {
+            Kim.deleteMetadata(buildPng(listOf("iCCP" to malformedIccpPayload)))
+        }
+    }
+
+    /**
+     * Builds a minimal PNG: the given chunks sit between the IHDR chunk
+     * and the image data of a 1x1 pixel image.
+     */
+    private fun buildPng(chunks: List<Pair<String, ByteArray>>): ByteArray {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        byteWriter.write(PngConstants.PNG_SIGNATURE)
+
+        /* 1x1 pixel, 8 bit RGBA, no interlace. */
+        writeChunk(
+            byteWriter = byteWriter,
+            typeName = "IHDR",
+            data = byteArrayOf(0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0)
+        )
+
+        for ((typeName, data) in chunks)
+            writeChunk(byteWriter = byteWriter, typeName = typeName, data = data)
+
+        writeChunk(byteWriter = byteWriter, typeName = "IDAT", data = byteArrayOf(1, 2, 3, 4))
+
+        writeChunk(byteWriter = byteWriter, typeName = "IEND", data = byteArrayOf())
+
+        return byteWriter.toByteArray()
+    }
+
+    /**
+     * Reads the chunk type names of the file in order. The hostile
+     * chunks under test are gone from the deleted output, so the clean
+     * file parses without trouble.
+     */
+    private fun storedChunkTypes(pngBytes: ByteArray): List<String> =
+
+        PngImageParser.readChunks(
+            ByteArrayByteReader(pngBytes),
+            chunkTypeFilter = null
+        ).map { it.type.name }
+
+    /**
+     * Writes a single well-formed chunk with a correct CRC.
+     */
+    private fun writeChunk(
+        byteWriter: ByteArrayByteWriter,
+        typeName: String,
+        data: ByteArray
+    ) {
+
+        val typeBytes = typeName.encodeToByteArray()
+
+        byteWriter.writeInt(data.size, PngConstants.PNG_BYTE_ORDER)
+        byteWriter.write(typeBytes)
+        byteWriter.write(data)
+
+        val crc =
+            finishPartialCrc(continuePartialCrc(startPartialCrc(typeBytes), data)).toInt()
+
+        byteWriter.writeInt(crc, PngConstants.PNG_BYTE_ORDER)
+    }
+}

@@ -152,17 +152,26 @@ public object PngWriter {
      * The failure happens after header and image data were written, so
      * streaming callers must discard the partial output; only the source
      * file is guaranteed to be untouched.
+     *
+     * The [skippedChunkTypes] are consumed without being kept, verified
+     * or decompressed: deletion passes the chunk types it discards, so
+     * their payloads cannot fail the write.
      */
     internal fun writeImageStreaming(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
         failOnStaleMetadata: Boolean,
+        skippedChunkTypes: List<PngChunkType>,
         updateComputer: (List<PngChunk>, ByteWriter) -> StaleChunkFilter
     ) {
 
         val pendingImageDataHeader = ByteArrayByteWriter()
 
-        val chunks = PngImageParser.readChunksUntilImageData(byteReader, pendingImageDataHeader)
+        val chunks = PngImageParser.readChunksUntilImageData(
+            byteReader,
+            pendingImageDataHeader,
+            skippedChunkTypes
+        )
 
         val imageDataHeader = pendingImageDataHeader.toByteArray()
 
