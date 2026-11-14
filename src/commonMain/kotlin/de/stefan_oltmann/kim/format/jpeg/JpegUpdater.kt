@@ -32,8 +32,10 @@ import de.stefan_oltmann.kim.format.jpeg.iptc.IptcWriter
 import de.stefan_oltmann.kim.format.jpeg.iptc.createIptcMetadata
 import de.stefan_oltmann.kim.format.jpeg.iptc.withIptcDigestResource
 import de.stefan_oltmann.kim.format.jpeg.jfif.JFIFPieceSegment
+import de.stefan_oltmann.kim.format.minimalOrientationExifBytes
 import de.stefan_oltmann.kim.format.tiff.TiffContents
 import de.stefan_oltmann.kim.format.tiff.TiffField
+import de.stefan_oltmann.kim.format.tiff.TiffReader
 import de.stefan_oltmann.kim.format.tiff.constant.TiffConstants
 import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiff.fieldtype.FieldTypeShort
@@ -144,7 +146,8 @@ internal object JpegUpdater : MetadataUpdater {
     override fun deleteMetadata(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
-        keepIccProfile: Boolean
+        keepIccProfile: Boolean,
+        keepOrientationFlag: Boolean
     ) = tryWithImageWriteException {
 
         /*
@@ -173,16 +176,53 @@ internal object JpegUpdater : MetadataUpdater {
                 else
                     emptySet()
 
+            /*
+             * With orientation preservation the first EXIF segment is
+             * parsed like the read parses it, so the rotation is known
+             * here: the segment keeps its position and is rewritten with
+             * a minimal payload carrying only the orientation value. A
+             * corrupt payload fails the operation instead of losing the
+             * rotation silently.
+             */
+            val exifSegmentIndex = if (keepOrientationFlag)
+                segments.indexOfFirst { it.isExifSegment() }
+            else
+                -1
+
+            val orientation = exifSegmentIndex.takeIf { it >= 0 }?.let { index ->
+                val segment = segments[index]
+
+                val exifHeaderEnd = JpegUtils.findExifHeaderEnd(segment.segmentBytes)
+
+                if (exifHeaderEnd == null)
+                    null
+                else
+                    TiffReader.read(
+                        segment.segmentBytes.copyOfRange(exifHeaderEnd, segment.segmentBytes.size)
+                    ).findTiffField(TiffTag.TIFF_TAG_ORIENTATION)?.toShort()
+            }
+
+            val orientationExifBytes = minimalOrientationExifBytes(orientation)
+
             val segmentsWithoutMetadata = segments
                 .withIndex()
                 .filterNot { (index, segment) ->
                     segment.marker == JpegConstants.COM_MARKER_1 ||
                         (segment.isAppSegment() &&
+                            !(index == exifSegmentIndex && orientationExifBytes != null) &&
                             !(segment.marker == JpegConstants.JPEG_APP2_MARKER &&
                                 index in healthyIccSegmentIndexes) &&
                             !segment.isAdobeApp14Segment())
                 }
-                .map { it.value }
+                .map { (index, segment) ->
+                    if (index == exifSegmentIndex && orientationExifBytes != null)
+                        JFIFPieceSegment(
+                            marker = segment.marker,
+                            segmentBytes = JpegConstants.EXIF_IDENTIFIER_CODE + orientationExifBytes
+                        )
+                    else
+                        segment
+                }
 
             JpegRewriter.writeSegments(outputWriter, segmentsWithoutMetadata)
         }

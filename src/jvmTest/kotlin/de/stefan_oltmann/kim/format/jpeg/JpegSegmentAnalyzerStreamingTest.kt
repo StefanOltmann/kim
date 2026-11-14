@@ -30,10 +30,10 @@ import kotlin.test.assertNull
 
 /*
  * The test is placed in jvmTest, because JvmInputStreamByteReader is a
- * JVM-only reader. The issue 41 author asked for the analyzer to work
- * with this reader without seek or reset, so the streamed walk must
- * produce the same segments as the byte-array walk - for a known
- * content length and for a stream whose length nobody provides.
+ * JVM-only reader. The analyzer must work with this reader without
+ * seek or reset, so the streamed walk must produce the same segments
+ * as the byte-array walk - for a known content length and for a stream
+ * whose length nobody provides.
  */
 class JpegSegmentAnalyzerStreamingTest {
 
@@ -138,7 +138,7 @@ class JpegSegmentAnalyzerStreamingTest {
      * A genuine I/O failure of the underlying stream stays
      * distinguishable from a structural error: the failure surfaces as
      * [ImageReadException] with the original exception preserved as the
-     * cause, like the issue 41 author requests through preserved causes.
+     * cause, so the true failure remains diagnosable.
      */
     @Test
     fun testUnderlyingIoFailureKeepsTheOriginalCause() {

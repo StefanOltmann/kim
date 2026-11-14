@@ -22,11 +22,16 @@ import de.stefan_oltmann.kim.format.jpeg.JpegConstants.ADOBE_IDENTIFIER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.COM_MARKER_1
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.DHT_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EOI
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.EXIF_IDENTIFIER_CODE
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.ICC_PROFILE_IDENTIFIER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_APP0_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_APP14_MARKER
+import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_APP1_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.JPEG_APP2_MARKER
 import de.stefan_oltmann.kim.format.jpeg.JpegConstants.SOI
+import de.stefan_oltmann.kim.format.minimalOrientationExifBytes
+import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
+import de.stefan_oltmann.kim.format.tiff.write.TiffOutputSet
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.testdata.KimTestData
 import kotlin.test.Test
@@ -39,8 +44,8 @@ import kotlin.test.assertTrue
 
 /**
  * Tests the set of APP segments [Kim.deleteMetadata] keeps in a JPEG
- * file (GitHub issue 41: the caller must be able to rely on the result
- * being clean of metadata).
+ * file. The caller must be able to rely on the result being clean of
+ * metadata.
  *
  * The known healthy ICC profile in front of the image data is the only
  * APP payload that survives in front of the image data: the known
@@ -60,11 +65,12 @@ import kotlin.test.assertTrue
 class JpegDeleteMetadataKeepSetTest {
 
     /**
-     * The header keeps the Adobe APP14 segment and the ICC chunks: the
+     * The header keeps the Adobe APP14 segment, the ICC chunks and the
+     * minimal EXIF segment of the explicitly stored orientation: the
      * ColorTransform flag of the APP14 segment tells the decoder how to
      * interpret the DCT data, and losing it renders Adobe RGB and CMYK
      * files with wrong colors. The JFIF APP0 segment, the foreign APP7
-     * payload, the comment and the EXIF segment are metadata and go.
+     * payload and the comment are metadata and go.
      */
     @Test
     fun testDeleteMetadataKeepsAdobeApp14InTheHeader() {
@@ -75,7 +81,7 @@ class JpegDeleteMetadataKeepSetTest {
 
         val commentBytes = segmentBytes(COM_MARKER_1, COMMENT_PAYLOAD_BYTES)
 
-        val exifBytes = segmentBytes(0xFFE1, EXIF_IDENTIFIER_BYTES)
+        val exifBytes = segmentBytes(0xFFE1, EXIF_IDENTIFIER_BYTES + minimalExifBytes())
 
         val app14Bytes = segmentBytes(JPEG_APP14_MARKER, ADOBE_PAYLOAD_BYTES)
 
@@ -85,7 +91,12 @@ class JpegDeleteMetadataKeepSetTest {
             exifBytes + app14Bytes + SCAN_HEADER_BYTES + entropyBytes +
             EOI + TRAILER_BYTES
 
-        val expectedBytes = SOI + app14Bytes + SCAN_HEADER_BYTES + entropyBytes + EOI
+        /*
+         * The explicit unrotated orientation 1 survives as the minimal
+         * segment at the position of the original one - the rewritten
+         * payload is byte-identical to the built one.
+         */
+        val expectedBytes = SOI + exifBytes + app14Bytes + SCAN_HEADER_BYTES + entropyBytes + EOI
 
         val deletedBytes = Kim.deleteMetadata(inputBytes)
 
@@ -94,6 +105,40 @@ class JpegDeleteMetadataKeepSetTest {
             actual = deletedBytes,
             message = "The Adobe APP14 segment is decoding structure and must survive."
         )
+    }
+
+    /**
+     * An EXIF segment without a TIFF payload behind the identifier
+     * carries no readable rotation: with orientation preservation the
+     * deletion fails instead of losing the rotation silently.
+     */
+    @Test
+    fun testDeleteMetadataFailsOnExifSegmentWithoutTiffPayload() {
+
+        val entropyBytes = byteArrayOf(0x11, 0x22, 0x33)
+
+        val exifBytes = segmentBytes(0xFFE1, EXIF_IDENTIFIER_BYTES)
+
+        val inputBytes = SOI + exifBytes + SCAN_HEADER_BYTES + entropyBytes + EOI
+
+        assertFailsWith<ImageWriteException> {
+            Kim.deleteMetadata(inputBytes)
+        }
+    }
+
+    /**
+     * Builds EXIF bytes carrying nothing but an explicit unrotated
+     * orientation value of 1, which survives the deletion as the
+     * minimal segment.
+     */
+    private fun minimalExifBytes(): ByteArray {
+
+        val outputSet = TiffOutputSet()
+
+        outputSet.getOrCreateRootDirectory()
+            .add(TiffTag.TIFF_TAG_ORIENTATION, 1)
+
+        return outputSet.toTiffBytes()
     }
 
     /**
@@ -144,10 +189,12 @@ class JpegDeleteMetadataKeepSetTest {
 
     /**
      * The whole corpus pins the keep-set: after the deletion only ICC
-     * PROFILE chunks of one complete healthy run and the Adobe APP14
-     * segments remain, and the read no longer finds EXIF, IPTC or XMP
-     * in any file. The four files the full scan rejects end inside their
-     * image data and fail the deletion.
+     * PROFILE chunks of one complete healthy run, the Adobe APP14
+     * segments and - for files whose EXIF carries an explicitly stored
+     * orientation (1-8) - the minimal orientation EXIF segment remain,
+     * and the read no longer finds IPTC or XMP in any file, nor any
+     * EXIF field besides the orientation. The four files the full scan
+     * rejects end inside their image data and fail the deletion.
      */
     @Test
     fun testDeleteMetadataLeavesOnlyTheKnownIccInTheCorpus() {
@@ -166,6 +213,17 @@ class JpegDeleteMetadataKeepSetTest {
 
                 continue
             }
+
+            /*
+             * The orientation of the source file decides whether the
+             * deletion writes a minimal EXIF segment at all: an absent
+             * tag means nothing worth writing - per the specification an
+             * absent tag means 1 - while an explicitly stored value,
+             * including an explicit 1, survives.
+             */
+            val orientationExifBytes = minimalOrientationExifBytes(
+                Kim.readMetadata(bytes)?.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)
+            )
 
             val deletedBytes = Kim.deleteMetadata(bytes)
 
@@ -186,7 +244,12 @@ class JpegDeleteMetadataKeepSetTest {
                     (segment.marker == JPEG_APP2_MARKER &&
                         segment.segmentBytes.startsWith(ICC_PROFILE_IDENTIFIER)) ||
                         (segment.marker == JPEG_APP14_MARKER &&
-                            segment.segmentBytes.startsWith(ADOBE_IDENTIFIER))
+                            segment.segmentBytes.startsWith(ADOBE_IDENTIFIER)) ||
+                        (segment.marker == JPEG_APP1_MARKER &&
+                            orientationExifBytes != null &&
+                            segment.segmentBytes.contentEquals(
+                                EXIF_IDENTIFIER_CODE + orientationExifBytes
+                            ))
 
                 assertTrue(
                     isKeptStructure,
@@ -223,7 +286,27 @@ class JpegDeleteMetadataKeepSetTest {
                 "media_$index must stay readable."
             )
 
-            assertNull(metadata.exif, "media_$index keeps readable EXIF.")
+            if (orientationExifBytes != null) {
+
+                /*
+                 * The kept EXIF carries nothing but the orientation of the
+                 * source file.
+                 */
+                assertEquals(
+                    expected = Kim.readMetadata(bytes)
+                        ?.findShortValue(TiffTag.TIFF_TAG_ORIENTATION),
+                    actual = metadata.findShortValue(TiffTag.TIFF_TAG_ORIENTATION),
+                    message = "media_$index keeps a changed orientation."
+                )
+
+                assertNull(
+                    metadata.findStringValue(TiffTag.TIFF_TAG_MAKE),
+                    "media_$index keeps EXIF fields beside the orientation."
+                )
+            } else {
+                assertNull(metadata.exif, "media_$index keeps readable EXIF.")
+            }
+
             assertNull(metadata.iptc, "media_$index keeps readable IPTC.")
             assertNull(metadata.xmp, "media_$index keeps readable XMP.")
         }
@@ -231,9 +314,10 @@ class JpegDeleteMetadataKeepSetTest {
 
     /**
      * The ICC profile is the only APP payload the default deletion keeps
-     * beside the Adobe APP14 segment: media_34 carries both, and with
-     * the profile dropped only the decoding directive survives - not the
-     * ICC chunks.
+     * beside the Adobe APP14 segment and the minimal orientation EXIF
+     * segment: media_34 carries both, and with the profile dropped only
+     * the decoding directive and the minimal orientation segment survive
+     * - not the ICC chunks.
      */
     @Test
     fun testDeleteMetadataKeepsIccChunksByDefaultAndDropsOnRequest() {
@@ -254,12 +338,29 @@ class JpegDeleteMetadataKeepSetTest {
         val (droppedSegments, _) =
             JpegUtils.readSegments(ByteArrayByteReader(iccDroppedBytes))
 
+        /*
+         * media_34 stores an explicit orientation, so beside the
+         * decoding directive only the minimal orientation EXIF segment
+         * survives.
+         */
+        val orientationExifBytes = minimalOrientationExifBytes(
+            Kim.readMetadata(KimTestData.getBytesOf(34))
+                ?.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)
+        )
+
         assertTrue(
             droppedSegments.all { segment ->
-                !segment.isAppSegment() || segment.marker == JPEG_APP14_MARKER
+                !segment.isAppSegment() ||
+                    segment.marker == JPEG_APP14_MARKER ||
+                    (segment.marker == JPEG_APP1_MARKER &&
+                        orientationExifBytes != null &&
+                        segment.segmentBytes.contentEquals(
+                            EXIF_IDENTIFIER_BYTES + orientationExifBytes
+                        ))
             },
             "The requested deletion must drop every APP segment but the " +
-                "Adobe APP14 decoding directive."
+                "Adobe APP14 decoding directive and the minimal orientation " +
+                "EXIF segment."
         )
     }
 

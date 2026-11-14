@@ -566,7 +566,7 @@ public object JpegRewriter {
     /**
      * Streams a JPEG to the given writer with every metadata segment
      * removed: the delete policy of the header, extended through the
-     * structural EOI marker (GitHub issue 41).
+     * structural EOI marker.
      *
      * The headerComputer receives the collected header segments and the
      * output writer, and must write the complete header (SOI and all kept

@@ -19,6 +19,8 @@ package de.stefan_oltmann.kim.format.png
 
 import de.stefan_oltmann.kim.common.ImageReadException
 import de.stefan_oltmann.kim.common.ImageWriteException
+import de.stefan_oltmann.kim.common.decodeLatin1BytesToString
+import de.stefan_oltmann.kim.common.indexOfNullTerminator
 import de.stefan_oltmann.kim.common.toHex
 import de.stefan_oltmann.kim.common.toInt
 import de.stefan_oltmann.kim.format.png.PngConstants.PNG_BYTE_ORDER
@@ -26,9 +28,6 @@ import de.stefan_oltmann.kim.format.png.PngCrc.continuePartialCrc
 import de.stefan_oltmann.kim.format.png.PngCrc.finishPartialCrc
 import de.stefan_oltmann.kim.format.png.PngCrc.startPartialCrc
 import de.stefan_oltmann.kim.format.png.chunk.PngChunk
-import de.stefan_oltmann.kim.format.png.chunk.PngChunkItxt
-import de.stefan_oltmann.kim.format.png.chunk.PngChunkText
-import de.stefan_oltmann.kim.format.png.chunk.PngChunkZtxt
 import de.stefan_oltmann.kim.format.png.chunk.PngTextChunk
 import de.stefan_oltmann.kim.input.ByteReader
 import de.stefan_oltmann.kim.input.transferExactly
@@ -48,7 +47,8 @@ public object PngWriter {
 
     /**
      * Reads the whole PNG from the reader and rewrites it with the given
-     * EXIF, IPTC and XMP data. NULL leaves that kind of metadata out.
+     * EXIF, IPTC and XMP data. Non-null data replaces every stored chunk
+     * of that kind; NULL keeps the stored chunks unchanged.
      */
     @Throws(ImageWriteException::class)
     public fun writeImage(
@@ -67,7 +67,8 @@ public object PngWriter {
 
     /**
      * Writes the chunks as a complete PNG file, replacing EXIF, IPTC and
-     * XMP with the given data. NULL leaves that kind of metadata out.
+     * XMP with the given data. Non-null data replaces every stored chunk
+     * of that kind; NULL keeps the stored chunks unchanged.
      */
     @Throws(ImageWriteException::class)
     public fun writeImage(
@@ -153,17 +154,35 @@ public object PngWriter {
      * The failure happens after header and image data were written, so
      * streaming callers must discard the partial output; only the source
      * file is guaranteed to be untouched.
+     *
+     * The [skippedChunkTypes] are consumed without being kept, verified
+     * or decompressed: deletion passes the chunk types it discards, so
+     * their payloads cannot fail the write. The EXIF containers are the
+     * one exception when the orientation is preserved - their payload
+     * must be parseable, so the rotation can be read from it.
+     *
+     * With [discardBehindImageEndMarker] the file ends at the structural
+     * IEND marker: every byte behind it belongs to other tools and is
+     * discarded instead of being parsed and copied. Without it the walk
+     * keeps the conservative update behavior and preserves the chunks
+     * behind the marker untouched.
      */
     internal fun writeImageStreaming(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
         failOnStaleMetadata: Boolean,
+        skippedChunkTypes: List<PngChunkType>,
+        discardBehindImageEndMarker: Boolean,
         updateComputer: (List<PngChunk>, ByteWriter) -> StaleChunkFilter
     ) {
 
         val pendingImageDataHeader = ByteArrayByteWriter()
 
-        val chunks = PngImageParser.readChunksUntilImageData(byteReader, pendingImageDataHeader)
+        val chunks = PngImageParser.readChunksUntilImageData(
+            byteReader,
+            pendingImageDataHeader,
+            skippedChunkTypes
+        )
 
         val imageDataHeader = pendingImageDataHeader.toByteArray()
 
@@ -193,7 +212,13 @@ public object PngWriter {
          * From here on every chunk boundary is intact, so stale metadata
          * chunks can be dropped while streaming the tail.
          */
-        copyChunksSkippingMetadata(byteReader, byteWriter, staleFilter, failOnStaleMetadata)
+        copyChunksSkippingMetadata(
+            byteReader,
+            byteWriter,
+            staleFilter,
+            failOnStaleMetadata,
+            discardBehindImageEndMarker
+        )
     }
 
     /**
@@ -201,6 +226,13 @@ public object PngWriter {
      * those that [staleFilter] identifies as stale duplicates of rewritten
      * metadata. All other chunks - including unknown ones and text chunks
      * unrelated to the change - stream through untouched.
+     *
+     * With [discardBehindImageEndMarker] the structural IEND marker ends
+     * the output: the marker itself is written and the walk returns
+     * instead of parsing the bytes behind it. Without it the chunks
+     * behind the marker stream through like every other chunk. In both
+     * modes a stream that ends before the marker is truncated and fails
+     * the walk: the rewrite would produce an incomplete file.
      *
      * Attention: A candidate text chunk whose content cannot be parsed
      * fails the write instead of being dropped, so a rewrite never
@@ -212,16 +244,38 @@ public object PngWriter {
         byteReader: ByteReader,
         byteWriter: ByteWriter,
         staleFilter: StaleChunkFilter,
-        failOnStaleMetadata: Boolean
+        failOnStaleMetadata: Boolean,
+        discardBehindImageEndMarker: Boolean
     ) {
+
+        /*
+         * The structural IEND marker is the only valid end of the stream:
+         * the flag distinguishes the update walk's normal termination
+         * from a file truncated before the marker, whose rewrite would
+         * produce an incomplete output.
+         */
+        var endMarkerWritten = false
 
         while (true) {
 
             val header = byteReader.readBytes(CHUNK_HEADER_LENGTH)
 
-            /* A clean end of the stream. */
-            if (header.isEmpty())
-                return
+            /*
+             * A clean end of the stream is only complete when the
+             * structural IEND marker was written: a file whose bytes end
+             * before it is truncated like a file ending inside a chunk
+             * header, and is rejected instead of producing an incomplete
+             * output.
+             */
+            if (header.isEmpty()) {
+
+                if (endMarkerWritten)
+                    return
+
+                throw ImageReadException(
+                    "Truncated PNG file: the bytes end before the structural IEND marker."
+                )
+            }
 
             /*
              * A partial chunk header means the file is truncated. Copying
@@ -241,6 +295,20 @@ public object PngWriter {
             val chunkType = PngChunkType.of(
                 header.copyOfRange(PngConstants.TYPE_LENGTH, CHUNK_HEADER_LENGTH)
             )
+
+            if (chunkType == PngChunkType.IEND && discardBehindImageEndMarker) {
+
+                /*
+                 * The structural IEND marker ends the deletion's output:
+                 * the marker itself is written and every byte behind it
+                 * belongs to other tools and is discarded.
+                 */
+                byteWriter.write(header)
+
+                byteReader.transferExactly(byteWriter, dataLength.toLong() + CRC_LENGTH)
+
+                return
+            }
 
             if (StaleChunkFilter.isMetadataChunkType(chunkType)) {
 
@@ -295,21 +363,45 @@ public object PngWriter {
                 byteWriter.write(header)
 
                 byteReader.transferExactly(byteWriter, totalLength)
+
+                if (chunkType == PngChunkType.IEND)
+                    endMarkerWritten = true
             }
         }
     }
 
     /**
-     * Returns the keyword of a text chunk payload, or NULL for chunk types
-     * without a keyword.
+     * Returns the keyword of a text chunk payload, or NULL for chunk
+     * types without a keyword.
+     *
+     * The keywords of all three text chunk types are Latin-1 and
+     * NUL-terminated, so the prefix is read directly and the payload
+     * behind the keyword is never parsed or decompressed here: the
+     * stale filter decides from the keyword alone, and a corrupt
+     * compressed body cannot fail the walk.
      */
-    private fun keywordOf(chunkType: PngChunkType, data: ByteArray): String? =
+    private fun keywordOf(chunkType: PngChunkType, payload: ByteArray): String? =
         when (chunkType) {
-            PngChunkType.TEXT -> PngChunkText(chunkType, data, 0).getKeyword()
-            PngChunkType.ZTXT -> PngChunkZtxt(data, 0).getKeyword()
-            PngChunkType.ITXT -> PngChunkItxt(data, 0).getKeyword()
+            PngChunkType.TEXT,
+            PngChunkType.ZTXT,
+            PngChunkType.ITXT ->
+                keywordPrefixOf(chunkType, payload)
+
             else -> null
         }
+
+    private fun keywordPrefixOf(
+        chunkType: PngChunkType,
+        payload: ByteArray
+    ): String {
+
+        val keywordTerminator = payload.indexOfNullTerminator()
+
+        if (keywordTerminator < 0)
+            throw ImageReadException("PNG $chunkType chunk keyword is not terminated.")
+
+        return payload.copyOfRange(0, keywordTerminator).decodeLatin1BytesToString()
+    }
 
     public fun writeImage(
         chunks: List<PngChunk>,

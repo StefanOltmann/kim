@@ -43,7 +43,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class JpegAndReaderEdgeCasesTest {
@@ -195,20 +194,16 @@ class JpegAndReaderEdgeCasesTest {
     }
 
     /**
-     * The deletion is a destructive removal: the metadata content does
-     * not need to be parseable, so a corrupt EXIF payload is dropped
-     * like a valid one instead of blocking the cleanup - the result is
-     * the same clean file either way.
+     * The deletion reads the rotation from the EXIF payload before it is
+     * removed, so a corrupt EXIF payload fails the operation instead of
+     * losing the rotation silently.
      */
     @Test
-    fun testDeleteMetadataRemovesCorruptExif() {
+    fun testDeleteMetadataFailsOnCorruptExif() {
 
-        val deletedBytes = Kim.deleteMetadata(corruptExifBytes())
-
-        assertNull(
-            assertNotNull(Kim.readMetadata(ByteArrayByteReader(deletedBytes))).exif,
-            "The corrupt EXIF segment must not survive the deletion."
-        )
+        assertFailsWith<ImageWriteException> {
+            Kim.deleteMetadata(corruptExifBytes())
+        }
     }
 
     /*

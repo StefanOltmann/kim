@@ -1,5 +1,11 @@
 File format : PNG
 Resolution  : 500 x 333
+---- TIFF ----
+Version 42
+Big-endian (Motorola, MM)
+---- Directory IFD0 @ 8 ----
+0000000010 0x0112 Orientation = 1
+
 ---- ICC ----
 ProfileSize = 672
 ProfileCMMType = lcms

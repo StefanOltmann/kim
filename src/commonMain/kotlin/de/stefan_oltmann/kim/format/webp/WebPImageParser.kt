@@ -129,7 +129,8 @@ public object WebPImageParser : ImageParser {
      */
     public fun readChunks(
         byteReader: ByteReader,
-        stopAfterMetadataRead: Boolean = false
+        stopAfterMetadataRead: Boolean = false,
+        skipChunkTypes: List<WebPChunkType> = emptyList()
     ): List<WebPChunk> = tryWithImageReadException {
 
         byteReader.readAndVerifyBytes("RIFF signature", RIFF_SIGNATURE)
@@ -148,13 +149,15 @@ public object WebPImageParser : ImageParser {
 
         return readChunksInternal(
             byteReader = byteReader,
-            stopAfterMetadataRead = stopAfterMetadataRead
+            stopAfterMetadataRead = stopAfterMetadataRead,
+            skipChunkTypes = skipChunkTypes
         )
     }
 
     private fun readChunksInternal(
         byteReader: ByteReader,
-        stopAfterMetadataRead: Boolean
+        stopAfterMetadataRead: Boolean,
+        skipChunkTypes: List<WebPChunkType>
     ): List<WebPChunk> {
 
         val chunks = mutableListOf<WebPChunk>()
@@ -183,6 +186,21 @@ public object WebPImageParser : ImageParser {
 
             if (chunkSize < 0)
                 throw ImageReadException("Invalid WebP chunk length: $chunkSize")
+
+            /*
+             * Skipped chunk types are consumed without being kept, verified
+             * or parsed: deletion passes the chunk types it discards, so
+             * their payloads cannot fail the walk.
+             */
+            if (chunkType in skipChunkTypes) {
+
+                byteReader.skipBytes("chunk data", chunkSize)
+
+                if (chunkSize % 2 != 0)
+                    byteReader.readByte()
+
+                continue
+            }
 
             /*
              * For metadata reads only the metadata chunks themselves and

@@ -29,12 +29,19 @@ import kotlin.jvm.JvmStatic
 
 /**
  * Writes WebP files.
+ *
+ * Attention: The rewrite buffers the complete file in memory. The RIFF
+ * container requires the total content size at offset 4, and a ByteReader
+ * cannot be rewound - a streaming rewrite cannot emit a correct RIFF
+ * size. The buffering is bounded by the input size and carries no
+ * amplification.
  */
 public object WebPWriter {
 
     /**
      * Reads the whole WebP from the reader and rewrites it with the given
-     * EXIF and XMP data. NULL leaves that kind of metadata out.
+     * EXIF and XMP data. Non-null data replaces every stored chunk of
+     * that kind; NULL keeps the stored chunks unchanged.
      */
     @Throws(ImageWriteException::class)
     @JvmStatic
@@ -52,8 +59,9 @@ public object WebPWriter {
 
     /**
      * Writes the chunks as a complete WebP file, replacing EXIF and XMP
-     * with the given data. NULL leaves that kind of metadata out. The
-     * VP8X header flags are corrected to match what is actually written.
+     * with the given data. Non-null data replaces every stored chunk of
+     * that kind; NULL keeps the stored chunks unchanged. The VP8X header
+     * flags are corrected to match what is actually written.
      */
     @Throws(ImageWriteException::class)
     @JvmStatic

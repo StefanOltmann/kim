@@ -41,6 +41,14 @@ public open class PngChunk(
     /** Whether the chunk may be copied by tools that do not understand it. */
     public val safeToCopy: Boolean
 
+    /**
+     * The number of bytes this chunk decompressed while it was parsed,
+     * zero when it carries no compressed payload. The chunk walk
+     * accounts the decompressed bytes of the text chunks against the
+     * cumulative text budget.
+     */
+    internal open val decompressedByteCount: Int = 0
+
     init {
 
         val propertyBits = BooleanArray(4)

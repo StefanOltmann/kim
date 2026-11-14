@@ -29,8 +29,8 @@ import kotlin.test.assertEquals
  *
  * The walk reports the same entries as [JpegSegmentAnalyzer.findSegmentInfos]
  * in the same order, and returning false from the callback stops the walk
- * behind the last reported entry, so no byte behind it is read (GitHub
- * issue 41: bounded range enumeration with early stop).
+ * behind the last reported entry, so no byte behind it is read - a
+ * bounded range enumeration with early stop.
  */
 class JpegSegmentAnalyzerForEachSegmentTest {
 
@@ -221,7 +221,7 @@ class JpegSegmentAnalyzerForEachSegmentTest {
          */
         const val ENTROPY_BYTE_COUNT: Int = 1000
 
-        /** The payload behind the structural EOI marker (GitHub issue 41). */
+        /** The payload behind the structural EOI marker. */
         val TRAILER_BYTES: ByteArray =
             "KIM_TEST_DATA".encodeToByteArray() + EOI_BYTES
     }

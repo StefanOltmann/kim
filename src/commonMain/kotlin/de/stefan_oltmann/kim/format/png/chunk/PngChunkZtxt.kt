@@ -18,6 +18,7 @@
 package de.stefan_oltmann.kim.format.png.chunk
 
 import de.stefan_oltmann.kim.common.ImageReadException
+import de.stefan_oltmann.kim.common.MAX_DECOMPRESSED_BYTE_COUNT
 import de.stefan_oltmann.kim.common.decodeLatin1BytesToString
 import de.stefan_oltmann.kim.common.decompressBytes
 import de.stefan_oltmann.kim.common.indexOfNullTerminator
@@ -26,49 +27,20 @@ import de.stefan_oltmann.kim.format.png.PngConstants
 
 /**
  * The compressed text chunk of a PNG file.
+ *
+ * Instances are built by [of].
  */
-public class PngChunkZtxt(
+public class PngChunkZtxt private constructor(
     bytes: ByteArray,
-    crc: Int
+    crc: Int,
+    @kotlin.jvm.JvmField
+    public val keyword: String,
+    @kotlin.jvm.JvmField
+    public val text: String,
+    decompressedByteCount: Int
 ) : PngTextChunk(PngChunkType.ZTXT, bytes, crc) {
 
-    @kotlin.jvm.JvmField
-    public val keyword: String
-
-    @kotlin.jvm.JvmField
-    public val text: String
-
-    init {
-
-        var index = bytes.indexOfNullTerminator()
-
-        if (index < 0)
-            throw ImageReadException("PNG zTXt chunk keyword is not terminated.")
-
-        keyword = bytes.copyOfRange(
-            fromIndex = 0,
-            toIndex = index
-        ).decodeLatin1BytesToString()
-
-        index++
-
-        /*
-         * A chunk that ends directly behind the keyword terminator has
-         * no compression method and must be rejected cleanly.
-         */
-        if (index >= bytes.size)
-            throw ImageReadException("PNG zTXt chunk is too short for the compression method.")
-
-        val compressionMethod = bytes[index++].toInt()
-
-        if (compressionMethod != PngConstants.COMPRESSION_DEFLATE_INFLATE)
-            throw ImageReadException("PNG zTXt chunk has unexpected compression method: $compressionMethod")
-
-        val compressedText = bytes.copyOfRange(index, bytes.size)
-
-        /* The PNG specification defines zTXt text as Latin-1 - like the keyword. */
-        text = decompressBytes(compressedText).decodeLatin1BytesToString()
-    }
+    override val decompressedByteCount: Int = decompressedByteCount
 
     /**
      * @return Returns the keyword.
@@ -81,4 +53,57 @@ public class PngChunkZtxt(
      */
     override fun getText(): String =
         text
+
+    public companion object {
+
+        /**
+         * Builds the chunk from its payload: the keyword is decoded as
+         * Latin-1 up to its NUL terminator, the compression method must
+         * be deflate/inflate, and the text decompresses to at most
+         * [maxDecompressedByteCount] bytes, decoded as Latin-1.
+         */
+        internal fun of(
+            bytes: ByteArray,
+            crc: Int,
+            maxDecompressedByteCount: Int = MAX_DECOMPRESSED_BYTE_COUNT
+        ): PngChunkZtxt {
+
+            var index = bytes.indexOfNullTerminator()
+
+            if (index < 0)
+                throw ImageReadException("PNG zTXt chunk keyword is not terminated.")
+
+            val keyword = bytes.copyOfRange(
+                fromIndex = 0,
+                toIndex = index
+            ).decodeLatin1BytesToString()
+
+            index++
+
+            /*
+             * A chunk that ends directly behind the keyword terminator has
+             * no compression method and must be rejected cleanly.
+             */
+            if (index >= bytes.size)
+                throw ImageReadException("PNG zTXt chunk is too short for the compression method.")
+
+            val compressionMethod = bytes[index++].toInt()
+
+            if (compressionMethod != PngConstants.COMPRESSION_DEFLATE_INFLATE)
+                throw ImageReadException("PNG zTXt chunk has unexpected compression method: $compressionMethod")
+
+            val compressedText = bytes.copyOfRange(index, bytes.size)
+
+            /* The PNG specification defines zTXt text as Latin-1 - like the keyword. */
+            val decompressedText = decompressBytes(compressedText, maxDecompressedByteCount)
+
+            return PngChunkZtxt(
+                bytes = bytes,
+                crc = crc,
+                keyword = keyword,
+                text = decompressedText.decodeLatin1BytesToString(),
+                decompressedByteCount = decompressedText.size
+            )
+        }
+    }
 }

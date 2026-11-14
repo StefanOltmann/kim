@@ -22,8 +22,12 @@ import de.stefan_oltmann.kim.common.tryWithImageWriteException
 import de.stefan_oltmann.kim.format.MediaFormatMagicNumbers
 import de.stefan_oltmann.kim.format.MetadataUpdater
 import de.stefan_oltmann.kim.format.exifBytesWithThumbnail
+import de.stefan_oltmann.kim.format.icc.IccProfileParser
+import de.stefan_oltmann.kim.format.minimalOrientationExifBytes
+import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiffOutputSetWithoutThumbnail
 import de.stefan_oltmann.kim.format.updatedExifBytes
+import de.stefan_oltmann.kim.format.webp.chunk.WebPChunkIccp
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
 import de.stefan_oltmann.kim.input.ByteArrayByteReader
 import de.stefan_oltmann.kim.input.ByteReader
@@ -60,19 +64,61 @@ internal object WebPUpdater : MetadataUpdater {
     override fun deleteMetadata(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
-        keepIccProfile: Boolean
+        keepIccProfile: Boolean,
+        keepOrientationFlag: Boolean
     ) = tryWithImageWriteException {
 
-        val chunks = WebPImageParser.readChunks(byteReader, stopAfterMetadataRead = false)
+        /*
+         * The chunks the operation discards are skipped before their
+         * payload is parsed: the metadata content does not need to be
+         * parseable for a deletion, so a malformed XMP chunk or a
+         * discarded ICC profile cannot fail the write. The EXIF chunk is
+         * the one exception when the orientation is preserved - its
+         * payload must be parseable, so the rotation can be read from it.
+         */
+        val skippedChunkTypes = buildList {
+
+            add(WebPChunkType.XMP)
+
+            if (!keepIccProfile)
+                add(WebPChunkType.ICCP)
+
+            if (!keepOrientationFlag)
+                add(WebPChunkType.EXIF)
+        }
+
+        val chunks = WebPImageParser.readChunks(
+            byteReader,
+            stopAfterMetadataRead = false,
+            skipChunkTypes = skippedChunkTypes
+        )
 
         /*
-         * Remove the EXIF and XMP chunks. The ICCP chunk is kept by
-         * default, because it affects how the image is displayed - with
-         * the profile dropped it goes with the rest of the metadata. A
-         * list drained completely is rejected by the writer's emptiness
-         * guard.
+         * A kept ICC profile whose content cannot be parsed is dropped
+         * like JPEG drops faulty profiles: the deletion never interprets
+         * ICC content, so garbage goes with the rest of the metadata
+         * instead of failing the operation or staying in the file.
          */
-        val modifiedChunks = chunks.filterNot { chunk ->
+        val healthyChunks = chunks.filterNot { chunk ->
+            chunk is WebPChunkIccp && !IccProfileParser.isParseable(chunk.bytes)
+        }
+
+        /*
+         * With orientation preservation the rotation is known here: the
+         * writer removes every EXIF chunk and writes a minimal one
+         * carrying only the orientation value. Without preservation the
+         * writer omits EXIF entirely, like the XMP and the discarded ICC
+         * profile.
+         */
+        val orientation = if (keepOrientationFlag)
+            WebPImageParser.parseMetadataFromChunks(healthyChunks)
+                .findShortValue(TiffTag.TIFF_TAG_ORIENTATION)
+        else
+            null
+
+        val orientationExifBytes = minimalOrientationExifBytes(orientation)
+
+        val modifiedChunks = healthyChunks.filterNot { chunk ->
             chunk.type == WebPChunkType.EXIF || chunk.type == WebPChunkType.XMP ||
                 (!keepIccProfile && chunk.type == WebPChunkType.ICCP)
         }
@@ -84,7 +130,7 @@ internal object WebPUpdater : MetadataUpdater {
         WebPWriter.writeImage(
             chunks = modifiedChunks,
             byteWriter = byteWriter,
-            exifBytes = null,
+            exifBytes = orientationExifBytes,
             xmp = null
         )
     }

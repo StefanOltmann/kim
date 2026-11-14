@@ -25,6 +25,9 @@ import de.stefan_oltmann.kim.format.bmff.BoxReader
 import de.stefan_oltmann.kim.format.bmff.BoxType
 import de.stefan_oltmann.kim.format.exifBytesWithThumbnail
 import de.stefan_oltmann.kim.format.jxl.box.CompressedBox
+import de.stefan_oltmann.kim.format.jxl.box.ExifBox
+import de.stefan_oltmann.kim.format.minimalOrientationExifBytes
+import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.format.tiffOutputSetWithoutThumbnail
 import de.stefan_oltmann.kim.format.updatedExifBytes
 import de.stefan_oltmann.kim.format.xmp.XmpWriter
@@ -86,7 +89,8 @@ internal object JxlUpdater : MetadataUpdater {
     override fun deleteMetadata(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
-        keepIccProfile: Boolean
+        keepIccProfile: Boolean,
+        keepOrientationFlag: Boolean
     ) = tryWithImageWriteException {
 
         /*
@@ -96,27 +100,48 @@ internal object JxlUpdater : MetadataUpdater {
         JxlWriter.writeImageStreaming(byteReader, byteWriter) { boxes, outputWriter ->
 
             /*
-             * Remove the EXIF and XMP boxes. JPEG XL has no ICC box that
-             * would affect how the image is displayed.
+             * Remove the XMP box. JPEG XL has no ICC box that would affect
+             * how the image is displayed.
+             *
+             * With orientation preservation the EXIF box is replaced by a
+             * minimal box carrying only the orientation value, written at
+             * the canonical metadata position like every update does. A
+             * broken or brotli compressed Exif box yields no orientation
+             * and is dropped like before - the box model tolerates a
+             * broken Exif box so that deletion stays possible.
              *
              * Compressed boxes are dropped when their wrapped type
-             * identifies them as Exif or XMP. Their content cannot be
-             * rewritten without brotli support, but leaving them behind
-             * would silently keep data the user asked to delete.
+             * identifies them as XMP. Their content cannot be rewritten
+             * without brotli support, but leaving them behind would
+             * silently keep data the user asked to delete.
              */
-            val boxesWithoutMetadata = boxes.filterNot { box ->
-                box.type == BoxType.EXIF ||
-                    box.type == BoxType.XML ||
-                    box is CompressedBox && (
-                    box.actualType == BoxType.EXIF ||
-                        box.actualType == BoxType.XML
-                    )
-            }
+            val exifBox = boxes.filterIsInstance<ExifBox>().firstOrNull()
+
+            val orientation = if (keepOrientationFlag)
+                exifBox?.tiffContents
+                    ?.findTiffField(TiffTag.TIFF_TAG_ORIENTATION)
+                    ?.toShort()
+            else
+                null
+
+            val orientationExifBytes = minimalOrientationExifBytes(orientation)
+
+            val boxesWithoutMetadata = if (orientationExifBytes != null)
+                boxes
+            else
+                boxes.filterNot { box ->
+                    box.type == BoxType.EXIF ||
+                        box.type == BoxType.XML ||
+                        box is CompressedBox && (
+                        box.actualType == BoxType.EXIF ||
+                            box.actualType == BoxType.XML
+                        )
+                }
 
             JxlWriter.writeImage(
                 boxes = boxesWithoutMetadata,
                 byteWriter = outputWriter,
-                exifBytes = null,
+                exifBytes = orientationExifBytes,
                 xmp = null
             )
 

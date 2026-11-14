@@ -151,11 +151,12 @@ import kotlin.coroutines.cancellation.CancellationException
  *
  * Kim only ever modifies files it can properly read. [update] requires a
  * readable file and will fail if the file or its existing metadata cannot
- * be parsed. [deleteMetadata] requires a readable file structure, but not
- * parseable metadata content: the removal is destructive anyway, so a
- * corrupt EXIF or XMP payload is dropped like a valid one instead of
- * blocking the cleanup. Structurally invalid files are never touched in
- * any way.
+ * be parsed. [deleteMetadata] requires a readable file structure and - for
+ * the orientation preservation that is on by default - a parseable EXIF
+ * payload, since the rotation has to be read from it before the removal;
+ * every other metadata content is removed without being parsed, so a
+ * corrupt XMP payload is dropped like a valid one instead of blocking the
+ * cleanup. Structurally invalid files are never touched in any way.
  *
  * # Derived projections
  *
@@ -657,21 +658,58 @@ public object Kim {
      * it renders Adobe RGB and CMYK files with wrong colors - ExifTool
      * protects the segment from "-all=" for the same reason.
      *
+     * With [keepOrientationFlag] an explicitly stored Exif orientation
+     * value (1-8) survives the removal: the metadata container carrying
+     * it is replaced in place by a minimal structure carrying only that
+     * value, so the stored rotation is not lost with the rest of the
+     * metadata. PNG also reads the orientation from the legacy text
+     * representation ("Raw profile type exif") and modernizes it into
+     * an eXIf chunk.
+     *
+     * A legacy representation behind the image data cannot be
+     * modernized, because the stream has already passed the IDAT
+     * chunks: the deletion drops it like every metadata chunk, and the
+     * rotation it may carry is lost.
+     *
+     * An absent orientation writes nothing - per the specification an
+     * absent tag means 1, and the deletion fabricates no tag the file
+     * never stated. The metadata container carrying the orientation
+     * must be parseable, so a corrupt EXIF payload fails the operation
+     * instead of losing the rotation silently. Formats without an
+     * orientation concept (GIF) ignore the parameter.
+     *
      * For JPG the metadata segments behind the image data are removed as
      * well, and the file ends at the structural EOI marker: every byte
      * behind it belongs to other tools and is discarded. A JPG that ends
      * inside its image data without the structural EOI marker fails the
      * operation, because its image data cannot be separated from the
-     * metadata behind it.
+     * metadata behind it. For PNG the file ends at the structural IEND
+     * marker the same way: every byte behind it is discarded. A PNG
+     * whose bytes end before the structural IEND marker is truncated
+     * and fails the operation, because the rewrite would produce an
+     * incomplete file.
+     *
+     * Display chunks like gAMA, sRGB and pHYs survive the deletion:
+     * removing them changes color rendering and display size. ExifTool's
+     * "-all=" removes them as well - a divergence Kim does not copy.
      *
      * The file's structure must be readable: truncated or structurally
      * corrupt files fail and are left untouched. The metadata content
      * itself does not need to be parseable, since it is removed anyway -
-     * a corrupt EXIF or XMP payload is dropped like a valid one.
+     * a corrupt XMP payload is dropped like a valid one. Discarded
+     * blocks are skipped before their payloads are read, verified or
+     * decompressed, so an unwanted compressed block is removed without
+     * inflating it first. The EXIF payload is the one exception when
+     * [keepOrientationFlag] preserves the rotation (the default): the
+     * orientation has to be read from it, so a corrupt EXIF payload
+     * fails the operation.
      *
      * @param bytes The original file bytes to modify.
      * @param keepIccProfile Whether the ICC profile stays (the default)
      *        or is removed with the rest of the metadata.
+     * @param keepOrientationFlag Whether the Exif orientation survives
+     *        in a minimal structure (the default) or is removed with the
+     *        rest of the metadata.
      *
      * @return The modified file bytes.
      */
@@ -679,7 +717,8 @@ public object Kim {
     @Throws(ImageWriteException::class)
     public fun deleteMetadata(
         bytes: ByteArray,
-        keepIccProfile: Boolean = true
+        keepIccProfile: Boolean = true,
+        keepOrientationFlag: Boolean = true
     ): ByteArray = tryWithImageWriteException {
 
         val byteWriter = ByteArrayByteWriter()
@@ -687,7 +726,8 @@ public object Kim {
         deleteMetadata(
             byteReader = ByteArrayByteReader(bytes),
             byteWriter = byteWriter,
-            keepIccProfile = keepIccProfile
+            keepIccProfile = keepIccProfile,
+            keepOrientationFlag = keepOrientationFlag
         )
 
         return@tryWithImageWriteException byteWriter.toByteArray()
@@ -708,17 +748,51 @@ public object Kim {
      * it renders Adobe RGB and CMYK files with wrong colors - ExifTool
      * protects the segment from "-all=" for the same reason.
      *
+     * With [keepOrientationFlag] an explicitly stored Exif orientation
+     * value (1-8) survives the removal: the metadata container carrying
+     * it is replaced in place by a minimal structure carrying only that
+     * value, so the stored rotation is not lost with the rest of the
+     * metadata. PNG also reads the orientation from the legacy text
+     * representation ("Raw profile type exif") and modernizes it into
+     * an eXIf chunk.
+     *
+     * A legacy representation behind the image data cannot be
+     * modernized, because the stream has already passed the IDAT
+     * chunks: the deletion drops it like every metadata chunk, and the
+     * rotation it may carry is lost.
+     *
+     * An absent orientation writes nothing - per the specification an
+     * absent tag means 1, and the deletion fabricates no tag the file
+     * never stated. The metadata container carrying the orientation
+     * must be parseable, so a corrupt EXIF payload fails the operation
+     * instead of losing the rotation silently. Formats without an
+     * orientation concept (GIF) ignore the parameter.
+     *
      * For JPG the metadata segments behind the image data are removed as
      * well, and the file ends at the structural EOI marker: every byte
      * behind it belongs to other tools and is discarded. A JPG that ends
      * inside its image data without the structural EOI marker fails the
      * operation, because its image data cannot be separated from the
-     * metadata behind it.
+     * metadata behind it. For PNG the file ends at the structural IEND
+     * marker the same way: every byte behind it is discarded. A PNG
+     * whose bytes end before the structural IEND marker is truncated
+     * and fails the operation, because the rewrite would produce an
+     * incomplete file.
+     *
+     * Display chunks like gAMA, sRGB and pHYs survive the deletion:
+     * removing them changes color rendering and display size. ExifTool's
+     * "-all=" removes them as well - a divergence Kim does not copy.
      *
      * The file's structure must be readable: truncated or structurally
      * corrupt files fail and are left untouched. The metadata content
      * itself does not need to be parseable, since it is removed anyway -
-     * a corrupt EXIF or XMP payload is dropped like a valid one.
+     * a corrupt XMP payload is dropped like a valid one. Discarded
+     * blocks are skipped before their payloads are read, verified or
+     * decompressed, so an unwanted compressed block is removed without
+     * inflating it first. The EXIF payload is the one exception when
+     * [keepOrientationFlag] preserves the rotation (the default): the
+     * orientation has to be read from it, so a corrupt EXIF payload
+     * fails the operation.
      *
      * Attention: The given [ByteReader] and [ByteWriter] are not closed by
      * this call; the caller owns and closes both.
@@ -734,13 +808,17 @@ public object Kim {
      * @param byteWriter The destination the modified file is written to.
      * @param keepIccProfile Whether the ICC profile stays (the default)
      *        or is removed with the rest of the metadata.
+     * @param keepOrientationFlag Whether the Exif orientation survives
+     *        in a minimal structure (the default) or is removed with the
+     *        rest of the metadata.
      */
     @kotlin.jvm.JvmStatic
     @Throws(ImageWriteException::class)
     public fun deleteMetadata(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
-        keepIccProfile: Boolean = true
+        keepIccProfile: Boolean = true,
+        keepOrientationFlag: Boolean = true
     ): Unit = tryWithImageWriteException {
 
         val detection = detectFormatAndReplayHeader(byteReader)
@@ -751,7 +829,7 @@ public object Kim {
         val updater = MetadataUpdater.forFormat(detection.mediaFormat)
             ?: throw ImageWriteException("Can't delete metadata of ${detection.mediaFormat}.")
 
-        updater.deleteMetadata(detection.reader, byteWriter, keepIccProfile)
+        updater.deleteMetadata(detection.reader, byteWriter, keepIccProfile, keepOrientationFlag)
     }
 
     /**

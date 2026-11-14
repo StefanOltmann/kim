@@ -45,6 +45,20 @@ internal fun interface StaleChunkFilter {
     companion object {
 
         /**
+         * The chunk types [isMetadataChunkType] recognizes as metadata,
+         * which is the deletion scope: the list and the check must not
+         * drift apart.
+         */
+        val METADATA_CHUNK_TYPES: List<PngChunkType> = listOf(
+            PngChunkType.EXIF,
+            PngChunkType.ZXIF,
+            PngChunkType.TEXT,
+            PngChunkType.ZTXT,
+            PngChunkType.ITXT,
+            PngChunkType.TIME
+        )
+
+        /**
          * Drops every recognized metadata chunk regardless of content,
          * which is the semantics of deleteMetadata.
          */
@@ -53,11 +67,6 @@ internal fun interface StaleChunkFilter {
         }
 
         fun isMetadataChunkType(chunkType: PngChunkType): Boolean =
-            chunkType == PngChunkType.EXIF ||
-                chunkType == PngChunkType.ZXIF ||
-                chunkType == PngChunkType.TEXT ||
-                chunkType == PngChunkType.ZTXT ||
-                chunkType == PngChunkType.ITXT ||
-                chunkType == PngChunkType.TIME
+            chunkType in METADATA_CHUNK_TYPES
     }
 }
