@@ -161,9 +161,10 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
     }
 
     /**
-     * Verifies that deleting the metadata removes the EXIF, XMP, IPTC and
-     * comment segments, but keeps the healthy ICC segment that affects
-     * how the image is displayed.
+     * Verifies that deleting the metadata reduces the EXIF to the
+     * minimal orientation segment, removes the XMP, IPTC and comment
+     * segments, but keeps the healthy ICC segment that affects how the
+     * image is displayed.
      */
     @Test
     fun testDeleteMetadataKeepsIccSegment() {
@@ -173,8 +174,12 @@ class JpegUpdaterTest : AbstractUpdaterTest("jpg") {
 
         val markers = segmentMarkers(newBytes)
 
-        /* EXIF and XMP live in APP1 segments, IPTC in APP13. */
-        assertFalse(JpegConstants.JPEG_APP1_MARKER in markers)
+        /*
+         * media_1 stores an explicit orientation, so the EXIF APP1
+         * segment survives as the minimal orientation segment, while
+         * the XMP APP1 segment and the IPTC APP13 segment go.
+         */
+        assertTrue(JpegConstants.JPEG_APP1_MARKER in markers)
         assertFalse(JpegConstants.JPEG_APP13_MARKER in markers)
 
         /* Comments are metadata, too. */

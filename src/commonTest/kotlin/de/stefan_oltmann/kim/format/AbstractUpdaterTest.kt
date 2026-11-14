@@ -21,6 +21,7 @@ import de.stefan_oltmann.kim.Kim
 import de.stefan_oltmann.kim.common.ImageWriteException
 import de.stefan_oltmann.kim.common.convertToSummary
 import de.stefan_oltmann.kim.common.writeBytes
+import de.stefan_oltmann.kim.format.tiff.constant.TiffTag
 import de.stefan_oltmann.kim.model.ExifRating
 import de.stefan_oltmann.kim.model.GpsCoordinates
 import de.stefan_oltmann.kim.model.LocationShown
@@ -483,8 +484,30 @@ abstract class AbstractUpdaterTest(
 
         val metadata = assertNotNull(Kim.readMetadata(newBytes))
 
-        assertNull(metadata.exif)
-        assertNull(metadata.exifBytes)
+        /*
+         * The explicitly stored orientation survives the deletion - even
+         * when it is the unrotated 1 - as the only EXIF content left. A
+         * file without an orientation tag is clean of EXIF entirely,
+         * since the deletion fabricates no tag the file never stated.
+         */
+        val originalOrientation =
+            assertNotNull(Kim.readMetadata(originalBytes))
+                .findShortValue(TiffTag.TIFF_TAG_ORIENTATION)
+
+        if (originalOrientation == null) {
+
+            assertNull(metadata.exif)
+            assertNull(metadata.exifBytes)
+        } else {
+
+            assertEquals(
+                originalOrientation,
+                metadata.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)
+            )
+
+            assertNull(metadata.findStringValue(TiffTag.TIFF_TAG_MAKE))
+        }
+
         assertNull(metadata.iptc)
         assertNull(metadata.xmp)
     }

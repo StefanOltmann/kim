@@ -550,15 +550,18 @@ class WebpUpdaterTest : AbstractUpdaterTest("webp") {
         /* The ICC profile affects the display and must be kept. */
         assertTrue("ICCP" in chunkTypes)
 
-        /* The EXIF and XMP chunks must be removed. */
-        assertFalse("EXIF" in chunkTypes)
+        /*
+         * The original stores an explicit orientation, so the EXIF chunk
+         * survives as the minimal orientation chunk, while XMP goes.
+         */
+        assertTrue("EXIF" in chunkTypes)
         assertFalse("XMP " in chunkTypes)
 
         val vp8xChunk = vp8xChunk(newBytes)
 
         /* The VP8X flags must match the remaining chunks. */
         assertTrue(vp8xChunk.hasIcc)
-        assertFalse(vp8xChunk.hasExif)
+        assertTrue(vp8xChunk.hasExif)
         assertFalse(vp8xChunk.hasXmp)
     }
 
@@ -576,17 +579,21 @@ class WebpUpdaterTest : AbstractUpdaterTest("webp") {
             keepIccProfile = false
         )
 
+        /*
+         * The original stores an explicit orientation, so beside the
+         * container structure only the minimal EXIF chunk survives.
+         */
         assertEquals(
-            expected = setOf("VP8X", "VP8 "),
+            expected = setOf("VP8X", "VP8 ", "EXIF"),
             actual = chunkTypes(iccDroppedBytes),
-            message = "Only the container structure may survive the requested deletion."
+            message = "Only the container structure and the minimal orientation chunk may survive."
         )
 
         val vp8xChunk = vp8xChunk(iccDroppedBytes)
 
         /* The rebuilt flags must match the surviving chunks. */
         assertFalse(vp8xChunk.hasIcc)
-        assertFalse(vp8xChunk.hasExif)
+        assertTrue(vp8xChunk.hasExif)
         assertFalse(vp8xChunk.hasXmp)
     }
 

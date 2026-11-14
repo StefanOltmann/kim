@@ -40,11 +40,12 @@ import kotlin.test.assertNull
 
 /**
  * Tests the orientation preservation of [Kim.deleteMetadata]: with the
- * keepOrientationFlag on, the metadata container carrying a valid Exif
- * orientation (2-8) is replaced in place by a minimal structure
- * carrying only that value, so the rotation survives the removal. An
- * absent or unrotated (1) orientation writes nothing - per the
- * specification an absent tag means 1.
+ * keepOrientationFlag on, the metadata container carrying an explicitly
+ * stored Exif orientation (1-8) is replaced in place by a minimal
+ * structure carrying only that value, so the stored value survives the
+ * removal. Only an absent orientation - which per the specification
+ * means 1 - writes nothing: the deletion fabricates no tag the file
+ * never stated.
  */
 class KeepOrientationFlagTest {
 
@@ -62,6 +63,21 @@ class KeepOrientationFlagTest {
 
         outputSet.getOrCreateRootDirectory()
             .add(TiffTag.TIFF_TAG_ORIENTATION, orientation)
+
+        return outputSet.toTiffBytes()
+    }
+
+    /**
+     * Builds EXIF bytes carrying a Make field and no orientation tag,
+     * so the deletion can prove that an absent orientation fabricates
+     * nothing.
+     */
+    private fun exifBytesWithoutOrientation(): ByteArray {
+
+        val outputSet = TiffOutputSet()
+
+        outputSet.getOrCreateRootDirectory()
+            .add(TiffTag.TIFF_TAG_MAKE, "Canon")
 
         return outputSet.toTiffBytes()
     }
@@ -310,16 +326,56 @@ class KeepOrientationFlagTest {
     }
 
     /**
-     * An unrotated image (the committed original reads orientation 1)
-     * gains nothing from a written chunk - per the specification an
-     * absent tag means 1, so the deletion writes no eXIf chunk at all.
+     * An explicitly stored orientation survives the removal even when
+     * it is the unrotated 1: the committed original states the value,
+     * and the deletion must not drop a stated value. The minimal eXIf
+     * chunk replaces the original one and carries nothing else.
      */
     @Test
-    fun testPngWritesNoExifChunkWithoutRotation() {
+    fun testPngPreservesExplicitUnrotatedOrientation() {
 
         val newBytes = Kim.deleteMetadata(
             Resource("de/stefan_oltmann/kim/updates_png/original.png").readBytes()
         )
+
+        assertEquals(1, pngChunkTypes(newBytes).count { it == "eXIf" })
+
+        val metadata = Kim.readMetadata(newBytes)
+
+        assertEquals(1, metadata?.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)?.toInt())
+        assertNull(metadata?.findStringValue(TiffTag.TIFF_TAG_MAKE))
+    }
+
+    /**
+     * An EXIF container without an orientation tag fabricates nothing:
+     * per the specification an absent tag means 1, so writing a chunk
+     * for it would state nothing the file did not state itself, and the
+     * deletion writes no eXIf chunk at all.
+     */
+    @Test
+    fun testPngWritesNoExifChunkWhenOrientationIsAbsent() {
+
+        val byteWriter = ByteArrayByteWriter()
+
+        byteWriter.write(PngConstants.PNG_SIGNATURE)
+
+        writeChunk(
+            byteWriter = byteWriter,
+            typeName = "IHDR",
+            data = byteArrayOf(0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0)
+        )
+
+        writeChunk(
+            byteWriter = byteWriter,
+            typeName = "eXIf",
+            data = exifBytesWithoutOrientation()
+        )
+
+        writeChunk(byteWriter = byteWriter, typeName = "IDAT", data = byteArrayOf(1, 2, 3, 4))
+
+        writeChunk(byteWriter = byteWriter, typeName = "IEND", data = byteArrayOf())
+
+        val newBytes = Kim.deleteMetadata(byteWriter.toByteArray())
 
         assertEquals(0, pngChunkTypes(newBytes).count { it == "eXIf" })
     }
@@ -389,6 +445,21 @@ class KeepOrientationFlagTest {
     }
 
     /**
+     * JPEG: an explicitly stored unrotated orientation survives like a
+     * rotation does - the stated value is preserved, not dropped.
+     */
+    @Test
+    fun testJpegPreservesExplicitUnrotatedOrientation() {
+
+        val newBytes = Kim.deleteMetadata(jpegWithOrientation(TiffOrientation.STANDARD))
+
+        val metadata = Kim.readMetadata(newBytes)
+
+        assertEquals(1, metadata?.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)?.toInt())
+        assertNull(metadata?.findStringValue(TiffTag.TIFF_TAG_MAKE))
+    }
+
+    /**
      * WebP: the minimal EXIF chunk replaces the original one, and
      * everything besides the orientation is gone.
      */
@@ -404,6 +475,21 @@ class KeepOrientationFlagTest {
     }
 
     /**
+     * WebP: an explicitly stored unrotated orientation survives like a
+     * rotation does - the stated value is preserved, not dropped.
+     */
+    @Test
+    fun testWebPPreservesExplicitUnrotatedOrientation() {
+
+        val newBytes = Kim.deleteMetadata(webPWithOrientation(TiffOrientation.STANDARD))
+
+        val metadata = Kim.readMetadata(newBytes)
+
+        assertEquals(1, metadata?.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)?.toInt())
+        assertNull(metadata?.findStringValue(TiffTag.TIFF_TAG_MAKE))
+    }
+
+    /**
      * JXL: the minimal Exif box replaces the original one, and
      * everything besides the orientation is gone.
      */
@@ -415,6 +501,21 @@ class KeepOrientationFlagTest {
         val metadata = Kim.readMetadata(newBytes)
 
         assertEquals(6, metadata?.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)?.toInt())
+        assertNull(metadata?.findStringValue(TiffTag.TIFF_TAG_MAKE))
+    }
+
+    /**
+     * JXL: an explicitly stored unrotated orientation survives like a
+     * rotation does - the stated value is preserved, not dropped.
+     */
+    @Test
+    fun testJxlPreservesExplicitUnrotatedOrientation() {
+
+        val newBytes = Kim.deleteMetadata(jxlWithOrientation(TiffOrientation.STANDARD))
+
+        val metadata = Kim.readMetadata(newBytes)
+
+        assertEquals(1, metadata?.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)?.toInt())
         assertNull(metadata?.findStringValue(TiffTag.TIFF_TAG_MAKE))
     }
 

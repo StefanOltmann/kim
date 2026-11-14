@@ -108,21 +108,32 @@ class JpegExifHeaderVariantsTest {
     }
 
     /**
-     * The deletion must remove the variant EXIF segment like the clean
+     * The deletion must handle the variant EXIF segment like the clean
      * one: the tolerant header match is shared between the read and the
-     * delete decision, so a variant header can never survive the
-     * deletion of the metadata the read still parses.
+     * delete decision, so a variant header can never survive as stale
+     * metadata the read still parses. The variant segment of the
+     * fixture carries an explicitly stored orientation, which survives
+     * as the minimal standard segment - the variant header form is
+     * normalized, the stated value is not dropped.
      */
     @Test
-    fun testDeleteMetadataRemovesVariantExifSegment() {
+    fun testDeleteMetadataRewritesVariantExifSegmentToMinimalExif() {
 
         val deletedBytes = Kim.deleteMetadata(
             bytes = KimTestData.getBytesOf("exif_header_variant.jpg")
         )
 
+        val metadata = assertNotNull(Kim.readMetadata(deletedBytes))
+
+        assertEquals(
+            1,
+            metadata.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)?.toInt(),
+            "The explicitly stored orientation of the variant segment must survive."
+        )
+
         assertNull(
-            assertNotNull(Kim.readMetadata(deletedBytes)).exif,
-            "The variant EXIF segment must not survive the deletion."
+            metadata.findStringValue(TiffTag.TIFF_TAG_MAKE),
+            "The variant EXIF segment must be reduced to the orientation."
         )
     }
 

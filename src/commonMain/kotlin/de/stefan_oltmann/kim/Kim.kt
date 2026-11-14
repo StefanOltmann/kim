@@ -658,24 +658,25 @@ public object Kim {
      * it renders Adobe RGB and CMYK files with wrong colors - ExifTool
      * protects the segment from "-all=" for the same reason.
      *
-     * With [keepOrientationFlag] a valid Exif orientation value (2-8)
-     * survives the removal: the metadata container carrying it is
-     * replaced in place by a minimal structure carrying only that value,
-     * so the rotation is not lost with the rest of the metadata. PNG
-     * also reads the orientation from the legacy text representation
-     * ("Raw profile type exif") and modernizes it into an eXIf chunk.
+     * With [keepOrientationFlag] an explicitly stored Exif orientation
+     * value (1-8) survives the removal: the metadata container carrying
+     * it is replaced in place by a minimal structure carrying only that
+     * value, so the stored rotation is not lost with the rest of the
+     * metadata. PNG also reads the orientation from the legacy text
+     * representation ("Raw profile type exif") and modernizes it into
+     * an eXIf chunk.
      *
      * A legacy representation behind the image data cannot be
      * modernized, because the stream has already passed the IDAT
      * chunks: the deletion drops it like every metadata chunk, and the
      * rotation it may carry is lost.
      *
-     * An absent or unrotated (1) orientation writes nothing - per the
-     * specification an absent tag means 1. The metadata container
-     * carrying the orientation must be parseable, so a corrupt EXIF
-     * payload fails the operation instead of losing the rotation
-     * silently. Formats without an orientation concept (GIF) ignore the
-     * parameter.
+     * An absent orientation writes nothing - per the specification an
+     * absent tag means 1, and the deletion fabricates no tag the file
+     * never stated. The metadata container carrying the orientation
+     * must be parseable, so a corrupt EXIF payload fails the operation
+     * instead of losing the rotation silently. Formats without an
+     * orientation concept (GIF) ignore the parameter.
      *
      * For JPG the metadata segments behind the image data are removed as
      * well, and the file ends at the structural EOI marker: every byte
@@ -744,24 +745,25 @@ public object Kim {
      * it renders Adobe RGB and CMYK files with wrong colors - ExifTool
      * protects the segment from "-all=" for the same reason.
      *
-     * With [keepOrientationFlag] a valid Exif orientation value (2-8)
-     * survives the removal: the metadata container carrying it is
-     * replaced in place by a minimal structure carrying only that value,
-     * so the rotation is not lost with the rest of the metadata. PNG
-     * also reads the orientation from the legacy text representation
-     * ("Raw profile type exif") and modernizes it into an eXIf chunk.
+     * With [keepOrientationFlag] an explicitly stored Exif orientation
+     * value (1-8) survives the removal: the metadata container carrying
+     * it is replaced in place by a minimal structure carrying only that
+     * value, so the stored rotation is not lost with the rest of the
+     * metadata. PNG also reads the orientation from the legacy text
+     * representation ("Raw profile type exif") and modernizes it into
+     * an eXIf chunk.
      *
      * A legacy representation behind the image data cannot be
      * modernized, because the stream has already passed the IDAT
      * chunks: the deletion drops it like every metadata chunk, and the
      * rotation it may carry is lost.
      *
-     * An absent or unrotated (1) orientation writes nothing - per the
-     * specification an absent tag means 1. The metadata container
-     * carrying the orientation must be parseable, so a corrupt EXIF
-     * payload fails the operation instead of losing the rotation
-     * silently. Formats without an orientation concept (GIF) ignore the
-     * parameter.
+     * An absent orientation writes nothing - per the specification an
+     * absent tag means 1, and the deletion fabricates no tag the file
+     * never stated. The metadata container carrying the orientation
+     * must be parseable, so a corrupt EXIF payload fails the operation
+     * instead of losing the rotation silently. Formats without an
+     * orientation concept (GIF) ignore the parameter.
      *
      * For JPG the metadata segments behind the image data are removed as
      * well, and the file ends at the structural EOI marker: every byte

@@ -65,11 +65,12 @@ import kotlin.test.assertTrue
 class JpegDeleteMetadataKeepSetTest {
 
     /**
-     * The header keeps the Adobe APP14 segment and the ICC chunks: the
+     * The header keeps the Adobe APP14 segment, the ICC chunks and the
+     * minimal EXIF segment of the explicitly stored orientation: the
      * ColorTransform flag of the APP14 segment tells the decoder how to
      * interpret the DCT data, and losing it renders Adobe RGB and CMYK
      * files with wrong colors. The JFIF APP0 segment, the foreign APP7
-     * payload, the comment and the EXIF segment are metadata and go.
+     * payload and the comment are metadata and go.
      */
     @Test
     fun testDeleteMetadataKeepsAdobeApp14InTheHeader() {
@@ -90,7 +91,12 @@ class JpegDeleteMetadataKeepSetTest {
             exifBytes + app14Bytes + SCAN_HEADER_BYTES + entropyBytes +
             EOI + TRAILER_BYTES
 
-        val expectedBytes = SOI + app14Bytes + SCAN_HEADER_BYTES + entropyBytes + EOI
+        /*
+         * The explicit unrotated orientation 1 survives as the minimal
+         * segment at the position of the original one - the rewritten
+         * payload is byte-identical to the built one.
+         */
+        val expectedBytes = SOI + exifBytes + app14Bytes + SCAN_HEADER_BYTES + entropyBytes + EOI
 
         val deletedBytes = Kim.deleteMetadata(inputBytes)
 
@@ -121,8 +127,9 @@ class JpegDeleteMetadataKeepSetTest {
     }
 
     /**
-     * Builds EXIF bytes carrying nothing but an unrotated orientation
-     * value, so the deletion can parse the segment and drop it.
+     * Builds EXIF bytes carrying nothing but an explicit unrotated
+     * orientation value of 1, which survives the deletion as the
+     * minimal segment.
      */
     private fun minimalExifBytes(): ByteArray {
 
@@ -183,11 +190,11 @@ class JpegDeleteMetadataKeepSetTest {
     /**
      * The whole corpus pins the keep-set: after the deletion only ICC
      * PROFILE chunks of one complete healthy run, the Adobe APP14
-     * segments and - for files whose EXIF carries a rotation (2-8) - the
-     * minimal orientation EXIF segment remain, and the read no longer
-     * finds IPTC or XMP in any file, nor any EXIF field besides the
-     * orientation. The four files the full scan rejects end inside their
-     * image data and fail the deletion.
+     * segments and - for files whose EXIF carries an explicitly stored
+     * orientation (1-8) - the minimal orientation EXIF segment remain,
+     * and the read no longer finds IPTC or XMP in any file, nor any
+     * EXIF field besides the orientation. The four files the full scan
+     * rejects end inside their image data and fail the deletion.
      */
     @Test
     fun testDeleteMetadataLeavesOnlyTheKnownIccInTheCorpus() {
@@ -209,8 +216,10 @@ class JpegDeleteMetadataKeepSetTest {
 
             /*
              * The orientation of the source file decides whether the
-             * deletion writes a minimal EXIF segment at all: an absent or
-             * unrotated (1) tag means nothing worth writing.
+             * deletion writes a minimal EXIF segment at all: an absent
+             * tag means nothing worth writing - per the specification an
+             * absent tag means 1 - while an explicitly stored value,
+             * including an explicit 1, survives.
              */
             val orientationExifBytes = minimalOrientationExifBytes(
                 Kim.readMetadata(bytes)?.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)
@@ -305,9 +314,10 @@ class JpegDeleteMetadataKeepSetTest {
 
     /**
      * The ICC profile is the only APP payload the default deletion keeps
-     * beside the Adobe APP14 segment: media_34 carries both, and with
-     * the profile dropped only the decoding directive survives - not the
-     * ICC chunks.
+     * beside the Adobe APP14 segment and the minimal orientation EXIF
+     * segment: media_34 carries both, and with the profile dropped only
+     * the decoding directive and the minimal orientation segment survive
+     * - not the ICC chunks.
      */
     @Test
     fun testDeleteMetadataKeepsIccChunksByDefaultAndDropsOnRequest() {
@@ -328,12 +338,29 @@ class JpegDeleteMetadataKeepSetTest {
         val (droppedSegments, _) =
             JpegUtils.readSegments(ByteArrayByteReader(iccDroppedBytes))
 
+        /*
+         * media_34 stores an explicit orientation, so beside the
+         * decoding directive only the minimal orientation EXIF segment
+         * survives.
+         */
+        val orientationExifBytes = minimalOrientationExifBytes(
+            Kim.readMetadata(KimTestData.getBytesOf(34))
+                ?.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)
+        )
+
         assertTrue(
             droppedSegments.all { segment ->
-                !segment.isAppSegment() || segment.marker == JPEG_APP14_MARKER
+                !segment.isAppSegment() ||
+                    segment.marker == JPEG_APP14_MARKER ||
+                    (segment.marker == JPEG_APP1_MARKER &&
+                        orientationExifBytes != null &&
+                        segment.segmentBytes.contentEquals(
+                            EXIF_IDENTIFIER_BYTES + orientationExifBytes
+                        ))
             },
             "The requested deletion must drop every APP segment but the " +
-                "Adobe APP14 decoding directive."
+                "Adobe APP14 decoding directive and the minimal orientation " +
+                "EXIF segment."
         )
     }
 

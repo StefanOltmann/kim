@@ -121,8 +121,9 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
     }
 
     /**
-     * Verifies that deleting the metadata removes the EXIF and text chunks,
-     * but keeps the iCCP chunk that affects how the image is displayed.
+     * Verifies that deleting the metadata reduces the EXIF to the
+     * minimal orientation chunk, removes the text chunks, and keeps the
+     * iCCP chunk that affects how the image is displayed.
      */
     @Test
     fun testDeleteMetadataKeepsIccChunk() {
@@ -134,8 +135,11 @@ class PngUpdaterTest : AbstractUpdaterTest("png") {
         /* The ICC profile affects the display and must be kept. */
         assertTrue("iCCP" in chunkTypes)
 
-        /* The EXIF chunk must be removed. */
-        assertFalse("eXIf" in chunkTypes)
+        /*
+         * The original stores an explicit orientation, so the eXIf chunk
+         * survives as the minimal orientation chunk.
+         */
+        assertTrue("eXIf" in chunkTypes)
 
         /* The text chunks carry XMP, IPTC and comments. */
         assertFalse("tEXt" in chunkTypes)

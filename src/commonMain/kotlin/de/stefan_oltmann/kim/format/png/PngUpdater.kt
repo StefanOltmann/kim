@@ -230,9 +230,11 @@ internal object PngUpdater : MetadataUpdater {
              * the image data were parsed, so the rotation is known here:
              * the EXIF container is replaced in place by a minimal chunk
              * carrying only the orientation value, and every other
-             * metadata chunk goes. An absent or unrotated (1) orientation
-             * writes nothing - per the specification an absent tag means
-             * 1. The legacy text Exif chunks are modernized the same way.
+             * metadata chunk goes. An absent orientation writes nothing
+             * - per the specification an absent tag means 1 - while an
+             * explicitly stored value, including an explicit 1,
+             * survives. The legacy text Exif chunks are modernized the
+             * same way.
              */
             val orientation = if (keepOrientationFlag)
                 PngImageParser.parseMetadataFromChunks(healthyChunks)
