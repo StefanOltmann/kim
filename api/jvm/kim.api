@@ -1,9 +1,9 @@
 public final class de/stefan_oltmann/kim/Kim {
 	public static final field INSTANCE Lde/stefan_oltmann/kim/Kim;
-	public static final fun deleteMetadata (Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;Z)V
-	public static final fun deleteMetadata ([BZ)[B
-	public static synthetic fun deleteMetadata$default (Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;ZILjava/lang/Object;)V
-	public static synthetic fun deleteMetadata$default ([BZILjava/lang/Object;)[B
+	public static final fun deleteMetadata (Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;ZZ)V
+	public static final fun deleteMetadata ([BZZ)[B
+	public static synthetic fun deleteMetadata$default (Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;ZZILjava/lang/Object;)V
+	public static synthetic fun deleteMetadata$default ([BZZILjava/lang/Object;)[B
 	public static final fun deleteThumbnail ([B)[B
 	public static final fun extractMetadataBytes (Lde/stefan_oltmann/kim/input/ByteReader;)Lkotlin/Pair;
 	public static final fun extractPreviewImage (Lde/stefan_oltmann/kim/input/ByteReader;)[B
@@ -218,8 +218,8 @@ public abstract interface class de/stefan_oltmann/kim/format/MetadataExtractor {
 
 public abstract interface class de/stefan_oltmann/kim/format/MetadataUpdater {
 	public static final field Companion Lde/stefan_oltmann/kim/format/MetadataUpdater$Companion;
-	public abstract fun deleteMetadata (Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;Z)V
-	public static synthetic fun deleteMetadata$default (Lde/stefan_oltmann/kim/format/MetadataUpdater;Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;ZILjava/lang/Object;)V
+	public abstract fun deleteMetadata (Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;ZZ)V
+	public static synthetic fun deleteMetadata$default (Lde/stefan_oltmann/kim/format/MetadataUpdater;Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;ZZILjava/lang/Object;)V
 	public abstract fun deleteThumbnail ([B)[B
 	public abstract fun update (Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;Ljava/util/Set;)V
 	public abstract fun updateThumbnail ([B[B)[B
@@ -230,7 +230,7 @@ public final class de/stefan_oltmann/kim/format/MetadataUpdater$Companion {
 }
 
 public final class de/stefan_oltmann/kim/format/MetadataUpdater$DefaultImpls {
-	public static synthetic fun deleteMetadata$default (Lde/stefan_oltmann/kim/format/MetadataUpdater;Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;ZILjava/lang/Object;)V
+	public static synthetic fun deleteMetadata$default (Lde/stefan_oltmann/kim/format/MetadataUpdater;Lde/stefan_oltmann/kim/input/ByteReader;Lde/stefan_oltmann/kim/output/ByteWriter;ZZILjava/lang/Object;)V
 }
 
 public abstract interface class de/stefan_oltmann/kim/format/TiffPreviewExtractor {
@@ -1066,14 +1066,17 @@ public final class de/stefan_oltmann/kim/format/png/chunk/PngChunkIhdr : de/stef
 }
 
 public final class de/stefan_oltmann/kim/format/png/chunk/PngChunkItxt : de/stefan_oltmann/kim/format/png/chunk/PngTextChunk {
-	public static final field COMPRESSION_FIELDS_LENGTH I
+	public static final field Companion Lde/stefan_oltmann/kim/format/png/chunk/PngChunkItxt$Companion;
 	public final field keyword Ljava/lang/String;
 	public field text Ljava/lang/String;
-	public fun <init> ([BI)V
+	public synthetic fun <init> ([BILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getKeyword ()Ljava/lang/String;
 	public final fun getLanguageTag ()Ljava/lang/String;
 	public fun getText ()Ljava/lang/String;
 	public final fun getTranslatedKeyword ()Ljava/lang/String;
+}
+
+public final class de/stefan_oltmann/kim/format/png/chunk/PngChunkItxt$Companion {
 }
 
 public final class de/stefan_oltmann/kim/format/png/chunk/PngChunkText : de/stefan_oltmann/kim/format/png/chunk/PngTextChunk {
@@ -1085,11 +1088,15 @@ public final class de/stefan_oltmann/kim/format/png/chunk/PngChunkText : de/stef
 }
 
 public final class de/stefan_oltmann/kim/format/png/chunk/PngChunkZtxt : de/stefan_oltmann/kim/format/png/chunk/PngTextChunk {
+	public static final field Companion Lde/stefan_oltmann/kim/format/png/chunk/PngChunkZtxt$Companion;
 	public final field keyword Ljava/lang/String;
 	public final field text Ljava/lang/String;
-	public fun <init> ([BI)V
+	public synthetic fun <init> ([BILjava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getKeyword ()Ljava/lang/String;
 	public fun getText ()Ljava/lang/String;
+}
+
+public final class de/stefan_oltmann/kim/format/png/chunk/PngChunkZtxt$Companion {
 }
 
 public abstract class de/stefan_oltmann/kim/format/png/chunk/PngTextChunk : de/stefan_oltmann/kim/format/png/chunk/PngChunk {
@@ -13355,8 +13362,8 @@ public final class de/stefan_oltmann/kim/format/webp/WebPImageParser : de/stefan
 	public static final field INSTANCE Lde/stefan_oltmann/kim/format/webp/WebPImageParser;
 	public fun parseMetadata (Lde/stefan_oltmann/kim/input/ByteReader;)Lde/stefan_oltmann/kim/format/MediaMetadata;
 	public static final fun parseMetadataFromChunks (Ljava/util/List;)Lde/stefan_oltmann/kim/format/MediaMetadata;
-	public final fun readChunks (Lde/stefan_oltmann/kim/input/ByteReader;Z)Ljava/util/List;
-	public static synthetic fun readChunks$default (Lde/stefan_oltmann/kim/format/webp/WebPImageParser;Lde/stefan_oltmann/kim/input/ByteReader;ZILjava/lang/Object;)Ljava/util/List;
+	public final fun readChunks (Lde/stefan_oltmann/kim/input/ByteReader;ZLjava/util/List;)Ljava/util/List;
+	public static synthetic fun readChunks$default (Lde/stefan_oltmann/kim/format/webp/WebPImageParser;Lde/stefan_oltmann/kim/input/ByteReader;ZLjava/util/List;ILjava/lang/Object;)Ljava/util/List;
 }
 
 public final class de/stefan_oltmann/kim/format/webp/WebPWriter {

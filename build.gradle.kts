@@ -641,4 +641,12 @@ val checkCopyrightNotices: TaskProvider<Task> = tasks.register("checkCopyrightNo
 }
 // endregion
 
+// region Ensure API check runs
+/*
+ * Do the API check before the unit tests. The wiring lives after the
+ * Kotlin block because the target tasks only exist once it ran.
+ */
+tasks.named("jvmTest") {
+    dependsOn(tasks.named("jvmApiCheck"))
+}
 // endregion
