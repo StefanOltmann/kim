@@ -684,7 +684,10 @@ public object Kim {
      * inside its image data without the structural EOI marker fails the
      * operation, because its image data cannot be separated from the
      * metadata behind it. For PNG the file ends at the structural IEND
-     * marker the same way: every byte behind it is discarded.
+     * marker the same way: every byte behind it is discarded. A PNG
+     * whose bytes end before the structural IEND marker is truncated
+     * and fails the operation, because the rewrite would produce an
+     * incomplete file.
      *
      * Display chunks like gAMA, sRGB and pHYs survive the deletion:
      * removing them changes color rendering and display size. ExifTool's
@@ -771,7 +774,10 @@ public object Kim {
      * inside its image data without the structural EOI marker fails the
      * operation, because its image data cannot be separated from the
      * metadata behind it. For PNG the file ends at the structural IEND
-     * marker the same way: every byte behind it is discarded.
+     * marker the same way: every byte behind it is discarded. A PNG
+     * whose bytes end before the structural IEND marker is truncated
+     * and fails the operation, because the rewrite would produce an
+     * incomplete file.
      *
      * Display chunks like gAMA, sRGB and pHYs survive the deletion:
      * removing them changes color rendering and display size. ExifTool's

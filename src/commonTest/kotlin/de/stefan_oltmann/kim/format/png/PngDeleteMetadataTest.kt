@@ -147,6 +147,46 @@ class PngDeleteMetadataTest {
     }
 
     /**
+     * A PNG whose bytes end before the structural IEND marker is
+     * truncated: the mandatory end marker is missing, so the structure
+     * is incomplete - ExifTool reports "Truncated PNG image" for the
+     * same fixture. The deletion fails instead of writing an output
+     * without IEND.
+     */
+    @Test
+    fun testDeleteMetadataFailsOnPngTruncatedBeforeIEND() {
+
+        val completeBytes = buildPng(emptyList())
+
+        /* The IEND chunk is 12 bytes: length, type, CRC. */
+        val truncatedBytes = completeBytes.copyOfRange(0, completeBytes.size - 12)
+
+        assertFailsWith<ImageWriteException> {
+            Kim.deleteMetadata(truncatedBytes)
+        }
+    }
+
+    /**
+     * The update fails on a PNG truncated before the structural IEND
+     * marker as well: streaming the rewrite would produce an output
+     * without the mandatory end marker, which is never written.
+     */
+    @Test
+    fun testUpdateFailsOnPngTruncatedBeforeIEND() {
+
+        val completeBytes = buildPng(emptyList())
+
+        val truncatedBytes = completeBytes.copyOfRange(0, completeBytes.size - 12)
+
+        assertFailsWith<ImageWriteException> {
+            Kim.update(
+                bytes = truncatedBytes,
+                update = MetadataUpdate.Orientation(TiffOrientation.ROTATE_RIGHT)
+            )
+        }
+    }
+
+    /**
      * A legacy text Exif representation behind the image data cannot be
      * modernized: an eXIf chunk must precede the IDAT chunks, and the
      * streaming deletion has already passed them. The decided behavior

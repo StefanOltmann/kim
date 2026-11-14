@@ -230,7 +230,9 @@ public object PngWriter {
      * With [discardBehindImageEndMarker] the structural IEND marker ends
      * the output: the marker itself is written and the walk returns
      * instead of parsing the bytes behind it. Without it the chunks
-     * behind the marker stream through like every other chunk.
+     * behind the marker stream through like every other chunk. In both
+     * modes a stream that ends before the marker is truncated and fails
+     * the walk: the rewrite would produce an incomplete file.
      *
      * Attention: A candidate text chunk whose content cannot be parsed
      * fails the write instead of being dropped, so a rewrite never
@@ -246,13 +248,34 @@ public object PngWriter {
         discardBehindImageEndMarker: Boolean
     ) {
 
+        /*
+         * The structural IEND marker is the only valid end of the stream:
+         * the flag distinguishes the update walk's normal termination
+         * from a file truncated before the marker, whose rewrite would
+         * produce an incomplete output.
+         */
+        var endMarkerWritten = false
+
         while (true) {
 
             val header = byteReader.readBytes(CHUNK_HEADER_LENGTH)
 
-            /* A clean end of the stream. */
-            if (header.isEmpty())
-                return
+            /*
+             * A clean end of the stream is only complete when the
+             * structural IEND marker was written: a file whose bytes end
+             * before it is truncated like a file ending inside a chunk
+             * header, and is rejected instead of producing an incomplete
+             * output.
+             */
+            if (header.isEmpty()) {
+
+                if (endMarkerWritten)
+                    return
+
+                throw ImageReadException(
+                    "Truncated PNG file: the bytes end before the structural IEND marker."
+                )
+            }
 
             /*
              * A partial chunk header means the file is truncated. Copying
@@ -340,6 +363,9 @@ public object PngWriter {
                 byteWriter.write(header)
 
                 byteReader.transferExactly(byteWriter, totalLength)
+
+                if (chunkType == PngChunkType.IEND)
+                    endMarkerWritten = true
             }
         }
     }
