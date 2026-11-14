@@ -184,7 +184,10 @@ internal object PngUpdater : MetadataUpdater {
          * because it affects how the image is displayed and stays in the
          * file. With orientation preservation the EXIF containers and
          * the legacy text Exif chunks are parsed as well, since the
-         * rotation has to be known before they go.
+         * rotation has to be known before they go. A legacy text Exif
+         * chunk behind the image data cannot be modernized - the stream
+         * has already passed the IDAT chunks - so it is dropped like
+         * every metadata chunk and the rotation it may carry is lost.
          */
         val skippedChunkTypes = buildList {
 

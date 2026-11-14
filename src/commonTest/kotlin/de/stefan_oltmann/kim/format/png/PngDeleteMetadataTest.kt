@@ -147,6 +147,29 @@ class PngDeleteMetadataTest {
     }
 
     /**
+     * A legacy text Exif representation behind the image data cannot be
+     * modernized: an eXIf chunk must precede the IDAT chunks, and the
+     * streaming deletion has already passed them. The decided behavior
+     * is a silent loss: the chunk is dropped like every metadata chunk,
+     * and the rotation it may carry is gone instead of failing the
+     * deletion for a representation that is rare in practice.
+     */
+    @Test
+    fun testDeleteMetadataDropsLegacyExifTextBehindImageData() {
+
+        val baseBytes = buildPng(
+            chunks = emptyList(),
+            trailingChunks = listOf(
+                "tEXt" to "Raw profile type exif\u0000test-payload".encodeToByteArray()
+            )
+        )
+
+        val newBytes = Kim.deleteMetadata(baseBytes)
+
+        assertEquals(listOf("IHDR", "IDAT", "IEND"), storedChunkTypes(newBytes))
+    }
+
+    /**
      * An update is conservative: the well-formed chunk appended behind
      * the structural IEND marker survives byte-exact, like ExifTool
      * preserves trailing data on targeted edits. The deletion cuts the
@@ -251,9 +274,13 @@ class PngDeleteMetadataTest {
 
     /**
      * Builds a minimal PNG: the given chunks sit between the IHDR chunk
-     * and the image data of a 1x1 pixel image.
+     * and the image data of a 1x1 pixel image, the trailing chunks sit
+     * between the image data and the IEND marker.
      */
-    private fun buildPng(chunks: List<Pair<String, ByteArray>>): ByteArray {
+    private fun buildPng(
+        chunks: List<Pair<String, ByteArray>>,
+        trailingChunks: List<Pair<String, ByteArray>> = emptyList()
+    ): ByteArray {
 
         val byteWriter = ByteArrayByteWriter()
 
@@ -270,6 +297,9 @@ class PngDeleteMetadataTest {
             writeChunk(byteWriter = byteWriter, typeName = typeName, data = data)
 
         writeChunk(byteWriter = byteWriter, typeName = "IDAT", data = byteArrayOf(1, 2, 3, 4))
+
+        for ((typeName, data) in trailingChunks)
+            writeChunk(byteWriter = byteWriter, typeName = typeName, data = data)
 
         writeChunk(byteWriter = byteWriter, typeName = "IEND", data = byteArrayOf())
 
