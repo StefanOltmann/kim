@@ -157,8 +157,10 @@ public object PngWriter {
      *
      * The [skippedChunkTypes] are consumed without being kept, verified
      * or decompressed: deletion passes the chunk types it discards, so
-     * their payloads cannot fail the write. The EXIF containers are the
-     * one exception when the orientation is preserved - their payload
+     * their payloads cannot fail the write. The skip applies to the
+     * whole stream, so a discarded chunk behind the image data cannot
+     * survive the deletion either. The EXIF containers are the one
+     * exception when the orientation is preserved - their payload
      * must be parseable, so the rotation can be read from it.
      *
      * With [discardBehindImageEndMarker] the file ends at the structural
@@ -215,6 +217,7 @@ public object PngWriter {
         copyChunksSkippingMetadata(
             byteReader,
             byteWriter,
+            skippedChunkTypes,
             staleFilter,
             failOnStaleMetadata,
             discardBehindImageEndMarker
@@ -226,6 +229,12 @@ public object PngWriter {
      * those that [staleFilter] identifies as stale duplicates of rewritten
      * metadata. All other chunks - including unknown ones and text chunks
      * unrelated to the change - stream through untouched.
+     *
+     * Chunks of a type in [skippedChunkTypes] are consumed without being
+     * kept, verified or decompressed, like the skip before the image
+     * data: the deletion discards these types wherever the file carries
+     * them, so a discarded payload behind the image data cannot stay in
+     * the output or fail the write.
      *
      * With [discardBehindImageEndMarker] the structural IEND marker ends
      * the output: the marker itself is written and the walk returns
@@ -243,6 +252,7 @@ public object PngWriter {
     private fun copyChunksSkippingMetadata(
         byteReader: ByteReader,
         byteWriter: ByteWriter,
+        skippedChunkTypes: List<PngChunkType>,
         staleFilter: StaleChunkFilter,
         failOnStaleMetadata: Boolean,
         discardBehindImageEndMarker: Boolean
@@ -308,6 +318,20 @@ public object PngWriter {
                 byteReader.transferExactly(byteWriter, dataLength.toLong() + CRC_LENGTH)
 
                 return
+            }
+
+            /*
+             * A discarded chunk type is consumed wherever the file
+             * carries it: the payload and CRC are read to keep the
+             * stream in sync, but not written, verified or decompressed,
+             * like the skip before the image data. Truncation fails the
+             * walk loudly instead of ending the output silently.
+             */
+            if (chunkType in skippedChunkTypes) {
+
+                byteReader.transferExactly(null, dataLength.toLong() + CRC_LENGTH)
+
+                continue
             }
 
             if (StaleChunkFilter.isMetadataChunkType(chunkType)) {
