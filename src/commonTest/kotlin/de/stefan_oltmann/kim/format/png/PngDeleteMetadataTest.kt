@@ -107,6 +107,83 @@ class PngDeleteMetadataTest {
     }
 
     /**
+     * An iCCP chunk behind the image data is dropped like one before it:
+     * the deletion's skip of the discarded chunk types must not stop at
+     * the first IDAT chunk, otherwise a successful deletion would leave
+     * the profile the caller asked to remove in the file.
+     */
+    @Test
+    fun testDeleteMetadataDropsIccpBehindImageData() {
+
+        val newBytes = Kim.deleteMetadata(
+            buildPng(
+                chunks = emptyList(),
+                trailingChunks = listOf("iCCP" to malformedIccpPayload)
+            ),
+            keepIccProfile = false
+        )
+
+        assertEquals(listOf("IHDR", "IDAT", "IEND"), storedChunkTypes(newBytes))
+    }
+
+    /**
+     * The skip behind the image data also consumes without reading the
+     * payload: a discarded decompression bomb in the tail cannot trip
+     * the deletion, like it cannot before the image data.
+     */
+    @Test
+    fun testDeleteMetadataSkipsIccpDecompressionBombBehindImageData() {
+
+        val newBytes = Kim.deleteMetadata(
+            buildPng(
+                chunks = emptyList(),
+                trailingChunks = listOf("iCCP" to bombIccpPayload)
+            ),
+            keepIccProfile = false
+        )
+
+        assertEquals(listOf("IHDR", "IDAT", "IEND"), storedChunkTypes(newBytes))
+    }
+
+    /**
+     * A kept iCCP chunk behind the image data streams through byte-exact
+     * at its original position: the deletion never interprets ICC
+     * content, and preservation is not limited to the profile before the
+     * image data.
+     */
+    @Test
+    fun testDeleteMetadataPreservesIccpBehindImageDataWhenKept() {
+
+        val trailingWriter = ByteArrayByteWriter()
+
+        writeChunk(
+            byteWriter = trailingWriter,
+            typeName = "iCCP",
+            data = malformedIccpPayload
+        )
+
+        val trailingBytes = trailingWriter.toByteArray()
+
+        val newBytes = Kim.deleteMetadata(
+            buildPng(
+                chunks = emptyList(),
+                trailingChunks = listOf("iCCP" to malformedIccpPayload)
+            )
+        )
+
+        /* The IEND chunk is 12 bytes: length, type, CRC. */
+        val outputTailWithoutIend = newBytes.size - 12
+
+        assertContentEquals(
+            trailingBytes,
+            newBytes.copyOfRange(
+                outputTailWithoutIend - trailingBytes.size,
+                outputTailWithoutIend
+            )
+        )
+    }
+
+    /**
      * The structural IEND marker ends the file: a well-formed chunk
      * appended behind it belongs to other tools and is discarded, like
      * the bytes behind the JPEG structural EOI marker.
